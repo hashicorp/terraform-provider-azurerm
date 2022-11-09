@@ -49,7 +49,7 @@ func resourceAutomanageConfigurationProfileAssignment() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"configuration_profile": {
+			"configuration_profile_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -97,7 +97,7 @@ func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *pluginsdk.R
 
 	parameters := automanage.ConfigurationProfileAssignment{
 		Properties: &automanage.ConfigurationProfileAssignmentProperties{
-			ConfigurationProfile: utils.String(d.Get("configuration_profile").(string)),
+			ConfigurationProfile: utils.String(d.Get("configuration_profile_id").(string)),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, name, parameters, resourceGroup, vmName); err != nil {
@@ -131,7 +131,7 @@ func resourceAutomanageConfigurationProfileAssignmentRead(d *pluginsdk.ResourceD
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("vm_name", id.VirtualMachineName)
 	if props := resp.Properties; props != nil {
-		d.Set("configuration_profile", props.ConfigurationProfile)
+		d.Set("configuration_profile_id", props.ConfigurationProfile)
 		d.Set("target_id", props.TargetID)
 	}
 	d.Set("managed_by", resp.ManagedBy)

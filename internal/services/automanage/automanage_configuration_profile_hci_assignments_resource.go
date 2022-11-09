@@ -49,7 +49,7 @@ func resourceAutomanageConfigurationProfileHCIAssignment() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"configuration_profile": {
+			"configuration_profile_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -97,7 +97,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *pluginsd
 
 	parameters := automanage.ConfigurationProfileAssignment{
 		Properties: &automanage.ConfigurationProfileAssignmentProperties{
-			ConfigurationProfile: utils.String(d.Get("configuration_profile").(string)),
+			ConfigurationProfile: utils.String(d.Get("configuration_profile_id").(string)),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, clusterName, name); err != nil {
@@ -131,7 +131,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentRead(d *pluginsdk.Resour
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cluster_name", id.ClusterName)
 	if props := resp.Properties; props != nil {
-		d.Set("configuration_profile", props.ConfigurationProfile)
+		d.Set("configuration_profile_id", props.ConfigurationProfile)
 		d.Set("target_id", props.TargetID)
 	}
 	d.Set("managed_by", resp.ManagedBy)

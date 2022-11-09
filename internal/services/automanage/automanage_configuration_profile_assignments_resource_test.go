@@ -163,10 +163,10 @@ func (r AutomanageConfigurationProfileAssignmentResource) requiresImport(data ac
 %s
 
 resource "azurerm_automanage_configuration_profile_assignment" "import" {
-  name                  = azurerm_automanage_configuration_profile_assignment.test.name
-  resource_group_name   = azurerm_automanage_configuration_profile_assignment.test.resource_group_name
-  vm_name               = azurerm_automanage_configuration_profile_assignment.test.vm_name
-  configuration_profile = azurerm_automanage_configuration_profile_assignment.test.configuration_profile
+  name                     = azurerm_automanage_configuration_profile_assignment.test.name
+  resource_group_name      = azurerm_automanage_configuration_profile_assignment.test.resource_group_name
+  vm_name                  = azurerm_automanage_configuration_profile_assignment.test.vm_name
+  configuration_profile_id = azurerm_automanage_configuration_profile_assignment.test.configuration_profile_id
 }
 `, config)
 }
@@ -177,10 +177,10 @@ func (r AutomanageConfigurationProfileAssignmentResource) complete(data acceptan
 %s
 
 resource "azurerm_automanage_configuration_profile_assignment" "test" {
-  name                  = "default"
-  resource_group_name   = azurerm_resource_group.test.name
-  vm_name               = azurerm_virtual_machine.test.name
-  configuration_profile = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
+  name                     = "default"
+  resource_group_name      = azurerm_resource_group.test.name
+  vm_name                  = azurerm_virtual_machine.test.name
+  configuration_profile_id = "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction"
 }
 `, template)
 }

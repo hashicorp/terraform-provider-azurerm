@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) The name of the Arc machine. Changing this forces a new automanage ConfigurationProfileHCIAssignment to be created.
 
-* `configuration_profile` - (Required) The Automanage configurationProfile ARM Resource URI.
+* `configuration_profile_id` - (Required) The Automanage configurationProfile ARM Resource URI.
 
 ## Attributes Reference
 

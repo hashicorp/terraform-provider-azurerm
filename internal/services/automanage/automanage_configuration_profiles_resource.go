@@ -48,7 +48,7 @@ func resourceAutomanageConfigurationProfile() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"configuration": {
+			"configuration_json": {
 				Type:     pluginsdk.TypeString,
 				ForceNew: true,
 				Required: true,
@@ -84,7 +84,7 @@ func resourceAutomanageConfigurationProfileCreate(d *pluginsdk.ResourceData, met
 		return tf.ImportAsExistsError("azurerm_automanage_configuration_profile", id)
 	}
 
-	configuration, err := structure.ExpandJsonFromString(d.Get("configuration").(string))
+	configuration, err := structure.ExpandJsonFromString(d.Get("configuration_json").(string))
 	if err != nil {
 		return fmt.Errorf("creating azurerm_automanage_configuration_profile failed for expand json from configuration string with error msg %s", err)
 	}
@@ -133,7 +133,7 @@ func resourceAutomanageConfigurationProfileRead(d *pluginsdk.ResourceData, meta 
 			if err != nil {
 				return fmt.Errorf("read azurerm_automanage_configuration_profile failed for flattern json to configuration string with error msg %s", err)
 			}
-			d.Set("configuration", configurationStr)
+			d.Set("configuration_json", configurationStr)
 		}
 	}
 	d.Set("type", resp.Type)

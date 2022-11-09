@@ -120,7 +120,7 @@ The following arguments are supported:
 
 * `vm_name` - (Required) The name of the virtual machine. Changing this forces a new automanage ConfigurationProfileAssignment to be created.
 
-* `configuration_profile` - (Required) The Automanage configurationProfile ARM Resource URI.
+* `configuration_profile_id` - (Required) The Automanage configurationProfile ARM Resource URI.
 
 ## Attributes Reference
 
