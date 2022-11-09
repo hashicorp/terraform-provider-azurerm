@@ -8,9 +8,9 @@ description: |-
 
 # azurerm_frontdoor_custom_https_configuration
 
-Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Frontend Endpoint.
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain). The service team has [announced](https://azure.microsoft.com/blog/zero-downtime-migration-for-azure-front-door-now-in-preview/) the release of their `Front Door Classic` to `Front Door Standard/Premium` [migration tool](https://learn.microsoft.com/azure/frontdoor/tier-migration) to allow you to migrate your existing `Front Door Classic` instances to the new `Front Door Standard/Premium` product tiers.
 
-!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain).
+Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Frontend Endpoint.
 
 -> **NOTE:** Defining custom HTTPS configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
 

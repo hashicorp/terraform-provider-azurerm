@@ -337,6 +337,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								"EnableTable",
 								"EnableServerless",
 								"EnableMongo",
+								"EnableMongo16MBDocumentSupport",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",

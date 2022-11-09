@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `domain_name` - (Required) Specifies the domain name for the Private DNS Resolver Forwarding Rule.
 
-* `target_dns_servers` - (Required) A `target_dns_servers` block as defined below.
+* `target_dns_servers` - (Required) Can be specified multiple times to define multiple target DNS servers. Each `target_dns_servers` block as defined below.
 
 * `forwarding_rule_state` - (Optional) Specifies the state of the Private DNS Resolver Forwarding Rule.
 

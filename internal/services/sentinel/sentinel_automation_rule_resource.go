@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelAutomationRule() *pluginsdk.Resource {
@@ -306,8 +306,8 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			Order:       utils.Int32(int32(d.Get("order").(int))),
 			TriggeringLogic: &securityinsight.AutomationRuleTriggeringLogic{
 				IsEnabled:    utils.Bool(d.Get("enabled").(bool)),
-				TriggersOn:   utils.String("Incidents"), // This is the only supported enum for now. The reason why there is no enum in SDK, see: https://github.com/Azure/azure-sdk-for-go/issues/14589
-				TriggersWhen: utils.String("Created"),   // This is the only supported enum for now. The reason why there is no enum in SDK, see: https://github.com/Azure/azure-sdk-for-go/issues/14589
+				TriggersOn:   securityinsight.TriggersOnIncidents, // TODO: make this configurable
+				TriggersWhen: securityinsight.TriggersWhenCreated, // TODO: make this configurable
 				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
 			},
 			Actions: actions,

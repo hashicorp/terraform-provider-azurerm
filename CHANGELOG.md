@@ -6,10 +6,17 @@ FEATURES:
 
 ENHANCEMENTS
 
-* dependencies: `network` updating to `2022-05-01` [GH-19124]
+* dependencies: updating to `v0.20221108.1145701` of `github.com/hashicorp/go-azure-sdk` [GH-19193]
+* dependencies: updating `network` to API Version `2022-05-01` [GH-19124]
+* dependencies: updating `sentinel` to API Version `2022-10-01-preview` [GH-19161]
+* `azurerm_cdn_frontdoor_profile` - remove force new from the `response_timeout_seconds` field [GH-19175]
 * `azurerm_mssql_virtual_machine` - support for the `sql_instance` block [GH-19123]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `techniques` property [GH-19142]
 * `azurerm_sentinel_alert_rule_fusion` - support for the source block [GH-19093]
+
+BUG FIXES:
+
+* `azurerm_cdn_frontdoor_rule` - update `url_redirect_action` to allow `query_string` field to pass multiple query string parameters [GH-19180]
 
 ## 3.30.0 (November 03, 2022)
 
