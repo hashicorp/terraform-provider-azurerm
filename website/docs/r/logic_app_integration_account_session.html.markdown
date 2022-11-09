@@ -31,7 +31,7 @@ resource "azurerm_logic_app_integration_account_session" "example" {
   integration_account_name = azurerm_logic_app_integration_account.example.name
 
   content = <<CONTENT
-	{
+ {
        "controlNumber": "1234"
     }
   CONTENT

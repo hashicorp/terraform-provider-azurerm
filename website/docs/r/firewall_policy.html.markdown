@@ -85,7 +85,7 @@ An `insights` block supports the following:
 
 * `default_log_analytics_workspace_id` - (Required) The ID of the default Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to, when there is no location matches in the `log_analytics_workspace`.
 
-* `retention_in_days` - (Optional) The log retention period in days. 
+* `retention_in_days` - (Optional) The log retention period in days.
 
 * `log_analytics_workspace` - (Optional) A list of `log_analytics_workspace` block as defined below.
 

@@ -3,13 +3,13 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -692,6 +692,50 @@ func TestAccManagedDisk_onlineLiveResize(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.checkLinuxVirtualMachineWasNotRestarted, "azurerm_linux_virtual_machine.test"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_premiumV2WithIOpsReadWriteAndMBpsReadWrite(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumV2WithIOpsReadWriteAndMBpsReadWrite(data, "westeurope", 3000, 125),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premiumV2WithIOpsReadWriteAndMBpsReadWrite(data, "westeurope", 4000, 200),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedDisk_premiumV2WithIOpsReadOnlyAndMBpsReadOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data, "westeurope", 3000, 125),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data, "westeurope", 4000, 126),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -2318,6 +2362,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
+  logical_sector_size  = 512
 
   tags = {
     environment = "acctest"
@@ -2334,9 +2379,9 @@ provider "azurerm" {
 }
 
 locals {
-  random_integer = %[1]d
+  random_integer   = %[1]d
   primary_location = %[2]q
-  first_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+  first_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -2445,4 +2490,59 @@ func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.C
 	}
 
 	return nil
+}
+
+func (ManagedDiskResource) premiumV2WithIOpsReadWriteAndMBpsReadWrite(data acceptance.TestData, location string, diskIOpsReadWrite, diskMBpsReadWrite int) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 256
+  disk_iops_read_write = %d
+  disk_mbps_read_write = %d
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, diskIOpsReadWrite, diskMBpsReadWrite)
+}
+
+func (ManagedDiskResource) premiumV2WithIOpsReadOnlyAndMBpsReadOnly(data acceptance.TestData, location string, diskIOpsReadOnly, diskMBpsReadOnly int) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 256
+  disk_iops_read_only  = %d
+  disk_mbps_read_only  = %d
+  max_shares           = 5
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, diskIOpsReadOnly, diskMBpsReadOnly)
 }

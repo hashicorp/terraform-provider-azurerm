@@ -365,7 +365,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 			"private_ip_addresses": privateIpAddresses,
 			"public_ip_address_id": publicIpAddressId,
 			"public_ip_addresses":  publicIpAddresses,
-			"zones":                zones.Flatten(prop.Zones),
+			"zones":                zones.FlattenUntyped(prop.Zones),
 		})
 	}
 

@@ -67,7 +67,6 @@ The `nat_ip_configuration` block exports the following:
 
 * `primary` - Value that indicates if the IP configuration is the primary configuration or not.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

@@ -4,5 +4,6 @@ package workspaces
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionEntitiesDefinition struct {
-	ManagedServices *EncryptionV2 `json:"managedServices,omitempty"`
+	ManagedDisk     *ManagedDiskEncryption `json:"managedDisk,omitempty"`
+	ManagedServices *EncryptionV2          `json:"managedServices,omitempty"`
 }

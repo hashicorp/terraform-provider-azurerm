@@ -35,7 +35,7 @@ This guide will cover how to generate a client certificate, how to create an App
 Firstly we need to create a certificate which can be used for authentication. To do that we're going to generate a Certificate Signing Request (also known as a CSR) using `openssl` (this can also be achieved using PowerShell, however, that's outside the scope of this document):
 
 ```shell
-$ openssl req -newkey rsa:4096 -nodes -keyout "service-principal.key" -out "service-principal.csr"
+openssl req -newkey rsa:4096 -nodes -keyout "service-principal.key" -out "service-principal.csr"
 ```
 
 -> During the generation of the certificate you'll be prompted for various bits of information required for the certificate signing request - at least one item has to be specified for this to complete.
@@ -43,13 +43,13 @@ $ openssl req -newkey rsa:4096 -nodes -keyout "service-principal.key" -out "serv
 We can now sign that Certificate Signing Request, in this example we're going to self-sign this certificate using the Key we just generated; however it's also possible to do this using a Certificate Authority. In order to do that we're again going to use `openssl`:
 
 ```shell
-$ openssl x509 -signkey "service-principal.key" -in "service-principal.csr" -req -days 365 -out "service-principal.crt"
+openssl x509 -signkey "service-principal.key" -in "service-principal.csr" -req -days 365 -out "service-principal.crt"
 ```
 
 Finally we can generate a PFX file which can be used to authenticate with Azure:
 
 ```shell
-$ openssl pkcs12 -export -out "service-principal.pfx" -inkey "service-principal.key" -in "service-principal.crt"
+openssl pkcs12 -export -out "service-principal.pfx" -inkey "service-principal.key" -in "service-principal.crt"
 ```
 
 Now that we've generated a certificate, we can create the Azure Active Directory Application.
@@ -60,9 +60,9 @@ Now that we've generated a certificate, we can create the Azure Active Directory
 
 We're going to create the Application in the Azure Portal - to do this navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview). Click the **New registration** button at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
-- **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
-- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
-- **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
+* **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
+* **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
+* **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
 
 At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application.
 
@@ -93,11 +93,11 @@ As we've obtained the credentials for this Service Principal - it's possible to 
 When storing the credentials as Environment Variables, for example:
 
 ```bash
-$ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_CLIENT_CERTIFICATE_PATH="/path/to/my/client/certificate.pfx"
-$ export ARM_CLIENT_CERTIFICATE_PASSWORD="Pa55w0rd123"
-$ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
+export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+export ARM_CLIENT_CERTIFICATE_PATH="/path/to/my/client/certificate.pfx"
+export ARM_CLIENT_CERTIFICATE_PASSWORD="Pa55w0rd123"
+export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
 The following Terraform and Provider blocks can be specified - where `2.46.0` is the version of the Azure Provider that you'd like to use:

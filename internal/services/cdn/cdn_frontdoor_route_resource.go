@@ -611,9 +611,10 @@ func flattenRuleSetResourceArray(input *[]cdn.ResourceReference) []interface{} {
 	}
 
 	// Normalize these values in the configuration file we know they are valid because they were set on the
-	// resource... if these are modified in the portal the will all be lowercased...
+	// resource... if these are modified in the portal they will all be lowercased...
+	// Issue: https://github.com/Azure/azure-sdk-for-go/issues/19378
 	for _, ruleSet := range *input {
-		id, _ := parse.FrontDoorRuleSetID(*ruleSet.ID)
+		id, _ := parse.FrontDoorRuleSetIDInsensitively(*ruleSet.ID)
 		results = append(results, id.ID())
 	}
 

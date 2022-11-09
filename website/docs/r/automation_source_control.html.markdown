@@ -15,7 +15,6 @@ Manages an Automation Source Control.
 ```hcl
 resource "azurerm_automation_source_control" "example" {
   name                  = "example"
-  resource_group_name   = "example"
   automation_account_id = azurerm_automation_account.test.id
   folder_path           = "runbook"
 
@@ -67,7 +66,7 @@ A `security` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Source Control.
 
@@ -85,5 +84,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Automations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_source_control.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/sourceControls/sc1
+terraform import azurerm_automation_source_control.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/sourcecontrols/sc1
 ```

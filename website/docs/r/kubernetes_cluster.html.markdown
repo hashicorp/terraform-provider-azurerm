@@ -161,13 +161,15 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
+* `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
+
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
 
 -> **Note** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
 
 -> **Note** This requires that the Preview Feature `Microsoft.ContainerService/EnableWorkloadIdentityPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag) for more information.
 
-```
+```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example"
   location = "West Europe"
@@ -198,7 +200,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   private_cluster_enabled = true
   private_dns_zone_id     = azurerm_private_dns_zone.example.id
 
-  ... rest of configuration omitted for brevity
+  # rest of configuration omitted for brevity
 
   depends_on = [
     azurerm_role_assignment.example,
@@ -223,6 +225,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
+
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
 ---
@@ -235,7 +239,7 @@ A `aci_connector_linux` block supports the following:
 
 -> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 
-```
+```hcl
 resource "azurerm_subnet" "virtual" {
 
   #...
@@ -358,7 +362,7 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
 
-* `os_sku` - (Optional) OsSKU to be used to specify Linux OSType. Not applicable to Windows OSType. Possible values include: `Ubuntu`, `CBLMariner`. Defaults to `Ubuntu`. Changing this forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `Ubuntu`, `CBLMariner`, `Mariner`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
@@ -688,6 +692,12 @@ A `sysctl_config` block supports the following:
 
 ---
 
+A `web_app_routing` block supports the following:
+
+* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled.
+
+ ---
+
 A `windows_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for Windows VMs.
@@ -707,6 +717,13 @@ A `gmsa` block supports the following:
 * `root_domain` - (Required) Specifies the root domain name for Windows gMSA. Set this to an empty string if you have configured the DNS server in the VNet which was used to create the managed cluster.
 
 -> **Note:** The properties `dns_server` and `root_domain` must both either be set or unset, i.e. empty.
+
+---
+A `workload_autoscaler_profile` block supports the following:
+
+* `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation](Microsoft.ContainerService/AKS-KedaPreview) for more information.
 
 ---
 
@@ -796,7 +813,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 -> **Note:** It's possible to use these credentials with [the Kubernetes Provider](/providers/hashicorp/kubernetes/latest/docs) like so:
 
-```
+```hcl
 provider "kubernetes" {
   host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
   username               = azurerm_kubernetes_cluster.main.kube_config.0.username
@@ -858,7 +875,6 @@ The `secret_identity` block exports the following:
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
 
 ---
-
 
 ## Timeouts
 

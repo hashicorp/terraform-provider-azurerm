@@ -176,8 +176,8 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Silicon Valley"
-  bandwidth_in_gbps   = 1
+  peering_location    = "Airtel-Chennai2-CLS"
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
 
@@ -186,7 +186,7 @@ resource "azurerm_express_route_circuit" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
-  bandwidth_in_gbps     = 1
+  bandwidth_in_gbps     = 5
 
   sku {
     tier   = "Standard"
@@ -199,7 +199,7 @@ resource "azurerm_express_route_port" "peer_test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "CDC-Canberra"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
 
@@ -208,7 +208,7 @@ resource "azurerm_express_route_circuit" "peer_test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.peer_test.id
-  bandwidth_in_gbps     = 1
+  bandwidth_in_gbps     = 5
 
   sku {
     tier   = "Standard"

@@ -111,7 +111,6 @@ The following arguments are supported:
 
 ---
 
-
 * `always_log_errors` - (Optional) Always log errors. Send telemetry if there is an erroneous condition, regardless of sampling settings.
 
 * `backend_request` - (Optional) A `backend_request` block as defined below.

@@ -49,7 +49,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"vm_size": {
 				Type:     pluginsdk.TypeString,

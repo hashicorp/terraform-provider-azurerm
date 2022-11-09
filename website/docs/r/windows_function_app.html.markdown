@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
 
+* `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `content_share_force_disabled` - (Optional) Should Content Share Settings be disabled. Defaults to `false`.
@@ -100,9 +102,11 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
-* `sticky_settings` - A `sticky_settings` block as defined below.
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
-* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
+* `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
+
+* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`.
 
 * `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
 
@@ -146,7 +150,7 @@ A `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11` & `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16` and `~18`.
 
@@ -158,9 +162,9 @@ A `application_stack` block supports the following:
 
 An `app_service_logs` block supports the following:
 
-* `disk_quota_mb` - (Required) The amount of disk space to use for logs. Valid values are between `25` and `100`. 
+* `disk_quota_mb` - (Required) The amount of disk space to use for logs. Valid values are between `25` and `100`.
 
-* `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete). 
+* `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).
 
 ~> **NOTE:** This block is not supported on Consumption plans.
 
@@ -188,7 +192,7 @@ An `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Function App.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
@@ -223,7 +227,6 @@ A `connection_string` block supports the following:
 * `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
-
 
 ---
 
@@ -333,7 +336,7 @@ A `schedule` block supports the following:
 
 ~> **NOTE:** Not all intervals are supported on all Windows Function App SKUs. Please refer to the official documentation for appropriate values.
 
-* `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`. 
+* `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.
 
 * `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.
 
@@ -411,9 +414,9 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`.
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`.
 
-* `runtime_scale_monitoring_enabled` - (Optional) Should Scale Monitoring of the Functions Runtime be enabled? 
+* `runtime_scale_monitoring_enabled` - (Optional) Should Scale Monitoring of the Functions Runtime be enabled?
 
 ~> **NOTE:** Functions runtime scale monitoring can only be enabled for Elastic Premium Function Apps or Workflow Standard Logic Apps and requires a minimum prewarmed instance count of 1.
 
@@ -441,6 +444,22 @@ A `sticky_settings` block exports the following:
 
 ---
 
+A `storage_account` block supports the following:
+
+* `access_key` - (Required) The Access key for the storage account.
+
+* `account_name` - (Required) The Name of the Storage Account.
+
+* `name` - (Required) The name which should be used for this Storage Account.
+
+* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
+
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles`.
+
+* `mount_path` - (Optional) The path at which to mount the storage share.
+
+---
+
 A `twitter` block supports the following:
 
 * `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
@@ -451,7 +470,7 @@ A `twitter` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Windows Function App.
 

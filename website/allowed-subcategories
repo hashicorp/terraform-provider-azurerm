@@ -23,6 +23,7 @@ Confidential Ledger
 Connections
 Consumption
 Container
+Containers
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
@@ -72,6 +73,7 @@ Policy
 Portal
 PowerBI
 Private DNS
+Private DNS Resolver
 Purview
 Recovery Services
 Redis
