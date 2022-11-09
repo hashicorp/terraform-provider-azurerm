@@ -271,7 +271,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"no_downtime_resize": {
+					"expand_without_downtime": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
