@@ -132,8 +132,6 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	encryptionType := diskencryptionsets.DiskEncryptionSetType(d.Get("encryption_type").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	federatedClientId := d.Get("federated_client_id").(string)
-
 	expandedIdentity, err := expandDiskEncryptionSetIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -147,10 +145,13 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 			},
 			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 			EncryptionType:                    &encryptionType,
-			FederatedClientId:                 &federatedClientId,
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("federated_client_id"); ok {
+		params.Properties.FederatedClientId = utils.String(v.(string))
 	}
 
 	if keyVaultDetails != nil {
