@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: @tombuildsstuff: this wants a state migration to move the ID to `{id1}|{id2}` to match other resources
+
 func resourceStorageObjectReplication() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceStorageObjectReplicationCreate,

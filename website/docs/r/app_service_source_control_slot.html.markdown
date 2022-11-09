@@ -120,7 +120,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `uses_github_action` - Indicates if the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

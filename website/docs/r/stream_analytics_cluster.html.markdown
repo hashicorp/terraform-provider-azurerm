@@ -37,13 +37,13 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Stream Analytics Cluster should exist. Changing this forces a new resource to be created.
 
-* `streaming_capacity` - (Required) The number of streaming units supported by the Cluster. Accepted values are multiples of `36` in the range of `36` to `216`. 
+* `streaming_capacity` - (Required) The number of streaming units supported by the Cluster. Accepted values are multiples of `36` in the range of `36` to `216`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Stream Analytics.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Stream Analytics.
 

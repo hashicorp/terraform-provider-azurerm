@@ -1,17 +1,21 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,7 +30,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 		Delete: resourceSnapshotDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SnapshotID(id)
+			_, err := snapshots.ParseSnapshotID(id)
 			return err
 		}),
 
@@ -37,6 +41,11 @@ func resourceSnapshot() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SnapshotV0ToV1{},
+		}),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -45,16 +54,16 @@ func resourceSnapshot() *pluginsdk.Resource {
 				ValidateFunc: validate.SnapshotName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"create_option": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskCreateOptionCopy),
-					string(compute.DiskCreateOptionImport),
+					string(snapshots.DiskCreateOptionCopy),
+					string(snapshots.DiskCreateOptionImport),
 				}, false),
 			},
 
@@ -89,8 +98,18 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
+
+		// Encryption Settings cannot be disabled once enabled
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.FourPointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
@@ -100,64 +119,55 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := snapshots.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	createOption := d.Get("create_option").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_snapshot", id.ID())
 		}
 	}
 
-	properties := compute.Snapshot{
-		Location: utils.String(location),
-		SnapshotProperties: &compute.SnapshotProperties{
-			CreationData: &compute.CreationData{
-				CreateOption: compute.DiskCreateOption(createOption),
+	properties := snapshots.Snapshot{
+		Location: location,
+		Properties: &snapshots.SnapshotProperties{
+			CreationData: snapshots.CreationData{
+				CreateOption: snapshots.DiskCreateOption(createOption),
 			},
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("source_uri"); ok {
-		properties.SnapshotProperties.CreationData.SourceURI = utils.String(v.(string))
+		properties.Properties.CreationData.SourceUri = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_resource_id"); ok {
-		properties.SnapshotProperties.CreationData.SourceResourceID = utils.String(v.(string))
+		properties.Properties.CreationData.SourceResourceId = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		properties.SnapshotProperties.CreationData.StorageAccountID = utils.String(v.(string))
+		properties.Properties.CreationData.StorageAccountId = utils.String(v.(string))
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB > 0 {
-		properties.SnapshotProperties.DiskSizeGB = utils.Int32(int32(diskSizeGB))
+		properties.Properties.DiskSizeGB = utils.Int64(int64(diskSizeGB))
 	}
 
-	if v, ok := d.GetOk("encryption_settings"); ok {
-		encryptionSettings := v.([]interface{})
-		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
-	}
+	properties.Properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
-	if err != nil {
-		return fmt.Errorf("issuing create/update request for %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -170,55 +180,56 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SnapshotID(d.Id())
+	id, err := snapshots.ParseSnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Error reading Snapshot %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Snapshot %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.SnapshotName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.SnapshotProperties; props != nil {
-		if data := props.CreationData; data != nil {
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		if props := model.Properties; props != nil {
+			data := props.CreationData
 			d.Set("create_option", string(data.CreateOption))
+			d.Set("storage_account_id", data.StorageAccountId)
 
-			if accountId := data.StorageAccountID; accountId != nil {
-				d.Set("storage_account_id", accountId)
+			diskSizeGb := 0
+			if props.DiskSizeGB != nil {
+				diskSizeGb = int(*props.DiskSizeGB)
 			}
-		}
+			d.Set("disk_size_gb", diskSizeGb)
 
-		if props.DiskSizeGB != nil {
-			d.Set("disk_size_gb", int(*props.DiskSizeGB))
-		}
-
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
-			return fmt.Errorf("setting `encryption_settings`: %+v", err)
-		}
-
-		trustedLaunchEnabled := false
-		if securityProfile := props.SecurityProfile; securityProfile != nil {
-			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
-				trustedLaunchEnabled = true
+			if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+				return fmt.Errorf("setting `encryption_settings`: %+v", err)
 			}
+
+			trustedLaunchEnabled := false
+			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {
+				trustedLaunchEnabled = *securityProfile.SecurityType == snapshots.DiskSecurityTypesTrustedLaunch
+			}
+			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 		}
-		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -226,18 +237,13 @@ func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SnapshotID(d.Id())
+	id, err := snapshots.ParseSnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting Snapshot: %+v", err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("deleting Snapshot: %+v", err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

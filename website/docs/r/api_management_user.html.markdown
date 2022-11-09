@@ -43,7 +43,6 @@ resource "azurerm_api_management_user" "example" {
 
 The following arguments are supported:
 
-
 * `api_management_name` - (Required) The name of the API Management Service in which the User should be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.

@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,6 +21,7 @@ import (
 type DisksPoolIscsiTargetResource struct{}
 
 var _ sdk.Resource = DisksPoolIscsiTargetResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DisksPoolIscsiTargetResource{}
 
 type DiskPoolIscsiTargetModel struct {
 	ACLMode     string   `tfschema:"acl_mode"`
@@ -29,6 +30,10 @@ type DiskPoolIscsiTargetModel struct {
 	Name        string   `tfschema:"name"`
 	Port        int      `tfschema:"port"`
 	TargetIqn   string   `tfschema:"target_iqn"`
+}
+
+func (DisksPoolIscsiTargetResource) DeprecationMessage() string {
+	return "The `azurerm_disk_pool_iscsi_target` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
 }
 
 func (d DisksPoolIscsiTargetResource) Arguments() map[string]*schema.Schema {
@@ -98,7 +103,7 @@ func (d DisksPoolIscsiTargetResource) ResourceType() string {
 
 func (d DisksPoolIscsiTargetResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			m := DiskPoolIscsiTargetModel{}
 			err := metadata.Decode(&m)
@@ -194,7 +199,7 @@ func (d DisksPoolIscsiTargetResource) Read() sdk.ResourceFunc {
 
 func (d DisksPoolIscsiTargetResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := iscsitargets.ParseIscsiTargetID(metadata.ResourceData.Id())
 			if err != nil {

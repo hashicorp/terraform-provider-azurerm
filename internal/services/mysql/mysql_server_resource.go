@@ -124,7 +124,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -132,7 +132,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"restore_point_in_time": {
 				Type:         pluginsdk.TypeString,

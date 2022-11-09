@@ -203,6 +203,14 @@ func (r SynapseWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -212,10 +220,11 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login_password     = "H@Sh1CoR3!"
 
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) requiresImport(data acceptance.TestData) string {
@@ -305,6 +314,12 @@ func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string 
 data "azurerm_client_config" "current" {
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -320,14 +335,15 @@ resource "azurerm_synapse_workspace" "test" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
     ENV = "Test2"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) withSqlAadAdmin(data acceptance.TestData) string {
@@ -336,6 +352,12 @@ func (r SynapseWorkspaceResource) withSqlAadAdmin(data acceptance.TestData) stri
 %s
 
 data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_synapse_workspace" "test" {
@@ -354,17 +376,64 @@ resource "azurerm_synapse_workspace" "test" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
     ENV = "Test2"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) withAadAdmins(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR4!"
+  sql_identity_control_enabled         = true
+  aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  sql_aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    ENV = "Test2"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) withAadAdminsOnly(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -377,8 +446,6 @@ resource "azurerm_synapse_workspace" "test" {
   resource_group_name                  = azurerm_resource_group.test.name
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
   aad_admin {
     login     = "AzureAD Admin"

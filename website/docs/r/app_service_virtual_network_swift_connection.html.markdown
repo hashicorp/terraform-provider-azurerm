@@ -15,21 +15,21 @@ This resource can be used for both App Services and Function Apps.
 
 ~> **Note:** The following resources support associating the vNet for Regional vNet Integration directly on the resource and via the `azurerm_app_service_virtual_network_swift_connection` resource. You can't use both simultaneously.
 
- - [azurerm_linux_function_app](linux_function_app.html)
- - [azurerm_linux_function_app_slot](linux_function_app_slot.html)
- - [azurerm_linux_web_app](linux_web_app.html)
- - [azurerm_linux_web_app_slot](linux_web_app_slot.html)
- - [azurerm_logic_app_standard](logic_app_standard.html)
- - [azurerm_windows_function_app](windows_function_app.html)
- - [azurerm_windows_function_app_slot](windows_function_app_slot.html)
- - [azurerm_windows_web_app](windows_web_app.html)
- - [azurerm_windows_web_app_slot](windows_web_app_slot.html)
+- [azurerm_linux_function_app](linux_function_app.html)
+- [azurerm_linux_function_app_slot](linux_function_app_slot.html)
+- [azurerm_linux_web_app](linux_web_app.html)
+- [azurerm_linux_web_app_slot](linux_web_app_slot.html)
+- [azurerm_logic_app_standard](logic_app_standard.html)
+- [azurerm_windows_function_app](windows_function_app.html)
+- [azurerm_windows_function_app_slot](windows_function_app_slot.html)
+- [azurerm_windows_web_app](windows_web_app.html)
+- [azurerm_windows_web_app_slot](windows_web_app_slot.html)
 
 This resource requires the `Microsoft.Network/virtualNetworks/subnets/write` permission scope on the subnet.  
 
 The resource specific vNet integration requires the `Microsoft.Network/virtualNetworks/subnets/join/action` permission scope.
 
-There is a hard limit of [one VNet integration per App Service Plan](https://docs.microsoft.com/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration). 
+There is a hard limit of [one VNet integration per App Service Plan](https://docs.microsoft.com/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration).
 Multiple apps in the same App Service plan can use the same VNet.
 
 ## Example Usage (with App Service)
@@ -88,6 +88,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "example" {
 ```
 
 ## Example Usage (with Function App)
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -155,24 +156,24 @@ resource "azurerm_app_service_virtual_network_swift_connection" "example" {
 
 The following arguments are supported:
 
-* `app_service_id` - (Required) The ID of the App Service or Function App to associate to the VNet. Changing this forces a new resource to be created.
+- `app_service_id` - (Required) The ID of the App Service or Function App to associate to the VNet. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
+- `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the App Service Virtual Network Association
+- `id` - The ID of the App Service Virtual Network Association
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the App Service Virtual Network Association.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Virtual Network Association.
-* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Virtual Network Association.
-* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Virtual Network Association.
+- `create` - (Defaults to 30 minutes) Used when creating the App Service Virtual Network Association.
+- `update` - (Defaults to 30 minutes) Used when updating the App Service Virtual Network Association.
+- `read` - (Defaults to 5 minutes) Used when retrieving the App Service Virtual Network Association.
+- `delete` - (Defaults to 30 minutes) Used when deleting the App Service Virtual Network Association.
 
 ## Import
 

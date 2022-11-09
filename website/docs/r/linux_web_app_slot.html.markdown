@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`
 
+* `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `enabled` - (Optional) Should the Linux Web App be enabled? Defaults to `true`.
@@ -102,7 +104,7 @@ The following arguments are supported:
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously.
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the web app slot configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
@@ -170,7 +172,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, and `3.9`.
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9` and `3.10`.
 
 * `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
 
@@ -198,7 +200,7 @@ An `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity that issues access tokens for this Linux Web App.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
@@ -442,7 +444,7 @@ A `site_config` block supports the following:
 
 * `auto_swap_slot_name` - (Optional) The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
-~> **Note:** This must be a valid slot name on the target Linux Web App. 
+~> **Note:** This must be a valid slot name on the target Linux Web App.
 
 * `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
 
@@ -454,7 +456,7 @@ A `site_config` block supports the following:
 
 * `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include `AllAllowed`, `FtpsOnly`, and `Disabled`.
 
-~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it. 
+~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it.
 
 * `health_check_path` - (Optional) The path to the Health Check.
 
@@ -472,7 +474,7 @@ A `site_config` block supports the following:
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `remote_debugging` - (Optional) Should Remote Debugging be enabled? Defaults to `false`.
+* `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled? Defaults to `false`.
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
 
@@ -556,7 +558,7 @@ A `twitter` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Web App.
 

@@ -1,9 +1,13 @@
 package hpccache
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func CacheGetAccessPolicyRuleByScope(policyRules []storagecache.NfsAccessRule, scope storagecache.NfsAccessRuleScope) (storagecache.NfsAccessRule, bool) {
@@ -56,4 +60,37 @@ func CacheInsertOrUpdateAccessPolicy(policies []storagecache.NfsAccessPolicy, po
 	}
 
 	return append(newPolicies, policy), nil
+}
+
+func resourceHPCCacheWaitForCreating(ctx context.Context, client *storagecache.CachesClient, resourceGroup, name string, d *pluginsdk.ResourceData) (storagecache.Cache, error) {
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout: 30 * time.Second,
+		Delay:      10 * time.Second,
+		Pending:    []string{string(storagecache.ProvisioningStateTypeCreating)},
+		Target:     []string{string(storagecache.ProvisioningStateTypeSucceeded)},
+		Refresh:    resourceHPCCacheRefresh(ctx, client, resourceGroup, name),
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	resp, err := state.WaitForStateContext(ctx)
+	if err != nil {
+		return resp.(storagecache.Cache), fmt.Errorf("waiting for the HPC Cache %q to be missing (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return resp.(storagecache.Cache), nil
+}
+
+func resourceHPCCacheRefresh(ctx context.Context, client *storagecache.CachesClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
+			}
+
+			return resp, "Error", fmt.Errorf("making Read request on HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		return resp, string(resp.ProvisioningState), nil
+	}
 }

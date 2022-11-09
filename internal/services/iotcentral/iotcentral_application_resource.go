@@ -7,17 +7,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
@@ -52,9 +54,9 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sub_domain": {
 				Type:         pluginsdk.TypeString,
@@ -67,6 +69,14 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.ApplicationDisplayName,
+			},
+
+			"identity": commonschema.SystemAssignedIdentityOptional(),
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"sku": {
@@ -82,6 +92,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"template": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Computed:     true,
 				ValidateFunc: validate.ApplicationTemplateName,
 			},
@@ -125,26 +136,46 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = id.ResourceGroupName
+		displayName = id.ResourceName
+		if !features.FourPointOhBeta() {
+			displayName = id.ResourceGroupName
+		}
+	}
+
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
+	publicNetworkAccess := apps.PublicNetworkAccessEnabled
 	app := apps.App{
 		Properties: &apps.AppProperties{
-			DisplayName: &displayName,
-			Subdomain:   &subdomain,
-			Template:    &template,
+			DisplayName:         &displayName,
+			PublicNetworkAccess: &publicNetworkAccess,
+			Subdomain:           &subdomain,
+			Template:            &template,
 		},
 		Sku: apps.AppSkuInfo{
 			Name: apps.AppSku(d.Get("sku").(string)),
 		},
+		Identity: identity,
 		Location: d.Get("location").(string),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// Public Network Access can only be disabled after creation
+	if d.Get("public_network_access_enabled").(bool) == false {
+		publicNetworkAccess := apps.PublicNetworkAccessDisabled
+		app.Properties.PublicNetworkAccess = &publicNetworkAccess
+		if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
+			return fmt.Errorf("updating `public_network_access_enabled` to false for %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -161,23 +192,54 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	displayName := d.Get("display_name").(string)
-	if displayName == "" {
-		displayName = id.ResourceName
+	existing, err := client.Get(ctx, *id)
+	if err != nil || existing.Model == nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	subdomain := d.Get("sub_domain").(string)
-	template := d.Get("template").(string)
-	appPatch := apps.AppPatch{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		Properties: &apps.AppProperties{
-			DisplayName: &displayName,
-			Subdomain:   &subdomain,
-			Template:    &template,
-		},
+	if existing.Model.Properties == nil {
+		existing.Model.Properties = &apps.AppProperties{}
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, appPatch); err != nil {
+	if d.HasChange("sub_domain") {
+		existing.Model.Properties.Subdomain = utils.String(d.Get("sub_domain").(string))
+	}
+
+	if d.HasChange("display_name") {
+		existing.Model.Properties.DisplayName = utils.String(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("sku") {
+		existing.Model.Sku = apps.AppSkuInfo{
+			Name: apps.AppSku(d.Get("sku").(string)),
+		}
+	}
+
+	if d.HasChange("template") {
+		existing.Model.Properties.Template = utils.String(d.Get("template").(string))
+	}
+
+	if d.HasChange("tags") {
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("identity") {
+		identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		existing.Model.Identity = identity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := apps.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = apps.PublicNetworkAccessEnabled
+		}
+		existing.Model.Properties.PublicNetworkAccess = &publicNetworkAccess
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -215,6 +277,16 @@ func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("sub_domain", props.Subdomain)
 			d.Set("display_name", props.DisplayName)
 			d.Set("template", props.Template)
+
+			publicNetworkAccess := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == apps.PublicNetworkAccessDisabled {
+				publicNetworkAccess = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+		}
+
+		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {

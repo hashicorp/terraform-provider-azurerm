@@ -24,6 +24,7 @@ type Client struct {
 	ManagedDatabasesClient                             *sql.ManagedDatabasesClient
 	ManagedInstancesClient                             *sql.ManagedInstancesClient
 	ManagedInstanceVulnerabilityAssessmentsClient      *sql.ManagedInstanceVulnerabilityAssessmentsClient
+	ManagedInstanceServerSecurityAlertPoliciesClient   *sql.ManagedServerSecurityAlertPoliciesClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ManagedInstanceAdministratorsClient                *sql.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient    *sql.ManagedInstanceAzureADOnlyAuthenticationsClient
@@ -34,6 +35,7 @@ type Client struct {
 	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
 	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
+	ServerDevOpsAuditSettingsClient                    *sql.ServerDevOpsAuditSettingsClient
 	ServerKeysClient                                   *sql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
@@ -101,6 +103,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedInstanceVulnerabilityAssessmentsClient := sql.NewManagedInstanceVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	managedInstanceServerSecurityAlertPoliciesClient := sql.NewManagedServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstanceServerSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	outboundFirewallRulesClient := sql.NewOutboundFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&outboundFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -124,6 +129,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	serverExtendedBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	serverDevOpsAuditSettingsClient := sql.NewServerDevOpsAuditSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverDevOpsAuditSettingsClient.Client, o.ResourceManagerAuthorizer)
 
 	serverKeysClient := sql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverKeysClient.Client, o.ResourceManagerAuthorizer)
@@ -151,35 +159,37 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseSecurityAlertPoliciesClient:                &databaseSecurityAlertPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
-		DatabasesClient:                                 &databasesClient,
-		ElasticPoolsClient:                              &elasticPoolsClient,
-		EncryptionProtectorClient:                       &encryptionProtectorClient,
-		FailoverGroupsClient:                            &failoverGroupsClient,
-		FirewallRulesClient:                             &firewallRulesClient,
-		GeoBackupPoliciesClient:                         &geoBackupPoliciesClient,
-		InstanceFailoverGroupsClient:                    &instanceFailoverGroupsClient,
-		JobAgentsClient:                                 &jobAgentsClient,
-		JobCredentialsClient:                            &jobCredentialsClient,
-		LongTermRetentionPoliciesClient:                 &longTermRetentionPoliciesClient,
-		ManagedDatabasesClient:                          &managedDatabasesClient,
-		ManagedInstanceAdministratorsClient:             &managedInstancesAdministratorsClient,
-		ManagedInstanceAzureADOnlyAuthenticationsClient: &managedInstanceAzureADOnlyAuthenticationsClient,
-		ManagedInstancesClient:                          &managedInstancesClient,
-		ManagedInstanceVulnerabilityAssessmentsClient:   &managedInstanceVulnerabilityAssessmentsClient,
-		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
-		ReplicationLinksClient:                          &replicationLinksClient,
-		RestorableDroppedDatabasesClient:                &restorableDroppedDatabasesClient,
-		ServerAzureADAdministratorsClient:               &serverAzureADAdministratorsClient,
-		ServerAzureADOnlyAuthenticationsClient:          &serverAzureADOnlyAuthenticationsClient,
-		ServerConnectionPoliciesClient:                  &serverConnectionPoliciesClient,
-		ServerDNSAliasClient:                            &serverDNSAliasClient,
-		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
-		ServerKeysClient:                                &serverKeysClient,
-		ServerSecurityAlertPoliciesClient:               &serverSecurityAlertPoliciesClient,
-		ServerVulnerabilityAssessmentsClient:            &serverVulnerabilityAssessmentsClient,
-		ServersClient:                                   &serversClient,
-		TransparentDataEncryptionsClient:                &transparentDataEncryptionsClient,
-		VirtualMachinesClient:                           &virtualMachinesClient,
-		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
+		DatabasesClient:                                  &databasesClient,
+		ElasticPoolsClient:                               &elasticPoolsClient,
+		EncryptionProtectorClient:                        &encryptionProtectorClient,
+		FailoverGroupsClient:                             &failoverGroupsClient,
+		FirewallRulesClient:                              &firewallRulesClient,
+		GeoBackupPoliciesClient:                          &geoBackupPoliciesClient,
+		InstanceFailoverGroupsClient:                     &instanceFailoverGroupsClient,
+		JobAgentsClient:                                  &jobAgentsClient,
+		JobCredentialsClient:                             &jobCredentialsClient,
+		LongTermRetentionPoliciesClient:                  &longTermRetentionPoliciesClient,
+		ManagedDatabasesClient:                           &managedDatabasesClient,
+		ManagedInstanceAdministratorsClient:              &managedInstancesAdministratorsClient,
+		ManagedInstanceAzureADOnlyAuthenticationsClient:  &managedInstanceAzureADOnlyAuthenticationsClient,
+		ManagedInstancesClient:                           &managedInstancesClient,
+		ManagedInstanceVulnerabilityAssessmentsClient:    &managedInstanceVulnerabilityAssessmentsClient,
+		ManagedInstanceServerSecurityAlertPoliciesClient: &managedInstanceServerSecurityAlertPoliciesClient,
+		OutboundFirewallRulesClient:                      &outboundFirewallRulesClient,
+		ReplicationLinksClient:                           &replicationLinksClient,
+		RestorableDroppedDatabasesClient:                 &restorableDroppedDatabasesClient,
+		ServerAzureADAdministratorsClient:                &serverAzureADAdministratorsClient,
+		ServerAzureADOnlyAuthenticationsClient:           &serverAzureADOnlyAuthenticationsClient,
+		ServerConnectionPoliciesClient:                   &serverConnectionPoliciesClient,
+		ServerExtendedBlobAuditingPoliciesClient:         &serverExtendedBlobAuditingPoliciesClient,
+		ServerDNSAliasClient:                             &serverDNSAliasClient,
+		ServerDevOpsAuditSettingsClient:                  &serverDevOpsAuditSettingsClient,
+		ServerKeysClient:                                 &serverKeysClient,
+		ServerSecurityAlertPoliciesClient:                &serverSecurityAlertPoliciesClient,
+		ServerVulnerabilityAssessmentsClient:             &serverVulnerabilityAssessmentsClient,
+		ServersClient:                                    &serversClient,
+		TransparentDataEncryptionsClient:                 &transparentDataEncryptionsClient,
+		VirtualMachinesClient:                            &virtualMachinesClient,
+		VirtualNetworkRulesClient:                        &virtualNetworkRulesClient,
 	}
 }

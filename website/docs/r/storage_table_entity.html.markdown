@@ -60,7 +60,6 @@ Changing this forces a new resource to be created.
 
 * `entity` - (Required) A map of key/value pairs that describe the entity to be inserted/merged in to the storage table.
 
-
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:

@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -57,7 +58,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"scopes": {
 				Type:     pluginsdk.TypeSet,
@@ -88,7 +89,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 
 			// static criteria
 			"criteria": {
-				Type:         pluginsdk.TypeSet,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				MinItems:     1,
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
@@ -172,7 +173,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 
 			//lintignore: S018
 			"dynamic_criteria": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
 				// Curently, it allows to define only one dynamic criteria in one metric alert.
@@ -578,13 +579,13 @@ func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{
 
 func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) (insights.BasicMetricAlertCriteria, error) {
 	switch {
-	case d.Get("criteria").(*pluginsdk.Set).Len() != 0:
+	case len(d.Get("criteria").([]interface{})) != 0:
 		if isLegacy {
-			return expandMonitorMetricAlertSingleResourceMultiMetricCriteria(d.Get("criteria").(*pluginsdk.Set).List()), nil
+			return expandMonitorMetricAlertSingleResourceMultiMetricCriteria(d.Get("criteria").([]interface{})), nil
 		}
-		return expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(d.Get("criteria").(*pluginsdk.Set).List()), nil
-	case d.Get("dynamic_criteria").(*pluginsdk.Set).Len() != 0:
-		return expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(d.Get("dynamic_criteria").(*pluginsdk.Set).List()), nil
+		return expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(d.Get("criteria").([]interface{})), nil
+	case len(d.Get("dynamic_criteria").([]interface{})) != 0:
+		return expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(d.Get("dynamic_criteria").([]interface{})), nil
 	case len(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})) != 0:
 		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})), nil
 	default:

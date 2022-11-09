@@ -109,7 +109,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-	codeVersion := "8.2.1486.9590"
+	codeVersion := "9.0.1121.9590"
 	r := ServiceFabricClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

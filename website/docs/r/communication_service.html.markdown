@@ -35,13 +35,13 @@ The following arguments are supported:
 
 ---
 
-* `data_location` - (Optional) The location where the Communication service stores its data at rest. Possible values are `Asia Pacific`, `Australia`, `Europe`, `UK` and `United States`. Defaults to `United States`.
+* `data_location` - (Optional) The location where the Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK` and `United States`. Defaults to `United States`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Communication Service.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Communication Service.
 * `primary_connection_string` - The primary connection string of the Communication Service.

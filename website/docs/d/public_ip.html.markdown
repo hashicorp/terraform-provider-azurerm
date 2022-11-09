@@ -99,7 +99,6 @@ output "public_ip_address" {
 * `name` - Specifies the name of the public IP address.
 * `resource_group_name` - Specifies the name of the resource group.
 
-
 ## Attributes Reference
 
 * `id` - The ID of the Public IP address.

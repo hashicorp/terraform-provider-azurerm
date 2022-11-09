@@ -60,9 +60,9 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"integration_service_environment_id": {
 				Type:         pluginsdk.TypeString,
@@ -435,6 +435,12 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
 		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
 			ID: utils.String(v.(string)),
+		}
+	}
+
+	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
+		properties.WorkflowProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
+			ID: utils.String(iseID.(string)),
 		}
 	}
 

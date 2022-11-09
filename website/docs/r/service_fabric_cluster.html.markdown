@@ -38,6 +38,7 @@ resource "azurerm_service_fabric_cluster" "example" {
 }
 
 ```
+
 ## Argument Reference
 
 The following arguments are supported:

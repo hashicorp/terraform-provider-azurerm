@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`
 
+* `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `enabled` - (Optional) Should the Windows Web App be enabled? Defaults to `true`.
@@ -80,7 +82,7 @@ The following arguments are supported:
 
 * `logs` - (Optional) A `logs` block as defined below.
 
-* `sticky_settings` - A `sticky_settings` block as defined below.
+* `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
@@ -90,7 +92,7 @@ The following arguments are supported:
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the web app configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
@@ -112,11 +114,11 @@ A `active_directory` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
 
-* `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory. 
+* `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
 
 ~> **Note:** The `client_id` value is always considered an allowed audience.
 
-* `client_secret` - (Optional) The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`. 
+* `client_secret` - (Optional) The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client. Cannot be used with `client_secret`.
 
@@ -170,7 +172,7 @@ A `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in. 
+* `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
 
@@ -186,13 +188,13 @@ A `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Web App.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
 * `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Web App.
 
-* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours. 
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.
 
 * `token_store_enabled` - (Optional) Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
 
@@ -264,7 +266,7 @@ A `facebook` block supports the following:
 
 * `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook login. Cannot be specified with `app_secret_setting_name`.
 
-* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`. 
+* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`.
 
 * `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook login authentication.
 
@@ -298,7 +300,7 @@ A `google` block supports the following:
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes. 
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.
 
 ---
 
@@ -312,7 +314,7 @@ A `headers` block supports the following:
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 
-* `x_forwarded_host` - (Optional) Specifies a list of Hosts for which matching should be applied. 
+* `x_forwarded_host` - (Optional) Specifies a list of Hosts for which matching should be applied.
 
 ---
 
@@ -344,7 +346,7 @@ A `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`. 
+* `priority` - (Optional) The priority value of this `ip_restriction`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -382,7 +384,7 @@ A `requests` block supports the following:
 
 * `count` - (Required) The number of requests in the specified `interval` to trigger this rule.
 
-* `interval` - (Required) The interval in `hh:mm:ss`. 
+* `interval` - (Required) The interval in `hh:mm:ss`.
 
 ---
 
@@ -464,9 +466,9 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`. 
+* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `remote_debugging` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
+* `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
 
@@ -482,7 +484,7 @@ A `site_config` block supports the following:
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
-* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service.
 
@@ -508,7 +510,7 @@ A `status_code` block supports the following:
 
 * `status_code_range` - (Required) The status code for this rule, accepts single status codes and status code ranges. e.g. `500` or `400-499`. Possible values are integers between `101` and `599`
 
-* `path` - (Optional) The path to which this rule status code applies. 
+* `path` - (Optional) The path to which this rule status code applies.
 
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
@@ -518,9 +520,9 @@ A `status_code` block supports the following:
 
 A `sticky_settings` block exports the following:
 
-* `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
-* `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 
@@ -554,7 +556,7 @@ A `trigger` block supports the following:
 
 A `twitter` block supports the following:
 
-* `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in. 
+* `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
   
 * `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret_setting_name`.
   
@@ -582,7 +584,7 @@ A `virtual_directory` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Windows Web App.
 
@@ -592,7 +594,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `kind` - The Kind value for this Windows Web App. 
+* `kind` - The Kind value for this Windows Web App.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12"]`
 

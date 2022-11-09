@@ -48,9 +48,9 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				ValidateFunc: netAppValidate.SnapshotName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,

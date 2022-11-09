@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
@@ -116,6 +116,15 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 						string(securityinsight.AttackTacticPrivilegeEscalation),
 						string(securityinsight.AttackTacticPreAttack),
 					}, false),
+				},
+			},
+
+			"techniques": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -341,6 +350,7 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 		NrtAlertRuleProperties: &securityinsight.NrtAlertRuleProperties{
 			Description:           utils.String(d.Get("description").(string)),
 			DisplayName:           utils.String(d.Get("display_name").(string)),
+			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
 			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false),
 			Severity:              securityinsight.AlertSeverity(d.Get("severity").(string)),
@@ -425,6 +435,9 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("display_name", prop.DisplayName)
 		if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
 			return fmt.Errorf("setting `tactics`: %+v", err)
+		}
+		if err := d.Set("techniques", prop.Techniques); err != nil {
+			return fmt.Errorf("setting `techniques`: %+v", err)
 		}
 		if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
 			return fmt.Errorf("setting `incident`: %+v", err)

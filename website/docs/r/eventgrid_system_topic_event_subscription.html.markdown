@@ -183,7 +183,7 @@ Each nested block consists of a key and a value(s) element.
 
 * `value` - (Required) Specifies a single value to compare to when using a single value operator.
 
-**OR**
+OR
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 

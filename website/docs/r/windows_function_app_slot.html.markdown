@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
 
+* `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` - (Optional) a `connection_string` block as detailed below.
 
 * `content_share_force_disabled` - (Optional) Force disable the content share settings.
@@ -101,6 +103,8 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
 
 ~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
@@ -115,7 +119,7 @@ The following arguments are supported:
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app slot configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
@@ -143,7 +147,7 @@ An `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) a `microsoft` block as detailed below.
 
@@ -241,9 +245,11 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Scale Monitoring of the Functions Runtime be enabled?
+
+~> **NOTE:** Functions runtime scale monitoring can only be enabled for Elastic Premium Function Apps or Workflow Standard Logic Apps and requires a minimum prewarmed instance count of 1.
 
 * `scm_ip_restriction` - (Optional) a `scm_ip_restriction` block as detailed below.
 
@@ -379,7 +385,7 @@ An `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`
+* `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
 
@@ -449,6 +455,21 @@ A `headers` block supports the following:
 
 * `x_forwarded_host` - (Optional) Specifies a list of Hosts for which matching should be applied.
 
+---
+
+A `storage_account` block supports the following:
+
+* `access_key` - (Required) The Access key for the storage account.
+
+* `account_name` - (Required) The Name of the Storage Account.
+
+* `name` - (Required) The name which should be used for this Storage Account.
+
+* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
+
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles`.
+
+* `mount_path` - (Optional) The path at which to mount the storage share.
 
 ## Attributes Reference
 

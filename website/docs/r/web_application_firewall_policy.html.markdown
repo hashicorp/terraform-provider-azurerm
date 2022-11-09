@@ -186,7 +186,7 @@ The `managed_rules` block supports the following:
 
 The `exclusion` block supports the following:
 
-* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames`, `RequestHeaderValues`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection.
 
@@ -254,5 +254,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
+terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
 ```

@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -25,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -121,7 +121,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
@@ -132,8 +132,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
+	canHaveAutomaticOsUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
+	if !canHaveAutomaticOsUpgradePolicy && len(automaticOSUpgradePolicyRaw) > 0 {
+		return fmt.Errorf("an `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic` or `Rolling`")
 	}
 
 	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
@@ -199,7 +200,15 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+	if !features.FourPointOhBeta() {
+		if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
+			virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
+				GalleryApplications: galleryApplications,
+			}
+		}
+	}
+
+	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &compute.ApplicationProfile{
 			GalleryApplications: galleryApplications,
 		}
@@ -284,11 +293,11 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
-		if !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
+			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
 		if virtualMachineProfile.SecurityProfile == nil {
@@ -299,8 +308,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
 			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
 		}
-		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(true)
-		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(true)
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 	} else {
 		if secureBootEnabled {
 			if virtualMachineProfile.SecurityProfile == nil {
@@ -523,7 +532,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		if d.HasChange("rolling_upgrade_policy") {
 			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
-			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+			zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 			rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0)
 			if err != nil {
 				return err
@@ -639,7 +648,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if d.HasChange("network_interface") {
+	if d.HasChange("network_interface") || d.HasChange("health_probe_id") {
 		networkInterfacesRaw := d.Get("network_interface").([]interface{})
 		networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 		if err != nil {
@@ -821,7 +830,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	var skuName *string
 	var instances int
@@ -912,7 +921,11 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		d.Set("eviction_policy", string(profile.EvictionPolicy))
 
 		if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
-			d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
+
+			if !features.FourPointOhBeta() {
+				d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+			}
 		}
 
 		// the service just return empty when this is not assigned when provisioned
@@ -932,10 +945,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				return fmt.Errorf("setting `data_disk`: %+v", err)
 			}
 
-			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference)); err != nil {
-				return fmt.Errorf("setting `source_image_reference`: %+v", err)
-			}
-
 			var storageImageId string
 			if storageProfile.ImageReference != nil && storageProfile.ImageReference.ID != nil {
 				storageImageId = *storageProfile.ImageReference.ID
@@ -947,6 +956,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				storageImageId = *storageProfile.ImageReference.SharedGalleryImageID
 			}
 			d.Set("source_image_id", storageImageId)
+
+			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference, storageImageId != "")); err != nil {
+				return fmt.Errorf("setting `source_image_reference`: %+v", err)
+			}
 		}
 
 		extensionOperationsEnabled := true
@@ -1135,9 +1148,9 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.VirtualMachineName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		// Required
 		"admin_username": {
@@ -1260,7 +1273,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
-		"gallery_applications": VirtualMachineScaleSetGalleryApplicationsSchema(),
+		"gallery_application": VirtualMachineScaleSetGalleryApplicationSchema(),
 
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,
@@ -1413,6 +1426,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
+		resourceSchema["gallery_applications"] = VirtualMachineScaleSetGalleryApplicationsSchema()
 		resourceSchema["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
 
 		resourceSchema["scale_in_policy"] = &schema.Schema{

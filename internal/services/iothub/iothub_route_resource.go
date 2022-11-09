@@ -6,8 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 func resourceIotHubRoute() *pluginsdk.Resource {
@@ -42,13 +42,14 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
 					"Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"iothub_name": {
 				Type:         pluginsdk.TypeString,
@@ -65,6 +66,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 					string(devices.RoutingSourceDeviceJobLifecycleEvents),
 					string(devices.RoutingSourceDeviceLifecycleEvents),
 					string(devices.RoutingSourceDeviceMessages),
+					string(devices.RoutingSourceDigitalTwinChangeEvents),
 					string(devices.RoutingSourceInvalid),
 					string(devices.RoutingSourceTwinChangeEvents),
 				}, false),
@@ -96,7 +98,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 
 func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
-	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

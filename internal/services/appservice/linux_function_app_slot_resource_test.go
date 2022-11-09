@@ -491,6 +491,22 @@ func TestAccLinuxFunctionAppSlot_healthCheckPath(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_basicRuntimeCheck(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.runtimeScaleCheck(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.runtime_scale_monitoring_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxFunctionAppSlot_healthCheckPathWithEviction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -1052,6 +1068,79 @@ func TestAccLinuxFunctionAppSlotASEv3_basic(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_withStorageAccountBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_withStorageAccountBlocks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withStorageAccountMultiple(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_withStorageAccountBlockUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccountMultiple(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Configs
 
 func (r LinuxFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1108,6 +1197,27 @@ resource "azurerm_linux_function_app_slot" "test" {
 
   site_config {
     health_check_path = "/health"
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) runtimeScaleCheck(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    runtime_scale_monitoring_enabled = true
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
@@ -1733,9 +1843,10 @@ resource "azurerm_linux_function_app_slot" "test" {
     }
   }
 
-  builtin_logging_enabled    = false
-  client_certificate_enabled = true
-  client_certificate_mode    = "Required"
+  builtin_logging_enabled            = false
+  client_certificate_enabled         = true
+  client_certificate_mode            = "Required"
+  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {
     name  = "Second"
@@ -1785,7 +1896,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     }
     load_balancing_mode      = "LeastResponseTime"
     remote_debugging_enabled = true
-    remote_debugging_version = "VS2019"
+    remote_debugging_version = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -1912,9 +2023,10 @@ resource "azurerm_linux_function_app_slot" "test" {
     }
   }
 
-  builtin_logging_enabled    = false
-  client_certificate_enabled = true
-  client_certificate_mode    = "OptionalInteractiveUser"
+  builtin_logging_enabled            = false
+  client_certificate_enabled         = true
+  client_certificate_mode            = "OptionalInteractiveUser"
+  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {
     name  = "First"
@@ -2879,4 +2991,128 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 
 `, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) withStorageAccountSingle(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  storage_account {
+    name         = "files"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/storage/files"
+  }
+
+  site_config {}
+}
+`, r.templateWithStorageAccountExtras(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) withStorageAccountMultiple(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  storage_account {
+    name         = "files"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/storage/files"
+  }
+
+  storage_account {
+    name         = "blobs"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/storage/blobs"
+  }
+
+  site_config {}
+}
+`, r.templateWithStorageAccountExtras(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) templateWithStorageAccountExtras(data acceptance.TestData, planSKU string) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "test"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "2021-04-01"
+  expiry = "2024-03-30"
+
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+`, r.template(data, planSKU), data.RandomInteger)
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -75,9 +74,9 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ValidateMsSqlServerName,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku_name": {
 			Type:     schema.TypeString,
@@ -579,13 +578,13 @@ func (r MsSqlManagedInstanceResource) expandSkuName(skuName string) (*sql.Sku, e
 
 func (r MsSqlManagedInstanceResource) normalizeSku(sku string) string {
 	switch sku {
-	case "MIBC64G8IH":
+	case "MIBC64G8IH", "BC_G8IH":
 		return "BC_Gen8IH"
-	case "MIBC64G8IM":
+	case "MIBC64G8IM", "BC_G8IM":
 		return "BC_Gen8IM"
-	case "MIGP4G8IH":
+	case "MIGP4G8IH", "GP_G8IH":
 		return "GP_Gen8IH"
-	case "MIGP4G8IM":
+	case "MIGP4G8IM", "GP_G8IM":
 		return "GP_Gen8IM"
 	}
 

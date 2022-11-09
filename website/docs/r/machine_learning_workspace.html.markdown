@@ -364,7 +364,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
 
-~> **NOTE:** `public_network_access_enabled` is deprecated and will be removed in favour of the property `public_access_behind_virtual_network_enabled` in version 4.0 of the AzureRM Provider.
+~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
 
 * `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
@@ -375,6 +375,8 @@ The following arguments are supported:
 * `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service
 
 * `primary_user_assigned_identity` - (Optional) The user assigned identity id that represents the workspace identity.
+
+* `v1_legacy_mode_enabled` - (Optional) Enable V1 API features, enabling `v1_legacy_mode` may prevent you from using features provided by the v2 API. Defaults to `false`.
 
 * `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Basic`. Defaults to `Basic`.
 

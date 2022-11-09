@@ -11,9 +11,6 @@ description: |-
 
 Manages a Logic App (Standard / Single Tenant)
 
-~> **Note:** To connect an Azure Logic App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
-For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
-
 ## Example Usage (with App Service Plan)
 
 ```hcl
@@ -34,6 +31,8 @@ resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  kind                = "elastic"
+
 
   sku {
     tier = "WorkflowStandard"
@@ -103,7 +102,6 @@ resource "azurerm_logic_app_standard" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -150,6 +148,12 @@ The following arguments are supported:
 
 * `version` - (Optional) The runtime version associated with the Logic App Defaults to `~1`.
 
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -186,6 +190,16 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
+* `scm_ip_restriction` - A [List of objects](/docs/configuration/attr-as-blocks.html) representing SCM IP restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
+
+* `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
+
+* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site.
+
+* `scm_type` - The type of Source Control used by the Logic App in use by the Windows Function App. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
+
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`. Setting this value will also set the `kind` of application deployed to `functionapp,linux,container,workflowapp`
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Logic Apps.
@@ -214,10 +228,12 @@ A `cors` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Standard. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Standard. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned` (to enable both).
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Logic App Standard.
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Logic App has been created. More details are available below.
 
+~> **NOTE:** The `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -241,6 +257,26 @@ A `ip_restriction` block supports the following:
 
 ---
 
+A `scm_ip_restriction` block supports the following:
+
+* `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
+
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
+
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, the priority is set to 65000 if not specified.
+
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.
+
+* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+
+---
+
 A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) A list of allowed Azure FrontDoor IDs in UUID notation with a maximum of 8.
@@ -251,14 +287,13 @@ A `headers` block supports the following:
 
 * `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Logic App
 
-* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record. 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname associated with the Logic App - such as `mysite.azurewebsites.net`
 

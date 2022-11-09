@@ -116,7 +116,7 @@ A `filter` block supports the following:
 
 * `tag` - (Optional) One or more `tag` blocks as defined below to filter the budget on.
 
-* `not` - (Optional) A `not` block as defined below to filter the budget on.
+* `not` - (Optional) A `not` block as defined below to filter the budget on. This is deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
 
 ---
 
@@ -176,7 +176,7 @@ A `time_period` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Subscription Consumption Budget.
 

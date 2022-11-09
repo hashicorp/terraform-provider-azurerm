@@ -61,7 +61,6 @@ The following arguments are supported:
 
 * `ace` - (Required) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
 
-
 ---
 
 An `ace` block supports the following:
@@ -74,7 +73,7 @@ An `ace` block supports the following:
 
 * `permissions` - (Required) Specifies the permissions for the entry in `rwx` form. For example, `rwx` gives full permissions but `r--` only gives read permissions.
 
-More details on ACLs can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories
+More details on ACLs can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories>
 
 ~> **Note:** Using the service's ACE inheritance features will not work well with terraform since we cannot handle changes that are taking place out-of-band. Setting the path to inherit its permissions from its parent will result in terraform trying to revert them in the next apply operation.
 
