@@ -87,5 +87,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 IoT Central Application Network Rule Sets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iotcentral_application_network_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.IoTCentral/ioTApps/app1
+terraform import azurerm_iotcentral_application_network_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.IoTCentral/iotApps/app1
 ```
