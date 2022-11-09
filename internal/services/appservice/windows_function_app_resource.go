@@ -575,7 +575,6 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -588,22 +587,6 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			var planSku *string
-			if functionApp.ServerFarmID != nil {
-				servicePlanId, err := parse.ServicePlanID(*functionApp.ServerFarmID)
-				if err != nil {
-					return err
-				}
-				servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-				if err != nil {
-					return fmt.Errorf("reading %s: %+v", servicePlanId, err)
-				}
-				if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
-					planSku = sku.Name
-				}
-			}
-			sendContentSettings := helpers.PlanIsElastic(planSku)
-
 			if functionApp.SiteProperties == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
@@ -612,43 +595,6 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
-			}
-
-			var storageAccountName, storageFileShare string
-			if sendContentSettings || helpers.PlanIsConsumption(planSku) {
-				if appSettingsResp.Properties != nil {
-					if appSettingsResp.Properties["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] != nil {
-						saConnectionString := strings.Split(*appSettingsResp.Properties["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"], ";")
-						for _, part := range saConnectionString {
-							if strings.Contains(part, "AccountName") {
-								storageAccountName = strings.TrimPrefix(part, "AccountName=")
-								break
-							}
-						}
-					}
-					if appSettingsResp.Properties["WEBSITE_CONTENTSHARE"] != nil {
-						storageFileShare = *appSettingsResp.Properties["WEBSITE_CONTENTSHARE"]
-					}
-					saClient := metadata.Client.Storage
-					account, err := saClient.FindAccount(ctx, storageAccountName)
-					if err != nil {
-						return fmt.Errorf("retrieving Account %q for Share %q: %s", storageAccountName, storageFileShare, err)
-					}
-					if account == nil {
-						return fmt.Errorf("unable to locate Storage Account %s", storageAccountName)
-					}
-					saFileShareClient, err := metadata.Client.Storage.FileSharesClient(ctx, *account)
-					if err != nil {
-						return fmt.Errorf("building File Share Client: %s", err)
-					}
-					exists, err := saFileShareClient.Exists(ctx, account.ResourceGroup, storageAccountName, storageFileShare)
-					if err != nil {
-						return fmt.Errorf("checking for existence of Storage Share %q (Account %q) : %+v", storageFileShare, storageAccountName, err)
-					}
-					if exists == nil {
-						return fmt.Errorf("the storage file share %s for function app %s does not exists, please specify an existing one", storageFileShare, id.ID())
-					}
-				}
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
@@ -837,13 +783,18 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
 			}
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id, serviceFarmId)
+			_, currentPlanSku, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+
+			_, updatedPlanSKU, err := helpers.GetServicePlanSku(ctx, metadata, *id, serviceFarmId)
 			if err != nil {
 				return err
 			}
 
+			if updatedPlanSKU == nil {
+				updatedPlanSKU = currentPlanSku
+			}
 			// Only send for Dynamic and ElasticPremium
-			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
+			sendContentSettings := (helpers.PlanIsConsumption(updatedPlanSKU) || helpers.PlanIsElastic(updatedPlanSKU)) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {

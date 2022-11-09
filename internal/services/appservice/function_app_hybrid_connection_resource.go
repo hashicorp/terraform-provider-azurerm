@@ -326,7 +326,7 @@ func (r FunctionAppHybridConnectionResource) CustomImporter() sdk.ResourceRunFun
 
 		appId := parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
 
-		_, sku, err := helpers.ServicePlanInfoForApp(ctx, metadata, appId, "")
+		_, sku, err := helpers.ServicePlanInfoForApp(ctx, metadata, appId)
 		if err != nil {
 			return err
 		}

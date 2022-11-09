@@ -770,7 +770,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id, "")
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
 			if err != nil {
 				return err
 			}
