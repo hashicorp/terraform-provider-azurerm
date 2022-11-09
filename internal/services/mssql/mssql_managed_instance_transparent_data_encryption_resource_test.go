@@ -45,6 +45,22 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_keyVaultUserAssignedId
 	})
 }
 
+func TestAccMsSqlManagedInstanceTransparentDataEncryption_autoRotate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
+	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoRotate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_key_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlManagedInstanceTransparentDataEncryption_systemManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
 	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
@@ -220,6 +236,68 @@ resource "azurerm_key_vault_key" "generated" {
 resource "azurerm_mssql_managed_instance_transparent_data_encryption" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   key_vault_key_id    = azurerm_key_vault_key.generated.id
+}
+`, r.serverUAMI(data), data.RandomStringOfLength(5))
+}
+
+func (r MsSqlManagedInstanceTransparentDataEncryptionResource) autoRotate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestsqlserver%[2]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get", "List", "Create", "Delete", "Update", "Purge",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get", "WrapKey", "UnwrapKey", "List", "Create",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "generated" {
+  name         = "keyVault"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [
+    azurerm_key_vault.test,
+  ]
+}
+
+resource "azurerm_mssql_managed_instance_transparent_data_encryption" "test" {
+  managed_instance_id   = azurerm_mssql_managed_instance.test.id
+  key_vault_key_id      = azurerm_key_vault_key.generated.id
+  auto_rotation_enabled = true
 }
 `, r.serverUAMI(data), data.RandomStringOfLength(5))
 }

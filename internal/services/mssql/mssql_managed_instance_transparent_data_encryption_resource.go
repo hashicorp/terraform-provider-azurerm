@@ -50,6 +50,11 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+			"auto_rotation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -87,8 +92,9 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 
 		// Set the SQL Managed Instance Key properties
 		managedInstanceKeyProperties := sql.ManagedInstanceKeyProperties{
-			ServerKeyType: managedInstanceKeyType,
-			URI:           &keyVaultKeyId,
+			ServerKeyType:       managedInstanceKeyType,
+			URI:                 &keyVaultKeyId,
+			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
 		}
 		managedInstanceKey.ManagedInstanceKeyProperties = &managedInstanceKeyProperties
 
@@ -121,8 +127,9 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 
 	// Service managed doesn't require a key name
 	encryptionProtectorProperties := sql.ManagedInstanceEncryptionProtectorProperties{
-		ServerKeyType: managedInstanceKeyType,
-		ServerKeyName: &managedInstanceKeyName,
+		ServerKeyType:       managedInstanceKeyType,
+		ServerKeyName:       &managedInstanceKeyName,
+		AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
 	}
 
 	// Only create a managed instance key if the properties have been set
@@ -185,16 +192,26 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.Reso
 	log.Printf("[INFO] Encryption protector key type is %s", resp.ManagedInstanceEncryptionProtectorProperties.ServerKeyType)
 
 	keyVaultKeyId := ""
+	autoRotationEnabled := false
 
 	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
 	if resp.ManagedInstanceEncryptionProtectorProperties != nil && resp.ManagedInstanceEncryptionProtectorProperties.ServerKeyType == sql.ServerKeyTypeAzureKeyVault {
 		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.ManagedInstanceEncryptionProtectorProperties.URI)
 
 		keyVaultKeyId = *resp.ManagedInstanceEncryptionProtectorProperties.URI
+
+		// autoRotation is only for AKV keys
+		if resp.ManagedInstanceEncryptionProtectorProperties.AutoRotationEnabled != nil {
+			autoRotationEnabled = *resp.ManagedInstanceEncryptionProtectorProperties.AutoRotationEnabled
+		}
 	}
 
 	if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
-		return fmt.Errorf("setting key_vault_key_id`: %+v", err)
+		return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
+	}
+
+	if err := d.Set("auto_rotation_enabled", autoRotationEnabled); err != nil {
+		return fmt.Errorf("setting `auto_rotation_enabled`: %+v", err)
 	}
 
 	return nil
