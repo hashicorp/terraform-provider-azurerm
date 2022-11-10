@@ -226,6 +226,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					computeValidate.SharedGalleryImageID,
 					computeValidate.SharedGalleryImageVersionID,
 				),
+				ExactlyOneOf: []string{
+					"source_image_id",
+					"source_image_reference",
+				},
 			},
 
 			"source_image_reference": sourceImageReferenceSchema(false),
