@@ -401,16 +401,16 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 
 func expandSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
 	if imageId != "" {
-		// With Version            : "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
-		// Versionless(e.g. latest): "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName"
+		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
 		if _, errors := validation.Any(validate.CommunityGalleryImageID, validate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
 			return &compute.ImageReference{
 				CommunityGalleryImageID: utils.String(imageId),
 			}, nil
 		}
 
-		// With Version            : "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
-		// Versionless(e.g. latest): "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName"
+		// With Version            : "/sharedGalleries/galleryUniqueName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/sharedGalleries/galleryUniqueName/images/myGalleryImageName"
 		if _, errors := validation.Any(validate.SharedGalleryImageID, validate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
 			return &compute.ImageReference{
 				SharedGalleryImageID: utils.String(imageId),
