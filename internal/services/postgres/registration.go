@@ -37,6 +37,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_postgresql_configuration":                                  resourcePostgreSQLConfiguration(),
+		"azurerm_postgresql_configuration_set":                              resourcePostgreSQLConfigurationSet(),
 		"azurerm_postgresql_database":                                       resourcePostgreSQLDatabase(),
 		"azurerm_postgresql_firewall_rule":                                  resourcePostgreSQLFirewallRule(),
 		"azurerm_postgresql_server":                                         resourcePostgreSQLServer(),
