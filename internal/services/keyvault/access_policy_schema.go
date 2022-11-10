@@ -27,6 +27,7 @@ func certificatePermissions() []string {
 		"Restore",
 		"SetIssuers",
 		"Update",
+		"All",
 	}
 }
 
@@ -62,6 +63,7 @@ func keyPermissions() []string {
 		"Rotate",
 		"GetRotationPolicy",
 		"SetRotationPolicy",
+		"All",
 	}
 }
 
@@ -85,6 +87,7 @@ func secretPermissions() []string {
 		"Recover",
 		"Restore",
 		"Set",
+		"All",
 	}
 }
 
