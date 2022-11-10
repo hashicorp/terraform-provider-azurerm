@@ -31,6 +31,7 @@ output "query_rule_id" {
 ## Attributes Reference
 
 * `id` - The ID of the scheduled query rule.
+* `location` - Specifies the Azure Region where the resource should exist.
 * `criteria` - A `criteria` block as defined below.
 * `data_source_id` - The resource URI over which log search query is to be run.
 * `description` - The description of the scheduled query rule.
