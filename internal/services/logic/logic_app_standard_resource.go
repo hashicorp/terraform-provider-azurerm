@@ -1346,7 +1346,7 @@ func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIde
 
 func expandLogicAppStandardUserAssignedIdentity(input map[string]identity.UserAssignedIdentityDetails) map[string]*web.UserAssignedIdentity {
 	output := make(map[string]*web.UserAssignedIdentity)
-	for k, _ := range input {
+	for k := range input {
 		output[k] = &web.UserAssignedIdentity{}
 	}
 	return output

@@ -1330,9 +1330,9 @@ resource "azurerm_logic_app_standard" "test" {
 
   identity {
     type = "UserAssigned"
-	identity_ids = [
-		azurerm_user_assigned_identity.test.id
-	]
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
   }
 }
 `, r.template(data), data.RandomInteger)
