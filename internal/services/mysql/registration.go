@@ -37,6 +37,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_mysql_configuration":                  resourceMySQLConfiguration(),
+		"azurerm_mysql_configuration_set":              resourceMySQLConfigurationSet(),
 		"azurerm_mysql_database":                       resourceMySqlDatabase(),
 		"azurerm_mysql_firewall_rule":                  resourceMySqlFirewallRule(),
 		"azurerm_mysql_flexible_server":                resourceMysqlFlexibleServer(),
