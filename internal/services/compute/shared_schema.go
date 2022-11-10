@@ -1,8 +1,6 @@
 package compute
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -342,11 +340,14 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// Id /...../Versions/16.04.201909091 is not a valid resource reference."
 	// as such the image is split into two fields (source_image_id and source_image_reference) to provide better validation
 	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		Optional:      true,
-		ForceNew:      isVirtualMachine,
-		MaxItems:      1,
-		ConflictsWith: []string{"source_image_id"},
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: isVirtualMachine,
+		MaxItems: 1,
+		ExactlyOneOf: []string{
+			"source_image_id",
+			"source_image_reference",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"publisher": {
@@ -420,10 +421,6 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 		return &compute.ImageReference{
 			ID: utils.String(imageId),
 		}, nil
-	}
-
-	if len(referenceInput) == 0 {
-		return nil, fmt.Errorf("either a `source_image_id` or a `source_image_reference` block must be specified")
 	}
 
 	raw := referenceInput[0].(map[string]interface{})

@@ -1421,6 +1421,10 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 				computeValidate.SharedGalleryImageID,
 				computeValidate.SharedGalleryImageVersionID,
 			),
+			ExactlyOneOf: []string{
+				"source_image_id",
+				"source_image_reference",
+			},
 		},
 
 		"source_image_reference": sourceImageReferenceSchema(false),
