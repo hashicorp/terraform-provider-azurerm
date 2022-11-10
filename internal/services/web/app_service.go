@@ -1073,10 +1073,6 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 				siteAuthSettingsProperties.ClientID = utils.String(v.(string))
 			}
 
-			if v, ok := activeDirectorySetting["client_secret"]; ok {
-				siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
-			}
-
 			if v, ok := activeDirectorySetting["allowed_audiences"]; ok {
 				input := v.([]interface{})
 
@@ -1098,10 +1094,6 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 
 			if v, ok := facebookSetting["app_id"]; ok {
 				siteAuthSettingsProperties.FacebookAppID = utils.String(v.(string))
-			}
-
-			if v, ok := facebookSetting["app_secret"]; ok {
-				siteAuthSettingsProperties.FacebookAppSecret = utils.String(v.(string))
 			}
 
 			if v, ok := facebookSetting["oauth_scopes"]; ok {
@@ -1127,10 +1119,6 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 				siteAuthSettingsProperties.GoogleClientID = utils.String(v.(string))
 			}
 
-			if v, ok := googleSetting["client_secret"]; ok {
-				siteAuthSettingsProperties.GoogleClientSecret = utils.String(v.(string))
-			}
-
 			if v, ok := googleSetting["oauth_scopes"]; ok {
 				input := v.([]interface{})
 
@@ -1152,10 +1140,6 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 
 			if v, ok := microsoftSetting["client_id"]; ok {
 				siteAuthSettingsProperties.MicrosoftAccountClientID = utils.String(v.(string))
-			}
-
-			if v, ok := microsoftSetting["client_secret"]; ok {
-				siteAuthSettingsProperties.MicrosoftAccountClientSecret = utils.String(v.(string))
 			}
 
 			if v, ok := microsoftSetting["oauth_scopes"]; ok {
@@ -1181,9 +1165,6 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 				siteAuthSettingsProperties.TwitterConsumerKey = utils.String(v.(string))
 			}
 
-			if v, ok := twitterSetting["consumer_secret"]; ok {
-				siteAuthSettingsProperties.TwitterConsumerSecret = utils.String(v.(string))
-			}
 		}
 	}
 
@@ -1262,10 +1243,6 @@ func flattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 
 		activeDirectorySetting["client_id"] = *input.ClientID
 
-		if input.ClientSecret != nil {
-			activeDirectorySetting["client_secret"] = *input.ClientSecret
-		}
-
 		if input.AllowedAudiences != nil {
 			activeDirectorySetting["allowed_audiences"] = *input.AllowedAudiences
 		}
@@ -1281,10 +1258,6 @@ func flattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 		facebookSetting := make(map[string]interface{})
 
 		facebookSetting["app_id"] = *input.FacebookAppID
-
-		if input.FacebookAppSecret != nil {
-			facebookSetting["app_secret"] = *input.FacebookAppSecret
-		}
 
 		if input.FacebookOAuthScopes != nil {
 			facebookSetting["oauth_scopes"] = *input.FacebookOAuthScopes
@@ -1302,10 +1275,6 @@ func flattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 
 		googleSetting["client_id"] = *input.GoogleClientID
 
-		if input.GoogleClientSecret != nil {
-			googleSetting["client_secret"] = *input.GoogleClientSecret
-		}
-
 		if input.GoogleOAuthScopes != nil {
 			googleSetting["oauth_scopes"] = *input.GoogleOAuthScopes
 		}
@@ -1322,10 +1291,6 @@ func flattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 
 		microsoftSetting["client_id"] = *input.MicrosoftAccountClientID
 
-		if input.MicrosoftAccountClientSecret != nil {
-			microsoftSetting["client_secret"] = *input.MicrosoftAccountClientSecret
-		}
-
 		if input.MicrosoftAccountOAuthScopes != nil {
 			microsoftSetting["oauth_scopes"] = *input.MicrosoftAccountOAuthScopes
 		}
@@ -1341,10 +1306,6 @@ func flattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 		twitterSetting := make(map[string]interface{})
 
 		twitterSetting["consumer_key"] = *input.TwitterConsumerKey
-
-		if input.TwitterConsumerSecret != nil {
-			twitterSetting["consumer_secret"] = *input.TwitterConsumerSecret
-		}
 
 		twitterSettings = append(twitterSettings, twitterSetting)
 	}
@@ -1940,14 +1901,12 @@ func expandAppServiceStorageAccounts(input []interface{}) map[string]*web.AzureS
 		saType := vals["type"].(string)
 		saAccountName := vals["account_name"].(string)
 		saShareName := vals["share_name"].(string)
-		saAccessKey := vals["access_key"].(string)
 		saMountPath := vals["mount_path"].(string)
 
 		output[saName] = &web.AzureStorageInfoValue{
 			Type:        web.AzureStorageType(saType),
 			AccountName: utils.String(saAccountName),
 			ShareName:   utils.String(saShareName),
-			AccessKey:   utils.String(saAccessKey),
 			MountPath:   utils.String(saMountPath),
 		}
 	}
@@ -1967,9 +1926,6 @@ func flattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValu
 		}
 		if v.ShareName != nil {
 			result["share_name"] = *v.ShareName
-		}
-		if v.AccessKey != nil {
-			result["access_key"] = *v.AccessKey
 		}
 		if v.MountPath != nil {
 			result["mount_path"] = *v.MountPath

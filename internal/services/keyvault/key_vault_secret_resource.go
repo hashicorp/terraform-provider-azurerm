@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -336,30 +337,49 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	// Previously at this point there was a call to client.GetSecret. Avoid that
+	// since we do NOT want access to the secret's value and we want to avoid
+	// failing when that permission is not available to us. Instead, we can use
+	// the client.GetSecrets call which requires only "list" permissions and
+	// that response contains enough information for us to populate the secret
+	// attributes we care about. This implementation has the downside that each
+	// secret will trigger a GetSecrets request which is not efficient. The
+	// response could be cached in the future, as one way to mitigate this.
+	maxResults := int32(25)
+	resp, err := client.GetSecrets(ctx, id.KeyVaultBaseUrl, &maxResults)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Secret %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
-			d.SetId("")
-			return nil
+		return fmt.Errorf("Error listing Key Vault Secrets: %s", err)
+	}
+	// Find this secret in the list of all secrets in this Key Vault
+	var secret *keyvault.SecretItem
+	for _, item := range resp.Values() {
+		// Parse the secret URL to extract the name. A newer version of
+		// the Azure SDK Go library may expose a name attribute directly,
+		// since a name attribute IS returned in the response under the hood.
+		secretParts := strings.Split(strings.TrimSuffix(*item.ID, "/"), "/")
+		if len(secretParts) < 4 {
+			return fmt.Errorf("Unexpected Key Vault Secret ID format: %+v", *item.ID)
 		}
-		return fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
+		secretName := secretParts[len(secretParts)-1]
+		if secretName == id.Name {
+			secret = &item
+			break
+		}
 	}
 
-	// the version may have changed, so parse the updated id
-	respID, err := parse.ParseNestedItemID(*resp.ID)
-	if err != nil {
-		return err
+	// The secret was not found in the Key Vault
+	if secret == nil {
+		log.Printf("[DEBUG] Unable to find secret: %v", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	d.Set("name", respID.Name)
-	d.Set("value", resp.Value)
-	d.Set("version", respID.Version)
-	d.Set("content_type", resp.ContentType)
-	d.Set("versionless_id", id.VersionlessID())
+	d.Set("key_vault_id", *keyVaultId)
+	d.Set("name", id.Name)
+	d.Set("version", id.Version)
+	d.Set("content_type", secret.ContentType)
 
-	if attributes := resp.Attributes; attributes != nil {
+	if attributes := secret.Attributes; attributes != nil {
 		if v := attributes.NotBefore; v != nil {
 			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
 		}
@@ -372,7 +392,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
 	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, secret.Tags)
 }
 
 func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
