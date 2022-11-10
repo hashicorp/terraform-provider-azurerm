@@ -642,59 +642,28 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("making Read request on AzureRM App Service Configuration %q: %+v", id.SiteName, err)
 	}
 
-	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
-	}
-
-	backupResp, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(backupResp.Response) {
-			return fmt.Errorf("retrieving the BackupConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+	// Function apps are easily confused with app services since they are both
+	// under Microsoft.Web/sites. Confirm whether the "kind" is "app" and if it
+	// is not then trigger the removal of this resource from the state file by
+	// clearing the ID.
+	if resp.Kind != nil {
+		// `Kind` values are like "functionapp", "app", or "app,container,xenon"
+		kindSegments := strings.Split(*resp.Kind, ",")
+		if kindSegments[0] != "app" {
+			log.Printf("[DEBUG] AppService removing non-app: %s %v", d.Id(), kindSegments)
+			d.SetId("")
+			return nil
 		}
 	}
 
 	logsResp, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("retrieving the DiagnosticsLogsConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
-	}
-
-	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of App Service %q (resource group %q) were not found", id.SiteName, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("making Read request on AzureRM App Service AppSettings %q: %+v", id.SiteName, err)
-	}
-
-	storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Storage Accounts %q: %+v", id.SiteName, err)
-	}
-
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service ConnectionStrings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("Error retrieving the DiagnosticsLogsConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on AzureRM App Service Source Control %q: %+v", id.SiteName, err)
-	}
-
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return err
-	}
-	err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-	siteCredResp, err := siteCredFuture.Result(*client)
-	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
 	}
 
 	d.Set("name", id.SiteName)
@@ -726,38 +695,94 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(appSettingsResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve App Service application settings %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else if !utils.ResponseWasNotFound(appSettingsResp.Response) {
+			return fmt.Errorf("Error retrieving App Service application settings %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+	} else {
+		appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
-	// remove DIAGNOSTICS*, WEBSITE_HTTPLOGGING* settings - Azure will sync these, so just maintain the logs block equivalents in the state
-	delete(appSettings, "DIAGNOSTICS_AZUREBLOBCONTAINERSASURL")
-	delete(appSettings, "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS")
-	delete(appSettings, "WEBSITE_HTTPLOGGING_CONTAINER_URL")
-	delete(appSettings, "WEBSITE_HTTPLOGGING_RETENTION_DAYS")
+		// remove DIAGNOSTICS*, WEBSITE_HTTPLOGGING* settings - Azure will sync these, so just maintain the logs block equivalents in the state
+		delete(appSettings, "DIAGNOSTICS_AZUREBLOBCONTAINERSASURL")
+		delete(appSettings, "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS")
+		delete(appSettings, "WEBSITE_HTTPLOGGING_CONTAINER_URL")
+		delete(appSettings, "WEBSITE_HTTPLOGGING_RETENTION_DAYS")
 
-	if err := d.Set("app_settings", appSettings); err != nil {
-		return fmt.Errorf("setting `app_settings`: %s", err)
+		if err := d.Set("app_settings", appSettings); err != nil {
+			return fmt.Errorf("setting `app_settings`: %s", err)
+		}
 	}
 
-	if err := d.Set("backup", flattenAppServiceBackup(backupResp.BackupRequestProperties)); err != nil {
-		return fmt.Errorf("setting `backup`: %s", err)
+	// Retrieving app backup settings requires permissions beyond "Reader" so we
+	// want to avoid returning an error if this can't be read
+	backupResp, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(backupResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve App Service backup configuration %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else if !utils.ResponseWasNotFound(backupResp.Response) {
+			return fmt.Errorf("Error retrieving the BackupConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+	} else {
+		backupConf := flattenAppServiceBackup(backupResp.BackupRequestProperties)
+		if err := d.Set("backup", backupConf); err != nil {
+			return fmt.Errorf("Error setting `backup`: %s", err)
+		}
 	}
 
-	if err := d.Set("storage_account", flattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
-		return fmt.Errorf("setting `storage_account`: %s", err)
+	// Retrieving app storage accounts requires permissions beyond "Reader" so
+	// we want to avoid returning an error if this can't be read
+	storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(storageAccountsResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve App Service storage accounts %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else {
+			return fmt.Errorf("Error retrieving App Service storage accounts %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+	} else {
+		storageConf := flattenAppServiceStorageAccounts(storageAccountsResp.Properties)
+		if err := d.Set("storage_account", storageConf); err != nil {
+			return fmt.Errorf("Error setting `storage_account`: %s", err)
+		}
 	}
 
-	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
-		return fmt.Errorf("setting `connection_string`: %s", err)
+	// Retrieving app storage accounts requires permissions beyond "Reader" so
+	// we want to avoid returning an error if this can't be read
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(connectionStringsResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve App Service connection strings %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else {
+			return fmt.Errorf("Error retrieving App Service connection strings %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+	} else {
+		connString := flattenAppServiceConnectionStrings(connectionStringsResp.Properties)
+		if err := d.Set("connection_string", connString); err != nil {
+			return fmt.Errorf("Error setting `connection_string`: %s", err)
+		}
+	}
+
+	// Retrieving app auth settings requires permissions beyond "Reader" so we
+	// want to avoid returning an error if this can't be read
+	authResp, authErr := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
+	if authErr != nil {
+		if utils.ResponseWasStatusCode(authResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve App Service auth settings: %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, authErr)
+		} else if !utils.ResponseWasNotFound(authResp.Response) {
+			return fmt.Errorf("Error retrieving auth settings for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+	} else {
+		authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+		if err := d.Set("auth_settings", authSettings); err != nil {
+			return fmt.Errorf("Error setting `auth_settings`: %s", err)
+		}
 	}
 
 	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
-	}
-
-	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
-	if err := d.Set("auth_settings", authSettings); err != nil {
-		return fmt.Errorf("setting `auth_settings`: %s", err)
 	}
 
 	logs := flattenAppServiceLogs(logsResp.SiteLogsConfigProperties)
@@ -768,11 +793,6 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
 		return fmt.Errorf("setting `source_control`: %s", err)
-	}
-
-	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
-	if err := d.Set("site_credential", siteCred); err != nil {
-		return fmt.Errorf("setting `site_credential`: %s", err)
 	}
 
 	identity, err := flattenAppServiceIdentity(resp.Identity)

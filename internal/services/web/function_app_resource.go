@@ -587,36 +587,19 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("making Read request on AzureRM Function App %q: %+v", id.SiteName, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", id.SiteName, id.ResourceGroup)
+		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
+	}
+
+	if resp.Kind != nil {
+		// `Kind` values are like "functionapp", "app", or "app,container,xenon"
+		kindSegments := strings.Split(*resp.Kind, ",")
+		if kindSegments[0] != "functionapp" {
+			log.Printf("[DEBUG] FunctionApp removing non-func: %s %v", d.Id(), kindSegments)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Function App AppSettings %q: %+v", id.SiteName, err)
-	}
-
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Function App ConnectionStrings %q: %+v", id.SiteName, err)
-	}
-
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return err
-	}
-	err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-	siteCredResp, err := siteCredFuture.Result(*client)
-	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
-	}
-	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.SiteName)
@@ -662,55 +645,116 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
+	// Consider an error here a soft failure on 403 forbidden, which happens with Reader permissions
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(appSettingsResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve Function App application settings %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else if !utils.ResponseWasNotFound(appSettingsResp.Response) {
+			return fmt.Errorf("Error reading Function App AppSettings %q: %+v", id.SiteName, err)
+		}
+	} else {
 
-	connectionString := appSettings["AzureWebJobsStorage"]
+		appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
-	// This teases out the necessary attributes from the storage connection string
-	connectionStringParts := strings.Split(connectionString, ";")
-	for _, part := range connectionStringParts {
-		if strings.HasPrefix(part, "AccountName") {
-			accountNameParts := strings.Split(part, "AccountName=")
-			if len(accountNameParts) > 1 {
-				d.Set("storage_account_name", accountNameParts[1])
+		connectionString := appSettings["AzureWebJobsStorage"]
+
+		// This teases out the necessary attributes from the storage connection string
+		connectionStringParts := strings.Split(connectionString, ";")
+		for _, part := range connectionStringParts {
+			if strings.HasPrefix(part, "AccountName") {
+				accountNameParts := strings.Split(part, "AccountName=")
+				if len(accountNameParts) > 1 {
+					d.Set("storage_account_name", accountNameParts[1])
+				}
+			}
+			if strings.HasPrefix(part, "AccountKey") {
+				accountKeyParts := strings.Split(part, "AccountKey=")
+				if len(accountKeyParts) > 1 {
+					d.Set("storage_account_access_key", accountKeyParts[1])
+				}
 			}
 		}
-		if strings.HasPrefix(part, "AccountKey") {
-			accountKeyParts := strings.Split(part, "AccountKey=")
-			if len(accountKeyParts) > 1 {
-				d.Set("storage_account_access_key", accountKeyParts[1])
-			}
+
+		d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
+
+		dashboard, ok := appSettings["AzureWebJobsDashboard"]
+		d.Set("enable_builtin_logging", ok && dashboard != "")
+
+		if _, ok = d.GetOk("app_settings.AzureWebJobsDashboard"); !ok {
+			delete(appSettings, "AzureWebJobsDashboard")
+		}
+		if _, ok = d.GetOk("app_settings.AzureWebJobsStorage"); !ok {
+			delete(appSettings, "AzureWebJobsStorage")
+		}
+		if _, ok = d.GetOk("app_settings.FUNCTIONS_EXTENSION_VERSION"); !ok {
+			delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+		}
+
+		// From the docs:
+		// Only used when deploying to a Premium plan or to a Consumption plan running on Windows. Not supported for Consumptions plans running Linux.
+		if (strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) ||
+			(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
+			delete(appSettings, "WEBSITE_CONTENTSHARE")
+			delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+		}
+
+		if err = d.Set("app_settings", appSettings); err != nil {
+			return err
+		}
+
+	}
+	// Consider an error here a soft failure on 403 forbidden, which happens with Reader permissions
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(appSettingsResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve Function App connection strings %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else {
+			return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", id.SiteName, err)
+		}
+	} else {
+		connString := flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)
+		if err = d.Set("connection_string", connString); err != nil {
+			return err
 		}
 	}
 
-	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
+	// Consider an error here a soft failure on 403 forbidden, which happens with Reader permissions
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(appSettingsResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve Function App publishing credentials %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else {
+			return err
+		}
+	} else {
+		err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return err
+		}
+		siteCredResp, err := siteCredFuture.Result(*client)
+		if err != nil {
+			return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
+		}
+		siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
+		if err = d.Set("site_credential", siteCred); err != nil {
+			return err
+		}
+	}
 
-	dashboard, ok := appSettings["AzureWebJobsDashboard"]
-	d.Set("enable_builtin_logging", ok && dashboard != "")
-
-	if _, ok = d.GetOk("app_settings.AzureWebJobsDashboard"); !ok {
-		delete(appSettings, "AzureWebJobsDashboard")
-	}
-	if _, ok = d.GetOk("app_settings.AzureWebJobsStorage"); !ok {
-		delete(appSettings, "AzureWebJobsStorage")
-	}
-	if _, ok = d.GetOk("app_settings.FUNCTIONS_EXTENSION_VERSION"); !ok {
-		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-	}
-
-	// From the docs:
-	// Only used when deploying to a Premium plan or to a Consumption plan running on Windows. Not supported for Consumptions plans running Linux.
-	if (strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) ||
-		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
-		delete(appSettings, "WEBSITE_CONTENTSHARE")
-		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
-	}
-
-	if err = d.Set("app_settings", appSettings); err != nil {
-		return err
-	}
-	if err = d.Set("connection_string", flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)); err != nil {
-		return err
+	// Consider an error here a soft failure on 403 forbidden, which happens with Reader permissions
+	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasStatusCode(authResp.Response, 403) {
+			log.Printf("[WARNING] Forbidden to retrieve Function App auth settings: %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		} else if !utils.ResponseWasNotFound(authResp.Response) {
+			return fmt.Errorf("Error retrieving auth settings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+	} else {
+		authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+		if err := d.Set("auth_settings", authSettings); err != nil {
+			return fmt.Errorf("Error setting `auth_settings`: %s", err)
+		}
 	}
 
 	identity, err := flattenAppServiceIdentity(resp.Identity)
@@ -721,32 +765,8 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
-	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
-	}
-
 	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
 	if err = d.Set("site_config", siteConfig); err != nil {
-		return err
-	}
-
-	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
-	if err := d.Set("auth_settings", authSettings); err != nil {
-		return fmt.Errorf("setting `auth_settings`: %s", err)
-	}
-
-	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("making Read request on Function App Source Control %q: %+v", id.SiteName, err)
-	}
-	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
-	if err := d.Set("source_control", scm); err != nil {
-		return fmt.Errorf("setting `source_control`: %s", err)
-	}
-
-	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
-	if err = d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
 

@@ -462,98 +462,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"kube_admin_config": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"host": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"username": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"cluster_ca_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			"kube_admin_config_raw": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"kube_config": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"host": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"username": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"client_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"cluster_ca_certificate": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			"kube_config_raw": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -2019,11 +1927,13 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: no payload delivered", *id)
 	}
 
-	accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterUser")
-	profile, err := client.GetAccessProfile(ctx, accessProfileId)
-	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for %s: %+v", *id, err)
-	}
+	// Disabling GetAccessProfile to avoid requiring this permission:
+	// Microsoft.ContainerService/managedClusters/accessProfiles/listCredential/action
+	// accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterUser")
+	// profile, err := client.GetAccessProfile(ctx, accessProfileId)
+	// if err != nil {
+	// 	return fmt.Errorf("retrieving Access Profile for %s: %+v", *id, err)
+	// }
 
 	d.Set("name", id.ResourceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -2223,26 +2133,27 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("workload_identity_enabled", workloadIdentity)
 
-		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
-		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
-			adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
-			if err != nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ResourceName, id.ResourceGroupName, err)
-			}
+		// // adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
+		// if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 
-			if adminProfile.Model == nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ResourceName, id.ResourceGroupName)
-			}
-			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfile.Model)
-			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
-			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
-				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
-			}
-		} else {
-			d.Set("kube_admin_config_raw", "")
-			d.Set("kube_admin_config", []interface{}{})
-		}
+		// 	accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
+		// 	adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
+		// 	if err != nil {
+		// 		return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ResourceName, id.ResourceGroupName, err)
+		// 	}
+
+		// 	if adminProfile.Model == nil {
+		// 		return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ResourceName, id.ResourceGroupName)
+		// 	}
+		// 	adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfile.Model)
+		// 	d.Set("kube_admin_config_raw", adminKubeConfigRaw)
+		// 	if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
+		// 		return fmt.Errorf("setting `kube_admin_config`: %+v", err)
+		// 	}
+		// } else {
+		// 	d.Set("kube_admin_config_raw", "")
+		// 	d.Set("kube_admin_config", []interface{}{})
+		// }
 	}
 
 	identity, err := identity.FlattenSystemOrUserAssignedMap(respModel.Identity)
@@ -2254,11 +2165,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(*profile.Model)
-	d.Set("kube_config_raw", kubeConfigRaw)
-	if err := d.Set("kube_config", kubeConfig); err != nil {
-		return fmt.Errorf("setting `kube_config`: %+v", err)
-	}
+	// kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(*profile.Model)
+	// d.Set("kube_config_raw", kubeConfigRaw)
+	// if err := d.Set("kube_config", kubeConfig); err != nil {
+	// 	return fmt.Errorf("setting `kube_config`: %+v", err)
+	// }
 
 	maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
@@ -2579,9 +2490,9 @@ func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClus
 
 	// admin password isn't returned, so let's look it up
 	adminPassword := ""
-	if v, ok := d.GetOk("windows_profile.0.admin_password"); ok {
-		adminPassword = v.(string)
-	}
+	// if v, ok := d.GetOk("windows_profile.0.admin_password"); ok {
+	// 	adminPassword = v.(string)
+	// }
 
 	license := ""
 	if profile.LicenseType != nil && *profile.LicenseType != managedclusters.LicenseTypeNone {

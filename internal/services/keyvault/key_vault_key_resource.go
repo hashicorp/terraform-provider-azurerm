@@ -414,6 +414,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	d.Set("key_vault_id", *keyVaultId)
 	d.Set("name", id.Name)
 
 	if key := resp.Key; key != nil {

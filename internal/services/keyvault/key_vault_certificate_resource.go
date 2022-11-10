@@ -666,6 +666,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
+	d.Set("key_vault_id", *keyVaultId)
 	d.Set("name", id.Name)
 
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
