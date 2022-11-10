@@ -127,7 +127,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeString,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_id' field instead",
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_ids' field instead",
 			},
 
 			"subnet_ids": {
