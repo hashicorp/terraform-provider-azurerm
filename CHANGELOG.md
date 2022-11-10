@@ -14,6 +14,7 @@ ENHANCEMENTS
 * `azurerm_cdn_frontdoor_profile` - remove force new from the `response_timeout_seconds` field [GH-19175]
 * `azurerm_managed_disk` - support for expanding data disks without downtime [GH-17245]
 * `azurerm_mssql_virtual_machine` - support for the `sql_instance` block [GH-19123]
+* `azurerm_public_ip` - support for the `ddos_protection_mode` and `ddos_protection_plan_id` properties [GH-19206]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `techniques` property [GH-19142]
 * `azurerm_sentinel_alert_rule_fusion` - support for the source block [GH-19093]
 
