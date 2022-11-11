@@ -109,6 +109,9 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("context had no deadline")
 	}
 
+	// The firewall is not taking effect immediately after firewall creation.
+	// Firewall has a cache and will refresh every 1 minute, so if requests sent before firewall refreshes, it will meet ClientIpAddressNotAuthorized.
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21516
 	stateChangeConf := &pluginsdk.StateChangeConf{
 		Pending: []string{string(synapse.ProvisioningStateProvisioning)},
 		Target:  []string{string(synapse.ProvisioningStateSucceeded)},
