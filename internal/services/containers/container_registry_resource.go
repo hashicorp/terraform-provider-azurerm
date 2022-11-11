@@ -997,9 +997,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: containerValidate.ContainerRegistryName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"sku": {
 			Type:     pluginsdk.TypeString,

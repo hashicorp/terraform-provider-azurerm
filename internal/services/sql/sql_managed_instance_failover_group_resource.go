@@ -47,9 +47,9 @@ func resourceSqlInstanceFailoverGroup() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"managed_instance_name": {
 				Type:         pluginsdk.TypeString,

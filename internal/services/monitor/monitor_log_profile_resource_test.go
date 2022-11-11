@@ -227,9 +227,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "acctestsbrule-%s"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestsbrule-%s"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   listen = true
   send   = true

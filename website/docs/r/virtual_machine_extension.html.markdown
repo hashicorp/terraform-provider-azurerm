@@ -112,9 +112,9 @@ resource "azurerm_virtual_machine_extension" "example" {
   type_handler_version = "2.0"
 
   settings = <<SETTINGS
-	{
-		"commandToExecute": "hostname && uptime"
-	}
+ {
+  "commandToExecute": "hostname && uptime"
+ }
 SETTINGS
 
 
@@ -139,8 +139,9 @@ The following arguments are supported:
     be found using the Azure CLI.
 
 ~> **Note:** The `Publisher` and `Type` of Virtual Machine Extensions can be found using the Azure CLI, via:
+
 ```shell
-$ az vm extension image list --location westus -o table
+az vm extension image list --location westus -o table
 ```
 
 * `type_handler_version` - (Required) Specifies the version of the extension to
@@ -164,7 +165,19 @@ $ az vm extension image list --location westus -o table
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
 
+* `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
+
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `protected_settings_from_key_vault` block supports the following:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret which stores the protected settings.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ## Attributes Reference
 

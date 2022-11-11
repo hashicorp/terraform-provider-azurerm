@@ -4,21 +4,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceWebpubsubSharedPrivateLinkService() *pluginsdk.Resource {
+func resourceWebPubSubSharedPrivateLinkService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceWebPubsubSharedPrivateLinkServiceCreateUpdate,
 		Read:   resourceWebPubsubSharedPrivateLinkServiceRead,
@@ -33,7 +32,7 @@ func resourceWebpubsubSharedPrivateLinkService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebPubsubSharedPrivateLinkResourceID(id)
+			_, err := webpubsub.ParseSharedPrivateLinkResourceID(id)
 			return err
 		}),
 
@@ -45,12 +44,7 @@ func resourceWebpubsubSharedPrivateLinkService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"web_pubsub_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.WebPubsubID,
-			},
+			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
 
 			"subresource_name": {
 				Type:         pluginsdk.TypeString,
@@ -81,43 +75,43 @@ func resourceWebpubsubSharedPrivateLinkService() *pluginsdk.Resource {
 }
 
 func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubSharedPrivateLinkResourceClient
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	webPubsubID, err := parse.WebPubsubID(d.Get("web_pubsub_id").(string))
+	webPubSubId, err := webpubsub.ParseWebPubSubID(d.Get("web_pubsub_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing ID of %q: %+v", webPubsubID, err)
+		return fmt.Errorf("parsing ID of %q: %+v", webPubSubId, err)
 	}
 
-	id := parse.NewWebPubsubSharedPrivateLinkResourceID(subscriptionId, webPubsubID.ResourceGroup, webPubsubID.WebPubSubName, d.Get("name").(string))
+	id := webpubsub.NewSharedPrivateLinkResourceID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.ResourceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.SharedPrivateLinkResourceName, id.ResourceGroup, id.WebPubSubName)
+		existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %q: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_web_pubsub_shared_private_link_resource", id.ID())
 		}
 	}
 
 	parameters := webpubsub.SharedPrivateLinkResource{
-		SharedPrivateLinkResourceProperties: &webpubsub.SharedPrivateLinkResourceProperties{
-			GroupID:               utils.String(d.Get("subresource_name").(string)),
-			PrivateLinkResourceID: utils.String(d.Get("target_resource_id").(string)),
+		Properties: &webpubsub.SharedPrivateLinkResourceProperties{
+			GroupId:               d.Get("subresource_name").(string),
+			PrivateLinkResourceId: d.Get("target_resource_id").(string),
 		},
 	}
 
 	requestMessage := d.Get("request_message").(string)
 	if requestMessage != "" {
-		parameters.SharedPrivateLinkResourceProperties.RequestMessage = utils.String(requestMessage)
+		parameters.Properties.RequestMessage = utils.String(requestMessage)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.SharedPrivateLinkResourceName, parameters, id.ResourceGroup, id.WebPubSubName); err != nil {
+	if err := client.SharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return err
 	}
 
@@ -125,65 +119,54 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 
 	return resourceWebPubsubSharedPrivateLinkServiceRead(d, meta)
 }
+
 func resourceWebPubsubSharedPrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubSharedPrivateLinkResourceClient
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubsubSharedPrivateLinkResourceID(d.Id())
+	id, err := webpubsub.ParseSharedPrivateLinkResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.SharedPrivateLinkResourceName, id.ResourceGroup, id.WebPubSubName)
+	resp, err := client.SharedPrivateLinkResourcesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return fmt.Errorf("%q was not found", id)
 		}
 		return fmt.Errorf("making request on %q: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("web_pubsub_id", parse.NewWebPubsubID(id.SubscriptionId, id.ResourceGroup, id.WebPubSubName).ID())
+	d.Set("name", id.SharedPrivateLinkResourceName)
+	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
 
-	if props := resp.SharedPrivateLinkResourceProperties; props != nil {
-		if props.GroupID != nil {
-			d.Set("subresource_name", props.GroupID)
-		}
-
-		if props.PrivateLinkResourceID != nil {
-			d.Set("target_resource_id", props.PrivateLinkResourceID)
-		}
-
-		if props.RequestMessage != nil {
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
 			d.Set("request_message", props.RequestMessage)
+			d.Set("status", props.Status)
+			d.Set("subresource_name", props.GroupId)
+			d.Set("target_resource_id", props.PrivateLinkResourceId)
 		}
-
-		d.Set("status", props.Status)
 	}
 
 	return nil
 }
+
 func resourceWebPubsubSharedPrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubSharedPrivateLinkResourceClient
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubsubSharedPrivateLinkResourceID(d.Id())
+	id, err := webpubsub.ParseSharedPrivateLinkResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.SharedPrivateLinkResourceName, id.ResourceGroup, id.WebPubSubName)
-	if err != nil {
+	if err := client.SharedPrivateLinkResourcesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting %q: %+v", id, err)
-		}
-	}
 	return nil
 }

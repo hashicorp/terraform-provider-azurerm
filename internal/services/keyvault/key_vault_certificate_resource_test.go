@@ -351,6 +351,32 @@ func TestAccKeyVaultCertificate_unorderedKeyUsage(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultCertificate_updatedImportedCertificate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicImportPFX(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+			),
+		},
+		data.ImportStep("certificate"),
+		{
+			Config: r.basicImportPFX_ECDSA(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+			),
+		},
+		data.ImportStep("certificate"),
+	})
+}
+
 func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	keyVaultsClient := clients.KeyVault
 	client := clients.KeyVault.ManagementClient

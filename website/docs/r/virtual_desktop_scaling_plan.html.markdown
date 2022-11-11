@@ -109,7 +109,6 @@ resource "azurerm_virtual_desktop_scaling_plan" "example" {
 
 The following arguments are supported:
 
-
 * `location` - (Required) The Azure Region where the Virtual Desktop Scaling Plan  should exist. Changing this forces a new Virtual Desktop Scaling Plan to be created.
 
 * `name` - (Required) The name which should be used for this Virtual Desktop Scaling Plan . Changing this forces a new Virtual Desktop Scaling Plan to be created.
@@ -184,7 +183,7 @@ A `schedule` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Desktop Scaling Plan.
 

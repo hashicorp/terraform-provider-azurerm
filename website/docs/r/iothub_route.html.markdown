@@ -78,15 +78,15 @@ resource "azurerm_iothub_route" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the route.
+* `name` - (Required) The name of the route. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group under which the IotHub Route resource has to be created. Changing this forces a new resource to be created.
 
 * `iothub_name` - (Required) The name of the IoTHub to which this Route belongs. Changing this forces a new resource to be created.
 
-* `source` - (Optional) The source that the routing rule is to be applied to. Possible values include: `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `Invalid`, `TwinChangeEvents`. Defaults to `DeviceMessages`.
+* `source` - (Optional) The source that the routing rule is to be applied to. Possible values include: `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `DigitalTwinChangeEvents`, `Invalid`, `TwinChangeEvents`. Defaults to `DeviceMessages`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed. Currently only one endpoint is allowed.
 
@@ -99,8 +99,6 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub Route.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

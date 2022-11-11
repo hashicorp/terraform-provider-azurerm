@@ -72,8 +72,8 @@ The following arguments are supported:
 An `authentication_configuration` supports the following:
 
 * `authority` - (Optional) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
-Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
-* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is https://azurehealthcareapis.com
+Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
+* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is <https://azurehealthcareapis.com>
 * `smart_proxy_enabled` - (Boolean) Enables the 'SMART on FHIR' option for mobile and web implementations.
 
 ---
@@ -92,8 +92,6 @@ The following attributes are exported:
 * `id` - The ID of the Healthcare Service.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

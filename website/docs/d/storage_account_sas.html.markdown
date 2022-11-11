@@ -118,7 +118,6 @@ A `services` block contains:
 
 A `permissions` block contains:
 
-
 * `read` - Should Read permissions be enabled for this SAS?
 * `write` - Should Write permissions be enabled for this SAS?
 * `delete` - Should Delete permissions be enabled for this SAS?

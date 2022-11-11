@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -52,7 +52,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"virtual_machine_id": {
 			Type:         pluginsdk.TypeString,

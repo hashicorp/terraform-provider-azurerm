@@ -86,6 +86,12 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
+			"partner_solution_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"log_analytics_destination_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -266,6 +272,12 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 		valid = true
 	}
 
+	partnerSolutionId := d.Get("partner_solution_id").(string)
+	if partnerSolutionId != "" {
+		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
+		valid = true
+	}
+
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
 		if workspaceId != "" {
 			parameters.Properties.LogAnalyticsDestinationType = &v
@@ -275,7 +287,7 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if !valid {
-		return fmt.Errorf("Either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id` or `storage_account_id` must be set")
+		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, diagnosticSettingId, parameters); err != nil {
@@ -354,6 +366,12 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 				storageAccountId = parsedId.ID()
 				d.Set("storage_account_id", storageAccountId)
+			}
+
+			partnerSolutionId := ""
+			if props.MarketplacePartnerId != nil && *props.MarketplacePartnerId != "" {
+				partnerSolutionId = *props.MarketplacePartnerId
+				d.Set("partner_solution_id", partnerSolutionId)
 			}
 
 			d.Set("log_analytics_destination_type", resp.Model.Properties.LogAnalyticsDestinationType)

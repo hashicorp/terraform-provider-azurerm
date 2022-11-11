@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/checknameavailabilitydisasterrecoveryconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -54,7 +55,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"partner_namespace_id": {
 				Type:         pluginsdk.TypeString,
@@ -122,15 +123,30 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	if d.HasChange("partner_namespace_id") {
+	pairingStatus, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("checking the status of eventhub disaster recovery error: %+v", err)
+	}
+
+	// need to check if DCR needs pair-breaking first
+	breakPairFirst := false
+	if model := pairingStatus.Model; model != nil {
+		if model.Properties != nil {
+			if model.Properties.PartnerNamespace != nil && *model.Properties.PartnerNamespace != "" {
+				breakPairFirst = true
+			}
+		}
+	}
+
+	if d.HasChange("partner_namespace_id") && breakPairFirst {
 		// break pairing
 		if _, err := client.BreakPairing(ctx, *id); err != nil {
 			return fmt.Errorf("breaking the pairing for %s: %+v", *id, err)
 		}
+	}
 
-		if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
-			return fmt.Errorf("waiting for the pairing to be broken for %s: %+v", *id, err)
-		}
+	if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
+		return fmt.Errorf("waiting for the pairing to be broken for %s: %+v", *id, err)
 	}
 
 	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
@@ -193,12 +209,28 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	if _, err := client.BreakPairing(ctx, *id); err != nil {
-		return fmt.Errorf("breaking pairing of %s: %+v", *id, err)
+	pairingStatus, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("checking the status of eventhub disaster recovery error: %+v", err)
 	}
 
-	if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
-		return fmt.Errorf("waiting for pairing to break for %s: %+v", *id, err)
+	// need to check if DCR needs pair-breaking first
+	breakPairFirst := false
+	if model := pairingStatus.Model; model != nil {
+		if model.Properties != nil {
+			if model.Properties.PartnerNamespace != nil && *model.Properties.PartnerNamespace != "" {
+				breakPairFirst = true
+			}
+		}
+	}
+
+	if breakPairFirst {
+		if _, err := client.BreakPairing(ctx, *id); err != nil {
+			return fmt.Errorf("breaking pairing of %s: %+v", *id, err)
+		}
+		if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
+			return fmt.Errorf("waiting for pairing to break for %s: %+v", *id, err)
+		}
 	}
 
 	if _, err := client.Delete(ctx, *id); err != nil {

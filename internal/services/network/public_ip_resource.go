@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourcePublicIp() *pluginsdk.Resource {
@@ -50,9 +50,9 @@ func resourcePublicIp() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"allocation_method": {
 				Type:     pluginsdk.TypeString,
@@ -64,6 +64,23 @@ func resourcePublicIp() *pluginsdk.Resource {
 			},
 
 			// Optional
+			"ddos_protection_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.DdosSettingsProtectionModeDisabled),
+					string(network.DdosSettingsProtectionModeEnabled),
+					string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
+				}, false),
+				Default: string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
+			},
+
+			"ddos_protection_plan_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.DdosProtectionPlanID,
+			},
+
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"ip_version": {
@@ -174,7 +191,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
-	sku_tier := d.Get("sku_tier").(string)
+	skuTier := d.Get("sku_tier").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
@@ -187,23 +204,37 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	ddosProtectionMode := d.Get("ddos_protection_mode").(string)
+
 	publicIp := network.PublicIPAddress{
 		Name:             utils.String(id.Name),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         &location,
 		Sku: &network.PublicIPAddressSku{
 			Name: network.PublicIPAddressSkuName(sku),
-			Tier: network.PublicIPAddressSkuTier(sku_tier),
+			Tier: network.PublicIPAddressSkuTier(skuTier),
 		},
 		PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
 			PublicIPAllocationMethod: network.IPAllocationMethod(ipAllocationMethod),
 			PublicIPAddressVersion:   ipVersion,
 			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
+			DdosSettings: &network.DdosSettings{
+				ProtectionMode: network.DdosSettingsProtectionMode(ddosProtectionMode),
+			},
 		},
 		Tags: tags.Expand(t),
 	}
+	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
+	if planOk {
+		if !strings.EqualFold(ddosProtectionMode, "enabled") {
+			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+		}
+		publicIp.PublicIPAddressPropertiesFormat.DdosSettings.DdosProtectionPlan = &network.SubResource{
+			ID: utils.String(ddosProtectionPlanId.(string)),
+		}
+	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		publicIp.Zones = &zones
 	}
@@ -285,7 +316,7 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
@@ -304,6 +335,13 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("fqdn", settings.Fqdn)
 			d.Set("reverse_fqdn", settings.ReverseFqdn)
 			d.Set("domain_name_label", settings.DomainNameLabel)
+		}
+
+		if ddosSetting := props.DdosSettings; ddosSetting != nil {
+			d.Set("ddos_protection_mode", string(ddosSetting.ProtectionMode))
+			if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
+				d.Set("ddos_protection_plan_id", subResource.ID)
+			}
 		}
 
 		d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))

@@ -32,6 +32,22 @@ func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccServiceFabricManagedCluster_withCustomSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCustomSettings(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+		},
+		data.ImportStep("password"),
+	})
+}
+
 func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
 
@@ -140,6 +156,52 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
     probe_protocol     = "http"
     protocol           = "tcp"
     probe_request_path = "/"
+  }
+
+  %[4]s
+
+  tags = {
+    Test = "value"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
+}
+
+func (r ClusterResource) withCustomSettings(data acceptance.TestData, nodeTypeData string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sfmc-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_fabric_managed_cluster" "test" {
+  name                = "testacc-sfmc-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+  dns_service_enabled = true
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  custom_fabric_setting {
+    section   = "ClusterManager"
+    parameter = "EnableDefaultServicesUpgrade"
+    value     = true
   }
 
   %[4]s

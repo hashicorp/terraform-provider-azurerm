@@ -23,6 +23,7 @@ resource "azurerm_private_dns_zone" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:

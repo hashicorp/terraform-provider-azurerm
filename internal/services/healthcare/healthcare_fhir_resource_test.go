@@ -265,6 +265,10 @@ resource "azurerm_healthcare_fhir_service" "test" {
 
   container_registry_login_server_url = [azurerm_container_registry.test.login_server]
 
+  oci_artifact {
+    login_server = azurerm_container_registry.test.login_server
+  }
+
   cors {
     allowed_origins     = ["https://acctest.com:123", "https://acctest1.com:3389"]
     allowed_headers     = ["*"]

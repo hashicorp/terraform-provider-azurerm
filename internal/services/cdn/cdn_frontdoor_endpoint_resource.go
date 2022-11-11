@@ -72,7 +72,8 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileRaw := d.Get("cdn_frontdoor_profile_id").(string)
+	profileId, err := parse.FrontDoorProfileID(profileRaw)
 	if err != nil {
 		return err
 	}

@@ -23,6 +23,7 @@ Confidential Ledger
 Connections
 Consumption
 Container
+Containers
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
@@ -66,11 +67,13 @@ Mixed Reality
 Monitor
 NetApp
 Network
+Nginx
 Orbital
 Policy
 Portal
 PowerBI
 Private DNS
+Private DNS Resolver
 Purview
 Recovery Services
 Redis

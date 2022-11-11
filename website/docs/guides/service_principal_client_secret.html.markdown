@@ -31,7 +31,7 @@ It's possible to complete this task in either the [Azure CLI](#creating-a-servic
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
-$ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
+az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 ```
 
 ---
@@ -39,13 +39,13 @@ $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 Firstly, login to the Azure CLI using:
 
 ```shell
-$ az login
+az login
 ```
 
 Once logged in - it's possible to list the Subscriptions associated with the account via:
 
 ```shell
-$ az account list
+az account list
 ```
 
 The output (similar to below) will display one or more Subscriptions - with the `id` field being the `subscription_id` field referenced above.
@@ -70,13 +70,13 @@ The output (similar to below) will display one or more Subscriptions - with the 
 Should you have more than one Subscription, you can specify the Subscription to use via the following command:
 
 ```shell
-$ az account set --subscription="SUBSCRIPTION_ID"
+az account set --subscription="SUBSCRIPTION_ID"
 ```
 
 We can now create the Service Principal which will have permissions to manage resources in the specified Subscription using the following command:
 
 ```shell
-$ az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/SUBSCRIPTION_ID"
+az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/SUBSCRIPTION_ID"
 ```
 
 This command will output 5 values:
@@ -93,34 +93,34 @@ This command will output 5 values:
 
 These values map to the Terraform variables like so:
 
- - `appId` is the `client_id` defined above.
- - `password` is the `client_secret` defined above.
- - `tenant` is the `tenant_id` defined above.
+* `appId` is the `client_id` defined above.
+* `password` is the `client_secret` defined above.
+* `tenant` is the `tenant_id` defined above.
 
 ---
 
 Finally, it's possible to test these values work as expected by first logging in:
 
 ```shell
-$ az login --service-principal -u CLIENT_ID -p CLIENT_SECRET --tenant TENANT_ID
+az login --service-principal -u CLIENT_ID -p CLIENT_SECRET --tenant TENANT_ID
 ```
 
 Once logged in as the Service Principal - we should be able to list the VM sizes by specifying an Azure region, for example here we use the `West US` region:
 
 ```shell
-$ az vm list-sizes --location westus
+az vm list-sizes --location westus
 ```
 
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
 
 ```shell
-$ az account list-locations
+az account list-locations
 ```
 
 Finally, since we're logged into the Azure CLI as a Service Principal we recommend logging out of the Azure CLI (but you can instead log in using your user account):
 
 ```bash
-$ az logout
+az logout
 ```
 
 Information on how to configure the Provider block using the newly created Service Principal credentials can be found below.
@@ -139,9 +139,9 @@ There are three tasks necessary to create a Service Principal using [the Azure P
 
 Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview). Click the **New registration** button at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
-- **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
-- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
-- **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
+* **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
+* **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
+* **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
 
 At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application.
 
@@ -170,10 +170,10 @@ As we've obtained the credentials for this Service Principal - it's possible to 
 When storing the credentials as Environment Variables, for example:
 
 ```bash
-$ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_CLIENT_SECRET="00000000-0000-0000-0000-000000000000"
-$ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
+export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+export ARM_CLIENT_SECRET="00000000-0000-0000-0000-000000000000"
+export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
 The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:

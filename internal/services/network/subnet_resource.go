@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 var SubnetResourceName = "azurerm_subnet"
@@ -49,7 +49,7 @@ func resourceSubnet() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"virtual_network_name": {
 				Type:     pluginsdk.TypeString,
@@ -119,6 +119,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Kusto/clusters",
 											"Microsoft.Logic/integrationServiceEnvironments",
+											"Microsoft.LabServices/labplans",
 											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.Network/dnsResolvers",
@@ -146,6 +147,8 @@ func resourceSubnet() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/networkinterfaces/*",
+												"Microsoft.Network/publicIPAddresses/join/action",
+												"Microsoft.Network/publicIPAddresses/read",
 												"Microsoft.Network/virtualNetworks/read",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",

@@ -160,7 +160,7 @@ The following arguments are supported:
 
 * `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool.
 
-* `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements.
+* `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>.
 
 * `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread.
 
@@ -178,7 +178,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Only possible value is `UserAssigned`.
 
- * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
 ---
 
@@ -186,7 +186,7 @@ A `data_disks` block supports the following:
 
 * `lun` - (Required) The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun. The value must be between 0 and 63, inclusive.
 
-* `caching` - (Required) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. The default value for caching is "none". For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/.
+* `caching` - (Required) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. The default value for caching is "none". For information about the caching options see: <https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/>.
 
 * `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
 
@@ -248,9 +248,12 @@ To provision from an Azure Platform Image, the following fields are applicable:
 To provision a Custom Image, the following fields are applicable:
 
 * `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/azure/batch/batch-custom-images) for more details.
+
 ---
 
 A `fixed_scale` block supports the following:
+
+* `node_deallocation_method` - (Optional) It determines what to do with a node and its running task(s) if the pool size is decreasing. Values are `Requeue`, `RetainedData`, `TaskCompletion` and `Terminate`.
 
 * `target_dedicated_nodes` - (Optional) The number of nodes in the Batch pool. Defaults to `1`.
 
@@ -272,6 +275,8 @@ A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
+* `container` - (Optional) A `container` block is the settings for the container under which the start task runs. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
+
 * `task_retry_maximum` - (Optional) The number of retry count. Defaults to `1`.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
@@ -281,6 +286,18 @@ A `start_task` block supports the following:
 * `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs.
 
 * `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
+---
+
+A `container` block supports the following:
+
+* `image_name` - (Required) The image to use to create the container in which the task will run. This is the full image reference, as would be specified to "docker pull". If no tag is provided as part of the image name, the tag ":latest" is used as a default.
+
+* `run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
+
+* `registry` - (Optional) The same reference as `container_registries` block defined as follows.
+
+* `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is `TaskWorkingDirectory`, an alternative value is `ContainerImageDefault`.
 
 ---
 
@@ -432,6 +449,8 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
+* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `none`, `job`.
+
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
@@ -456,11 +475,13 @@ A `endpoint_configuration` block supports the following:
 
 A `network_security_group_rules` block supports the following:
 
-* `access` - The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
+* `access` - (Required) The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
 
-* `priority` - The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
+* `priority` - (Required) The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
 
-* `source_address_prefix` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+* `source_address_prefix` - (Required) The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+
+* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are `*` (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be `*`.
 
 ---
 

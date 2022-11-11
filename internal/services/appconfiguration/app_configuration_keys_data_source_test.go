@@ -18,7 +18,7 @@ func TestAccAppConfigurationKeysDataSource_allkeys(t *testing.T) {
 		{
 			Config: d.allKeys(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("items.#").HasValue("4"),
+				check.That(data.ResourceName).Key("items.#").HasValue("5"),
 			),
 		},
 	})
@@ -85,6 +85,13 @@ resource "azurerm_app_configuration_key" "test4" {
   label                  = "testlabel"
   value                  = "a test"
 }
+
+resource "azurerm_app_configuration_key" "test5" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "key3"
+  content_type           = "test"
+  value                  = "a test"
+}
 `)
 }
 
@@ -101,7 +108,8 @@ data "azurerm_app_configuration_keys" "test" {
     azurerm_app_configuration_key.test,
     azurerm_app_configuration_key.test2,
     azurerm_app_configuration_key.test3,
-    azurerm_app_configuration_key.test4
+    azurerm_app_configuration_key.test4,
+    azurerm_app_configuration_key.test5,
   ]
 }
 `, AppConfigurationKeyResource{}.base(data), t.keys())
@@ -121,7 +129,8 @@ data "azurerm_app_configuration_keys" "test" {
     azurerm_app_configuration_key.test,
     azurerm_app_configuration_key.test2,
     azurerm_app_configuration_key.test3,
-    azurerm_app_configuration_key.test4
+    azurerm_app_configuration_key.test4,
+    azurerm_app_configuration_key.test5,
   ]
 }
 `, AppConfigurationKeyResource{}.base(data), t.keys())
@@ -141,7 +150,8 @@ data "azurerm_app_configuration_keys" "test" {
     azurerm_app_configuration_key.test,
     azurerm_app_configuration_key.test2,
     azurerm_app_configuration_key.test3,
-    azurerm_app_configuration_key.test4
+    azurerm_app_configuration_key.test4,
+    azurerm_app_configuration_key.test5,
   ]
 }
 `, AppConfigurationKeyResource{}.base(data), t.keys())

@@ -66,7 +66,6 @@ The following arguments are supported:
 
 * `build_agent_pool_size` - (Optional) Specifies the size for this Spring Cloud Service's default build agent pool. Possible values are `S1`, `S2`, `S3`, `S4` and `S5`. This field is applicable only for Spring Cloud Service with enterprise tier.
 
-
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.

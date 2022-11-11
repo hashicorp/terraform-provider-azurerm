@@ -52,9 +52,9 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: netAppValidate.VolumeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -240,7 +240,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"remote_volume_location": azure.SchemaLocation(),
+						"remote_volume_location": commonschema.Location(),
 
 						"remote_volume_resource_id": {
 							Type:         pluginsdk.TypeString,
@@ -366,9 +366,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient
-		_, err = snapshotClient.Get(ctx, *parsedSnapshotResourceID)
+		snapshotResponse, err := snapshotClient.Get(ctx, *parsedSnapshotResourceID)
 		if err != nil {
 			return fmt.Errorf("getting snapshot from %s: %+v", id, err)
+		}
+		if model := snapshotResponse.Model; model != nil && model.Id != nil {
+			snapshotID = *model.Id
 		}
 
 		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.AccountName, parsedSnapshotResourceID.PoolName, parsedSnapshotResourceID.VolumeName)

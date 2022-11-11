@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
@@ -51,7 +51,7 @@ func resourceAutomationModule() *pluginsdk.Resource {
 				ValidateFunc: validate.AutomationAccount(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"module_link": {
 				Type:     pluginsdk.TypeList,
@@ -105,7 +105,11 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		// for existing global module do update instead of raising ImportAsExistsError
+		isGlobal := existing.ModuleProperties != nil &&
+			existing.ModuleProperties.IsGlobal != nil &&
+			*existing.ModuleProperties.IsGlobal == true
+		if !utils.ResponseWasNotFound(existing.Response) && !isGlobal {
 			return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
 		}
 	}

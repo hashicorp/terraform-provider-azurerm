@@ -52,25 +52,25 @@ The following arguments are supported:
 
 A `resource_type` block supports the following:
 
-* `name` - (Required) Specifies the name of the route definition. 
+* `name` - (Required) Specifies the name of the route definition.
 
-* `endpoint` - (Required) Specifies the endpoint of the route definition. 
+* `endpoint` - (Required) Specifies the endpoint of the route definition.
 
-* `routing_type` - (Optional) The routing type that is supported for the resource request. Valid values are `ResourceTypeRoutingProxy` or `ResourceTypeRoutingProxyCache`. This value defaults to `ResourceTypeRoutingProxy`. 
+* `routing_type` - (Optional) The routing type that is supported for the resource request. Valid values are `ResourceTypeRoutingProxy` or `ResourceTypeRoutingProxyCache`. This value defaults to `ResourceTypeRoutingProxy`.
 
 ---
 
 A `action` block supports the following:
 
-* `name` - (Required) Specifies the name of the action. 
+* `name` - (Required) Specifies the name of the action.
 
-* `endpoint` - (Required) Specifies the endpoint of the action. 
+* `endpoint` - (Required) Specifies the endpoint of the action.
 
 ---
 
 A `validation` block supports the following:
 
-* `specification` - (Required) The endpoint where the validation specification is located. 
+* `specification` - (Required) The endpoint where the validation specification is located.
 
 ## Attributes Reference
 

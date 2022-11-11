@@ -21,7 +21,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,7 +39,7 @@ var (
 )
 
 func resourceEventHubNamespace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceEventHubNamespaceCreate,
 		Read:   resourceEventHubNamespaceRead,
 		Update: resourceEventHubNamespaceUpdate,
@@ -89,11 +91,10 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// zone redundant is computed by service based on the availability of availability zone feature.
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
+				Computed: true,
 			},
 
 			"dedicated_cluster_id": {
@@ -266,18 +267,21 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 						log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
 						d.ForceNew("sku")
 					}
-					if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
-						zoneRedundant := d.Get("zone_redundant").(bool)
-						if !zoneRedundant {
-							return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
-						}
-					}
 				}
 				return nil
 			}),
 			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
 		),
 	}
+	if !features.FourPointOhBeta() {
+		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		}
+	}
+	return resource
 }
 
 func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -304,7 +308,6 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
-	zoneRedundant := d.Get("zone_redundant").(bool)
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -334,11 +337,14 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			ZoneRedundant:        utils.Bool(zoneRedundant),
 			DisableLocalAuth:     utils.Bool(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if !features.FourPointOhBeta() {
+		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -399,7 +405,6 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
-	zoneRedundant := d.Get("zone_redundant").(bool)
 
 	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -429,11 +434,14 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			ZoneRedundant:        utils.Bool(zoneRedundant),
 			DisableLocalAuth:     utils.Bool(disableLocalAuth),
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if !features.FourPointOhBeta() {
+		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -575,7 +583,11 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving Network Rule Sets for %s: %+v", *id, err)
 	}
 
-	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
+	networkRuleSets, err := flattenEventHubNamespaceNetworkRuleset(ruleset)
+	if err != nil {
+		return fmt.Errorf("flattening `network_rule` for %s: %+v", id, err)
+	}
+	if err := d.Set("network_rulesets", networkRuleSets); err != nil {
 		return fmt.Errorf("setting `network_ruleset` for Evenhub Namespace %s: %v", id.NamespaceName, err)
 	}
 
@@ -741,9 +753,9 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 	return &ruleset
 }
 
-func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) []interface{} {
+func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) ([]interface{}, error) {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
-		return nil
+		return nil, nil
 	}
 
 	vnetBlocks := make([]interface{}, 0)
@@ -753,7 +765,14 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 			if s := vnetRule.Subnet; s != nil {
 				if v := s.Id; v != nil {
-					block["subnet_id"] = *v
+					// the API returns the subnet ID's resource group name in lowercase
+					// https://github.com/Azure/azure-sdk-for-go/issues/5855
+					// for some reason the DiffSuppressFunc for `subnet_id` isn't working as intended, so we'll also flatten the id insensitively
+					subnetId, err := parse.SubnetIDInsensitively(*v)
+					if err != nil {
+						return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
+					}
+					block["subnet_id"] = subnetId.ID()
 				}
 			}
 
@@ -796,7 +815,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 		"virtual_network_rule":           vnetBlocks,
 		"ip_rule":                        ipBlocks,
 		"trusted_service_access_enabled": ruleset.Model.Properties.TrustedServiceAccessEnabled,
-	}}
+	}}, nil
 }
 
 // The resource id of subnet_id that's being returned by API is always lower case &

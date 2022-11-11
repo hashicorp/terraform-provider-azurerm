@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management Product Policy
 
-
 ## Example Usage
 
 ```hcl
@@ -35,7 +34,6 @@ XML
 
 }
 ```
-
 
 ## Argument Reference
 

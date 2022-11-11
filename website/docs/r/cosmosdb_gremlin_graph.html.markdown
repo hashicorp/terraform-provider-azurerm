@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `partition_key_path` - (Required) Define a partition key. Changing this forces a new resource to be created.
 
-* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1 `and `2`. This should be set to `2` in order to use large partition keys.
+* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
 
 * `throughput` - (Optional) The throughput of the Gremlin graph (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `partition_key_path` to be set.
 
-~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 
+~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 
 * `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below.
 
@@ -108,7 +108,7 @@ An `index_policy` block supports the following:
 
 A `spatial_index` block supports the following:
 
-* `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path. 
+* `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path.
 
 ---
 
@@ -139,7 +139,6 @@ An `index` block supports the following:
 * `path` - Path for which the indexing behaviour applies to.
 
 * `order` - Order of the index. Possible values are `Ascending` or `Descending`.
-
 
 ## Attributes Reference
 

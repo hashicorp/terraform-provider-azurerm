@@ -79,6 +79,20 @@ The following arguments are supported:
 
 -> **NOTE:** `streaming_units` must be set when `type` is `Cloud`.
 
+* `content_storage_policy` - (Optional) The policy for storing stream analytics content. Possible values are `JobStorageAccount`, `SystemAccount`.
+
+* `job_storage_account` - (Optional) The details of the job storage account. A `job_storage_account` block as defined below. 
+
+---
+
+* `authentication_mode` - (Required) The authentication mode of the storage account. Possible values are `ConnectionString`, `Msi` and `UserToken`.
+
+* `account_name` - (Required) The name of the Azure storage account.
+
+* `account_key` - (Required) The account key for the Azure storage account.
+
+---
+
 * `transformation_query` - (Required) Specifies the query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
 
 * `tags` - A mapping of tags assigned to the resource.

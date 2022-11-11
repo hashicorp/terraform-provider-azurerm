@@ -87,6 +87,7 @@ output "virtual_network_gateway_connection_id" {
 * `tags` - A mapping of tags to assign to the resource.
 
 The `custom_bgp_addresses` block supports:
+
 * `primary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
 * `secondary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
 

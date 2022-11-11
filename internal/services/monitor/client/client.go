@@ -30,6 +30,7 @@ type Client struct {
 
 	// Monitor
 	ActionGroupsClient                   *newActionGroupClient.ActionGroupsClient
+	ActivityLogsClient                   *classic.ActivityLogsClient
 	ActivityLogAlertsClient              *insights.ActivityLogAlertsClient
 	AlertRulesClient                     *classic.AlertRulesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
@@ -63,6 +64,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ActionGroupsClient := newActionGroupClient.NewActionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	activityLogsClient := classic.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&activityLogsClient.Client, o.ResourceManagerAuthorizer)
 
 	ActivityLogAlertsClient := insights.NewActivityLogAlertsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActivityLogAlertsClient.Client, o.ResourceManagerAuthorizer)
@@ -109,6 +113,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionRulesClient:                    &ActionRulesClient,
 		SmartDetectorAlertRulesClient:        &SmartDetectorAlertRulesClient,
 		ActionGroupsClient:                   &ActionGroupsClient,
+		ActivityLogsClient:                   &activityLogsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
 		AlertRulesClient:                     &AlertRulesClient,
 		AlertProcessingRulesClient:           &AlertProcessingRulesClient,

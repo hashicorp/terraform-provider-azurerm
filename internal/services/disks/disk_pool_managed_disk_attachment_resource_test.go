@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -81,7 +82,7 @@ func TestAccDiskPoolDiskAttachment_destroy(t *testing.T) {
 }
 
 func (a DisksPoolManagedDiskAttachmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := diskpools.DiskPoolManagedDiskAttachmentID(state.ID)
+	id, err := parse.DiskPoolManagedDiskAttachmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,7 @@ func (a DisksPoolManagedDiskAttachmentResource) Exists(ctx context.Context, clie
 func (a DisksPoolManagedDiskAttachmentResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
 	defer cancel()
-	id, err := diskpools.DiskPoolManagedDiskAttachmentID(state.ID)
+	id, err := parse.DiskPoolManagedDiskAttachmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}

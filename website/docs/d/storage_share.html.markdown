@@ -32,7 +32,7 @@ The following arguments are supported:
 * `storage_account_name` - (Required) The name of the storage account.
 
 ## Attributes Reference
- 
+
 * `id` - The ID of the File Share.
 
 * `quota` - The quota of the File Share in GB.
