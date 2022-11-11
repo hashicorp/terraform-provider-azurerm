@@ -99,11 +99,6 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
-			name:  "MO_Standard_E104ids_v5",
-			input: "MO_Standard_E104ids_v5",
-			valid: true,
-		},
-		{
 			name:  "MO_Standard_E16ads_v5",
 			input: "MO_Standard_E16ads_v5",
 			valid: true,
