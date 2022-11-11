@@ -888,7 +888,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 								"core3.1",
 								"v4.0",
 								"v5.0",
-								"v6.0"}, false)
+								"v6.0",
+								"v7.0"}, false)
 						}
 						return validation.StringInSlice([]string{
 							"v2.0",
@@ -896,6 +897,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 							"v4.0",
 							"v5.0",
 							"v6.0",
+							"v7.0",
 						}, false)
 					}(),
 					AtLeastOneOf: []string{
@@ -1142,6 +1144,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.1",
 						"5.0",
 						"6.0",
+						"7.0",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
