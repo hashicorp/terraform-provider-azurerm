@@ -705,6 +705,21 @@ func TestAccWindowsWebApp_withJava11Java(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withJava17Java(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.java(data, "17", "JAVA", "9.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebApp_basicDockerContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}

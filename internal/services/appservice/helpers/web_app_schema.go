@@ -967,6 +967,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.8",
 						"11",
+						"17",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
