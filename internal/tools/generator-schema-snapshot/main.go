@@ -14,10 +14,6 @@ const (
 	SchemaPath = "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SchemaFile struct {
-	*File
-}
-
 func main() {
 	if len(os.Args) != 2 {
 		log.Fatal("Usage: generator-schema-snapshot <reource_type>")
