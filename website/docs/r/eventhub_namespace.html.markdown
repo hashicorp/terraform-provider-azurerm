@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Defines which tier to use. Valid options are `Basic`, `Standard`, and `Premium`. Please note that setting this field to `Premium` will force the creation of a new resource and also requires setting `zone_redundant` to true.
+* `sku` - (Required) Defines which tier to use. Valid options are `Basic`, `Standard`, and `Premium`. Please note that setting this field to `Premium` will force the creation of a new resource.
 
 * `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `2`, but can be increased in blocks of 2 on a committed purchase basis.
 
@@ -49,11 +49,13 @@ The following arguments are supported:
 
 * `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. 
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
 * `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones). Changing this forces a new resource to be created. Defaults to `false`.
+
+~> **Note:** `zone_redundant` is computed by api based on the availability zone in each region. User's input will be overridden. It will turn into a computed property in 4.0 provider.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -79,7 +81,7 @@ A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
 
-* `public_network_access` - (Optional)  Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+* `public_network_access_enabled` - (Optional)  Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
 * ~> **Note:** The public network access setting at the network rule sets level should be the same as it's at the namespace level.
 
@@ -141,8 +143,6 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
@@ -45,9 +46,9 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"type": {
 				Type:     pluginsdk.TypeString,
@@ -452,9 +453,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		d.Set("virtual_network_gateway_id", conn.VirtualNetworkGateway1.ID)
 	}
 
-	if conn.AuthorizationKey != nil {
-		d.Set("authorization_key", conn.AuthorizationKey)
-	}
+	// not returned from api - getting from state
+	d.Set("authorization_key", d.Get("authorization_key").(string))
 
 	if conn.DpdTimeoutSeconds != nil {
 		d.Set("dpd_timeout_seconds", conn.DpdTimeoutSeconds)
@@ -657,6 +657,10 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 
 	if utils.NormaliseNilableBool(props.EnableBgp) {
 		if _, ok := d.GetOk("custom_bgp_addresses"); ok {
+			if virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat == nil || virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings == nil || virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings.BgpPeeringAddresses == nil {
+				return nil, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway `%s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.ID)
+			}
+
 			gatewayCustomBgpIPAddresses, err := expandGatewayCustomBgpIPAddresses(d, virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings.BgpPeeringAddresses)
 			if err != nil {
 				return nil, err
@@ -773,28 +777,40 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 	primaryAddress := bgAs["primary"].(string)
 	secondaryAddress := bgAs["secondary"].(string)
 
-	var primaryIpConfiguration *string
-	var secondaryIpConfiguration *string
+	var primaryIpConfiguration string
+	var secondaryIpConfiguration string
+
+	if bgpPeeringAddresses == nil {
+		return &customBgpIpAddresses, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway`, addresses returned nil")
+	}
 
 	for _, address := range *bgpPeeringAddresses {
+		if address.CustomBgpIPAddresses == nil {
+			continue
+		}
+
 		for _, ip := range *address.CustomBgpIPAddresses {
+			if address.IpconfigurationID == nil {
+				continue
+			}
+
 			if ip == primaryAddress {
-				primaryIpConfiguration = address.IpconfigurationID
+				primaryIpConfiguration = *address.IpconfigurationID
 			} else if ip == secondaryAddress {
-				secondaryIpConfiguration = address.IpconfigurationID
+				secondaryIpConfiguration = *address.IpconfigurationID
 			}
 		}
 	}
 
-	if len(*primaryIpConfiguration) == 0 || len(*secondaryIpConfiguration) == 0 {
+	if len(primaryIpConfiguration) == 0 || len(secondaryIpConfiguration) == 0 {
 		return &customBgpIpAddresses, fmt.Errorf("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
 	}
 
 	customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
-		IPConfigurationID:  primaryIpConfiguration,
+		IPConfigurationID:  &primaryIpConfiguration,
 		CustomBgpIPAddress: utils.String(primaryAddress),
 	}, network.GatewayCustomBgpIPAddressIPConfiguration{
-		IPConfigurationID:  secondaryIpConfiguration,
+		IPConfigurationID:  &secondaryIpConfiguration,
 		CustomBgpIPAddress: utils.String(secondaryAddress),
 	})
 

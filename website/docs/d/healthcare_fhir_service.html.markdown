@@ -37,7 +37,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the Healthcare FHIR Service is located.
 
-* `kind` - The kind of the Healthcare FHIR Service. 
+* `kind` - The kind of the Healthcare FHIR Service.
 
 * `identity` - The `identity` block as defined below.
 
@@ -77,12 +77,11 @@ A `cors` block exports the following:
 An `authentication` block exports the following:
 
 * `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
-  Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
-* `audience` - The intended audience to receive authentication tokens for the service. The default value is https://<name>.fhir.azurehealthcareapis.com
+  Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
+* `audience` - The intended audience to receive authentication tokens for the service. The default value is `https://<name>.fhir.azurehealthcareapis.com`.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
-

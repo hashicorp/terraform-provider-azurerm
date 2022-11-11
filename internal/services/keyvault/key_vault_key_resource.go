@@ -70,8 +70,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					// TODO: add `oct` back in once this is fixed
-					// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 					string(keyvault.EC),
 					string(keyvault.ECHSM),
 					string(keyvault.RSA),

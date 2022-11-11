@@ -890,7 +890,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 									"core3.1",
 									"v4.0",
 									"v5.0",
-									"v6.0"}, false)
+									"v6.0",
+									"v7.0"}, false)
 							}
 							return validation.StringInSlice([]string{
 								"v2.0",
@@ -898,6 +899,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 								"v4.0",
 								"v5.0",
 								"v6.0",
+								"v7.0",
 							}, false)
 						}(),
 						AtLeastOneOf: []string{
@@ -1148,6 +1150,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.1",
 						"5.0",
 						"6.0",
+						"7.0",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -1174,6 +1177,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 						"8.0",
+						"8.1",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -1201,6 +1205,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.7",
 						"3.8",
 						"3.9",
+						"3.10",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -3721,8 +3726,8 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigWindows{siteConfig}
@@ -3791,8 +3796,8 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigLinux{siteConfig}

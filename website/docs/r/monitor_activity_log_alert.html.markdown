@@ -115,13 +115,11 @@ A `service_health` block supports the following:
 * `locations` (Optional) Locations this alert will monitor. For example, `West Europe`. Defaults to `Global`.
 * `services` (Optional) Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`. Defaults to all Services.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the activity log alert.
-
 
 ## Timeouts
 

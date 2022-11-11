@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence` and `PrivilegeEscalation`.
 
+* `techniques` - (Optional) A list of techniques of attacks by which to classify the rule.
+
 ---
 
 An `alert_details_override` block supports the following:
@@ -150,7 +152,7 @@ A `grouping` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Sentinel NRT Alert Rule.
 

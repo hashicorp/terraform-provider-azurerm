@@ -71,7 +71,7 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ActionRuleName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"scopes": {
 			Type:     pluginsdk.TypeList,

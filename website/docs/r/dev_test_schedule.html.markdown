@@ -10,7 +10,6 @@ description: |-
 
 Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 
-
 ## Example Usage
 
 ```hcl
@@ -99,8 +98,6 @@ The following attributes are exported:
 * `id` - The ID of the DevTest Schedule.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -72,7 +73,6 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 		"vnet_solution": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(servicelinker.VNetSolutionTypePrivateLink),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servicelinker.VNetSolutionTypeServiceEndpoint),
 				string(servicelinker.VNetSolutionTypePrivateLink),
@@ -123,9 +123,17 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 
 			serviceConnectorProperties := servicelinker.LinkerProperties{
 				AuthInfo: authInfo,
-				TargetService: servicelinker.AzureResource{
+			}
+
+			if _, err := parse.StorageAccountID(model.TargetResourceId); err == nil {
+				targetResourceId := model.TargetResourceId + "/blobServices/default"
+				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
+					Id: &targetResourceId,
+				}
+			} else {
+				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
 					Id: &model.TargetResourceId,
-				},
+				}
 			}
 
 			if model.ClientType != "" {
@@ -147,7 +155,7 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 				Properties: serviceConnectorProperties,
 			}
 
-			if _, err = client.LinkerCreateOrUpdate(ctx, id, props); err != nil {
+			if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

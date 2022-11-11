@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -31,6 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
@@ -60,9 +60,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			// Required
 			"admin_password": {
@@ -209,6 +209,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
+			"gallery_application": VirtualMachineGalleryApplicationSchema(),
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
@@ -315,6 +317,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					computeValidate.SharedGalleryImageID,
 					computeValidate.SharedGalleryImageVersionID,
 				),
+				ExactlyOneOf: []string{
+					"source_image_id",
+					"source_image_reference",
+				},
 			},
 
 			"source_image_reference": sourceImageReferenceSchema(true),
@@ -490,6 +496,9 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		Identity:         identity,
 		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
+			ApplicationProfile: &compute.ApplicationProfile{
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+			},
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
@@ -622,11 +631,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
-		if !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
+			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
 		if params.VirtualMachineProperties.SecurityProfile == nil {
@@ -637,8 +646,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
 			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
 		}
-		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(true)
-		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(true)
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 	} else {
 		if secureBootEnabled {
 			if params.VirtualMachineProperties.SecurityProfile == nil {
@@ -813,6 +822,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 	d.Set("extensions_time_budget", extensionsTimeBudget)
 
+	if props.ApplicationProfile != nil && props.ApplicationProfile.GalleryApplications != nil {
+		d.Set("gallery_application", flattenVirtualMachineGalleryApplication(props.ApplicationProfile.GalleryApplications))
+	}
+
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
 	if props.BillingProfile != nil && props.BillingProfile.MaxPrice != nil {
@@ -921,7 +934,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("source_image_id", storageImageId)
 
-		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
+		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference, storageImageId != "")); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
@@ -1178,6 +1191,13 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("extensions_time_budget") {
 		shouldUpdate = true
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
+	}
+
+	if d.HasChange("gallery_application") {
+		shouldUpdate = true
+		update.ApplicationProfile = &compute.ApplicationProfile{
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+		}
 	}
 
 	if d.HasChange("max_bid_price") {

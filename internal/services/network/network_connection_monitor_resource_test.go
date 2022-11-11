@@ -332,6 +332,8 @@ resource "azurerm_virtual_machine" "src" {
     managed_disk_type = "Standard_LRS"
   }
 
+  delete_os_disk_on_termination = true
+
   os_profile {
     computer_name  = "hostname%d"
     admin_username = "testadmin"
@@ -390,6 +392,8 @@ resource "azurerm_virtual_machine" "dest" {
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
+
+  delete_os_disk_on_termination = true
 
   os_profile {
     computer_name  = "hostname%d"

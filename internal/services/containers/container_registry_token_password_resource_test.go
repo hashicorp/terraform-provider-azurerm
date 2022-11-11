@@ -78,6 +78,29 @@ func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
 	})
 }
 
+// Regression test for https://github.com/hashicorp/terraform-provider-azurerm/issues/19138
+func TestAccContainerRegistryTokenPassword_updateExpiryReflectNewValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
+	r := ContainerRegistryTokenPasswordResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.expiryReflectValue(data, time.Now().Add(time.Hour).Format(time.RFC3339), "password1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password1.0.value"),
+		{
+			Config: r.expiryReflectValue(data, time.Now().Add(2*time.Hour).Format(time.RFC3339), "password2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password1.0.value"),
+	})
+}
+
 func TestAccContainerRegistryTokenPassword_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
@@ -131,6 +154,28 @@ resource "azurerm_container_registry_token_password" "test" {
   password1 {}
 }
 `, template)
+}
+
+func (r ContainerRegistryTokenPasswordResource) expiryReflectValue(data acceptance.TestData, expiry, tagName string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_token_password" "test" {
+  container_registry_token_id = azurerm_container_registry_token.test.id
+  password1 {
+    expiry = %q
+  }
+}
+
+resource "azurerm_resource_group" "consumer" {
+  name     = "acctestRG-acr-consumer-%d"
+  location = "%s"
+  tags = {
+    %s = azurerm_container_registry_token_password.test.password1.0.value
+  }
+}
+`, template, expiry, data.RandomInteger, data.Locations.Primary, tagName)
 }
 
 func (r ContainerRegistryTokenPasswordResource) complete(data acceptance.TestData) string {

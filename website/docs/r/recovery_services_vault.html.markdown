@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `identity` - (Optional) An `identity` block as defined below. 
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 

@@ -97,9 +97,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Redis Cluster. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Redis Cluster.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -141,7 +141,7 @@ redis_configuration {
 
 ~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
 
-```
+```hcl
 resource "azurerm_redis_cache" "example" {
   # ...
   ignore_changes = [redis_configuration.0.rdb_storage_connection_string]
@@ -211,17 +211,18 @@ A `redis_configuration` block exports the following:
 * `maxclients` - Returns the max number of connected clients at the same time.
 
 ## Relevant Links
- - [Azure Cache for Redis planning](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-planning-faq)
- - [Redis: Available Configuration Settings](https://redis.io/topics/config)
+
+* [Azure Cache for Redis planning](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-planning-faq)
+* [Redis: Available Configuration Settings](https://redis.io/topics/config)
 
 ## Timeouts
 
  The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
- * `create` - (Defaults to 90 minutes) Used when creating the Redis Cache.
- * `update` - (Defaults to 90 minutes) Used when updating the Redis Cache.
- * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
- * `delete` - (Defaults to 90 minutes) Used when deleting the Redis Cache.
+* `create` - (Defaults to 90 minutes) Used when creating the Redis Cache.
+* `update` - (Defaults to 90 minutes) Used when updating the Redis Cache.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Redis Cache.
 
 ## Import
 

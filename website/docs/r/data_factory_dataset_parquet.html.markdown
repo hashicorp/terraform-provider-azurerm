@@ -92,21 +92,18 @@ A `http_server_location` block supports the following:
 
 * `relative_url` - (Required) The base URL to the web server hosting the file.
 
-* `path` - (Required) The folder path to the file on the web server.
-
 * `filename` - (Optional) The filename of the file on the web server.
 
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
+* `path` - (Optional) The folder path to the file on the web server.
 ---
 
 A `azure_blob_storage_location` block supports the following:
 
 * `container` - (Required) The container on the Azure Blob Storage Account hosting the file.
-
-* `path` - (Required) The folder path to the file on the web server.
 
 * `filename` - (Required) The filename of the file on the web server.
 
@@ -115,6 +112,8 @@ A `azure_blob_storage_location` block supports the following:
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
+
+* `path` - (Optional) The folder path to the file on the web server.
 
 ## Attributes Reference
 

@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	CustomProviderClient *customproviders.CustomResourceProviderClient
+	CustomProviderClient *customresourceprovider.CustomResourceProviderClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	CustomProviderClient := customproviders.NewCustomResourceProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	CustomProviderClient := customresourceprovider.NewCustomResourceProviderClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&CustomProviderClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

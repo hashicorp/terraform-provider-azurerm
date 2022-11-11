@@ -148,13 +148,14 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("UbuntuServer"),
 				check.That(data.ResourceName).Key("auto_scale.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
+				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_method").HasValue("Terminate"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
 				check.That(data.ResourceName).Key("fixed_scale.0.resize_timeout").HasValue("PT15M"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_low_priority_nodes").HasValue("0"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 	})
 }
 
@@ -179,7 +180,7 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 	})
 }
 
@@ -206,7 +207,7 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 		{
 			Config: r.autoScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -271,9 +272,17 @@ func TestAccBatchPool_startTask_complete(t *testing.T) {
 			Config: r.startTask_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.registry.0.user_name").HasValue("myUserName"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.run_options").HasValue("cat /proc/cpuinfo"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.image_name").HasValue("centos7"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.working_directory").HasValue("ContainerImageDefault"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation",
+			"container_configuration.0.container_registries.0.password",
+			"start_task.0.container.0.registry.0.password"),
 	})
 }
 
@@ -474,8 +483,10 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 				check.That(data.ResourceName).Key("network_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_configuration.0.dynamic_vnet_assignment_scope").HasValue("None"),
 				check.That(data.ResourceName).Key("network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_configuration.0.public_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_configuration.0.endpoint_configuration.0.network_security_group_rules.0.source_port_ranges.0").HasValue("*"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -491,16 +502,17 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 			Config: r.fixedScale_complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fixed_scale.0.node_deallocation_method").HasValue("Terminate"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 		{
 			Config: r.fixedScale_completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "fixed_scale.0.node_deallocation_method"),
 	})
 }
 
@@ -756,6 +768,7 @@ resource "azurerm_batch_pool" "test" {
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
 
   fixed_scale {
+    node_deallocation_method  = "Terminate"
     target_dedicated_nodes    = 2
     resize_timeout            = "PT15M"
     target_low_priority_nodes = 0
@@ -1070,15 +1083,9 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) startTask_complete(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
@@ -1090,7 +1097,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
@@ -1098,10 +1105,20 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-lts"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
     version   = "latest"
+  }
+
+  container_configuration {
+    type                  = "DockerCompatible"
+    container_image_names = ["centos7"]
+    container_registries {
+      registry_server = "myContainerRegistry.azurecr.io"
+      user_name       = "myUserName"
+      password        = "myPassword"
+    }
   }
 
   start_task {
@@ -1111,6 +1128,17 @@ resource "azurerm_batch_pool" "test" {
     common_environment_properties = {
       env = "TEST"
       bu  = "Research&Dev"
+    }
+
+    container {
+      run_options = "cat /proc/cpuinfo"
+      image_name  = "centos7"
+      registry {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      }
+      working_directory = "ContainerImageDefault"
     }
 
     user_identity {
@@ -1126,7 +1154,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) startTask_userIdentity(data acceptance.TestData) string {
@@ -1920,6 +1948,7 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
+    dynamic_vnet_assignment_scope    = "none"
     public_address_provisioning_type = "UserManaged"
     public_ips                       = [azurerm_public_ip.test.id]
     subnet_id                        = azurerm_subnet.test.id
@@ -1934,6 +1963,7 @@ resource "azurerm_batch_pool" "test" {
         access                = "Deny"
         priority              = 1001
         source_address_prefix = "*"
+        source_port_ranges    = ["*"]
       }
     }
   }

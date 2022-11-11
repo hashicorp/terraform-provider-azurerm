@@ -1,6 +1,7 @@
 package maintenance
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -123,10 +124,11 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	filteredPublicConfigs := make([]interface{}, 0)
 
-	recurEveryFilter := d.Get("recur_every").(string)
-	if recurEveryFilter == recurFridayToSunday {
+	recurEveryFilterRaw := d.Get("recur_every").(string)
+	recurEveryFilter := recurEveryFilterRaw
+	if recurEveryFilterRaw == recurFridayToSunday {
 		recurEveryFilter = "week Friday, Saturday, Sunday"
-	} else if recurEveryFilter == recurMondayToThursday {
+	} else if recurEveryFilterRaw == recurMondayToThursday {
 		recurEveryFilter = "week Monday, Tuesday, Wednesday, Thursday"
 	}
 
@@ -173,7 +175,8 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("setting `configs`: %+v", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	id := fmt.Sprintf("publicMaintenanceConfigurations/location=%s;scope=%s;recurEvery=%s", locationFilter, scopeFilter, recurEveryFilterRaw)
+	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 	return nil
 }
 

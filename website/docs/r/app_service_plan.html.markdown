@@ -137,7 +137,6 @@ The following arguments are supported:
 
 * `capacity` - (Optional) Specifies the number of workers associated with this App Service Plan.
 
-
 ## Attributes Reference
 
 The following attributes are exported:

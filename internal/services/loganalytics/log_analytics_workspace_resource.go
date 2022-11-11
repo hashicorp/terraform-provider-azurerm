@@ -57,7 +57,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validate.LogAnalyticsWorkspaceName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 

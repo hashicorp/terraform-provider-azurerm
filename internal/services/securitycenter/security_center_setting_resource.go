@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: this resource should be split into data_export_setting and alert_sync_setting
@@ -44,6 +43,7 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"MCAS",
 					"WDATP",
+					"SENTINEL",
 				}, false),
 			},
 			"enabled": {
@@ -75,12 +75,9 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	enabled := d.Get("enabled").(bool)
-	setting := security.DataExportSettings{
-		DataExportSettingProperties: &security.DataExportSettingProperties{
-			Enabled: &enabled,
-		},
-		Kind: security.KindDataExportSettings,
+	setting, err := expandSecurityCenterSetting(id.Name, d.Get("enabled").(bool))
+	if err != nil {
+		return err
 	}
 
 	if _, err := client.Update(ctx, id.Name, setting); err != nil {
@@ -126,11 +123,9 @@ func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	setting := security.DataExportSettings{
-		DataExportSettingProperties: &security.DataExportSettingProperties{
-			Enabled: utils.Bool(false),
-		},
-		Kind: security.KindDataExportSettings,
+	setting, err := expandSecurityCenterSetting(id.Name, false)
+	if err != nil {
+		return err
 	}
 
 	if _, err := client.Update(ctx, id.Name, setting); err != nil {
@@ -138,4 +133,23 @@ func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func expandSecurityCenterSetting(name string, enabled bool) (security.BasicSetting, error) {
+	switch name {
+	case "MCAS", "WDATP":
+		return security.DataExportSettings{
+			DataExportSettingProperties: &security.DataExportSettingProperties{
+				Enabled: &enabled,
+			},
+		}, nil
+	case "SENTINEL":
+		return security.AlertSyncSettings{
+			AlertSyncSettingProperties: &security.AlertSyncSettingProperties{
+				Enabled: &enabled,
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("failed to deduce the kind from its name %q", name)
+	}
 }

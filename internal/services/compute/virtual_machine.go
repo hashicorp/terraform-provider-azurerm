@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
@@ -78,9 +78,9 @@ func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineI
 		Type: compute.ResourceIdentityType(string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue)
+		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{
+			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
 				// intentionally empty
 			}
 		}
@@ -169,7 +169,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
+						// note: OS Disks don't support Ultra SSDs or PremiumV2_LRS
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
@@ -485,4 +485,107 @@ func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsP
 			"timeout": timeout,
 		},
 	}
+}
+
+func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 100,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"version_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validate.GalleryApplicationVersionID,
+				},
+
+				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
+				"configuration_blob_uri": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+
+				"order": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 2147483647),
+				},
+
+				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
+				"tag": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGalleryApplication {
+	out := make([]compute.VMGalleryApplication, 0)
+	if len(input) == 0 {
+		return &out
+	}
+
+	for _, v := range input {
+		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
+		order := v.(map[string]interface{})["order"].(int)
+		tag := v.(map[string]interface{})["tag"].(string)
+
+		app := &compute.VMGalleryApplication{
+			PackageReferenceID:     utils.String(packageReferenceId),
+			ConfigurationReference: utils.String(configurationReference),
+			Order:                  utils.Int32(int32(order)),
+			Tags:                   utils.String(tag),
+		}
+
+		out = append(out, *app)
+	}
+
+	return &out
+}
+
+func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplication) []interface{} {
+	if len(*input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var packageReferenceId, configurationReference, tag string
+		var order int
+
+		if v.PackageReferenceID != nil {
+			packageReferenceId = *v.PackageReferenceID
+		}
+
+		if v.ConfigurationReference != nil {
+			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.Order != nil {
+			order = int(*v.Order)
+		}
+
+		if v.Tags != nil {
+			tag = *v.Tags
+		}
+
+		app := map[string]interface{}{
+			"version_id":             packageReferenceId,
+			"configuration_blob_uri": configurationReference,
+			"order":                  order,
+			"tag":                    tag,
+		}
+
+		out = append(out, app)
+	}
+
+	return out
 }

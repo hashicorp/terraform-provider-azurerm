@@ -56,7 +56,7 @@ For more information on the configuration, please check out the [Azure documenta
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory.
 

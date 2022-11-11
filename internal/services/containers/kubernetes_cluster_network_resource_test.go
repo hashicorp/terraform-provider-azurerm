@@ -26,6 +26,7 @@ func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccKubernetesCluster_advancedNetworkingIPVersionsIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -426,6 +427,66 @@ func TestAccKubernetesCluster_privateClusterOff(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_podCidrs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.podCidrs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_podCidrsDualStack(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.podCidrsDualStack(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_serviceCidrs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceCidrs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_serviceCidrsDualStack(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceCidrsDualStack(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -609,7 +670,7 @@ func TestAccKubernetesCluster_httpProxyConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
 				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy").DoesNotExist(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -1682,6 +1743,136 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) podCidrs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  network_profile {
+    network_plugin = "kubenet"
+    pod_cidrs      = ["10.1.1.0/24"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) podCidrsDualStack(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  network_profile {
+    network_plugin = "kubenet"
+    pod_cidrs      = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
+    ip_versions    = ["IPv4", "IPv6"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) serviceCidrs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  network_profile {
+    network_plugin     = "kubenet"
+    dns_service_ip     = "10.1.1.10"
+    docker_bridge_cidr = "172.18.0.1/16"
+    service_cidrs      = ["10.1.1.0/24"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) serviceCidrsDualStack(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  network_profile {
+    network_plugin     = "kubenet"
+    dns_service_ip     = "10.1.1.10"
+    docker_bridge_cidr = "172.18.0.1/16"
+    service_cidrs      = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
+    ip_versions        = ["IPv4", "IPv6"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) standardLoadBalancerConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2420,6 +2611,14 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) httpProxyConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2439,6 +2638,40 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.1.0.0/24"]
 }
 
+resource "azurerm_public_ip" "test_proxy" {
+  name                = "acceptanceTestPublicIp1"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "test_aks" {
+  name                = "acceptanceTestPublicIp2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    name                       = "AllowProxyAccessOn8888"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8888"
+    source_address_prefix      = "${azurerm_public_ip.test_aks.ip_address}/32"
+    destination_address_prefix = "*"
+  }
+}
+
 resource "azurerm_network_interface" "test" {
   name                = "test-nic%d"
   location            = azurerm_resource_group.test.location
@@ -2448,8 +2681,24 @@ resource "azurerm_network_interface" "test" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test_proxy.id
   }
+}
 
+resource "azurerm_network_interface_security_group_association" "test" {
+  network_interface_id      = azurerm_network_interface.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+locals {
+  custom_data = <<CUSTOM_DATA
+  #!/bin/sh
+  echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
+  sudo apt-get update
+  sudo apt-get install tinyproxy -y
+  sudo echo "Allow ${azurerm_public_ip.test_aks.ip_address}/32" >> /etc/tinyproxy/tinyproxy.conf
+  systemctl restart tinyproxy
+  CUSTOM_DATA
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -2459,7 +2708,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   size                            = "Standard_B1s"
   admin_username                  = "adminuser"
   admin_password                  = "P@ssW0RD1234"
-  custom_data                     = base64encode("#!/bin/bash\nsudo apt-get update\nsudo apt-get install tinyproxy -y\nsudo echo \"Allow 10.0.0.0/8\" \u003e\u003e /etc/tinyproxy/tinyproxy.conf\nsystemctl restart tinyproxy")
+  custom_data                     = base64encode(local.custom_data)
   disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -2503,12 +2752,21 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
+    load_balancer_profile {
+      outbound_ip_address_ids = [azurerm_public_ip.test_aks.id]
+    }
   }
 
   http_proxy_config {
-    http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
-    https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    http_proxy  = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
+    https_proxy = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
+    no_proxy = [
+      "localhost",
+      "127.0.0.1",
+      "mcr.microsoft.com"
+    ]
   }
 
   lifecycle {
@@ -2550,6 +2808,40 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.1.0.0/24"]
 }
 
+resource "azurerm_public_ip" "test_proxy" {
+  name                = "acceptanceTestPublicIp1"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "test_aks" {
+  name                = "acceptanceTestPublicIp2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    name                       = "AllowProxyAccessOn8888"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8888"
+    source_address_prefix      = "${azurerm_public_ip.test_aks.ip_address}/32"
+    destination_address_prefix = "*"
+  }
+}
+
 resource "azurerm_network_interface" "test" {
   name                = "test-nic%d"
   location            = azurerm_resource_group.test.location
@@ -2559,8 +2851,24 @@ resource "azurerm_network_interface" "test" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test_proxy.id
   }
+}
 
+resource "azurerm_network_interface_security_group_association" "test" {
+  network_interface_id      = azurerm_network_interface.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+locals {
+  custom_data = <<CUSTOM_DATA
+  #!/bin/sh
+  echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
+  sudo apt-get update
+  sudo apt-get install tinyproxy -y
+  sudo echo "Allow ${azurerm_public_ip.test_aks.ip_address}/32" >> /etc/tinyproxy/tinyproxy.conf
+  systemctl restart tinyproxy
+  CUSTOM_DATA
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -2570,7 +2878,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   size                            = "Standard_B1s"
   admin_username                  = "adminuser"
   admin_password                  = "P@ssW0RD1234"
-  custom_data                     = base64encode("#!/bin/bash\nsudo apt-get update\nsudo apt-get install tinyproxy -y\nsudo echo \"Allow 10.0.0.0/8\" \u003e\u003e /etc/tinyproxy/tinyproxy.conf\nsystemctl restart tinyproxy")
+  custom_data                     = base64encode(local.custom_data)
   disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -2614,15 +2922,20 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
+    load_balancer_profile {
+      outbound_ip_address_ids = [azurerm_public_ip.test_aks.id]
+    }
   }
 
   http_proxy_config {
-    http_proxy  = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
-    https_proxy = "http://${azurerm_network_interface.test.private_ip_address}:8888/"
+    http_proxy  = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
+    https_proxy = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
     no_proxy = [
       "localhost",
-      "127.0.0.1"
+      "127.0.0.1",
+      "mcr.microsoft.com"
     ]
     trusted_ca = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVMyZ0F3SUJBZ0lCQVRBS0JnZ3Foa2pPUFFRREJEQVFNUTR3REFZRFZRUUtFd1ZGVGtOUFRUQWUKRncwd09URXhNVEF5TXpBd01EQmFGdzB4TURBMU1Ea3lNekF3TURCYU1CQXhEakFNQmdOVkJBb1RCVVZPUTA5TgpNSUdiTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFqQTRHR0FBUUJBcUN1Um94NU4zTVRVOHdUdUllSUJYRjdpTW5oCm50cW1HVktRMGhmUUZEUUd2K0x5ZHVvN0pQcUZwL1kyamxYU2ROckFkejVXeGJyWStrRHhJcGtCUXRJQWtJREQKWlZtVHVlcTNaREFmY0dkRU5uek5KVkNhUGxIWEpMdkVFSU5jb0prVU8rK2NWeXl3ZHJlVkpjNjd2aE54MVRkWApWM3BwN2YrUmJPbU5LYm5WUkJ5ak5UQXpNQTRHQTFVZER3RUIvd1FFQXdJSGdEQVRCZ05WSFNVRUREQUtCZ2dyCkJnRUZCUWNEQVRBTUJnTlZIUk1CQWY4RUFqQUFNQW9HQ0NxR1NNNDlCQU1FQTRHTUFEQ0JpQUpDQWJiYjdzdkkKNXR1aEN5QTNqUVRTZ0E4enB2azBZV05Ya1owN3h6ZFY4amRNTXVtQ2FXOXljRUlxSjVLU3F1dVBoVXc5b2VregpCNTFkYXliVjFWUVhWVmRWQWtJQStrTU1TSnp3dHpIcU5BVVRtaVpQY2c3SDh2MUFTbDR0UjZscEtUcFVQWTJYCmxYT0N0MllmNGRzRnNpanV2emJKQmR4NzVkNEVmNVRSSFBjZytQSE5aZ2c9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
   }

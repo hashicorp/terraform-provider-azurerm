@@ -98,7 +98,6 @@ A `subnet` block supports the following:
 
 * `scope` - (Optional) The block size (number of leading bits in the subnet mask).
 
-
 ## Attributes Reference
 
 The following attributes are exported:

@@ -66,7 +66,6 @@ A `site` block has the following properties:
 
 - `trusted_origins` - (Optional) This field is required when `is_secure_site_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -87,10 +86,10 @@ A `site` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
-* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Directline Channel.
+- `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
+- `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
+- `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.
+- `delete` - (Defaults to 30 minutes) Used when deleting the Directline Channel.
 
 ## Import
 

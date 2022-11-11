@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -50,7 +50,7 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"eventhub_consumer_group_name": {
 				Type:         pluginsdk.TypeString,
@@ -72,14 +72,14 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 
 			"shared_access_policy_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -132,12 +132,18 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	eventHubDataSourceProps := &streamanalytics.EventHubStreamInputDataSourceProperties{
-		EventHubName:           utils.String(d.Get("eventhub_name").(string)),
-		ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
-		SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
-		SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
-		ConsumerGroupName:      utils.String(d.Get("eventhub_consumer_group_name").(string)),
-		AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
+		EventHubName:        utils.String(d.Get("eventhub_name").(string)),
+		ServiceBusNamespace: utils.String(d.Get("servicebus_namespace").(string)),
+		ConsumerGroupName:   utils.String(d.Get("eventhub_consumer_group_name").(string)),
+		AuthenticationMode:  streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
+	}
+
+	if v, ok := d.GetOk("shared_access_policy_key"); ok {
+		eventHubDataSourceProps.SharedAccessPolicyKey = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("shared_access_policy_name"); ok {
+		eventHubDataSourceProps.SharedAccessPolicyName = utils.String(v.(string))
 	}
 
 	props := streamanalytics.Input{
@@ -204,7 +210,6 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 
 		d.Set("eventhub_name", eventHub.EventHubName)
 		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
-		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
 		d.Set("authentication_mode", eventHub.AuthenticationMode)
 
 		consumerGroupName := ""
@@ -213,6 +218,13 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 		}
 
 		d.Set("eventhub_consumer_group_name", consumerGroupName)
+
+		sharedAccessPolicyName := ""
+		if eventHub.SharedAccessPolicyName != nil {
+			sharedAccessPolicyName = *eventHub.SharedAccessPolicyName
+		}
+
+		d.Set("shared_access_policy_name", sharedAccessPolicyName)
 
 		partitionKey := ""
 		if v.PartitionKey != nil {
