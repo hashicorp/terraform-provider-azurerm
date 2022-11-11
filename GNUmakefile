@@ -138,6 +138,9 @@ teamcity-test:
 validate-examples: build
 	./scripts/validate-examples.sh
 
+schemagen:
+	go run ./internal/tools/generator-schema-snapshot $(RESOURCE_TYPE)
+
 resource-counts:
 	go test -v ./internal/provider -run=TestProvider_counts
 
