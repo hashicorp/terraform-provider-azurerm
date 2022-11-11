@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
-* `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+* `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
 
 ~> **NOTE:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
+* `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account.
 
@@ -149,8 +149,8 @@ The following arguments are supported:
 `consistency_policy` Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.
-* `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is `5` - `86400` (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
-* `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. Accepted range for this value is `10` – `2147483647`. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
+* `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. The accepted range for this value is `5` - `86400` (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
+* `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. The accepted range for this value is `10` – `2147483647`. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
 
 ~> **Note:** `max_interval_in_seconds` and `max_staleness_prefix` can only be set to custom values when `consistency_level` is set to `BoundedStaleness` - otherwise they will return the default values shown above.
 
@@ -164,9 +164,9 @@ The following arguments are supported:
 
 ---
 
-`capabilities` Configures the capabilities to enable for this Cosmos DB account:
+`capabilities` Configure the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableServerless`, `EnableTable`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 **NOTE:**  Setting `MongoDBv3.4` also requires setting `EnableMongo`.
 
@@ -179,7 +179,7 @@ The following arguments are supported:
 
 ---
 
-A `analytical_storage` block supports the following:
+An `analytical_storage` block supports the following:
 
 * `schema_type` - (Required) The schema type of the Analytical Storage for this Cosmos DB account. Possible values are `FullFidelity` and `WellDefined`.
 
@@ -199,7 +199,7 @@ A `backup` block supports the following:
 
 * `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.
 
-* `storage_redundancy` - (Optional) The storage redundancy which is used to indicate type of backup residency. This is configurable only when `type` is `Periodic`. Possible values are `Geo`, `Local` and `Zone`.
+* `storage_redundancy` - (Optional) The storage redundancy is used to indicate the type of backup residency. This is configurable only when `type` is `Periodic`. Possible values are `Geo`, `Local` and `Zone`.
 
 ---
 
@@ -217,7 +217,7 @@ A `cors_rule` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) The Type of Managed Identity assigned to this Cosmos account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
@@ -229,7 +229,7 @@ A `restore` block supports the following:
 
 * `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
 
-**NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) are the restorable database accounts and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and be retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
+**NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) is a restorable database account and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
 
 * `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
 

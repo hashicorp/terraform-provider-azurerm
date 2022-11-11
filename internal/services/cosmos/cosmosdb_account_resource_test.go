@@ -2660,6 +2660,14 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableMongo16MBDocumentSupport"
   }
 
+  capabilities {
+    name = "EnableMongoRetryableWrites"
+  }
+
+  capabilities {
+    name = "EnableMongoRoleBasedAccessControl"
+  }
+
   consistency_policy {
     consistency_level = "%s"
   }
@@ -2699,6 +2707,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   capabilities {
     name = "EnableMongo"
+  }
+
+  capabilities {
+    name = "EnableUniqueCompoundNestedDocs"
   }
 
   consistency_policy {
