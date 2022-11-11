@@ -25,7 +25,6 @@ resource "azurerm_user_assigned_identity" "example" {
 }
 
 resource "azurerm_federated_identity_credential" "example" {
-  location            = azurerm_resource_group.example.location
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   audience            = ["foo"]
@@ -38,8 +37,6 @@ resource "azurerm_federated_identity_credential" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
-
-* `location` - (Required) The Azure Region where the Federated Identity Credential should exist. Changing this forces a new Federated Identity Credential to be created.
 
 * `name` - (Required) Specifies the name of this Federated Identity Credential. Changing this forces a new Federated Identity Credential to be created.
 
