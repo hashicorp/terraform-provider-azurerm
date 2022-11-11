@@ -793,18 +793,19 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"expiration_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								// There is no definition of this enum in the Track1 SDK due to: https://github.com/Azure/azure-sdk-for-go/issues/14589
-								string("Log"),
-							}, false),
-						},
 						"expiration_period": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"expiration_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "Log",
+							ValidateFunc: validation.StringInSlice([]string{
+								// There is no definition of this enum in the Track1 SDK due to: https://github.com/Azure/azure-sdk-for-go/issues/14589
+								"Log",
+							}, false),
 						},
 					},
 				},

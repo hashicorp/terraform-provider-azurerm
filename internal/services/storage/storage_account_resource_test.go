@@ -1556,11 +1556,6 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  sas_policy {
-    expiration_action = "Log"
-    expiration_period = "1.15:5:05"
-  }
-
   tags = {
     environment = "staging"
   }
