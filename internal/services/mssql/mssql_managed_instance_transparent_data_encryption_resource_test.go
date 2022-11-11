@@ -54,7 +54,7 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_autoRotate(t *testing.
 			Config: r.autoRotate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_key_id").HasValue(""),
+				check.That(data.ResourceName).Key("key_vault_key_id").Exists(),
 			),
 		},
 		data.ImportStep(),
