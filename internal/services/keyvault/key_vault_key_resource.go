@@ -357,8 +357,11 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("rotation_policy"); ok {
-		if _, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
-			return fmt.Errorf("Creating Key Rotation Policy: %+v", err)
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+			if utils.ResponseWasForbidden(respPolicy.Response) {
+				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy, please update this as described here: %s (Key %q of Key Vault %q in Vault at url %q): %v", "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", name, *keyVaultId, *keyVaultBaseUri, err)
+			}
+			return fmt.Errorf("creating Key Rotation Policy: %+v", err)
 		}
 	}
 
@@ -436,7 +439,10 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("rotation_policy"); ok {
-		if _, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+			if utils.ResponseWasForbidden(respPolicy.Response) {
+				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy, please update this as described here: %s (Key %q of Key Vault %q in Vault at url %q): %v", "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
+			}
 			return fmt.Errorf("Creating Key Rotation Policy: %+v", err)
 		}
 	}
@@ -583,12 +589,12 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
-		// If client is not authorized the policy or it was not found:
-		// - we don't try to set it, just ignore it
-		if utils.ResponseWasForbidden(respPolicy.Response) || utils.ResponseWasNotFound(respPolicy.Response) {
+		// If client is not authorized the policy:
+		if utils.ResponseWasForbidden(respPolicy.Response) {
+			return fmt.Errorf("current client lacks permissions to read Key Rotation Policy, please update this as described here: %s (Key %q of Key Vault %q in Vault at url %q): %v", "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
+		} else if utils.ResponseWasNotFound(respPolicy.Response) {
 			return tags.FlattenAndSet(d, resp.Tags)
-		}
-		if !utils.ResponseWasNotFound(respPolicy.Response) {
+		} else {
 			return err
 		}
 	}

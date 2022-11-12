@@ -726,6 +726,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Purge",
     "Recover",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -791,6 +792,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Purge",
     "Recover",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
