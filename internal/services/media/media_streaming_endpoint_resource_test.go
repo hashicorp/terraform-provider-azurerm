@@ -3,12 +3,12 @@ package media_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,12 +92,12 @@ func TestAccMediaStreamingEndpoint_standard(t *testing.T) {
 }
 
 func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.StreamingEndpointID(state.ID)
+	id, err := streamingendpoints.ParseStreamingEndpointID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Media.StreamingEndpointsClient.Start(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	future, err := client.Media.StreamingEndpointsClient.Start(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName)
 	if err != nil {
 		return fmt.Errorf("starting %s: %+v", id, err)
 	}
@@ -110,12 +110,12 @@ func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clien
 }
 
 func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StreamingEndpointID(state.ID)
+	id, err := streamingendpoints.ParseStreamingEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.StreamingEndpointsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := clients.Media.StreamingEndpointsClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

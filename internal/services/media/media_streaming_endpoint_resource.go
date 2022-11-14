@@ -2,6 +2,9 @@ package media
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"log"
 	"regexp"
 	"time"
@@ -9,10 +12,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,9 +37,14 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StreamingEndpointID(id)
+			_, err := streamingendpoints.ParseStreamingEndpointID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamingEndpointV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -211,32 +217,27 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 }
 
 func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Media.StreamingEndpointsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	streamingEndpointName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("media_services_account_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	scaleUnits := d.Get("scale_units").(int)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resourceId := parse.NewStreamingEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
+	id := streamingendpoints.NewStreamingEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_media_streaming_endpoint", resourceId.ID())
+		return tf.ImportAsExistsError("azurerm_media_streaming_endpoint", id.ID())
 	}
 
 	parameters := media.StreamingEndpoint{
 		StreamingEndpointProperties: &media.StreamingEndpointProperties{
-			ScaleUnits: utils.Int32(int32(scaleUnits)),
+			ScaleUnits: utils.Int32(int32(d.Get("scale_units").(int))),
 		},
-		Location: utils.String(location),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
 	}
 
 	autoStart := utils.Bool(false)
@@ -279,16 +280,16 @@ func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interf
 		parameters.StreamingEndpointProperties.MaxCacheAge = utils.Int64(int64(maxCacheAge.(int)))
 	}
 
-	future, err := client.Create(ctx, resourceGroup, accountName, streamingEndpointName, parameters, autoStart)
+	future, err := client.Create(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName, parameters, autoStart)
 	if err != nil {
-		return fmt.Errorf("creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
 	return resourceMediaStreamingEndpointRead(d, meta)
 }
@@ -298,13 +299,14 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamingEndpointID(d.Id())
+	id, err := streamingendpoints.ParseStreamingEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	scaleUnits := d.Get("scale_units").(int)
 
+	// TODO: refactor to retrieve the existing and use d.HasChanges consistently
 	parameters := media.StreamingEndpoint{
 		StreamingEndpointProperties: &media.StreamingEndpointProperties{
 			ScaleUnits: utils.Int32(int32(scaleUnits)),
@@ -313,17 +315,17 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if d.HasChange("scale_units") {
-		scaleParamaters := media.StreamingEntityScaleUnit{
+		scaleParameters := media.StreamingEntityScaleUnit{
 			ScaleUnit: utils.Int32(int32(scaleUnits)),
 		}
 
-		future, err := client.Scale(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, scaleParamaters)
+		future, err := client.Scale(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName, scaleParameters)
 		if err != nil {
-			return fmt.Errorf("scaling units in Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+			return fmt.Errorf("scaling units for %s: %+v", *id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for scaling of units for %s: %+v", *id, err)
 		}
 	}
 
@@ -364,13 +366,13 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 		parameters.StreamingEndpointProperties.MaxCacheAge = utils.Int64(int64(maxCacheAge.(int)))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceMediaStreamingEndpointRead(d, meta)
@@ -381,28 +383,26 @@ func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamingEndpointID(d.Id())
+	id, err := streamingendpoints.ParseStreamingEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Streaming Endpoint %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.MediaserviceName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.StreamingEndpointName)
+	d.Set("media_services_account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.StreamingEndpointProperties; props != nil {
 		if scaleUnits := props.ScaleUnits; scaleUnits != nil {
@@ -442,19 +442,19 @@ func resourceMediaStreamingEndpointDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamingEndpointID(d.Id())
+	id, err := streamingendpoints.ParseStreamingEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Stop Streaming Endpoint before we attempt to delete it.
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName)
 	if err != nil {
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 	if props := resp.StreamingEndpointProperties; props != nil {
 		if props.ResourceState == media.StreamingEndpointResourceStateRunning {
-			stopFuture, err := client.Stop(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+			stopFuture, err := client.Stop(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName)
 			if err != nil {
 				return fmt.Errorf("stopping %s: %+v", id, err)
 			}
@@ -465,13 +465,13 @@ func resourceMediaStreamingEndpointDelete(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName)
 	if err != nil {
-		return fmt.Errorf("deleting Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
