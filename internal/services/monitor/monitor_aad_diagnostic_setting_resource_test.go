@@ -15,7 +15,29 @@ import (
 
 type MonitorAADDiagnosticSettingResource struct{}
 
-func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
+func TestAccAADDiagnosticSetting(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"eventhubDefault":       testAccMonitorAADDiagnosticSetting_eventhubDefault,
+			"eventhub":              testAccMonitorAADDiagnosticSetting_eventhub,
+			"requiresImport":        testAccMonitorAADDiagnosticSetting_requiresImport,
+			"logAnalyticsWorkspace": testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace,
+			"storageAccount":        testAccMonitorAADDiagnosticSetting_storageAccount,
+		},
+	}
+
+	for group, m := range testCases {
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -29,7 +51,7 @@ func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -43,7 +65,7 @@ func TestAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
@@ -61,7 +83,7 @@ func TestAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
@@ -76,7 +98,7 @@ func TestAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
