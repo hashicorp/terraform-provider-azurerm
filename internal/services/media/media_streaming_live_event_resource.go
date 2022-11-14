@@ -7,10 +7,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,9 +36,14 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LiveEventID(id)
+			_, err := liveevents.ParseLiveEventID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LiveEventV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -351,9 +358,9 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceID := parse.NewLiveEventID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	resourceID := liveevents.NewLiveEventID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
+		existing, err := client.Get(ctx, resourceID.ResourceGroupName, resourceID.AccountName, resourceID.LiveEventName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", resourceID, err)
@@ -412,7 +419,7 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.IsNewResource() {
-		future, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters, autoStart)
+		future, err := client.Create(ctx, resourceID.ResourceGroupName, resourceID.AccountName, resourceID.LiveEventName, parameters, autoStart)
 		if err != nil {
 			return fmt.Errorf("creating %s: %+v", resourceID, err)
 		}
@@ -421,7 +428,8 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("waiting for creation %s: %+v", resourceID, err)
 		}
 	} else {
-		future, err := client.Update(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters)
+		// TODO: split this into a separate update method
+		future, err := client.Update(ctx, resourceID.ResourceGroupName, resourceID.AccountName, resourceID.LiveEventName, parameters)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", resourceID, err)
 		}
@@ -441,12 +449,12 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LiveEventID(d.Id())
+	id, err := liveevents.ParseLiveEventID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.LiveEventName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
@@ -457,13 +465,10 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.LiveEventName)
+	d.Set("media_services_account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.LiveEventProperties; props != nil {
 		input := flattenLiveEventInput(props.Input)
@@ -509,36 +514,36 @@ func resourceMediaLiveEventDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LiveEventID(d.Id())
+	id, err := liveevents.ParseLiveEventID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Stop Live Event before we attempt to delete it.
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.LiveEventName)
 	if err != nil {
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 	if props := resp.LiveEventProperties; props != nil {
 		if props.ResourceState == media.LiveEventResourceStateRunning {
-			stopFuture, err := client.Stop(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, media.LiveEventActionInput{RemoveOutputsOnStop: utils.Bool(false)})
+			stopFuture, err := client.Stop(ctx, id.ResourceGroupName, id.AccountName, id.LiveEventName, media.LiveEventActionInput{RemoveOutputsOnStop: utils.Bool(false)})
 			if err != nil {
-				return fmt.Errorf("stopping %s: %+v", id, err)
+				return fmt.Errorf("stopping %s: %+v", *id, err)
 			}
 
 			if err = stopFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for %s to stop: %+v", id, err)
+				return fmt.Errorf("waiting for %s to stop: %+v", *id, err)
 			}
 		}
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.LiveEventName)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to delete: %+v", id, err)
+		return fmt.Errorf("waiting for %s to delete: %+v", *id, err)
 	}
 
 	return nil
