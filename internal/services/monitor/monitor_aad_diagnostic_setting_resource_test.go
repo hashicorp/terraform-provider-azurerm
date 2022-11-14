@@ -19,7 +19,7 @@ type MonitorAADDiagnosticSettingResource struct{}
 // Azure only being happy about provisioning five per subscription at once and
 // there are existing resource in the test subscription hard to clear.
 // (which our test suite can't easily workaround)
-func TestAccAADDiagnosticSetting(t *testing.T) {
+func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"eventhubDefault":       testAccMonitorAADDiagnosticSetting_eventhubDefault,
