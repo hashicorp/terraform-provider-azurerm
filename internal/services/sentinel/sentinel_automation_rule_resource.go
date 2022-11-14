@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -31,6 +32,11 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AutomationRuleID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SentinelAutomationRuleV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -100,7 +106,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
-			"condition": {
+			"condition_property": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -328,7 +334,7 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 				IsEnabled:    utils.Bool(d.Get("enabled").(bool)),
 				TriggersOn:   securityinsight.TriggersOn(d.Get("triggers_on").(string)),
 				TriggersWhen: securityinsight.TriggersWhen(d.Get("triggers_when").(string)),
-				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
+				Conditions:   expandAutomationRuleConditions(d.Get("condition_property").([]interface{})),
 			},
 			Actions: actions,
 		},
@@ -397,8 +403,8 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			d.Set("expiration", expiration)
 
-			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
-				return fmt.Errorf("setting `condition`: %v", err)
+			if err := d.Set("condition_property", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
+				return fmt.Errorf("setting `condition_property`: %v", err)
 			}
 		}
 
