@@ -95,8 +95,7 @@ resource "azurerm_orbital_contact_profile" "example" {
 
 resource "azurerm_orbital_contact" "example" {
   name                   = "example-contact"
-  resource_group_name    = azurerm_resource_group.example.name
-  spacecraft             = azurerm_orbital_spacecraft.example.id
+  spacecraft_id          = azurerm_orbital_spacecraft.example.id
   reservation_start_time = "2020-07-16T20:35:00.00Z"
   reservation_end_time   = "2020-07-16T20:55:00.00Z"
   ground_station_name    = "WESTUS2_0"
@@ -110,9 +109,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Contact. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Contact exists.
-
-* `spacecraft` - (Required) The ID of the spacecraft which the contact will be made to.
+* `spacecraft_id` - (Required) The ID of the spacecraft which the contact will be made to.
 
 * `reservation_start_time` - (Required) Reservation start time of the Contact.
 

@@ -55,7 +55,7 @@ func (r ContactResource) basic(data acceptance.TestData) string {
 resource "azurerm_orbital_contact" "test" {
   name                   = "testcontact-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
-  spacecraft             = azurerm_orbital_spacecraft.test.id
+  spacecraft_id          = azurerm_orbital_spacecraft.test.id
   reservation_start_time = "2020-07-16T20:35:00.00Z"
   reservation_end_time   = "2020-07-16T20:55:00.00Z"
   ground_station_name    = "WESTUS2_0"

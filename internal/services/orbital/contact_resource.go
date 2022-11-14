@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/spacecraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,8 +20,7 @@ type ContactResource struct{}
 
 type ContactResourceModel struct {
 	Name                 string `tfschema:"name"`
-	ResourceGroup        string `tfschema:"resource_group_name"`
-	Spacecraft           string `tfschema:"spacecraft"`
+	Spacecraft           string `tfschema:"spacecraft_id"`
 	ReservationStartTime string `tfschema:"reservation_start_time"`
 	ReservationEndTime   string `tfschema:"reservation_end_time"`
 	GroundStationName    string `tfschema:"ground_station_name"`
@@ -38,9 +36,7 @@ func (r ContactResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"spacecraft": {
+		"spacecraft_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -105,7 +101,7 @@ func (r ContactResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := contact.NewContactID(subscriptionId, model.ResourceGroup, spacecraftId.SpacecraftName, model.Name)
+			id := contact.NewContactID(subscriptionId, spacecraftId.ResourceGroupName, spacecraftId.SpacecraftName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -162,13 +158,21 @@ func (r ContactResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				props := model.Properties
 				state := ContactResourceModel{
-					Name:                 id.ContactName,
-					ResourceGroup:        id.ResourceGroupName,
-					Spacecraft:           spacecraftId.ID(),
-					ReservationStartTime: props.ReservationStartTime,
-					ReservationEndTime:   props.ReservationEndTime,
-					GroundStationName:    props.GroundStationName,
-					ContactProfileId:     *props.ContactProfile.Id,
+					Name:       id.ContactName,
+					Spacecraft: spacecraftId.ID(),
+				}
+
+				if props != nil {
+					state.ReservationStartTime = props.ReservationStartTime
+					state.ReservationEndTime = props.ReservationEndTime
+					state.GroundStationName = props.GroundStationName
+					if props.ContactProfile.Id != nil {
+						state.ContactProfileId = *props.ContactProfile.Id
+					} else {
+						return fmt.Errorf("contact profile id is missing %s", *id)
+					}
+				} else {
+					return fmt.Errorf("required properties are missing %s", *id)
 				}
 
 				return metadata.Encode(&state)
@@ -190,10 +194,8 @@ func (r ContactResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 			return nil
 		},
