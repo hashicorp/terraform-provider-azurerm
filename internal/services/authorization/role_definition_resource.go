@@ -119,6 +119,11 @@ func resourceArmRoleDefinition() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"role_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -301,6 +306,7 @@ func resourceArmRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
+		d.Set("role_type", props.RoleType)
 
 		permissions := flattenRoleDefinitionPermissions(props.Permissions)
 		if err := d.Set("permissions", permissions); err != nil {
