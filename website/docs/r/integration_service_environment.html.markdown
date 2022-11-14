@@ -10,7 +10,7 @@ description: |-
 
 Manages private and isolated Logic App instances within an Azure virtual network.
 
-!> **NOTE:** This resource is getting deprecated (https://aka.ms/isedeprecation). Please use [`azurerm_logic_app_standard`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/logic_app_standard) instead.
+!> **NOTE:** The `azurerm_integration_service_environment` resource is deprecated and will be removed in v4.0 of the Azure Provider. The underlying Azure Service is being retired on 2024-08-31 and new instances cannot be provisioned by default after 2022-11-01. More information on the retirement and how to migrate to [Logic Apps Standard](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/logic_app_standard) [can be found here](https://aka.ms/isedeprecation).
 
 ## Example Usage
 
