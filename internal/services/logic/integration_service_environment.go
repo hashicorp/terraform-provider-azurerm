@@ -28,10 +28,11 @@ import (
 
 func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIntegrationServiceEnvironmentCreateUpdate,
-		Read:   resourceIntegrationServiceEnvironmentRead,
-		Update: resourceIntegrationServiceEnvironmentCreateUpdate,
-		Delete: resourceIntegrationServiceEnvironmentDelete,
+		DeprecationMessage: "Integration service environments are getting deprecated. Please use Logic Apps Standard instead. Please see https://aka.ms/isedeprecation for more details.",
+		Create:             resourceIntegrationServiceEnvironmentCreateUpdate,
+		Read:               resourceIntegrationServiceEnvironmentRead,
+		Update:             resourceIntegrationServiceEnvironmentCreateUpdate,
+		Delete:             resourceIntegrationServiceEnvironmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IntegrationServiceEnvironmentID(id)

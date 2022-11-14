@@ -10,6 +10,8 @@ description: |-
 
 Manages private and isolated Logic App instances within an Azure virtual network.
 
+!> **NOTE:** This resource is getting deprecated (https://aka.ms/isedeprecation). Please use [`azurerm_logic_app_standard`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/logic_app_standard) instead.
+
 ## Example Usage
 
 ```hcl
