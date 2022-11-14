@@ -379,6 +379,43 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
+func sourceImageReferenceSchemaOrchestratedVMSS() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		ConflictsWith: []string{
+			"source_image_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"offer": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"sku": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
 func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId string) bool {
 	if imageId != "" {
 		return false
