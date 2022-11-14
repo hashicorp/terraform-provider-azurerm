@@ -2,16 +2,16 @@ package media
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
 	"log"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,9 +41,14 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AssetFilterID(id)
+			_, err := assetsandassetfilters.ParseAssetFilterID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AssetFilterV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -195,9 +200,9 @@ func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	id := parse.NewAssetFilterID(subscriptionID, assetID.ResourceGroupName, assetID.AccountName, assetID.AssetName, d.Get("name").(string))
+	id := assetsandassetfilters.NewAssetFilterID(subscriptionID, assetID.ResourceGroupName, assetID.AccountName, assetID.AssetName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.AssetName, id.Name)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
@@ -226,7 +231,7 @@ func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		parameters.FilterProperties.Tracks = expandTracks(v.([]interface{}))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.MediaserviceName, id.AssetName, id.Name, parameters); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -241,23 +246,23 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AssetFilterID(d.Id())
+	id, err := assetsandassetfilters.ParseAssetFilterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.AssetName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] %s was not found - removing from state", id)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("asset_id", assetsandassetfilters.NewAssetID(subscriptionID, id.ResourceGroup, id.MediaserviceName, id.AssetName).ID())
+	d.Set("name", id.FilterName)
+	d.Set("asset_id", assetsandassetfilters.NewAssetID(subscriptionID, id.ResourceGroupName, id.AccountName, id.AssetName).ID())
 
 	if props := resp.FilterProperties; props != nil {
 		var firstQualityBitrate int32
@@ -283,12 +288,12 @@ func resourceMediaAssetFilterDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AssetFilterID(d.Id())
+	id, err := assetsandassetfilters.ParseAssetFilterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.AssetName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
