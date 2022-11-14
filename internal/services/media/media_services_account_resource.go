@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,9 +37,14 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MediaServiceID(id)
+			_, err := accounts.ParseMediaServiceID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ServiceV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -126,17 +132,17 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewMediaServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := accounts.NewMediaServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_services_account", resourceId.ID())
+			return tf.ImportAsExistsError("azurerm_media_services_account", id.ID())
 		}
 	}
 
@@ -171,11 +177,11 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 		parameters.KeyDelivery = expandKeyDelivery(keyDelivery.([]interface{}))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", resourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceMediaServicesAccountRead(d, meta)
 }
 
@@ -184,27 +190,25 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaServiceID(d.Id())
+	id, err := accounts.ParseMediaServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Media Services Account %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[INFO] %q was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Media Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	props := resp.ServiceProperties
 	if props != nil {
@@ -231,17 +235,13 @@ func resourceMediaServicesAccountDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaServiceID(d.Id())
+	id, err := accounts.ParseMediaServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
-		}
-		return fmt.Errorf("issuing AzureRM delete request for Media Services Account '%s': %+v", id.Name, err)
+	if _, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

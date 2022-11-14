@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -95,14 +95,14 @@ func TestAccMediaServicesAccount_complete(t *testing.T) {
 }
 
 func (MediaServicesAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MediaServiceID(state.ID)
+	id, err := accounts.ParseMediaServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.ServicesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Media.ServicesClient.Get(ctx, id.ResourceGroupName, id.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Media Services Account %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ServiceProperties != nil), nil
