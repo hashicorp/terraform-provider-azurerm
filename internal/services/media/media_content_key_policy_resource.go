@@ -1,7 +1,7 @@
 package media
 
 import (
-	b64 "encoding/base64"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -12,9 +12,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/contentkeypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,9 +38,14 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ContentKeyPolicyID(id)
+			_, err := contentkeypolicies.ParseContentKeyPolicyID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ContentKeyPolicyV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -396,16 +402,16 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceID := parse.NewContentKeyPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	id := contentkeypolicies.NewContentKeyPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.ContentKeyPolicyName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", resourceID, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_content_key_policy", resourceID.ID())
+			return tf.ImportAsExistsError("azurerm_media_content_key_policy", id.ID())
 		}
 	}
 
@@ -425,12 +431,12 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta i
 		parameters.ContentKeyPolicyProperties.Options = options
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters)
+	_, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, id.ContentKeyPolicyName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceID, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceID.ID())
+	d.SetId(id.ID())
 
 	return resourceMediaContentKeyPolicyRead(d, meta)
 }
@@ -440,12 +446,12 @@ func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContentKeyPolicyID(d.Id())
+	id, err := contentkeypolicies.ParseContentKeyPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetPolicyPropertiesWithSecrets(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.GetPolicyPropertiesWithSecrets(ctx, id.ResourceGroupName, id.AccountName, id.ContentKeyPolicyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
@@ -455,9 +461,10 @@ func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
+	d.Set("name", id.ContentKeyPolicyName)
+	d.Set("media_services_account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
 	d.Set("description", resp.Description)
 
 	if resp.Options != nil {
@@ -477,12 +484,12 @@ func resourceMediaContentKeyPolicyDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContentKeyPolicyID(d.Id())
+	id, err := contentkeypolicies.ParseContentKeyPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.ContentKeyPolicyName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -700,7 +707,7 @@ func flattenTokenRestriction(input *media.ContentKeyPolicyTokenRestriction) ([]i
 			}
 
 			if symmetricTokenKey.KeyValue != nil {
-				symmetricToken = b64.StdEncoding.EncodeToString(*symmetricTokenKey.KeyValue)
+				symmetricToken = base64.StdEncoding.EncodeToString(*symmetricTokenKey.KeyValue)
 			}
 		case media.ContentKeyPolicyRsaTokenKey:
 			rsaTokenKey, ok := v.AsContentKeyPolicyRsaTokenKey()
@@ -836,7 +843,7 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 		}
 
 		if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
-			keyValue, _ := b64.StdEncoding.DecodeString(input["primary_symmetric_token_key"].(string))
+			keyValue, _ := base64.StdEncoding.DecodeString(input["primary_symmetric_token_key"].(string))
 			symmetricTokenKey.KeyValue = &keyValue
 		}
 		return symmetricTokenKey, nil

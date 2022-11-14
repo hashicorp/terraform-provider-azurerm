@@ -3,12 +3,12 @@ package media_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/contentkeypolicies"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -64,14 +64,14 @@ func TestAccMediaContentKeyPolicy_complete(t *testing.T) {
 }
 
 func (r MediaContentKeyPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ContentKeyPolicyID(state.ID)
+	id, err := contentkeypolicies.ParseContentKeyPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.ContentKeyPoliciesClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := clients.Media.ContentKeyPoliciesClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.ContentKeyPolicyName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Content Key Policy %s (Media Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ContentKeyPolicyProperties != nil), nil
