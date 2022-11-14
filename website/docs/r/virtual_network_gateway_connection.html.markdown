@@ -212,7 +212,7 @@ The following arguments are supported:
 * `location` - (Required) The location/region where the connection is
     located. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of connection. Valid options are `IPsec`
+* `type` - (Required) The type of connection. Valid options are `ExpressRoute`, `IPsec` and `Vnet2Vnet`
     (Site-to-Site), `ExpressRoute` (ExpressRoute), and `Vnet2Vnet` (VNet-to-VNet).
     Each connection type requires different mandatory arguments (refer to the
     examples above). Changing the connection type will force a new connection
