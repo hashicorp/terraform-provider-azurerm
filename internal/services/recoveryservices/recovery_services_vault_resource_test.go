@@ -492,6 +492,11 @@ resource "azurerm_recovery_services_vault" "test" {
   }
 
   soft_delete_enabled = false
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
