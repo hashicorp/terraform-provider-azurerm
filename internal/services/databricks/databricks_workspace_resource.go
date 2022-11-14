@@ -467,7 +467,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 		rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool)
 		if rotationEnabled {
-
+			encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = utils.Bool(rotationEnabled)
 		}
 
 		// make sure the key vault exists
