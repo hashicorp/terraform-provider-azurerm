@@ -8,6 +8,7 @@ DEPRECATIONS
 ENHANCEMENTS:
 
 * `azurerm_security_center_subscription_pricing` - support for the `subplan` property [GH-19273]
+* `azurerm_windows_web_app`, `azurerm_windows_web_app_slot` - aupport for `17` value for `java_version` property [GH-19249]
 
 ## 3.31.0 (November 10, 2022)
 
