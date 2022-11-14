@@ -8,14 +8,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	pricings_v2022_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-03-01/pricings"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
