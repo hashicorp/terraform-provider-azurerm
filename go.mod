@@ -28,6 +28,7 @@ require (
 	github.com/tombuildsstuff/kermit v0.20221207.1110610
 	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
+	golang.org/x/time v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
