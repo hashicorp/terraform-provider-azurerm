@@ -27,10 +27,9 @@ resource "azurerm_postgresql_flexible_server" "example" {
   version                      = "12"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
-  version                = "12"
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-  
+  sku_name                     = "GP_Standard_D2s_v3"
+  zone                         = "2"
+
   auth_config {
     active_directory_auth_enabled = true
     tenant_id                     = data.azurerm_client_config.current.tenant_id
