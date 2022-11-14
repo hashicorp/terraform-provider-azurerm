@@ -12,6 +12,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow no image to be specified [GH-19263]
+* `azurerm_synapse_firewall_rule` - wait for the firewall to be ready [GH-19227]
 
 ## 3.31.0 (November 10, 2022)
 
