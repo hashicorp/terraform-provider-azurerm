@@ -2,15 +2,16 @@ package media
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"log"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingpoliciesandstreaminglocators"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,9 +32,14 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StreamingPolicyID(id)
+			_, err := streamingpoliciesandstreaminglocators.ParseStreamingPolicyID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamingPolicyV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -42,7 +48,7 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-zA-Z0-9(_)]{1,128}$"),
-					"Steraming Policy name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
+					"Streaming Policy name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
 				),
 			},
 
@@ -159,17 +165,17 @@ func resourceMediaStreamingPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceID := parse.NewStreamingPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	id := streamingpoliciesandstreaminglocators.NewStreamingPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingPolicyName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceID, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_streaming_policy", resourceID.ID())
+			return tf.ImportAsExistsError("azurerm_media_streaming_policy", id.ID())
 		}
 	}
 
@@ -193,11 +199,11 @@ func resourceMediaStreamingPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 		parameters.DefaultContentKeyPolicyName = utils.String(contentKeyPolicyName.(string))
 	}
 
-	if _, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", resourceID, err)
+	if _, err := client.Create(ctx, id.ResourceGroupName, id.AccountName, id.StreamingPolicyName, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceID.ID())
+	d.SetId(id.ID())
 
 	return resourceMediaStreamingPolicyRead(d, meta)
 }
@@ -207,12 +213,12 @@ func resourceMediaStreamingPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamingPolicyID(d.Id())
+	id, err := streamingpoliciesandstreaminglocators.ParseStreamingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingPolicyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
@@ -223,9 +229,9 @@ func resourceMediaStreamingPolicyRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
+	d.Set("name", id.StreamingPolicyName)
+	d.Set("media_services_account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.StreamingPolicyProperties; props != nil {
 		noEncryption := flattenNoEncryption(resp.NoEncryption)
@@ -254,12 +260,12 @@ func resourceMediaStreamingPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamingPolicyID(d.Id())
+	id, err := streamingpoliciesandstreaminglocators.ParseStreamingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.StreamingPolicyName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
