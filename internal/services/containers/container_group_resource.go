@@ -109,14 +109,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-
-						"password": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 					},
 				},
 			},
@@ -1526,24 +1518,13 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 	if input == nil {
 		return nil
 	}
-	configsOld := d.Get("image_registry_credential").([]interface{})
 
 	output := make([]interface{}, 0)
-	for i, cred := range *input {
+	for _, cred := range *input {
 		credConfig := make(map[string]interface{})
 		credConfig["server"] = cred.Server
 		credConfig["username"] = cred.Username
 		credConfig["user_assigned_identity_id"] = cred.Identity
-
-		if len(configsOld) > i {
-			data := configsOld[i].(map[string]interface{})
-			oldServer := data["server"].(string)
-			if cred.Server == oldServer {
-				if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
-					credConfig["password"] = v.(string)
-				}
-			}
-		}
 
 		output = append(output, credConfig)
 	}
