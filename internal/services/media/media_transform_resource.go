@@ -2,16 +2,16 @@ package media
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"log"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,9 +33,14 @@ func resourceMediaTransform() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.TransformID(id)
+			_, err := encodings.ParseTransformID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.TransformV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -237,17 +242,17 @@ func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewTransformID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	id := encodings.NewTransformID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_transform", resourceId.ID())
+			return tf.ImportAsExistsError("azurerm_media_transform", id.ID())
 		}
 	}
 
@@ -265,11 +270,11 @@ func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		parameters.Outputs = transformOutput
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceMediaTransformRead(d, meta)
 }
 
@@ -278,30 +283,28 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TransformID(d.Id())
+	id, err := encodings.ParseTransformID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Transform %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.MediaserviceName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Transform %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
+	d.Set("name", id.TransformName)
+	d.Set("media_services_account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.TransformProperties; props != nil {
-		if description := props.Description; description != nil {
-			d.Set("description", description)
-		}
+		d.Set("description", props.Description)
 
 		outputs := flattenTransformOutputs(props.Outputs)
 		if err := d.Set("output", outputs); err != nil {
@@ -317,17 +320,13 @@ func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TransformID(d.Id())
+	id, err := encodings.ParseTransformID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
-	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
-		}
-		return fmt.Errorf("deleting Transform %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.TransformName); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
@@ -336,30 +335,30 @@ func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) e
 func expandTransformOuputs(input []interface{}) (*[]media.TransformOutput, error) {
 	results := make([]media.TransformOutput, 0)
 
-	for _, transformOuputRaw := range input {
-		if transformOuputRaw == nil {
+	for _, transformOutputRaw := range input {
+		if transformOutputRaw == nil {
 			continue
 		}
-		transform := transformOuputRaw.(map[string]interface{})
+		transform := transformOutputRaw.(map[string]interface{})
 
 		preset, err := expandPreset(transform)
 		if err != nil {
 			return nil, err
 		}
 
-		transformOuput := media.TransformOutput{
+		transformOutput := media.TransformOutput{
 			Preset: preset,
 		}
 
 		if transform["on_error_action"] != nil {
-			transformOuput.OnError = media.OnErrorType(transform["on_error_action"].(string))
+			transformOutput.OnError = media.OnErrorType(transform["on_error_action"].(string))
 		}
 
 		if transform["relative_priority"] != nil {
-			transformOuput.RelativePriority = media.Priority(transform["relative_priority"].(string))
+			transformOutput.RelativePriority = media.Priority(transform["relative_priority"].(string))
 		}
 
-		results = append(results, transformOuput)
+		results = append(results, transformOutput)
 	}
 
 	return &results, nil
@@ -375,6 +374,8 @@ func flattenTransformOutputs(input *[]media.TransformOutput) []interface{} {
 		output := make(map[string]interface{})
 		output["on_error_action"] = string(transformOuput.OnError)
 		output["relative_priority"] = string(transformOuput.RelativePriority)
+
+		// TODO: this needs refactoring to ensure all fields are always set into the state
 		attribute, preset := flattenPreset(transformOuput.Preset)
 		if attribute != "" {
 			output[attribute] = preset
