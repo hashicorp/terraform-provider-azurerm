@@ -276,10 +276,11 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    StateRefreshPendingStrings,
-		Target:     StateRefreshTargetStrings,
-		MinTimeout: 30 * time.Second,
-		Refresh:    resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
+		Pending:                   StateRefreshPendingStrings,
+		Target:                    StateRefreshTargetStrings,
+		MinTimeout:                30 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
 	}
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
@@ -459,10 +460,11 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    StateRefreshPendingStrings,
-		Target:     StateRefreshTargetStrings,
-		MinTimeout: 30 * time.Second,
-		Refresh:    resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
+		Pending:                   StateRefreshPendingStrings,
+		Target:                    StateRefreshTargetStrings,
+		MinTimeout:                30 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
 	}
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
