@@ -1420,29 +1420,36 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) []interface{} {
 	result := make(map[string]interface{})
 
-	if profile.ComputerNamePrefix != nil {
-		result["computer_name_prefix"] = *profile.ComputerNamePrefix
+	if profile != nil {
+
+		if profile.ComputerNamePrefix != nil {
+			result["computer_name_prefix"] = *profile.ComputerNamePrefix
+		} else {
+			result["computer_name_prefix"] = ""
+		}
+		if profile.AdminUsername != nil {
+			result["admin_username"] = *profile.AdminUsername
+		} else {
+			result["admin_username"] = ""
+		}
+
+		// admin password isn't returned, so let's look it up
+		if v, ok := d.GetOk("os_profile.0.admin_password"); ok {
+			password := v.(string)
+			result["admin_password"] = password
+		}
+
+		if profile.CustomData != nil {
+			result["custom_data"] = *profile.CustomData
+		} else {
+			// look up the current custom data
+			result["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		}
 	} else {
 		result["computer_name_prefix"] = ""
-	}
-
-	if profile.AdminUsername != nil {
-		result["admin_username"] = *profile.AdminUsername
-	} else {
 		result["admin_username"] = ""
-	}
-
-	// admin password isn't returned, so let's look it up
-	if v, ok := d.GetOk("os_profile.0.admin_password"); ok {
-		password := v.(string)
-		result["admin_password"] = password
-	}
-
-	if profile.CustomData != nil {
-		result["custom_data"] = *profile.CustomData
-	} else {
-		// look up the current custom data
-		result["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		result["admin_password"] = ""
+		result["custom_data"] = ""
 	}
 
 	return []interface{}{result}
