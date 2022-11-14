@@ -1139,7 +1139,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
- 
+
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
@@ -1256,7 +1256,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
- 
+
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
