@@ -4,7 +4,7 @@ package servers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ServerForUpdate struct {
-	Location   *string                    `json:"location,omitempty"`
+	Identity   *UserAssignedIdentity      `json:"identity,omitempty"`
 	Properties *ServerPropertiesForUpdate `json:"properties,omitempty"`
 	Sku        *Sku                       `json:"sku,omitempty"`
 	Tags       *map[string]string         `json:"tags,omitempty"`

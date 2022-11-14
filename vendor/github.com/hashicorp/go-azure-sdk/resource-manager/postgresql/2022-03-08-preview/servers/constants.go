@@ -5,12 +5,42 @@ import "strings"
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type ArmServerKeyType string
+
+const (
+	ArmServerKeyTypeAzureKeyVault  ArmServerKeyType = "AzureKeyVault"
+	ArmServerKeyTypeSystemAssigned ArmServerKeyType = "SystemAssigned"
+)
+
+func PossibleValuesForArmServerKeyType() []string {
+	return []string{
+		string(ArmServerKeyTypeAzureKeyVault),
+		string(ArmServerKeyTypeSystemAssigned),
+	}
+}
+
+func parseArmServerKeyType(input string) (*ArmServerKeyType, error) {
+	vals := map[string]ArmServerKeyType{
+		"azurekeyvault":  ArmServerKeyTypeAzureKeyVault,
+		"systemassigned": ArmServerKeyTypeSystemAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ArmServerKeyType(input)
+	return &out, nil
+}
+
 type CreateMode string
 
 const (
 	CreateModeCreate             CreateMode = "Create"
 	CreateModeDefault            CreateMode = "Default"
+	CreateModeGeoRestore         CreateMode = "GeoRestore"
 	CreateModePointInTimeRestore CreateMode = "PointInTimeRestore"
+	CreateModeReplica            CreateMode = "Replica"
 	CreateModeUpdate             CreateMode = "Update"
 )
 
@@ -18,7 +48,9 @@ func PossibleValuesForCreateMode() []string {
 	return []string{
 		string(CreateModeCreate),
 		string(CreateModeDefault),
+		string(CreateModeGeoRestore),
 		string(CreateModePointInTimeRestore),
+		string(CreateModeReplica),
 		string(CreateModeUpdate),
 	}
 }
@@ -27,7 +59,9 @@ func parseCreateMode(input string) (*CreateMode, error) {
 	vals := map[string]CreateMode{
 		"create":             CreateModeCreate,
 		"default":            CreateModeDefault,
+		"georestore":         CreateModeGeoRestore,
 		"pointintimerestore": CreateModePointInTimeRestore,
+		"replica":            CreateModeReplica,
 		"update":             CreateModeUpdate,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -99,12 +133,14 @@ type HighAvailabilityMode string
 
 const (
 	HighAvailabilityModeDisabled      HighAvailabilityMode = "Disabled"
+	HighAvailabilityModeSameZone      HighAvailabilityMode = "SameZone"
 	HighAvailabilityModeZoneRedundant HighAvailabilityMode = "ZoneRedundant"
 )
 
 func PossibleValuesForHighAvailabilityMode() []string {
 	return []string{
 		string(HighAvailabilityModeDisabled),
+		string(HighAvailabilityModeSameZone),
 		string(HighAvailabilityModeZoneRedundant),
 	}
 }
@@ -112,6 +148,7 @@ func PossibleValuesForHighAvailabilityMode() []string {
 func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 	vals := map[string]HighAvailabilityMode{
 		"disabled":      HighAvailabilityModeDisabled,
+		"samezone":      HighAvailabilityModeSameZone,
 		"zoneredundant": HighAvailabilityModeZoneRedundant,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -120,6 +157,80 @@ func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := HighAvailabilityMode(input)
+	return &out, nil
+}
+
+type IdentityType string
+
+const (
+	IdentityTypeNone           IdentityType = "None"
+	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
+	IdentityTypeUserAssigned   IdentityType = "UserAssigned"
+)
+
+func PossibleValuesForIdentityType() []string {
+	return []string{
+		string(IdentityTypeNone),
+		string(IdentityTypeSystemAssigned),
+		string(IdentityTypeUserAssigned),
+	}
+}
+
+func parseIdentityType(input string) (*IdentityType, error) {
+	vals := map[string]IdentityType{
+		"none":           IdentityTypeNone,
+		"systemassigned": IdentityTypeSystemAssigned,
+		"userassigned":   IdentityTypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
+	return &out, nil
+}
+
+type ReplicationRole string
+
+const (
+	ReplicationRoleAsyncReplica    ReplicationRole = "AsyncReplica"
+	ReplicationRoleGeoAsyncReplica ReplicationRole = "GeoAsyncReplica"
+	ReplicationRoleGeoSyncReplica  ReplicationRole = "GeoSyncReplica"
+	ReplicationRolePrimary         ReplicationRole = "Primary"
+	ReplicationRoleSecondary       ReplicationRole = "Secondary"
+	ReplicationRoleSyncReplica     ReplicationRole = "SyncReplica"
+	ReplicationRoleWalReplica      ReplicationRole = "WalReplica"
+)
+
+func PossibleValuesForReplicationRole() []string {
+	return []string{
+		string(ReplicationRoleAsyncReplica),
+		string(ReplicationRoleGeoAsyncReplica),
+		string(ReplicationRoleGeoSyncReplica),
+		string(ReplicationRolePrimary),
+		string(ReplicationRoleSecondary),
+		string(ReplicationRoleSyncReplica),
+		string(ReplicationRoleWalReplica),
+	}
+}
+
+func parseReplicationRole(input string) (*ReplicationRole, error) {
+	vals := map[string]ReplicationRole{
+		"asyncreplica":    ReplicationRoleAsyncReplica,
+		"geoasyncreplica": ReplicationRoleGeoAsyncReplica,
+		"geosyncreplica":  ReplicationRoleGeoSyncReplica,
+		"primary":         ReplicationRolePrimary,
+		"secondary":       ReplicationRoleSecondary,
+		"syncreplica":     ReplicationRoleSyncReplica,
+		"walreplica":      ReplicationRoleWalReplica,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ReplicationRole(input)
 	return &out, nil
 }
 
