@@ -216,7 +216,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
       include_blob_versions = true
-	  include_deleted       = true
+      include_deleted       = true
       include_snapshots     = true
       prefix_match          = ["*/test"]
     }
@@ -252,7 +252,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
       include_blob_versions = true
-	  include_deleted       = true
+      include_deleted       = true
       include_snapshots     = true
       prefix_match          = ["*/test"]
     }
