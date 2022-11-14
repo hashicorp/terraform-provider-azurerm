@@ -210,8 +210,8 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       "IsCurrentVersion",
       "Snapshot",
       "BlobType",
-	  "Deleted",
-	  "RemainingRetentionDays",
+      "Deleted",
+      "RemainingRetentionDays",
     ]
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
@@ -246,8 +246,8 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       "IsCurrentVersion",
       "Snapshot",
       "BlobType",
-	  "Deleted",
-	  "RemainingRetentionDays",
+      "Deleted",
+      "RemainingRetentionDays",
     ]
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
