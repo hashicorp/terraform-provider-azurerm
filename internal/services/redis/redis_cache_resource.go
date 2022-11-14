@@ -645,10 +645,10 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.RediName)
-	if err != nil {
-		return fmt.Errorf("listing keys for Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
-	}
+	// keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.RediName)
+	// if err != nil {
+	// 	return fmt.Errorf("listing keys for Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
+	// }
 
 	schedule, err := patchSchedulesClient.Get(ctx, id.ResourceGroup, id.RediName)
 	if err == nil {
@@ -716,14 +716,14 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("setting `redis_configuration`: %+v", err)
 	}
 
-	d.Set("primary_access_key", keysResp.PrimaryKey)
-	d.Set("secondary_access_key", keysResp.SecondaryKey)
+	// d.Set("primary_access_key", keysResp.PrimaryKey)
+	// d.Set("secondary_access_key", keysResp.SecondaryKey)
 
-	if props := resp.Properties; props != nil {
-		enableSslPort := !*props.EnableNonSslPort
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.PrimaryKey, enableSslPort))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.SecondaryKey, enableSslPort))
-	}
+	// if props := resp.Properties; props != nil {
+	// 	enableSslPort := !*props.EnableNonSslPort
+	// 	d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.PrimaryKey, enableSslPort))
+	// 	d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.SecondaryKey, enableSslPort))
+	// }
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

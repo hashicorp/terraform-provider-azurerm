@@ -617,16 +617,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"connection_strings": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Schema{
-					Type:      pluginsdk.TypeString,
-					Sensitive: true,
-				},
-			},
-
 			"primary_sql_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -1192,57 +1182,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if err := d.Set("write_endpoints", writeEndpoints); err != nil {
 		return fmt.Errorf("setting `write_endpoints`: %s", err)
 	}
-
-	// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer
-	// implying that it also returns the read only keys, however this appears to not be the case
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(keys.Response) {
-			log.Printf("[DEBUG] Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", id.Name, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", id.Name, err)
-	}
-	d.Set("primary_key", keys.PrimaryMasterKey)
-	d.Set("secondary_key", keys.SecondaryMasterKey)
-
-	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(keys.Response) {
-			log.Printf("[DEBUG] Read Only Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", id.Name, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", id.Name, err)
-	}
-	d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
-	d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
-
-	connStringResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(keys.Response) {
-			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", id.Name, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", id.Name, err)
-	}
-
-	var connStrings []string
-	if connStringResp.ConnectionStrings != nil {
-		connStrings = make([]string, len(*connStringResp.ConnectionStrings))
-		for i, v := range *connStringResp.ConnectionStrings {
-			connStrings[i] = *v.ConnectionString
-			if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
-				d.Set(propertyName, *v.ConnectionString)
-			}
-		}
-	}
-	d.Set("connection_strings", connStrings)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
