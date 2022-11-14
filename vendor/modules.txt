@@ -211,9 +211,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/maintenanceconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/fleetmembers
