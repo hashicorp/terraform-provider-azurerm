@@ -164,6 +164,8 @@ The following arguments are supported:
 
 * `immutability_policy` - (Optional) An `immutability_policy` block as defined below.
 
+* `sas_policy` - (Optional) A `sas_policy` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -366,6 +368,14 @@ A `queue_properties` block supports the following:
 * `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
+
+---
+
+A `sas_policy` block supports the following:
+
+* `expiration_period` - (Required) The SAS expiration period in format of `DD.HH:MM:SS`.
+
+* `expiration_action` - (Optional) The SAS expiration action. The only possible value is `Log` at this moment. Defaults to `Log`.
 
 ---
 
