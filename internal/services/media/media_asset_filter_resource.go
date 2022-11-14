@@ -2,6 +2,7 @@ package media
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
 	"log"
 	"regexp"
 	"time"
@@ -189,12 +190,12 @@ func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	assetID, err := parse.AssetID(d.Get("asset_id").(string))
+	assetID, err := assetsandassetfilters.ParseAssetID(d.Get("asset_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewAssetFilterID(subscriptionID, assetID.ResourceGroup, assetID.MediaserviceName, assetID.Name, d.Get("name").(string))
+	id := parse.NewAssetFilterID(subscriptionID, assetID.ResourceGroupName, assetID.AccountName, assetID.AssetName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.AssetName, id.Name)
 		if err != nil {
@@ -256,8 +257,7 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.Name)
-	assetID := parse.NewAssetID(subscriptionID, id.ResourceGroup, id.MediaserviceName, id.AssetName)
-	d.Set("asset_id", assetID.ID())
+	d.Set("asset_id", assetsandassetfilters.NewAssetID(subscriptionID, id.ResourceGroup, id.MediaserviceName, id.AssetName).ID())
 
 	if props := resp.FilterProperties; props != nil {
 		var firstQualityBitrate int32
