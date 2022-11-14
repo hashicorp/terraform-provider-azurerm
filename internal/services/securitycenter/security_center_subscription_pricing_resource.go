@@ -68,6 +68,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 					"Dns",
 					"OpenSourceRelationalDatabases",
 					"Containers",
+					"CloudPosture",
 				}, false),
 			},
 			"subplan": {
