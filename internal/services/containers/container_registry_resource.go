@@ -621,22 +621,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("sku", string(sku.Tier))
 	}
 
-	if *resp.AdminUserEnabled {
-		credsResp, errList := client.ListCredentials(ctx, id.ResourceGroup, id.Name)
-		if errList != nil {
-			return fmt.Errorf("making Read request on Azure Container Registry %s for Credentials: %s", id.Name, errList)
-		}
-
-		d.Set("admin_username", credsResp.Username)
-		for _, v := range *credsResp.Passwords {
-			d.Set("admin_password", v.Value)
-			break
-		}
-	} else {
-		d.Set("admin_username", "")
-		d.Set("admin_password", "")
-	}
-
 	replications, err := replicationClient.List(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("making Read request on Azure Container Registry %s for replications: %s", id.Name, err)
@@ -1050,17 +1034,6 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"login_server": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		"admin_username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"admin_password": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
