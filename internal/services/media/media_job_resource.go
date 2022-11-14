@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,9 +33,14 @@ func resourceMediaJob() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.JobID(id)
+			_, err := encodings.ParseJobID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.JobV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -149,17 +154,17 @@ func resourceMediaJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("transform_name").(string), d.Get("name").(string))
+	id := encodings.NewJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("transform_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.TransformName, resourceId.Name)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Media Job %q (Media Service account %q) (ResourceGroup %q): %s", resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_job", resourceId.ID())
+			return tf.ImportAsExistsError("azurerm_media_job", id.ID())
 		}
 	}
 
@@ -185,11 +190,11 @@ func resourceMediaJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.JobProperties.Outputs = outputAssets
 	}
 
-	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.TransformName, resourceId.Name, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", resourceId, err)
+	if _, err := client.Create(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
 	return resourceMediaJobRead(d, meta)
 }
@@ -199,12 +204,12 @@ func resourceMediaJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobID(d.Id())
+	id, err := encodings.ParseJobID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
@@ -214,10 +219,10 @@ func resourceMediaJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
+	d.Set("name", id.JobName)
 	d.Set("transform_name", id.TransformName)
+	d.Set("media_services_account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.JobProperties; props != nil {
 		d.Set("description", props.Description)
@@ -247,7 +252,7 @@ func resourceMediaJobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobID(d.Id())
+	id, err := encodings.ParseJobID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -276,7 +281,7 @@ func resourceMediaJobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.JobProperties.Outputs = outputAssets
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name, parameters); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -288,22 +293,18 @@ func resourceMediaJobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobID(d.Id())
+	id, err := encodings.ParseJobID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Cancel the job before we attempt to delete it.
-	if _, err = client.CancelJob(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name); err != nil {
-		return fmt.Errorf("could not cancel Media Job %q (reource group %q) for delete: %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.CancelJob(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName); err != nil {
+		return fmt.Errorf("cancelling %s: %+v", *id, err)
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
-	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
-		}
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	if _, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -3,12 +3,12 @@ package media_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -104,14 +104,14 @@ func TestAccMediaJob_update(t *testing.T) {
 }
 
 func (MediaJobResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.JobID(state.ID)
+	id, err := encodings.ParseJobID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.JobsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
+	resp, err := clients.Media.JobsClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Job %s (Media Services Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.JobProperties != nil), nil
