@@ -15,6 +15,10 @@ import (
 
 type MonitorAADDiagnosticSettingResource struct{}
 
+// NOTE: this is a combined test rather than separate split out tests due to
+// Azure only being happy about provisioning five per subscription at once and
+// there are existing resource in the test subscription hard to clear.
+// (which our test suite can't easily workaround)
 func TestAccAADDiagnosticSetting(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
