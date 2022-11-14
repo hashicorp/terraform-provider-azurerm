@@ -1,13 +1,13 @@
-package managedidentities
+package virtualmachines
 
-type IdentityOperationPredicate struct {
+type VirtualMachineOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p IdentityOperationPredicate) Matches(input Identity) bool {
+func (p VirtualMachineOperationPredicate) Matches(input VirtualMachine) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

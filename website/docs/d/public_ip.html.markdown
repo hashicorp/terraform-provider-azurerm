@@ -104,6 +104,8 @@ output "public_ip_address" {
 * `id` - The ID of the Public IP address.
 * `domain_name_label` - The label for the Domain Name.
 * `idle_timeout_in_minutes` - Specifies the timeout for the TCP idle connection.
+* `ddos_protection_mode` - The DDoS protection mode of the public IP.
+* `ddos_protection_plan_id` - The ID of DDoS protection plan associated with the public IP. 
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone.
 * `ip_address` - The IP address value that was allocated.
 * `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.

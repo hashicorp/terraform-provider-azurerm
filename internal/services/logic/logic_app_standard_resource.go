@@ -598,7 +598,10 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity := flattenLogicAppStandardIdentity(resp.Identity)
+	identity, err := flattenLogicAppStandardIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
@@ -1325,21 +1328,35 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 }
 
 func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &web.ManagedServiceIdentity{
+	output := web.ManagedServiceIdentity{
 		Type: web.ManagedServiceIdentityType(expanded.Type),
-	}, nil
+	}
+
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		output.UserAssignedIdentities = expandLogicAppStandardUserAssignedIdentity(expanded.IdentityIds)
+	}
+
+	return &output, nil
 }
 
-func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interface{} {
-	var transform *identity.SystemAssigned
+func expandLogicAppStandardUserAssignedIdentity(input map[string]identity.UserAssignedIdentityDetails) map[string]*web.UserAssignedIdentity {
+	output := make(map[string]*web.UserAssignedIdentity)
+	for k := range input {
+		output[k] = &web.UserAssignedIdentity{}
+	}
+	return output
+}
+
+func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) ([]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
+		transform = &identity.SystemAndUserAssignedMap{
 			Type: identity.Type(string(input.Type)),
 		}
 		if input.PrincipalID != nil {
@@ -1348,9 +1365,31 @@ func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interf
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+		if input.UserAssignedIdentities != nil {
+			transform.IdentityIds = flattenLogicAppStandardUserAssignedIdentity(input.UserAssignedIdentities)
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	output, err := identity.FlattenSystemAndUserAssignedMap(transform)
+	if err != nil {
+		return nil, err
+	}
+	return *output, nil
+}
+
+func flattenLogicAppStandardUserAssignedIdentity(input map[string]*web.UserAssignedIdentity) map[string]identity.UserAssignedIdentityDetails {
+	expanded := make(map[string]identity.UserAssignedIdentityDetails)
+	for k, v := range input {
+		identityDetail := identity.UserAssignedIdentityDetails{}
+		if v.PrincipalID != nil {
+			identityDetail.PrincipalId = v.PrincipalID
+		}
+		if v.ClientID != nil {
+			identityDetail.ClientId = v.ClientID
+		}
+		expanded[k] = identityDetail
+	}
+	return expanded
 }
 
 func expandLogicAppStandardSettings(

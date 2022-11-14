@@ -1,16 +1,31 @@
-## 3.31.0 (Unreleased)
+## 3.31.0 (November 10, 2022)
 
 FEATURES:
 
-* **New Resource:** `azurerm_stream_analytics_stream_input_eventhub_v2` [GH-19150]
+* **New Resource:** `azurerm_federated_identity_credential` ([#19199](https://github.com/hashicorp/terraform-provider-azurerm/issues/19199))
+* **New Resource:** `azurerm_stream_analytics_stream_input_eventhub_v2` ([#19150](https://github.com/hashicorp/terraform-provider-azurerm/issues/19150))
 
 ENHANCEMENTS
 
-* dependencies: updating `network` to API Version `2022-05-01` [GH-19124]
-* dependencies: updating `sentinel` to API Version `2022-10-01-preview` [GH-19161]
-* `azurerm_mssql_virtual_machine` - support for the `sql_instance` block [GH-19123]
-* `azurerm_sentinel_alert_rule_nrt` - support for the `techniques` property [GH-19142]
-* `azurerm_sentinel_alert_rule_fusion` - support for the source block [GH-19093]
+* dependencies: updating to `v0.20221108.1145701` of `github.com/hashicorp/go-azure-sdk` ([#19193](https://github.com/hashicorp/terraform-provider-azurerm/issues/19193))
+* dependencies: updating `network` to API Version `2022-05-01` ([#19124](https://github.com/hashicorp/terraform-provider-azurerm/issues/19124))
+* dependencies: updating `sentinel` to API Version `2022-10-01-preview` ([#19161](https://github.com/hashicorp/terraform-provider-azurerm/issues/19161))
+* `azurerm_disk_encryption_set` - support for the `federated_client_id` property ([#19184](https://github.com/hashicorp/terraform-provider-azurerm/issues/19184))
+* `azurerm_linux_web_app` - support for .NET 7 ([#19232](https://github.com/hashicorp/terraform-provider-azurerm/issues/19232))
+* `azurerm_linux_function_app` - support for .NET 7 ([#19232](https://github.com/hashicorp/terraform-provider-azurerm/issues/19232))
+* `azurerm_managed_disk` - support for expanding data disks without downtime ([#17245](https://github.com/hashicorp/terraform-provider-azurerm/issues/17245))
+* `azurerm_mssql_virtual_machine` - support for the `sql_instance` block ([#19123](https://github.com/hashicorp/terraform-provider-azurerm/issues/19123))
+* `azurerm_public_ip` - support for the `ddos_protection_mode` and `ddos_protection_plan_id` properties ([#19206](https://github.com/hashicorp/terraform-provider-azurerm/issues/19206))
+* `azurerm_sentinel_alert_rule_nrt` - support for the `techniques` property ([#19142](https://github.com/hashicorp/terraform-provider-azurerm/issues/19142))
+* `azurerm_sentinel_alert_rule_fusion` - support for the source block ([#19093](https://github.com/hashicorp/terraform-provider-azurerm/issues/19093))
+* `azurerm_windows_web_app` - support for .NET 7 ([#19232](https://github.com/hashicorp/terraform-provider-azurerm/issues/19232))
+* `azurerm_windows_function_app` - support for .NET 7 ([#19232](https://github.com/hashicorp/terraform-provider-azurerm/issues/19232))
+
+BUG FIXES:
+
+* `azurerm_cdn_frontdoor_route` - update read function to parse `cdn_frontdoor_origin_group_id` insensitively ([#19178](https://github.com/hashicorp/terraform-provider-azurerm/issues/19178))
+* `azurerm_cdn_frontdoor_rule` - update `url_redirect_action` to allow `query_string` field to pass multiple query string parameters ([#19180](https://github.com/hashicorp/terraform-provider-azurerm/issues/19180))
+* `azurerm_cdn_frontdoor_profile` - the `response_timeout_seconds` property is no longer force new ([#19175](https://github.com/hashicorp/terraform-provider-azurerm/issues/19175))
 
 ## 3.30.0 (November 03, 2022)
 

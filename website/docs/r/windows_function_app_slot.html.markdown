@@ -381,7 +381,7 @@ An `app_service_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1` and `6`
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6` and `7`
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 

@@ -30,6 +30,7 @@ func TestAccPublicIpStatic_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
 				check.That(data.ResourceName).Key("ip_version").HasValue("IPv4"),
+				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("VirtualNetworkInherited"),
 			),
 		},
 		data.ImportStep(),
@@ -185,6 +186,31 @@ func TestAccPublicIpStatic_standard(t *testing.T) {
 			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_standard_withDDoS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardDDoSDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardDDoSEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("ddos_protection_plan_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -548,6 +574,57 @@ resource "azurerm_public_ip" "test" {
   sku                 = "Standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPResource) standardDDoSDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                 = "acctestpublicip-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  allocation_method    = "Static"
+  sku                  = "Standard"
+  ddos_protection_mode = "Disabled"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPResource) standardDDoSEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_ddos_protection_plan" "test" {
+  name                = "acctestddospplan-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpublicip-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  allocation_method       = "Static"
+  sku                     = "Standard"
+  ddos_protection_mode    = "Enabled"
+  ddos_protection_plan_id = azurerm_network_ddos_protection_plan.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (PublicIPResource) standardPrefix(data acceptance.TestData) string {

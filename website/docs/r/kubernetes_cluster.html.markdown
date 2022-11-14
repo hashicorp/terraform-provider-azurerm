@@ -534,8 +534,6 @@ A `network_profile` block supports the following:
 
 * `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`.
 
-~> **Note:** Outbound NAT Gateway is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/azure/aks/nat-gateway#register-the-aks-natgatewaypreview-feature-flag).
-
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
 * `pod_cidrs` - (Optional) A list of CIDRs to use for pod IP addresses. For single-stack networking a single IPv4 CIDR is expected. For dual-stack networking an IPv4 and IPv6 CIDR are expected. Changing this forces a new resource to be created.
@@ -723,7 +721,7 @@ A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation](Microsoft.ContainerService/AKS-KedaPreview) for more information.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-KedaPreview](https://learn.microsoft.com/en-us/azure/aks/keda-deploy-add-on-arm)) for more information.
 
 ---
 

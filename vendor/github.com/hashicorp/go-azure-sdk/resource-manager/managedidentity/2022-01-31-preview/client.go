@@ -1,8 +1,8 @@
-package v2018_11_30
+package v2022_01_31_preview
 
 import (
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentities"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities"
 )
 
 type Client struct {

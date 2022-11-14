@@ -567,6 +567,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
+	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
+	skusClient := meta.(*clients.Client).Compute.SkusClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -678,9 +680,26 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("disk_size_gb") {
-		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			shouldShutDown = true
-			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(new.(int)))
+		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
+			canBeResizedWithoutDowntime := false
+			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
+				diskSupportsNoDowntimeResize, err := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
+				if err != nil {
+					return fmt.Errorf("determining if the Disk supports no-downtime-resize: %+v", err)
+				}
+
+				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
+				if err != nil {
+					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
+				}
+
+				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
+			}
+			if !canBeResizedWithoutDowntime {
+				log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
+				shouldShutDown = true
+			}
+			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(newSize.(int)))
 		} else {
 			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
 		}
