@@ -112,13 +112,23 @@ func resourceAppServicePublicCertificateCreateUpdate(d *pluginsdk.ResourceData, 
 		certificate.PublicCertificateProperties.Blob = &decodedBlob
 	}
 
-	if _, err := client.CreateOrUpdatePublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name, certificate); err != nil {
+	resp, err := client.CreateOrUpdatePublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name, certificate)
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("app_service_name", id.SiteName)
+	d.Set("certificate_name", id.Name)
 
-	return resourceAppServicePublicCertificateRead(d, meta)
+	if properties := resp.PublicCertificateProperties; properties != nil {
+		d.Set("certificate_location", properties.PublicCertificateLocation)
+		d.Set("blob", base64.StdEncoding.EncodeToString(*properties.Blob))
+		d.Set("thumbprint", properties.Thumbprint)
+	}
+
+	return nil
 }
 
 func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
