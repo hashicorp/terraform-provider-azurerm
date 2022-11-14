@@ -4,11 +4,14 @@ DEPRECATIONS
 
 * The `azurerm_integration_service_environment` resource is now deprecated as the underlying Azure Service is being retired on `2024-08-31` and new instances cannot be provisioned (by default) after `2022-11-01` [GH-19265]
 
-
 ENHANCEMENTS:
 
 * `azurerm_security_center_subscription_pricing` - support for the `subplan` property [GH-19273]
 * `azurerm_windows_web_app`, `azurerm_windows_web_app_slot` - aupport for `17` value for `java_version` property [GH-19249]
+
+BUG FIXES:
+
+* `azurerm_orchestrated_virtual_machine_scale_set` - allow no image to be specified [GH-19263]
 
 ## 3.31.0 (November 10, 2022)
 
