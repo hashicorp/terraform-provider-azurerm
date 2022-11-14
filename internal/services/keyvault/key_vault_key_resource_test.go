@@ -336,6 +336,18 @@ func TestAccKeyVaultKey_RotationPolicyUpdate(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_RotationPolicyUnauthorized(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.rotationPolicyUnauthorized(data),
+			ExpectError: regexp.MustCompile("current client lacks permissions to create Key Rotation Policy for Key"),
+		},
+	})
+}
+
 func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultsClient := clients.KeyVault
@@ -926,6 +938,72 @@ resource "azurerm_key_vault_key" "test" {
   }
 }
 `, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyUnauthorized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "%s"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    automatic {
+      time_after_creation = "P31D"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, "standard", data.RandomString)
 }
 
 func (r KeyVaultKeyResource) rotationPolicyBasic(data acceptance.TestData) string {

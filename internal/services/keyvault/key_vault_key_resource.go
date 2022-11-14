@@ -359,7 +359,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("rotation_policy"); ok {
 		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
-				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy, please update this as described here: %s (Key %q of Key Vault %q in Vault at url %q): %v", "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", name, *keyVaultId, *keyVaultBaseUri, err)
+				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy for Key %q (Key Vault %q in Vault at url %q), please update this as described here: %s : %v", name, *keyVaultId, *keyVaultBaseUri, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
 			return fmt.Errorf("creating Key Rotation Policy: %+v", err)
 		}
@@ -589,12 +589,13 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
-		// If client is not authorized the policy:
-		if utils.ResponseWasForbidden(respPolicy.Response) {
+		switch {
+		case utils.ResponseWasForbidden(respPolicy.Response):
+			// If client is not authorized to access the policy:
 			return fmt.Errorf("current client lacks permissions to read Key Rotation Policy, please update this as described here: %s (Key %q of Key Vault %q in Vault at url %q): %v", "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
-		} else if utils.ResponseWasNotFound(respPolicy.Response) {
+		case utils.ResponseWasNotFound(respPolicy.Response):
 			return tags.FlattenAndSet(d, resp.Tags)
-		} else {
+		default:
 			return err
 		}
 	}
