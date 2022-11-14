@@ -132,9 +132,9 @@ The following arguments are supported:
 
 An `auth_config` block supports the following:
 
-* `active_directory_auth_enabled` - (Optional) Whether is allowed to use Active Directory authentication to access the PostgreSQL Flexible Server. Defaults to `false`.
+* `active_directory_auth_enabled` - (Optional) Whether is allowed to use Active Directory authentication to access the PostgreSQL Flexible Server.
 
-* `password_auth_enabled` - (Optional) Whether is allowed to use password authentication to access the PostgreSQL Flexible Server. Defaults to `true`.
+* `password_auth_enabled` - (Optional) Whether is allowed to use password authentication to access the PostgreSQL Flexible Server.
 
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Active Directory authentication. `active_directory_auth_enabled` must be set to `true`.
 

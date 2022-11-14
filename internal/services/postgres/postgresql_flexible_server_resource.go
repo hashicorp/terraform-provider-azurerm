@@ -80,17 +80,16 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"active_directory_auth_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 						"password_auth_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  true,
 						},
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
@@ -439,7 +438,9 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
 
-			d.Set("auth_config", flattenFlexibleServerAuthConfig(props.AuthConfig))
+			if props.AuthConfig != nil {
+				d.Set("auth_config", flattenFlexibleServerAuthConfig(props.AuthConfig))
+			}
 		}
 
 		sku, err := flattenFlexibleServerSku(model.Sku)

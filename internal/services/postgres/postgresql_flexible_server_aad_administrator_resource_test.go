@@ -128,8 +128,8 @@ resource "azurerm_postgresql_flexible_server_active_directory_administrator" "te
   server_name         = azurerm_postgresql_flexible_server.test.name
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-  object_id           = azuread_service_principal.test.object_id
-  principal_name      = azuread_service_principal.test.display_name
+  object_id           = data.azuread_service_principal.test.object_id
+  principal_name      = data.azuread_service_principal.test.display_name
   principal_type      = "ServicePrincipal"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -140,12 +140,12 @@ func (r PostgresqlFlexibleServerAdministratorResource) requiresImport(data accep
 %s
 
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "import" {
-  server_name         = azurerm_postgresql_active_directory_administrator.test.server_name
-  resource_group_name = azurerm_postgresql_active_directory_administrator.test.resource_group_name
-  tenant_id           = azurerm_postgresql_active_directory_administrator.test.tenant_id
-  object_id           = azurerm_postgresql_active_directory_administrator.test.object_id
-  principal_name      = azurerm_postgresql_active_directory_administrator.test.principal_name
-  principal_type      = azurerm_postgresql_active_directory_administrator.test.principal_type
+  server_name         = azurerm_postgresql_flexible_server_active_directory_administrator.test.server_name
+  resource_group_name = azurerm_postgresql_flexible_server_active_directory_administrator.test.resource_group_name
+  tenant_id           = azurerm_postgresql_flexible_server_active_directory_administrator.test.tenant_id
+  object_id           = azurerm_postgresql_flexible_server_active_directory_administrator.test.object_id
+  principal_name      = azurerm_postgresql_flexible_server_active_directory_administrator.test.principal_name
+  principal_type      = azurerm_postgresql_flexible_server_active_directory_administrator.test.principal_type
 }
 `, r.basic(data))
 }
