@@ -128,9 +128,11 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("resource_type", id.PricingName)
-	if properties := resp.Model.Properties; properties != nil {
-		d.Set("tier", properties.PricingTier)
-		d.Set("subplan", properties.SubPlan)
+	if resp.Model != nil {
+		if properties := resp.Model.Properties; properties != nil {
+			d.Set("tier", properties.PricingTier)
+			d.Set("subplan", properties.SubPlan)
+		}
 	}
 
 	return nil
