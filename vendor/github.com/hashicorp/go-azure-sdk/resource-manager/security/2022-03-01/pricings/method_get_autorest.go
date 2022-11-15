@@ -1,4 +1,4 @@
-package objectreplicationpolicies
+package pricings
 
 import (
 	"context"
@@ -13,26 +13,26 @@ import (
 
 type GetOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *ObjectReplicationPolicy
+	Model        *Pricing
 }
 
 // Get ...
-func (c ObjectReplicationPoliciesClient) Get(ctx context.Context, id ObjectReplicationPolicyId) (result GetOperationResponse, err error) {
+func (c PricingsClient) Get(ctx context.Context, id PricingId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "pricings.PricingsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "Get", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "pricings.PricingsClient", "Get", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForGet(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "Get", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "pricings.PricingsClient", "Get", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (c ObjectReplicationPoliciesClient) Get(ctx context.Context, id ObjectRepli
 }
 
 // preparerForGet prepares the Get request.
-func (c ObjectReplicationPoliciesClient) preparerForGet(ctx context.Context, id ObjectReplicationPolicyId) (*http.Request, error) {
+func (c PricingsClient) preparerForGet(ctx context.Context, id PricingId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -56,7 +56,7 @@ func (c ObjectReplicationPoliciesClient) preparerForGet(ctx context.Context, id 
 
 // responderForGet handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (c ObjectReplicationPoliciesClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
+func (c PricingsClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

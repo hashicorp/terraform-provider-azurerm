@@ -1,4 +1,4 @@
-package objectreplicationpolicies
+package pricings
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,26 +15,26 @@ import (
 
 type ListOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *ObjectReplicationPolicies
+	Model        *PricingList
 }
 
 // List ...
-func (c ObjectReplicationPoliciesClient) List(ctx context.Context, id StorageAccountId) (result ListOperationResponse, err error) {
+func (c PricingsClient) List(ctx context.Context, id commonids.SubscriptionId) (result ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "pricings.PricingsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "List", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "pricings.PricingsClient", "List", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForList(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "List", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "pricings.PricingsClient", "List", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -41,7 +42,7 @@ func (c ObjectReplicationPoliciesClient) List(ctx context.Context, id StorageAcc
 }
 
 // preparerForList prepares the List request.
-func (c ObjectReplicationPoliciesClient) preparerForList(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c PricingsClient) preparerForList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -50,14 +51,14 @@ func (c ObjectReplicationPoliciesClient) preparerForList(ctx context.Context, id
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/objectReplicationPolicies", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.Security/pricings", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // responderForList handles the response to the List request. The method always
 // closes the http.Response Body.
-func (c ObjectReplicationPoliciesClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
+func (c PricingsClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

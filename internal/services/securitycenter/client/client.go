@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	pricings_v2022_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-03-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -11,7 +12,7 @@ type Client struct {
 	ContactsClient                      *security.ContactsClient
 	DeviceSecurityGroupsClient          *security.DeviceSecurityGroupsClient
 	IotSecuritySolutionClient           *security.IotSecuritySolutionClient
-	PricingClient                       *security.PricingsClient
+	PricingClient                       *pricings_v2022_03_01.PricingsClient
 	WorkspaceClient                     *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient      *security.AdvancedThreatProtectionClient
 	AutoProvisioningClient              *security.AutoProvisioningSettingsClient
@@ -38,7 +39,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	IotSecuritySolutionClient := security.NewIotSecuritySolutionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&IotSecuritySolutionClient.Client, o.ResourceManagerAuthorizer)
 
-	PricingClient := security.NewPricingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	PricingClient := pricings_v2022_03_01.NewPricingsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&PricingClient.Client, o.ResourceManagerAuthorizer)
 
 	WorkspaceClient := security.NewWorkspaceSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
