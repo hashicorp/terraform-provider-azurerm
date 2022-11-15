@@ -89,8 +89,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO: the API for this also supports UserAssigned & SystemAssigned, UserAssigned
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"immutability": {
 				Type:     pluginsdk.TypeString,
