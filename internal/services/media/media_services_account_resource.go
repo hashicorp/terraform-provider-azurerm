@@ -2,6 +2,7 @@ package media
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"log"
 	"regexp"
 	"time"
@@ -69,7 +70,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 						"id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: storageaccounts.ValidateStorageAccountID,
 						},
 
 						"is_primary": {
@@ -210,11 +211,13 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	props := resp.ServiceProperties
-	if props != nil {
-		accounts := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
-		if e := d.Set("storage_account", accounts); e != nil {
-			return fmt.Errorf("flattening `storage_account`: %s", e)
+	if props := resp.ServiceProperties; props != nil {
+		accounts, err := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
+		if err != nil {
+			return fmt.Errorf("flattening `storage_account`: %s", err)
+		}
+		if err := d.Set("storage_account", accounts); err != nil {
+			return fmt.Errorf("setting `storage_account`: %s", err)
 		}
 		d.Set("storage_authentication_type", string(props.StorageAuthentication))
 	}
@@ -277,25 +280,29 @@ func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]media.St
 	return &results, nil
 }
 
-func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) []interface{} {
+func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) (*[]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return &[]interface{}{}, nil
 	}
 
 	results := make([]interface{}, 0)
 	for _, storageAccount := range *input {
-		output := make(map[string]interface{})
-
+		storageAccountId := ""
 		if storageAccount.ID != nil {
-			output["id"] = *storageAccount.ID
+			id, err := storageaccounts.ParseStorageAccountIDInsensitively(*storageAccount.ID)
+			if err != nil {
+				return nil, fmt.Errorf("parsing %q as a Storage Account ID: %+v", *storageAccount.ID, err)
+			}
+			storageAccountId = id.ID()
 		}
 
-		output["is_primary"] = storageAccount.Type == media.StorageAccountTypePrimary
-
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"id":         storageAccountId,
+			"is_primary": storageAccount.Type == media.StorageAccountTypePrimary,
+		})
 	}
 
-	return results
+	return &results, nil
 }
 
 func expandAccountIdentity(input []interface{}) (*media.ServiceIdentity, error) {

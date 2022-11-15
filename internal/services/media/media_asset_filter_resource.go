@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -65,7 +64,7 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: assetsandassetfilters.ValidateAssetID,
 			},
 
 			"first_quality_bitrate": {
@@ -129,6 +128,7 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 							},
 						},
 
+						// TODO: fix the name in 4.0
 						"unit_timescale_in_miliseconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,

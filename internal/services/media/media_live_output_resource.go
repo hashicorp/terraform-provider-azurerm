@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveoutputs"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -53,7 +52,7 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: liveevents.ValidateLiveEventID,
 			},
 
 			"archive_window_duration": {
