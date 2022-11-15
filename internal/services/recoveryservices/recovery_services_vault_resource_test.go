@@ -198,6 +198,7 @@ func TestAccRecoveryServicesVault_UserAssignedIdentity(t *testing.T) {
 }
 
 func TestAccRecoveryServicesVault_immutability(t *testing.T) {
+	t.Skip("this feature is in public review and only available in limited regions, detail can be found in https://learn.microsoft.com/en-us/azure/backup/backup-azure-immutable-vault-concept?tabs=recovery-services-vault#before-you-start")
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
