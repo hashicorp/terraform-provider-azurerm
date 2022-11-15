@@ -74,7 +74,7 @@ The following arguments are supported:
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
 
-* `condition_property` - (Optional) One or more `condition_property` blocks as defined below.
+* `condition` - (Optional) One or more `condition` blocks as defined below.
 
 * `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 
@@ -120,7 +120,7 @@ A `action_playbook` block supports the following:
 
 ---
 
-A `condition_property` block supports the following:
+A `condition` block supports the following:
 
 * `operator` - (Required) The operator to use for evaluate the condition. Possible values include: `Equals`, `NotEquals`, `Contains`, `NotContains`, `StartsWith`, `NotStartsWith`, `EndsWith`, `NotEndsWith`.
 
