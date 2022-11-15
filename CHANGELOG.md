@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_eventhub_namespace` - correct `zone_redundant` property [GH-19164]
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow no image to be specified [GH-19263]
 * `azurerm_synapse_firewall_rule` - wait for the firewall to be ready [GH-19227]
 * `azurerm_service_fabric_managed_cluster` - correctly define `active_directory` as a List [GH-19163]
