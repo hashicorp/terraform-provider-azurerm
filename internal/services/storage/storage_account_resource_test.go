@@ -1350,13 +1350,13 @@ func TestAccStorageAccount_sasPolicy(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_emptyStorageProperties(t *testing.T) {
+func TestAccStorageAccount_emptyShareProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.emptyStorageProperties(data),
+			Config: r.emptyShareProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -4123,7 +4123,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) emptyStorageProperties(data acceptance.TestData) string {
+func (r StorageAccountResource) emptyShareProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
