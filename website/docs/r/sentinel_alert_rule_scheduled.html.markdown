@@ -134,7 +134,7 @@ An `entity_mapping` block supports the following:
 
 A `event_grouping` block supports the following:
 
-* `aggregation_method` - (Required) The aggregation type of grouping the events.
+* `aggregation_method` - (Required) The aggregation type of grouping the events. Possible values are `AlertPerResult` and `SingleAlert`.
 
 ---
 

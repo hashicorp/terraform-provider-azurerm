@@ -167,7 +167,7 @@ The `backend_pool_health_probe` block supports the following:
 
 * `path` - (Optional) The path to use for the Health Probe. Default is `/`.
 
-* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Defaults to `Http`.
+* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Possible values are `Http` and `Https`. Defaults to `Http`.
 
 * `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `Get`.
 
@@ -195,7 +195,7 @@ The `routing_rule` block supports the following:
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
-* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
+* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`. Defaults to `Http`.
 
 * `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 
