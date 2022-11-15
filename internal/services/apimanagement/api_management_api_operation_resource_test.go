@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementApiOperationResource struct {
-}
+type ApiManagementApiOperationResource struct{}
 
 func TestAccApiManagementApiOperation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
@@ -122,20 +121,30 @@ func TestAccApiManagementApiOperation_representations(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApiOperation_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
+	r := ApiManagementApiOperationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementApiOperationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ApiOperationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiId := id.Path["apis"]
-	operationId := id.Path["operations"]
-
-	resp, err := clients.ApiManagement.ApiOperationsClient.Get(ctx, resourceGroup, serviceName, apiId, operationId)
+	resp, err := clients.ApiManagement.ApiOperationsClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagementApi Operation (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -153,6 +162,97 @@ resource "azurerm_api_management_api_operation" "test" {
   display_name        = "DELETE Resource"
   method              = "DELETE"
   url_template        = "/resource"
+}
+`, r.template(data))
+}
+
+func (r ApiManagementApiOperationResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation" "test" {
+  operation_id        = "acctest-operation"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "DELETE Resource"
+  method              = "DELETE"
+  url_template        = "/resource"
+
+  response {
+    status_code = 200
+
+    header {
+      name          = "test"
+      required      = true
+      type          = "string"
+      default_value = "default"
+      description   = "This is a test description"
+      values        = ["multipart/form-data"]
+    }
+
+    representation {
+      content_type = "multipart/form-data"
+
+      form_parameter {
+        default_value = "multipart/form-data"
+        description   = "This is a test description"
+        name          = "test"
+        required      = true
+        type          = "string"
+        values        = ["multipart/form-data"]
+      }
+
+      example {
+        name           = "test"
+        description    = "This is a test description"
+        external_value = "https://example.com/foo/bar"
+        summary        = "This is a test summary"
+      }
+    }
+  }
+
+  request {
+    description = "Created user object"
+
+    query_parameter {
+      default_value = "multipart/form-data"
+      description   = "This is a test description"
+      name          = "test"
+      required      = true
+      type          = "string"
+      values        = ["multipart/form-data"]
+    }
+
+    header {
+      name          = "test"
+      required      = true
+      type          = "string"
+      default_value = "default"
+      description   = "This is a test description"
+    }
+
+    representation {
+      content_type = "multipart/form-data"
+
+      example {
+        description    = "This is a test description"
+        external_value = "https://example.com/foo/bar"
+        name           = "test"
+        summary        = "This is a test summary"
+        value          = "backend-Request-Test"
+      }
+
+      form_parameter {
+        default_value = "multipart/form-data"
+        description   = "This is a test description"
+        name          = "test"
+        required      = true
+        type          = "string"
+        values        = ["multipart/form-data"]
+      }
+    }
+  }
 }
 `, r.template(data))
 }
@@ -244,6 +344,14 @@ resource "azurerm_api_management_api_operation" "test" {
 func (r ApiManagementApiOperationResource) headers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+resource "azurerm_api_management_api_schema" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  schema_id           = "acctestSchema%d"
+  content_type        = "application/json"
+  value               = file("testdata/api_management_api_schema_swagger.json")
+}
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
@@ -279,12 +387,24 @@ resource "azurerm_api_management_api_operation" "test" {
       name     = "X-Test-Operation"
       required = true
       type     = "string"
+
+      type_name = "User"
+      schema_id = azurerm_api_management_api_schema.test.schema_id
+      example {
+        description    = "This is a test description"
+        external_value = "https://example.com/foo/bar"
+        name           = "test"
+        summary        = "This is a test summary"
+        value          = "backend-Request-Test"
+      }
     }
 
     representation {
       content_type = "application/xml"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -295,10 +415,11 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
+      }
     }
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApiManagementApiOperationResource) representation(data acceptance.TestData) string {
@@ -330,8 +451,11 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
+      type_name    = "User"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -342,6 +466,7 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
+      }
     }
   }
 }
@@ -378,7 +503,9 @@ resource "azurerm_api_management_api_operation" "test" {
     representation {
       content_type = "application/xml"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 <response>
   <user name="bravo24">
     <groups>
@@ -389,12 +516,15 @@ resource "azurerm_api_management_api_operation" "test" {
 </response>
 SAMPLE
 
+      }
     }
 
     representation {
       content_type = "application/json"
 
-      sample = <<SAMPLE
+      example {
+        name  = "sample"
+        value = <<SAMPLE
 {
   "user": {
     "groups": [
@@ -411,6 +541,7 @@ SAMPLE
 }
 SAMPLE
 
+      }
     }
   }
 }

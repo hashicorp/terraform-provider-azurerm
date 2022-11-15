@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementApiVersionSetResource struct {
-}
+type ApiManagementApiVersionSetResource struct{}
 
 func TestAccApiManagementApiVersionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_version_set", "test")

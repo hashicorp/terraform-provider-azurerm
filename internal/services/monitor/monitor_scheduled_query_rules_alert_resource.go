@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,9 +55,9 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				ValidateFunc: validation.StringDoesNotContainAny("<>*%&:\\?+/"),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"authorized_resource_ids": {
 				Type:     pluginsdk.TypeSet,
@@ -82,11 +83,8 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 							},
 						},
 						"custom_webhook_payload": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							// TODO remove `Computed: true` in 3.0. This is a breaking change where the Default used to be "{}"
-							// We'll keep Computed: true for users who expect the same functionality but will remove it in 3.0
-							Computed:     true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
@@ -134,6 +132,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				Default:  "ResultCount",
 				ValidateFunc: validation.StringInSlice([]string{
 					"ResultCount",
+					"Number",
 				}, false),
 			},
 			"severity": {
@@ -255,8 +254,8 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", id.ID())
 		}
 	}
 

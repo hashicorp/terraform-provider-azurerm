@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vmihailenco/msgpack"
+	msgpack "github.com/vmihailenco/msgpack/v4"
 )
 
 // ValueConverter is an interface that provider-defined types can implement to
@@ -213,7 +213,7 @@ func (val Value) Equal(o Value) bool {
 	if o.Type() == nil {
 		return false
 	}
-	if !val.Type().Is(o.Type()) {
+	if !val.Type().Equal(o.Type()) {
 		return false
 	}
 	diff, err := val.Diff(o)
@@ -294,6 +294,7 @@ func newValue(t Type, val interface{}) (Value, error) {
 			value: val,
 		}, nil
 	}
+
 	if creator, ok := val.(ValueCreator); ok {
 		var err error
 		val, err = creator.ToTerraform5Value()
@@ -303,12 +304,6 @@ func newValue(t Type, val interface{}) (Value, error) {
 	}
 
 	switch {
-	case t.Is(DynamicPseudoType):
-		v, err := valueFromDynamicPseudoType(val)
-		if err != nil {
-			return Value{}, err
-		}
-		return v, nil
 	case t.Is(String):
 		v, err := valueFromString(val)
 		if err != nil {
@@ -328,7 +323,7 @@ func newValue(t Type, val interface{}) (Value, error) {
 		}
 		return v, nil
 	case t.Is(Map{}):
-		v, err := valueFromMap(t.(Map).AttributeType, val)
+		v, err := valueFromMap(t.(Map).ElementType, val)
 		if err != nil {
 			return Value{}, err
 		}
@@ -353,6 +348,12 @@ func newValue(t Type, val interface{}) (Value, error) {
 		return v, nil
 	case t.Is(Tuple{}):
 		v, err := valueFromTuple(t.(Tuple).ElementTypes, val)
+		if err != nil {
+			return Value{}, err
+		}
+		return v, nil
+	case t.Is(DynamicPseudoType):
+		v, err := valueFromDynamicPseudoType(val)
 		if err != nil {
 			return Value{}, err
 		}
@@ -439,7 +440,7 @@ func (val Value) As(dst interface{}) error {
 		if !ok {
 			return fmt.Errorf("can't unmarshal %s into %T, expected *big.Float", val.Type(), dst)
 		}
-		target.Set(v)
+		target.Copy(v)
 		return nil
 	case **big.Float:
 		if val.IsNull() {

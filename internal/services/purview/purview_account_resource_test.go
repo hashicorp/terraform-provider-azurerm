@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -22,6 +23,21 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPurviewAccount_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -45,18 +61,35 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+	managedResourceGroupName := fmt.Sprintf("acctestRG-purview-managed-%d", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withManagedResourceGroupName(data, managedResourceGroupName),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_name").HasValue(managedResourceGroupName),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AccountID(state.ID)
+	id, err := account.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Purview.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Purview.AccountsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Purview Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -65,13 +98,46 @@ func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Clie
 func (r PurviewAccountResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_purview_account" "test" {
   name                = "acctestsw%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Standard_4"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r PurviewAccountResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                   = "acctestsw%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  public_network_enabled = false
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -85,17 +151,38 @@ resource "azurerm_purview_account" "import" {
   name                = azurerm_purview_account.test.name
   resource_group_name = azurerm_purview_account.test.resource_group_name
   location            = azurerm_purview_account.test.location
-  sku_name            = azurerm_purview_account.test.sku_name
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template)
 }
 
-func (r PurviewAccountResource) template(data acceptance.TestData) string {
+func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData, managedResourceGroupName string) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                        = "acctestsw%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  managed_resource_group_name = %q
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, managedResourceGroupName)
+}
+
+func (r PurviewAccountResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-purview-%d"
   location = "%s"

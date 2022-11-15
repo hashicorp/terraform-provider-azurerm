@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-func GetSecurityCenterSetting(client *security.SettingsClient, ctx context.Context, settingName string) (setting security.DataExportSettings, err error) {
+func GetSecurityCenterSetting(ctx context.Context, client *security.SettingsClient, settingName string) (setting security.DataExportSettings, err error) {
 	// NOTE: client.Get() returns security.Setting, which doesn't contain the "Enabled" property
 	// https://github.com/Azure/azure-sdk-for-go/issues/12724
 	req, err := client.GetPreparer(ctx, settingName)

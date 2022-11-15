@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type CassandraKeyspaceId struct {
@@ -42,7 +42,7 @@ func (id CassandraKeyspaceId) ID() string {
 
 // CassandraKeyspaceID parses a CassandraKeyspace ID into an CassandraKeyspaceId struct
 func CassandraKeyspaceID(input string) (*CassandraKeyspaceId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

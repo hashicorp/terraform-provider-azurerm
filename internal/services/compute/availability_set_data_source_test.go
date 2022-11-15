@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AvailabilitySetDataSource struct {
-}
+type AvailabilitySetDataSource struct{}
 
 func TestAccDataSourceAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_availability_set", "test")

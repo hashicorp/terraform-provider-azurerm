@@ -18,18 +18,24 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_container_registry" "example" {
-  name                     = "example-registry"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  sku                      = "Premium"
-  admin_enabled            = false
-  georeplication_locations = ["East US", "West Europe"]
+  name                = "exampleregistry"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Premium"
+  admin_enabled       = false
+
+  georeplications {
+    location = "East US"
+  }
+  georeplications {
+    location = "West Europe"
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "example" {
   name                    = "example-scope-map"
-  container_registry_name = azurerm_container_registry.acr.name
-  resource_group_name     = azurerm_resource_group.rg.name
+  container_registry_name = azurerm_container_registry.example.name
+  resource_group_name     = azurerm_resource_group.example.name
   actions = [
     "repositories/repo1/content/read",
     "repositories/repo1/content/write"
@@ -41,7 +47,6 @@ resource "azurerm_container_registry_scope_map" "example" {
 
 The following arguments are supported:
 
-
 * `name` - (Required) Specifies the name of the scope map. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry token. Changing this forces a new resource to be created.
@@ -51,6 +56,7 @@ The following arguments are supported:
 * `actions` - (Required) A list of actions to attach to the scope map (e.g. `repo/content/read`, `repo2/content/delete`).
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -59,7 +65,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry scope map.
 * `update` - (Defaults to 30 minutes) Used when updating the Container Registry scope map.

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type VirtualMachineDataSource struct {
-}
+type VirtualMachineDataSource struct{}
 
 func TestAccDataSourceAzureRMVirtualMachine_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine", "test")

@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
@@ -48,23 +49,24 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// NOTE: we're using a Terraform-internal Resource ID here since the Go SDK no longer exposes one
+	// since this is an operation on a Tenant (which doesn't expose any configurable values).
 	id := parse.NewPortalTenantConfigurationID("default")
-
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_portal_tenant_configuration", id.ID())
 		}
 	}
 
-	parameters := portal.Configuration{
-		ConfigurationProperties: &portal.ConfigurationProperties{
+	parameters := tenantconfiguration.Configuration{
+		Properties: &tenantconfiguration.ConfigurationProperties{
 			EnforcePrivateMarkdownStorage: utils.Bool(d.Get("private_markdown_storage_enforced").(bool)),
 		},
 	}
@@ -90,7 +92,7 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 
 	resp, err := client.Get(ctx)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -98,8 +100,10 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if props := resp.ConfigurationProperties; props != nil {
-		d.Set("private_markdown_storage_enforced", props.EnforcePrivateMarkdownStorage)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("private_markdown_storage_enforced", props.EnforcePrivateMarkdownStorage)
+		}
 	}
 
 	return nil

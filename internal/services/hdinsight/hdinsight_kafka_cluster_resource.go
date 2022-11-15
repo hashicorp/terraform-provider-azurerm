@@ -1,13 +1,13 @@
 package hdinsight
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -57,8 +57,11 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
 		Delete: hdinsightClusterDelete("Kafka"),
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -70,9 +73,9 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"cluster_version": SchemaHDInsightClusterVersion(),
 
@@ -81,6 +84,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			"tls_min_version": SchemaHDInsightTls(),
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
+
+			"network": SchemaHDInsightsNetwork(),
 
 			"component_version": {
 				Type:     pluginsdk.TypeList,
@@ -105,11 +110,15 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
+
 			"encryption_in_transit_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
 				Optional: true,
 			},
+
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
 			"roles": {
 				Type:     pluginsdk.TypeList,
@@ -140,6 +149,13 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.IsUUID,
 						},
+
+						"security_group_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 				RequiredWith: []string{"roles.0.kafka_management_node"},
@@ -163,15 +179,17 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			},
 
 			"monitor": SchemaHDInsightsMonitor(),
+
+			"extension": SchemaHDInsightsExtension(),
 		},
 	}
 }
 
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	groupClient := meta.(*clients.Client).Authorization.GroupsClient
 	client := meta.(*clients.Client).HDInsight.ClustersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -203,6 +221,9 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
+
 	kafkaRoles := hdInsightRoleDefinition{
 		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
 		WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
@@ -222,14 +243,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
 	}
 
-	kafkaRestProperty, err := expandKafkaRestProxyProperty(ctx, groupClient, d.Get("rest_proxy").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding kafka rest proxy property")
-	}
+	kafkaRestProperty := expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
+
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
 
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
@@ -238,6 +258,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Kafka"),
 				ComponentVersion: componentVersions,
@@ -249,7 +270,8 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
-			KafkaRestProperties: kafkaRestProperty,
+			KafkaRestProperties:        kafkaRestProperty,
+			ComputeIsolationProperties: computeIsolationProperties,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
@@ -258,6 +280,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	if encryptionInTransit, ok := d.GetOk("encryption_in_transit_enabled"); ok {
 		params.Properties.EncryptionInTransitProperties = &hdinsight.EncryptionInTransitProperties{
 			IsEncryptionInTransitEnabled: utils.Bool(encryptionInTransit.(bool)),
+		}
+	}
+
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -298,6 +327,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
 		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+			return err
+		}
+	}
+
+	if v, ok := d.GetOk("extension"); ok {
+		extensionRaw := v.([]interface{})
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -350,8 +386,15 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
+		tier := ""
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		for _, v := range hdinsight.PossibleTierValues() {
+			if strings.EqualFold(string(v), string(props.Tier)) {
+				tier = string(v)
+			}
+		}
+		d.Set("tier", tier)
 		d.Set("cluster_version", props.ClusterVersion)
-		d.Set("tier", string(props.Tier))
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
@@ -388,15 +431,44 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
 		}
 
+		if props.NetworkProperties != nil {
+			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flatten `network`: %+v", err)
+			}
+		}
+		if props.ComputeIsolationProperties.EnableComputeIsolation != nil {
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
+			}
+		}
+
+		if props.DiskEncryptionProperties != nil {
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+			}
+		}
+
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
-		if err := d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
+
+		if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
 			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
 		}
+
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+		}
+
+		d.Set("extension", flattenHDInsightAzureMonitor(extension))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)
@@ -430,28 +502,21 @@ func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface
 	}
 }
 
-func expandKafkaRestProxyProperty(ctx context.Context, client *graphrbac.GroupsClient, input []interface{}) (*hdinsight.KafkaRestProperties, error) {
+func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestProperties {
 	if len(input) == 0 || input[0] == nil {
-		return nil, nil
+		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
 	groupId := raw["security_group_id"].(string)
-
-	// Current API requires users further specify the "security_group_name" in the client group info of the kafka rest property,
-	// which is unnecessary as user already specify the "security_group_id".
-	// https://github.com/Azure/azure-rest-api-specs/issues/10667
-	res, err := client.Get(ctx, groupId)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving AAD gruop %s: %v", groupId, err)
-	}
+	groupName := raw["security_group_name"].(string)
 
 	return &hdinsight.KafkaRestProperties{
 		ClientGroupInfo: &hdinsight.ClientGroupInfo{
 			GroupID:   &groupId,
-			GroupName: res.DisplayName,
+			GroupName: &groupName,
 		},
-	}, nil
+	}
 }
 
 func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []interface{} {
@@ -460,14 +525,21 @@ func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []inter
 	}
 
 	groupInfo := input.ClientGroupInfo
+
 	groupId := ""
 	if groupInfo.GroupID != nil {
 		groupId = *groupInfo.GroupID
 	}
 
+	groupName := ""
+	if groupInfo.GroupName != nil {
+		groupName = *groupInfo.GroupName
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"security_group_id": groupId,
+			"security_group_id":   groupId,
+			"security_group_name": groupName,
 		},
 	}
 }

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BlueprintAssignmentResource struct {
-}
+type BlueprintAssignmentResource struct{}
 
 // Scenario: Basic BP, no artefacts etc.  Stored and applied at Subscription.
 func TestAccBlueprintAssignment_basic(t *testing.T) {
@@ -205,7 +204,7 @@ data "azurerm_blueprint_published_version" "test" {
 
 resource "azurerm_resource_group" "test" {
   name     = "accTestRG-bp-%d"
-  location = "%s"
+  location = "westeurope"
 
   tags = {
     testAcc = "true"
@@ -242,6 +241,10 @@ resource "azurerm_blueprint_assignment" "test" {
     data.azurerm_client_config.current.object_id,
   ]
 
+  lock_exclude_actions = [
+    "Microsoft.Resources/subscriptions/resourceGroups/write"
+  ]
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -268,7 +271,7 @@ resource "azurerm_blueprint_assignment" "test" {
     azurerm_role_assignment.owner
   ]
 }
-`, subscription, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, subscription, bpName, version, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (BlueprintAssignmentResource) rootManagementGroup(data acceptance.TestData, bpName string, version string) string {
@@ -282,7 +285,7 @@ data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "test" {}
 
 data "azurerm_management_group" "root" {
-  group_id = data.azurerm_client_config.current.tenant_id
+  name = data.azurerm_client_config.current.tenant_id
 }
 
 data "azurerm_blueprint_definition" "test" {

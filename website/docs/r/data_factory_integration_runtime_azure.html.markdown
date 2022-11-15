@@ -25,10 +25,9 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "example" {
-  name                = "example"
-  data_factory_name   = azurerm_data_factory.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
+  location        = azurerm_resource_group.example.location
 }
 ```
 
@@ -36,11 +35,9 @@ resource "azurerm_data_factory_integration_runtime_azure" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Managed Integration Runtime. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Managed Integration Runtime. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `data_factory_name` - (Required) Specifies the name of the Data Factory the Managed Integration Runtime belongs to. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to create the Managed Integration Runtime. Changing this forces a new resource to be created.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Use `AutoResolve` to create an auto-resolve integration runtime. Changing this forces a new resource to be created.
 

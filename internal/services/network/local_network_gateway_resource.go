@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceLocalNetworkGateway() *pluginsdk.Resource {
@@ -20,8 +22,10 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 		Read:   resourceLocalNetworkGatewayRead,
 		Update: resourceLocalNetworkGatewayCreateUpdate,
 		Delete: resourceLocalNetworkGatewayDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.LocalNetworkGatewayID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -37,9 +41,9 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"gateway_address": {
 				Type:         pluginsdk.TypeString,
@@ -93,22 +97,22 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 
 func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewLocalNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Local Network Gateway %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_local_network_gateway", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
 		}
 	}
 
@@ -116,7 +120,7 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	gateway := network.LocalNetworkGateway{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		LocalNetworkGatewayPropertiesFormat: &network.LocalNetworkGatewayPropertiesFormat{
 			LocalNetworkAddressSpace: &network.AddressSpace{},
@@ -136,35 +140,36 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// There is a bug in the provider where the address space ordering doesn't change as expected.
 	// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
 	if !d.IsNewResource() && d.HasChange("address_space") {
-		future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
+
+		// since the local network gateway cannot have both empty address prefix and empty BGP setting(confirmed with service team, it is by design),
+		// replace the empty address prefix with the first address prefix in the "address_space" list to avoid error.
+		if v := d.Get("address_space").([]interface{}); len(v) > 0 {
+			gateway.LocalNetworkGatewayPropertiesFormat.LocalNetworkAddressSpace = &network.AddressSpace{
+				AddressPrefixes: &[]string{v[0].(string)},
+			}
+		}
+
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 		if err != nil {
-			return fmt.Errorf("removing Local Network Gateway address space %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("removing %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 		}
 	}
 	gateway.LocalNetworkGatewayPropertiesFormat.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 	if err != nil {
-		return fmt.Errorf("creating Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Local Network Gateway ID %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceLocalNetworkGatewayRead(d, meta)
 }
@@ -234,14 +239,12 @@ func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId string) (string, string, error) {
-	id, err := azure.ParseAzureResourceID(localNetworkGatewayId)
+	id, err := parse.LocalNetworkGatewayID(localNetworkGatewayId)
 	if err != nil {
 		return "", "", err
 	}
-	name := id.Path["localNetworkGateways"]
-	resGroup := id.ResourceGroup
 
-	return resGroup, name, nil
+	return id.ResourceGroup, id.Name, nil
 }
 
 func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *network.BgpSettings {

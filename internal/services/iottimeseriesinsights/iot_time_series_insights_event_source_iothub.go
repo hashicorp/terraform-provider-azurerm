@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -47,7 +48,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *pluginsdk.Resource {
 				),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"environment_id": {
 				Type:         pluginsdk.TypeString,
@@ -65,6 +66,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *pluginsdk.Resource {
 			"shared_access_key": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

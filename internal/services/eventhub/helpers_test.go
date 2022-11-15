@@ -35,7 +35,7 @@ func TestValidateEventHubName(t *testing.T) {
 		},
 		{
 			name:  "Invalid long name",
-			input: strings.Repeat("a", 51),
+			input: strings.Repeat("a", 257),
 			valid: false,
 		},
 		{

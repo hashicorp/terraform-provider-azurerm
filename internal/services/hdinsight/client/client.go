@@ -29,10 +29,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	ExtensionsClient := hdinsight.NewExtensionsClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
 	opts.ConfigureClient(&ExtensionsClient.Client, opts.ResourceManagerAuthorizer)
 
-	return &Client{
+	c := &Client{
 		ApplicationsClient:   &ApplicationsClient,
 		ClustersClient:       &ClustersClient,
 		ConfigurationsClient: &ConfigurationsClient,
 		ExtensionsClient:     &ExtensionsClient,
 	}
+
+	return c
 }

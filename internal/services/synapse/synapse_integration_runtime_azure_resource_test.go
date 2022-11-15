@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeAzureResource struct {
-}
+type IntegrationRuntimeAzureResource struct{}
 
 func TestAccSynapseIntegrationRuntimeAzure_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
@@ -90,6 +89,20 @@ func TestAccSynapseIntegrationRuntimeAzure_update(t *testing.T) {
 	})
 }
 
+func TestAccSynapseIntegrationRuntimeAzure_autoResolve(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
+	r := IntegrationRuntimeAzureResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoResolve(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (r IntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IntegrationRuntimeID(state.ID)
 	if err != nil {
@@ -110,6 +123,18 @@ resource "azurerm_synapse_integration_runtime_azure" "test" {
   name                 = "azure-integration-runtime"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   location             = azurerm_resource_group.test.location
+}
+`, r.template(data))
+}
+
+func (r IntegrationRuntimeAzureResource) autoResolve(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_integration_runtime_azure" "test" {
+  name                 = "azure-integration-runtime"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  location             = "AutoResolve"
 }
 `, r.template(data))
 }
@@ -181,6 +206,9 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "test" {

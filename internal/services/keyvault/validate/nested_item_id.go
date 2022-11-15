@@ -44,7 +44,7 @@ func VersionlessNestedItemId(i interface{}, k string) (warnings []string, errors
 	}
 
 	if id.Version != "" {
-		errors = append(errors, fmt.Errorf("expected %s to not have a version", k))
+		errors = append(errors, fmt.Errorf("expected %s to not have a version, please use the versionless ID", k))
 	}
 
 	return warnings, errors

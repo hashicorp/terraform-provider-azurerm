@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DevTestLabScheduleResource struct {
-}
+type DevTestLabScheduleResource struct{}
 
 func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
@@ -97,16 +96,14 @@ func TestAccDevTestLabSchedule_concurrent(t *testing.T) {
 }
 
 func (DevTestLabScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DevTestLabScheduleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	devTestLabName := id.Path["labs"]
-	name := id.Path["schedules"]
 
-	resp, err := clients.DevTestLabs.LabSchedulesClient.Get(ctx, id.ResourceGroup, devTestLabName, name, "")
+	resp, err := clients.DevTestLabs.LabSchedulesClient.Get(ctx, id.ResourceGroup, id.LabName, id.ScheduleName, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Dev Test Lab Schedule %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ScheduleProperties != nil), nil

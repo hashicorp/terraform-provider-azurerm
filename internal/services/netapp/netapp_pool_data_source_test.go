@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type NetAppPoolDataSource struct {
-}
+type NetAppPoolDataSource struct{}
 
 func TestAccDataSourceNetAppPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_pool", "test")

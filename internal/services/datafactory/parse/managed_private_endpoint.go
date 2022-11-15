@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ManagedPrivateEndpointId struct {
@@ -45,7 +45,7 @@ func (id ManagedPrivateEndpointId) ID() string {
 
 // ManagedPrivateEndpointID parses a ManagedPrivateEndpoint ID into an ManagedPrivateEndpointId struct
 func ManagedPrivateEndpointID(input string) (*ManagedPrivateEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

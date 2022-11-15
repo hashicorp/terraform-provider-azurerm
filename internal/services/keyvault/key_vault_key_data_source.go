@@ -1,9 +1,15 @@
 package keyvault
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"encoding/base64"
 	"fmt"
+	"math/big"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -18,7 +24,8 @@ func dataSourceKeyVaultKey() *pluginsdk.Resource {
 		Read: dataSourceKeyVaultKeyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
+			Read: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -62,12 +69,47 @@ func dataSourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"curve": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"n": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"e": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"x": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"y": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_key_pem": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_key_openssh": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_versionless_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -123,9 +165,64 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		d.Set("n", key.N)
 		d.Set("e", key.E)
+		d.Set("x", key.X)
+		d.Set("y", key.Y)
+		d.Set("curve", key.Crv)
+
+		if key := resp.Key; key != nil {
+			if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+				nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
+				if err != nil {
+					return fmt.Errorf("failed to decode N: %+v", err)
+				}
+				eBytes, err := base64.RawURLEncoding.DecodeString(*key.E)
+				if err != nil {
+					return fmt.Errorf("failed to decode E: %+v", err)
+				}
+				publicKey := &rsa.PublicKey{
+					N: big.NewInt(0).SetBytes(nBytes),
+					E: int(big.NewInt(0).SetBytes(eBytes).Uint64()),
+				}
+				err = readPublicKey(d, publicKey)
+				if err != nil {
+					return fmt.Errorf("failed to read public key: %+v", err)
+				}
+			} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+				// do ec keys
+				xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
+				if err != nil {
+					return fmt.Errorf("failed to decode X: %+v", err)
+				}
+				yBytes, err := base64.RawURLEncoding.DecodeString(*key.Y)
+				if err != nil {
+					return fmt.Errorf("failed to decode Y: %+v", err)
+				}
+				publicKey := &ecdsa.PublicKey{
+					X: big.NewInt(0).SetBytes(xBytes),
+					Y: big.NewInt(0).SetBytes(yBytes),
+				}
+				switch key.Crv {
+				case keyvault.P256:
+					publicKey.Curve = elliptic.P256()
+				case keyvault.P384:
+					publicKey.Curve = elliptic.P384()
+				case keyvault.P521:
+					publicKey.Curve = elliptic.P521()
+				}
+				if publicKey.Curve != nil {
+					err = readPublicKey(d, publicKey)
+					if err != nil {
+						return fmt.Errorf("failed to read public key: %+v", err)
+					}
+				}
+			}
+		}
 	}
 
 	d.Set("version", parsedId.Version)
+
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, parsedId.Name, parsedId.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, parsedId.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

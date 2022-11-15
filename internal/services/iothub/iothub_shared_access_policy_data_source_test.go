@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type IoTHubSharedAccessPolicyDataSource struct {
-}
+type IoTHubSharedAccessPolicyDataSource struct{}
 
 func TestAccDataSourceIotHubSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_iothub_shared_access_policy", "test")

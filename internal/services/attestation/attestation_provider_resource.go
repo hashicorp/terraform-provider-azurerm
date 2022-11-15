@@ -7,15 +7,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/sdk/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -35,7 +34,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProviderID(id)
+			_, err := attestationproviders.ParseAttestationProvidersID(id)
 			return err
 		}),
 
@@ -47,9 +46,9 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				ValidateFunc: validate.AttestationProviderName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"policy_signing_certificate_data": {
 				Type:         pluginsdk.TypeString,
@@ -58,7 +57,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				ValidateFunc: validate.IsCert,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"attestation_uri": {
 				Type:     pluginsdk.TypeString,
@@ -98,7 +97,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: attestationproviders.AttestationServiceCreationSpecificParams{
 			// AttestationPolicy was deprecated in October of 2019
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// NOTE: This maybe an slice in a future release or even a slice of slices
@@ -144,8 +143,8 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.AttestationProviderName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ProviderName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(resp.Model.Location))
@@ -154,7 +153,7 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("attestation_uri", props.AttestUri)
 			d.Set("trust_model", props.TrustModel)
 		}
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
@@ -172,7 +171,7 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 
 	updateParams := attestationproviders.AttestationServicePatchParams{}
 	if d.HasChange("tags") {
-		updateParams.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		updateParams.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if _, err := client.Update(ctx, *id, updateParams); err != nil {

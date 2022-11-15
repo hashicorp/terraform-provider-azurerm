@@ -8,7 +8,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -58,7 +59,7 @@ func dataSourceResources() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 						"tags":     tags.SchemaDataSource(),
 					},
 				},
@@ -165,7 +166,7 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 
 			resLocation := ""
 			if res.Location != nil {
-				resLocation = *res.Location
+				resLocation = location.NormalizeNilable(res.Location)
 			}
 
 			resTags := make(map[string]interface{})

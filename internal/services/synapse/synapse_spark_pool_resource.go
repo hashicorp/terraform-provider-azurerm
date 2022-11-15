@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -89,6 +89,18 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"min_executors": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 200),
+			},
+
+			"max_executors": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 200),
 			},
 
 			"node_count": {
@@ -199,8 +211,8 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Default:  "2.4",
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.4",
-					"3.0", // TODO: remove in 3.0 as support for this value has been dropped
 					"3.1",
+					"3.2",
 				}, false),
 			},
 
@@ -215,22 +227,25 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	workspaceId, _ := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `synapse_workspace_id`: %+v", err)
+	}
 
+	id := parse.NewSparkPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", name, workspaceId.Name, workspaceId.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_synapse_spark_pool", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_synapse_spark_pool", id.ID())
 		}
 	}
 
-	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
+	workspace, err := workspaceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
 		return fmt.Errorf("reading Synapse workspace %q (Workspace %q / Resource Group %q): %+v", workspaceId.Name, workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
@@ -244,7 +259,9 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
+				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
 			},
 			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
@@ -261,32 +278,19 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	force := utils.Bool(false)
-	future, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, bigDataPoolInfo, force)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, bigDataPoolInfo, force)
 	if err != nil {
-		return fmt.Errorf("creating Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", name, workspaceId.Name, workspaceId.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", name, workspaceId.Name, workspaceId.ResourceGroup, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", name, workspaceId.Name, workspaceId.ResourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse Spark Pool %q (Workspace %q / Resource Group %q) ID", name, workspaceId.Name, workspaceId.ResourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	// Library Requirements can't be specified on Create so we'll call update after we've confirmed the Spark Pool has been created.
-	if libraryRequirements := expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})); libraryRequirements != nil {
-		return resourceSynapseSparkPoolUpdate(d, meta)
-	}
-
-	return resourceSynapseSparkPoolRead(d, meta)
+	return resourceSynapseSparkPoolUpdate(d, meta)
 }
 
 func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -324,9 +328,23 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		d.Set("cache_size", props.CacheSize)
 		d.Set("compute_isolation_enabled", props.IsComputeIsolationEnabled)
+
+		dynamicExecutorAllocationEnabled := false
+		minExector := 0
+		maxExecutor := 0
 		if props.DynamicExecutorAllocation != nil {
-			d.Set("dynamic_executor_allocation_enabled", props.DynamicExecutorAllocation.Enabled)
+			dynamicExecutorAllocationEnabled = *props.DynamicExecutorAllocation.Enabled
+			if props.DynamicExecutorAllocation.MinExecutors != nil {
+				minExector = int(*props.DynamicExecutorAllocation.MinExecutors)
+			}
+			if props.DynamicExecutorAllocation.MaxExecutors != nil {
+				maxExecutor = int(*props.DynamicExecutorAllocation.MaxExecutors)
+			}
 		}
+		d.Set("dynamic_executor_allocation_enabled", dynamicExecutorAllocationEnabled)
+		d.Set("min_executors", minExector)
+		d.Set("max_executors", maxExecutor)
+
 		d.Set("node_count", props.NodeCount)
 		d.Set("node_size", props.NodeSize)
 		d.Set("node_size_family", string(props.NodeSizeFamily))
@@ -362,7 +380,9 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
+				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
 			},
 			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
 			LibraryRequirements:         expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
@@ -382,23 +402,13 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	force := utils.Bool(false)
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, bigDataPoolInfo, force)
 	if err != nil {
-		return fmt.Errorf("creating Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
-	if err != nil {
-		return fmt.Errorf("retrieving Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse Spark Pool %q (Workspace %q / Resource Group %q) ID", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup)
-	}
-
-	d.SetId(*resp.ID)
 	return resourceSynapseSparkPoolRead(d, meta)
 }
 
@@ -414,11 +424,11 @@ func resourceSynapseSparkPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -462,12 +472,12 @@ func expandArmSparkPoolLibraryRequirements(input []interface{}) *synapse.Library
 	}
 }
 
-func expandSparkPoolSparkConfig(input []interface{}) *synapse.LibraryRequirements {
+func expandSparkPoolSparkConfig(input []interface{}) *synapse.SparkConfigProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	value := input[0].(map[string]interface{})
-	return &synapse.LibraryRequirements{
+	return &synapse.SparkConfigProperties{
 		Content:  utils.String(value["content"].(string)),
 		Filename: utils.String(value["filename"].(string)),
 	}
@@ -549,7 +559,7 @@ func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) 
 	}
 }
 
-func flattenSparkPoolSparkConfig(input *synapse.LibraryRequirements) []interface{} {
+func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

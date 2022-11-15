@@ -59,6 +59,22 @@ func TestAccStreamAnalyticsOutputServiceBusQueue_json(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputServiceBusQueue_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
+	r := StreamAnalyticsOutputServiceBusQueueResource{}
+	identity := "identity { type = \"SystemAssigned\" }"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationMode(data, identity),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func TestAccStreamAnalyticsOutputServiceBusQueue_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 	r := StreamAnalyticsOutputServiceBusQueueResource{}
@@ -95,6 +111,78 @@ func TestAccStreamAnalyticsOutputServiceBusQueue_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputServiceBusQueue_propertyColumns(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
+	r := StreamAnalyticsOutputServiceBusQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.csv(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.propertyColumns(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.updatePropertyColumns(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.csv(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
+func TestAccStreamAnalyticsOutputServiceBusQueue_systemPropertyColumns(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
+	r := StreamAnalyticsOutputServiceBusQueueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.csv(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.systemPropertyColumns(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.updateSystemPropertyColumns(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+		{
+			Config: r.csv(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func (r StreamAnalyticsOutputServiceBusQueueResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	jobName := state.Attributes["stream_analytics_job_name"]
@@ -111,7 +199,7 @@ func (r StreamAnalyticsOutputServiceBusQueueResource) Exists(ctx context.Context
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -132,7 +220,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -155,7 +243,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) json(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -178,7 +266,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -191,8 +279,7 @@ resource "azurerm_servicebus_namespace" "updated" {
 
 resource "azurerm_servicebus_queue" "updated" {
   name                = "acctest2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.updated.name
+  namespace_id        = azurerm_servicebus_namespace.updated.id
   enable_partitioning = true
 }
 
@@ -210,6 +297,113 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputServiceBusQueueResource) propertyColumns(data acceptance.TestData) string {
+	template := r.template(data, "")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  queue_name                = azurerm_servicebus_queue.test.name
+  servicebus_namespace      = azurerm_servicebus_namespace.test.name
+  shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+
+  property_columns = ["column1", "column2", "column3"]
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputServiceBusQueueResource) updatePropertyColumns(data acceptance.TestData) string {
+	template := r.template(data, "")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  queue_name                = azurerm_servicebus_queue.test.name
+  servicebus_namespace      = azurerm_servicebus_namespace.test.name
+  shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+
+  property_columns = ["column1", "column3"]
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputServiceBusQueueResource) systemPropertyColumns(data acceptance.TestData) string {
+	template := r.template(data, "")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  queue_name                = azurerm_servicebus_queue.test.name
+  servicebus_namespace      = azurerm_servicebus_namespace.test.name
+  shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+
+  system_property_columns = {
+    TimeToLive    = "100"
+    Label         = "Test"
+    CorrelationId = "79b839ac-be78-4542-8185-098170483986"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputServiceBusQueueResource) updateSystemPropertyColumns(data acceptance.TestData) string {
+	template := r.template(data, "")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  queue_name                = azurerm_servicebus_queue.test.name
+  servicebus_namespace      = azurerm_servicebus_namespace.test.name
+  shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+
+  system_property_columns = {
+    TimeToLive    = "101"
+    CorrelationId = "79b839ac-be78-4542-8185-098170483986"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) requiresImport(data acceptance.TestData) string {
@@ -237,7 +431,30 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "import" {
 `, template)
 }
 
-func (r StreamAnalyticsOutputServiceBusQueueResource) template(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputServiceBusQueueResource) authenticationMode(data acceptance.TestData, identity string) string {
+	template := r.template(data, identity)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  queue_name                = azurerm_servicebus_queue.test.name
+  servicebus_namespace      = azurerm_servicebus_namespace.test.name
+  shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
+  shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+    format   = "LineSeparated"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputServiceBusQueueResource) template(data acceptance.TestData, identity string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -257,8 +474,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctest-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  namespace_id        = azurerm_servicebus_namespace.test.id
   enable_partitioning = true
 }
 
@@ -280,6 +496,7 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, identity)
 }

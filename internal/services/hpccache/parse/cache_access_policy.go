@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type CacheAccessPolicyId struct {
@@ -42,7 +42,7 @@ func (id CacheAccessPolicyId) ID() string {
 
 // CacheAccessPolicyID parses a CacheAccessPolicy ID into an CacheAccessPolicyId struct
 func CacheAccessPolicyID(input string) (*CacheAccessPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

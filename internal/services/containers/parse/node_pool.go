@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NodePoolId struct {
@@ -42,7 +42,7 @@ func (id NodePoolId) ID() string {
 
 // NodePoolID parses a NodePool ID into an NodePoolId struct
 func NodePoolID(input string) (*NodePoolId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

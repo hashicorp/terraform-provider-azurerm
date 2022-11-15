@@ -96,7 +96,7 @@ resource "azurerm_virtual_machine" "example" {
     publisher = "MicrosoftSQLServer"
     offer     = "SQL2017-WS2016"
     sku       = "SQLDEV"
-    version   = "laexample"
+    version   = "latest"
   }
 
   storage_os_disk {

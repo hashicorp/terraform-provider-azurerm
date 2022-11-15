@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NotificationHubAuthorizationRuleResource struct {
-}
+type NotificationHubAuthorizationRuleResource struct{}
 
 func TestAccNotificationHubAuthorizationRule_listen(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
@@ -158,17 +157,17 @@ func TestAccNotificationHubAuthorizationRule_updated(t *testing.T) {
 }
 
 func (NotificationHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NotificationHubAuthorizationRuleID(state.ID)
+	id, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NotificationHubs.HubsClient.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
+	resp, err := clients.NotificationHubs.HubsClient.GetAuthorizationRule(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.SharedAccessAuthorizationRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NotificationHubAuthorizationRuleResource) listen(data acceptance.TestData) string {

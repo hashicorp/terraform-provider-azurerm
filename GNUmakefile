@@ -17,14 +17,10 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.41.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.45.0
 
 build: fmtcheck generate
 	go install
-
-build-docker:
-	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm -e GOOS golang:1.16 make build
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -60,6 +56,8 @@ lint:
 	./scripts/run-lint.sh
 
 depscheck:
+	@echo "==> Checking dependencies.."
+	@./scripts/track2-check.sh
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \
@@ -74,7 +72,7 @@ gencheck:
 	@make generate
 	@echo "==> Comparing generated code to committed code..."
 	@git diff --compact-summary --exit-code -- ./ || \
-    		(echo; echo "Unexpected difference in generated code. Run 'go generate' to update the generated code and commit."; exit 1)
+    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; exit 1)
 
 tflint:
 	./scripts/run-tflint.sh
@@ -82,9 +80,6 @@ tflint:
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
 	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
-
-test-docker:
-	docker run --rm -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
@@ -106,6 +101,12 @@ acctests: fmtcheck
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
+
+prepare:
+	@echo "==> Preparing the repository (removing all '*_gen.go' files)..."
+	@find . -iname \*_gen.go -type f -delete
+	@echo "==> Preparing the repository (removing all '*_gen_test.go' files)..."
+	@find . -iname \*_gen_test.go -type f -delete
 
 website-lint:
 	@echo "==> Checking documentation for .html.markdown extension present"
@@ -134,7 +135,12 @@ teamcity-test:
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test
 
-validate-examples:
+validate-examples: build
 	./scripts/validate-examples.sh
 
-.PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test validate-examples
+resource-counts:
+	go test -v ./internal/provider -run=TestProvider_counts
+
+pr-check: generate build test lint tflint website-lint
+
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts

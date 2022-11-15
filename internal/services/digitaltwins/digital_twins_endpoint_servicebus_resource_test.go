@@ -133,16 +133,13 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctest-rule-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
+  name     = "acctest-rule-%[2]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true
@@ -185,20 +182,17 @@ resource "azurerm_servicebus_namespace" "test_alt" {
   name                = "acctestservicebusnamespace-alt-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
-  name                = "acctestservicebustopic-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-alt-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test_alt" {
-  name                = "acctest-rule-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
+  name     = "acctest-rule-alt-%[2]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true
@@ -222,20 +216,17 @@ resource "azurerm_servicebus_namespace" "test_alt" {
   name                = "acctestservicebusnamespace-alt-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
-  name                = "acctestservicebustopic-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-alt-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test_alt" {
-  name                = "acctest-rule-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
+  name     = "acctest-rule-alt-%[2]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true

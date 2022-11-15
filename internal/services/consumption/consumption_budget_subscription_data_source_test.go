@@ -18,7 +18,7 @@ func TestAccDataSourceConsumptionBudgetSubscription_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
+				check.That(data.ResourceName).Key("subscription_id").HasValue("/subscriptions/"+data.Client().SubscriptionID),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("amount").HasValue("1000"),
 				check.That(data.ResourceName).Key("time_grain").HasValue("Monthly"),

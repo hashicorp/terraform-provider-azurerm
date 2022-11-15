@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNetAppVolume() *pluginsdk.Resource {
@@ -24,12 +26,12 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.PoolName,
+				ValidateFunc: validate.VolumeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -66,6 +68,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"network_features": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"storage_quota_in_gb": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -92,17 +99,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"remote_volume_location": azure.SchemaLocationForDataSource(),
+						"remote_volume_location": commonschema.LocationComputed(),
 
 						"remote_volume_resource_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
-						},
-
-						"replication_schedule": {
-							Type:       pluginsdk.TypeString,
-							Computed:   true,
-							Deprecated: "This property is not in use and will be removed in version 3.0 of the provider. Please use `replication_frequency` instead",
 						},
 
 						"replication_frequency": {
@@ -118,41 +119,34 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 
 func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountName := d.Get("account_name").(string)
-	poolName := d.Get("pool_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name)
+	id := volumes.NewVolumeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("pool_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: NetApp Volume %q (Resource Group %q) was not found", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving NetApp Volume %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
-	}
+	d.SetId(id.ID())
 
-	d.SetId(*resp.ID)
+	d.Set("name", id.VolumeName)
+	d.Set("pool_name", id.PoolName)
+	d.Set("account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("account_name", accountName)
-	d.Set("pool_name", poolName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	if props := resp.VolumeProperties; props != nil {
+		props := model.Properties
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
-		d.Set("subnet_id", props.SubnetID)
+		d.Set("subnet_id", props.SubnetId)
+		d.Set("network_features", props.NetworkFeatures)
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
@@ -162,9 +156,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		d.Set("security_style", props.SecurityStyle)
 
-		if props.UsageThreshold != nil {
-			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
-		}
+		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}

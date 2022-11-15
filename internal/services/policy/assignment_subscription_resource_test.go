@@ -44,6 +44,40 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicy(t *testing.T) {
 	})
 }
 
+func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicyNonComplianceMessage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
+	r := SubscriptionAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBuiltInPolicyNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicyNonComplianceMessageUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.0").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicyNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
 	r := SubscriptionAssignmentTestResource{}
@@ -67,6 +101,69 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T)
 			Config: r.withBuiltInPolicySetBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubscriptionPolicyAssignment_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
+	r := SubscriptionAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data, "description"),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
+	r := SubscriptionAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBuiltInPolicySetNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicySetNonComplianceMessageUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("2"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
+				check.That(data.ResourceName).Key("non_compliance_message.1.content").HasValue("test2"),
+				check.That(data.ResourceName).Key("non_compliance_message.1.policy_definition_reference_id").HasValue("AINE_MinimumPasswordLength"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBuiltInPolicySetNonComplianceMessage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("non_compliance_message.#").HasValue("1"),
+				check.That(data.ResourceName).Key("non_compliance_message.0.content").HasValue("test"),
 			),
 		},
 		data.ImportStep(),
@@ -165,6 +262,11 @@ func (r SubscriptionAssignmentTestResource) Exists(ctx context.Context, client *
 	return utils.Bool(true), nil
 }
 
+// subscription assignment for allowed location policy should contain all locations, or it will block some network resource create
+func (r SubscriptionAssignmentTestResource) locations(data acceptance.TestData) string {
+	return fmt.Sprintf(`["%s", "%s", "%s"]`, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
+}
+
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyBasic(data acceptance.TestData) string {
 	template := r.template()
 	return fmt.Sprintf(`
@@ -179,16 +281,16 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%s"]
+      "value" = %s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicyUpdated(data acceptance.TestData) string {
@@ -205,16 +307,73 @@ data "azurerm_policy_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
-      "value" = ["%[3]s", "%[4]s"]
+      "value" = %[3]s
     }
   })
 }
-`, template, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, template, data.RandomInteger, r.locations(data))
+}
+
+func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessage(data acceptance.TestData) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_definition" "test" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_definition.test.id
+
+  non_compliance_message {
+    content = "test"
+  }
+
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = %s
+    }
+  })
+}
+`, template, data.RandomInteger, r.locations(data))
+}
+
+func (r SubscriptionAssignmentTestResource) withBuiltInPolicyNonComplianceMessageUpdated(data acceptance.TestData) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_definition" "test" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_definition.test.id
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = %s
+    }
+  })
+}
+`, template, data.RandomInteger, r.locations(data))
 }
 
 func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetBasic(data acceptance.TestData) string {
@@ -231,7 +390,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
@@ -257,10 +416,79 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  metadata = jsonencode({
+    "category" : "Testing"
+  })
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetNonComplianceMessage(data acceptance.TestData) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  non_compliance_message {
+    content = "test"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SubscriptionAssignmentTestResource) withBuiltInPolicySetNonComplianceMessageUpdated(data acceptance.TestData) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  non_compliance_message {
+    content = "test"
+  }
+
+  non_compliance_message {
+    content                        = "test2"
+    policy_definition_reference_id = "AINE_MinimumPasswordLength"
+  }
 
   identity {
     type = "SystemAssigned"
@@ -283,7 +511,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 }
@@ -301,7 +529,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "This is a policy assignment from an acceptance test"
@@ -329,6 +557,7 @@ resource "azurerm_subscription_policy_assignment" "import" {
 }
 `, template)
 }
+
 func (r SubscriptionAssignmentTestResource) withCustomPolicyUpdated(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	return fmt.Sprintf(`
@@ -339,7 +568,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_subscription_policy_assignment" "test" {
-  name                 = "acctestpa-%[2]d"
+  name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   metadata = jsonencode({
@@ -379,4 +608,69 @@ POLICY_RULE
 
 func (r SubscriptionAssignmentTestResource) template() string {
 	return `data "azurerm_subscription" "test" {}`
+}
+
+func (r SubscriptionAssignmentTestResource) systemAssignedIdentity(data acceptance.TestData) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SubscriptionAssignmentTestResource) userAssignedIdentity(data acceptance.TestData, description string) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-pa-%[2]d"
+  location = %[3]q
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestua%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+  description          = "%[4]s"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary, description)
 }

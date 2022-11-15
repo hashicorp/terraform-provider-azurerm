@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -30,9 +30,9 @@ func dataSourceSpringCloudService() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"config_server_git_setting": {
 				Type:     pluginsdk.TypeList,
@@ -172,19 +172,20 @@ func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
-	if err != nil {
-		return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	d.Set("name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
-		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+	if resp.Sku != nil && resp.Sku.Name != nil && *resp.Sku.Name != "E0" {
+		configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
+		if err != nil {
+			return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
+		}
+		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
+			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+		}
 	}
 
 	if props := resp.Properties; props != nil {

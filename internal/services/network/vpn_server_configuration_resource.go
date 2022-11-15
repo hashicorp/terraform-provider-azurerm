@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceVPNServerConfiguration() *pluginsdk.Resource {
@@ -23,8 +24,10 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 		Read:   resourceVPNServerConfigurationRead,
 		Update: resourceVPNServerConfigurationCreateUpdate,
 		Delete: resourceVPNServerConfigurationDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VpnServerConfigurationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -41,9 +44,9 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"vpn_authentication_types": {
 				Type:     pluginsdk.TypeList,
@@ -278,50 +281,6 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 
 						"server_root_certificate": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-
-									"public_cert_data": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
-				},
-				ConflictsWith: []string{
-					"radius_server",
-				},
-			},
-
-			"radius_server": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				Deprecated: "Deprecated in favour of `radius`",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"address": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							Sensitive:    true,
-						},
-
-						"client_root_certificate": {
-							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -330,24 +289,6 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 										Required: true,
 									},
 
-									"thumbprint": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-
-						"server_root_certificate": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-
 									"public_cert_data": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -356,9 +297,6 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 							},
 						},
 					},
-				},
-				ConflictsWith: []string{
-					"radius",
 				},
 			},
 
@@ -382,22 +320,22 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 
 func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnServerConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVpnServerConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_vpn_server_configuration", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_vpn_server_configuration", id.ID())
 		}
 	}
 
@@ -413,11 +351,7 @@ func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta 
 	ipSecPoliciesRaw := d.Get("ipsec_policy").([]interface{})
 	ipSecPolicies := expandVpnServerConfigurationIPSecPolicies(ipSecPoliciesRaw)
 
-	radiusRaw := d.Get("radius").([]interface{})
-	if len(radiusRaw) == 0 {
-		radiusRaw = d.Get("radius_server").([]interface{})
-	}
-	radius := expandVpnServerConfigurationRadius(radiusRaw)
+	radius := expandVpnServerConfigurationRadius(d.Get("radius").([]interface{}))
 
 	vpnProtocolsRaw := d.Get("vpn_protocols").(*pluginsdk.Set).List()
 	vpnProtocols := expandVpnServerConfigurationVPNProtocols(vpnProtocolsRaw)
@@ -490,21 +424,16 @@ func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta 
 		Tags:                             tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceVPNServerConfigurationRead(d, meta)
 }
@@ -522,12 +451,12 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] VPN Server Configuration %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -560,15 +489,10 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 
 		flattenedRadius := flattenVpnServerConfigurationRadius(props)
 		if len(flattenedRadius) > 0 {
-			if flattenedRadius[0].(map[string]interface{})["server"] != nil {
-				if err := d.Set("radius", flattenedRadius); err != nil {
-					return fmt.Errorf("setting `radius`: %+v", err)
-				}
-			} else {
-				if err := d.Set("radius_server", flattenedRadius); err != nil {
-					return fmt.Errorf("setting `radius_server`: %+v", err)
-				}
+			if err := d.Set("radius", flattenedRadius); err != nil {
+				return fmt.Errorf("setting `radius`: %+v", err)
 			}
+
 		}
 
 		vpnAuthenticationTypes := make([]interface{}, 0)
@@ -602,11 +526,11 @@ func resourceVPNServerConfigurationDelete(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -849,7 +773,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 }
 
 func flattenVpnServerConfigurationRadius(input *network.VpnServerConfigurationProperties) []interface{} {
-	if input == nil || (input.RadiusServerAddress == nil && input.RadiusServers == nil) || input.RadiusServerRootCertificates == nil || len(*input.RadiusServerRootCertificates) == 0 {
+	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []interface{}{}
 	}
 

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudAppRedisAssociationResource struct {
-}
+type SpringCloudAppRedisAssociationResource struct{}
 
 func TestAccSpringCloudAppRedisAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_association", "test")

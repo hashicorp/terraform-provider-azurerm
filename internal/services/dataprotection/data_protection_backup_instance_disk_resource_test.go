@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -87,13 +88,13 @@ func TestAccDataProtectionBackupInstanceDisk_update(t *testing.T) {
 }
 
 func (r DataProtectionBackupInstanceDiskResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.BackupInstanceID(state.ID)
+	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupInstanceClient.Get(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
+	resp, err := client.DataProtection.BackupInstanceClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
@@ -158,7 +159,6 @@ resource "azurerm_data_protection_backup_policy_disk" "another" {
   backup_repeating_time_intervals = ["R/2021-05-20T04:54:23+00:00/PT4H"]
   default_retention_duration      = "P10D"
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 

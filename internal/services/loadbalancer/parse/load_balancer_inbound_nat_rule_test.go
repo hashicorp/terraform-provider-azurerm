@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = LoadBalancerInboundNatRuleId{}
+var _ resourceids.Id = LoadBalancerInboundNatRuleId{}
 
 func TestLoadBalancerInboundNatRuleIDFormatter(t *testing.T) {
 	actual := NewLoadBalancerInboundNatRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "loadBalancer1", "rule1").ID()

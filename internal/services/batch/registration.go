@@ -7,6 +7,12 @@ import (
 
 type Registration struct{}
 
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/batch"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Batch"
@@ -23,6 +29,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_batch_account":     dataSourceBatchAccount(),
+		"azurerm_batch_application": dataSourceBatchApplication(),
 		"azurerm_batch_certificate": dataSourceBatchCertificate(),
 		"azurerm_batch_pool":        dataSourceBatchPool(),
 	}

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ServiceBusNamespaceAuthorizationRuleDataSource struct {
-}
+type ServiceBusNamespaceAuthorizationRuleDataSource struct{}
 
 func TestAccDataSourceServiceBusNamespaceAuthorizationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace_authorization_rule", "test")
@@ -56,9 +55,8 @@ func (ServiceBusNamespaceAuthorizationRuleDataSource) basic(data acceptance.Test
 %s
 
 data "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = azurerm_servicebus_namespace_authorization_rule.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = azurerm_servicebus_namespace_authorization_rule.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, ServiceBusNamespaceAuthorizationRuleResource{}.base(data, true, true, true))
 }
@@ -68,9 +66,8 @@ func (ServiceBusNamespaceAuthorizationRuleDataSource) namespaceAliasPolicy(data 
 	%s
 
 data "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = azurerm_servicebus_namespace_authorization_rule.test.name
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
+  name         = azurerm_servicebus_namespace_authorization_rule.test.name
+  namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
 }
 `, ServiceBusNamespaceAuthorizationRuleResource{}.withAliasConnectionString(data))
 }

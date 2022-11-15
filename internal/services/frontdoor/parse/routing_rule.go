@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type RoutingRuleId struct {
@@ -42,7 +42,7 @@ func (id RoutingRuleId) ID() string {
 
 // RoutingRuleID parses a RoutingRule ID into an RoutingRuleId struct
 func RoutingRuleID(input string) (*RoutingRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func RoutingRuleID(input string) (*RoutingRuleId, error) {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func RoutingRuleIDInsensitively(input string) (*RoutingRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type EncryptionProtectorId struct {
@@ -42,7 +42,7 @@ func (id EncryptionProtectorId) ID() string {
 
 // EncryptionProtectorID parses a EncryptionProtector ID into an EncryptionProtectorId struct
 func EncryptionProtectorID(input string) (*EncryptionProtectorId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

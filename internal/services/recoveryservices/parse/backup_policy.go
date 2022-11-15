@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type BackupPolicyId struct {
@@ -42,7 +42,7 @@ func (id BackupPolicyId) ID() string {
 
 // BackupPolicyID parses a BackupPolicy ID into an BackupPolicyId struct
 func BackupPolicyID(input string) (*BackupPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

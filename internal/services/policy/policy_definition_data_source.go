@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -36,17 +37,9 @@ func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
-			"management_group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"management_group_name"},
-				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
-			},
-
 			"management_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"management_group_id"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"type": {
@@ -78,6 +71,14 @@ func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"role_definition_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -91,9 +92,6 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	name := d.Get("name").(string)
 	managementGroupName := ""
 	if v, ok := d.GetOk("management_group_name"); ok {
-		managementGroupName = v.(string)
-	}
-	if v, ok := d.GetOk("management_group_id"); ok {
 		managementGroupName = v.(string)
 	}
 
@@ -113,7 +111,12 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	d.SetId(*policyDefinition.ID)
+	id, err := parse.PolicyDefinitionID(*policyDefinition.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Definition %q: %+v", *policyDefinition.ID, err)
+	}
+
+	d.SetId(id.Id)
 	d.Set("name", policyDefinition.Name)
 	d.Set("display_name", policyDefinition.DisplayName)
 	d.Set("description", policyDefinition.Description)
@@ -123,6 +126,8 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	policyRule := policyDefinition.PolicyRule.(map[string]interface{})
 	if policyRuleStr := flattenJSON(policyRule); policyRuleStr != "" {
 		d.Set("policy_rule", policyRuleStr)
+		roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
+		d.Set("role_definition_ids", roleIDs)
 	} else {
 		return fmt.Errorf("flattening Policy Definition Rule %q: %+v", name, err)
 	}

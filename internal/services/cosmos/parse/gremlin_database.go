@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type GremlinDatabaseId struct {
@@ -42,7 +42,7 @@ func (id GremlinDatabaseId) ID() string {
 
 // GremlinDatabaseID parses a GremlinDatabase ID into an GremlinDatabaseId struct
 func GremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

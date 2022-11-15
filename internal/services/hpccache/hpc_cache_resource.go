@@ -1,17 +1,25 @@
 package hpccache
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,313 +45,14 @@ func resourceHPCCache() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"cache_size_in_gb": {
-				Type:     pluginsdk.TypeInt,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.IntInSlice([]int{
-					3072,
-					6144,
-					12288,
-					24576,
-					49152,
-				}),
-			},
-
-			"subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
-			},
-
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Standard_2G",
-					"Standard_4G",
-					"Standard_8G",
-				}, false),
-			},
-
-			"mtu": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1500,
-				ValidateFunc: validation.IntBetween(576, 1500),
-			},
-
-			"ntp_server": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "time.windows.com",
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"dns": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"servers": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 3,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.IsIPAddress,
-							},
-						},
-
-						"search_domain": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
-			"directory_active_directory": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"dns_primary_ip": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsIPAddress,
-						},
-						"domain_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"cache_netbios_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
-						},
-						"domain_netbios_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
-						},
-						"username": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"password": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"dns_secondary_ip": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsIPAddress,
-						},
-					},
-				},
-				ConflictsWith: []string{"directory_flat_file", "directory_ldap"},
-			},
-
-			"directory_flat_file": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"group_file_uri": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"password_file_uri": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-				ConflictsWith: []string{"directory_active_directory", "directory_ldap"},
-			},
-
-			"directory_ldap": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"server": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"base_dn": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"encrypted": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"certificate_validation_uri": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"download_certificate_automatically": {
-							Type:         pluginsdk.TypeBool,
-							Optional:     true,
-							RequiredWith: []string{"directory_ldap.0.certificate_validation_uri"},
-						},
-
-						"bind": {
-							Type:     pluginsdk.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"dn": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"password": {
-										Type:         pluginsdk.TypeString,
-										Sensitive:    true,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-					},
-				},
-				ConflictsWith: []string{"directory_active_directory", "directory_flat_file"},
-			},
-
-			// TODO 3.0: remove this property
-			"root_squash_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property is not functional and will be deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`.",
-			},
-
-			"default_access_policy": {
-				Type:     pluginsdk.TypeList,
-				MinItems: 1,
-				MaxItems: 1,
-				Optional: true,
-				// This is computed because there is always a "default" policy in the cache. It is created together with the cache, and users can't remove it.
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"access_rule": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							MinItems: 1,
-							MaxItems: 3,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"scope": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(storagecache.Default),
-											string(storagecache.Network),
-											string(storagecache.Host),
-										}, false),
-									},
-
-									"access": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(storagecache.NfsAccessRuleAccessRw),
-											string(storagecache.NfsAccessRuleAccessRo),
-											string(storagecache.NfsAccessRuleAccessNo),
-										}, false),
-									},
-
-									"filter": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"suid_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									"submount_access_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									"root_squash_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									"anonymous_uid": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-
-									"anonymous_gid": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"mount_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceHPCCacheSchema(),
 	}
 }
 
 func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,7 +71,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_hpc_cache", id.ID())
 		}
 	}
@@ -371,6 +80,18 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
+
+	// SKU Cache Combo Validation
+	switch {
+	case skuName == "Standard_L4_5G" && cacheSize != 21623:
+		return fmt.Errorf("The Standard_L4_5G SKU only supports a cache size of 21623")
+	case skuName == "Standard_L9G" && cacheSize != 43246:
+		return fmt.Errorf("The Standard_L9G SKU only supports a cache size of 43246")
+	case skuName == "Standard_L16G" && cacheSize != 86491:
+		return fmt.Errorf("The Standard_L16G SKU only supports a cache size of 86491")
+	case (cacheSize == 21623 || cacheSize == 43246 || cacheSize == 86491) && (skuName == "Standard_2G" || skuName == "Standard_4G" || skuName == "Standard_8G"):
+		return fmt.Errorf("Incompatible cache size chosen. 21623, 43246 and 86491 are reserved for Read Only resources.")
+	}
 
 	var accessPolicies []storagecache.NfsAccessPolicy
 	if !d.IsNewResource() {
@@ -397,6 +118,11 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	directorySetting := expandStorageCacheDirectorySettings(d)
 
+	identity, err := expandStorageCacheIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
 		Location: utils.String(location),
@@ -412,16 +138,73 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if !d.IsNewResource() {
+		oldKeyVaultKeyId, newKeyVaultKeyId := d.GetChange("key_vault_key_id")
+		if (oldKeyVaultKeyId.(string) != "" && newKeyVaultKeyId.(string) == "") || (oldKeyVaultKeyId.(string) == "" && newKeyVaultKeyId.(string) != "") {
+			return fmt.Errorf("`key_vault_key_id` can not be added or removed after HPC Cache is created")
+		}
+	}
+
+	requireAdditionalUpdate := false
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
+		autoKeyRotationEnabled := d.Get("automatically_rotate_key_to_latest_enabled").(bool)
+		if !d.IsNewResource() && d.HasChange("key_vault_key_id") && autoKeyRotationEnabled {
+			// It is by design that `automatically_rotate_key_to_latest_enabled` changes to `false` when `key_vault_key_id` is changed, needs to do an additional update to set it back
+			requireAdditionalUpdate = true
+		}
+		// For new created resource `automatically_rotate_key_to_latest_enabled` needs an additional update to set it to true to.
+		if d.IsNewResource() && autoKeyRotationEnabled {
+			requireAdditionalUpdate = true
+		}
+
+		keyVaultKeyId := v.(string)
+		keyVaultDetails, err := storageCacheRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("validating Key Vault Key %q for HPC Cache: %+v", keyVaultKeyId, err)
+		}
+		if azure.NormalizeLocation(keyVaultDetails.location) != azure.NormalizeLocation(location) {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Key Vault must be in the same region as HPC Cache!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+		if !keyVaultDetails.softDeleteEnabled {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+		if !keyVaultDetails.purgeProtectionEnabled {
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		}
+
+		cache.CacheProperties.EncryptionSettings = &storagecache.CacheEncryptionSettings{
+			KeyEncryptionKey: &storagecache.KeyVaultKeyReference{
+				KeyURL: utils.String(keyVaultKeyId),
+				SourceVault: &storagecache.KeyVaultKeyReferenceSourceVault{
+					ID: utils.String(keyVaultDetails.keyVaultId),
+				},
+			},
+			RotationToLatestKeyVersionEnabled: utils.Bool(autoKeyRotationEnabled),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
 	if err != nil {
-		return fmt.Errorf("creating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
+	}
+
+	if requireAdditionalUpdate {
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
+		if err != nil {
+			return fmt.Errorf("Updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for updating of HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	// If any directory setting is set, we'll further check either the `usernameDownloaded` (for LDAP/Flat File), or the `domainJoined` (for AD) in response to ensure the configuration is correct, and the cache is functional.
@@ -447,7 +230,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if ad == nil {
 				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
 			}
-			if ad.DomainJoined != storagecache.Yes {
+			if ad.DomainJoined != storagecache.DomainJoinedTypeYes {
 				return fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined)
 			}
 		} else {
@@ -462,6 +245,13 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+
+	// wait for HPC Cache provision state to be succeeded. or further operations with it may fail.
+	cacheClient := meta.(*clients.Client).HPCCache.CachesClient
+	_, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, resourceGroup, name, d)
+	if err != nil {
+		return fmt.Errorf("waiting for the HPC Cache provision state %s (Resource Group: %s) : %+v", name, resourceGroup, err)
+	}
 
 	return resourceHPCCacheRead(d, meta)
 }
@@ -531,11 +321,6 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					if err := d.Set("default_access_policy", defaultAccessPolicy); err != nil {
 						return fmt.Errorf("setting `default_access_policy`: %v", err)
 					}
-
-					// Set the "root_squash_enabled" for whatever is set in the config, to make any existing .tf that has specified this property
-					// not encounter plan diff.
-					// TODO 3.0 - remove this part.
-					d.Set("root_squash_enabled", d.Get("root_squash_enabled"))
 				}
 			}
 		}
@@ -544,6 +329,28 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
+
+	identity, err := flattenStorageCacheIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	keyVaultKeyId := ""
+	autoKeyRotationEnabled := false
+	if props := resp.EncryptionSettings; props != nil {
+		if props.KeyEncryptionKey != nil && props.KeyEncryptionKey.KeyURL != nil {
+			keyVaultKeyId = *props.KeyEncryptionKey.KeyURL
+		}
+
+		if props.RotationToLatestKeyVersionEnabled != nil {
+			autoKeyRotationEnabled = *props.RotationToLatestKeyVersionEnabled
+		}
+	}
+	d.Set("key_vault_key_id", keyVaultKeyId)
+	d.Set("automatically_rotate_key_to_latest_enabled", autoKeyRotationEnabled)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -915,5 +722,426 @@ func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.Cach
 	return &storagecache.CacheUsernameDownloadSettingsCredentials{
 		BindDn:       utils.String(b["dn"].(string)),
 		BindPassword: utils.String(b["password"].(string)),
+	}
+}
+
+func expandStorageCacheIdentity(input []interface{}) (*storagecache.CacheIdentity, error) {
+	config, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	identity := storagecache.CacheIdentity{
+		Type: storagecache.CacheIdentityType(config.Type),
+	}
+
+	if len(config.IdentityIds) != 0 {
+		identityIds := make(map[string]*storagecache.CacheIdentityUserAssignedIdentitiesValue, len(config.IdentityIds))
+		for id := range config.IdentityIds {
+			identityIds[id] = &storagecache.CacheIdentityUserAssignedIdentitiesValue{}
+		}
+		identity.UserAssignedIdentities = identityIds
+	}
+
+	return &identity, nil
+}
+
+func flattenStorageCacheIdentity(input *storagecache.CacheIdentity) (*[]interface{}, error) {
+	var config *identity.UserAssignedMap
+
+	if input != nil {
+		identityIds := map[string]identity.UserAssignedIdentityDetails{}
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{}
+		}
+
+		config = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: identityIds,
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(config)
+}
+
+type storageCacheKeyVault struct {
+	keyVaultId             string
+	resourceGroupName      string
+	keyVaultName           string
+	location               string
+	purgeProtectionEnabled bool
+	softDeleteEnabled      bool
+}
+
+func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, id string) (*storageCacheKeyVault, error) {
+	keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(id)
+	if err != nil {
+		return nil, err
+	}
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+	}
+	if keyVaultID == nil {
+		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
+	}
+
+	parsedKeyVaultID, err := keyVaultParse.VaultID(*keyVaultID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroup, parsedKeyVaultID.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *parsedKeyVaultID, err)
+	}
+
+	purgeProtectionEnabled := false
+	softDeleteEnabled := false
+
+	if props := resp.Properties; props != nil {
+		if props.EnableSoftDelete != nil {
+			softDeleteEnabled = *props.EnableSoftDelete
+		}
+
+		if props.EnablePurgeProtection != nil {
+			purgeProtectionEnabled = *props.EnablePurgeProtection
+		}
+	}
+
+	location := ""
+	if resp.Location != nil {
+		location = *resp.Location
+	}
+
+	return &storageCacheKeyVault{
+		keyVaultId:             *keyVaultID,
+		resourceGroupName:      parsedKeyVaultID.ResourceGroup,
+		keyVaultName:           parsedKeyVaultID.Name,
+		location:               location,
+		purgeProtectionEnabled: purgeProtectionEnabled,
+		softDeleteEnabled:      softDeleteEnabled,
+	}, nil
+}
+
+func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
+
+		"cache_size_in_gb": {
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.IntInSlice([]int{
+				3072,
+				6144,
+				12288,
+				21623,
+				24576,
+				43246,
+				49152,
+				86491,
+			}),
+		},
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+		},
+
+		"sku_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Standard_2G",
+				"Standard_4G",
+				"Standard_8G",
+				"Standard_L4_5G",
+				"Standard_L9G",
+				"Standard_L16G",
+			}, false),
+		},
+
+		"mtu": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      1500,
+			ValidateFunc: validation.IntBetween(576, 1500),
+		},
+
+		"ntp_server": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "time.windows.com",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"dns": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"servers": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 3,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsIPAddress,
+						},
+					},
+
+					"search_domain": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"directory_active_directory": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"dns_primary_ip": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsIPAddress,
+					},
+					"domain_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"cache_netbios_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+					},
+					"domain_netbios_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+					},
+					"username": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"password": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"dns_secondary_ip": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsIPAddress,
+					},
+				},
+			},
+			ConflictsWith: []string{"directory_flat_file", "directory_ldap"},
+		},
+
+		"directory_flat_file": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"group_file_uri": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"password_file_uri": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+			ConflictsWith: []string{"directory_active_directory", "directory_ldap"},
+		},
+
+		"directory_ldap": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"server": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"base_dn": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"encrypted": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"certificate_validation_uri": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"download_certificate_automatically": {
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						RequiredWith: []string{"directory_ldap.0.certificate_validation_uri"},
+					},
+
+					"bind": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"dn": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"password": {
+									Type:         pluginsdk.TypeString,
+									Sensitive:    true,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+				},
+			},
+			ConflictsWith: []string{"directory_active_directory", "directory_flat_file"},
+		},
+
+		"default_access_policy": {
+			Type:     pluginsdk.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Optional: true,
+			// This is computed because there is always a "default" policy in the cache. It is created together with the cache, and users can't remove it.
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"access_rule": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 1,
+						MaxItems: 3,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"scope": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(storagecache.NfsAccessRuleScopeDefault),
+										string(storagecache.NfsAccessRuleScopeNetwork),
+										string(storagecache.NfsAccessRuleScopeHost),
+									}, false),
+								},
+
+								"access": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(storagecache.NfsAccessRuleAccessRw),
+										string(storagecache.NfsAccessRuleAccessRo),
+										string(storagecache.NfsAccessRuleAccessNo),
+									}, false),
+								},
+
+								"filter": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"suid_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+
+								"submount_access_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+
+								"root_squash_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+
+								"anonymous_uid": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
+								},
+
+								"anonymous_gid": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"mount_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+		},
+
+		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
+
+		"key_vault_key_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyVaultValidate.NestedItemId,
+			RequiredWith: []string{"identity"},
+		},
+
+		"automatically_rotate_key_to_latest_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			RequiredWith: []string{"key_vault_key_id"},
+		},
+
+		"tags": tags.Schema(),
 	}
 }

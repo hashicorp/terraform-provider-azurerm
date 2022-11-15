@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = ComputeId{}
+var _ resourceids.Id = ComputeId{}
 
 func TestComputeIDFormatter(t *testing.T) {
 	actual := NewComputeID("00000000-0000-0000-0000-000000000000", "resGroup1", "workspace1", "compute1").ID()

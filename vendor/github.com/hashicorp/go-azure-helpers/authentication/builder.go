@@ -6,9 +6,7 @@ import (
 	"log"
 )
 
-var (
-	authenticatedObjectCache = ""
-)
+var authenticatedObjectCache *string
 
 // Builder supports all of the possible Authentication values and feature toggles
 // required to build a working Config for Authentication purposes.
@@ -45,6 +43,16 @@ type Builder struct {
 	SupportsClientSecretAuth bool
 	ClientSecret             string
 	ClientSecretDocsLink     string
+
+	// OIDC Auth
+	SupportsOIDCAuth    bool
+	IDToken             string
+	IDTokenFilePath     string
+	IDTokenRequestURL   string
+	IDTokenRequestToken string
+
+	// Beta opt-in for Microsoft Graph
+	UseMicrosoftGraph bool
 }
 
 // Build takes the configuration from the Builder and builds up a validated Config
@@ -58,6 +66,7 @@ func (b Builder) Build() (*Config, error) {
 		Environment:                   b.Environment,
 		MetadataHost:                  b.MetadataHost,
 		CustomResourceManagerEndpoint: b.CustomResourceManagerEndpoint,
+		UseMicrosoftGraph:             b.UseMicrosoftGraph,
 	}
 
 	// NOTE: the ordering here is important
@@ -66,6 +75,7 @@ func (b Builder) Build() (*Config, error) {
 		servicePrincipalClientCertificateAuth{},
 		servicePrincipalClientSecretMultiTenantAuth{},
 		servicePrincipalClientSecretAuth{},
+		oidcAuth{},
 		managedServiceIdentityAuth{},
 		azureCliTokenMultiTenantAuth{},
 		azureCliTokenAuth{},
@@ -98,13 +108,15 @@ func (b Builder) Build() (*Config, error) {
 		// Authenticated Object ID Cache
 		if config.GetAuthenticatedObjectID != nil {
 			uncachedFunction := config.GetAuthenticatedObjectID
-			config.GetAuthenticatedObjectID = func(ctx context.Context) (string, error) {
-				if authenticatedObjectCache == "" {
+			config.GetAuthenticatedObjectID = func(ctx context.Context) (*string, error) {
+				if authenticatedObjectCache == nil || *authenticatedObjectCache == "" {
 					authenticatedObjectCache, err = uncachedFunction(ctx)
 					if err != nil {
-						return "", err
+						return nil, err
 					}
-					log.Printf("authenticated object ID cache miss, populating with: %q", authenticatedObjectCache)
+					if authenticatedObjectCache != nil {
+						log.Printf("authenticated object ID cache miss, populating with: %q", *authenticatedObjectCache)
+					}
 				}
 
 				return authenticatedObjectCache, nil

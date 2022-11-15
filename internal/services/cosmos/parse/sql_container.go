@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SqlContainerId struct {
@@ -45,7 +45,7 @@ func (id SqlContainerId) ID() string {
 
 // SqlContainerID parses a SqlContainer ID into an SqlContainerId struct
 func SqlContainerID(input string) (*SqlContainerId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

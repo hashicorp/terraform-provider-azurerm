@@ -6,8 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubAuthorizationRuleResource struct {
-}
+type EventHubAuthorizationRuleResource struct{}
 
 func TestAccEventHubAuthorizationRule_listen(t *testing.T) {
 	testAccEventHubAuthorizationRule(t, true, false, false)
@@ -172,7 +170,7 @@ func TestAccEventHubAuthorizationRule_withAliasConnectionString(t *testing.T) {
 }
 
 func (EventHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := eventhubs.ParseAuthorizationRuleID(state.ID)
+	id, err := eventhubs.ParseEventhubAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}

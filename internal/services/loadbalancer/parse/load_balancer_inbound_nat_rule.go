@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type LoadBalancerInboundNatRuleId struct {
@@ -42,7 +42,7 @@ func (id LoadBalancerInboundNatRuleId) ID() string {
 
 // LoadBalancerInboundNatRuleID parses a LoadBalancerInboundNatRule ID into an LoadBalancerInboundNatRuleId struct
 func LoadBalancerInboundNatRuleID(input string) (*LoadBalancerInboundNatRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

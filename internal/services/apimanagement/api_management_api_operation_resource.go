@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -22,8 +22,10 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 		Read:   resourceApiManagementApiOperationRead,
 		Update: resourceApiManagementApiOperationCreateUpdate,
 		Delete: resourceApiManagementApiOperationDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiOperationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -39,7 +41,7 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"display_name": {
 				Type:     pluginsdk.TypeString,
@@ -111,24 +113,22 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 
 func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiId := d.Get("api_name").(string)
-	operationId := d.Get("operation_id").(string)
+	id := parse.NewApiOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Operation %q (API %q / API Management Service %q / Resource Group %q): %s", operationId, apiId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_api_operation", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
 		}
 	}
 
@@ -164,16 +164,11 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, operationId, parameters, ""); err != nil {
-		return fmt.Errorf("creating/updating API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, parameters, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
-	if err != nil {
-		return fmt.Errorf("retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementApiOperationRead(d, meta)
 }
@@ -188,26 +183,21 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiId := id.ApiName
-	operationId := id.OperationName
-
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Operation %q (API %q / API Management Service %q / Resource Group %q) was not found - removing from state!", operationId, apiId, serviceName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("operation_id", operationId)
-	d.Set("api_name", apiId)
-	d.Set("api_management_name", serviceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("operation_id", id.OperationName)
+	d.Set("api_name", id.ApiName)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.OperationContractProperties; props != nil {
 		d.Set("description", props.Description)
@@ -215,17 +205,27 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("method", props.Method)
 		d.Set("url_template", props.URLTemplate)
 
-		flattenedRequest := flattenApiManagementOperationRequestContract(props.Request)
+		flattenedRequest, err := flattenApiManagementOperationRequestContract(props.Request)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("request", flattenedRequest); err != nil {
 			return fmt.Errorf("flattening `request`: %+v", err)
 		}
 
-		flattenedResponse := flattenApiManagementOperationResponseContract(props.Responses)
+		flattenedResponse, err := flattenApiManagementOperationResponseContract(props.Responses)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("response", flattenedResponse); err != nil {
 			return fmt.Errorf("flattening `response`: %+v", err)
 		}
 
-		flattenedTemplateParams := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+		flattenedTemplateParams, err := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+		if err != nil {
+			return err
+		}
+
 		if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
 			return fmt.Errorf("flattening `template_parameter`: %+v", err)
 		}
@@ -244,15 +244,10 @@ func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiId := id.ApiName
-	operationId := id.OperationName
-
-	resp, err := client.Delete(ctx, resourceGroup, serviceName, apiId, operationId, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
@@ -299,9 +294,9 @@ func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, sche
 	}, nil
 }
 
-func flattenApiManagementOperationRequestContract(input *apimanagement.RequestContract) []interface{} {
+func flattenApiManagementOperationRequestContract(input *apimanagement.RequestContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	output := make(map[string]interface{})
@@ -310,11 +305,25 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 		output["description"] = *input.Description
 	}
 
-	output["header"] = schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
-	output["query_parameter"] = schemaz.FlattenApiManagementOperationParameterContract(input.QueryParameters)
-	output["representation"] = schemaz.FlattenApiManagementOperationRepresentation(input.Representations)
+	header, err := schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
+	if err != nil {
+		return nil, err
+	}
+	output["header"] = header
 
-	return []interface{}{output}
+	queryParameter, err := schemaz.FlattenApiManagementOperationParameterContract(input.QueryParameters)
+	if err != nil {
+		return nil, err
+	}
+	output["query_parameter"] = queryParameter
+
+	representation, err := schemaz.FlattenApiManagementOperationRepresentation(input.Representations)
+	if err != nil {
+		return nil, err
+	}
+	output["representation"] = representation
+
+	return []interface{}{output}, nil
 }
 
 func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.ResponseContract, error) {
@@ -352,9 +361,9 @@ func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, sch
 	return &outputs, nil
 }
 
-func flattenApiManagementOperationResponseContract(input *[]apimanagement.ResponseContract) []interface{} {
+func flattenApiManagementOperationResponseContract(input *[]apimanagement.ResponseContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -370,11 +379,20 @@ func flattenApiManagementOperationResponseContract(input *[]apimanagement.Respon
 			output["status_code"] = int(*v.StatusCode)
 		}
 
-		output["header"] = schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
-		output["representation"] = schemaz.FlattenApiManagementOperationRepresentation(v.Representations)
+		header, err := schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
+		if err != nil {
+			return nil, err
+		}
+		output["header"] = header
+
+		representation, err := schemaz.FlattenApiManagementOperationRepresentation(v.Representations)
+		if err != nil {
+			return nil, err
+		}
+		output["representation"] = representation
 
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }

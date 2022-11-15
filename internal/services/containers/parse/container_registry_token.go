@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ContainerRegistryTokenId struct {
@@ -42,7 +42,7 @@ func (id ContainerRegistryTokenId) ID() string {
 
 // ContainerRegistryTokenID parses a ContainerRegistryToken ID into an ContainerRegistryTokenId struct
 func ContainerRegistryTokenID(input string) (*ContainerRegistryTokenId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

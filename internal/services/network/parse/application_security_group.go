@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ApplicationSecurityGroupId struct {
@@ -39,7 +39,7 @@ func (id ApplicationSecurityGroupId) ID() string {
 
 // ApplicationSecurityGroupID parses a ApplicationSecurityGroup ID into an ApplicationSecurityGroupId struct
 func ApplicationSecurityGroupID(input string) (*ApplicationSecurityGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

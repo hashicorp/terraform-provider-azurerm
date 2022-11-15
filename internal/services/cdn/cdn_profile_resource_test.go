@@ -67,25 +67,6 @@ func TestAccCdnProfile_withTags(t *testing.T) {
 	})
 }
 
-func TestAccCdnProfile_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nonStandardCasing(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:             r.nonStandardCasing(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: false,
-		},
-	})
-}
-
 func TestAccCdnProfile_basicToStandardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
@@ -235,26 +216,6 @@ resource "azurerm_cdn_profile" "test" {
   tags = {
     environment = "staging"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r CdnProfileResource) nonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard_verizon"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

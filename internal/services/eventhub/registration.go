@@ -7,6 +7,12 @@ import (
 
 type Registration struct{}
 
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/event-hubs"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "EventHub"
@@ -40,6 +46,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_eventhub_namespace_customer_managed_key":     resourceEventHubNamespaceCustomerManagedKey(),
 		"azurerm_eventhub_namespace_disaster_recovery_config": resourceEventHubNamespaceDisasterRecoveryConfig(),
 		"azurerm_eventhub_namespace":                          resourceEventHubNamespace(),
+		"azurerm_eventhub_namespace_schema_group":             resourceEventHubNamespaceSchemaRegistry(),
 		"azurerm_eventhub":                                    resourceEventHub(),
 	}
 }

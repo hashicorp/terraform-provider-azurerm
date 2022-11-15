@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -51,7 +51,7 @@ func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interfac
 		certificateSource := customHttpsConfiguration["certificate_source"].(string)
 		certificateVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
 
-		if certificateSource == string(frontdoor.CertificateSourceFrontDoor) {
+		if certificateSource == string(frontdoors.FrontDoorCertificateSourceFrontDoor) {
 			if azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
 				return fmt.Errorf(`a Front Door managed "custom_https_configuration" block does not support the following keys. Please remove the following keys from your configuration file: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
 			}

@@ -1,143 +1,69 @@
 package machinelearning
 
 import (
-	"fmt"
-
-	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SystemAssignedUserAssigned struct{}
-
-func (s SystemAssignedUserAssigned) Expand(input []interface{}) (*machinelearningservices.Identity, error) {
-	if len(input) == 0 || input[0] == nil {
-		return &machinelearningservices.Identity{
-			Type: machinelearningservices.ResourceIdentityTypeNone,
-		}, nil
+func expandIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedMap, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
-
-	config := &machinelearningservices.Identity{
-		Type: machinelearningservices.ResourceIdentityType(v["type"].(string)),
+	out := identity.LegacySystemAndUserAssignedMap{
+		Type: expanded.Type,
 	}
 
-	identityIds := v["identity_ids"].(*pluginsdk.Set).List()
-	if len(identityIds) != 0 {
-		if config.Type != machinelearningservices.ResourceIdentityTypeUserAssigned && config.Type != machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned {
-			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+	// 'Failed to perform resource identity operation. Status: 'BadRequest'. Response:
+	// {"error":{"code":"BadRequest",
+	//  "message":"The request format was unexpected, a non-UserAssigned identity type should not contain: userAssignedIdentities"
+	// }}
+	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17650
+	if len(expanded.IdentityIds) > 0 {
+		userAssignedIdentities := make(map[string]identity.UserAssignedIdentityDetails)
+		for id := range expanded.IdentityIds {
+			userAssignedIdentities[id] = identity.UserAssignedIdentityDetails{}
 		}
-		config.UserAssignedIdentities = map[string]*machinelearningservices.UserAssignedIdentity{}
-		for _, id := range identityIds {
-			config.UserAssignedIdentities[id.(string)] = &machinelearningservices.UserAssignedIdentity{}
-		}
+		out.IdentityIds = userAssignedIdentities
 	}
 
-	return config, nil
+	return &out, nil
 }
 
-func (s SystemAssignedUserAssigned) Flatten(input *machinelearningservices.Identity) ([]interface{}, error) {
-	if input == nil || input.Type == machinelearningservices.ResourceIdentityTypeNone {
-		return []interface{}{}, nil
-	}
+func flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 
-	coalesce := func(input *string) string {
-		if input == nil {
-			return ""
+	if input != nil {
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        input.Type,
+			IdentityIds: nil,
 		}
 
-		return *input
-	}
-
-	var identityIds []string
-	for id := range input.UserAssignedIdentities {
-		parsedId, err := msiParse.UserAssignedIdentityIDInsensitively(id)
-		if err != nil {
-			return nil, err
+		if input.PrincipalId != "" {
+			config.PrincipalId = input.PrincipalId
 		}
-		identityIds = append(identityIds, parsedId.ID())
+		if input.TenantId != "nil" {
+			config.TenantId = input.TenantId
+		}
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		if input.IdentityIds != nil {
+			for k, v := range input.IdentityIds {
+				details := identity.UserAssignedIdentityDetails{}
+
+				if v.ClientId != nil {
+					details.ClientId = utils.String(*v.ClientId)
+				}
+				if v.PrincipalId != nil {
+					details.PrincipalId = utils.String(*v.PrincipalId)
+				}
+
+				identityIds[k] = details
+			}
+		}
+
+		config.IdentityIds = identityIds
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"type":         input.Type,
-			"identity_ids": identityIds,
-			"principal_id": coalesce(input.PrincipalID),
-			"tenant_id":    coalesce(input.TenantID),
-		},
-	}, nil
-}
-
-func (s SystemAssignedUserAssigned) Schema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(machinelearningservices.ResourceIdentityTypeUserAssigned),
-						string(machinelearningservices.ResourceIdentityTypeSystemAssigned),
-						string(machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned),
-					}, false),
-				},
-				"identity_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					ForceNew: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: msiValidate.UserAssignedIdentityID,
-					},
-				},
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-func (s SystemAssignedUserAssigned) SchemaDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"identity_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }

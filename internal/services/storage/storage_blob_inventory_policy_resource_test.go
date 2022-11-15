@@ -150,13 +150,17 @@ func (r StorageBlobInventoryPolicyResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_storage_blob_inventory_policy" "test" {
-  storage_account_id     = azurerm_storage_account.test.id
-  storage_container_name = azurerm_storage_container.test.name
+  storage_account_id = azurerm_storage_account.test.id
   rules {
-    name = "rule1"
-    filter {
-      blob_types = ["blockBlob"]
-    }
+    name                   = "rule1"
+    storage_container_name = azurerm_storage_container.test.name
+    format                 = "Csv"
+    schedule               = "Daily"
+    scope                  = "Container"
+    schema_fields = [
+      "Name",
+      "Last-Modified",
+    ]
   }
 }
 `, r.template(data))
@@ -167,14 +171,14 @@ func (r StorageBlobInventoryPolicyResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_storage_blob_inventory_policy" "import" {
-  storage_account_id     = azurerm_storage_blob_inventory_policy.test.storage_account_id
-  storage_container_name = azurerm_storage_blob_inventory_policy.test.storage_container_name
+  storage_account_id = azurerm_storage_blob_inventory_policy.test.storage_account_id
   rules {
-    name = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.name
-    filter {
-      blob_types = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.filter.0.blob_types
-
-    }
+    name                   = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.name
+    storage_container_name = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.storage_container_name
+    format                 = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.format
+    schedule               = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.schedule
+    scope                  = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.scope
+    schema_fields          = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.schema_fields
   }
 }
 `, r.basic(data))
@@ -185,11 +189,28 @@ func (r StorageBlobInventoryPolicyResource) complete(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_storage_container" "test2" {
+  name                  = "vhds2"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
 resource "azurerm_storage_blob_inventory_policy" "test" {
-  storage_account_id     = azurerm_storage_account.test.id
-  storage_container_name = azurerm_storage_container.test.name
+  storage_account_id = azurerm_storage_account.test.id
   rules {
-    name = "rule1"
+    name                   = "rule1"
+    storage_container_name = azurerm_storage_container.test2.name
+    format                 = "Parquet"
+    schedule               = "Weekly"
+    scope                  = "Blob"
+    schema_fields = [
+      "Name",
+      "Creation-Time",
+      "VersionId",
+      "IsCurrentVersion",
+      "Snapshot",
+      "BlobType",
+    ]
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
       include_blob_versions = true
@@ -207,10 +228,22 @@ func (r StorageBlobInventoryPolicyResource) multipleRules(data acceptance.TestDa
 %s
 
 resource "azurerm_storage_blob_inventory_policy" "test" {
-  storage_account_id     = azurerm_storage_account.test.id
-  storage_container_name = azurerm_storage_container.test.name
+  storage_account_id = azurerm_storage_account.test.id
+
   rules {
-    name = "rule1"
+    name                   = "rule1"
+    storage_container_name = azurerm_storage_container.test.name
+    format                 = "Csv"
+    schedule               = "Daily"
+    scope                  = "Blob"
+    schema_fields = [
+      "Name",
+      "Creation-Time",
+      "VersionId",
+      "IsCurrentVersion",
+      "Snapshot",
+      "BlobType",
+    ]
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
       include_blob_versions = true
@@ -220,13 +253,15 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
   }
 
   rules {
-    name = "rule2"
-    filter {
-      blob_types            = ["appendBlob"]
-      include_blob_versions = false
-      include_snapshots     = true
-      prefix_match          = ["prefix"]
-    }
+    name                   = "rule2"
+    storage_container_name = azurerm_storage_container.test.name
+    format                 = "Parquet"
+    schedule               = "Weekly"
+    scope                  = "Container"
+    schema_fields = [
+      "Name",
+      "Last-Modified",
+    ]
   }
 }
 `, template)

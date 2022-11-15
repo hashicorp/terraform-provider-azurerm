@@ -18,3 +18,7 @@ func ServiceBusMaxSizeInMegabytes() pluginsdk.SchemaValidateFunc {
 		81920,
 	})
 }
+
+func ServiceBusMaxMessageSizeInKilobytes() pluginsdk.SchemaValidateFunc {
+	return validation.IntBetween(1024, 102400)
+}

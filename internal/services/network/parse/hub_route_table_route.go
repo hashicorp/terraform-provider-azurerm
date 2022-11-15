@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type HubRouteTableRouteId struct {
@@ -45,7 +45,7 @@ func (id HubRouteTableRouteId) ID() string {
 
 // HubRouteTableRouteID parses a HubRouteTableRoute ID into an HubRouteTableRouteId struct
 func HubRouteTableRouteID(input string) (*HubRouteTableRouteId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

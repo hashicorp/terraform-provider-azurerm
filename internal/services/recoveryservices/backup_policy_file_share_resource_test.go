@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BackupProtectionPolicyFileShareResource struct {
-}
+type BackupProtectionPolicyFileShareResource struct{}
 
 func TestAccBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
@@ -587,6 +586,7 @@ resource "azurerm_backup_policy_file_share" "test" {
   resource_group_name = azurerm_resource_group.test.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
 
+  timezone = "UTC"
   backup {
     frequency = "Daily"
     time      = "23:00"

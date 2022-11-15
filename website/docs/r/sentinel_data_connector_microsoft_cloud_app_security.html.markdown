@@ -27,9 +27,22 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
+resource "azurerm_log_analytics_solution" "example" {
+  solution_name         = "SecurityInsights"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  workspace_resource_id = azurerm_log_analytics_workspace.example.id
+  workspace_name        = azurerm_log_analytics_workspace.example.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/SecurityInsights"
+  }
+}
+
 resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "example" {
   name                       = "example"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
 }
 ```
 
@@ -47,9 +60,11 @@ The following arguments are supported:
 
 * `discovery_logs_enabled` - (Optional) Should the Discovery Logs be enabled? Defaults to `true`.
 
--> **NOTE**: One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
+-> **NOTE:** One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
 
 * `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
+
+-> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
 ## Attributes Reference
 
@@ -59,7 +74,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Microsoft Cloud App Security Data Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Cloud App Security Data Connector.

@@ -74,16 +74,16 @@ func resourceDataShareDataSetKustoDatabaseCreate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	shareId, err := parse.ShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
+	id := parse.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroup, shareId.AccountName, shareId.Name, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 	existingId := helper.GetAzurermDataShareDataSetId(existing.Value)
@@ -98,28 +98,17 @@ func resourceDataShareDataSetKustoDatabaseCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if _, err := client.Create(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name, dataSet); err != nil {
-		return fmt.Errorf("creating DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name, dataSet); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
-	}
-
-	respId := helper.GetAzurermDataShareDataSetId(resp.Value)
-	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
-	}
-
-	d.SetId(*respId)
+	d.SetId(id.ID())
 
 	return resourceDataShareDataSetKustoDatabaseRead(d, meta)
 }
 
 func resourceDataShareDataSetKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
-	shareClient := meta.(*clients.Client).DataShare.SharesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -139,15 +128,9 @@ func resourceDataShareDataSetKustoDatabaseRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("name", id.Name)
-	shareResp, err := shareClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.ShareName, id.ResourceGroup, id.AccountName, err)
-	}
-	if shareResp.ID == nil || *shareResp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare %q (Resource Group %q / accountName %q)", id.ShareName, id.ResourceGroup, id.AccountName)
-	}
 
-	d.Set("share_id", shareResp.ID)
+	shareId := parse.NewShareID(id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName)
+	d.Set("share_id", shareId.ID())
 
 	resp, ok := respModel.Value.AsKustoDatabaseDataSet()
 	if !ok {

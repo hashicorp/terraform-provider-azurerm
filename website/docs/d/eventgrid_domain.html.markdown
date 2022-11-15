@@ -88,12 +88,12 @@ A `input_mapping_default_values` supports the following:
 
 A `inbound_ip_rule` block supports the following:
 
-* `ip_mask` - The ip mask (CIDR) to match on.
+* `ip_mask` - The IP mask (CIDR) to match on.
 
 * `action` - The action to take when the rule is matched. Possible values are `Allow`.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Domain.

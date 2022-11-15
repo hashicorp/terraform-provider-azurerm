@@ -2,9 +2,15 @@ package keyvault
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"log"
+	"math/big"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
@@ -19,19 +25,25 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"golang.org/x/crypto/ssh"
 )
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceKeyVaultKeyCreate,
-		Read:     resourceKeyVaultKeyRead,
-		Update:   resourceKeyVaultKeyUpdate,
-		Delete:   resourceKeyVaultKeyDelete,
-		Importer: pluginsdk.DefaultImporter(),
+		Create: resourceKeyVaultKeyCreate,
+		Read:   resourceKeyVaultKeyRead,
+		Update: resourceKeyVaultKeyUpdate,
+		Delete: resourceKeyVaultKeyDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}, nestedItemResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
+			Read:   pluginsdk.DefaultTimeout(30 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
@@ -58,8 +70,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					// TODO: add `oct` back in once this is fixed
-					// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 					string(keyvault.EC),
 					string(keyvault.ECHSM),
 					string(keyvault.RSA),
@@ -100,13 +110,15 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return old == "SECP256K1" && new == string(keyvault.P256K)
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.P256),
-					string(keyvault.P256K),
-					string(keyvault.P384),
-					string(keyvault.P521),
-					"SECP256K1", // TODO: remove this in v3.0 as it was renamed to keyvault.P256K
-				}, false),
+				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+					out := []string{
+						string(keyvault.P256),
+						string(keyvault.P256K),
+						string(keyvault.P384),
+						string(keyvault.P521),
+					}
+					return validation.StringInSlice(out, false)
+				}(),
 				// TODO: the curve name should probably be mandatory for EC in the future,
 				// but handle the diff so that we don't break existing configurations and
 				// imported EC keys
@@ -152,6 +164,26 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			},
 
 			"y": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_key_pem": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_key_openssh": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_versionless_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -232,7 +264,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if resp, err := client.CreateKey(ctx, *keyVaultBaseUri, name, parameters); err != nil {
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeys && utils.ResponseWasConflict(resp.Response) {
 			recoveredKey, err := client.RecoverDeletedKey(ctx, *keyVaultBaseUri, name)
 			if err != nil {
 				return err
@@ -420,6 +452,57 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	// Computed
 	d.Set("version", id.Version)
 	d.Set("versionless_id", id.VersionlessID())
+	if key := resp.Key; key != nil {
+		if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
+			if err != nil {
+				return fmt.Errorf("failed to decode N: %+v", err)
+			}
+			eBytes, err := base64.RawURLEncoding.DecodeString(*key.E)
+			if err != nil {
+				return fmt.Errorf("failed to decode E: %+v", err)
+			}
+			publicKey := &rsa.PublicKey{
+				N: big.NewInt(0).SetBytes(nBytes),
+				E: int(big.NewInt(0).SetBytes(eBytes).Uint64()),
+			}
+			err = readPublicKey(d, publicKey)
+			if err != nil {
+				return fmt.Errorf("failed to read public key: %+v", err)
+			}
+		} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+			// do ec keys
+			xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
+			if err != nil {
+				return fmt.Errorf("failed to decode X: %+v", err)
+			}
+			yBytes, err := base64.RawURLEncoding.DecodeString(*key.Y)
+			if err != nil {
+				return fmt.Errorf("failed to decode Y: %+v", err)
+			}
+			publicKey := &ecdsa.PublicKey{
+				X: big.NewInt(0).SetBytes(xBytes),
+				Y: big.NewInt(0).SetBytes(yBytes),
+			}
+			switch key.Crv {
+			case keyvault.P256:
+				publicKey.Curve = elliptic.P256()
+			case keyvault.P384:
+				publicKey.Curve = elliptic.P384()
+			case keyvault.P521:
+				publicKey.Curve = elliptic.P521()
+			}
+			if publicKey.Curve != nil {
+				err = readPublicKey(d, publicKey)
+				if err != nil {
+					return fmt.Errorf("failed to read public key: %+v", err)
+				}
+			}
+		}
+	}
+
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -448,17 +531,21 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
+		if utils.ResponseWasNotFound(kv.Response) {
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving key vault %q properties: %+v", *keyVaultId, err)
 	}
 
-	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
+	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+		return fmt.Errorf("cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+	}
+
 	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeKey{
 		client:      client,
@@ -518,4 +605,29 @@ func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
 	}
 
 	return results
+}
+
+// Credit to Hashicorp modified from https://github.com/hashicorp/terraform-provider-tls/blob/v3.1.0/internal/provider/util.go#L79-L105
+func readPublicKey(d *pluginsdk.ResourceData, pubKey interface{}) error {
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(pubKey)
+	if err != nil {
+		return fmt.Errorf("failed to marshal public key error: %s", err)
+	}
+	pubKeyPemBlock := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: pubKeyBytes,
+	}
+
+	d.Set("public_key_pem", string(pem.EncodeToMemory(pubKeyPemBlock)))
+
+	sshPubKey, err := ssh.NewPublicKey(pubKey)
+	if err == nil {
+		// Not all EC types can be SSH keys, so we'll produce this only
+		// if an appropriate type was selected.
+		sshPubKeyBytes := ssh.MarshalAuthorizedKey(sshPubKey)
+		d.Set("public_key_openssh", string(sshPubKeyBytes))
+	} else {
+		d.Set("public_key_openssh", "")
+	}
+	return nil
 }

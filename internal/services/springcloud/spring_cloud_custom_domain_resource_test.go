@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudCustomDomainResource struct {
-}
+type SpringCloudCustomDomainResource struct{}
 
 func TestAccSpringCloudCustomDomain_basic(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
@@ -168,15 +167,15 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.current.tenant_id
     object_id               = data.azurerm_client_config.current.object_id
-    secret_permissions      = ["set"]
-    certificate_permissions = ["create", "delete", "get", "update"]
+    secret_permissions      = ["Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Update"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.current.tenant_id
     object_id               = data.azuread_service_principal.test.object_id
-    secret_permissions      = ["get", "list"]
-    certificate_permissions = ["get", "list"]
+    secret_permissions      = ["Get", "List"]
+    certificate_permissions = ["Get", "List"]
   }
 }
 

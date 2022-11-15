@@ -17,8 +17,10 @@ import (
 type GetPropertiesResult struct {
 	autorest.Response
 
-	MetaData   map[string]string
-	ShareQuota int
+	MetaData        map[string]string
+	QuotaInGB       int
+	EnabledProtocol ShareProtocol
+	AccessTier      *AccessTier
 }
 
 // GetProperties returns the properties about the specified Storage Share
@@ -98,8 +100,19 @@ func (client Client) GetPropertiesResponder(resp *http.Response) (result GetProp
 			if e != nil {
 				return result, fmt.Errorf("Error converting %q to an integer: %s", quotaRaw, err)
 			}
-			result.ShareQuota = quota
+			result.QuotaInGB = quota
 		}
+
+		protocol := SMB
+		if protocolRaw := resp.Header.Get("x-ms-enabled-protocols"); protocolRaw != "" {
+			protocol = ShareProtocol(protocolRaw)
+		}
+
+		if accessTierRaw := resp.Header.Get("x-ms-access-tier"); accessTierRaw != "" {
+			tier := AccessTier(accessTierRaw)
+			result.AccessTier = &tier
+		}
+		result.EnabledProtocol = protocol
 	}
 
 	err = autorest.Respond(

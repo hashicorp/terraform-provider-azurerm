@@ -7,8 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type TemplateSpecVersionDataSource struct {
-}
+type TemplateSpecVersionDataSource struct{}
 
 func TestAccDataSourceTemplateSpecVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_template_spec_version", "test")

@@ -27,6 +27,7 @@ type BlobUpload struct {
 	ContainerName string
 
 	BlobType      string
+	CacheControl  string
 	ContentType   string
 	ContentMD5    string
 	MetaData      map[string]string

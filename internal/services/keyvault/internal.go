@@ -18,7 +18,6 @@ import (
 type deleteAndPurgeNestedItem interface {
 	DeleteNestedItem(ctx context.Context) (autorest.Response, error)
 	NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error)
-
 	PurgeNestedItem(ctx context.Context) (autorest.Response, error)
 	NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error)
 }
@@ -68,7 +67,6 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	//lintignore:R006
 	err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
 		_, err := helper.PurgeNestedItem(ctx)
 		if err == nil {

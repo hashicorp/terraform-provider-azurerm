@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
@@ -33,26 +33,31 @@ func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
 func TestAccWindowsVirtualMachine_imageFromPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
+	publisher := "plesk"
+	offer := "plesk-onyx-windows"
+	sku := "plsk-win-hst-azr-m"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageFromPlan(data),
+			Config: r.empty(),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, sku)),
+			),
+		},
+		{
+			Config: r.imageFromPlan(data, publisher, offer, sku),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -75,9 +80,7 @@ func TestAccWindowsVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -92,9 +95,7 @@ func TestAccWindowsVirtualMachine_imageFromSourceImageReference(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -120,7 +121,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -225,14 +226,14 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.imageFromExistingMachinePrep(data))
 }
 
-func (r WindowsVirtualMachineResource) imageFromPlan(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) imageFromPlan(data acceptance.TestData, publisher string, offer string, sku string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_marketplace_agreement" "test" {
-  publisher = "plesk"
-  offer     = "plesk-onyx-windows"
-  plan      = "plsk-win-hst-azr-m"
+  publisher = "%[2]s"
+  offer     = "%[3]s"
+  plan      = "%[4]s"
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
@@ -252,21 +253,21 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   plan {
-    name      = "plsk-win-hst-azr-m"
-    product   = "plesk-onyx-windows"
-    publisher = "plesk"
+    publisher = "%[2]s"
+    product   = "%[3]s"
+    name      = "%[4]s"
   }
 
   source_image_reference {
-    publisher = "plesk"
-    offer     = "plesk-onyx-windows"
-    sku       = "plsk-win-hst-azr-m"
+    publisher = "%[2]s"
+    offer     = "%[3]s"
+    sku       = "%[4]s"
     version   = "latest"
   }
 
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
-`, r.template(data))
+`, r.template(data), publisher, offer, sku)
 }
 
 func (r WindowsVirtualMachineResource) imageFromSharedImageGallery(data acceptance.TestData) string {
@@ -359,6 +360,14 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
+func (WindowsVirtualMachineResource) empty() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
+}
+
 func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.VirtualMachineID(state.ID)
 	if err != nil {
@@ -384,7 +393,8 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		return fmt.Errorf("Bad: Error waiting for Windows VM to sysprep: %+v", err)
 	}
 
-	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
+	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 	if err != nil {
 		return fmt.Errorf("Bad: Deallocation error: %+v", err)
 	}
@@ -398,4 +408,30 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 	}
 
 	return nil
+}
+
+func (r WindowsVirtualMachineResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		client := clients.Compute.MarketplaceAgreementsClient
+		id := parse.NewPlanID(client.SubscriptionID, publisher, offer, sku)
+
+		existing, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
+		if err != nil {
+			return err
+		}
+
+		if props := existing.AgreementProperties; props != nil {
+			if accepted := props.Accepted; accepted != nil && *accepted {
+				resp, err := client.Cancel(ctx, id.AgreementName, id.OfferName, id.Name)
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return fmt.Errorf("marketplace agreement %q does not exist", id)
+					}
+					return fmt.Errorf("canceling Marketplace Agreement : %+v", err)
+				}
+			}
+		}
+
+		return nil
+	}
 }

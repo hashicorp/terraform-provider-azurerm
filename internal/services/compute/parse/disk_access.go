@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DiskAccessId struct {
@@ -39,7 +39,7 @@ func (id DiskAccessId) ID() string {
 
 // DiskAccessID parses a DiskAccess ID into an DiskAccessId struct
 func DiskAccessID(input string) (*DiskAccessId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

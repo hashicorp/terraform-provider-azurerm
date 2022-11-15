@@ -6,59 +6,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func ManagedIdentitySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						// ManagedServiceIdentityTypeNone is not valid; a valid and privileged Identity is required for the service to apply the changes.
-						// SystemAssigned type not currently supported - The Portal performs significant activity in temporary escalation of permissions to Owner on the target scope
-						// Such activity in the Provider would be brittle
-						// string(blueprint.ManagedServiceIdentityTypeSystemAssigned),
-						string(blueprint.ManagedServiceIdentityTypeUserAssigned),
-					}, true),
-					// The first character of value returned by the service is always in lower case - bug?
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
-
-				"identity_ids": {
-					// The API only seems to care about the "key" portion of this struct, which is the ResourceID of the Identity
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MinItems: 1,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.UserAssignedIdentityID,
-					},
-				},
-
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
 
 func blueprintAssignmentCreateStateRefreshFunc(ctx context.Context, client *blueprint.AssignmentsClient, scope, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
@@ -132,60 +83,40 @@ func expandArmBlueprintAssignmentResourceGroups(input string) map[string]*bluepr
 }
 
 func expandArmBlueprintAssignmentIdentity(input []interface{}) (*blueprint.ManagedServiceIdentity, error) {
-	if len(input) == 0 || input[0] == nil {
-		return nil, fmt.Errorf("Managed Service Identity was empty")
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	raw := input[0].(map[string]interface{})
-
-	identity := blueprint.ManagedServiceIdentity{
-		Type: blueprint.ManagedServiceIdentityType(raw["type"].(string)),
+	out := blueprint.ManagedServiceIdentity{
+		Type:                   blueprint.ManagedServiceIdentityType(string(expanded.Type)),
+		UserAssignedIdentities: make(map[string]*blueprint.UserAssignedIdentity),
 	}
-
-	identityIdsRaw := raw["identity_ids"].([]interface{})
-	identityIds := make(map[string]*blueprint.UserAssignedIdentity)
-	for _, v := range identityIdsRaw {
-		identityIds[v.(string)] = &blueprint.UserAssignedIdentity{}
+	for k := range expanded.IdentityIds {
+		out.UserAssignedIdentities[k] = &blueprint.UserAssignedIdentity{
+			// intentionally empty
+		}
 	}
-	identity.UserAssignedIdentities = identityIds
-
-	return &identity, nil
+	return &out, nil
 }
 
-func flattenArmBlueprintAssignmentIdentity(input *blueprint.ManagedServiceIdentity) ([]interface{}, error) {
-	if input == nil {
-		return []interface{}{}, nil
-	}
+func flattenArmBlueprintAssignmentIdentity(input *blueprint.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
 
-	identityIds := make([]string, 0)
-	if input.UserAssignedIdentities != nil {
-		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
 			}
-			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"identity_ids": identityIds,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}, nil
+	return identity.FlattenUserAssignedMap(transform)
 }
 
 func flattenArmBlueprintAssignmentParameters(input map[string]*blueprint.ParameterValue) (string, error) {

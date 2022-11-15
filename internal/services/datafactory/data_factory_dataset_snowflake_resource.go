@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -44,17 +43,12 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO: replace with `data_factory_id` in 3.0
-			"data_factory_name": {
+			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
+				ValidateFunc: validate.DataFactoryID,
 			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"linked_service_name": {
 				Type:         pluginsdk.TypeString,
@@ -107,50 +101,6 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"structure_column": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Deprecated: "This block has been deprecated in favour of `schema_column` and will be removed.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Byte",
-								"Byte[]",
-								"Boolean",
-								"Date",
-								"DateTime",
-								"DateTimeOffset",
-								"Decimal",
-								"Double",
-								"Guid",
-								"Int16",
-								"Int32",
-								"Int64",
-								"Single",
-								"String",
-								"TimeSpan",
-							}, false),
-						},
-						"description": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-				ConflictsWith: []string{
-					"schema_column",
 				},
 			},
 
@@ -214,9 +164,6 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{
-					"structure_column",
-				},
 			},
 		},
 	}
@@ -228,18 +175,23 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Dataset Snowflake %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_snowflake", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_snowflake", id.ID())
 		}
 	}
 
@@ -260,6 +212,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		SnowflakeDatasetTypeProperties: &snowflakeDatasetProperties,
 		LinkedServiceName:              linkedService,
 		Description:                    &description,
+		Schema:                         make([]interface{}, 0),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -273,17 +226,11 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		snowflakeTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
-	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		snowflakeTableset.Annotations = &annotations
-	}
+	annotations := d.Get("annotations").([]interface{})
+	snowflakeTableset.Annotations = &annotations
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		snowflakeTableset.AdditionalProperties = v.(map[string]interface{})
-	}
-
-	if v, ok := d.GetOk("structure_column"); ok {
-		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
@@ -297,7 +244,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Dataset Snowflake %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -315,6 +262,8 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -326,8 +275,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("data_factory_name", id.FactoryName)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	snowflakeTable, ok := resp.Properties.AsSnowflakeDataset()
 	if !ok {
@@ -377,11 +325,6 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
-	if err := d.Set("structure_column", structureColumns); err != nil {
-		return fmt.Errorf("setting `structure_column`: %+v", err)
-	}
-
 	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
 	if err := d.Set("schema_column", schemaColumns); err != nil {
 		return fmt.Errorf("Error setting `schema_column`: %+v", err)
@@ -403,7 +346,7 @@ func resourceDataFactoryDatasetSnowflakeDelete(d *pluginsdk.ResourceData, meta i
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Dataset Snowflake %s: %+v", *id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

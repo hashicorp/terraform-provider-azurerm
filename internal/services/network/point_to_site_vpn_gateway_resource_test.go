@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PointToSiteVPNGatewayResource struct {
-}
+type PointToSiteVPNGatewayResource struct{}
 
 func TestAccPointToSiteVPNGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
@@ -63,6 +62,21 @@ func TestAccPointToSiteVPNGateway_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPointToSiteVPNGateway_enableInternetSecurity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enableInternetSecurity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -122,14 +136,33 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PointToSiteVPNGatewayResource) updated(data acceptance.TestData) string {
+func (r PointToSiteVPNGatewayResource) enableInternetSecurity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-RouteTable-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
+resource "azurerm_point_to_site_vpn_gateway" "test" {
+  name                        = "acctestp2sVPNG-%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  virtual_hub_id              = azurerm_virtual_hub.test.id
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  scale_unit                  = 1
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = ["172.100.0.0/14"]
+    }
+
+    internet_security_enabled = true
+  }
 }
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PointToSiteVPNGatewayResource) updated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_point_to_site_vpn_gateway" "test" {
   name                        = "acctestp2sVPNG-%d"
@@ -147,16 +180,16 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     }
 
     route {
-      associated_route_table_id = azurerm_virtual_hub_route_table.test.id
+      associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id
 
       propagated_route_table {
-        ids    = [azurerm_virtual_hub_route_table.test.id]
+        ids    = [azurerm_virtual_hub.test.default_route_table_id]
         labels = ["label1", "label2"]
       }
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PointToSiteVPNGatewayResource) requiresImport(data acceptance.TestData) string {

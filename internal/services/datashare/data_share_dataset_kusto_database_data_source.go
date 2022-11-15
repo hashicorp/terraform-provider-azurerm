@@ -53,33 +53,33 @@ func dataSourceDataShareDatasetKustoDatabase() *pluginsdk.Resource {
 
 func dataSourceDataShareDatasetKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	shareID := d.Get("share_id").(string)
-	shareId, err := parse.ShareID(shareID)
+	shareId, err := parse.ShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
+	id := parse.NewDataSetID(subscriptionId, shareId.ResourceGroup, shareId.AccountName, shareId.Name, d.Get("name").(string))
 
-	respModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
+	respModel, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	respId := helper.GetAzurermDataShareDataSetId(respModel.Value)
 	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("empty or nil ID returned for %s", id)
 	}
 
-	d.SetId(*respId)
-	d.Set("name", name)
-	d.Set("share_id", shareID)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("share_id", shareId.ID())
 
 	resp, ok := respModel.Value.AsKustoDatabaseDataSet()
 	if !ok {
-		return fmt.Errorf("dataShare %q (Resource Group %q / accountName %q / shareName %q) is not kusto database dataset", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("%s is not kusto database dataset", id)
 	}
 	if props := resp.KustoDatabaseDataSetProperties; props != nil {
 		d.Set("kusto_database_id", props.KustoDatabaseResourceID)

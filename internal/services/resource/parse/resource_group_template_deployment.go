@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ResourceGroupTemplateDeploymentId struct {
@@ -39,7 +39,7 @@ func (id ResourceGroupTemplateDeploymentId) ID() string {
 
 // ResourceGroupTemplateDeploymentID parses a ResourceGroupTemplateDeployment ID into an ResourceGroupTemplateDeploymentId struct
 func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDeploymentId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,50 @@ func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDepl
 	}
 
 	if resourceId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// ResourceGroupTemplateDeploymentIDInsensitively parses an ResourceGroupTemplateDeployment ID into an ResourceGroupTemplateDeploymentId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ResourceGroupTemplateDeploymentID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func ResourceGroupTemplateDeploymentIDInsensitively(input string) (*ResourceGroupTemplateDeploymentId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := ResourceGroupTemplateDeploymentId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'deployments' segment
+	deploymentsKey := "deployments"
+	for key := range id.Path {
+		if strings.EqualFold(key, deploymentsKey) {
+			deploymentsKey = key
+			break
+		}
+	}
+	if resourceId.DeploymentName, err = id.PopSegment(deploymentsKey); err != nil {
 		return nil, err
 	}
 

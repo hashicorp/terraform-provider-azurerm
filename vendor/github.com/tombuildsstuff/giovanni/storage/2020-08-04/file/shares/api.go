@@ -13,7 +13,7 @@ type StorageShare interface {
 	GetACL(ctx context.Context, accountName, shareName string) (result GetACLResult, err error)
 	SetMetaData(ctx context.Context, accountName, shareName string, metaData map[string]string) (result autorest.Response, err error)
 	GetMetaData(ctx context.Context, accountName, shareName string) (result GetMetaDataResult, err error)
-	SetProperties(ctx context.Context, accountName, shareName string, newQuotaGB int) (result autorest.Response, err error)
+	SetProperties(ctx context.Context, accountName, shareName string, properties ShareProperties) (result autorest.Response, err error)
 	DeleteSnapshot(ctx context.Context, accountName, shareName string, shareSnapshot string) (result autorest.Response, err error)
 	CreateSnapshot(ctx context.Context, accountName, shareName string, input CreateSnapshotInput) (result CreateSnapshotResult, err error)
 	GetResourceID(accountName, shareName string) string

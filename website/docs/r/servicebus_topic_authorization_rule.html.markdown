@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_servicebus_namespace"
+  name                = "tfex-servicebus-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
@@ -30,19 +30,16 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_servicebus_topic"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "tfex_servicebus_topic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "tfex_servicebus_topic_sasPolicy"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  listen              = true
-  send                = false
-  manage              = false
+  name     = "tfex_servicebus_topic_sasPolicy"
+  topic_id = azurerm_servicebus_topic.example.id
+  listen   = true
+  send     = false
+  manage   = false
 }
 ```
 
@@ -52,11 +49,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the ServiceBus Topic Authorization Rule resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) Specifies the name of the ServiceBus Namespace. Changing this forces a new resource to be created.
-
-* `topic_name` - (Required) Specifies the name of the ServiceBus Topic. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the ServiceBus Namespace exists. Changing this forces a new resource to be created.
+* `topic_id` - (Required) Specifies the ID of the ServiceBus Topic. Changing this forces a new resource to be created.
 
 ~> **NOTE** At least one of the 3 permissions below needs to be set.
 
@@ -80,13 +73,13 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The Secondary Connection String for the ServiceBus Topic authorization Rule.
 
-* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired. 
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired.
 
-* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Topic Authorization Rule.
 * `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Topic Authorization Rule.

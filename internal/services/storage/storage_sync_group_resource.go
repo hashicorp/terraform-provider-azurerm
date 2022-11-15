@@ -55,40 +55,33 @@ func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	ssId, _ := parse.StorageSyncServiceID(d.Get("storage_sync_id").(string))
+	serviceId, err := parse.StorageSyncServiceID(d.Get("storage_sync_id").(string))
+	if err != nil {
+		return err
+	}
 
-	existing, err := client.Get(ctx, ssId.ResourceGroup, ssId.Name, name)
+	id := parse.NewStorageSyncGroupID(serviceId.SubscriptionId, serviceId.ResourceGroup, serviceId.Name, d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", name, ssId.Name, ssId.ResourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_storage_sync_group", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_sync_group", id.ID())
 	}
 
-	if _, err := client.Create(ctx, ssId.ResourceGroup, ssId.Name, name, storagesync.SyncGroupCreateParameters{}); err != nil {
-		return fmt.Errorf("creating Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", name, ssId.Name, ssId.ResourceGroup, err)
+	input := storagesync.SyncGroupCreateParameters{}
+	if _, err := client.Create(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName, input); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, ssId.ResourceGroup, ssId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", name, ssId.Name, ssId.ResourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q) ID is empty or nil", name, ssId.Name, ssId.ResourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceStorageSyncGroupRead(d, meta)
 }
 
 func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
-	ssClient := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -100,25 +93,18 @@ func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Storage Sync Group %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.SyncGroupName)
 
-	ssResp, err := ssClient.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName)
-	if err != nil {
-		return fmt.Errorf("reading Storage Sync %q (Resource Group %q): %+v", id.StorageSyncServiceName, id.ResourceGroup, err)
-	}
-
-	if ssResp.ID == nil || *ssResp.ID == "" {
-		return fmt.Errorf("reading Storage Sync %q (Resource Group %q) ID is empty or nil", id.StorageSyncServiceName, id.ResourceGroup)
-	}
-
-	d.Set("storage_sync_id", ssResp.ID)
+	serviceId := parse.NewStorageSyncServiceID(id.SubscriptionId, id.ResourceGroup, id.StorageSyncServiceName)
+	d.Set("storage_sync_id", serviceId.ID())
 
 	return nil
 }
@@ -134,7 +120,7 @@ func resourceStorageSyncGroupDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName); err != nil {
-		return fmt.Errorf("deleting Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

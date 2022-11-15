@@ -71,14 +71,22 @@ func (v ValueDiff) Equal(o ValueDiff) bool {
 // a slice of ValueDiffs. The ValueDiffs in the struct will use `val1`'s values
 // as Value1 and `val2`'s values as Value2. An empty or nil slice means the two
 // Values can be considered equal. Values must be the same type when passed to
-// Diff; passing in Values of two different types will result in an error.
-// val1.Type().Is(val2.Type()) is a safe way to check that Values can be
-// compared with Diff.
+// Diff; passing in Values of two different types will result in an error. If
+// both Values are empty, they are considered equal. If one Value is missing
+// type, it will result in an error. val1.Type().Is(val2.Type()) is a safe way
+// to check that Values can be compared with Diff.
 func (val1 Value) Diff(val2 Value) ([]ValueDiff, error) {
+	var diffs []ValueDiff
+
+	if val1.Type() == nil && val2.Type() == nil && val1.value == nil && val2.value == nil {
+		return diffs, nil
+	}
+	if (val1.Type() == nil && val2.Type() != nil) || (val1.Type() != nil && val2.Type() == nil) {
+		return nil, errors.New("cannot diff value missing type")
+	}
 	if !val1.Type().Is(val2.Type()) {
 		return nil, errors.New("Can't diff values of different types")
 	}
-	var diffs []ValueDiff
 
 	// make sure everything in val2 is also in val1
 	err := Walk(val2, func(path *AttributePath, value2 Value) (bool, error) {
@@ -274,6 +282,9 @@ func (val1 Value) Diff(val2 Value) ([]ValueDiff, error) {
 			}
 			// if we have the same keys, we can just let recursion
 			// from the walk check the sub-values match
+			return true, nil
+		case value1.Type().Is(DynamicPseudoType):
+			// Let recursion from the walk check the sub-values match
 			return true, nil
 		}
 		return false, fmt.Errorf("unexpected type %v in Diff at %s", value1.Type(), path)

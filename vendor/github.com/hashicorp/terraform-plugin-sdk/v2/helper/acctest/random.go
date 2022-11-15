@@ -27,21 +27,18 @@ func init() {
 
 // RandInt generates a random integer
 func RandInt() int {
-	return rand.New(rand.NewSource(time.Now().UnixNano())).Int()
+	return rand.Int()
 }
 
 // RandomWithPrefix is used to generate a unique name with a prefix, for
 // randomizing names in acceptance tests
 func RandomWithPrefix(name string) string {
-	return fmt.Sprintf("%s-%d", name, rand.New(rand.NewSource(time.Now().UnixNano())).Int())
+	return fmt.Sprintf("%s-%d", name, RandInt())
 }
 
 // RandIntRange returns a random integer between min (inclusive) and max (exclusive)
 func RandIntRange(min int, max int) int {
-	source := rand.New(rand.NewSource(time.Now().UnixNano()))
-	rangeMax := max - min
-
-	return int(source.Int31n(int32(rangeMax))) + min
+	return rand.Intn(max-min) + min
 }
 
 // RandString generates a random alphanumeric string of the length specified
@@ -54,7 +51,7 @@ func RandString(strlen int) string {
 func RandStringFromCharSet(strlen int, charSet string) string {
 	result := make([]byte, strlen)
 	for i := 0; i < strlen; i++ {
-		result[i] = charSet[rand.Intn(len(charSet))]
+		result[i] = charSet[RandIntRange(0, len(charSet))]
 	}
 	return string(result)
 }
@@ -123,8 +120,8 @@ func RandIpAddress(s string) (string, error) {
 	last.SetBytes([]byte(lastIp))
 	r := &big.Int{}
 	r.Sub(last, first)
-	if len := r.BitLen(); len > 31 {
-		return "", fmt.Errorf("CIDR range is too large: %d", len)
+	if bitLen := r.BitLen(); bitLen > 31 {
+		return "", fmt.Errorf("CIDR range is too large: %d", bitLen)
 	}
 
 	max := int(r.Int64())

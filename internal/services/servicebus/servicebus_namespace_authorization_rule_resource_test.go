@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceAuthorizationRuleResource struct {
-}
+type ServiceBusNamespaceAuthorizationRuleResource struct{}
 
 func TestAccServiceBusNamespaceAuthorizationRule_listen(t *testing.T) {
 	testAccServiceBusNamespaceAuthorizationRule(t, true, false, false)
@@ -66,7 +65,7 @@ func TestAccServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("namespace_name").Exists(),
+				check.That(data.ResourceName).Key("namespace_id").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
@@ -104,17 +103,17 @@ func TestAccServiceBusNamespaceAuthorizationRule_requiresImport(t *testing.T) {
 }
 
 func (t ServiceBusNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceAuthorizationRuleID(state.ID)
+	id, err := namespacesauthorizationrule.ParseAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.NamespacesClient.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
+	resp, err := clients.ServiceBus.NamespacesAuthClient.NamespacesGetAuthorizationRule(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Service Bus Name Space Authorization Rule (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ServiceBusNamespaceAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {
@@ -136,9 +135,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctest-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   listen = %[3]t
   send   = %[4]t
@@ -152,9 +150,8 @@ func (r ServiceBusNamespaceAuthorizationRuleResource) requiresImport(data accept
 %s
 
 resource "azurerm_servicebus_namespace_authorization_rule" "import" {
-  name                = azurerm_servicebus_namespace_authorization_rule.test.name
-  namespace_name      = azurerm_servicebus_namespace_authorization_rule.test.namespace_name
-  resource_group_name = azurerm_servicebus_namespace_authorization_rule.test.resource_group_name
+  name         = azurerm_servicebus_namespace_authorization_rule.test.name
+  namespace_id = azurerm_servicebus_namespace_authorization_rule.test.namespace_id
 
   listen = azurerm_servicebus_namespace_authorization_rule.test.listen
   send   = azurerm_servicebus_namespace_authorization_rule.test.send
@@ -202,17 +199,15 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "namespace_rule_test"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-  listen              = true
-  send                = true
-  manage              = true
+  name         = "namespace_rule_test"
+  namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
+  listen       = true
+  send         = true
+  manage       = true
 
   depends_on = [
     azurerm_servicebus_namespace_disaster_recovery_config.pairing_test
   ]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

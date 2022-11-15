@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KeyVaultManagedHardwareSecurityModuleDataSource struct {
-}
+type KeyVaultManagedHardwareSecurityModuleDataSource struct{}
 
 func testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_managed_hardware_security_module", "test")

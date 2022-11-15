@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VirtualNetworkGatewayIpConfigurationId struct {
@@ -42,7 +42,7 @@ func (id VirtualNetworkGatewayIpConfigurationId) ID() string {
 
 // VirtualNetworkGatewayIpConfigurationID parses a VirtualNetworkGatewayIpConfiguration ID into an VirtualNetworkGatewayIpConfigurationId struct
 func VirtualNetworkGatewayIpConfigurationID(input string) (*VirtualNetworkGatewayIpConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

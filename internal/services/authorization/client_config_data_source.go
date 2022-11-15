@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -43,26 +44,11 @@ func dataSourceArmClientConfig() *pluginsdk.Resource {
 
 func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	_, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if client.Account.AuthenticatedAsAServicePrincipal {
-		spClient := client.Authorization.ServicePrincipalsClient
-		// Application & Service Principal is 1:1 per tenant. Since we know the appId (client_id)
-		// here, we can query for the Service Principal whose appId matches.
-		filter := fmt.Sprintf("appId eq '%s'", client.Account.ClientId)
-		listResult, listErr := spClient.List(ctx, filter)
-
-		if listErr != nil {
-			return fmt.Errorf("listing Service Principals: %#v", listErr)
-		}
-
-		if listResult.Values() == nil || len(listResult.Values()) != 1 {
-			return fmt.Errorf("Unexpected Service Principal query result: %#v", listResult.Values())
-		}
-	}
-
-	d.SetId(time.Now().UTC().String())
+	id := fmt.Sprintf("clientConfigs/clientId=%s;objectId=%s;subscriptionId=%s;tenantId=%s", client.Account.ClientId, client.Account.ObjectId, client.Account.SubscriptionId, client.Account.TenantId)
+	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 	d.Set("client_id", client.Account.ClientId)
 	d.Set("object_id", client.Account.ObjectId)
 	d.Set("subscription_id", client.Account.SubscriptionId)

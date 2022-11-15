@@ -41,27 +41,25 @@ func dataSourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	storageSyncId, err := parse.StorageSyncServiceID(d.Get("storage_sync_id").(string))
+	serviceId, err := parse.StorageSyncServiceID(d.Get("storage_sync_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, storageSyncId.ResourceGroup, storageSyncId.Name, name)
+	id := parse.NewStorageSyncGroupID(serviceId.SubscriptionId, serviceId.ResourceGroup, serviceId.Name, d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Sync Group %q does not exist within Storage Sync %q / Resource Group %q", name, storageSyncId.Name, storageSyncId.ResourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving Sync Group %q (Storage Sync %q / Resource Group %q): %+v", name, storageSyncId.Name, storageSyncId.ResourceGroup, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("ID is nil for Sync Group %q (Storage Sync %q / Resource Group %q)", name, storageSyncId.Name, storageSyncId.ResourceGroup)
-	}
+	d.SetId(id.ID())
 
-	d.SetId(*resp.ID)
+	d.Set("name", id.SyncGroupName)
+	d.Set("storage_sync_id", serviceId.ID())
 
-	d.Set("name", name)
-	d.Set("storage_sync_id", storageSyncId.ID())
 	return nil
 }

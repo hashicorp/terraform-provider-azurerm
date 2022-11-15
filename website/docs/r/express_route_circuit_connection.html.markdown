@@ -111,7 +111,7 @@ The following arguments are supported:
 
 * `address_prefix_ipv6` - (Optional) The IPv6 address space from which to allocate customer addresses for global reach.
 
--> **NOTE**: `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
+-> **NOTE:** `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
 
 ## Attributes Reference
 
@@ -121,7 +121,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Express Route Circuit Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Express Route Circuit Connection.

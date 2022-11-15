@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type InboundNatRuleId struct {
@@ -42,7 +42,7 @@ func (id InboundNatRuleId) ID() string {
 
 // InboundNatRuleID parses a InboundNatRule ID into an InboundNatRuleId struct
 func InboundNatRuleID(input string) (*InboundNatRuleId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

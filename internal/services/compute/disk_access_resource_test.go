@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DiskAccessResource struct {
-}
+type DiskAccessResource struct{}
 
 func TestAccDiskAccess_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")

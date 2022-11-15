@@ -10,7 +10,7 @@ description: |-
 
 Allows you to manage an Azure SQL Elastic Pool.
 
-~> **NOTE:** -  This version of the `Elasticpool` resource is being **deprecated** and should no longer be used. Please use the [azurerm_mssql_elasticpool](./mssql_elasticpool.html) version instead.
+-> **Note:** The `azurerm_sql_elasticpool` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_elasticpool`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_elasticpool) resource instead.
 
 ## Example Usage
 
@@ -78,7 +78,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Elastic Pool.
 * `update` - (Defaults to 30 minutes) Used when updating the SQL Elastic Pool.

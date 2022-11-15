@@ -64,19 +64,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
-							AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.process_not_allowed", "allow_rule.0.processes_not_allowed"},
-						},
-
-						"connection_to_ip_not_allowed": {
-							Type:       pluginsdk.TypeSet,
-							Optional:   true,
-							Deprecated: "This property has been renamed to `connection_to_ips_not_allowed` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
-							},
-							ConflictsWith: []string{"allow_rule.0.connection_to_ips_not_allowed"},
-							AtLeastOneOf:  []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.process_not_allowed", "allow_rule.0.processes_not_allowed"},
+							AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
 						},
 
 						"connection_to_ips_not_allowed": {
@@ -86,19 +74,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
-							ConflictsWith: []string{"allow_rule.0.connection_to_ip_not_allowed"},
-							AtLeastOneOf:  []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.process_not_allowed", "allow_rule.0.processes_not_allowed"},
-						},
-
-						"local_user_not_allowed": {
-							Type:       pluginsdk.TypeSet,
-							Optional:   true,
-							Deprecated: "This property has been renamed to `local_users_not_allowed` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							ConflictsWith: []string{"allow_rule.0.local_users_not_allowed"},
-							AtLeastOneOf:  []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.process_not_allowed", "allow_rule.0.processes_not_allowed"},
+							AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
 						},
 
 						"local_users_not_allowed": {
@@ -107,19 +83,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
-							ConflictsWith: []string{"allow_rule.0.local_user_not_allowed"},
-							AtLeastOneOf:  []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.process_not_allowed", "allow_rule.0.processes_not_allowed"},
-						},
-
-						"process_not_allowed": {
-							Type:       pluginsdk.TypeSet,
-							Optional:   true,
-							Deprecated: "This property has been renamed to `processes_not_allowed` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							ConflictsWith: []string{"allow_rule.0.processes_not_allowed"},
-							AtLeastOneOf:  []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.process_not_allowed", "allow_rule.0.processes_not_allowed"},
+							AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
 						},
 
 						"processes_not_allowed": {
@@ -128,8 +92,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
-							ConflictsWith: []string{"allow_rule.0.process_not_allowed"},
-							AtLeastOneOf:  []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.process_not_allowed", "allow_rule.0.processes_not_allowed"},
+							AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
 						},
 					},
 				},
@@ -293,12 +256,6 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	}
 
 	var connectionToIPListNotAllowed *security.ConnectionToIPNotAllowed
-	if connectionToIPNotAllowed := v["connection_to_ip_not_allowed"].(*pluginsdk.Set).List(); len(connectionToIPNotAllowed) > 0 {
-		connectionToIPListNotAllowed = &security.ConnectionToIPNotAllowed{
-			AllowlistValues: utils.ExpandStringSlice(connectionToIPNotAllowed),
-			IsEnabled:       utils.Bool(true),
-		}
-	}
 	if connectionToIPsNotAllowed := v["connection_to_ips_not_allowed"].(*pluginsdk.Set).List(); len(connectionToIPsNotAllowed) > 0 {
 		connectionToIPListNotAllowed = &security.ConnectionToIPNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(connectionToIPsNotAllowed),
@@ -310,12 +267,6 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	}
 
 	var localUserListNotAllowed *security.LocalUserNotAllowed
-	if LocalUserNotAllowed := v["local_user_not_allowed"].(*pluginsdk.Set).List(); len(LocalUserNotAllowed) > 0 {
-		localUserListNotAllowed = &security.LocalUserNotAllowed{
-			AllowlistValues: utils.ExpandStringSlice(LocalUserNotAllowed),
-			IsEnabled:       utils.Bool(true),
-		}
-	}
 	if LocalUsersNotAllowed := v["local_users_not_allowed"].(*pluginsdk.Set).List(); len(LocalUsersNotAllowed) > 0 {
 		localUserListNotAllowed = &security.LocalUserNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(LocalUsersNotAllowed),
@@ -327,12 +278,6 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	}
 
 	var processListNotAllowed *security.ProcessNotAllowed
-	if processNotAllowed := v["process_not_allowed"].(*pluginsdk.Set).List(); len(processNotAllowed) > 0 {
-		processListNotAllowed = &security.ProcessNotAllowed{
-			AllowlistValues: utils.ExpandStringSlice(processNotAllowed),
-			IsEnabled:       utils.Bool(true),
-		}
-	}
 	if processesNotAllowed := v["processes_not_allowed"].(*pluginsdk.Set).List(); len(processesNotAllowed) > 0 {
 		processListNotAllowed = &security.ProcessNotAllowed{
 			AllowlistValues: utils.ExpandStringSlice(processesNotAllowed),
@@ -491,7 +436,7 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 	}
 
 	var flag bool
-	var connectionFromIPsNotAllowed, connectionToIPNotAllowed, connectionToIPsNotAllowed, localUserNotAllowed, localUsersNotAllowed, processNotAllowed, processesNotAllowed *[]string
+	var connectionFromIPsNotAllowed, connectionToIPsNotAllowed, localUsersNotAllowed, processesNotAllowed *[]string
 	for _, v := range *input {
 		switch v := v.(type) {
 		case security.ConnectionFromIPNotAllowed:
@@ -500,26 +445,17 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 				connectionFromIPsNotAllowed = v.AllowlistValues
 			}
 		case security.ConnectionToIPNotAllowed:
-			if v, ok := d.GetOk("allow_rule.0.connection_to_ip_not_allowed"); ok {
-				flag = true
-				connectionToIPNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
-			} else if v, ok := d.GetOk("allow_rule.0.connection_to_ips_not_allowed"); ok {
+			if v, ok := d.GetOk("allow_rule.0.connection_to_ips_not_allowed"); ok {
 				flag = true
 				connectionToIPsNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 			}
 		case security.LocalUserNotAllowed:
-			if v, ok := d.GetOk("allow_rule.0.local_user_not_allowed"); ok {
-				flag = true
-				localUserNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
-			} else if v, ok := d.GetOk("allow_rule.0.local_users_not_allowed"); ok {
+			if v, ok := d.GetOk("allow_rule.0.local_users_not_allowed"); ok {
 				flag = true
 				localUsersNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 			}
 		case security.ProcessNotAllowed:
-			if v, ok := d.GetOk("allow_rule.0.process_not_allowed"); ok {
-				flag = true
-				processNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
-			} else if v, ok := d.GetOk("allow_rule.0.processes_not_allowed"); ok {
+			if v, ok := d.GetOk("allow_rule.0.processes_not_allowed"); ok {
 				flag = true
 				processesNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 			}
@@ -531,11 +467,8 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 	return []interface{}{
 		map[string]interface{}{
 			"connection_from_ips_not_allowed": utils.FlattenStringSlice(connectionFromIPsNotAllowed),
-			"connection_to_ip_not_allowed":    utils.FlattenStringSlice(connectionToIPNotAllowed),
 			"connection_to_ips_not_allowed":   utils.FlattenStringSlice(connectionToIPsNotAllowed),
-			"local_user_not_allowed":          utils.FlattenStringSlice(localUserNotAllowed),
 			"local_users_not_allowed":         utils.FlattenStringSlice(localUsersNotAllowed),
-			"process_not_allowed":             utils.FlattenStringSlice(processNotAllowed),
 			"processes_not_allowed":           utils.FlattenStringSlice(processesNotAllowed),
 		},
 	}

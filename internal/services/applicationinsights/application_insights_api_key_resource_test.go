@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppInsightsAPIKey struct {
-}
+type AppInsightsAPIKey struct{}
 
 func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
@@ -25,7 +24,7 @@ func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basic(data, "[]", "[]"),
-			ExpectError: regexp.MustCompile("The API Key needs to have a Role"),
+			ExpectError: regexp.MustCompile("at least one read or write permission must be defined"),
 		},
 	})
 }

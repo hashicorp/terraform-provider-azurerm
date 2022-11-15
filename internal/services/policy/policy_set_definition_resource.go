@@ -10,10 +10,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,166 +42,137 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		Schema: resourcePolicySetDefinitionSchema(),
+	}
+}
 
-			"policy_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.BuiltIn),
-					string(policy.Custom),
-					string(policy.NotSpecified),
-					string(policy.Static),
-				}, false),
-			},
+func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-			"management_group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"management_group_name"},
-				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
-			},
+		"policy_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(policy.TypeBuiltIn),
+				string(policy.TypeCustom),
+				string(policy.TypeNotSpecified),
+				string(policy.TypeStatic),
+			}, false),
+		},
 
-			"management_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO -- remove this when deprecation resolves
-				ConflictsWith: []string{"management_group_id"},
-			},
+		"management_group_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 
-			"display_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-			"description": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"metadata": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
-			},
+		"metadata": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
+		},
 
-			"parameters": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			},
+		"parameters": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
 
-			"policy_definitions": { // TODO -- remove in the next major version
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: policyDefinitionsDiffSuppressFunc,
-				ExactlyOneOf:     []string{"policy_definitions", "policy_definition_reference"},
-				Deprecated:       "Deprecated in favour of `policy_definition_reference`",
-			},
+		//lintignore: S013
+		"policy_definition_reference": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"policy_definition_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.PolicyDefinitionID,
+					},
 
-			"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
-				Type:         pluginsdk.TypeList,
-				Optional:     true,                                                          // TODO -- change this to Required after the deprecation
-				Computed:     true,                                                          // TODO -- remove Computed after the deprecation
-				ExactlyOneOf: []string{"policy_definitions", "policy_definition_reference"}, // TODO -- remove after the deprecation
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"policy_definition_id": {
+					"parameter_values": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						ValidateFunc:     validation.StringIsJSON,
+						DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+					},
+
+					"reference_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+					},
+
+					"policy_group_names": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.PolicyDefinitionID,
-						},
-
-						"parameters": { // TODO -- remove this attribute after the deprecation
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Deprecated: "Deprecated in favour of `parameter_values`",
-						},
-
-						"parameter_values": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true, // TODO -- remove Computed after the deprecation
-							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-						},
-
-						"reference_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-
-						"policy_group_names": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
 			},
+		},
 
-			"policy_definition_group": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"policy_definition_group": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"display_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"display_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"category": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"category": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"description": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"additional_metadata_resource_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"additional_metadata_resource_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
-				Set: resourceARMPolicySetDefinitionPolicyDefinitionGroupHash,
 			},
+			Set: resourceARMPolicySetDefinitionPolicyDefinitionGroupHash,
 		},
 	}
 }
@@ -228,25 +200,6 @@ func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *plugins
 	return reflect.DeepEqual(oldPolicySetDefinitionsMetadata, newPolicySetDefinitionsMetadata)
 }
 
-// This function only serves the deprecated attribute `policy_definitions` in the old api-version.
-// The old api-version only support two attribute - `policy_definition_id` and `parameters` in each element.
-// Therefore this function is used for ignoring any other keys and then compare if there is a diff
-func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicyDefinitions []DefinitionReferenceInOldApiVersion
-	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitions)
-	if errOld != nil {
-		return false
-	}
-
-	var newPolicyDefinitions []DefinitionReferenceInOldApiVersion
-	errNew := json.Unmarshal([]byte(new), &newPolicyDefinitions)
-	if errNew != nil {
-		return false
-	}
-
-	return reflect.DeepEqual(oldPolicyDefinitions, newPolicyDefinitions)
-}
-
 type DefinitionReferenceInOldApiVersion struct {
 	// PolicyDefinitionID - The ID of the policy definition or policy set definition.
 	PolicyDefinitionID *string `json:"policyDefinitionId,omitempty"`
@@ -261,11 +214,12 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	managementGroupName := ""
-	if v, ok := d.GetOk("management_group_name"); ok {
-		managementGroupName = v.(string)
-	}
 	if v, ok := d.GetOk("management_group_id"); ok {
-		managementGroupName = v.(string)
+		managementGroupID, err := mgmtGrpParse.ManagementGroupID(v.(string))
+		if err != nil {
+			return err
+		}
+		managementGroupName = managementGroupID.Name
 	}
 
 	existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
@@ -301,14 +255,6 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		properties.Parameters = parameters
 	}
 
-	if v, ok := d.GetOk("policy_definitions"); ok {
-		var policyDefinitions []policy.DefinitionReference
-		err := json.Unmarshal([]byte(v.(string)), &policyDefinitions)
-		if err != nil {
-			return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
-		}
-		properties.PolicyDefinitions = &policyDefinitions
-	}
 	if v, ok := d.GetOk("policy_definition_reference"); ok {
 		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}))
 		if err != nil {
@@ -361,7 +307,12 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.PolicySetDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Set Definition %q: %+v", *resp.ID, err)
+	}
+
+	d.SetId(id.Id)
 
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
@@ -377,8 +328,10 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	managementGroupName := ""
+	var managementGroupId mgmtGrpParse.ManagementGroupId
 	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-		managementGroupName = scopeId.ManagementGroupName
+		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
+		managementGroupName = managementGroupId.Name
 	}
 
 	// retrieve
@@ -432,15 +385,6 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		existing.SetDefinitionProperties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(d.Get("policy_definition_group").(*pluginsdk.Set).List())
 	}
 
-	if d.HasChange("policy_definitions") {
-		var policyDefinitions []policy.DefinitionReference
-		err := json.Unmarshal([]byte(d.Get("policy_definitions").(string)), &policyDefinitions)
-		if err != nil {
-			return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
-		}
-		existing.SetDefinitionProperties.PolicyDefinitions = &policyDefinitions
-	}
-
 	if d.HasChange("policy_definition_reference") {
 		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d)
 		if err != nil {
@@ -465,7 +409,12 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", id.Name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err = parse.PolicySetDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("parsing Policy Set Definition %q: %+v", *resp.ID, err)
+	}
+
+	d.SetId(id.Id)
 
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
@@ -481,8 +430,11 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	managementGroupName := ""
-	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-		managementGroupName = scopeId.ManagementGroupName
+	var managementGroupId mgmtGrpParse.ManagementGroupId
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	case parse.ScopeAtManagementGroup:
+		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
+		managementGroupName = managementGroupId.Name
 	}
 
 	resp, err := getPolicySetDefinitionByName(ctx, client, id.Name, managementGroupName)
@@ -498,7 +450,9 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("name", resp.Name)
 	d.Set("management_group_id", managementGroupName)
-	d.Set("management_group_name", managementGroupName)
+	if managementGroupName != "" {
+		d.Set("management_group_id", managementGroupId.ID())
+	}
 
 	if props := resp.SetDefinitionProperties; props != nil {
 		d.Set("policy_type", string(props.PolicyType))
@@ -524,14 +478,6 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("parameters", parametersStr)
 		}
 
-		if policyDefinitions := props.PolicyDefinitions; policyDefinitions != nil {
-			policyDefinitionsRes, err := json.Marshal(policyDefinitions)
-			if err != nil {
-				return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
-			}
-
-			d.Set("policy_definitions", string(policyDefinitionsRes))
-		}
 		references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(props.PolicyDefinitions)
 		if err != nil {
 			return fmt.Errorf("flattening `policy_definition_reference`: %+v", err)
@@ -696,7 +642,6 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.Definiti
 
 		result = append(result, map[string]interface{}{
 			"policy_definition_id": policyDefinitionID,
-			"parameters":           parametersMap,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
 			"policy_group_names":   utils.FlattenStringSlice(definition.GroupNames),

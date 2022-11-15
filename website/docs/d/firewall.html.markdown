@@ -38,15 +38,15 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Azure Firewall exists.
 
-* `sku_name` - The sku name of the Azure Firewall.
+* `sku_name` - The SKU name of the Azure Firewall.
 
-* `sku_tier` - The sku tier of the Azure Firewall.
+* `sku_tier` - The SKU tier of the Azure Firewall.
 
 * `firewall_policy_id` - The ID of the Firewall Policy applied to the Azure Firewall.
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
-* `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
+* `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.
 
 * `management_ip_configuration` - A `management_ip_configuration` block as defined below, which allows force-tunnelling of traffic to be performed by the firewall.
 
@@ -54,7 +54,7 @@ The following attributes are exported:
 
 * `virtual_hub` - A `virtual_hub` block as defined below.
 
-* `zones` - The availability zones in which the Azure Firewall is created.
+* `zones` - A list of Availability Zones in which this Azure Firewall is located.
 
 * `tags` - A mapping of tags assigned to the Azure Firewall.
 
@@ -92,6 +92,6 @@ A `virtual_hub` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall.

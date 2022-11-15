@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementGroupUserResource struct {
-}
+type ApiManagementGroupUserResource struct{}
 
 func TestAccAzureRMApiManagementGroupUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group_user", "test")
@@ -47,18 +46,14 @@ func TestAccAzureRMApiManagementGroupUser_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementGroupUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.GroupUserID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	userId := id.Path["users"]
 
-	resp, err := clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
+	resp, err := clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Group User (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 	// the HEAD API not found returns resp 404, but no err
 	if utils.ResponseWasNotFound(resp) {

@@ -28,10 +28,7 @@ resource "azurerm_automation_account" "example" {
   name                = "account-example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
-  sku {
-    name = "Basic"
-  }
+  sku_name            = "Basic"
 }
 
 resource "azurerm_automation_connection" "example" {
@@ -63,11 +60,11 @@ The following arguments are supported:
 
 * `values` - (Optional) A mapping of key value pairs passed to the connection. Different `type` needs different parameters in the `values`. Builtin types have required field values as below:
 
-  - `Azure`: parameters `AutomationCertificateName` and `SubscriptionID`.
+  * `Azure`: parameters `AutomationCertificateName` and `SubscriptionID`.
 
-  - `AzureClassicCertificate`: parameters `SubscriptionName`, `SubscriptionId` and `CertificateAssetName`.
+  * `AzureClassicCertificate`: parameters `SubscriptionName`, `SubscriptionId` and `CertificateAssetName`.
 
-  - `AzureServicePrincipal`: parameters `ApplicationId`, `CertificateThumbprint`, `SubscriptionId` and `TenantId`.
+  * `AzureServicePrincipal`: parameters `ApplicationId`, `CertificateThumbprint`, `SubscriptionId` and `TenantId`.
 
 * `description` - (Optional) A description for this Connection.
 
@@ -79,7 +76,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Connection.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Connection.

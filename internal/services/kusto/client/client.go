@@ -1,22 +1,27 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AttachedDatabaseConfigurationsClient *kusto.AttachedDatabaseConfigurationsClient
 	ClustersClient                       *kusto.ClustersClient
+	ClusterManagedPrivateEndpointClient  *kusto.ManagedPrivateEndpointsClient
 	ClusterPrincipalAssignmentsClient    *kusto.ClusterPrincipalAssignmentsClient
 	DatabasesClient                      *kusto.DatabasesClient
 	DataConnectionsClient                *kusto.DataConnectionsClient
 	DatabasePrincipalAssignmentsClient   *kusto.DatabasePrincipalAssignmentsClient
+	ScriptsClient                        *kusto.ScriptsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	ClustersClient := kusto.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
+
+	ClusterManagedPrivateEndpointClient := kusto.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ClusterManagedPrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
 
 	ClusterPrincipalAssignmentsClient := kusto.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ClusterPrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
@@ -33,12 +38,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	AttachedDatabaseConfigurationsClient := kusto.NewAttachedDatabaseConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AttachedDatabaseConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
+	ScriptsClient := kusto.NewScriptsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ScriptsClient.Client, o.ResourceManagerAuthorizer)
 	return &Client{
 		AttachedDatabaseConfigurationsClient: &AttachedDatabaseConfigurationsClient,
 		ClustersClient:                       &ClustersClient,
+		ClusterManagedPrivateEndpointClient:  &ClusterManagedPrivateEndpointClient,
 		ClusterPrincipalAssignmentsClient:    &ClusterPrincipalAssignmentsClient,
 		DatabasesClient:                      &DatabasesClient,
 		DataConnectionsClient:                &DataConnectionsClient,
 		DatabasePrincipalAssignmentsClient:   &DatabasePrincipalAssignmentsClient,
+		ScriptsClient:                        &ScriptsClient,
 	}
 }

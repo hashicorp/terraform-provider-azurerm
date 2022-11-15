@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementSubscriptionResource struct {
-}
+type ApiManagementSubscriptionResource struct{}
 
 func TestAccApiManagementSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
@@ -249,6 +248,8 @@ resource "azurerm_api_management_subscription" "test" {
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "active"
   allow_tracing       = false
+  primary_key         = "30ef5fa1b7ca4fd6954f72ace392c7bd"
+  secondary_key       = "8bd3b2698814436398ee026388e1a6f6"
 }
 `, r.template(data))
 }

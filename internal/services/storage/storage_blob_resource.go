@@ -29,8 +29,10 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			0: migration.BlobV0ToV1{},
 		}),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := blobs.ParseResourceID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -95,6 +97,11 @@ func resourceStorageBlob() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "application/octet-stream",
+			},
+
+			"cache_control": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"source": {
@@ -199,6 +206,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Client:        blobsClient,
 
 		BlobType:      d.Get("type").(string),
+		CacheControl:  d.Get("cache_control").(string),
 		ContentType:   d.Get("content_type").(string),
 		ContentMD5:    contentMD5,
 		MetaData:      ExpandMetaData(metaDataRaw),
@@ -253,13 +261,14 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
-	if d.HasChange("content_type") {
+	if d.HasChange("content_type") || d.HasChange("cache_control") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
-		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
 		input := blobs.SetPropertiesInput{
-			ContentType: utils.String(d.Get("content_type").(string)),
+			ContentType:  utils.String(d.Get("content_type").(string)),
+			CacheControl: utils.String(d.Get("cache_control").(string)),
 		}
 
+		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
 		if contentMD5 := d.Get("content_md5").(string); contentMD5 != "" {
 			data, err := convertHexToBase64Encoding(contentMD5)
 			if err != nil {
@@ -334,6 +343,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+	d.Set("cache_control", props.CacheControl)
 
 	// Set the ContentMD5 value to md5 hash in hex
 	contentMD5 := ""

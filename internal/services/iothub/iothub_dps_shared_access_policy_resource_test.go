@@ -6,16 +6,15 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubDpsSharedAccessPolicyResource struct {
-}
+type IotHubDpsSharedAccessPolicyResource struct{}
 
 func TestAccIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
@@ -202,18 +201,15 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 }
 
 func (t IotHubDpsSharedAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DpsSharedAccessPolicyID(state.ID)
+	id, err := iotdpsresource.ParseKeyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	iothubDpsName := id.ProvisioningServiceName
-	keyName := id.KeyName
 
-	accessPolicy, err := clients.IoTHub.DPSResourceClient.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
+	accessPolicy, err := clients.IoTHub.DPSResourceClient.ListKeysForKeyName(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("loading Shared Access Policy (%s): %+v", id, err)
 	}
 
-	return utils.Bool(accessPolicy.PrimaryKey != nil), nil
+	return utils.Bool(accessPolicy.Model != nil && accessPolicy.Model.PrimaryKey != nil), nil
 }

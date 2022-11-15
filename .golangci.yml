@@ -1,8 +1,11 @@
 run:
-  timeout: 40m
+  timeout: 60m
+  go: 1.18
   modules-download-mode: vendor
   skip-dirs:
     - /sdk/ # Excluding sdk folders as these are externally generated
+  skip-files:
+    - ".*\\*_gen.go$"
 
 issues:
   max-per-linter: 0

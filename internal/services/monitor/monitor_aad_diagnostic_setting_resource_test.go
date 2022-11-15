@@ -13,10 +13,37 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorAADDiagnosticSettingResource struct {
+type MonitorAADDiagnosticSettingResource struct{}
+
+// NOTE: this is a combined test rather than separate split out tests due to
+// Azure only being happy about provisioning five per subscription at once and
+// there are existing resource in the test subscription hard to clear.
+// (which our test suite can't easily workaround)
+func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"eventhubDefault":       testAccMonitorAADDiagnosticSetting_eventhubDefault,
+			"eventhub":              testAccMonitorAADDiagnosticSetting_eventhub,
+			"requiresImport":        testAccMonitorAADDiagnosticSetting_requiresImport,
+			"logAnalyticsWorkspace": testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace,
+			"storageAccount":        testAccMonitorAADDiagnosticSetting_storageAccount,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
 }
 
-func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -30,7 +57,7 @@ func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -44,7 +71,7 @@ func TestAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
@@ -62,7 +89,7 @@ func TestAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
@@ -77,7 +104,7 @@ func TestAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
@@ -207,8 +234,30 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     enabled  = false
     retention_policy {}
   }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -305,8 +354,30 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       days    = 1
     }
   }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -322,6 +393,21 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
   log {
     category = "SignInLogs"
     enabled  = true
+    retention_policy {}
+  }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
     retention_policy {}
   }
 }
@@ -413,6 +499,29 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       days    = 1
     }
   }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "B2CRequestLogs"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -497,6 +606,29 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   }
   log {
     category = "UserRiskEvents"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "B2CRequestLogs"
     enabled  = true
     retention_policy {
       enabled = true

@@ -5,7 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 var natGatewayResourceName = "azurerm_nat_gateway"
@@ -35,88 +38,70 @@ func resourceNatGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.NatGatewayID(id)
+			return err
+		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NatGatewayName,
-			},
+		Schema: resourceNatGatewaySchema(),
+	}
+}
 
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"idle_timeout_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      4,
-				ValidateFunc: validation.IntBetween(4, 120),
-			},
-
-			"public_ip_address_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
-			},
-
-			"public_ip_prefix_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` resource. This field will be removed in the next major version of the Azure Provider.",
-			},
-
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(network.NatGatewaySkuNameStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.NatGatewaySkuNameStandard),
-				}, false),
-			},
-
-			"zones": azure.SchemaZones(),
-
-			"resource_guid": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": tags.Schema(),
+func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.NatGatewayName,
 		},
+
+		"location": commonschema.Location(),
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"idle_timeout_in_minutes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      4,
+			ValidateFunc: validation.IntBetween(4, 120),
+		},
+
+		"sku_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(network.NatGatewaySkuNameStandard),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.NatGatewaySkuNameStandard),
+			}, false),
+		},
+
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		"resource_guid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tags": tags.Schema(),
 	}
 }
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNatGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(name, natGatewayResourceName)
-	defer locks.UnlockByName(name, natGatewayResourceName)
+	locks.ByName(id.Name, natGatewayResourceName)
+	defer locks.UnlockByName(id.Name, natGatewayResourceName)
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for present of existing NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 	if resp.ID != nil && *resp.ID != "" {
@@ -125,42 +110,34 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	idleTimeoutInMinutes := d.Get("idle_timeout_in_minutes").(int)
-	publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
-	publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
-	zones := d.Get("zones").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.NatGateway{
 		Location: utils.String(location),
 		NatGatewayPropertiesFormat: &network.NatGatewayPropertiesFormat{
 			IdleTimeoutInMinutes: utils.Int32(int32(idleTimeoutInMinutes)),
-			PublicIPAddresses:    expandNetworkSubResourceID(publicIpAddressIds),
-			PublicIPPrefixes:     expandNetworkSubResourceID(publicIpPrefixIds),
 		},
 		Sku: &network.NatGatewaySku{
 			Name: network.NatGatewaySkuName(skuName),
 		},
-		Tags:  tags.Expand(t),
-		Zones: utils.ExpandStringSlice(zones),
+		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		parameters.Zones = &zones
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err = client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceNatGatewayRead(d, meta)
 }
@@ -181,13 +158,13 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("NAT Gateway %q (Resource Group %q) was not found!", id.Name, id.ResourceGroup)
+			return fmt.Errorf("%s was not found!", *id)
 		}
 
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if existing.NatGatewayPropertiesFormat == nil {
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 	props := *existing.NatGatewayPropertiesFormat
 
@@ -216,16 +193,6 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("public_ip_address_ids") {
-		publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
-		parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
-	}
-
-	if d.HasChange("public_ip_prefix_ids") {
-		publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
-		parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
-	}
-
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
 		parameters.Tags = tags.Expand(t)
@@ -233,10 +200,10 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("updating NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceNatGatewayRead(d, meta)
@@ -259,10 +226,10 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if sku := resp.Sku; sku != nil {
@@ -276,19 +243,9 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if props := resp.NatGatewayPropertiesFormat; props != nil {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		d.Set("resource_guid", props.ResourceGUID)
-
-		if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
-			return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
-		}
-
-		if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
-			return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
-		}
 	}
 
-	if err := d.Set("zones", utils.FlattenStringSlice(resp.Zones)); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
-	}
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

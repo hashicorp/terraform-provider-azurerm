@@ -75,7 +75,7 @@ func (r MsSqlServerSecurityAlertPolicyResource) basic(data acceptance.TestData) 
 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name        = azurerm_resource_group.test.name
-  server_name                = azurerm_sql_server.test.name
+  server_name                = azurerm_mssql_server.test.name
   state                      = "Enabled"
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
@@ -96,7 +96,7 @@ func (r MsSqlServerSecurityAlertPolicyResource) update(data acceptance.TestData)
 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name  = azurerm_resource_group.test.name
-  server_name          = azurerm_sql_server.test.name
+  server_name          = azurerm_mssql_server.test.name
   state                = "Enabled"
   email_account_admins = true
   retention_days       = 30
@@ -115,7 +115,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsqlserver%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type AutomationAccountId struct {
@@ -39,7 +39,7 @@ func (id AutomationAccountId) ID() string {
 
 // AutomationAccountID parses a AutomationAccount ID into an AutomationAccountId struct
 func AutomationAccountID(input string) (*AutomationAccountId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

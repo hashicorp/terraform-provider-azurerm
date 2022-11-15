@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/go-cty/cty/gocty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -132,6 +133,9 @@ func (d *ResourceData) HasChanges(keys ...string) bool {
 //
 // This function only works with root attribute keys.
 func (d *ResourceData) HasChangesExcept(keys ...string) bool {
+	if d == nil || d.diff == nil {
+		return false
+	}
 	for attr := range d.diff.Attributes {
 		rootAttr := strings.Split(attr, ".")[0]
 		var skipAttr bool
@@ -155,20 +159,16 @@ func (d *ResourceData) HasChangesExcept(keys ...string) bool {
 func (d *ResourceData) HasChange(key string) bool {
 	o, n := d.GetChange(key)
 
-	// If the type implements the Equal interface, then call that
-	// instead of just doing a reflect.DeepEqual. An example where this is
-	// needed is *Set
-	if eq, ok := o.(Equal); ok {
-		return !eq.Equal(n)
-	}
-
-	return !reflect.DeepEqual(o, n)
+	return !cmp.Equal(n, o)
 }
 
 // HasChangeExcept returns whether any keys outside the given key have been changed.
 //
 // This function only works with root attribute keys.
 func (d *ResourceData) HasChangeExcept(key string) bool {
+	if d == nil || d.diff == nil {
+		return false
+	}
 	for attr := range d.diff.Attributes {
 		rootAttr := strings.Split(attr, ".")[0]
 
@@ -528,7 +528,7 @@ func (d *ResourceData) getChange(
 func (d *ResourceData) get(addr []string, source getSource) getResult {
 	d.once.Do(d.init)
 
-	level := "set"
+	var level string
 	flags := source & ^getSourceLevelMask
 	exact := flags&getSourceExact != 0
 	source = source & getSourceLevelMask
@@ -579,4 +579,52 @@ func (d *ResourceData) GetProviderMeta(dst interface{}) error {
 		return nil
 	}
 	return gocty.FromCtyValue(d.providerMeta, &dst)
+}
+
+// GetRawConfig returns the cty.Value that Terraform sent the SDK for the
+// config. If no value was sent, or if a null value was sent, the value will be
+// a null value of the resource's type.
+//
+// GetRawConfig is considered experimental and advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceData) GetRawConfig() cty.Value {
+	if d.diff != nil && !d.diff.RawConfig.IsNull() {
+		return d.diff.RawConfig
+	}
+	if d.state != nil && !d.state.RawConfig.IsNull() {
+		return d.state.RawConfig
+	}
+	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// GetRawState returns the cty.Value that Terraform sent the SDK for the state.
+// If no value was sent, or if a null value was sent, the value will be a null
+// value of the resource's type.
+//
+// GetRawState is considered experimental and advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceData) GetRawState() cty.Value {
+	if d.diff != nil && !d.diff.RawState.IsNull() {
+		return d.diff.RawState
+	}
+	if d.state != nil && !d.state.RawState.IsNull() {
+		return d.state.RawState
+	}
+	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// GetRawPlan returns the cty.Value that Terraform sent the SDK for the plan.
+// If no value was sent, or if a null value was sent, the value will be a null
+// value of the resource's type.
+//
+// GetRawPlan is considered experimental and advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceData) GetRawPlan() cty.Value {
+	if d.diff != nil && !d.diff.RawPlan.IsNull() {
+		return d.diff.RawPlan
+	}
+	if d.state != nil && !d.state.RawPlan.IsNull() {
+		return d.state.RawPlan
+	}
+	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
 }

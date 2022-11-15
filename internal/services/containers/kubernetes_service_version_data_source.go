@@ -6,9 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -23,7 +25,7 @@ func dataSourceKubernetesServiceVersions() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"version_prefix": {
 				Type:     pluginsdk.TypeString,
@@ -52,17 +54,18 @@ func dataSourceKubernetesServiceVersions() *pluginsdk.Resource {
 
 func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	id := parse.NewServiceVersionID(subscriptionId, azure.NormalizeLocation(d.Get("location").(string)))
 
-	listResp, err := client.ListOrchestrators(ctx, location, "managedClusters")
+	listResp, err := client.ListOrchestrators(ctx, id.LocationName, "managedClusters")
 	if err != nil {
 		if utils.ResponseWasNotFound(listResp.Response) {
-			return fmt.Errorf("Error: No Kubernetes Service versions found for location %q", location)
+			return fmt.Errorf("Error: No Kubernetes Service versions found for location %q", id.LocationName)
 		}
-		return fmt.Errorf("retrieving Kubernetes Versions in %q: %+v", location, err)
+		return fmt.Errorf("retrieving Kubernetes Versions in %q: %+v", id.LocationName, err)
 	}
 
 	lv, err := version.NewVersion("0.0.0")
@@ -121,7 +124,7 @@ func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	d.SetId(*listResp.ID)
+	d.SetId(id.ID())
 	d.Set("versions", versions)
 	d.Set("latest_version", lv.Original())
 

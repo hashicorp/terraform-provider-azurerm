@@ -3,17 +3,21 @@ package signalr
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,180 +38,22 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ServiceV0ToV1{},
+		}),
+		SchemaVersion: 1,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := signalr.ParseSignalRID(id)
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
-			},
-
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"sku": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Free_F1",
-								"Standard_S1",
-							}, false),
-						},
-
-						"capacity": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
-						},
-					},
-				},
-			},
-
-			"features": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"flag": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(signalr.FeatureFlagsEnableConnectivityLogs),
-								string(signalr.FeatureFlagsEnableMessagingLogs),
-								string(signalr.FeatureFlagsServiceMode),
-							}, false),
-						},
-
-						"value": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"upstream_endpoint": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"category_pattern": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"event_pattern": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"hub_pattern": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"url_template": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: signalrValidate.UrlTemplate,
-						},
-					},
-				},
-			},
-
-			"cors": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"allowed_origins": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-					},
-				},
-			},
-
-			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"server_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_connection_string": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceArmSignalRServiceSchema(),
 	}
 }
 
 func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,26 +73,47 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	sku := d.Get("sku").([]interface{})
-	featureFlags := d.Get("features").(*pluginsdk.Set).List()
+	connectivityLogsEnabled := false
+	if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
+		connectivityLogsEnabled = v.(bool)
+	}
+	messagingLogsEnabled := false
+	if v, ok := d.GetOk("messaging_logs_enabled"); ok {
+		messagingLogsEnabled = v.(bool)
+	}
+	liveTraceEnabled := false
+	if v, ok := d.GetOk("live_trace_enabled"); ok {
+		liveTraceEnabled = v.(bool)
+	}
+	serviceMode := "Default"
+	if v, ok := d.GetOk("service_mode"); ok {
+		serviceMode = v.(string)
+	}
+
 	cors := d.Get("cors").([]interface{})
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
-	expandedFeatures := expandSignalRFeatures(featureFlags)
+	expandedFeatures := make([]signalr.SignalRFeature, 0)
+	expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
+	expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+	expandedFeatures = append(expandedFeatures, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
+	expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
-	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(expandedFeatures) {
+	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(&expandedFeatures) {
 		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
 	resourceType := signalr.SignalRResource{
 		Location: utils.String(location),
 		Properties: &signalr.SignalRProperties{
-			Cors:     expandSignalRCors(cors),
-			Features: expandedFeatures,
-			Upstream: expandUpstreamSettings(upstreamSettings),
+			Cors:                   expandSignalRCors(cors),
+			Features:               &expandedFeatures,
+			Upstream:               expandUpstreamSettings(upstreamSettings),
+			LiveTraceConfiguration: expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
 		},
 		Sku:  expandSignalRServiceSku(sku),
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, resourceType); err != nil {
@@ -258,7 +125,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -283,8 +150,8 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.SignalRName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
@@ -299,9 +166,28 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("public_port", props.PublicPort)
 			d.Set("server_port", props.ServerPort)
 
-			if err := d.Set("features", flattenSignalRFeatures(props.Features)); err != nil {
-				return fmt.Errorf("setting `features`: %+v", err)
+			connectivityLogsEnabled := false
+			messagingLogsEnabled := false
+			liveTraceEnabled := false
+			serviceMode := "Default"
+			for _, feature := range *props.Features {
+				if feature.Flag == signalr.FeatureFlagsEnableConnectivityLogs {
+					connectivityLogsEnabled = strings.EqualFold(feature.Value, "True")
+				}
+				if feature.Flag == signalr.FeatureFlagsEnableMessagingLogs {
+					messagingLogsEnabled = strings.EqualFold(feature.Value, "True")
+				}
+				if feature.Flag == "EnableLiveTrace" {
+					liveTraceEnabled = strings.EqualFold(feature.Value, "True")
+				}
+				if feature.Flag == signalr.FeatureFlagsServiceMode {
+					serviceMode = feature.Value
+				}
 			}
+			d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
+			d.Set("messaging_logs_enabled", messagingLogsEnabled)
+			d.Set("live_trace_enabled", liveTraceEnabled)
+			d.Set("service_mode", serviceMode)
 
 			if err := d.Set("cors", flattenSignalRCors(props.Cors)); err != nil {
 				return fmt.Errorf("setting `cors`: %+v", err)
@@ -311,7 +197,11 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `upstream_endpoint`: %+v", err)
 			}
 
-			if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			if err := d.Set("live_trace", flattenSignalRLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
 			}
 		}
@@ -328,7 +218,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -339,7 +229,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceType := signalr.SignalRResource{}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint") {
+	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -347,9 +237,44 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
-		if d.HasChange("features") {
-			featuresRaw := d.Get("features").(*pluginsdk.Set).List()
-			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
+		if d.HasChange("live_trace") {
+			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
+		}
+
+		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
+			features := make([]signalr.SignalRFeature, 0)
+			if d.HasChange("connectivity_logs_enabled") {
+				connectivityLogsEnabled := false
+				if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
+					connectivityLogsEnabled = v.(bool)
+				}
+				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
+			}
+
+			if d.HasChange("messaging_logs_enabled") {
+				messagingLogsEnabled := false
+				if v, ok := d.GetOk("messaging_logs_enabled"); ok {
+					messagingLogsEnabled = v.(bool)
+				}
+				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+			}
+
+			if d.HasChange("live_trace_enabled") {
+				liveTraceEnabled := false
+				if v, ok := d.GetOk("live_trace_enabled"); ok {
+					liveTraceEnabled = v.(bool)
+				}
+				features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
+			}
+
+			if d.HasChange("service_mode") {
+				serviceMode := "Default"
+				if v, ok := d.GetOk("service_mode"); ok {
+					serviceMode = v.(string)
+				}
+				features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
+			}
+			resourceType.Properties.Features = &features
 		}
 
 		if d.HasChange("upstream_endpoint") {
@@ -365,7 +290,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		resourceType.Tags = expandTags(tagsRaw)
+		resourceType.Tags = tags.Expand(tagsRaw)
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {
@@ -376,7 +301,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -414,35 +339,11 @@ func signalRIsInServerlessMode(features *[]signalr.SignalRFeature) bool {
 	return false
 }
 
-func expandSignalRFeatures(input []interface{}) *[]signalr.SignalRFeature {
-	features := make([]signalr.SignalRFeature, 0)
-	for _, featureValue := range input {
-		value := featureValue.(map[string]interface{})
-
-		feature := signalr.SignalRFeature{
-			Flag:  signalr.FeatureFlags(value["flag"].(string)),
-			Value: value["value"].(string),
-		}
-
-		features = append(features, feature)
+func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.SignalRFeature {
+	return signalr.SignalRFeature{
+		Flag:  featureFlag,
+		Value: value,
 	}
-
-	return &features
-}
-
-func flattenSignalRFeatures(features *[]signalr.SignalRFeature) []interface{} {
-	if features == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for _, feature := range *features {
-		result = append(result, map[string]interface{}{
-			"flag":  string(feature.Flag),
-			"value": feature.Value,
-		})
-	}
-	return result
 }
 
 func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
@@ -563,5 +464,307 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 			"capacity": capacity,
 			"name":     input.Name,
 		},
+	}
+}
+
+func expandSignalRLiveTraceConfig(input []interface{}) *signalr.LiveTraceConfiguration {
+	resourceCategories := make([]signalr.LiveTraceCategory, 0)
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	enabled := "false"
+	if v["enabled"].(bool) {
+		enabled = "true"
+	}
+
+	messageLogEnabled := "false"
+	if v["messaging_logs_enabled"].(bool) {
+		messageLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
+		Name:    utils.String("MessagingLogs"),
+		Enabled: utils.String(messageLogEnabled),
+	})
+
+	connectivityLogEnabled := "false"
+	if v["connectivity_logs_enabled"].(bool) {
+		connectivityLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
+		Name:    utils.String("ConnectivityLogs"),
+		Enabled: utils.String(connectivityLogEnabled),
+	})
+
+	httpLogEnabled := "false"
+	if v["http_request_logs_enabled"].(bool) {
+		httpLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, signalr.LiveTraceCategory{
+		Name:    utils.String("HttpRequestLogs"),
+		Enabled: utils.String(httpLogEnabled),
+	})
+
+	return &signalr.LiveTraceConfiguration{
+		Enabled:    &enabled,
+		Categories: &resourceCategories,
+	}
+}
+
+func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = strings.EqualFold(*input.Enabled, "true")
+	}
+
+	var (
+		messagingLogEnabled    bool
+		connectivityLogEnabled bool
+		httpLogsEnabled        bool
+	)
+
+	if input.Categories != nil {
+		for _, item := range *input.Categories {
+			name := ""
+			if item.Name != nil {
+				name = *item.Name
+			}
+
+			var cateEnabled string
+			if item.Enabled != nil {
+				cateEnabled = *item.Enabled
+			}
+
+			switch name {
+			case "MessagingLogs":
+				messagingLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "ConnectivityLogs":
+				connectivityLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "HttpRequestLogs":
+				httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
+			default:
+				continue
+			}
+		}
+	}
+	return []interface{}{map[string]interface{}{
+		"enabled":                   enabled,
+		"messaging_logs_enabled":    messagingLogEnabled,
+		"connectivity_logs_enabled": connectivityLogEnabled,
+		"http_request_logs_enabled": httpLogsEnabled,
+	}}
+}
+
+func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+
+		"location": commonschema.Location(),
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"sku": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Free_F1",
+							"Standard_S1",
+							"Premium_P1",
+						}, false),
+					},
+
+					"capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+					},
+				},
+			},
+		},
+
+		"connectivity_logs_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"messaging_logs_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"live_trace_enabled": {
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`live_trace_enabled` has been deprecated in favor of `live_trace` and will be removed in 4.0.",
+		},
+
+		"live_trace": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"connectivity_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+
+					"messaging_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+
+					"http_request_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+				},
+			},
+		},
+
+		"service_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "Default",
+			ValidateFunc: validation.StringInSlice([]string{
+				"Serverless",
+				"Classic",
+				"Default",
+			}, false),
+		},
+
+		"upstream_endpoint": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"category_pattern": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"event_pattern": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"hub_pattern": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"url_template": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: signalrValidate.UrlTemplate,
+					},
+				},
+			},
+		},
+
+		"cors": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"allowed_origins": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+
+		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"public_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"server_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"primary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"primary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }

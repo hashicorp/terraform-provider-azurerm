@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type HostnameBindingId struct {
@@ -42,7 +42,7 @@ func (id HostnameBindingId) ID() string {
 
 // HostnameBindingID parses a HostnameBinding ID into an HostnameBindingId struct
 func HostnameBindingID(input string) (*HostnameBindingId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

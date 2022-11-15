@@ -22,8 +22,12 @@ func resourceStorageShare() *pluginsdk.Resource {
 		Read:   resourceStorageShareRead,
 		Update: resourceStorageShareUpdate,
 		Delete: resourceStorageShareDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer:      pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.StorageShareDataPlaneID(id)
+			return err
+		}),
+
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ShareV0ToV1{},
@@ -53,8 +57,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 
 			"quota": {
 				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      5120,
+				Required:     true,
 				ValidateFunc: validation.IntBetween(1, 102400),
 			},
 
@@ -97,6 +100,17 @@ func resourceStorageShare() *pluginsdk.Resource {
 				},
 			},
 
+			"enabled_protocol": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(shares.SMB),
+					string(shares.NFS),
+				}, false),
+				Default: string(shares.SMB),
+			},
+
 			"resource_manager_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -105,6 +119,19 @@ func resourceStorageShare() *pluginsdk.Resource {
 			"url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"access_tier": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						string(shares.PremiumAccessTier),
+						string(shares.HotAccessTier),
+						string(shares.CoolAccessTier),
+						string(shares.TransactionOptimizedAccessTier),
+					}, false),
 			},
 		},
 	}
@@ -150,8 +177,14 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)
 	input := shares.CreateInput{
-		QuotaInGB: quota,
-		MetaData:  metaData,
+		QuotaInGB:       quota,
+		MetaData:        metaData,
+		EnabledProtocol: shares.ShareProtocol(d.Get("enabled_protocol").(string)),
+	}
+
+	if accessTier := d.Get("access_tier").(string); accessTier != "" {
+		tier := shares.AccessTier(accessTier)
+		input.AccessTier = &tier
 	}
 
 	if err := client.Create(ctx, account.ResourceGroup, accountName, shareName, input); err != nil {
@@ -205,6 +238,13 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("storage_account_name", id.AccountName)
 	d.Set("quota", props.QuotaGB)
 	d.Set("url", id.ID())
+	d.Set("enabled_protocol", string(props.EnabledProtocol))
+
+	accessTier := ""
+	if props.AccessTier != nil {
+		accessTier = string(*props.AccessTier)
+	}
+	d.Set("access_tier", accessTier)
 
 	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
 		return fmt.Errorf("flattening `acl`: %+v", err)
@@ -278,6 +318,17 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		log.Printf("[DEBUG] Updated the ACL's for File Share %q (Storage Account %q)", id.Name, id.AccountName)
+	}
+
+	if d.HasChange("access_tier") {
+		log.Printf("[DEBUG] Updating the Access Tier for File Share %q (Storage Account %q)", id.Name, id.AccountName)
+
+		tier := shares.AccessTier(d.Get("access_tier").(string))
+		if err := client.UpdateTier(ctx, account.ResourceGroup, id.AccountName, id.Name, tier); err != nil {
+			return fmt.Errorf("updating Access Tier for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated the Access Tier for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
 	return resourceStorageShareRead(d, meta)

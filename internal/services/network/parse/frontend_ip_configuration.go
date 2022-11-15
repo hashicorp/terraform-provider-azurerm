@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type FrontendIPConfigurationId struct {
@@ -42,7 +42,7 @@ func (id FrontendIPConfigurationId) ID() string {
 
 // FrontendIPConfigurationID parses a FrontendIPConfiguration ID into an FrontendIPConfigurationId struct
 func FrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

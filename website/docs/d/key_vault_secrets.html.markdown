@@ -18,8 +18,9 @@ data "azurerm_key_vault_secrets" "example" {
 }
 
 data "azurerm_key_vault_secret" "example" {
-  for_each = data.azurerm_key_vault_secrets.example.names
-  name     = each.key
+  for_each     = toset(data.azurerm_key_vault_secrets.example.names)
+  name         = each.key
+  key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 ```
@@ -41,6 +42,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Secret.

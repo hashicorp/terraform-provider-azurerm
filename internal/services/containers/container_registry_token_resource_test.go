@@ -90,7 +90,6 @@ func TestAccContainerRegistryToken_update(t *testing.T) {
 
 func (t ContainerRegistryTokenResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ContainerRegistryTokenID(state.ID)
-
 	if err != nil {
 		return nil, err
 	}

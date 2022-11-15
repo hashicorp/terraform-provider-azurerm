@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
@@ -49,7 +49,7 @@ func resourceRedisFirewallRule() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"start_ip": {
 				Type:     pluginsdk.TypeString,
@@ -105,8 +105,6 @@ func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.RediName, resourceId.Name, parameters); err != nil {
 		return fmt.Errorf("creating Firewall Rule %q (Redis Cache %q / Resource Group %q): %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup, err)
 	}
-
-	// TODO: confirm if we need to re-add the poller here
 
 	d.SetId(resourceId.ID())
 	return resourceRedisFirewallRuleRead(d, meta)

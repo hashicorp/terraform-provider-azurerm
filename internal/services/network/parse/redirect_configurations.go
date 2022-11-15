@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type RedirectConfigurationsId struct {
@@ -42,7 +42,7 @@ func (id RedirectConfigurationsId) ID() string {
 
 // RedirectConfigurationsID parses a RedirectConfigurations ID into an RedirectConfigurationsId struct
 func RedirectConfigurationsID(input string) (*RedirectConfigurationsId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

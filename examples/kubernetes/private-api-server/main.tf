@@ -29,22 +29,4 @@ resource "azurerm_kubernetes_cluster" "example" {
   }
 
   private_cluster_enabled = true
-
-  addon_profile {
-    aci_connector_linux {
-      enabled = false
-    }
-
-    azure_policy {
-      enabled = false
-    }
-
-    http_application_routing {
-      enabled = false
-    }
-
-    oms_agent {
-      enabled = false
-    }
-  }
 }

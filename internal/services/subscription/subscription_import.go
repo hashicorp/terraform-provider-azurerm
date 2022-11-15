@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +29,7 @@ func importSubscriptionByAlias() pluginsdk.ImporterFunc {
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed parsing Subscription details for import: %+v", err)
 		}
-		if subscription.State != subscriptions.Enabled {
+		if subscription.State != subscriptions.StateEnabled {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("cannot import a cancelled Subscription by Alias ID, please enable the subscription prior to import")
 		}
 		return []*pluginsdk.ResourceData{d}, nil

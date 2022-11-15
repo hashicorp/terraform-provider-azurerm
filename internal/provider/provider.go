@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -24,6 +23,67 @@ func AzureProvider() *schema.Provider {
 
 func TestAzureProvider() *schema.Provider {
 	return azureProvider(true)
+}
+
+func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
+	// ValidatePartnerID checks if partner_id is any of the following:
+	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
+	//  * a valid UUID prefixed with "pid-"
+	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
+
+	debugLog := func(f string, v ...interface{}) {
+		if os.Getenv("TF_LOG") == "" {
+			return
+		}
+
+		if os.Getenv("TF_ACC") != "" {
+			return
+		}
+
+		log.Printf(f, v...)
+	}
+
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if v == "" {
+		return nil, nil
+	}
+
+	// Check for pid=<guid>-partnercenter format
+	if strings.HasPrefix(v, "pid-") && strings.HasSuffix(v, "-partnercenter") {
+		g := strings.TrimPrefix(v, "pid-")
+		g = strings.TrimSuffix(g, "-partnercenter")
+
+		if _, err := validation.IsUUID(g, ""); err != nil {
+			return nil, []error{fmt.Errorf("expected %q to contain a valid UUID", v)}
+		}
+
+		debugLog("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
+		return nil, nil
+	}
+
+	// Check for pid=<guid> (without the -partnercenter suffix)
+	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
+		g := strings.TrimPrefix(v, "pid-")
+
+		if _, err := validation.IsUUID(g, ""); err != nil {
+			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
+		}
+
+		debugLog("[DEBUG] %q partner_id matches pid-<GUID>...", v)
+		return nil, nil
+	}
+
+	// Check for straight UUID
+	if _, err := validation.IsUUID(v, ""); err != nil {
+		return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
+	} else {
+		debugLog("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
+		return nil, nil
+	}
 }
 
 func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
@@ -134,7 +194,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china. Defaults to public.",
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public.",
 			},
 
 			"metadata_host": {
@@ -142,14 +202,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", ""),
 				Description: "The Hostname which should be used for the Azure Metadata Service.",
-			},
-
-			"metadata_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// TODO: remove in 3.0
-				Deprecated:  "use `metadata_host` instead",
-				Description: "Deprecated - replaced by `metadata_host`.",
 			},
 
 			// Client Certificate specific fields
@@ -175,6 +227,41 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
+			// OIDC specifc fields
+			"oidc_request_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, ""),
+				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
+			},
+			"oidc_request_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, ""),
+				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
+			},
+
+			"oidc_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN", ""),
+				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
+			},
+
+			"oidc_token_file_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN_FILE_PATH", ""),
+				Description: "The path to a file containing an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
+			},
+
+			"use_oidc": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
+				Description: "Allow OpenID Connect to be used for authentication",
+			},
+
 			// Managed Service Identity specific fields
 			"use_msi": {
 				Type:        schema.TypeBool,
@@ -193,7 +280,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+				ValidateFunc: validation.Any(ValidatePartnerID, validation.StringIsEmpty),
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
@@ -234,15 +321,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	if !features.ThreePointOh() {
-		p.Schema["skip_credentials_validation"] = &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
-			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
-		}
-	}
-
 	p.ConfigureContextFunc = providerConfigure(p)
 
 	return p
@@ -258,44 +336,45 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, diag.FromErr(fmt.Errorf("The provider only supports 3 auxiliary tenant IDs"))
+			return nil, diag.Errorf("The provider only supports 3 auxiliary tenant IDs")
 		}
 
 		metadataHost := d.Get("metadata_host").(string)
-		// TODO: remove in 3.0
-		// note: this is inline to avoid calling out deprecations for users not setting this
-		if v := d.Get("metadata_url").(string); v != "" {
-			metadataHost = v
-		} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
-			metadataHost = v
-		}
 
 		builder := &authentication.Builder{
-			SubscriptionID:     d.Get("subscription_id").(string),
-			ClientID:           d.Get("client_id").(string),
-			ClientSecret:       d.Get("client_secret").(string),
-			TenantID:           d.Get("tenant_id").(string),
-			AuxiliaryTenantIDs: auxTenants,
-			Environment:        d.Get("environment").(string),
-			MetadataHost:       metadataHost,
-			MsiEndpoint:        d.Get("msi_endpoint").(string),
-			ClientCertPassword: d.Get("client_certificate_password").(string),
-			ClientCertPath:     d.Get("client_certificate_path").(string),
+			SubscriptionID:      d.Get("subscription_id").(string),
+			ClientID:            d.Get("client_id").(string),
+			ClientSecret:        d.Get("client_secret").(string),
+			TenantID:            d.Get("tenant_id").(string),
+			AuxiliaryTenantIDs:  auxTenants,
+			Environment:         d.Get("environment").(string),
+			MetadataHost:        metadataHost,
+			MsiEndpoint:         d.Get("msi_endpoint").(string),
+			ClientCertPassword:  d.Get("client_certificate_password").(string),
+			ClientCertPath:      d.Get("client_certificate_path").(string),
+			IDTokenRequestToken: d.Get("oidc_request_token").(string),
+			IDTokenRequestURL:   d.Get("oidc_request_url").(string),
+			IDToken:             d.Get("oidc_token").(string),
+			IDTokenFilePath:     d.Get("oidc_token_file_path").(string),
 
 			// Feature Toggles
 			SupportsClientCertAuth:         true,
 			SupportsClientSecretAuth:       true,
+			SupportsOIDCAuth:               d.Get("use_oidc").(bool),
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
 			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
+
+			// Use MSAL
+			UseMicrosoftGraph: true,
 		}
 
 		config, err := builder.Build()
 		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf("building AzureRM Client: %s", err))
+			return nil, diag.Errorf("building AzureRM Client: %s", err)
 		}
 
 		terraformVersion := p.TerraformVersion
@@ -339,16 +418,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			// requests. This also lets us check if the provider credentials are correct.
 			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
-				return nil, diag.FromErr(fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+				return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-					"error: %s", err))
+					"error: %s", err)
 			}
 
 			availableResourceProviders := providerList.Values()
 			requiredResourceProviders := resourceproviders.Required()
 
 			if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
-				return nil, diag.FromErr(fmt.Errorf(resourceProviderRegistrationErrorFmt, err))
+				return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
 			}
 		}
 

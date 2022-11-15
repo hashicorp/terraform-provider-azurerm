@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type IntegrationAccountMapId struct {
@@ -42,7 +42,7 @@ func (id IntegrationAccountMapId) ID() string {
 
 // IntegrationAccountMapID parses a IntegrationAccountMap ID into an IntegrationAccountMapId struct
 func IntegrationAccountMapID(input string) (*IntegrationAccountMapId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ package streamanalytics
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -43,7 +43,7 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(streamanalytics.UTF8),
+						string(streamanalytics.EncodingUTF8),
 					}, false),
 				},
 
@@ -51,8 +51,8 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(streamanalytics.Array),
-						string(streamanalytics.LineSeparated),
+						string(streamanalytics.JSONOutputSerializationFormatArray),
+						string(streamanalytics.JSONOutputSerializationFormatLineSeparated),
 					}, false),
 				},
 			},
@@ -63,7 +63,7 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
 	v := input[0].(map[string]interface{})
 
-	outputType := streamanalytics.TypeBasicSerialization(v["type"].(string))
+	outputType := streamanalytics.Type(v["type"].(string))
 	encoding := v["encoding"].(string)
 	fieldDelimiter := v["field_delimiter"].(string)
 	format := v["format"].(string)

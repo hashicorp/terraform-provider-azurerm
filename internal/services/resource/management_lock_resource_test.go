@@ -9,13 +9,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azureResource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagementLockResource struct {
-}
+type ManagementLockResource struct{}
 
 func TestAccManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
@@ -163,7 +162,7 @@ func TestAccManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 }
 
 func (t ManagementLockResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azureResource.ParseAzureRMLockId(state.ID)
+	id, err := parse.ParseManagementLockID(state.ID)
 	if err != nil {
 		return nil, err
 	}

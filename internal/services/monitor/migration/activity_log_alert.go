@@ -2,11 +2,9 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,28 +24,15 @@ func (ActivityLogAlertUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts/alert1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/activityLogAlerts/alert1
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldId := rawState["id"].(string)
+		id, err := parse.ActivityLogAlertIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		alertName := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "activityLogAlerts") {
-				alertName = value
-				break
-			}
-		}
-
-		if alertName == "" {
-			return rawState, fmt.Errorf("couldn't find the `activityLogAlerts` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewActivityLogAlertID(oldId.SubscriptionID, oldId.ResourceGroup, alertName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}
@@ -60,7 +45,7 @@ func activityLogAlertSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"scopes": {
 			Type:     pluginsdk.TypeSet,

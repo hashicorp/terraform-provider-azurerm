@@ -10,19 +10,19 @@ package logic
 type AgreementType string
 
 const (
-	// AS2 ...
-	AS2 AgreementType = "AS2"
-	// Edifact ...
-	Edifact AgreementType = "Edifact"
-	// NotSpecified ...
-	NotSpecified AgreementType = "NotSpecified"
-	// X12 ...
-	X12 AgreementType = "X12"
+	// AgreementTypeAS2 ...
+	AgreementTypeAS2 AgreementType = "AS2"
+	// AgreementTypeEdifact ...
+	AgreementTypeEdifact AgreementType = "Edifact"
+	// AgreementTypeNotSpecified ...
+	AgreementTypeNotSpecified AgreementType = "NotSpecified"
+	// AgreementTypeX12 ...
+	AgreementTypeX12 AgreementType = "X12"
 )
 
 // PossibleAgreementTypeValues returns an array of possible values for the AgreementType const type.
 func PossibleAgreementTypeValues() []AgreementType {
-	return []AgreementType{AS2, Edifact, NotSpecified, X12}
+	return []AgreementType{AgreementTypeAS2, AgreementTypeEdifact, AgreementTypeNotSpecified, AgreementTypeX12}
 }
 
 // APIDeploymentParameterVisibility enumerates the values for api deployment parameter visibility.
@@ -82,44 +82,44 @@ func PossibleAPITypeValues() []APIType {
 type AzureAsyncOperationState string
 
 const (
-	// Canceled ...
-	Canceled AzureAsyncOperationState = "Canceled"
-	// Failed ...
-	Failed AzureAsyncOperationState = "Failed"
-	// Pending ...
-	Pending AzureAsyncOperationState = "Pending"
-	// Succeeded ...
-	Succeeded AzureAsyncOperationState = "Succeeded"
+	// AzureAsyncOperationStateCanceled ...
+	AzureAsyncOperationStateCanceled AzureAsyncOperationState = "Canceled"
+	// AzureAsyncOperationStateFailed ...
+	AzureAsyncOperationStateFailed AzureAsyncOperationState = "Failed"
+	// AzureAsyncOperationStatePending ...
+	AzureAsyncOperationStatePending AzureAsyncOperationState = "Pending"
+	// AzureAsyncOperationStateSucceeded ...
+	AzureAsyncOperationStateSucceeded AzureAsyncOperationState = "Succeeded"
 )
 
 // PossibleAzureAsyncOperationStateValues returns an array of possible values for the AzureAsyncOperationState const type.
 func PossibleAzureAsyncOperationStateValues() []AzureAsyncOperationState {
-	return []AzureAsyncOperationState{Canceled, Failed, Pending, Succeeded}
+	return []AzureAsyncOperationState{AzureAsyncOperationStateCanceled, AzureAsyncOperationStateFailed, AzureAsyncOperationStatePending, AzureAsyncOperationStateSucceeded}
 }
 
 // DayOfWeek enumerates the values for day of week.
 type DayOfWeek string
 
 const (
-	// Friday ...
-	Friday DayOfWeek = "Friday"
-	// Monday ...
-	Monday DayOfWeek = "Monday"
-	// Saturday ...
-	Saturday DayOfWeek = "Saturday"
-	// Sunday ...
-	Sunday DayOfWeek = "Sunday"
-	// Thursday ...
-	Thursday DayOfWeek = "Thursday"
-	// Tuesday ...
-	Tuesday DayOfWeek = "Tuesday"
-	// Wednesday ...
-	Wednesday DayOfWeek = "Wednesday"
+	// DayOfWeekFriday ...
+	DayOfWeekFriday DayOfWeek = "Friday"
+	// DayOfWeekMonday ...
+	DayOfWeekMonday DayOfWeek = "Monday"
+	// DayOfWeekSaturday ...
+	DayOfWeekSaturday DayOfWeek = "Saturday"
+	// DayOfWeekSunday ...
+	DayOfWeekSunday DayOfWeek = "Sunday"
+	// DayOfWeekThursday ...
+	DayOfWeekThursday DayOfWeek = "Thursday"
+	// DayOfWeekTuesday ...
+	DayOfWeekTuesday DayOfWeek = "Tuesday"
+	// DayOfWeekWednesday ...
+	DayOfWeekWednesday DayOfWeek = "Wednesday"
 )
 
 // PossibleDayOfWeekValues returns an array of possible values for the DayOfWeek const type.
 func PossibleDayOfWeekValues() []DayOfWeek {
-	return []DayOfWeek{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
+	return []DayOfWeek{DayOfWeekFriday, DayOfWeekMonday, DayOfWeekSaturday, DayOfWeekSunday, DayOfWeekThursday, DayOfWeekTuesday, DayOfWeekWednesday}
 }
 
 // DaysOfWeek enumerates the values for days of week.
@@ -253,23 +253,23 @@ func PossibleErrorResponseCodeValues() []ErrorResponseCode {
 type EventLevel string
 
 const (
-	// Critical ...
-	Critical EventLevel = "Critical"
-	// Error ...
-	Error EventLevel = "Error"
-	// Informational ...
-	Informational EventLevel = "Informational"
-	// LogAlways ...
-	LogAlways EventLevel = "LogAlways"
-	// Verbose ...
-	Verbose EventLevel = "Verbose"
-	// Warning ...
-	Warning EventLevel = "Warning"
+	// EventLevelCritical ...
+	EventLevelCritical EventLevel = "Critical"
+	// EventLevelError ...
+	EventLevelError EventLevel = "Error"
+	// EventLevelInformational ...
+	EventLevelInformational EventLevel = "Informational"
+	// EventLevelLogAlways ...
+	EventLevelLogAlways EventLevel = "LogAlways"
+	// EventLevelVerbose ...
+	EventLevelVerbose EventLevel = "Verbose"
+	// EventLevelWarning ...
+	EventLevelWarning EventLevel = "Warning"
 )
 
 // PossibleEventLevelValues returns an array of possible values for the EventLevel const type.
 func PossibleEventLevelValues() []EventLevel {
-	return []EventLevel{Critical, Error, Informational, LogAlways, Verbose, Warning}
+	return []EventLevel{EventLevelCritical, EventLevelError, EventLevelInformational, EventLevelLogAlways, EventLevelVerbose, EventLevelWarning}
 }
 
 // HashingAlgorithm enumerates the values for hashing algorithm.
@@ -432,17 +432,17 @@ func PossibleIntegrationServiceEnvironmentSkuNameValues() []IntegrationServiceEn
 type IntegrationServiceEnvironmentSkuScaleType string
 
 const (
-	// Automatic ...
-	Automatic IntegrationServiceEnvironmentSkuScaleType = "Automatic"
-	// Manual ...
-	Manual IntegrationServiceEnvironmentSkuScaleType = "Manual"
-	// None ...
-	None IntegrationServiceEnvironmentSkuScaleType = "None"
+	// IntegrationServiceEnvironmentSkuScaleTypeAutomatic ...
+	IntegrationServiceEnvironmentSkuScaleTypeAutomatic IntegrationServiceEnvironmentSkuScaleType = "Automatic"
+	// IntegrationServiceEnvironmentSkuScaleTypeManual ...
+	IntegrationServiceEnvironmentSkuScaleTypeManual IntegrationServiceEnvironmentSkuScaleType = "Manual"
+	// IntegrationServiceEnvironmentSkuScaleTypeNone ...
+	IntegrationServiceEnvironmentSkuScaleTypeNone IntegrationServiceEnvironmentSkuScaleType = "None"
 )
 
 // PossibleIntegrationServiceEnvironmentSkuScaleTypeValues returns an array of possible values for the IntegrationServiceEnvironmentSkuScaleType const type.
 func PossibleIntegrationServiceEnvironmentSkuScaleTypeValues() []IntegrationServiceEnvironmentSkuScaleType {
-	return []IntegrationServiceEnvironmentSkuScaleType{Automatic, Manual, None}
+	return []IntegrationServiceEnvironmentSkuScaleType{IntegrationServiceEnvironmentSkuScaleTypeAutomatic, IntegrationServiceEnvironmentSkuScaleTypeManual, IntegrationServiceEnvironmentSkuScaleTypeNone}
 }
 
 // KeyType enumerates the values for key type.
@@ -460,6 +460,23 @@ const (
 // PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
 func PossibleKeyTypeValues() []KeyType {
 	return []KeyType{KeyTypeNotSpecified, KeyTypePrimary, KeyTypeSecondary}
+}
+
+// ManagedServiceIdentityType enumerates the values for managed service identity type.
+type ManagedServiceIdentityType string
+
+const (
+	// ManagedServiceIdentityTypeNone ...
+	ManagedServiceIdentityTypeNone ManagedServiceIdentityType = "None"
+	// ManagedServiceIdentityTypeSystemAssigned ...
+	ManagedServiceIdentityTypeSystemAssigned ManagedServiceIdentityType = "SystemAssigned"
+	// ManagedServiceIdentityTypeUserAssigned ...
+	ManagedServiceIdentityTypeUserAssigned ManagedServiceIdentityType = "UserAssigned"
+)
+
+// PossibleManagedServiceIdentityTypeValues returns an array of possible values for the ManagedServiceIdentityType const type.
+func PossibleManagedServiceIdentityTypeValues() []ManagedServiceIdentityType {
+	return []ManagedServiceIdentityType{ManagedServiceIdentityTypeNone, ManagedServiceIdentityTypeSystemAssigned, ManagedServiceIdentityTypeUserAssigned}
 }
 
 // MapType enumerates the values for map type.
@@ -504,13 +521,13 @@ func PossibleMessageFilterTypeValues() []MessageFilterType {
 type OpenAuthenticationProviderType string
 
 const (
-	// AAD ...
-	AAD OpenAuthenticationProviderType = "AAD"
+	// OpenAuthenticationProviderTypeAAD ...
+	OpenAuthenticationProviderTypeAAD OpenAuthenticationProviderType = "AAD"
 )
 
 // PossibleOpenAuthenticationProviderTypeValues returns an array of possible values for the OpenAuthenticationProviderType const type.
 func PossibleOpenAuthenticationProviderTypeValues() []OpenAuthenticationProviderType {
-	return []OpenAuthenticationProviderType{AAD}
+	return []OpenAuthenticationProviderType{OpenAuthenticationProviderTypeAAD}
 }
 
 // ParameterType enumerates the values for parameter type.
@@ -687,27 +704,27 @@ func PossibleStatusAnnotationValues() []StatusAnnotation {
 type SwaggerSchemaType string
 
 const (
-	// Array ...
-	Array SwaggerSchemaType = "Array"
-	// Boolean ...
-	Boolean SwaggerSchemaType = "Boolean"
-	// File ...
-	File SwaggerSchemaType = "File"
-	// Integer ...
-	Integer SwaggerSchemaType = "Integer"
-	// Null ...
-	Null SwaggerSchemaType = "Null"
-	// Number ...
-	Number SwaggerSchemaType = "Number"
-	// Object ...
-	Object SwaggerSchemaType = "Object"
-	// String ...
-	String SwaggerSchemaType = "String"
+	// SwaggerSchemaTypeArray ...
+	SwaggerSchemaTypeArray SwaggerSchemaType = "Array"
+	// SwaggerSchemaTypeBoolean ...
+	SwaggerSchemaTypeBoolean SwaggerSchemaType = "Boolean"
+	// SwaggerSchemaTypeFile ...
+	SwaggerSchemaTypeFile SwaggerSchemaType = "File"
+	// SwaggerSchemaTypeInteger ...
+	SwaggerSchemaTypeInteger SwaggerSchemaType = "Integer"
+	// SwaggerSchemaTypeNull ...
+	SwaggerSchemaTypeNull SwaggerSchemaType = "Null"
+	// SwaggerSchemaTypeNumber ...
+	SwaggerSchemaTypeNumber SwaggerSchemaType = "Number"
+	// SwaggerSchemaTypeObject ...
+	SwaggerSchemaTypeObject SwaggerSchemaType = "Object"
+	// SwaggerSchemaTypeString ...
+	SwaggerSchemaTypeString SwaggerSchemaType = "String"
 )
 
 // PossibleSwaggerSchemaTypeValues returns an array of possible values for the SwaggerSchemaType const type.
 func PossibleSwaggerSchemaTypeValues() []SwaggerSchemaType {
-	return []SwaggerSchemaType{Array, Boolean, File, Integer, Null, Number, Object, String}
+	return []SwaggerSchemaType{SwaggerSchemaTypeArray, SwaggerSchemaTypeBoolean, SwaggerSchemaTypeFile, SwaggerSchemaTypeInteger, SwaggerSchemaTypeNull, SwaggerSchemaTypeNumber, SwaggerSchemaTypeObject, SwaggerSchemaTypeString}
 }
 
 // TrackEventsOperationOptions enumerates the values for track events operation options.

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -49,9 +50,9 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *pluginsdk.Resource {
 				),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -112,12 +113,12 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *pluginsdk.Resource {
 
 func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	id := parse.NewEnvironmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 	sku, err := expandEnvironmentSkuName(d.Get("sku_name").(string))
 	if err != nil {
@@ -125,17 +126,17 @@ func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *pluginsdk.R
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IoT Time Series Insights Standard Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
 		if existing.Value != nil {
 			environment, ok := existing.Value.AsGen1EnvironmentResource()
 			if !ok {
-				return fmt.Errorf("exisiting resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
+				return fmt.Errorf("exisiting resource was not a %s", id)
 			}
 
 			if environment.ID != nil && *environment.ID != "" {
@@ -163,30 +164,16 @@ func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *pluginsdk.R
 		environment.Gen1EnvironmentCreationProperties.PartitionKeyProperties = &partition
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, environment)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, environment)
 	if err != nil {
-		return fmt.Errorf("creating/updating IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, ok := resp.Value.AsGen1EnvironmentResource()
-	if !ok {
-		return fmt.Errorf("resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("cannot read IoT Time Series Insights Standard Environment %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d, meta)
 }

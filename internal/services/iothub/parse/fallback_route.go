@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type FallbackRouteId struct {
@@ -42,7 +42,7 @@ func (id FallbackRouteId) ID() string {
 
 // FallbackRouteID parses a FallbackRoute ID into an FallbackRouteId struct
 func FallbackRouteID(input string) (*FallbackRouteId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

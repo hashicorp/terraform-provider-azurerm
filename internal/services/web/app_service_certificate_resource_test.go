@@ -141,7 +141,6 @@ resource "azurerm_key_vault" "test" {
   name                = "acct%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  soft_delete_enabled = true
 
   tenant_id = data.azurerm_client_config.test.tenant_id
 
@@ -152,18 +151,18 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.test.object_id
 
     secret_permissions = [
-      "delete",
-      "get",
-      "purge",
-      "set",
+      "Delete",
+      "Get",
+      "Purge",
+      "Set",
     ]
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "import",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Import",
     ]
   }
 
@@ -172,11 +171,11 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.test.object_id
 
     secret_permissions = [
-      "get",
+      "Get",
     ]
 
     certificate_permissions = [
-      "get",
+      "Get",
     ]
   }
 }

@@ -13,6 +13,8 @@ Manages an AzureNetwork DDoS Protection Plan.
 
 -> **NOTE** Azure only allows `one` DDoS Protection Plan per region.
 
+~> **NOTE** The DDoS Protection Plan is a [high-cost service](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/#pricing). Please keep this in mind while testing and learning.
+
 ## Example Usage
 
 ```hcl
@@ -46,11 +48,11 @@ The following attributes are exported:
 
 * `id` - The ID of the DDoS Protection Plan
 
-* `virtual_network_ids` - A list of Virtual Network ID's associated with the DDoS Protection Plan.
+* `virtual_network_ids` - A list of Virtual Network IDs associated with the DDoS Protection Plan.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DDoS Protection Plan.
 * `update` - (Defaults to 30 minutes) Used when updating the DDoS Protection Plan.

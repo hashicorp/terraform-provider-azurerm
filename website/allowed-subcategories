@@ -1,3 +1,4 @@
+AAD B2C
 API Management
 Active Directory Domain Services
 Advisor
@@ -18,25 +19,31 @@ CDN
 Cognitive Services
 Communication
 Compute
+Confidential Ledger
+Connections
 Consumption
 Container
+Containers
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
 DNS
+Dashboard
 Data Explorer
 Data Factory
-Data Lake
 Data Share
 DataProtection
 Database
 Database Migration
 Databox Edge
 Databricks
+Datadog
 Desktop Virtualization
 Dev Test
-DevSpace
 Digital Twins
+Disks
+Elastic
+Fluid Relay
 HDInsight
 Hardware Security Module
 Healthcare
@@ -45,8 +52,10 @@ IoT Hub
 Key Vault
 Lighthouse
 Load Balancer
+Load Test
 Log Analytics
 Logic App
+Logz
 Machine Learning
 Maintenance
 Managed Applications
@@ -58,10 +67,13 @@ Mixed Reality
 Monitor
 NetApp
 Network
+Nginx
+Orbital
 Policy
 Portal
 PowerBI
 Private DNS
+Private DNS Resolver
 Purview
 Recovery Services
 Redis
@@ -70,7 +82,7 @@ Search
 Security Center
 Sentinel
 Service Fabric
-Service Fabric Mesh
+Service Fabric Managed Clusters
 Spring Cloud
 Storage
 Stream Analytics
@@ -79,3 +91,4 @@ Template
 Time Series Insights
 VMware (AVS)
 Video Analyzer
+Web PubSub

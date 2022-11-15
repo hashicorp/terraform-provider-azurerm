@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ImageResource struct {
-}
+type ImageResource struct{}
 
 func TestAccImage_standaloneImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
@@ -59,30 +58,6 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 			Config: r.standaloneImageProvision(data, "LRS", "V2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccImage_standaloneImageZoneRedundant(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_image", "test")
-	r := ImageResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// need to create a vm and then reference it in the image creation
-			Config:  r.setupUnmanagedDisks(data, "ZRS"),
-			Destroy: false,
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
-			),
-		},
-		{
-			Config: r.standaloneImageProvision(data, "ZRS", ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That("azurerm_image.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -280,7 +255,8 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 		}
 
 		log.Printf("[DEBUG] Deallocating VM..")
-		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name)
+		// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
+		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 		if err != nil {
 			return fmt.Errorf("Bad: deallocating vm: %+v", err)
 		}
@@ -322,7 +298,8 @@ func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *c
 		return err
 	}
 
-	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s does not exist", *id)
@@ -363,6 +340,8 @@ resource "azurerm_virtual_machine" "testsource" {
   network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -398,7 +377,14 @@ func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData, storageType
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults       = false
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
+    }
+  }
 }
 
 %s
@@ -422,7 +408,8 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "%s"
-  allow_blob_public_access = true
+
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -438,6 +425,8 @@ resource "azurerm_virtual_machine" "testsource" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -575,6 +564,8 @@ resource "azurerm_virtual_machine" "testdestination" {
   network_interface_ids = [azurerm_network_interface.testdestination.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     id = azurerm_image.testdestination.id
   }
@@ -638,6 +629,8 @@ resource "azurerm_virtual_machine" "testdestination" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testdestination.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     id = azurerm_image.testdestination.id
@@ -760,7 +753,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {

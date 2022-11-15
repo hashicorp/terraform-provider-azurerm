@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type FrontendEndpointId struct {
@@ -42,7 +42,7 @@ func (id FrontendEndpointId) ID() string {
 
 // FrontendEndpointID parses a FrontendEndpoint ID into an FrontendEndpointId struct
 func FrontendEndpointID(input string) (*FrontendEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func FrontendEndpointID(input string) (*FrontendEndpointId, error) {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func FrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

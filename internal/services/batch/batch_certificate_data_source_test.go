@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type BatchCertificateDataSource struct {
-}
+type BatchCertificateDataSource struct{}
 
 func TestAccBatchCertificateDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_certificate", "test")

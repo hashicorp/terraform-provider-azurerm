@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorLogProfileResource struct {
-}
+type MonitorLogProfileResource struct{}
 
 // NOTE: this is a combined test rather than separate split out tests due to
 // Azure only being happy about provisioning one per subscription at once
@@ -228,9 +227,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "acctestsbrule-%s"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestsbrule-%s"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   listen = true
   send   = true

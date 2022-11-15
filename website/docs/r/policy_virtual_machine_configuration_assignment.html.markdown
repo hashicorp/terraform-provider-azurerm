@@ -79,7 +79,7 @@ resource "azurerm_virtual_machine_extension" "example" {
   virtual_machine_id         = azurerm_windows_virtual_machine.example.id
   publisher                  = "Microsoft.GuestConfiguration"
   type                       = "ConfigurationforWindows"
-  type_handler_version       = "1.0"
+  type_handler_version       = "1.29"
   auto_upgrade_minor_version = "true"
 }
 
@@ -132,9 +132,6 @@ The following arguments are supported:
 
 A `configuration` block supports the following:
 
-[comment]: # (TODO: Remove in 3.0)
-* `name` - (Deprecated) This field is no longer used and will be removed in the next major version of the Azure Provider.
-
 * `assignment_type` - (Optional) The assignment type for the Guest Configuration Assignment. Possible values are `Audit`, `ApplyAndAutoCorrect`, `ApplyAndMonitor` and `DeployAndAutoCorrect`.
 
 * `content_hash` - (Optional) The content hash for the Guest Configuration package.
@@ -157,14 +154,13 @@ A `parameter` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Policy Virtual Machine Configuration Assignment.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Virtual Machine Configuration Assignment.
 * `update` - (Defaults to 30 minutes) Used when updating the Policy Virtual Machine Configuration Assignment.

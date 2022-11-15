@@ -5,8 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,9 +21,10 @@ func resourceMariaDbConfiguration() *pluginsdk.Resource {
 		Create: resourceMariaDbConfigurationCreateUpdate,
 		Read:   resourceMariaDbConfigurationRead,
 		Delete: resourceMariaDbConfigurationDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := configurations.ParseConfigurationID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -39,7 +41,7 @@ func resourceMariaDbConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"server_name": {
 				Type:         pluginsdk.TypeString,
@@ -59,40 +61,24 @@ func resourceMariaDbConfiguration() *pluginsdk.Resource {
 
 func resourceMariaDbConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MariaDb Configuration creation.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
+	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	value := d.Get("value").(string)
 
-	properties := mariadb.Configuration{
-		ConfigurationProperties: &mariadb.ConfigurationProperties{
+	properties := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
 			Value: utils.String(value),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
-	if err != nil {
-		return fmt.Errorf("issuing create/update request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("issuing get request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read MariaDb Configuration %s (resource group %s, server name %s) ID", name, resourceGroup, serverName)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMariaDbConfigurationRead(d, meta)
 }
@@ -102,29 +88,35 @@ func resourceMariaDbConfigurationRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDb Configuration %q was not found (resource group %q)", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[WARN] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("server_name", serverName)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("value", resp.ConfigurationProperties.Value)
+	d.Set("name", id.ConfigurationName)
+	d.Set("server_name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			value := ""
+			if v := props.Value; v != nil {
+				value = *v
+			}
+			d.Set("value", value)
+		}
+	}
 
 	return nil
 }
@@ -134,31 +126,37 @@ func resourceMariaDbConfigurationDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
 
 	// "delete" = resetting this to the default value
-	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	properties := mariadb.Configuration{
-		ConfigurationProperties: &mariadb.ConfigurationProperties{
+	defaultValue := ""
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if v := props.DefaultValue; v != nil {
+				defaultValue = *v
+			}
+		}
+	}
+
+	properties := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
 			// we can alternatively set `source: "system-default"`
-			Value: resp.DefaultValue,
+			Value: &defaultValue,
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
-	if err != nil {
-		return err
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	return nil
 }

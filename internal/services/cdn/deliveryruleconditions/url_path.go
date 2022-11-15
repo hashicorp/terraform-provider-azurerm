@@ -25,6 +25,8 @@ func URLPath() *pluginsdk.Resource {
 					string(cdn.URLPathOperatorGreaterThanOrEqual),
 					string(cdn.URLPathOperatorLessThan),
 					string(cdn.URLPathOperatorLessThanOrEqual),
+					string(cdn.URLPathOperatorRegEx),
+					string(cdn.URLPathOperatorWildcard),
 				}, false),
 			},
 
@@ -50,8 +52,8 @@ func URLPath() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.Lowercase),
-						string(cdn.Uppercase),
+						string(cdn.TransformLowercase),
+						string(cdn.TransformUppercase),
 					}, false),
 				},
 			},

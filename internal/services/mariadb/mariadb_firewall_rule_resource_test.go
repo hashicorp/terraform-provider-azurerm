@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbFirewallRuleResource struct {
-}
+type MariaDbFirewallRuleResource struct{}
 
 func TestAccMariaDbFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
@@ -50,20 +49,17 @@ func TestAccMariaDbFirewallRule_requiresImport(t *testing.T) {
 }
 
 func (MariaDbFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverName := id.Path["servers"]
-	name := id.Path["firewallRules"]
-
-	resp, err := clients.MariaDB.FirewallRulesClient.Get(ctx, id.ResourceGroup, serverName, name)
+	resp, err := clients.MariaDB.FirewallRulesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MariaDB Firewall Rule %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.FirewallRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MariaDbFirewallRuleResource) basic(data acceptance.TestData) string {
@@ -84,11 +80,10 @@ resource "azurerm_mariadb_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7
+
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

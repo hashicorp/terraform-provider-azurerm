@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogicAppIntegrationAccountResource struct {
-}
+type LogicAppIntegrationAccountResource struct{}
 
 func TestAccLogicAppIntegrationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
@@ -88,6 +87,21 @@ func TestAccLogicAppIntegrationAccount_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppIntegrationAccount_integrationServiceEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
+	r := LogicAppIntegrationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.integrationServiceEnvironment(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -179,4 +193,18 @@ resource "azurerm_logic_app_integration_account" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppIntegrationAccountResource) integrationServiceEnvironment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_integration_account" "test" {
+  name                               = "acctest-IA-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  sku_name                           = "Standard"
+  integration_service_environment_id = azurerm_integration_service_environment.test.id
+}
+`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
 }

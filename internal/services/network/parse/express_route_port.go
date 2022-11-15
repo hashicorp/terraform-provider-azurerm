@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ExpressRoutePortId struct {
@@ -39,7 +39,7 @@ func (id ExpressRoutePortId) ID() string {
 
 // ExpressRoutePortID parses a ExpressRoutePort ID into an ExpressRoutePortId struct
 func ExpressRoutePortID(input string) (*ExpressRoutePortId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -8,10 +8,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type BlueprintDefinitionDataSource struct {
-}
+type BlueprintDefinitionDataSource struct{}
 
-// lintignore:AT001
+//lintignore:AT001
 func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}
@@ -22,6 +21,7 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
 				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
+				check.That(data.ResourceName).Key("versions.#").HasValue("2"),
 				check.That(data.ResourceName).Key("last_modified").Exists(),
 				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
 				check.That(data.ResourceName).Key("time_created").Exists(),
@@ -30,7 +30,7 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	})
 }
 
-// lintignore:AT001
+//lintignore:AT001
 func TestAccBlueprintDefinitionDataSource_basicAtRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}
@@ -79,7 +79,6 @@ data "azurerm_blueprint_definition" "test" {
   name     = "testAcc_basicSubscription"
   scope_id = data.azurerm_subscription.current.id
 }
-
 `, subscription)
 }
 
@@ -97,7 +96,6 @@ data "azurerm_blueprint_definition" "test" {
   name     = "testAcc_staticStubManagementGroup"
   scope_id = data.azurerm_management_group.test.id
 }
-
 `, managementGroup)
 }
 

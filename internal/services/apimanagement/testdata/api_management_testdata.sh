@@ -3,8 +3,8 @@
 # This script creates nessesary certificates to execute integration
 # tests for Azure API Management
 
-declare -a certs=("api_management_api" "api_management_api2" "api_management_portal")
-declare -a domains=("api.terraform.io" "api2.terraform.io" "portal.terraform.io")
+declare -a certs=("api_management_api" "api_management_api2" "api_management_portal" "api_management_developer_portal")
+declare -a domains=("api.terraform.io" "api2.terraform.io" "portal.terraform.io" "developer-portal.terraform.io")
 
 arraylength=${#certs[@]}
 

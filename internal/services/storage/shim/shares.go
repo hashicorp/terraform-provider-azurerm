@@ -14,10 +14,13 @@ type StorageShareWrapper interface {
 	UpdateACLs(ctx context.Context, resourceGroup, accountName, shareName string, acls []shares.SignedIdentifier) error
 	UpdateMetaData(ctx context.Context, resourceGroup, accountName, shareName string, metaData map[string]string) error
 	UpdateQuota(ctx context.Context, resourceGroup, accountName, shareName string, quotaGB int) error
+	UpdateTier(ctx context.Context, resourceGroup, accountName, shareName string, tier shares.AccessTier) error
 }
 
 type StorageShareProperties struct {
-	ACLs     []shares.SignedIdentifier
-	MetaData map[string]string
-	QuotaGB  int
+	ACLs            []shares.SignedIdentifier
+	MetaData        map[string]string
+	QuotaGB         int
+	EnabledProtocol shares.ShareProtocol
+	AccessTier      *shares.AccessTier
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NetworkSecurityGroupId struct {
@@ -39,7 +39,7 @@ func (id NetworkSecurityGroupId) ID() string {
 
 // NetworkSecurityGroupID parses a NetworkSecurityGroup ID into an NetworkSecurityGroupId struct
 func NetworkSecurityGroupID(input string) (*NetworkSecurityGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

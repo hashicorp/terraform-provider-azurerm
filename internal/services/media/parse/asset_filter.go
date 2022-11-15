@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type AssetFilterId struct {
@@ -45,7 +45,7 @@ func (id AssetFilterId) ID() string {
 
 // AssetFilterID parses a AssetFilter ID into an AssetFilterId struct
 func AssetFilterID(input string) (*AssetFilterId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

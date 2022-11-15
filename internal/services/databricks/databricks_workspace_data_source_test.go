@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DatabricksWorkspaceDataSource struct {
-}
+type DatabricksWorkspaceDataSource struct{}
 
 func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
@@ -22,6 +21,7 @@ func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
 			),
 		},
 	})

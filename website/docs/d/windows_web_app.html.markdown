@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Windows Web App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -35,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Windows Web App.
 
@@ -47,9 +45,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
 
-* `client_cert_enabled` - Are Client Certificates enabled?
+* `client_certificate_enabled` - Are Client Certificates enabled?
 
-* `client_cert_mode` - The Client Certificate mode.
+* `client_certificate_mode` - The Client Certificate mode.
+
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
 * `connection_string` - A `connection_string` block as defined below.
 
@@ -83,9 +83,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account` - A `storage_account` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
+
+* `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
 
 ---
 
@@ -129,7 +133,7 @@ An `application_stack` block exports the following:
 
 * `docker_container_tag` - The Docker Container Tag of the Container in use.
 
-* `dotnet_version` - The version of .Net in use.
+* `dotnet_version` - The version of .NET in use.
 
 * `java_container` - The Java Container in use.
 
@@ -189,6 +193,8 @@ A `auto_heal_setting` block exports the following:
 
 A `azure_blob_storage` block exports the following:
 
+* `level` - The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
 * `retention_in_days` - The time in days after which blobs will be removed.
 
 * `sas_url` - The SAS url to the Azure Blob container.
@@ -237,11 +243,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook login authentication.
 
 ---
 
@@ -257,11 +263,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The Client Secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub login authentication.
 
 ---
 
@@ -271,7 +277,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Google Sign-In authentication.
 
@@ -347,7 +353,7 @@ A `schedule` block exports the following:
 
 A `site_config` block exports the following:
 
-* `always_on` - Is this Linux Web App is Always On enabled.
+* `always_on` - Is this Windows Web App is Always On enabled.
 
 * `api_definition_url` - The ID of the APIM configuration for this Windows Web App.
 
@@ -357,7 +363,7 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal` - Are Auto heal rules be enabled.
+* `auto_heal_enabled` - Are Auto heal rules to be enabled.
 
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
@@ -371,11 +377,13 @@ A `site_config` block exports the following:
 
 * `default_documents` - The list of Default Documents for the Windows Web App.
 
-* `detailed_error_logging` - Is Detailed Error Logging enabled.
+* `detailed_error_logging_enabled` - Is Detailed Error Logging enabled.
 
 * `ftps_state` - The State of FTP / FTPS service.
 
 * `health_check_path` - The path to the Health Check endpoint.
+
+* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
 
 * `http2_enabled` - Is HTTP2.0 enabled.
 
@@ -383,13 +391,11 @@ A `site_config` block exports the following:
 
 * `load_balancing_mode` - The site Load Balancing Mode.
 
-* `local_mysql` - Is the Local MySQL enabled.
+* `local_mysql_enabled` - Is the Local MySQL enabled.
 
 * `managed_pipeline_mode` - The Managed Pipeline Mode.
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
-
-* `number_of_workers` - The number of Workers for this Windows App Service.
 
 * `remote_debugging` - Is Remote Debugging enabled.
 
@@ -407,9 +413,13 @@ A `site_config` block exports the following:
 
 * `virtual_application` - A `virtual_application` block as defined below.
 
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
+
 * `websockets_enabled` - Are Web Sockets enabled?
 
 * `windows_fx_version` - The string representation of the Windows FX Version.
+
+* `worker_count` - The number of Workers for this Windows App Service.
 
 ---
 
@@ -449,6 +459,14 @@ A `status_code` block exports the following:
 
 ---
 
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
+
+---
+
 A `storage_account` block exports the following:
 
 * `access_key` - The Access key for the storage account.
@@ -462,7 +480,6 @@ A `storage_account` block exports the following:
 * `share_name` - The Name of the File Share.
 
 * `type` - The Azure Storage Type.
-
 
 ---
 
@@ -508,6 +525,6 @@ A `virtual_directory` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.

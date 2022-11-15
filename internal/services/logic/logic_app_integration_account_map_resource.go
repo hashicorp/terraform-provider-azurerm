@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
@@ -44,7 +44,7 @@ func resourceLogicAppIntegrationAccountMap() *pluginsdk.Resource {
 				ValidateFunc: validate.IntegrationAccountMapName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"integration_account_name": {
 				Type:         pluginsdk.TypeString,
@@ -104,10 +104,15 @@ func resourceLogicAppIntegrationAccountMapCreateUpdate(d *pluginsdk.ResourceData
 
 	parameters := logic.IntegrationAccountMap{
 		IntegrationAccountMapProperties: &logic.IntegrationAccountMapProperties{
-			MapType:     logic.MapType(d.Get("map_type").(string)),
-			Content:     utils.String(d.Get("content").(string)),
-			ContentType: utils.String("application/xml"),
+			MapType: logic.MapType(d.Get("map_type").(string)),
+			Content: utils.String(d.Get("content").(string)),
 		},
+	}
+
+	if parameters.IntegrationAccountMapProperties.MapType == logic.MapTypeLiquid {
+		parameters.IntegrationAccountMapProperties.ContentType = utils.String("text/plain")
+	} else {
+		parameters.IntegrationAccountMapProperties.ContentType = utils.String("application/xml")
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {

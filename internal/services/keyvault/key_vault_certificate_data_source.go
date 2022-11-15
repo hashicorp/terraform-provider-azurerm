@@ -23,7 +23,8 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 		Read: dataSourceKeyVaultCertificateRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
+			Read: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -210,6 +211,16 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"versionless_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"versionless_secret_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"certificate_data": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -289,6 +300,15 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
+	d.Set("versionless_id", id.VersionlessID())
+
+	if cert.Sid != nil {
+		secretId, err := parse.ParseNestedItemID(*cert.Sid)
+		if err != nil {
+			return err
+		}
+		d.Set("versionless_secret_id", secretId.VersionlessID())
+	}
 
 	certificateData := ""
 	if contents := cert.Cer; contents != nil {

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HPCCacheNFSTargetResource struct {
-}
+type HPCCacheNFSTargetResource struct{}
 
 func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
@@ -186,7 +185,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
   resource_group_name = azurerm_resource_group.test.name
   cache_name          = azurerm_hpc_cache.test.name
   target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
-  usage_model         = "WRITE_WORKLOAD_15"
+  usage_model         = "READ_HEAVY_CHECK_180"
   namespace_junction {
     namespace_path = "/nfs/a1"
     nfs_export     = "/export/a"
@@ -209,7 +208,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
   resource_group_name = azurerm_resource_group.test.name
   cache_name          = azurerm_hpc_cache.test.name
   target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
-  usage_model         = "WRITE_WORKLOAD_15"
+  usage_model         = "READ_HEAVY_CHECK_180"
   namespace_junction {
     namespace_path = "/nfs/a"
     nfs_export     = "/export/a"
@@ -349,14 +348,14 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_subnet" "testvm" {
   name                 = "acctest-sub-vm-%[2]s"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  address_prefixes     = ["10.0.3.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -415,6 +414,5 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   custom_data = base64encode(local.custom_data)
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }

@@ -8,16 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -31,7 +30,7 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 		Delete: resourceMariaDbServerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ServerID(id)
+			_, err := servers.ParseServerID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			d.Set("create_mode", "Default")
@@ -43,7 +42,7 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -71,36 +70,34 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
-				ConflictsWith: []string{"storage_profile.0.auto_grow"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"backup_retention_days": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile.0.backup_retention_days"},
-				ValidateFunc:  validation.IntBetween(7, 35),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(mariadb.CreateModeDefault),
+				Default:  string(servers.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(mariadb.CreateModeDefault),
-					string(mariadb.CreateModeGeoRestore),
-					string(mariadb.CreateModePointInTimeRestore),
-					string(mariadb.CreateModeReplica),
+					string(servers.CreateModeDefault),
+					string(servers.CreateModeGeoRestore),
+					string(servers.CreateModePointInTimeRestore),
+					string(servers.CreateModeReplica),
 				}, false),
 			},
 
 			"creation_source_server_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: servers.ValidateServerID,
 			},
 
 			"fqdn": {
@@ -109,13 +106,12 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile.0.geo_redundant_backup"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -123,7 +119,7 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"restore_point_in_time": {
 				Type:         pluginsdk.TypeString,
@@ -149,107 +145,22 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"ssl_enforcement": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				Deprecated:       "this has been moved to the boolean attribute `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
-				ExactlyOneOf:     []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(mariadb.SslEnforcementEnumDisabled),
-					string(mariadb.SslEnforcementEnumEnabled),
-				}, false),
-			},
-
 			"ssl_enforcement_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true, // required in 3.0
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
+				Type:     pluginsdk.TypeBool,
+				Required: true,
 			},
 
 			"storage_mb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ExactlyOneOf: []string{"storage_profile.0.storage_mb"},
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 4194304),
 					validation.IntDivisibleBy(1024),
 				),
 			},
 
-			"storage_profile": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "all storage_profile properties have been moved to the top level. This block will be removed in version 3.0 of the provider.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"auto_grow": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ConflictsWith:    []string{"auto_grow_enabled"},
-							Deprecated:       "this has been moved to the top level boolean attribute `auto_grow_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mariadb.StorageAutogrowEnabled),
-								string(mariadb.StorageAutogrowDisabled),
-							}, false),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
-								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
-							},
-						},
-
-						"backup_retention_days": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"backup_retention_days"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc:  validation.IntBetween(7, 35),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
-								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
-							},
-						},
-
-						"geo_redundant_backup": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ForceNew:         true,
-							ConflictsWith:    []string{"geo_redundant_backup_enabled"},
-							Deprecated:       "this has been moved to the top level boolean attribute `geo_redundant_backup_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mariadb.Enabled),
-								string(mariadb.Disabled),
-							}, false),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
-								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
-							},
-						},
-
-						"storage_mb": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"storage_mb"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 4096000),
-								validation.IntDivisibleBy(1024),
-							),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days",
-								"storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb",
-							},
-						},
-					},
-				},
-			},
-
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"version": {
 				Type:     pluginsdk.TypeString,
@@ -266,52 +177,49 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 
 func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server creation.")
-
-	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing MariaDB Server %q (Resource Group %q): %s", name, resourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mariadb_server", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mariadb_server", id.ID())
 		}
 	}
 
-	mode := mariadb.CreateMode(d.Get("create_mode").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	mode := servers.CreateMode(d.Get("create_mode").(string))
 	source := d.Get("creation_source_server_id").(string)
-	version := mariadb.ServerVersion(d.Get("version").(string))
+	version := servers.ServerVersion(d.Get("version").(string))
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %+v", err)
 	}
 
-	publicAccess := mariadb.PublicNetworkAccessEnumEnabled
+	publicAccess := servers.PublicNetworkAccessEnumEnabled
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		publicAccess = mariadb.PublicNetworkAccessEnumDisabled
+		publicAccess = servers.PublicNetworkAccessEnumDisabled
 	}
 
-	ssl := mariadb.SslEnforcementEnumEnabled
+	ssl := servers.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
-		ssl = mariadb.SslEnforcementEnumDisabled
+		ssl = servers.SslEnforcementEnumDisabled
 	}
 
 	storage := expandMariaDbStorageProfile(d)
 
-	var props mariadb.BasicServerPropertiesForCreate
+	var props servers.ServerPropertiesForCreate
 	switch mode {
-	case mariadb.CreateModeDefault:
+	case servers.CreateModeDefault:
 		admin := d.Get("administrator_login").(string)
 		pass := d.Get("administrator_login_password").(string)
 
@@ -326,79 +234,58 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("`restore_point_in_time` cannot be set when `create_mode` is `default`")
 		}
 
-		props = &mariadb.ServerPropertiesForDefaultCreate{
-			AdministratorLogin:         &admin,
-			AdministratorLoginPassword: &pass,
-			CreateMode:                 mode,
-			PublicNetworkAccess:        publicAccess,
-			SslEnforcement:             ssl,
+		props = servers.ServerPropertiesForDefaultCreate{
+			AdministratorLogin:         admin,
+			AdministratorLoginPassword: pass,
+			PublicNetworkAccess:        &publicAccess,
+			SslEnforcement:             &ssl,
 			StorageProfile:             storage,
-			Version:                    version,
+			Version:                    &version,
 		}
-	case mariadb.CreateModePointInTimeRestore:
+
+	case servers.CreateModePointInTimeRestore:
 		v, ok := d.GetOk("restore_point_in_time")
 		if !ok || v.(string) == "" {
 			return fmt.Errorf("restore_point_in_time must be set when create_mode is PointInTimeRestore")
 		}
-		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
-		props = &mariadb.ServerPropertiesForRestore{
-			CreateMode:     mode,
-			SourceServerID: &source,
-			RestorePointInTime: &date.Time{
-				Time: time,
-			},
-			PublicNetworkAccess: publicAccess,
-			SslEnforcement:      ssl,
+		props = &servers.ServerPropertiesForRestore{
+			SourceServerId:      source,
+			RestorePointInTime:  v.(string),
+			PublicNetworkAccess: &publicAccess,
+			SslEnforcement:      &ssl,
 			StorageProfile:      storage,
-			Version:             version,
+			Version:             &version,
 		}
-	case mariadb.CreateModeGeoRestore:
-		props = &mariadb.ServerPropertiesForGeoRestore{
-			CreateMode:          mode,
-			SourceServerID:      &source,
-			PublicNetworkAccess: publicAccess,
-			SslEnforcement:      ssl,
+	case servers.CreateModeGeoRestore:
+		props = &servers.ServerPropertiesForGeoRestore{
+			SourceServerId:      source,
+			PublicNetworkAccess: &publicAccess,
+			SslEnforcement:      &ssl,
 			StorageProfile:      storage,
-			Version:             version,
+			Version:             &version,
 		}
-	case mariadb.CreateModeReplica:
-		props = &mariadb.ServerPropertiesForReplica{
-			CreateMode:          mode,
-			SourceServerID:      &source,
-			PublicNetworkAccess: publicAccess,
-			SslEnforcement:      ssl,
-			Version:             version,
+	case servers.CreateModeReplica:
+		props = &servers.ServerPropertiesForReplica{
+			SourceServerId:      source,
+			PublicNetworkAccess: &publicAccess,
+			SslEnforcement:      &ssl,
+			Version:             &version,
 		}
 	}
 
-	server := mariadb.ServerForCreate{
-		Location:   &location,
+	server := servers.ServerForCreate{
+		Location:   location,
 		Properties: props,
 		Sku:        sku,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, server)
-	if err != nil {
-		return fmt.Errorf("creating MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := client.CreateThenPoll(ctx, id, server); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MariaDB Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceMariaDbServerRead(d, meta)
 }
 
@@ -409,59 +296,43 @@ func resourceMariaDbServerUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server update.")
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
+		return err
 	}
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for MariaDB Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %+v", err)
 	}
 
-	publicAccess := mariadb.PublicNetworkAccessEnumEnabled
+	publicAccess := servers.PublicNetworkAccessEnumEnabled
 	if v := d.Get("public_network_access_enabled").(bool); !v {
-		publicAccess = mariadb.PublicNetworkAccessEnumDisabled
+		publicAccess = servers.PublicNetworkAccessEnumDisabled
 	}
 
-	ssl := mariadb.SslEnforcementEnumEnabled
+	ssl := servers.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
-		ssl = mariadb.SslEnforcementEnumDisabled
+		ssl = servers.SslEnforcementEnumDisabled
 	}
 
 	storageProfile := expandMariaDbStorageProfile(d)
-
-	properties := mariadb.ServerUpdateParameters{
-		ServerUpdateParametersProperties: &mariadb.ServerUpdateParametersProperties{
+	serverVersion := servers.ServerVersion(d.Get("version").(string))
+	properties := servers.ServerUpdateParameters{
+		Properties: &servers.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
-			PublicNetworkAccess:        publicAccess,
-			SslEnforcement:             ssl,
+			PublicNetworkAccess:        &publicAccess,
+			SslEnforcement:             &ssl,
 			StorageProfile:             storageProfile,
-			Version:                    mariadb.ServerVersion(d.Get("version").(string)),
+			Version:                    &serverVersion,
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
-	if err != nil {
-		return fmt.Errorf("updating MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.UpdateThenPoll(ctx, *id, properties); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for MariaDB Server %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MariaDB Server %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	return resourceMariaDbServerRead(d, meta)
 }
@@ -471,56 +342,76 @@ func resourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
+		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDB Server %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-
-	if props := resp.ServerProperties; props != nil {
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == mariadb.PublicNetworkAccessEnumEnabled)
-		d.Set("ssl_enforcement", string(props.SslEnforcement))
-		d.Set("ssl_enforcement_enabled", props.SslEnforcement == mariadb.SslEnforcementEnumEnabled)
-		d.Set("version", string(props.Version))
-
-		if err := d.Set("storage_profile", flattenMariaDbStorageProfile(resp.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
 		}
 
-		if storage := props.StorageProfile; storage != nil {
-			d.Set("auto_grow_enabled", storage.StorageAutogrow == mariadb.StorageAutogrowEnabled)
-			d.Set("backup_retention_days", storage.BackupRetentionDays)
-			d.Set("geo_redundant_backup_enabled", storage.GeoRedundantBackup == mariadb.Enabled)
-			d.Set("storage_mb", storage.StorageMB)
+		if props := model.Properties; props != nil {
+			d.Set("administrator_login", props.AdministratorLogin)
+
+			publicNetworkAccess := false
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccess = *props.PublicNetworkAccess == servers.PublicNetworkAccessEnumEnabled
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+
+			sslEnforcement := false
+			if props.SslEnforcement != nil {
+				sslEnforcement = *props.SslEnforcement == servers.SslEnforcementEnumEnabled
+			}
+			d.Set("ssl_enforcement_enabled", sslEnforcement)
+
+			version := ""
+			if props.Version != nil {
+				version = string(*props.Version)
+			}
+			d.Set("version", version)
+
+			if storage := props.StorageProfile; storage != nil {
+				autoGrow := false
+				if storage.StorageAutogrow != nil {
+					autoGrow = *storage.StorageAutogrow == servers.StorageAutogrowEnabled
+				}
+				d.Set("auto_grow_enabled", autoGrow)
+
+				geoRedundant := false
+				if storage.GeoRedundantBackup != nil {
+					geoRedundant = *storage.GeoRedundantBackup == servers.GeoRedundantBackupEnabled
+				}
+				d.Set("geo_redundant_backup_enabled", geoRedundant)
+				d.Set("backup_retention_days", storage.BackupRetentionDays)
+				d.Set("storage_mb", storage.StorageMB)
+
+			}
+
+			// Computed
+			d.Set("fqdn", props.FullyQualifiedDomainName)
 		}
-
-		// Computed
-		d.Set("fqdn", props.FullyQualifiedDomainName)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceMariaDbServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -528,109 +419,75 @@ func resourceMariaDbServerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
+		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandServerSkuName(skuName string) (*mariadb.Sku, error) {
+func expandServerSkuName(skuName string) (*servers.Sku, error) {
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
 	}
 
-	var tier mariadb.SkuTier
+	var tier servers.SkuTier
 	switch parts[0] {
 	case "B":
-		tier = mariadb.Basic
+		tier = servers.SkuTierBasic
 	case "GP":
-		tier = mariadb.GeneralPurpose
+		tier = servers.SkuTierGeneralPurpose
 	case "MO":
-		tier = mariadb.MemoryOptimized
+		tier = servers.SkuTierMemoryOptimized
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
 	}
 
 	capacity, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
+		return nil, fmt.Errorf("cannot convert `sku_name` %q capacity %s to int", skuName, parts[2])
 	}
 
-	return &mariadb.Sku{
-		Name:     utils.String(skuName),
-		Tier:     tier,
-		Capacity: utils.Int32(int32(capacity)),
+	return &servers.Sku{
+		Name:     skuName,
+		Tier:     &tier,
+		Capacity: utils.Int64(int64(capacity)),
 		Family:   utils.String(parts[1]),
 	}, nil
 }
 
-func expandMariaDbStorageProfile(d *pluginsdk.ResourceData) *mariadb.StorageProfile {
-	storage := mariadb.StorageProfile{}
-	if v, ok := d.GetOk("storage_profile"); ok {
-		storageprofile := v.([]interface{})[0].(map[string]interface{})
-
-		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
-		storage.GeoRedundantBackup = mariadb.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
-		storage.StorageAutogrow = mariadb.StorageAutogrow(storageprofile["auto_grow"].(string))
-		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
-	}
-
+func expandMariaDbStorageProfile(d *pluginsdk.ResourceData) *servers.StorageProfile {
+	storage := servers.StorageProfile{}
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
-		storage.StorageAutogrow = mariadb.StorageAutogrowDisabled
+		autogrowEnabled := servers.StorageAutogrowDisabled
 		if v.(bool) {
-			storage.StorageAutogrow = mariadb.StorageAutogrowEnabled
+			autogrowEnabled = servers.StorageAutogrowEnabled
 		}
+		storage.StorageAutogrow = &autogrowEnabled
 	}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
-		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
+		storage.BackupRetentionDays = utils.Int64(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("geo_redundant_backup_enabled"); ok {
-		storage.GeoRedundantBackup = mariadb.Disabled
+		geoRedundantBackup := servers.GeoRedundantBackupDisabled
 		if v.(bool) {
-			storage.GeoRedundantBackup = mariadb.Enabled
+			geoRedundantBackup = servers.GeoRedundantBackupEnabled
 		}
+		storage.GeoRedundantBackup = &geoRedundantBackup
 	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageMB = utils.Int32(int32(v.(int)))
+		storage.StorageMB = utils.Int64(int64(v.(int)))
 	}
 
 	return &storage
-}
-
-func flattenMariaDbStorageProfile(storage *mariadb.StorageProfile) []interface{} {
-	values := map[string]interface{}{}
-
-	if storage == nil {
-		return []interface{}{}
-	}
-
-	values["auto_grow"] = string(storage.StorageAutogrow)
-
-	if backupRetentionDays := storage.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = *backupRetentionDays
-	}
-
-	values["geo_redundant_backup"] = string(storage.GeoRedundantBackup)
-
-	if storageMB := storage.StorageMB; storageMB != nil {
-		values["storage_mb"] = *storageMB
-	}
-
-	return []interface{}{values}
 }

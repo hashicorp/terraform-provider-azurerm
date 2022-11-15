@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SnapshotDataSource struct {
-}
+type SnapshotDataSource struct{}
 
 func TestAccDataSourceSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
@@ -37,6 +36,20 @@ func TestAccDataSourceSnapshot_encryption(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceSnapshot_trustedLaunch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
+	r := SnapshotDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.trustedLaunch(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("trusted_launch_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -112,17 +125,17 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
     ]
 
     secret_permissions = [
-      "delete",
-      "get",
-      "purge",
-      "set",
+      "Delete",
+      "Get",
+      "Purge",
+      "Set",
     ]
   }
 
@@ -179,4 +192,49 @@ data "azurerm_snapshot" "snapshot" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (SnapshotDataSource) trustedLaunch(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_platform_image" "test" {
+  location  = "%[2]s"
+  publisher = "Canonical"
+  offer     = "UbuntuServer"
+  sku       = "18_04-LTS-gen2"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%[1]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  os_type                = "Linux"
+  create_option          = "FromImage"
+  image_reference_id     = data.azurerm_platform_image.test.id
+  storage_account_type   = "Standard_LRS"
+  hyper_v_generation     = "V2"
+  trusted_launch_enabled = true
+}
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestss_%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.test.id
+}
+
+data "azurerm_snapshot" "snapshot" {
+  name                = azurerm_snapshot.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

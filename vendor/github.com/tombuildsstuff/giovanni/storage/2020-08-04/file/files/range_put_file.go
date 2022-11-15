@@ -7,7 +7,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"runtime"
 	"sync"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -27,36 +26,41 @@ func (client Client) PutFile(ctx context.Context, accountName, shareName, path, 
 	}
 	chunks := int(math.Ceil(float64(fileSize) / float64(chunkSize*1.0)))
 
-	workerCount := parallelism * runtime.NumCPU()
+	workerCount := parallelism
 	if workerCount > chunks {
 		workerCount = chunks
 	}
 
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(workerCount)
+
+	jobs := make(chan int, workerCount)
 	errors := make(chan error, chunkSize)
 
-	for i := 0; i < chunks; i++ {
-		go func(i int) {
-			log.Printf("[DEBUG] Chunk %d of %d", i+1, chunks)
+	for i := 0; i < workerCount; i++ {
+		go func() {
+			for i := range jobs {
+				log.Printf("[DEBUG] Chunk %d of %d", i+1, chunks)
 
-			uci := uploadChunkInput{
-				thisChunk: i,
-				chunkSize: chunkSize,
-				fileSize:  fileSize,
+				uci := uploadChunkInput{
+					thisChunk: i,
+					chunkSize: chunkSize,
+					fileSize:  fileSize,
+				}
+
+				_, err := client.uploadChunk(ctx, accountName, shareName, path, fileName, uci, file)
+				if err != nil {
+					errors <- err
+				}
 			}
-
-			_, err := client.uploadChunk(ctx, accountName, shareName, path, fileName, uci, file)
-			if err != nil {
-				errors <- err
-				waitGroup.Done()
-				return
-			}
-
 			waitGroup.Done()
-			return
-		}(i)
+		}()
 	}
+
+	for i := 0; i < chunks; i++ {
+		jobs <- i
+	}
+	close(jobs)
 	waitGroup.Wait()
 
 	// TODO: we should switch to hashicorp/multi-error here

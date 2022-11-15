@@ -28,7 +28,7 @@ resource "azurerm_monitor_action_group" "example" {
 
 resource "azurerm_consumption_budget_subscription" "example" {
   name            = "example"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -92,9 +92,11 @@ resource "azurerm_consumption_budget_subscription" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new resource to be created.
 
-* `subscription_id` - (Required) The ID of the Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
+* `subscription_id` - (Required) The ID of the Subscription for which to create a Consumption Budget. Changing this forces a new resource to be created.
+
+~> **NOTE:** The `subscription_id` property can accept a subscription ID e.g. `00000000-0000-0000-0000-000000000000` or the subscription resource ID e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`. In version 3.0 this property will only accept the subscription resource ID.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
@@ -114,7 +116,7 @@ A `filter` block supports the following:
 
 * `tag` - (Optional) One or more `tag` blocks as defined below to filter the budget on.
 
-* `not` - (Optional) A `not` block as defined below to filter the budget on.
+* `not` - (Optional) A `not` block as defined below to filter the budget on. This is deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
 
 ---
 
@@ -148,7 +150,7 @@ A `notification` block supports the following:
 
 A `dimension` block supports the following:
 
-* `name` - (Required) The name of the column to use for the filter. The allowed values are `ChargeType`, `Frequency`, `InvoiceId`, `Meter`, `MeterCategory`, `MeterSubCategory`, `PartNumber`, `PricingModel`, `Product`, `ProductOrderId`, `ProductOrderName`, `PublisherType`, `ReservationId`, `ReservationName`, `ResourceGroupName`, `ResourceGuid`, `ResourceId`, `ResourceLocation`, `ResourceType`, `ServiceFamily`, `ServiceName`, `UnitOfMeasure`.
+* `name` - (Required) The name of the column to use for the filter. The allowed values are `ChargeType`, `Frequency`, `InvoiceId`, `Meter`, `MeterCategory`, `MeterSubCategory`, `PartNumber`, `PricingModel`, `Product`, `ProductOrderId`, `ProductOrderName`, `PublisherType`, `ReservationId`, `ReservationName`, `ResourceGroupName`, `ResourceGuid`, `ResourceId`, `ResourceLocation`, `ResourceType`, `ServiceFamily`, `ServiceName`, `SubscriptionID`, `SubscriptionName`, `UnitOfMeasure`.
 
 * `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
 
@@ -174,7 +176,7 @@ A `time_period` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Subscription Consumption Budget.
 
@@ -182,7 +184,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Subscription Consumption Budget.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Subscription Consumption Budget.

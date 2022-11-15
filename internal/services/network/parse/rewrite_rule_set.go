@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type RewriteRuleSetId struct {
@@ -42,7 +42,7 @@ func (id RewriteRuleSetId) ID() string {
 
 // RewriteRuleSetID parses a RewriteRuleSet ID into an RewriteRuleSetId struct
 func RewriteRuleSetID(input string) (*RewriteRuleSetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

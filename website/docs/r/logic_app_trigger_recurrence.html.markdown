@@ -54,7 +54,7 @@ The following arguments are supported:
 
 ---
 
-A `schedule` block supports the following: 
+A `schedule` block supports the following:
 
 * `at_these_minutes` - Specifies a list of minutes when the trigger should run. Valid values are between 0 and 59.
 
@@ -70,7 +70,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Recurrence Trigger.
 * `update` - (Defaults to 30 minutes) Used when updating the Logic App Recurrence Trigger.

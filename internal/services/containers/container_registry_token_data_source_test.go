@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ContainerRegistryTokenDataSource struct {
-}
+type ContainerRegistryTokenDataSource struct{}
 
 func TestAccDataSourceContainerRegistryToken_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_token", "test")

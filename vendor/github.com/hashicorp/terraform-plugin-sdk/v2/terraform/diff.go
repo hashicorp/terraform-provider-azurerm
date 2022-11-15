@@ -20,7 +20,7 @@ import (
 type diffChangeType byte
 
 const (
-	diffInvalid diffChangeType = iota
+	diffInvalid diffChangeType = iota //nolint:deadcode,varcheck
 	diffNone
 	diffCreate
 	diffUpdate
@@ -38,6 +38,10 @@ type InstanceDiff struct {
 	Destroy        bool
 	DestroyDeposed bool
 	DestroyTainted bool
+
+	RawConfig cty.Value
+	RawState  cty.Value
+	RawPlan   cty.Value
 
 	// Meta is a simple K/V map that is stored in a diff and persisted to
 	// plans but otherwise is completely ignored by Terraform core. It is

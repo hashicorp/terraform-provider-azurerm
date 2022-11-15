@@ -10,19 +10,19 @@ package cdn
 type ActionType string
 
 const (
-	// Allow ...
-	Allow ActionType = "Allow"
-	// Block ...
-	Block ActionType = "Block"
-	// Log ...
-	Log ActionType = "Log"
-	// Redirect ...
-	Redirect ActionType = "Redirect"
+	// ActionTypeAllow ...
+	ActionTypeAllow ActionType = "Allow"
+	// ActionTypeBlock ...
+	ActionTypeBlock ActionType = "Block"
+	// ActionTypeLog ...
+	ActionTypeLog ActionType = "Log"
+	// ActionTypeRedirect ...
+	ActionTypeRedirect ActionType = "Redirect"
 )
 
 // PossibleActionTypeValues returns an array of possible values for the ActionType const type.
 func PossibleActionTypeValues() []ActionType {
-	return []ActionType{Allow, Block, Log, Redirect}
+	return []ActionType{ActionTypeAllow, ActionTypeBlock, ActionTypeLog, ActionTypeRedirect}
 }
 
 // AfdCertificateType enumerates the values for afd certificate type.
@@ -44,98 +44,98 @@ func PossibleAfdCertificateTypeValues() []AfdCertificateType {
 type AFDEndpointProtocols string
 
 const (
-	// HTTP ...
-	HTTP AFDEndpointProtocols = "Http"
-	// HTTPS ...
-	HTTPS AFDEndpointProtocols = "Https"
+	// AFDEndpointProtocolsHTTP ...
+	AFDEndpointProtocolsHTTP AFDEndpointProtocols = "Http"
+	// AFDEndpointProtocolsHTTPS ...
+	AFDEndpointProtocolsHTTPS AFDEndpointProtocols = "Https"
 )
 
 // PossibleAFDEndpointProtocolsValues returns an array of possible values for the AFDEndpointProtocols const type.
 func PossibleAFDEndpointProtocolsValues() []AFDEndpointProtocols {
-	return []AFDEndpointProtocols{HTTP, HTTPS}
+	return []AFDEndpointProtocols{AFDEndpointProtocolsHTTP, AFDEndpointProtocolsHTTPS}
 }
 
 // AfdMinimumTLSVersion enumerates the values for afd minimum tls version.
 type AfdMinimumTLSVersion string
 
 const (
-	// TLS10 ...
-	TLS10 AfdMinimumTLSVersion = "TLS10"
-	// TLS12 ...
-	TLS12 AfdMinimumTLSVersion = "TLS12"
+	// AfdMinimumTLSVersionTLS10 ...
+	AfdMinimumTLSVersionTLS10 AfdMinimumTLSVersion = "TLS10"
+	// AfdMinimumTLSVersionTLS12 ...
+	AfdMinimumTLSVersionTLS12 AfdMinimumTLSVersion = "TLS12"
 )
 
 // PossibleAfdMinimumTLSVersionValues returns an array of possible values for the AfdMinimumTLSVersion const type.
 func PossibleAfdMinimumTLSVersionValues() []AfdMinimumTLSVersion {
-	return []AfdMinimumTLSVersion{TLS10, TLS12}
+	return []AfdMinimumTLSVersion{AfdMinimumTLSVersionTLS10, AfdMinimumTLSVersionTLS12}
 }
 
 // AfdProvisioningState enumerates the values for afd provisioning state.
 type AfdProvisioningState string
 
 const (
-	// Creating ...
-	Creating AfdProvisioningState = "Creating"
-	// Deleting ...
-	Deleting AfdProvisioningState = "Deleting"
-	// Failed ...
-	Failed AfdProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded AfdProvisioningState = "Succeeded"
-	// Updating ...
-	Updating AfdProvisioningState = "Updating"
+	// AfdProvisioningStateCreating ...
+	AfdProvisioningStateCreating AfdProvisioningState = "Creating"
+	// AfdProvisioningStateDeleting ...
+	AfdProvisioningStateDeleting AfdProvisioningState = "Deleting"
+	// AfdProvisioningStateFailed ...
+	AfdProvisioningStateFailed AfdProvisioningState = "Failed"
+	// AfdProvisioningStateSucceeded ...
+	AfdProvisioningStateSucceeded AfdProvisioningState = "Succeeded"
+	// AfdProvisioningStateUpdating ...
+	AfdProvisioningStateUpdating AfdProvisioningState = "Updating"
 )
 
 // PossibleAfdProvisioningStateValues returns an array of possible values for the AfdProvisioningState const type.
 func PossibleAfdProvisioningStateValues() []AfdProvisioningState {
-	return []AfdProvisioningState{Creating, Deleting, Failed, Succeeded, Updating}
+	return []AfdProvisioningState{AfdProvisioningStateCreating, AfdProvisioningStateDeleting, AfdProvisioningStateFailed, AfdProvisioningStateSucceeded, AfdProvisioningStateUpdating}
 }
 
 // AfdQueryStringCachingBehavior enumerates the values for afd query string caching behavior.
 type AfdQueryStringCachingBehavior string
 
 const (
-	// IgnoreQueryString ...
-	IgnoreQueryString AfdQueryStringCachingBehavior = "IgnoreQueryString"
-	// NotSet ...
-	NotSet AfdQueryStringCachingBehavior = "NotSet"
-	// UseQueryString ...
-	UseQueryString AfdQueryStringCachingBehavior = "UseQueryString"
+	// AfdQueryStringCachingBehaviorIgnoreQueryString ...
+	AfdQueryStringCachingBehaviorIgnoreQueryString AfdQueryStringCachingBehavior = "IgnoreQueryString"
+	// AfdQueryStringCachingBehaviorNotSet ...
+	AfdQueryStringCachingBehaviorNotSet AfdQueryStringCachingBehavior = "NotSet"
+	// AfdQueryStringCachingBehaviorUseQueryString ...
+	AfdQueryStringCachingBehaviorUseQueryString AfdQueryStringCachingBehavior = "UseQueryString"
 )
 
 // PossibleAfdQueryStringCachingBehaviorValues returns an array of possible values for the AfdQueryStringCachingBehavior const type.
 func PossibleAfdQueryStringCachingBehaviorValues() []AfdQueryStringCachingBehavior {
-	return []AfdQueryStringCachingBehavior{IgnoreQueryString, NotSet, UseQueryString}
+	return []AfdQueryStringCachingBehavior{AfdQueryStringCachingBehaviorIgnoreQueryString, AfdQueryStringCachingBehaviorNotSet, AfdQueryStringCachingBehaviorUseQueryString}
 }
 
 // Algorithm enumerates the values for algorithm.
 type Algorithm string
 
 const (
-	// SHA256 ...
-	SHA256 Algorithm = "SHA256"
+	// AlgorithmSHA256 ...
+	AlgorithmSHA256 Algorithm = "SHA256"
 )
 
 // PossibleAlgorithmValues returns an array of possible values for the Algorithm const type.
 func PossibleAlgorithmValues() []Algorithm {
-	return []Algorithm{SHA256}
+	return []Algorithm{AlgorithmSHA256}
 }
 
 // CacheBehavior enumerates the values for cache behavior.
 type CacheBehavior string
 
 const (
-	// BypassCache ...
-	BypassCache CacheBehavior = "BypassCache"
-	// Override ...
-	Override CacheBehavior = "Override"
-	// SetIfMissing ...
-	SetIfMissing CacheBehavior = "SetIfMissing"
+	// CacheBehaviorBypassCache ...
+	CacheBehaviorBypassCache CacheBehavior = "BypassCache"
+	// CacheBehaviorOverride ...
+	CacheBehaviorOverride CacheBehavior = "Override"
+	// CacheBehaviorSetIfMissing ...
+	CacheBehaviorSetIfMissing CacheBehavior = "SetIfMissing"
 )
 
 // PossibleCacheBehaviorValues returns an array of possible values for the CacheBehavior const type.
 func PossibleCacheBehaviorValues() []CacheBehavior {
-	return []CacheBehavior{BypassCache, Override, SetIfMissing}
+	return []CacheBehavior{CacheBehaviorBypassCache, CacheBehaviorOverride, CacheBehaviorSetIfMissing}
 }
 
 // CertificateSource enumerates the values for certificate source.
@@ -159,46 +159,46 @@ func PossibleCertificateSourceValues() []CertificateSource {
 type CertificateType string
 
 const (
-	// Dedicated ...
-	Dedicated CertificateType = "Dedicated"
-	// Shared ...
-	Shared CertificateType = "Shared"
+	// CertificateTypeDedicated ...
+	CertificateTypeDedicated CertificateType = "Dedicated"
+	// CertificateTypeShared ...
+	CertificateTypeShared CertificateType = "Shared"
 )
 
 // PossibleCertificateTypeValues returns an array of possible values for the CertificateType const type.
 func PossibleCertificateTypeValues() []CertificateType {
-	return []CertificateType{Dedicated, Shared}
+	return []CertificateType{CertificateTypeDedicated, CertificateTypeShared}
 }
 
 // CookiesOperator enumerates the values for cookies operator.
 type CookiesOperator string
 
 const (
-	// Any ...
-	Any CookiesOperator = "Any"
-	// BeginsWith ...
-	BeginsWith CookiesOperator = "BeginsWith"
-	// Contains ...
-	Contains CookiesOperator = "Contains"
-	// EndsWith ...
-	EndsWith CookiesOperator = "EndsWith"
-	// Equal ...
-	Equal CookiesOperator = "Equal"
-	// GreaterThan ...
-	GreaterThan CookiesOperator = "GreaterThan"
-	// GreaterThanOrEqual ...
-	GreaterThanOrEqual CookiesOperator = "GreaterThanOrEqual"
-	// LessThan ...
-	LessThan CookiesOperator = "LessThan"
-	// LessThanOrEqual ...
-	LessThanOrEqual CookiesOperator = "LessThanOrEqual"
-	// RegEx ...
-	RegEx CookiesOperator = "RegEx"
+	// CookiesOperatorAny ...
+	CookiesOperatorAny CookiesOperator = "Any"
+	// CookiesOperatorBeginsWith ...
+	CookiesOperatorBeginsWith CookiesOperator = "BeginsWith"
+	// CookiesOperatorContains ...
+	CookiesOperatorContains CookiesOperator = "Contains"
+	// CookiesOperatorEndsWith ...
+	CookiesOperatorEndsWith CookiesOperator = "EndsWith"
+	// CookiesOperatorEqual ...
+	CookiesOperatorEqual CookiesOperator = "Equal"
+	// CookiesOperatorGreaterThan ...
+	CookiesOperatorGreaterThan CookiesOperator = "GreaterThan"
+	// CookiesOperatorGreaterThanOrEqual ...
+	CookiesOperatorGreaterThanOrEqual CookiesOperator = "GreaterThanOrEqual"
+	// CookiesOperatorLessThan ...
+	CookiesOperatorLessThan CookiesOperator = "LessThan"
+	// CookiesOperatorLessThanOrEqual ...
+	CookiesOperatorLessThanOrEqual CookiesOperator = "LessThanOrEqual"
+	// CookiesOperatorRegEx ...
+	CookiesOperatorRegEx CookiesOperator = "RegEx"
 )
 
 // PossibleCookiesOperatorValues returns an array of possible values for the CookiesOperator const type.
 func PossibleCookiesOperatorValues() []CookiesOperator {
-	return []CookiesOperator{Any, BeginsWith, Contains, EndsWith, Equal, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, RegEx}
+	return []CookiesOperator{CookiesOperatorAny, CookiesOperatorBeginsWith, CookiesOperatorContains, CookiesOperatorEndsWith, CookiesOperatorEqual, CookiesOperatorGreaterThan, CookiesOperatorGreaterThanOrEqual, CookiesOperatorLessThan, CookiesOperatorLessThanOrEqual, CookiesOperatorRegEx}
 }
 
 // CustomDomainResourceState enumerates the values for custom domain resource state.
@@ -243,46 +243,46 @@ func PossibleCustomHTTPSProvisioningStateValues() []CustomHTTPSProvisioningState
 type CustomHTTPSProvisioningSubstate string
 
 const (
-	// CertificateDeleted ...
-	CertificateDeleted CustomHTTPSProvisioningSubstate = "CertificateDeleted"
-	// CertificateDeployed ...
-	CertificateDeployed CustomHTTPSProvisioningSubstate = "CertificateDeployed"
-	// DeletingCertificate ...
-	DeletingCertificate CustomHTTPSProvisioningSubstate = "DeletingCertificate"
-	// DeployingCertificate ...
-	DeployingCertificate CustomHTTPSProvisioningSubstate = "DeployingCertificate"
-	// DomainControlValidationRequestApproved ...
-	DomainControlValidationRequestApproved CustomHTTPSProvisioningSubstate = "DomainControlValidationRequestApproved"
-	// DomainControlValidationRequestRejected ...
-	DomainControlValidationRequestRejected CustomHTTPSProvisioningSubstate = "DomainControlValidationRequestRejected"
-	// DomainControlValidationRequestTimedOut ...
-	DomainControlValidationRequestTimedOut CustomHTTPSProvisioningSubstate = "DomainControlValidationRequestTimedOut"
-	// IssuingCertificate ...
-	IssuingCertificate CustomHTTPSProvisioningSubstate = "IssuingCertificate"
-	// PendingDomainControlValidationREquestApproval ...
-	PendingDomainControlValidationREquestApproval CustomHTTPSProvisioningSubstate = "PendingDomainControlValidationREquestApproval"
-	// SubmittingDomainControlValidationRequest ...
-	SubmittingDomainControlValidationRequest CustomHTTPSProvisioningSubstate = "SubmittingDomainControlValidationRequest"
+	// CustomHTTPSProvisioningSubstateCertificateDeleted ...
+	CustomHTTPSProvisioningSubstateCertificateDeleted CustomHTTPSProvisioningSubstate = "CertificateDeleted"
+	// CustomHTTPSProvisioningSubstateCertificateDeployed ...
+	CustomHTTPSProvisioningSubstateCertificateDeployed CustomHTTPSProvisioningSubstate = "CertificateDeployed"
+	// CustomHTTPSProvisioningSubstateDeletingCertificate ...
+	CustomHTTPSProvisioningSubstateDeletingCertificate CustomHTTPSProvisioningSubstate = "DeletingCertificate"
+	// CustomHTTPSProvisioningSubstateDeployingCertificate ...
+	CustomHTTPSProvisioningSubstateDeployingCertificate CustomHTTPSProvisioningSubstate = "DeployingCertificate"
+	// CustomHTTPSProvisioningSubstateDomainControlValidationRequestApproved ...
+	CustomHTTPSProvisioningSubstateDomainControlValidationRequestApproved CustomHTTPSProvisioningSubstate = "DomainControlValidationRequestApproved"
+	// CustomHTTPSProvisioningSubstateDomainControlValidationRequestRejected ...
+	CustomHTTPSProvisioningSubstateDomainControlValidationRequestRejected CustomHTTPSProvisioningSubstate = "DomainControlValidationRequestRejected"
+	// CustomHTTPSProvisioningSubstateDomainControlValidationRequestTimedOut ...
+	CustomHTTPSProvisioningSubstateDomainControlValidationRequestTimedOut CustomHTTPSProvisioningSubstate = "DomainControlValidationRequestTimedOut"
+	// CustomHTTPSProvisioningSubstateIssuingCertificate ...
+	CustomHTTPSProvisioningSubstateIssuingCertificate CustomHTTPSProvisioningSubstate = "IssuingCertificate"
+	// CustomHTTPSProvisioningSubstatePendingDomainControlValidationREquestApproval ...
+	CustomHTTPSProvisioningSubstatePendingDomainControlValidationREquestApproval CustomHTTPSProvisioningSubstate = "PendingDomainControlValidationREquestApproval"
+	// CustomHTTPSProvisioningSubstateSubmittingDomainControlValidationRequest ...
+	CustomHTTPSProvisioningSubstateSubmittingDomainControlValidationRequest CustomHTTPSProvisioningSubstate = "SubmittingDomainControlValidationRequest"
 )
 
 // PossibleCustomHTTPSProvisioningSubstateValues returns an array of possible values for the CustomHTTPSProvisioningSubstate const type.
 func PossibleCustomHTTPSProvisioningSubstateValues() []CustomHTTPSProvisioningSubstate {
-	return []CustomHTTPSProvisioningSubstate{CertificateDeleted, CertificateDeployed, DeletingCertificate, DeployingCertificate, DomainControlValidationRequestApproved, DomainControlValidationRequestRejected, DomainControlValidationRequestTimedOut, IssuingCertificate, PendingDomainControlValidationREquestApproval, SubmittingDomainControlValidationRequest}
+	return []CustomHTTPSProvisioningSubstate{CustomHTTPSProvisioningSubstateCertificateDeleted, CustomHTTPSProvisioningSubstateCertificateDeployed, CustomHTTPSProvisioningSubstateDeletingCertificate, CustomHTTPSProvisioningSubstateDeployingCertificate, CustomHTTPSProvisioningSubstateDomainControlValidationRequestApproved, CustomHTTPSProvisioningSubstateDomainControlValidationRequestRejected, CustomHTTPSProvisioningSubstateDomainControlValidationRequestTimedOut, CustomHTTPSProvisioningSubstateIssuingCertificate, CustomHTTPSProvisioningSubstatePendingDomainControlValidationREquestApproval, CustomHTTPSProvisioningSubstateSubmittingDomainControlValidationRequest}
 }
 
 // CustomRuleEnabledState enumerates the values for custom rule enabled state.
 type CustomRuleEnabledState string
 
 const (
-	// Disabled ...
-	Disabled CustomRuleEnabledState = "Disabled"
-	// Enabled ...
-	Enabled CustomRuleEnabledState = "Enabled"
+	// CustomRuleEnabledStateDisabled ...
+	CustomRuleEnabledStateDisabled CustomRuleEnabledState = "Disabled"
+	// CustomRuleEnabledStateEnabled ...
+	CustomRuleEnabledStateEnabled CustomRuleEnabledState = "Enabled"
 )
 
 // PossibleCustomRuleEnabledStateValues returns an array of possible values for the CustomRuleEnabledState const type.
 func PossibleCustomRuleEnabledStateValues() []CustomRuleEnabledState {
-	return []CustomRuleEnabledState{Disabled, Enabled}
+	return []CustomRuleEnabledState{CustomRuleEnabledStateDisabled, CustomRuleEnabledStateEnabled}
 }
 
 // DeploymentStatus enumerates the values for deployment status.
@@ -325,23 +325,23 @@ func PossibleDestinationProtocolValues() []DestinationProtocol {
 type DomainValidationState string
 
 const (
-	// Approved ...
-	Approved DomainValidationState = "Approved"
-	// Pending ...
-	Pending DomainValidationState = "Pending"
-	// PendingRevalidation ...
-	PendingRevalidation DomainValidationState = "PendingRevalidation"
-	// Submitting ...
-	Submitting DomainValidationState = "Submitting"
-	// TimedOut ...
-	TimedOut DomainValidationState = "TimedOut"
-	// Unknown ...
-	Unknown DomainValidationState = "Unknown"
+	// DomainValidationStateApproved ...
+	DomainValidationStateApproved DomainValidationState = "Approved"
+	// DomainValidationStatePending ...
+	DomainValidationStatePending DomainValidationState = "Pending"
+	// DomainValidationStatePendingRevalidation ...
+	DomainValidationStatePendingRevalidation DomainValidationState = "PendingRevalidation"
+	// DomainValidationStateSubmitting ...
+	DomainValidationStateSubmitting DomainValidationState = "Submitting"
+	// DomainValidationStateTimedOut ...
+	DomainValidationStateTimedOut DomainValidationState = "TimedOut"
+	// DomainValidationStateUnknown ...
+	DomainValidationStateUnknown DomainValidationState = "Unknown"
 )
 
 // PossibleDomainValidationStateValues returns an array of possible values for the DomainValidationState const type.
 func PossibleDomainValidationStateValues() []DomainValidationState {
-	return []DomainValidationState{Approved, Pending, PendingRevalidation, Submitting, TimedOut, Unknown}
+	return []DomainValidationState{DomainValidationStateApproved, DomainValidationStatePending, DomainValidationStatePendingRevalidation, DomainValidationStateSubmitting, DomainValidationStateTimedOut, DomainValidationStateUnknown}
 }
 
 // EnabledState enumerates the values for enabled state.
@@ -386,17 +386,17 @@ func PossibleEndpointResourceStateValues() []EndpointResourceState {
 type ForwardingProtocol string
 
 const (
-	// HTTPOnly ...
-	HTTPOnly ForwardingProtocol = "HttpOnly"
-	// HTTPSOnly ...
-	HTTPSOnly ForwardingProtocol = "HttpsOnly"
-	// MatchRequest ...
-	MatchRequest ForwardingProtocol = "MatchRequest"
+	// ForwardingProtocolHTTPOnly ...
+	ForwardingProtocolHTTPOnly ForwardingProtocol = "HttpOnly"
+	// ForwardingProtocolHTTPSOnly ...
+	ForwardingProtocolHTTPSOnly ForwardingProtocol = "HttpsOnly"
+	// ForwardingProtocolMatchRequest ...
+	ForwardingProtocolMatchRequest ForwardingProtocol = "MatchRequest"
 )
 
 // PossibleForwardingProtocolValues returns an array of possible values for the ForwardingProtocol const type.
 func PossibleForwardingProtocolValues() []ForwardingProtocol {
-	return []ForwardingProtocol{HTTPOnly, HTTPSOnly, MatchRequest}
+	return []ForwardingProtocol{ForwardingProtocolHTTPOnly, ForwardingProtocolHTTPSOnly, ForwardingProtocolMatchRequest}
 }
 
 // GeoFilterActions enumerates the values for geo filter actions.
@@ -418,17 +418,17 @@ func PossibleGeoFilterActionsValues() []GeoFilterActions {
 type Granularity string
 
 const (
-	// P1D ...
-	P1D Granularity = "P1D"
-	// PT1H ...
-	PT1H Granularity = "PT1H"
-	// PT5M ...
-	PT5M Granularity = "PT5M"
+	// GranularityP1D ...
+	GranularityP1D Granularity = "P1D"
+	// GranularityPT1H ...
+	GranularityPT1H Granularity = "PT1H"
+	// GranularityPT5M ...
+	GranularityPT5M Granularity = "PT5M"
 )
 
 // PossibleGranularityValues returns an array of possible values for the Granularity const type.
 func PossibleGranularityValues() []Granularity {
-	return []Granularity{P1D, PT1H, PT5M}
+	return []Granularity{GranularityP1D, GranularityPT1H, GranularityPT5M}
 }
 
 // Granularity1 enumerates the values for granularity 1.
@@ -452,17 +452,17 @@ func PossibleGranularity1Values() []Granularity1 {
 type HeaderAction string
 
 const (
-	// Append ...
-	Append HeaderAction = "Append"
-	// Delete ...
-	Delete HeaderAction = "Delete"
-	// Overwrite ...
-	Overwrite HeaderAction = "Overwrite"
+	// HeaderActionAppend ...
+	HeaderActionAppend HeaderAction = "Append"
+	// HeaderActionDelete ...
+	HeaderActionDelete HeaderAction = "Delete"
+	// HeaderActionOverwrite ...
+	HeaderActionOverwrite HeaderAction = "Overwrite"
 )
 
 // PossibleHeaderActionValues returns an array of possible values for the HeaderAction const type.
 func PossibleHeaderActionValues() []HeaderAction {
-	return []HeaderAction{Append, Delete, Overwrite}
+	return []HeaderAction{HeaderActionAppend, HeaderActionDelete, HeaderActionOverwrite}
 }
 
 // HealthProbeRequestType enumerates the values for health probe request type.
@@ -501,19 +501,19 @@ func PossibleHTTPSRedirectValues() []HTTPSRedirect {
 type IdentityType string
 
 const (
-	// Application ...
-	Application IdentityType = "application"
-	// Key ...
-	Key IdentityType = "key"
-	// ManagedIdentity ...
-	ManagedIdentity IdentityType = "managedIdentity"
-	// User ...
-	User IdentityType = "user"
+	// IdentityTypeApplication ...
+	IdentityTypeApplication IdentityType = "application"
+	// IdentityTypeKey ...
+	IdentityTypeKey IdentityType = "key"
+	// IdentityTypeManagedIdentity ...
+	IdentityTypeManagedIdentity IdentityType = "managedIdentity"
+	// IdentityTypeUser ...
+	IdentityTypeUser IdentityType = "user"
 )
 
 // PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
 func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{Application, Key, ManagedIdentity, User}
+	return []IdentityType{IdentityTypeApplication, IdentityTypeKey, IdentityTypeManagedIdentity, IdentityTypeUser}
 }
 
 // LinkToDefaultDomain enumerates the values for link to default domain.
@@ -529,6 +529,111 @@ const (
 // PossibleLinkToDefaultDomainValues returns an array of possible values for the LinkToDefaultDomain const type.
 func PossibleLinkToDefaultDomainValues() []LinkToDefaultDomain {
 	return []LinkToDefaultDomain{LinkToDefaultDomainDisabled, LinkToDefaultDomainEnabled}
+}
+
+// LogMetric enumerates the values for log metric.
+type LogMetric string
+
+const (
+	// LogMetricClientRequestBandwidth ...
+	LogMetricClientRequestBandwidth LogMetric = "clientRequestBandwidth"
+	// LogMetricClientRequestCount ...
+	LogMetricClientRequestCount LogMetric = "clientRequestCount"
+	// LogMetricClientRequestTraffic ...
+	LogMetricClientRequestTraffic LogMetric = "clientRequestTraffic"
+	// LogMetricOriginRequestBandwidth ...
+	LogMetricOriginRequestBandwidth LogMetric = "originRequestBandwidth"
+	// LogMetricOriginRequestTraffic ...
+	LogMetricOriginRequestTraffic LogMetric = "originRequestTraffic"
+	// LogMetricTotalLatency ...
+	LogMetricTotalLatency LogMetric = "totalLatency"
+)
+
+// PossibleLogMetricValues returns an array of possible values for the LogMetric const type.
+func PossibleLogMetricValues() []LogMetric {
+	return []LogMetric{LogMetricClientRequestBandwidth, LogMetricClientRequestCount, LogMetricClientRequestTraffic, LogMetricOriginRequestBandwidth, LogMetricOriginRequestTraffic, LogMetricTotalLatency}
+}
+
+// LogMetricsGranularity enumerates the values for log metrics granularity.
+type LogMetricsGranularity string
+
+const (
+	// LogMetricsGranularityP1D ...
+	LogMetricsGranularityP1D LogMetricsGranularity = "P1D"
+	// LogMetricsGranularityPT1H ...
+	LogMetricsGranularityPT1H LogMetricsGranularity = "PT1H"
+	// LogMetricsGranularityPT5M ...
+	LogMetricsGranularityPT5M LogMetricsGranularity = "PT5M"
+)
+
+// PossibleLogMetricsGranularityValues returns an array of possible values for the LogMetricsGranularity const type.
+func PossibleLogMetricsGranularityValues() []LogMetricsGranularity {
+	return []LogMetricsGranularity{LogMetricsGranularityP1D, LogMetricsGranularityPT1H, LogMetricsGranularityPT5M}
+}
+
+// LogMetricsGroupBy enumerates the values for log metrics group by.
+type LogMetricsGroupBy string
+
+const (
+	// LogMetricsGroupByCacheStatus ...
+	LogMetricsGroupByCacheStatus LogMetricsGroupBy = "cacheStatus"
+	// LogMetricsGroupByCountry ...
+	LogMetricsGroupByCountry LogMetricsGroupBy = "country"
+	// LogMetricsGroupByCustomDomain ...
+	LogMetricsGroupByCustomDomain LogMetricsGroupBy = "customDomain"
+	// LogMetricsGroupByHTTPStatusCode ...
+	LogMetricsGroupByHTTPStatusCode LogMetricsGroupBy = "httpStatusCode"
+	// LogMetricsGroupByProtocol ...
+	LogMetricsGroupByProtocol LogMetricsGroupBy = "protocol"
+)
+
+// PossibleLogMetricsGroupByValues returns an array of possible values for the LogMetricsGroupBy const type.
+func PossibleLogMetricsGroupByValues() []LogMetricsGroupBy {
+	return []LogMetricsGroupBy{LogMetricsGroupByCacheStatus, LogMetricsGroupByCountry, LogMetricsGroupByCustomDomain, LogMetricsGroupByHTTPStatusCode, LogMetricsGroupByProtocol}
+}
+
+// LogRanking enumerates the values for log ranking.
+type LogRanking string
+
+const (
+	// LogRankingBrowser ...
+	LogRankingBrowser LogRanking = "browser"
+	// LogRankingCountryOrRegion ...
+	LogRankingCountryOrRegion LogRanking = "countryOrRegion"
+	// LogRankingReferrer ...
+	LogRankingReferrer LogRanking = "referrer"
+	// LogRankingURL ...
+	LogRankingURL LogRanking = "url"
+	// LogRankingUserAgent ...
+	LogRankingUserAgent LogRanking = "userAgent"
+)
+
+// PossibleLogRankingValues returns an array of possible values for the LogRanking const type.
+func PossibleLogRankingValues() []LogRanking {
+	return []LogRanking{LogRankingBrowser, LogRankingCountryOrRegion, LogRankingReferrer, LogRankingURL, LogRankingUserAgent}
+}
+
+// LogRankingMetric enumerates the values for log ranking metric.
+type LogRankingMetric string
+
+const (
+	// LogRankingMetricClientRequestCount ...
+	LogRankingMetricClientRequestCount LogRankingMetric = "clientRequestCount"
+	// LogRankingMetricClientRequestTraffic ...
+	LogRankingMetricClientRequestTraffic LogRankingMetric = "clientRequestTraffic"
+	// LogRankingMetricErrorCount ...
+	LogRankingMetricErrorCount LogRankingMetric = "errorCount"
+	// LogRankingMetricHitCount ...
+	LogRankingMetricHitCount LogRankingMetric = "hitCount"
+	// LogRankingMetricMissCount ...
+	LogRankingMetricMissCount LogRankingMetric = "missCount"
+	// LogRankingMetricUserErrorCount ...
+	LogRankingMetricUserErrorCount LogRankingMetric = "userErrorCount"
+)
+
+// PossibleLogRankingMetricValues returns an array of possible values for the LogRankingMetric const type.
+func PossibleLogRankingMetricValues() []LogRankingMetric {
+	return []LogRankingMetric{LogRankingMetricClientRequestCount, LogRankingMetricClientRequestTraffic, LogRankingMetricErrorCount, LogRankingMetricHitCount, LogRankingMetricMissCount, LogRankingMetricUserErrorCount}
 }
 
 // ManagedRuleEnabledState enumerates the values for managed rule enabled state.
@@ -550,44 +655,44 @@ func PossibleManagedRuleEnabledStateValues() []ManagedRuleEnabledState {
 type MatchProcessingBehavior string
 
 const (
-	// Continue ...
-	Continue MatchProcessingBehavior = "Continue"
-	// Stop ...
-	Stop MatchProcessingBehavior = "Stop"
+	// MatchProcessingBehaviorContinue ...
+	MatchProcessingBehaviorContinue MatchProcessingBehavior = "Continue"
+	// MatchProcessingBehaviorStop ...
+	MatchProcessingBehaviorStop MatchProcessingBehavior = "Stop"
 )
 
 // PossibleMatchProcessingBehaviorValues returns an array of possible values for the MatchProcessingBehavior const type.
 func PossibleMatchProcessingBehaviorValues() []MatchProcessingBehavior {
-	return []MatchProcessingBehavior{Continue, Stop}
+	return []MatchProcessingBehavior{MatchProcessingBehaviorContinue, MatchProcessingBehaviorStop}
 }
 
 // MatchVariable enumerates the values for match variable.
 type MatchVariable string
 
 const (
-	// Cookies ...
-	Cookies MatchVariable = "Cookies"
-	// PostArgs ...
-	PostArgs MatchVariable = "PostArgs"
-	// QueryString ...
-	QueryString MatchVariable = "QueryString"
-	// RemoteAddr ...
-	RemoteAddr MatchVariable = "RemoteAddr"
-	// RequestBody ...
-	RequestBody MatchVariable = "RequestBody"
-	// RequestHeader ...
-	RequestHeader MatchVariable = "RequestHeader"
-	// RequestMethod ...
-	RequestMethod MatchVariable = "RequestMethod"
-	// RequestURI ...
-	RequestURI MatchVariable = "RequestUri"
-	// SocketAddr ...
-	SocketAddr MatchVariable = "SocketAddr"
+	// MatchVariableCookies ...
+	MatchVariableCookies MatchVariable = "Cookies"
+	// MatchVariablePostArgs ...
+	MatchVariablePostArgs MatchVariable = "PostArgs"
+	// MatchVariableQueryString ...
+	MatchVariableQueryString MatchVariable = "QueryString"
+	// MatchVariableRemoteAddr ...
+	MatchVariableRemoteAddr MatchVariable = "RemoteAddr"
+	// MatchVariableRequestBody ...
+	MatchVariableRequestBody MatchVariable = "RequestBody"
+	// MatchVariableRequestHeader ...
+	MatchVariableRequestHeader MatchVariable = "RequestHeader"
+	// MatchVariableRequestMethod ...
+	MatchVariableRequestMethod MatchVariable = "RequestMethod"
+	// MatchVariableRequestURI ...
+	MatchVariableRequestURI MatchVariable = "RequestUri"
+	// MatchVariableSocketAddr ...
+	MatchVariableSocketAddr MatchVariable = "SocketAddr"
 )
 
 // PossibleMatchVariableValues returns an array of possible values for the MatchVariable const type.
 func PossibleMatchVariableValues() []MatchVariable {
-	return []MatchVariable{Cookies, PostArgs, QueryString, RemoteAddr, RequestBody, RequestHeader, RequestMethod, RequestURI, SocketAddr}
+	return []MatchVariable{MatchVariableCookies, MatchVariablePostArgs, MatchVariableQueryString, MatchVariableRemoteAddr, MatchVariableRequestBody, MatchVariableRequestHeader, MatchVariableRequestMethod, MatchVariableRequestURI, MatchVariableSocketAddr}
 }
 
 // MinimumTLSVersion enumerates the values for minimum tls version.
@@ -652,29 +757,29 @@ func PossibleNameValues() []Name {
 type NameBasicDeliveryRuleAction string
 
 const (
-	// NameCacheExpiration ...
-	NameCacheExpiration NameBasicDeliveryRuleAction = "CacheExpiration"
-	// NameCacheKeyQueryString ...
-	NameCacheKeyQueryString NameBasicDeliveryRuleAction = "CacheKeyQueryString"
-	// NameDeliveryRuleAction ...
-	NameDeliveryRuleAction NameBasicDeliveryRuleAction = "DeliveryRuleAction"
-	// NameModifyRequestHeader ...
-	NameModifyRequestHeader NameBasicDeliveryRuleAction = "ModifyRequestHeader"
-	// NameModifyResponseHeader ...
-	NameModifyResponseHeader NameBasicDeliveryRuleAction = "ModifyResponseHeader"
-	// NameOriginGroupOverride ...
-	NameOriginGroupOverride NameBasicDeliveryRuleAction = "OriginGroupOverride"
-	// NameURLRedirect ...
-	NameURLRedirect NameBasicDeliveryRuleAction = "UrlRedirect"
-	// NameURLRewrite ...
-	NameURLRewrite NameBasicDeliveryRuleAction = "UrlRewrite"
-	// NameURLSigning ...
-	NameURLSigning NameBasicDeliveryRuleAction = "UrlSigning"
+	// NameBasicDeliveryRuleActionNameCacheExpiration ...
+	NameBasicDeliveryRuleActionNameCacheExpiration NameBasicDeliveryRuleAction = "CacheExpiration"
+	// NameBasicDeliveryRuleActionNameCacheKeyQueryString ...
+	NameBasicDeliveryRuleActionNameCacheKeyQueryString NameBasicDeliveryRuleAction = "CacheKeyQueryString"
+	// NameBasicDeliveryRuleActionNameDeliveryRuleAction ...
+	NameBasicDeliveryRuleActionNameDeliveryRuleAction NameBasicDeliveryRuleAction = "DeliveryRuleAction"
+	// NameBasicDeliveryRuleActionNameModifyRequestHeader ...
+	NameBasicDeliveryRuleActionNameModifyRequestHeader NameBasicDeliveryRuleAction = "ModifyRequestHeader"
+	// NameBasicDeliveryRuleActionNameModifyResponseHeader ...
+	NameBasicDeliveryRuleActionNameModifyResponseHeader NameBasicDeliveryRuleAction = "ModifyResponseHeader"
+	// NameBasicDeliveryRuleActionNameOriginGroupOverride ...
+	NameBasicDeliveryRuleActionNameOriginGroupOverride NameBasicDeliveryRuleAction = "OriginGroupOverride"
+	// NameBasicDeliveryRuleActionNameURLRedirect ...
+	NameBasicDeliveryRuleActionNameURLRedirect NameBasicDeliveryRuleAction = "UrlRedirect"
+	// NameBasicDeliveryRuleActionNameURLRewrite ...
+	NameBasicDeliveryRuleActionNameURLRewrite NameBasicDeliveryRuleAction = "UrlRewrite"
+	// NameBasicDeliveryRuleActionNameURLSigning ...
+	NameBasicDeliveryRuleActionNameURLSigning NameBasicDeliveryRuleAction = "UrlSigning"
 )
 
 // PossibleNameBasicDeliveryRuleActionValues returns an array of possible values for the NameBasicDeliveryRuleAction const type.
 func PossibleNameBasicDeliveryRuleActionValues() []NameBasicDeliveryRuleAction {
-	return []NameBasicDeliveryRuleAction{NameCacheExpiration, NameCacheKeyQueryString, NameDeliveryRuleAction, NameModifyRequestHeader, NameModifyResponseHeader, NameOriginGroupOverride, NameURLRedirect, NameURLRewrite, NameURLSigning}
+	return []NameBasicDeliveryRuleAction{NameBasicDeliveryRuleActionNameCacheExpiration, NameBasicDeliveryRuleActionNameCacheKeyQueryString, NameBasicDeliveryRuleActionNameDeliveryRuleAction, NameBasicDeliveryRuleActionNameModifyRequestHeader, NameBasicDeliveryRuleActionNameModifyResponseHeader, NameBasicDeliveryRuleActionNameOriginGroupOverride, NameBasicDeliveryRuleActionNameURLRedirect, NameBasicDeliveryRuleActionNameURLRewrite, NameBasicDeliveryRuleActionNameURLSigning}
 }
 
 // Operator enumerates the values for operator.
@@ -716,21 +821,21 @@ func PossibleOperatorValues() []Operator {
 type OptimizationType string
 
 const (
-	// DynamicSiteAcceleration ...
-	DynamicSiteAcceleration OptimizationType = "DynamicSiteAcceleration"
-	// GeneralMediaStreaming ...
-	GeneralMediaStreaming OptimizationType = "GeneralMediaStreaming"
-	// GeneralWebDelivery ...
-	GeneralWebDelivery OptimizationType = "GeneralWebDelivery"
-	// LargeFileDownload ...
-	LargeFileDownload OptimizationType = "LargeFileDownload"
-	// VideoOnDemandMediaStreaming ...
-	VideoOnDemandMediaStreaming OptimizationType = "VideoOnDemandMediaStreaming"
+	// OptimizationTypeDynamicSiteAcceleration ...
+	OptimizationTypeDynamicSiteAcceleration OptimizationType = "DynamicSiteAcceleration"
+	// OptimizationTypeGeneralMediaStreaming ...
+	OptimizationTypeGeneralMediaStreaming OptimizationType = "GeneralMediaStreaming"
+	// OptimizationTypeGeneralWebDelivery ...
+	OptimizationTypeGeneralWebDelivery OptimizationType = "GeneralWebDelivery"
+	// OptimizationTypeLargeFileDownload ...
+	OptimizationTypeLargeFileDownload OptimizationType = "LargeFileDownload"
+	// OptimizationTypeVideoOnDemandMediaStreaming ...
+	OptimizationTypeVideoOnDemandMediaStreaming OptimizationType = "VideoOnDemandMediaStreaming"
 )
 
 // PossibleOptimizationTypeValues returns an array of possible values for the OptimizationType const type.
 func PossibleOptimizationTypeValues() []OptimizationType {
-	return []OptimizationType{DynamicSiteAcceleration, GeneralMediaStreaming, GeneralWebDelivery, LargeFileDownload, VideoOnDemandMediaStreaming}
+	return []OptimizationType{OptimizationTypeDynamicSiteAcceleration, OptimizationTypeGeneralMediaStreaming, OptimizationTypeGeneralWebDelivery, OptimizationTypeLargeFileDownload, OptimizationTypeVideoOnDemandMediaStreaming}
 }
 
 // OriginGroupResourceState enumerates the values for origin group resource state.
@@ -771,17 +876,17 @@ func PossibleOriginResourceStateValues() []OriginResourceState {
 type ParamIndicator string
 
 const (
-	// Expires ...
-	Expires ParamIndicator = "Expires"
-	// KeyID ...
-	KeyID ParamIndicator = "KeyId"
-	// Signature ...
-	Signature ParamIndicator = "Signature"
+	// ParamIndicatorExpires ...
+	ParamIndicatorExpires ParamIndicator = "Expires"
+	// ParamIndicatorKeyID ...
+	ParamIndicatorKeyID ParamIndicator = "KeyId"
+	// ParamIndicatorSignature ...
+	ParamIndicatorSignature ParamIndicator = "Signature"
 )
 
 // PossibleParamIndicatorValues returns an array of possible values for the ParamIndicator const type.
 func PossibleParamIndicatorValues() []ParamIndicator {
-	return []ParamIndicator{Expires, KeyID, Signature}
+	return []ParamIndicator{ParamIndicatorExpires, ParamIndicatorKeyID, ParamIndicatorSignature}
 }
 
 // PolicyEnabledState enumerates the values for policy enabled state.
@@ -803,15 +908,15 @@ func PossiblePolicyEnabledStateValues() []PolicyEnabledState {
 type PolicyMode string
 
 const (
-	// Detection ...
-	Detection PolicyMode = "Detection"
-	// Prevention ...
-	Prevention PolicyMode = "Prevention"
+	// PolicyModeDetection ...
+	PolicyModeDetection PolicyMode = "Detection"
+	// PolicyModePrevention ...
+	PolicyModePrevention PolicyMode = "Prevention"
 )
 
 // PossiblePolicyModeValues returns an array of possible values for the PolicyMode const type.
 func PossiblePolicyModeValues() []PolicyMode {
-	return []PolicyMode{Detection, Prevention}
+	return []PolicyMode{PolicyModeDetection, PolicyModePrevention}
 }
 
 // PolicyResourceState enumerates the values for policy resource state.
@@ -929,15 +1034,15 @@ func PossibleProfileResourceStateValues() []ProfileResourceState {
 type ProtocolType string
 
 const (
-	// IPBased ...
-	IPBased ProtocolType = "IPBased"
-	// ServerNameIndication ...
-	ServerNameIndication ProtocolType = "ServerNameIndication"
+	// ProtocolTypeIPBased ...
+	ProtocolTypeIPBased ProtocolType = "IPBased"
+	// ProtocolTypeServerNameIndication ...
+	ProtocolTypeServerNameIndication ProtocolType = "ServerNameIndication"
 )
 
 // PossibleProtocolTypeValues returns an array of possible values for the ProtocolType const type.
 func PossibleProtocolTypeValues() []ProtocolType {
-	return []ProtocolType{IPBased, ServerNameIndication}
+	return []ProtocolType{ProtocolTypeIPBased, ProtocolTypeServerNameIndication}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
@@ -961,19 +1066,19 @@ func PossibleProvisioningStateValues() []ProvisioningState {
 type QueryStringBehavior string
 
 const (
-	// Exclude ...
-	Exclude QueryStringBehavior = "Exclude"
-	// ExcludeAll ...
-	ExcludeAll QueryStringBehavior = "ExcludeAll"
-	// Include ...
-	Include QueryStringBehavior = "Include"
-	// IncludeAll ...
-	IncludeAll QueryStringBehavior = "IncludeAll"
+	// QueryStringBehaviorExclude ...
+	QueryStringBehaviorExclude QueryStringBehavior = "Exclude"
+	// QueryStringBehaviorExcludeAll ...
+	QueryStringBehaviorExcludeAll QueryStringBehavior = "ExcludeAll"
+	// QueryStringBehaviorInclude ...
+	QueryStringBehaviorInclude QueryStringBehavior = "Include"
+	// QueryStringBehaviorIncludeAll ...
+	QueryStringBehaviorIncludeAll QueryStringBehavior = "IncludeAll"
 )
 
 // PossibleQueryStringBehaviorValues returns an array of possible values for the QueryStringBehavior const type.
 func PossibleQueryStringBehaviorValues() []QueryStringBehavior {
-	return []QueryStringBehavior{Exclude, ExcludeAll, Include, IncludeAll}
+	return []QueryStringBehavior{QueryStringBehaviorExclude, QueryStringBehaviorExcludeAll, QueryStringBehaviorInclude, QueryStringBehaviorIncludeAll}
 }
 
 // QueryStringCachingBehavior enumerates the values for query string caching behavior.
@@ -1030,19 +1135,19 @@ func PossibleQueryStringOperatorValues() []QueryStringOperator {
 type RedirectType string
 
 const (
-	// Found ...
-	Found RedirectType = "Found"
-	// Moved ...
-	Moved RedirectType = "Moved"
-	// PermanentRedirect ...
-	PermanentRedirect RedirectType = "PermanentRedirect"
-	// TemporaryRedirect ...
-	TemporaryRedirect RedirectType = "TemporaryRedirect"
+	// RedirectTypeFound ...
+	RedirectTypeFound RedirectType = "Found"
+	// RedirectTypeMoved ...
+	RedirectTypeMoved RedirectType = "Moved"
+	// RedirectTypePermanentRedirect ...
+	RedirectTypePermanentRedirect RedirectType = "PermanentRedirect"
+	// RedirectTypeTemporaryRedirect ...
+	RedirectTypeTemporaryRedirect RedirectType = "TemporaryRedirect"
 )
 
 // PossibleRedirectTypeValues returns an array of possible values for the RedirectType const type.
 func PossibleRedirectTypeValues() []RedirectType {
-	return []RedirectType{Found, Moved, PermanentRedirect, TemporaryRedirect}
+	return []RedirectType{RedirectTypeFound, RedirectTypeMoved, RedirectTypePermanentRedirect, RedirectTypeTemporaryRedirect}
 }
 
 // RemoteAddressOperator enumerates the values for remote address operator.
@@ -1159,30 +1264,30 @@ func PossibleRequestURIOperatorValues() []RequestURIOperator {
 type ResourceType string
 
 const (
-	// MicrosoftCdnProfilesEndpoints ...
-	MicrosoftCdnProfilesEndpoints ResourceType = "Microsoft.Cdn/Profiles/Endpoints"
+	// ResourceTypeMicrosoftCdnProfilesEndpoints ...
+	ResourceTypeMicrosoftCdnProfilesEndpoints ResourceType = "Microsoft.Cdn/Profiles/Endpoints"
 )
 
 // PossibleResourceTypeValues returns an array of possible values for the ResourceType const type.
 func PossibleResourceTypeValues() []ResourceType {
-	return []ResourceType{MicrosoftCdnProfilesEndpoints}
+	return []ResourceType{ResourceTypeMicrosoftCdnProfilesEndpoints}
 }
 
 // ResponseBasedDetectedErrorTypes enumerates the values for response based detected error types.
 type ResponseBasedDetectedErrorTypes string
 
 const (
-	// None ...
-	None ResponseBasedDetectedErrorTypes = "None"
-	// TCPAndHTTPErrors ...
-	TCPAndHTTPErrors ResponseBasedDetectedErrorTypes = "TcpAndHttpErrors"
-	// TCPErrorsOnly ...
-	TCPErrorsOnly ResponseBasedDetectedErrorTypes = "TcpErrorsOnly"
+	// ResponseBasedDetectedErrorTypesNone ...
+	ResponseBasedDetectedErrorTypesNone ResponseBasedDetectedErrorTypes = "None"
+	// ResponseBasedDetectedErrorTypesTCPAndHTTPErrors ...
+	ResponseBasedDetectedErrorTypesTCPAndHTTPErrors ResponseBasedDetectedErrorTypes = "TcpAndHttpErrors"
+	// ResponseBasedDetectedErrorTypesTCPErrorsOnly ...
+	ResponseBasedDetectedErrorTypesTCPErrorsOnly ResponseBasedDetectedErrorTypes = "TcpErrorsOnly"
 )
 
 // PossibleResponseBasedDetectedErrorTypesValues returns an array of possible values for the ResponseBasedDetectedErrorTypes const type.
 func PossibleResponseBasedDetectedErrorTypesValues() []ResponseBasedDetectedErrorTypes {
-	return []ResponseBasedDetectedErrorTypes{None, TCPAndHTTPErrors, TCPErrorsOnly}
+	return []ResponseBasedDetectedErrorTypes{ResponseBasedDetectedErrorTypesNone, ResponseBasedDetectedErrorTypesTCPAndHTTPErrors, ResponseBasedDetectedErrorTypesTCPErrorsOnly}
 }
 
 // SharedPrivateLinkResourceStatus enumerates the values for shared private link resource status.
@@ -1210,73 +1315,73 @@ func PossibleSharedPrivateLinkResourceStatusValues() []SharedPrivateLinkResource
 type SkuName string
 
 const (
-	// CustomVerizon ...
-	CustomVerizon SkuName = "Custom_Verizon"
-	// PremiumAzureFrontDoor ...
-	PremiumAzureFrontDoor SkuName = "Premium_AzureFrontDoor"
-	// PremiumChinaCdn ...
-	PremiumChinaCdn SkuName = "Premium_ChinaCdn"
-	// PremiumVerizon ...
-	PremiumVerizon SkuName = "Premium_Verizon"
-	// Standard955BandWidthChinaCdn ...
-	Standard955BandWidthChinaCdn SkuName = "Standard_955BandWidth_ChinaCdn"
-	// StandardAkamai ...
-	StandardAkamai SkuName = "Standard_Akamai"
-	// StandardAvgBandWidthChinaCdn ...
-	StandardAvgBandWidthChinaCdn SkuName = "Standard_AvgBandWidth_ChinaCdn"
-	// StandardAzureFrontDoor ...
-	StandardAzureFrontDoor SkuName = "Standard_AzureFrontDoor"
-	// StandardChinaCdn ...
-	StandardChinaCdn SkuName = "Standard_ChinaCdn"
-	// StandardMicrosoft ...
-	StandardMicrosoft SkuName = "Standard_Microsoft"
-	// StandardPlus955BandWidthChinaCdn ...
-	StandardPlus955BandWidthChinaCdn SkuName = "StandardPlus_955BandWidth_ChinaCdn"
-	// StandardPlusAvgBandWidthChinaCdn ...
-	StandardPlusAvgBandWidthChinaCdn SkuName = "StandardPlus_AvgBandWidth_ChinaCdn"
-	// StandardPlusChinaCdn ...
-	StandardPlusChinaCdn SkuName = "StandardPlus_ChinaCdn"
-	// StandardVerizon ...
-	StandardVerizon SkuName = "Standard_Verizon"
+	// SkuNameCustomVerizon ...
+	SkuNameCustomVerizon SkuName = "Custom_Verizon"
+	// SkuNamePremiumAzureFrontDoor ...
+	SkuNamePremiumAzureFrontDoor SkuName = "Premium_AzureFrontDoor"
+	// SkuNamePremiumChinaCdn ...
+	SkuNamePremiumChinaCdn SkuName = "Premium_ChinaCdn"
+	// SkuNamePremiumVerizon ...
+	SkuNamePremiumVerizon SkuName = "Premium_Verizon"
+	// SkuNameStandard955BandWidthChinaCdn ...
+	SkuNameStandard955BandWidthChinaCdn SkuName = "Standard_955BandWidth_ChinaCdn"
+	// SkuNameStandardAkamai ...
+	SkuNameStandardAkamai SkuName = "Standard_Akamai"
+	// SkuNameStandardAvgBandWidthChinaCdn ...
+	SkuNameStandardAvgBandWidthChinaCdn SkuName = "Standard_AvgBandWidth_ChinaCdn"
+	// SkuNameStandardAzureFrontDoor ...
+	SkuNameStandardAzureFrontDoor SkuName = "Standard_AzureFrontDoor"
+	// SkuNameStandardChinaCdn ...
+	SkuNameStandardChinaCdn SkuName = "Standard_ChinaCdn"
+	// SkuNameStandardMicrosoft ...
+	SkuNameStandardMicrosoft SkuName = "Standard_Microsoft"
+	// SkuNameStandardPlus955BandWidthChinaCdn ...
+	SkuNameStandardPlus955BandWidthChinaCdn SkuName = "StandardPlus_955BandWidth_ChinaCdn"
+	// SkuNameStandardPlusAvgBandWidthChinaCdn ...
+	SkuNameStandardPlusAvgBandWidthChinaCdn SkuName = "StandardPlus_AvgBandWidth_ChinaCdn"
+	// SkuNameStandardPlusChinaCdn ...
+	SkuNameStandardPlusChinaCdn SkuName = "StandardPlus_ChinaCdn"
+	// SkuNameStandardVerizon ...
+	SkuNameStandardVerizon SkuName = "Standard_Verizon"
 )
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{CustomVerizon, PremiumAzureFrontDoor, PremiumChinaCdn, PremiumVerizon, Standard955BandWidthChinaCdn, StandardAkamai, StandardAvgBandWidthChinaCdn, StandardAzureFrontDoor, StandardChinaCdn, StandardMicrosoft, StandardPlus955BandWidthChinaCdn, StandardPlusAvgBandWidthChinaCdn, StandardPlusChinaCdn, StandardVerizon}
+	return []SkuName{SkuNameCustomVerizon, SkuNamePremiumAzureFrontDoor, SkuNamePremiumChinaCdn, SkuNamePremiumVerizon, SkuNameStandard955BandWidthChinaCdn, SkuNameStandardAkamai, SkuNameStandardAvgBandWidthChinaCdn, SkuNameStandardAzureFrontDoor, SkuNameStandardChinaCdn, SkuNameStandardMicrosoft, SkuNameStandardPlus955BandWidthChinaCdn, SkuNameStandardPlusAvgBandWidthChinaCdn, SkuNameStandardPlusChinaCdn, SkuNameStandardVerizon}
 }
 
 // Status enumerates the values for status.
 type Status string
 
 const (
-	// AccessDenied ...
-	AccessDenied Status = "AccessDenied"
-	// CertificateExpired ...
-	CertificateExpired Status = "CertificateExpired"
-	// Invalid ...
-	Invalid Status = "Invalid"
-	// Valid ...
-	Valid Status = "Valid"
+	// StatusAccessDenied ...
+	StatusAccessDenied Status = "AccessDenied"
+	// StatusCertificateExpired ...
+	StatusCertificateExpired Status = "CertificateExpired"
+	// StatusInvalid ...
+	StatusInvalid Status = "Invalid"
+	// StatusValid ...
+	StatusValid Status = "Valid"
 )
 
 // PossibleStatusValues returns an array of possible values for the Status const type.
 func PossibleStatusValues() []Status {
-	return []Status{AccessDenied, CertificateExpired, Invalid, Valid}
+	return []Status{StatusAccessDenied, StatusCertificateExpired, StatusInvalid, StatusValid}
 }
 
 // Transform enumerates the values for transform.
 type Transform string
 
 const (
-	// Lowercase ...
-	Lowercase Transform = "Lowercase"
-	// Uppercase ...
-	Uppercase Transform = "Uppercase"
+	// TransformLowercase ...
+	TransformLowercase Transform = "Lowercase"
+	// TransformUppercase ...
+	TransformUppercase Transform = "Uppercase"
 )
 
 // PossibleTransformValues returns an array of possible values for the Transform const type.
 func PossibleTransformValues() []Transform {
-	return []Transform{Lowercase, Uppercase}
+	return []Transform{TransformLowercase, TransformUppercase}
 }
 
 // TransformType enumerates the values for transform type.
@@ -1321,36 +1426,36 @@ func PossibleTypeValues() []Type {
 type TypeBasicSecretParameters string
 
 const (
-	// TypeCustomerCertificate ...
-	TypeCustomerCertificate TypeBasicSecretParameters = "CustomerCertificate"
-	// TypeManagedCertificate ...
-	TypeManagedCertificate TypeBasicSecretParameters = "ManagedCertificate"
-	// TypeSecretParameters ...
-	TypeSecretParameters TypeBasicSecretParameters = "SecretParameters"
-	// TypeURLSigningKey ...
-	TypeURLSigningKey TypeBasicSecretParameters = "UrlSigningKey"
+	// TypeBasicSecretParametersTypeCustomerCertificate ...
+	TypeBasicSecretParametersTypeCustomerCertificate TypeBasicSecretParameters = "CustomerCertificate"
+	// TypeBasicSecretParametersTypeManagedCertificate ...
+	TypeBasicSecretParametersTypeManagedCertificate TypeBasicSecretParameters = "ManagedCertificate"
+	// TypeBasicSecretParametersTypeSecretParameters ...
+	TypeBasicSecretParametersTypeSecretParameters TypeBasicSecretParameters = "SecretParameters"
+	// TypeBasicSecretParametersTypeURLSigningKey ...
+	TypeBasicSecretParametersTypeURLSigningKey TypeBasicSecretParameters = "UrlSigningKey"
 )
 
 // PossibleTypeBasicSecretParametersValues returns an array of possible values for the TypeBasicSecretParameters const type.
 func PossibleTypeBasicSecretParametersValues() []TypeBasicSecretParameters {
-	return []TypeBasicSecretParameters{TypeCustomerCertificate, TypeManagedCertificate, TypeSecretParameters, TypeURLSigningKey}
+	return []TypeBasicSecretParameters{TypeBasicSecretParametersTypeCustomerCertificate, TypeBasicSecretParametersTypeManagedCertificate, TypeBasicSecretParametersTypeSecretParameters, TypeBasicSecretParametersTypeURLSigningKey}
 }
 
 // Unit enumerates the values for unit.
 type Unit string
 
 const (
-	// BitsPerSecond ...
-	BitsPerSecond Unit = "bitsPerSecond"
-	// Bytes ...
-	Bytes Unit = "bytes"
-	// Count ...
-	Count Unit = "count"
+	// UnitBitsPerSecond ...
+	UnitBitsPerSecond Unit = "bitsPerSecond"
+	// UnitBytes ...
+	UnitBytes Unit = "bytes"
+	// UnitCount ...
+	UnitCount Unit = "count"
 )
 
 // PossibleUnitValues returns an array of possible values for the Unit const type.
 func PossibleUnitValues() []Unit {
-	return []Unit{BitsPerSecond, Bytes, Count}
+	return []Unit{UnitBitsPerSecond, UnitBytes, UnitCount}
 }
 
 // Unit1 enumerates the values for unit 1.
@@ -1476,4 +1581,112 @@ const (
 // PossibleValidateSecretTypeValues returns an array of possible values for the ValidateSecretType const type.
 func PossibleValidateSecretTypeValues() []ValidateSecretType {
 	return []ValidateSecretType{ValidateSecretTypeCustomerCertificate, ValidateSecretTypeManagedCertificate, ValidateSecretTypeURLSigningKey}
+}
+
+// WafAction enumerates the values for waf action.
+type WafAction string
+
+const (
+	// WafActionAllow ...
+	WafActionAllow WafAction = "allow"
+	// WafActionBlock ...
+	WafActionBlock WafAction = "block"
+	// WafActionLog ...
+	WafActionLog WafAction = "log"
+	// WafActionRedirect ...
+	WafActionRedirect WafAction = "redirect"
+)
+
+// PossibleWafActionValues returns an array of possible values for the WafAction const type.
+func PossibleWafActionValues() []WafAction {
+	return []WafAction{WafActionAllow, WafActionBlock, WafActionLog, WafActionRedirect}
+}
+
+// WafGranularity enumerates the values for waf granularity.
+type WafGranularity string
+
+const (
+	// WafGranularityP1D ...
+	WafGranularityP1D WafGranularity = "P1D"
+	// WafGranularityPT1H ...
+	WafGranularityPT1H WafGranularity = "PT1H"
+	// WafGranularityPT5M ...
+	WafGranularityPT5M WafGranularity = "PT5M"
+)
+
+// PossibleWafGranularityValues returns an array of possible values for the WafGranularity const type.
+func PossibleWafGranularityValues() []WafGranularity {
+	return []WafGranularity{WafGranularityP1D, WafGranularityPT1H, WafGranularityPT5M}
+}
+
+// WafMetric enumerates the values for waf metric.
+type WafMetric string
+
+const (
+	// WafMetricClientRequestCount ...
+	WafMetricClientRequestCount WafMetric = "clientRequestCount"
+)
+
+// PossibleWafMetricValues returns an array of possible values for the WafMetric const type.
+func PossibleWafMetricValues() []WafMetric {
+	return []WafMetric{WafMetricClientRequestCount}
+}
+
+// WafRankingGroupBy enumerates the values for waf ranking group by.
+type WafRankingGroupBy string
+
+const (
+	// WafRankingGroupByCustomDomain ...
+	WafRankingGroupByCustomDomain WafRankingGroupBy = "customDomain"
+	// WafRankingGroupByHTTPStatusCode ...
+	WafRankingGroupByHTTPStatusCode WafRankingGroupBy = "httpStatusCode"
+)
+
+// PossibleWafRankingGroupByValues returns an array of possible values for the WafRankingGroupBy const type.
+func PossibleWafRankingGroupByValues() []WafRankingGroupBy {
+	return []WafRankingGroupBy{WafRankingGroupByCustomDomain, WafRankingGroupByHTTPStatusCode}
+}
+
+// WafRankingType enumerates the values for waf ranking type.
+type WafRankingType string
+
+const (
+	// WafRankingTypeAction ...
+	WafRankingTypeAction WafRankingType = "action"
+	// WafRankingTypeClientIP ...
+	WafRankingTypeClientIP WafRankingType = "clientIp"
+	// WafRankingTypeCountry ...
+	WafRankingTypeCountry WafRankingType = "country"
+	// WafRankingTypeRuleGroup ...
+	WafRankingTypeRuleGroup WafRankingType = "ruleGroup"
+	// WafRankingTypeRuleID ...
+	WafRankingTypeRuleID WafRankingType = "ruleId"
+	// WafRankingTypeRuleType ...
+	WafRankingTypeRuleType WafRankingType = "ruleType"
+	// WafRankingTypeURL ...
+	WafRankingTypeURL WafRankingType = "url"
+	// WafRankingTypeUserAgent ...
+	WafRankingTypeUserAgent WafRankingType = "userAgent"
+)
+
+// PossibleWafRankingTypeValues returns an array of possible values for the WafRankingType const type.
+func PossibleWafRankingTypeValues() []WafRankingType {
+	return []WafRankingType{WafRankingTypeAction, WafRankingTypeClientIP, WafRankingTypeCountry, WafRankingTypeRuleGroup, WafRankingTypeRuleID, WafRankingTypeRuleType, WafRankingTypeURL, WafRankingTypeUserAgent}
+}
+
+// WafRuleType enumerates the values for waf rule type.
+type WafRuleType string
+
+const (
+	// WafRuleTypeBot ...
+	WafRuleTypeBot WafRuleType = "bot"
+	// WafRuleTypeCustom ...
+	WafRuleTypeCustom WafRuleType = "custom"
+	// WafRuleTypeManaged ...
+	WafRuleTypeManaged WafRuleType = "managed"
+)
+
+// PossibleWafRuleTypeValues returns an array of possible values for the WafRuleType const type.
+func PossibleWafRuleTypeValues() []WafRuleType {
+	return []WafRuleType{WafRuleTypeBot, WafRuleTypeCustom, WafRuleTypeManaged}
 }

@@ -56,11 +56,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure Region where the HPC Cache should be created. Changing this forces a new resource to be created.
 
-* `cache_size_in_gb` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `24576`, and `49152`. Changing this forces a new resource to be created.
+* `cache_size_in_gb` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `21623`, `24576`, `43246`, `49152` and `86491`. Changing this forces a new resource to be created.
+
+-> **NOTE:** The `21623`, `43246` and `86491` sizes are restricted to read only resources.
 
 * `subnet_id` - (Required) The ID of the Subnet for the HPC Cache. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The SKU of HPC Cache to use. Possible values are `Standard_2G`, `Standard_4G` and `Standard_8G`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The SKU of HPC Cache to use. Possible values are (ReadWrite) - `Standard_2G`, `Standard_4G` `Standard_8G` or (ReadOnly) - `Standard_L4_5G`, `Standard_L9G`, and `Standard_L16G`. Changing this forces a new resource to be created.
+
+-> **NOTE:** The read-only SKUs have restricted cache sizes. `Standard_L4_5G` must be set to `21623`. `Standard_L9G` to `43246` and `Standard_L16G` to `86491`.
 
 ---
 
@@ -73,13 +77,19 @@ The following arguments are supported:
 * `dns` - (Optional) A `dns` block as defined below.
 
 * `directory_active_directory` - (Optional) A `directory_active_directory` block as defined below.
- 
+
 * `directory_flat_file` - (Optional) A `directory_flat_file` block as defined below.
- 
+
 * `directory_ldap` - (Optional) A `directory_ldap` block as defined below.
 
 ~> **Note:** Only one of `directory_active_directory`, `directory_flat_file` and `directory_ldap` can be set.
- 
+
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
+
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to encrypt the data in this HPC Cache.
+
+* `automatically_rotate_key_to_latest_enabled` - (Optional) Specifies whether the HPC Cache automatically rotates Encryption Key to the latest version. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
 
 ---
@@ -94,14 +104,14 @@ An `access_rule` block contains the following:
 
 * `filter` - (Optional) The filter applied to the `scope` for this rule. The filter's format depends on its scope: `default` scope matches all clients and has no filter value; `network` scope takes a CIDR format; `host` takes an IP address or fully qualified domain name. If a client does not match any filter rule and there is no default rule, access is denied.
 
-* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/en-us/azure/hpc-cache/access-policies#suid) is allowed? Defaults to `false`.
+* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/azure/hpc-cache/access-policies#suid) is allowed? Defaults to `false`.
 
 * `submount_access_enabled` - (Optional) Whether allow access to subdirectories under the root export? Defaults to `false`.
 
-* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/en-us/azure/hpc-cache/access-policies#root-squash)? Defaults to `false`.
+* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/azure/hpc-cache/access-policies#root-squash)? Defaults to `false`.
 
 * `anonymous_uid` - (Optional) The anonymous UID used when `root_squash_enabled` is `true`.
- 
+
 * `anonymous_gid` - (Optional) The anonymous GID used when `root_squash_enabled` is `true`.
 
 ---
@@ -109,7 +119,7 @@ An `access_rule` block contains the following:
 A `bind` block contains the following:
 
 * `dn` - (Required) The Bind Distinguished Name (DN) identity to be used in the secure LDAP connection.
- 
+
 * `password` - (Required) The Bind password to be used in the secure LDAP connection.
 
 ---
@@ -125,13 +135,13 @@ A `directory_active_directory` block contains the following:
 * `dns_primary_ip` - (Required) The primary DNS IP address used to resolve the Active Directory domain controller's FQDN.
 
 * `domain_name` - (Required) The fully qualified domain name of the Active Directory domain controller.
- 
+
 * `cache_netbios_name` - (Required) The NetBIOS name to assign to the HPC Cache when it joins the Active Directory domain as a server.
 
 * `domain_netbios_name` - (Required) The Active Directory domain's NetBIOS name.
 
 * `username` - (Required) The username of the Active Directory domain administrator.
- 
+
 * `password` - (Required) The password of the Active Directory domain administrator.
 
 * `dns_secondary_ip` - (Optional) The secondary DNS IP address used to resolve the Active Directory domain controller's FQDN.
@@ -168,6 +178,14 @@ A `dns` block contains the following:
 
 * `search_domain` - (Optional) The DNS search domain for the HPC Cache.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this HPC Cache. Only possible value is `UserAssigned`.
+
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this HPC Cache.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -178,7 +196,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the HPC Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache.

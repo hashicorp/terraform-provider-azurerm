@@ -14,6 +14,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
+* [Authenticating to Azure using a Service Principal and Open ID Connect](service_principal_oidc.html)
 
 ---
 
@@ -32,7 +33,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
-$ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
+az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 ```
 
 ---
@@ -40,13 +41,13 @@ $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 Firstly, login to the Azure CLI using:
 
 ```shell
-$ az login
+az login
 ```
 
 Once logged in - it's possible to list the Subscriptions associated with the account via:
 
 ```shell
-$ az account list
+az account list
 ```
 
 The output (similar to below) will display one or more Subscriptions - with the `id` field being the `subscription_id` field referenced above.
@@ -71,7 +72,7 @@ The output (similar to below) will display one or more Subscriptions - with the 
 Should you have more than one Subscription, you can specify the Subscription to use via the following command:
 
 ```bash
-$ az account set --subscription="SUBSCRIPTION_ID"
+az account set --subscription="SUBSCRIPTION_ID"
 ```
 
 ---
@@ -89,7 +90,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }
@@ -115,7 +116,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }
@@ -143,7 +144,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }

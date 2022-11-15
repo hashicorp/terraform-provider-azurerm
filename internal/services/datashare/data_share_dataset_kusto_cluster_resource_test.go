@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ShareKustoClusterDataSetResource struct {
-}
+type ShareKustoClusterDataSetResource struct{}
 
 func TestAccDataShareKustoClusterDataSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_cluster", "test")

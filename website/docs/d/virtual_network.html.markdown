@@ -37,9 +37,11 @@ output "virtual_network_id" {
 * `guid` - The GUID of the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
 * `vnet_peerings` - A mapping of name - virtual network id of the virtual network peerings.
+* `vnet_peerings_addresses` - A list of virtual network peerings IP addresses.
+* `tags` - A mapping of tags to assigned to the resource.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.

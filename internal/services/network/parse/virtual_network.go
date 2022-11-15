@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type VirtualNetworkId struct {
@@ -39,7 +39,7 @@ func (id VirtualNetworkId) ID() string {
 
 // VirtualNetworkID parses a VirtualNetwork ID into an VirtualNetworkId struct
 func VirtualNetworkID(input string) (*VirtualNetworkId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func VirtualNetworkID(input string) (*VirtualNetworkId, error) {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func VirtualNetworkIDInsensitively(input string) (*VirtualNetworkId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -109,7 +109,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-	codeVersion := "7.2.445.9590"
+	codeVersion := "9.0.1121.9590"
 	r := ServiceFabricClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -347,7 +347,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("2"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.common_name").HasValue("firstcertcommonname"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.is_admin").HasValue("true"),
-				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("3341db6cf2af72c611df3be3721a653af1d43ecd50f584f828793dbe9103c3ee"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.common_name").HasValue("secondcertcommonname"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.is_admin").HasValue("false"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.issuer_thumbprint").IsEmpty(),
@@ -1370,13 +1370,22 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_client_config" "current" {
 }
 
+data "azuread_domains" "test" {
+}
+
 resource "azuread_application" "cluster_explorer" {
-  name                       = "${azurerm_resource_group.test.name}-explorer-AAD"
-  homepage                   = "https://example:19080/Explorer/index.html"
-  identifier_uris            = ["https://example%d:19080/Explorer/index.html"]
-  reply_urls                 = ["https://example:19080/Explorer/index.html"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
+  display_name    = "${azurerm_resource_group.test.name}-explorer-AAD"
+  identifier_uris = ["https://test-%s.${data.azuread_domains.test.domains[0].domain_name}:19080/Explorer/index.html"]
+  web {
+    homepage_url  = "https://example:19080/Explorer/index.html"
+    redirect_uris = ["https://example:19080/Explorer/index.html"]
+
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
+  sign_in_audience = "AzureADMyOrg"
+
 
   # https://blogs.msdn.microsoft.com/aaddevsup/2018/06/06/guid-table-for-windows-azure-active-directory-permissions/
   # https://shawntabrizi.com/aad/common-microsoft-resources-azure-active-directory/
@@ -1395,11 +1404,15 @@ resource "azuread_service_principal" "cluster_explorer" {
 }
 
 resource "azuread_application" "cluster_console" {
-  name                       = "${azurerm_resource_group.test.name}-console-AAD"
-  type                       = "native"
-  reply_urls                 = ["urn:ietf:wg:oauth:2.0:oob"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
+  display_name     = "${azurerm_resource_group.test.name}-console-AAD"
+  sign_in_audience = "AzureADMyOrg"
+  web {
+    redirect_uris = ["urn:ietf:wg:oauth:2.0:oob"]
+
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
 
   # https://blogs.msdn.microsoft.com/aaddevsup/2018/06/06/guid-table-for-windows-azure-active-directory-permissions/
   # https://shawntabrizi.com/aad/common-microsoft-resources-azure-active-directory/
@@ -1462,7 +1475,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port   = 19080
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r ServiceFabricClusterResource) azureActiveDirectoryDelete(data acceptance.TestData) string {

@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsStorageInsightsResource struct {
-}
+type LogAnalyticsStorageInsightsResource struct{}
 
 func TestAccLogAnalyticsStorageInsights_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_storage_insights", "test")
@@ -108,17 +107,17 @@ func TestAccLogAnalyticsStorageInsights_updateStorageAccount(t *testing.T) {
 }
 
 func (t LogAnalyticsStorageInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsStorageInsightsID(state.ID)
+	id, err := storageinsights.ParseStorageInsightConfigID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.StorageInsightsClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.StorageInsightConfigName)
+	resp, err := clients.LogAnalytics.StorageInsightsClient.StorageInsightConfigsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Storage Insights (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogAnalyticsStorageInsightsResource) template(data acceptance.TestData) string {

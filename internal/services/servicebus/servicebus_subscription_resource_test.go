@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusSubscriptionResource struct {
-}
+type ServiceBusSubscriptionResource struct{}
 
 func TestAccServiceBusSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
@@ -23,6 +22,36 @@ func TestAccServiceBusSubscription_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusSubscription_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusSubscription_clientScopedEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clientScopedSubscriptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -205,17 +234,17 @@ func TestAccServiceBusSubscription_status(t *testing.T) {
 }
 
 func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionID(state.ID)
+	id, err := subscriptions.ParseSubscriptions2ID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.SubscriptionsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name)
+	resp, err := clients.ServiceBus.SubscriptionsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Service Bus NameSpace Subscription (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 const testAccServiceBusSubscription_tfTemplate = `
@@ -232,17 +261,14 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-  name                = "_acctestservicebussubscription-%d_"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  max_delivery_count  = 10
+  name               = "_acctestservicebussubscription-%d_"
+  topic_id           = azurerm_servicebus_topic.test.id
+  max_delivery_count = 10
 	%s
 }
 `
@@ -251,16 +277,47 @@ func (ServiceBusSubscriptionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, "")
 }
 
+func (ServiceBusSubscriptionResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+}
+
+resource "azurerm_servicebus_subscription" "test" {
+  name                                 = "_acctestservicebussubscription-%[1]d_"
+  topic_id                             = azurerm_servicebus_topic.test.id
+  max_delivery_count                   = 10
+  auto_delete_on_idle                  = "PT5M"
+  lock_duration                        = "PT1M"
+  dead_lettering_on_message_expiration = true
+	%[3]s
+}
+
+
+`, data.RandomInteger, data.Locations.Primary, "")
+}
+
 func (r ServiceBusSubscriptionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_servicebus_subscription" "import" {
-  name                = azurerm_servicebus_subscription.test.name
-  namespace_name      = azurerm_servicebus_subscription.test.namespace_name
-  topic_name          = azurerm_servicebus_subscription.test.topic_name
-  resource_group_name = azurerm_servicebus_subscription.test.resource_group_name
-  max_delivery_count  = azurerm_servicebus_subscription.test.max_delivery_count
+  name               = azurerm_servicebus_subscription.test.name
+  topic_id           = azurerm_servicebus_subscription.test.topic_id
+  max_delivery_count = azurerm_servicebus_subscription.test.max_delivery_count
 }
 `, r.basic(data))
 }
@@ -284,11 +341,14 @@ func (ServiceBusSubscriptionResource) updateForwardTo(data acceptance.TestData) 
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
 
+
+
 resource "azurerm_servicebus_topic" "forward_to" {
-  name                = "acctestservicebustopic-forward_to-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name         = "acctestservicebustopic-forward_to-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
+
+
 
 
 `
@@ -300,11 +360,14 @@ func (ServiceBusSubscriptionResource) updateForwardDeadLetteredMessagesTo(data a
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
 
+
+
 resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
-  name                = "acctestservicebustopic-forward_dl_messages_to-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name         = "acctestservicebustopic-forward_dl_messages_to-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
+
+
 
 
 `
@@ -320,4 +383,37 @@ func (ServiceBusSubscriptionResource) status(data acceptance.TestData, status st
 func (ServiceBusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"dead_lettering_on_filter_evaluation_error = false\n")
+}
+
+func (ServiceBusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestsbn-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Premium"
+  capacity            = 1
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+}
+
+resource "azurerm_servicebus_subscription" "test" {
+  name                               = "_acctestsub-%[1]d_"
+  topic_id                           = azurerm_servicebus_topic.test.id
+  max_delivery_count                 = 10
+  client_scoped_subscription_enabled = true
+  client_scoped_subscription {
+    client_id                               = "123456"
+    is_client_scoped_subscription_shareable = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

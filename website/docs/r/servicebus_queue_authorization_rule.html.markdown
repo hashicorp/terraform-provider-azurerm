@@ -30,18 +30,15 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_queue" "example" {
-  name                = "tfex_servicebus_queue"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "tfex_servicebus_queue"
+  namespace_id = azurerm_servicebus_namespace.example.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "example" {
-  name                = "examplerule"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  queue_name          = azurerm_servicebus_queue.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name     = "examplerule"
+  queue_id = azurerm_servicebus_queue.example.id
 
   listen = true
   send   = true
@@ -55,11 +52,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Authorization Rule. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) Specifies the name of the ServiceBus Namespace in which the Queue exists. Changing this forces a new resource to be created.
-
-* `queue_name` - (Required) Specifies the name of the ServiceBus Queue. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group in which the ServiceBus Namespace exists. Changing this forces a new resource to be created.
+* `queue_id` - (Required) Specifies the ID of the ServiceBus Queue. Changing this forces a new resource to be created.
 
 ~> **NOTE** At least one of the 3 permissions below needs to be set.
 
@@ -83,13 +76,13 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The Secondary Connection String for the Authorization Rule.
 
-* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired. 
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired.
 
-* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Queue Authorization Rule.
 * `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Queue Authorization Rule.

@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMaintenanceConfiguration() *pluginsdk.Resource {
@@ -29,9 +30,9 @@ func dataSourceMaintenanceConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"scope": {
 				Type:     pluginsdk.TypeString,
@@ -87,37 +88,40 @@ func dataSourceMaintenanceConfiguration() *pluginsdk.Resource {
 
 func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resGroup, name)
+	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("maintenance Configuration %q was not found in Resource Group %q", name, resGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving Maintenance Configuration %q (Resource Group %q): %+v", name, resGroup, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if id := resp.ID; id != nil {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(id.ID())
+	d.Set("name", id.ResourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if props := resp.ConfigurationProperties; props != nil {
-		d.Set("scope", props.MaintenanceScope)
-		d.Set("visibility", props.Visibility)
-		d.Set("properties", props.ExtensionProperties)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("scope", props.MaintenanceScope)
+			d.Set("visibility", props.Visibility)
+			d.Set("properties", props.ExtensionProperties)
 
-		window := flattenMaintenanceConfigurationWindow(props.Window)
-		if err := d.Set("window", window); err != nil {
-			return fmt.Errorf("setting `window`: %+v", err)
+			window := flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)
+			if err := d.Set("window", window); err != nil {
+				return fmt.Errorf("setting `window`: %+v", err)
+			}
+		}
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PublicIPsResource struct {
-}
+type PublicIPsResource struct{}
 
 func TestAccDataSourcePublicIPs_namePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ips", "test")
@@ -34,10 +33,7 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 	r := PublicIPsResource{}
 
 	attachedDataSourceName := "data.azurerm_public_ips.attached"
-	attachedDataSourceName2 := "data.azurerm_public_ips.attached2"
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
-	unattachedDataSourceName2 := "data.azurerm_public_ips.unattached2"
-	unattachedAndAttachedDataSourceName := "data.azurerm_public_ips.unattached_and_attached"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -49,15 +45,8 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "4"),
 				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
 				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.3.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
-				acceptance.TestCheckResourceAttr(attachedDataSourceName2, "public_ips.#", "4"),
-				acceptance.TestCheckResourceAttr(attachedDataSourceName2, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
-				acceptance.TestCheckResourceAttr(attachedDataSourceName2, "public_ips.3.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
 				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.#", "4"),
 				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-4", data.RandomString)),
-				acceptance.TestCheckResourceAttr(unattachedDataSourceName2, "public_ips.#", "4"),
-				acceptance.TestCheckResourceAttr(unattachedDataSourceName2, "public_ips.0.name", fmt.Sprintf("acctestpip%s-4", data.RandomString)),
-				acceptance.TestCheckResourceAttr(unattachedAndAttachedDataSourceName, "public_ips.#", "8"),
-				acceptance.TestCheckResourceAttr(unattachedAndAttachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
 			),
 		},
 	})
@@ -136,7 +125,6 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
   nat_gateway_id       = azurerm_nat_gateway.test.id
   public_ip_address_id = element(azurerm_public_ip.test.*.id, 3)
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -149,24 +137,9 @@ data "azurerm_public_ips" "unattached" {
   attachment_status   = "Unattached"
 }
 
-data "azurerm_public_ips" "unattached2" {
-  resource_group_name = azurerm_resource_group.test.name
-  attached            = false
-}
-
-data "azurerm_public_ips" "unattached_and_attached" {
-  resource_group_name = azurerm_resource_group.test.name
-  attachment_status   = "All"
-}
-
 data "azurerm_public_ips" "attached" {
   resource_group_name = azurerm_resource_group.test.name
   attachment_status   = "Attached"
-}
-
-data "azurerm_public_ips" "attached2" {
-  resource_group_name = azurerm_resource_group.test.name
-  attached            = true
 }
 `, r.attached(data))
 }

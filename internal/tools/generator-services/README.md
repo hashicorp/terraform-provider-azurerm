@@ -6,6 +6,7 @@ This generator takes that metadata and uses it to generate two things:
 
 1. Website Categories - which validates the categories used in the website exist, required for website deployments to happen.
 2. Service Definitions - generates the list of services used to run the Acceptance Tests
+3. GitHub Labels - generates the list of tags which should be assigned to a pull request when files within this path are changed. 
 
 This is run via go:generate whenever the "SupportedServices" array is changed so that this is kept up-to-date.
 

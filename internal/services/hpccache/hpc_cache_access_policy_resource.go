@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -63,9 +63,9 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(storagecache.Default),
-								string(storagecache.Network),
-								string(storagecache.Host),
+								string(storagecache.NfsAccessRuleScopeDefault),
+								string(storagecache.NfsAccessRuleScopeNetwork),
+								string(storagecache.NfsAccessRuleScopeHost),
 							}, false),
 						},
 

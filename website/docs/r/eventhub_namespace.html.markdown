@@ -41,29 +41,37 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Defines which tier to use. Valid options are `Basic`, `Standard`, and `Premium`. Please not that setting this field to `Premium` will force the creation of a new resource and also requires setting `zone_redundant` to true.
+* `sku` - (Required) Defines which tier to use. Valid options are `Basic`, `Standard`, and `Premium`. Please note that setting this field to `Premium` will force the creation of a new resource.
 
-* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `20`, but can be increased in blocks of 20 on a committed purchase basis.
+* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `2`, but can be increased in blocks of 2 on a committed purchase basis.
 
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 
 * `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. 
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
 * `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones). Changing this forces a new resource to be created. Defaults to `false`.
 
+~> **Note:** `zone_redundant` is computed by api based on the availability zone in each region. User's input will be overridden. It will turn into a computed property in 4.0 provider.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
+
+* `local_authentication_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace?
+
+* `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. Valid values are: `1.0`, `1.1` and `1.2`. The current default minimum TLS version is `1.2`.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this EventHub Namespace. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Hub Namespace. Possible values are `SystemAssigned` or `UserAssigned`.
 
 ~> **Note:** Due to the limitation of the current Azure API, once an EventHub Namespace has been assigned an identity, it cannot be removed.
 
@@ -71,7 +79,11 @@ A `identity` block supports the following:
 
 A `network_rulesets` block supports the following:
 
-* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
+
+* `public_network_access_enabled` - (Optional)  Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+
+* ~> **Note:** The public network access setting at the network rule sets level should be the same as it's at the namespace level.
 
 * `trusted_service_access_enabled` - (Optional) Whether Trusted Microsoft Services are allowed to bypass firewall.
 
@@ -91,7 +103,7 @@ A `virtual_network_rule` block supports the following:
 
 A `ip_rule` block supports the following:
 
-* `ip_mask` - (Required) The ip mask to match on.
+* `ip_mask` - (Required) The IP mask to match on.
 
 * `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`.
 
@@ -126,15 +138,13 @@ The following attributes are exported only if there is an authorization rule nam
 
 An `identity` block exports the following:
 
-* `principal_id` - The Client ID of the Service Principal assigned to this EventHub Namespace.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace.
 * `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace.

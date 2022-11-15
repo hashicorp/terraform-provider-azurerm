@@ -36,17 +36,19 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
-
-* `availability_zones` - A list of Availability Zones in which the Nodes in this Node Pool exists.
 
 * `enable_auto_scaling` - Does this Node Pool have Auto-Scaling enabled?
 
 * `enable_node_public_ip` - Do nodes in this Node Pool have a Public IP Address?
 
 * `eviction_policy` - The eviction policy used for Virtual Machines in the Virtual Machine Scale Set, when `priority` is set to `Spot`.
+
+* `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
 
 * `max_count` - The maximum number of Nodes allowed when auto-scaling is enabled.
 
@@ -86,15 +88,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vnet_subnet_id` - The ID of the Subnet in which this Node Pool exists.
 
+* `zones` - A list of the Availability Zones where the Nodes in this Node Pool exist.
+
 ---
 
 A `upgrade_settings` block exports the following:
 
 * `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Node Pool.

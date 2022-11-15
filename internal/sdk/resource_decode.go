@@ -63,7 +63,7 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 
 			fieldName := reflect.ValueOf(input).Elem().Field(i).String()
 			if err := setValue(input, tfschemaValue, i, fieldName, debugLogger); err != nil {
-				return err
+				return fmt.Errorf("while setting value %+v of model field %q: %+v", tfschemaValue, fieldName, err)
 			}
 		}
 	}

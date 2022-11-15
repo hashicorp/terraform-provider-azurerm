@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DatabaseMigrationServiceDataSource struct {
-}
+type DatabaseMigrationServiceDataSource struct{}
 
 func TestAccDatabaseMigrationServiceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_database_migration_service", "test")

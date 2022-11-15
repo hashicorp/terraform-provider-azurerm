@@ -32,6 +32,5 @@ data azurerm_windows_web_app test {
   name                = azurerm_windows_web_app.test.name
   resource_group_name = azurerm_windows_web_app.test.resource_group_name
 }
-
 `, WindowsWebAppResource{}.complete(data))
 }

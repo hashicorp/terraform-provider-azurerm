@@ -7,17 +7,17 @@ import (
 	"math"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/datasources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *pluginsdk.Resource {
@@ -28,9 +28,14 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *pluginsdk.Resour
 		Delete: resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.LogAnalyticsDataSourceID(id)
+			_, err := datasources.ParseDataSourceID(id)
 			return err
-		}, importLogAnalyticsDataSource(operationalinsights.WindowsPerformanceCounter)),
+		}, importLogAnalyticsDataSource(datasources.DataSourceKindWindowsPerformanceCounter)),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WindowsPerformanceCounterV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -47,7 +52,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *pluginsdk.Resour
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"workspace_name": {
 				Type:             pluginsdk.TypeString,
@@ -94,53 +99,39 @@ type dataSourceWindowsPerformanceCounterProperty struct {
 
 func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	workspaceName := d.Get("workspace_name").(string)
-
+	id := datasources.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("failed to check for existing Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("failed to check for existing Windows Performance Counter %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_performance_counter", *resp.ID)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_performance_counter", id.ID())
 		}
 	}
 
-	prop := &dataSourceWindowsPerformanceCounterProperty{
-		CounterName:     d.Get("counter_name").(string),
-		InstanceName:    d.Get("instance_name").(string),
-		IntervalSeconds: d.Get("interval_seconds").(int),
-		ObjectName:      d.Get("object_name").(string),
+	params := datasources.DataSource{
+		Kind: datasources.DataSourceKindWindowsPerformanceCounter,
+		Properties: &dataSourceWindowsPerformanceCounterProperty{
+			CounterName:     d.Get("counter_name").(string),
+			InstanceName:    d.Get("instance_name").(string),
+			IntervalSeconds: d.Get("interval_seconds").(int),
+			ObjectName:      d.Get("object_name").(string),
+		},
 	}
 
-	params := operationalinsights.DataSource{
-		Kind:       operationalinsights.WindowsPerformanceCounter,
-		Properties: prop,
+	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspaceName, name, params); err != nil {
-		return fmt.Errorf("failed to create Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
-	}
-
-	resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve Log Analytics DataSource Windows Performance Counter %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read ID for Log Analytics DataSource Windows Performance Counter %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d, meta)
 }
 
@@ -149,40 +140,44 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.Re
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsDataSourceID(d.Id())
+	id, err := datasources.ParseDataSourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Log Analytics DataSource Windows Performance Counter %q was not found in Resource Group %q in Workspace %q - removing from state!", id.Name, id.ResourceGroup, id.Workspace)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] Windows Performance Counter %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("failed to retrieve Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+		return fmt.Errorf("retrieving Windows Performance Counter %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_name", id.Workspace)
-	if props := resp.Properties; props != nil {
-		propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
-		if err != nil {
-			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
-		}
+	d.Set("name", id.DataSourceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("workspace_name", id.WorkspaceName)
 
-		prop := &dataSourceWindowsPerformanceCounterProperty{}
-		if err := json.Unmarshal([]byte(propStr), &prop); err != nil {
-			return fmt.Errorf("failed to decode properties json for Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
-		}
+	if model := resp.Model; model != nil {
 
-		d.Set("counter_name", prop.CounterName)
-		d.Set("instance_name", prop.InstanceName)
-		d.Set("interval_seconds", prop.IntervalSeconds)
-		d.Set("object_name", prop.ObjectName)
+		if props := model.Properties; props != nil {
+			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
+			if err != nil {
+				return fmt.Errorf("failed to flatten properties map to json: %+v", err)
+			}
+
+			prop := &dataSourceWindowsPerformanceCounterProperty{}
+			if err := json.Unmarshal([]byte(propStr), &prop); err != nil {
+				return fmt.Errorf("failed to decode properties json: %+v", err)
+			}
+
+			d.Set("counter_name", prop.CounterName)
+			d.Set("instance_name", prop.InstanceName)
+			d.Set("interval_seconds", prop.IntervalSeconds)
+			d.Set("object_name", prop.ObjectName)
+		}
 	}
 
 	return nil
@@ -193,13 +188,13 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *pluginsdk.
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsDataSourceID(d.Id())
+	id, err := datasources.ParseDataSourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
-		return fmt.Errorf("failed to delete Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("failed to delete Windows Performance Counter %s: %+v", *id, err)
 	}
 
 	return nil

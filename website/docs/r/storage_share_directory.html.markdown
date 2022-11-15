@@ -59,7 +59,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Share Directory.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Share Directory.
@@ -71,5 +71,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Directories within an Azure Storage File Share can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_share_directory.examplehttps://tomdevsa20.file.core.windows.net/share1/directory1
+terraform import azurerm_storage_share_directory.example https://tomdevsa20.file.core.windows.net/share1/directory1
 ```

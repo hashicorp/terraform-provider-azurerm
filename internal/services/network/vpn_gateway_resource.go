@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
@@ -30,8 +31,10 @@ func resourceVPNGateway() *pluginsdk.Resource {
 		Read:   resourceVPNGatewayRead,
 		Update: resourceVPNGatewayUpdate,
 		Delete: resourceVPNGatewayDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VpnGatewayID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -48,15 +51,32 @@ func resourceVPNGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"virtual_hub_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualHubID,
+			},
+
+			"routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft Network",
+					"Internet",
+				}, false),
+			},
+
+			"bgp_route_translation_for_nat_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"bgp_settings": {
@@ -180,21 +200,21 @@ func resourceVPNGateway() *pluginsdk.Resource {
 
 func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_vpn_gateway", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_vpn_gateway", id.ID())
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
@@ -208,25 +228,31 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := network.VpnGateway{
 		Location: utils.String(location),
 		VpnGatewayProperties: &network.VpnGatewayProperties{
-			BgpSettings: bgpSettings,
+			EnableBgpRouteTranslationForNat: utils.Bool(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
+			BgpSettings:                     bgpSettings,
 			VirtualHub: &network.SubResource{
 				ID: utils.String(virtualHubId),
 			},
-			VpnGatewayScaleUnit: utils.Int32(int32(scaleUnit)),
+			VpnGatewayScaleUnit:         utils.Int32(int32(scaleUnit)),
+			IsRoutingPreferenceInternet: utils.Bool(d.Get("routing_preference").(string) == "Internet"),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
-		return err
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
+	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
+		return err
+	}
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	// `vpnGatewayParameters.Properties.bgpSettings.bgpPeeringAddress` customer cannot provide this field during create. This will be set with default value once gateway is created.
@@ -245,16 +271,22 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 				val := input1[0].(map[string]interface{})
 				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
-			if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, resp); err != nil {
-				return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, resp)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+			}
+			if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 				return err
 			}
 		}
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceVPNGatewayRead(d, meta)
 }
@@ -264,15 +296,17 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	locks.ByName(name, VPNGatewayResourceName)
-	defer locks.UnlockByName(name, VPNGatewayResourceName)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id, err := parse.VpnGatewayID(d.Id())
 	if err != nil {
-		return fmt.Errorf("retrieving for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return err
+	}
+
+	locks.ByName(id.Name, VPNGatewayResourceName)
+	defer locks.UnlockByName(id.Name, VPNGatewayResourceName)
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving for presence of existing %s: %+v", id, err)
 	}
 
 	if d.HasChange("scale_unit") {
@@ -280,6 +314,9 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 	if d.HasChange("tags") {
 		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+	if d.HasChange("bgp_route_translation_for_nat_enabled") {
+		existing.EnableBgpRouteTranslationForNat = utils.Bool(d.Get("bgp_route_translation_for_nat_enabled").(bool))
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
@@ -300,10 +337,15 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing); err != nil {
-		return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
+	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
 
@@ -323,15 +365,15 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] VPN Gateway %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -341,6 +383,12 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("bgp_settings", flattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
 			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
+
+		bgpRouteTranslationForNatEnabled := false
+		if props.EnableBgpRouteTranslationForNat != nil {
+			bgpRouteTranslationForNatEnabled = *props.EnableBgpRouteTranslationForNat
+		}
+		d.Set("bgp_route_translation_for_nat_enabled", bgpRouteTranslationForNatEnabled)
 
 		scaleUnit := 0
 		if props.VpnGatewayScaleUnit != nil {
@@ -353,6 +401,12 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			virtualHubId = *props.VirtualHub.ID
 		}
 		d.Set("virtual_hub_id", virtualHubId)
+
+		isRoutingPreferenceInternet := "Microsoft Network"
+		if props.IsRoutingPreferenceInternet != nil && *props.IsRoutingPreferenceInternet {
+			isRoutingPreferenceInternet = "Internet"
+		}
+		d.Set("routing_preference", isRoutingPreferenceInternet)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -374,7 +428,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("deleting VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
@@ -383,7 +437,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("waiting for deletion of VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

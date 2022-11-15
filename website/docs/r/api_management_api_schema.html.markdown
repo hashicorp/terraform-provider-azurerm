@@ -13,6 +13,10 @@ Manages an API Schema within an API Management Service.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_api_management_api" "example" {
   name                = "search-api"
   api_management_name = "search-api-management"
@@ -44,7 +48,11 @@ The following arguments are supported:
 
 * `content_type` - (Required) The content type of the API Schema.
 
-* `value` - (Required) The JSON escaped string defining the document representing the Schema.
+* `value` - (Optional) The JSON escaped string defining the document representing the Schema.
+
+* `components` - (Optional) Types definitions. Used for Swagger/OpenAPI v2/v3 schemas only.
+
+* `definitions` - (Optional) Types definitions. Used for Swagger/OpenAPI v1 schemas only.
 
 ## Attributes Reference
 
@@ -54,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Schema.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API Schema.
@@ -66,5 +74,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Management API Schema's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/schemas/schema1
+terraform import azurerm_api_management_api_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/schemas/schema1
 ```

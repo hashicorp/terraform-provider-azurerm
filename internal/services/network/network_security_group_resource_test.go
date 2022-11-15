@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkSecurityGroupResource struct {
-}
+type NetworkSecurityGroupResource struct{}
 
 func TestAccNetworkSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
@@ -316,7 +315,7 @@ resource "azurerm_network_security_group" "test" {
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
-    protocol                   = "TCP"
+    protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "*"
     source_address_prefix      = "*"

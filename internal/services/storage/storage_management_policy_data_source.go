@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
@@ -101,6 +102,22 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
+												"tier_to_archive_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"delete_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_cool_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 											},
 										},
 									},
@@ -110,6 +127,10 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"change_tier_to_archive_after_days_since_creation": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
@@ -131,6 +152,10 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"change_tier_to_archive_after_days_since_creation": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
@@ -160,22 +185,24 @@ func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId := d.Get("storage_account_id").(string)
-
-	rid, err := azure.ParseAzureResourceID(storageAccountId)
+	storageAccountId, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
-	resourceGroupName := rid.ResourceGroup
-	storageAccountName := rid.Path["storageAccounts"]
 
-	result, err := client.Get(ctx, resourceGroupName, storageAccountName)
+	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
 	if err != nil {
-		return err
-	}
-	d.SetId(*result.ID)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("%s was not found", id)
+		}
 
-	if props := result.ManagementPolicyProperties; props != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	if props := resp.ManagementPolicyProperties; props != nil {
 		if policy := props.Policy; policy != nil {
 			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
 				return fmt.Errorf("flattening `rule`: %+v", err)

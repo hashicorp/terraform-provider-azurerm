@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TemplateDeploymentResource struct {
-}
+type TemplateDeploymentResource struct{}
 
 func TestAccTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
@@ -136,7 +135,7 @@ func TestAccTemplateDeployment_withError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.withError(data),
-			ExpectError: regexp.MustCompile("Error waiting for deployment"),
+			ExpectError: regexp.MustCompile("Error: waiting for creation/update of Resource Group Template Deployment"),
 		},
 	})
 }
@@ -209,7 +208,11 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *client
 func (TemplateDeploymentResource) basicSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -257,7 +260,11 @@ DEPLOY
 func (TemplateDeploymentResource) basicMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -345,7 +352,11 @@ resource "azurerm_template_deployment" "import" {
 func (TemplateDeploymentResource) nestedTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -409,7 +420,11 @@ DEPLOY
 func (TemplateDeploymentResource) withParamsBody(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -434,7 +449,6 @@ resource "azurerm_key_vault" "test" {
   location            = "%s"
   name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  soft_delete_enabled = true
   sku_name            = "standard"
 
   tenant_id                       = data.azurerm_client_config.current.tenant_id
@@ -445,11 +459,11 @@ resource "azurerm_key_vault" "test" {
     object_id       = data.azurerm_client_config.current.object_id
 
     secret_permissions = [
-      "delete",
-      "get",
-      "list",
-      "set",
-      "purge",
+      "Delete",
+      "Get",
+      "List",
+      "Set",
+      "Purge",
     ]
 
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -561,7 +575,11 @@ DEPLOY
 func (TemplateDeploymentResource) withParams(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -664,7 +682,11 @@ DEPLOY
 func (TemplateDeploymentResource) withOutputs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {

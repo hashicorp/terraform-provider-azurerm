@@ -1,12 +1,6 @@
 package parse
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-)
-
-var _ resourceid.Formatter = PortalTenantConfigurationId{}
+import "testing"
 
 func TestPortalTenantConfigurationIDFormatter(t *testing.T) {
 	actual := NewPortalTenantConfigurationID("default").ID()
@@ -22,7 +16,6 @@ func TestPortalTenantConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *PortalTenantConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

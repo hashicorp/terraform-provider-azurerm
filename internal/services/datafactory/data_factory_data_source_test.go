@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DataFactoryDataSource struct {
-}
+type DataFactoryDataSource struct{}
 
 func TestAccDataFactoryDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_factory", "test")

@@ -33,19 +33,15 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the PostgreSQL Flexible Server.
 
 * `location` - The Azure Region where the PostgreSQL Flexible Server exists.
 
-* `administrator_login` - The Administrator Login for the PostgreSQL Flexible Server.
+* `administrator_login` - The Administrator login for the PostgreSQL Flexible Server.
 
 * `backup_retention_days` -  The backup retention days for the PostgreSQL Flexible Server.
-
-* `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
-
-~> **Note:** Attribute `cmk_enabled` has been deprecated and will be removed in version 3.0 of the provider.
 
 * `delegated_subnet_id` - The ID of the virtual network subnet to create the PostgreSQL Flexible Server.
 
@@ -61,9 +57,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the PostgreSQL Flexible Server.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Server.

@@ -37,24 +37,37 @@ type primitive struct {
 	_ []struct{}
 }
 
-func (p primitive) Equal(o primitive) bool {
-	return p.equals(o, true)
+// ApplyTerraform5AttributePathStep always returns an ErrInvalidStep error
+// as it is invalid to step into a primitive.
+func (p primitive) ApplyTerraform5AttributePathStep(step AttributePathStep) (interface{}, error) {
+	return nil, ErrInvalidStep
 }
 
-func (p primitive) Is(t Type) bool {
-	return p.equals(t, false)
-}
-
-func (p primitive) equals(t Type, exact bool) bool {
-	v, ok := t.(primitive)
+func (p primitive) Equal(o Type) bool {
+	v, ok := o.(primitive)
 	if !ok {
 		return false
 	}
 	return p.name == v.name
 }
 
+func (p primitive) Is(t Type) bool {
+	return p.Equal(t)
+}
+
+func (p primitive) UsableAs(t Type) bool {
+	v, ok := t.(primitive)
+	if !ok {
+		return false
+	}
+	if v.name == DynamicPseudoType.name {
+		return true
+	}
+	return v.name == p.name
+}
+
 func (p primitive) String() string {
-	return "tftypes." + string(p.name)
+	return "tftypes." + p.name
 }
 
 func (p primitive) private() {}
@@ -95,6 +108,7 @@ func (p primitive) supportedGoTypes() []string {
 	case Bool.name:
 		return []string{"bool", "*bool"}
 	case DynamicPseudoType.name:
+		// List/Set is covered by Tuple, Map is covered by Object
 		possibleTypes := []Type{
 			String, Bool, Number,
 			Tuple{}, Object{},
@@ -106,17 +120,6 @@ func (p primitive) supportedGoTypes() []string {
 		return results
 	}
 	panic(fmt.Sprintf("unknown primitive type %q", p.name))
-}
-
-func valueCanBeString(val interface{}) bool {
-	switch val.(type) {
-	case string:
-		return true
-	case *string:
-		return true
-	default:
-		return false
-	}
 }
 
 func valueFromString(in interface{}) (Value, error) {
@@ -139,17 +142,6 @@ func valueFromString(in interface{}) (Value, error) {
 		}, nil
 	default:
 		return Value{}, fmt.Errorf("tftypes.NewValue can't use %T as a tftypes.String; expected types are: %s", in, formattedSupportedGoTypes(String))
-	}
-}
-
-func valueCanBeBool(val interface{}) bool {
-	switch val.(type) {
-	case bool:
-		return true
-	case *bool:
-		return true
-	default:
-		return false
 	}
 }
 
@@ -176,28 +168,15 @@ func valueFromBool(in interface{}) (Value, error) {
 	}
 }
 
-func valueCanBeNumber(val interface{}) bool {
-	switch val.(type) {
-	case uint, uint8, uint16, uint32, uint64:
-		return true
-	case *uint, *uint8, *uint16, *uint32, *uint64:
-		return true
-	case int, int8, int16, int32, int64:
-		return true
-	case *int, *int8, *int16, *int32, *int64:
-		return true
-	case float64, *float64:
-		return true
-	case *big.Float:
-		return true
-	default:
-		return false
-	}
-}
-
 func valueFromNumber(in interface{}) (Value, error) {
 	switch value := in.(type) {
 	case *big.Float:
+		if value == nil {
+			return Value{
+				typ:   Number,
+				value: nil,
+			}, nil
+		}
 		return Value{
 			typ:   Number,
 			value: value,
@@ -384,36 +363,36 @@ func valueFromNumber(in interface{}) (Value, error) {
 }
 
 func valueFromDynamicPseudoType(val interface{}) (Value, error) {
-	switch {
-	case valueCanBeString(val):
+	switch val := val.(type) {
+	case string, *string:
 		v, err := valueFromString(val)
 		if err != nil {
 			return Value{}, err
 		}
 		v.typ = DynamicPseudoType
 		return v, nil
-	case valueCanBeNumber(val):
+	case *big.Float, float64, *float64, int, *int, int8, *int8, int16, *int16, int32, *int32, int64, *int64, uint, *uint, uint8, *uint8, uint16, *uint16, uint32, *uint32, uint64, *uint64:
 		v, err := valueFromNumber(val)
 		if err != nil {
 			return Value{}, err
 		}
 		v.typ = DynamicPseudoType
 		return v, nil
-	case valueCanBeBool(val):
+	case bool, *bool:
 		v, err := valueFromBool(val)
 		if err != nil {
 			return Value{}, err
 		}
 		v.typ = DynamicPseudoType
 		return v, nil
-	case valueCanBeObject(val):
+	case map[string]Value:
 		v, err := valueFromObject(nil, nil, val)
 		if err != nil {
 			return Value{}, err
 		}
 		v.typ = DynamicPseudoType
 		return v, nil
-	case valueCanBeTuple(val):
+	case []Value:
 		v, err := valueFromTuple(nil, val)
 		if err != nil {
 			return Value{}, err

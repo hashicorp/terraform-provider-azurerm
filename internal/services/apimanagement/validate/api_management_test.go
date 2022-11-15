@@ -223,7 +223,7 @@ func TestApiManagementChildName(t *testing.T) {
 		{
 			name:  "v_1",
 			input: "v_1",
-			valid: false,
+			valid: true,
 		},
 		{
 			name:  "v.1",
@@ -238,6 +238,16 @@ func TestApiManagementChildName(t *testing.T) {
 		{
 			name:  "-v1",
 			input: "-v1",
+			valid: false,
+		},
+		{
+			name:  "v1_",
+			input: "v1_",
+			valid: false,
+		},
+		{
+			name:  "_v1",
+			input: "_v1",
 			valid: false,
 		},
 	}

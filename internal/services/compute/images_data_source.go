@@ -3,16 +3,17 @@ package compute
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func dataSourceImages() *pluginsdk.Resource {
@@ -24,7 +25,7 @@ func dataSourceImages() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"tags_filter": tags.Schema(),
 
@@ -38,7 +39,7 @@ func dataSourceImages() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"location": location.SchemaComputed(),
+						"location": commonschema.LocationComputed(),
 
 						"zone_resilient": {
 							Type:     pluginsdk.TypeBool,
@@ -139,7 +140,23 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("no images were found that match the specified tags")
 	}
 
-	d.SetId(time.Now().UTC().String())
+	tagsId := ""
+	tagKeys := make([]string, 0, len(filterTags))
+	for key := range filterTags {
+		tagKeys = append(tagKeys, key)
+	}
+	sort.Strings(tagKeys)
+	for _, key := range tagKeys {
+		value := ""
+		if v, ok := filterTags[key]; ok && v != nil {
+			value = *v
+		}
+		tagsId += fmt.Sprintf("[%s:%s]", key, value)
+	}
+	if tagsId == "" {
+		tagsId = "[]"
+	}
+	d.SetId(fmt.Sprintf("resourceGroups/%s/tags/%s/images", resourceGroup, tagsId))
 
 	d.Set("resource_group_name", resourceGroup)
 

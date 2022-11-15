@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementAuthorizationBackendResource struct {
-}
+type ApiManagementAuthorizationBackendResource struct{}
 
 func TestAccApiManagementBackend_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
@@ -144,6 +143,21 @@ func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementBackend_serviceFabricCluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceFabricCluster(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagementBackend_serviceFabricClientCertificateId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
@@ -189,32 +203,26 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.BackendID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["backends"]
 
-	resp, err := clients.ApiManagement.BackendClient.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := clients.ApiManagement.BackendClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Authorization Backend (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.BackendID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["backends"]
 
-	resp, err := client.ApiManagement.BackendClient.Delete(ctx, resourceGroup, serviceName, name, "")
+	resp, err := client.ApiManagement.BackendClient.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return utils.Bool(true), nil
@@ -343,6 +351,39 @@ resource "azurerm_api_management_backend" "test" {
       azurerm_api_management_certificate.test.thumbprint,
       azurerm_api_management_certificate.test.thumbprint,
     ]
+  }
+}
+`, r.template(data, "sf"), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) serviceFabricCluster(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_certificate" "test" {
+  name                = "acctest-cert-%[2]d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  data                = filebase64("testdata/keyvaultcert.pfx")
+  password            = ""
+}
+
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestapi-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "fabric:/mytestapp/acctest"
+  service_fabric_cluster {
+    client_certificate_thumbprint = azurerm_api_management_certificate.test.thumbprint
+    server_x509_name {
+      name                          = "test"
+      issuer_certificate_thumbprint = azurerm_api_management_certificate.test.thumbprint
+    }
+    management_endpoints = [
+      "https://acctestsf.com",
+    ]
+    max_partition_resolution_retries = 5
   }
 }
 `, r.template(data, "sf"), data.RandomInteger)

@@ -8,15 +8,17 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -48,9 +50,9 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validate.LogicAppStandardName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
@@ -105,7 +107,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"identity": schemaLogicAppStandardIdentity(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -135,8 +137,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeServiceBus),
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"value": {
@@ -219,6 +220,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"virtual_network_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
 		},
 	}
 }
@@ -226,39 +233,44 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewLogicAppStandardID(
+		subscriptionId,
+		d.Get("resource_group_name").(string),
+		d.Get("name").(string),
+	)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Logic App Standard %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_logic_app_standard", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(name),
+		Name: utils.String(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", id.SiteName, err)
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("name %q used for the Logic App Standard needs to be globally unique and isn't available: %s", name, *available.Message)
+		return fmt.Errorf(
+			"the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v",
+			id.SiteName,
+			*available.Message,
+		)
 	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -266,6 +278,8 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	VirtualNetworkSubnetID := d.Get("virtual_network_subnet_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -275,7 +289,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config`: %+v", err)
 	}
 
 	kind := "functionapp,workflowapp"
@@ -283,7 +297,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		kind = "functionapp,linux,container,workflowapp"
 	}
 
-	siteConfig.AppSettings = &basicAppSettings
+	// Some appSettings declared by user are required at creation time so we will combine both settings
+	appSettings := expandAppSettings(d)
+	appSettings = append(appSettings, basicAppSettings...)
+
+	siteConfig.AppSettings = &appSettings
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,
@@ -303,33 +321,29 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
+	if VirtualNetworkSubnetID != "" {
+		siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(VirtualNetworkSubnetID)
+	}
+
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandLogicAppStandardIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandLogicAppStandardIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	err = createFuture.WaitForCompletionRef(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("cannot read Logic App Standard %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceLogicAppStandardUpdate(d, meta)
 }
 
@@ -360,7 +374,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `site_config`: %+v", err)
 	}
 
 	kind := "functionapp,workflowapp"
@@ -373,7 +387,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
 	appSettings, err := expandLogicAppStandardSettings(d, endpointSuffix)
 	if err != nil {
-		return fmt.Errorf("expanding `app_settings` for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `app_settings`: %+v", err)
 	}
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
 		if !d.HasChange("site_config.0.vnet_route_all_enabled") {
@@ -400,19 +414,44 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
+	if d.HasChange("virtual_network_subnet_id") {
+		subnetId := d.Get("virtual_network_subnet_id").(string)
+		if subnetId == "" {
+			if _, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+			}
+			var empty *string
+			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = empty
+		} else {
+			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+		}
+	}
+
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandLogicAppStandardIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandLogicAppStandardIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("updating Logic App Standard %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Logic App Standard %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+	}
+
+	if d.HasChange("site_config") { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
+		siteConfigResource := web.SiteConfigResource{
+			SiteConfig: &siteConfig,
+		}
+
+		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
+			return fmt.Errorf("updating Configuration for %s: %+v", *id, err)
+		}
 	}
 
 	settings := web.StringDictionary{
@@ -420,21 +459,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
-		return fmt.Errorf("updating Application Settings for Logic App Standard %q: %+v", id.SiteName, err)
-	}
-
-	if d.HasChange("site_config") {
-		siteConfig, err := expandLogicAppStandardSiteConfig(d)
-		if err != nil {
-			return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
-		}
-		siteConfigResource := web.SiteConfigResource{
-			SiteConfig: &siteConfig,
-		}
-
-		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
-			return fmt.Errorf("updating Configuration for Logic App Standard %q: %+v", id.SiteName, err)
-		}
+		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
 	}
 
 	if d.HasChange("connection_string") {
@@ -444,7 +469,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
-			return fmt.Errorf("updating Connection Strings for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Connection Strings for %s: %+v", *id, err)
 		}
 	}
 
@@ -464,39 +489,33 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Logic App Standard %q (resource group %q) was not found - removing from state", id.SiteName, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard %q: %+v", id.SiteName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of Logic App Standard %q (resource group %q) were not found", id.SiteName, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard AppSettings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("listing application settings for %s: %+v", *id, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard ConnectionStrings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("listing connection strings for %s: %+v", *id, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return err
+		return fmt.Errorf("listing publishing credentials for %s: %+v", *id, err)
 	}
-	err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = siteCredFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting to list the publishing credentials for %s: %+v", *id, err)
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
+		return fmt.Errorf("retrieving the publishing credentials for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.SiteName)
@@ -516,6 +535,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
@@ -578,14 +598,17 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity := flattenLogicAppStandardIdentity(resp.Identity)
+	identity, err := flattenLogicAppStandardIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
 	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Logic App Standard Configuration %q: %+v", id.SiteName, err)
+		return fmt.Errorf("retrieving the configuration for %s: %+v", *id, err)
 	}
 
 	siteConfig := flattenLogicAppStandardSiteConfig(configResp.SiteConfig)
@@ -611,21 +634,19 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Logic App Standard %q (resource group %q)", id.SiteName, id.ResourceGroup)
-
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return err
-		}
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicLogicAppSettings(
+	d *pluginsdk.ResourceData,
+	endpointSuffix string,
+) ([]web.NameValuePair, error) {
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
@@ -635,7 +656,12 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 
 	storageAccount := d.Get("storage_account_name").(string)
 	accountKey := d.Get("storage_account_access_key").(string)
-	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, accountKey, endpointSuffix)
+	storageConnection := fmt.Sprintf(
+		"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
+		storageAccount,
+		accountKey,
+		endpointSuffix,
+	)
 	functionVersion := d.Get("version").(string)
 
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
@@ -659,7 +685,9 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 		extensionBundleVersion := d.Get("bundle_version").(string)
 
 		if extensionBundleVersion == "" {
-			return nil, fmt.Errorf("when `use_extension_bundle` is true, `bundle_version` must be specified")
+			return nil, fmt.Errorf(
+				"when `use_extension_bundle` is true, `bundle_version` must be specified",
+			)
 		}
 
 		bundleSettings := []web.NameValuePair{
@@ -732,6 +760,47 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
+				"scm_ip_restriction": schemaLogicAppStandardIpRestriction(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"scm_min_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
+					}, false),
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.ScmTypeBitbucketGit),
+						string(web.ScmTypeBitbucketHg),
+						string(web.ScmTypeCodePlexGit),
+						string(web.ScmTypeCodePlexHg),
+						string(web.ScmTypeDropbox),
+						string(web.ScmTypeExternalGit),
+						string(web.ScmTypeExternalHg),
+						string(web.ScmTypeGitHub),
+						string(web.ScmTypeLocalGit),
+						string(web.ScmTypeNone),
+						string(web.ScmTypeOneDrive),
+						string(web.ScmTypeTfs),
+						string(web.ScmTypeVSO),
+						string(web.ScmTypeVSTSRM),
+					}, false),
+				},
+
 				"use_32_bit_worker_process": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -777,43 +846,12 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-func schemaLogicAppStandardIdentity() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedServiceIdentityTypeSystemAssigned),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -894,7 +932,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					}, false),
 				},
 
-				//lintignore:XS003
+				// lintignore:XS003
 				"headers": {
 					Type:       pluginsdk.TypeList,
 					Optional:   true,
@@ -903,7 +941,6 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-
 							// lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
@@ -965,7 +1002,9 @@ func flattenLogicAppStandardAppSettings(input map[string]*string) map[string]str
 	return output
 }
 
-func flattenLogicAppStandardConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenLogicAppStandardConnectionStrings(
+	input map[string]*web.ConnStringValueTypePair,
+) interface{} {
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
@@ -977,30 +1016,6 @@ func flattenLogicAppStandardConnectionStrings(input map[string]*web.ConnStringVa
 	}
 
 	return results
-}
-
-func flattenLogicAppStandardIdentity(identity *web.ManagedServiceIdentity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
-
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}
 }
 
 func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
@@ -1037,6 +1052,15 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
+
+	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
+
+	if input.ScmIPSecurityRestrictionsUseMain != nil {
+		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
+	}
+
+	result["scm_type"] = string(input.ScmType)
+	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
@@ -1242,6 +1266,27 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
 
+	if v, ok := config["scm_ip_restriction"]; ok {
+		scmIPSecurityRestrictions := v.([]interface{})
+		scmRestrictions, err := expandLogicAppStandardIpRestriction(scmIPSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
+		}
+		siteConfig.ScmIPSecurityRestrictions = &scmRestrictions
+	}
+
+	if v, ok := config["scm_use_main_ip_restriction"]; ok {
+		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["scm_min_tls_version"]; ok {
+		siteConfig.ScmMinTLSVersion = web.SupportedTLSVersions(v.(string))
+	}
+
+	if v, ok := config["scm_type"]; ok {
+		siteConfig.ScmType = web.ScmType(v.(string))
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -1250,7 +1295,8 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	if v, ok := config["pre_warmed_instance_count"]; ok {
+	// get value from `d` rather than the `config` map, or it will be covered by the zero-value "0" instead of nil.
+	if v, ok := d.GetOk("site_config.0.pre_warmed_instance_count"); ok {
 		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
@@ -1258,11 +1304,11 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
-	if v, ok := config["elastic_instance_minimum"]; ok {
+	if v, ok := d.GetOk("site_config.0.elastic_instance_minimum"); ok {
 		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := config["app_scale_limit"]; ok {
+	if v, ok := d.GetOk("site_config.0.app_scale_limit"); ok {
 		siteConfig.FunctionAppScaleLimit = utils.Int32(int32(v.(int)))
 	}
 
@@ -1281,46 +1327,106 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 	return siteConfig, nil
 }
 
-func expandLogicAppStandardIdentity(input []interface{}) *web.ManagedServiceIdentity {
-	if len(input) == 0 {
-		return nil
-	}
-	identity := input[0].(map[string]interface{})
-	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
-
-	managedServiceIdentity := web.ManagedServiceIdentity{
-		Type: identityType,
+func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	return &managedServiceIdentity
+	output := web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(expanded.Type),
+	}
+
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		output.UserAssignedIdentities = expandLogicAppStandardUserAssignedIdentity(expanded.IdentityIds)
+	}
+
+	return &output, nil
 }
 
-func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]*string, error) {
-	output := expandAppSettings(d)
+func expandLogicAppStandardUserAssignedIdentity(input map[string]identity.UserAssignedIdentityDetails) map[string]*web.UserAssignedIdentity {
+	output := make(map[string]*web.UserAssignedIdentity)
+	for k := range input {
+		output[k] = &web.UserAssignedIdentity{}
+	}
+	return output
+}
 
+func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) ([]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		if input.UserAssignedIdentities != nil {
+			transform.IdentityIds = flattenLogicAppStandardUserAssignedIdentity(input.UserAssignedIdentities)
+		}
+	}
+
+	output, err := identity.FlattenSystemAndUserAssignedMap(transform)
+	if err != nil {
+		return nil, err
+	}
+	return *output, nil
+}
+
+func flattenLogicAppStandardUserAssignedIdentity(input map[string]*web.UserAssignedIdentity) map[string]identity.UserAssignedIdentityDetails {
+	expanded := make(map[string]identity.UserAssignedIdentityDetails)
+	for k, v := range input {
+		identityDetail := identity.UserAssignedIdentityDetails{}
+		if v.PrincipalID != nil {
+			identityDetail.PrincipalId = v.PrincipalID
+		}
+		if v.ClientID != nil {
+			identityDetail.ClientId = v.ClientID
+		}
+		expanded[k] = identityDetail
+	}
+	return expanded
+}
+
+func expandLogicAppStandardSettings(
+	d *pluginsdk.ResourceData,
+	endpointSuffix string,
+) (map[string]*string, error) {
+	output := make(map[string]*string)
+	appSettings := expandAppSettings(d)
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
 	if err != nil {
 		return nil, err
 	}
-	for _, p := range basicAppSettings {
+	for _, p := range append(basicAppSettings, appSettings...) {
 		output[*p.Name] = p.Value
 	}
 
 	return output, nil
 }
 
-func expandAppSettings(d *pluginsdk.ResourceData) map[string]*string {
+func expandAppSettings(d *pluginsdk.ResourceData) []web.NameValuePair {
 	input := d.Get("app_settings").(map[string]interface{})
-	output := make(map[string]*string, len(input))
+	output := make([]web.NameValuePair, 0)
 
 	for k, v := range input {
-		output[k] = utils.String(v.(string))
+		nameValue := web.NameValuePair{
+			Name:  utils.String(k),
+			Value: utils.String(v.(string)),
+		}
+		output = append(output, nameValue)
 	}
 
 	return output
 }
 
-func expandLogicAppStandardConnectionStrings(d *pluginsdk.ResourceData) map[string]*web.ConnStringValueTypePair {
+func expandLogicAppStandardConnectionStrings(
+	d *pluginsdk.ResourceData,
+) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").(*pluginsdk.Set).List()
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -1392,11 +1498,15 @@ func expandLogicAppStandardIpRestriction(input interface{}) ([]web.IPSecurityRes
 		action := restriction["action"].(string)
 
 		if vNetSubnetID != "" && ipAddress != "" && serviceTag != "" {
-			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")
+			return nil, fmt.Errorf(
+				"only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction",
+			)
 		}
 
 		if vNetSubnetID == "" && ipAddress == "" && serviceTag == "" {
-			return nil, fmt.Errorf("one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction")
+			return nil, fmt.Errorf(
+				"one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction",
+			)
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}

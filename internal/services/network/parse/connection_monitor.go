@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ConnectionMonitorId struct {
@@ -42,7 +42,7 @@ func (id ConnectionMonitorId) ID() string {
 
 // ConnectionMonitorID parses a ConnectionMonitor ID into an ConnectionMonitorId struct
 func ConnectionMonitorID(input string) (*ConnectionMonitorId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

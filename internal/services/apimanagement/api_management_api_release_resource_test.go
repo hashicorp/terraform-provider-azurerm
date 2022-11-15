@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementApiReleaseResource struct {
-}
+type ApiManagementApiReleaseResource struct{}
 
 func TestAccApiManagementApiRelease_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_release", "test")
@@ -133,6 +132,7 @@ resource "azurerm_api_management_api_release" "test" {
 }
 `, ApiManagementApiResource{}.basic(data), data.RandomInteger)
 }
+
 func (r ApiManagementApiReleaseResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

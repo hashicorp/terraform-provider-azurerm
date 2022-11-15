@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type UrlPathMapId struct {
@@ -42,7 +42,7 @@ func (id UrlPathMapId) ID() string {
 
 // UrlPathMapID parses a UrlPathMap ID into an UrlPathMapId struct
 func UrlPathMapID(input string) (*UrlPathMapId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

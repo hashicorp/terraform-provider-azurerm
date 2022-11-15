@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 )
 
-func CreateSecurityCenterContact(client *security.ContactsClient, ctx context.Context, securityContactName string, securityContact security.Contact) (result security.Contact, err error) {
+func CreateSecurityCenterContact(ctx context.Context, client *security.ContactsClient, securityContactName string, securityContact security.Contact) (result security.Contact, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{
 			TargetValue: client.SubscriptionID,

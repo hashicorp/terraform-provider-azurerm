@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type PacketCaptureId struct {
@@ -42,7 +42,7 @@ func (id PacketCaptureId) ID() string {
 
 // PacketCaptureID parses a PacketCapture ID into an PacketCaptureId struct
 func PacketCaptureID(input string) (*PacketCaptureId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

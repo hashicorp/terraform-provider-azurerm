@@ -24,7 +24,7 @@ data "azurerm_database_migration_project" "example" {
 }
 
 output "name" {
-  value = "${data.azurerm_database_migration_project.example.name}"
+  value = data.azurerm_database_migration_project.example.name
 }
 ```
 
@@ -37,7 +37,6 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Name of the resource group where resource belongs to.
 
 * `service_name` - (Required) Name of the database migration service where resource belongs to.
-
 
 ## Attributes Reference
 
@@ -55,6 +54,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.

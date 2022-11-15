@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
+// @tombuildsstuff: note this can't be automated today due to the comma in the Resource ID
+
 type RestorableDroppedDatabaseId struct {
 	Name          string
 	MsSqlServer   string

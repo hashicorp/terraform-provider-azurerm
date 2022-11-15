@@ -191,14 +191,14 @@ func (future *AFDCustomDomainsUpdateFuture) result(client AFDCustomDomainsClient
 type AFDDomain struct {
 	autorest.Response    `json:"-"`
 	*AFDDomainProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AFDDomain.
@@ -228,15 +228,6 @@ func (ad *AFDDomain) UnmarshalJSON(body []byte) error {
 				}
 				ad.AFDDomainProperties = &aFDDomainProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				ad.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -264,6 +255,15 @@ func (ad *AFDDomain) UnmarshalJSON(body []byte) error {
 				}
 				ad.Type = &typeVar
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				ad.SystemData = &systemData
+			}
 		}
 	}
 
@@ -274,7 +274,7 @@ func (ad *AFDDomain) UnmarshalJSON(body []byte) error {
 type AFDDomainHTTPSParameters struct {
 	// CertificateType - Defines the source of the SSL certificate. Possible values include: 'AfdCertificateTypeCustomerCertificate', 'AfdCertificateTypeManagedCertificate'
 	CertificateType AfdCertificateType `json:"certificateType,omitempty"`
-	// MinimumTLSVersion - TLS protocol version that will be used for Https. Possible values include: 'TLS10', 'TLS12'
+	// MinimumTLSVersion - TLS protocol version that will be used for Https. Possible values include: 'AfdMinimumTLSVersionTLS10', 'AfdMinimumTLSVersionTLS12'
 	MinimumTLSVersion AfdMinimumTLSVersion `json:"minimumTlsVersion,omitempty"`
 	// Secret - Resource reference to the secret. ie. subs/rg/profile/secret
 	Secret *ResourceReference `json:"secret,omitempty"`
@@ -455,11 +455,11 @@ type AFDDomainProperties struct {
 	TLSSettings *AFDDomainHTTPSParameters `json:"tlsSettings,omitempty"`
 	// AzureDNSZone - Resource reference to the Azure DNS zone
 	AzureDNSZone *ResourceReference `json:"azureDnsZone,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
-	// DomainValidationState - READ-ONLY; Provisioning substate shows the progress of custom HTTPS enabling/disabling process step by step. DCV stands for DomainControlValidation. Possible values include: 'Unknown', 'Submitting', 'Pending', 'TimedOut', 'PendingRevalidation', 'Approved'
+	// DomainValidationState - READ-ONLY; Provisioning substate shows the progress of custom HTTPS enabling/disabling process step by step. DCV stands for DomainControlValidation. Possible values include: 'DomainValidationStateUnknown', 'DomainValidationStateSubmitting', 'DomainValidationStatePending', 'DomainValidationStateTimedOut', 'DomainValidationStatePendingRevalidation', 'DomainValidationStateApproved'
 	DomainValidationState DomainValidationState `json:"domainValidationState,omitempty"`
 	// HostName - The host name of the domain. Must be a domain name.
 	HostName *string `json:"hostName,omitempty"`
@@ -539,14 +539,14 @@ type AFDEndpoint struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AFDEndpoint.
@@ -600,15 +600,6 @@ func (ae *AFDEndpoint) UnmarshalJSON(body []byte) error {
 				}
 				ae.Tags = tags
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				ae.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -635,6 +626,15 @@ func (ae *AFDEndpoint) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ae.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				ae.SystemData = &systemData
 			}
 		}
 	}
@@ -817,7 +817,7 @@ type AFDEndpointProperties struct {
 	OriginResponseTimeoutSeconds *int32 `json:"originResponseTimeoutSeconds,omitempty"`
 	// EnabledState - Whether to enable use of this rule. Permitted values are 'Enabled' or 'Disabled'. Possible values include: 'EnabledStateEnabled', 'EnabledStateDisabled'
 	EnabledState EnabledState `json:"enabledState,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -1070,14 +1070,14 @@ type AfdErrorResponse struct {
 type AFDOrigin struct {
 	autorest.Response    `json:"-"`
 	*AFDOriginProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AFDOrigin.
@@ -1107,15 +1107,6 @@ func (ao *AFDOrigin) UnmarshalJSON(body []byte) error {
 				}
 				ao.AFDOriginProperties = &aFDOriginProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				ao.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -1143,6 +1134,15 @@ func (ao *AFDOrigin) UnmarshalJSON(body []byte) error {
 				}
 				ao.Type = &typeVar
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				ao.SystemData = &systemData
+			}
 		}
 	}
 
@@ -1154,14 +1154,14 @@ func (ao *AFDOrigin) UnmarshalJSON(body []byte) error {
 type AFDOriginGroup struct {
 	autorest.Response         `json:"-"`
 	*AFDOriginGroupProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AFDOriginGroup.
@@ -1191,15 +1191,6 @@ func (aog *AFDOriginGroup) UnmarshalJSON(body []byte) error {
 				}
 				aog.AFDOriginGroupProperties = &aFDOriginGroupProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				aog.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -1226,6 +1217,15 @@ func (aog *AFDOriginGroup) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				aog.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				aog.SystemData = &systemData
 			}
 		}
 	}
@@ -1414,7 +1414,7 @@ type AFDOriginGroupProperties struct {
 	ResponseBasedAfdOriginErrorDetectionSettings *ResponseBasedOriginErrorDetectionParameters `json:"responseBasedAfdOriginErrorDetectionSettings,omitempty"`
 	// SessionAffinityState - Whether to allow session affinity on this host. Valid options are 'Enabled' or 'Disabled'. Possible values include: 'EnabledStateEnabled', 'EnabledStateDisabled'
 	SessionAffinityState EnabledState `json:"sessionAffinityState,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -1806,7 +1806,7 @@ type AFDOriginProperties struct {
 	SharedPrivateLinkResource interface{} `json:"sharedPrivateLinkResource,omitempty"`
 	// EnabledState - Whether to enable health probes to be made against backends defined under backendPools. Health probes can only be disabled if there is a single enabled backend in single enabled backend pool. Possible values include: 'EnabledStateEnabled', 'EnabledStateDisabled'
 	EnabledState EnabledState `json:"enabledState,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -2038,7 +2038,7 @@ type AfdPurgeParameters struct {
 
 // AFDStateProperties the tracking states for afd resources.
 type AFDStateProperties struct {
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -2053,7 +2053,7 @@ func (asp AFDStateProperties) MarshalJSON() ([]byte, error) {
 // CacheExpirationActionParameters defines the parameters for the cache expiration action.
 type CacheExpirationActionParameters struct {
 	OdataType *string `json:"@odata.type,omitempty"`
-	// CacheBehavior - Caching behavior for the requests. Possible values include: 'BypassCache', 'Override', 'SetIfMissing'
+	// CacheBehavior - Caching behavior for the requests. Possible values include: 'CacheBehaviorBypassCache', 'CacheBehaviorOverride', 'CacheBehaviorSetIfMissing'
 	CacheBehavior CacheBehavior `json:"cacheBehavior,omitempty"`
 	// CacheType - The level at which the content needs to be cached.
 	CacheType *string `json:"cacheType,omitempty"`
@@ -2064,7 +2064,7 @@ type CacheExpirationActionParameters struct {
 // CacheKeyQueryStringActionParameters defines the parameters for the cache-key query string action.
 type CacheKeyQueryStringActionParameters struct {
 	OdataType *string `json:"@odata.type,omitempty"`
-	// QueryStringBehavior - Caching behavior for the requests. Possible values include: 'Include', 'IncludeAll', 'Exclude', 'ExcludeAll'
+	// QueryStringBehavior - Caching behavior for the requests. Possible values include: 'QueryStringBehaviorInclude', 'QueryStringBehaviorIncludeAll', 'QueryStringBehaviorExclude', 'QueryStringBehaviorExcludeAll'
 	QueryStringBehavior QueryStringBehavior `json:"queryStringBehavior,omitempty"`
 	// QueryParameters - query parameters to include or exclude (comma separated).
 	QueryParameters *string `json:"queryParameters,omitempty"`
@@ -2084,7 +2084,7 @@ type Certificate struct {
 // domain.
 type CertificateSourceParameters struct {
 	OdataType *string `json:"@odata.type,omitempty"`
-	// CertificateType - Type of certificate used. Possible values include: 'Shared', 'Dedicated'
+	// CertificateType - Type of certificate used. Possible values include: 'CertificateTypeShared', 'CertificateTypeDedicated'
 	CertificateType CertificateType `json:"certificateType,omitempty"`
 }
 
@@ -2152,7 +2152,7 @@ type CookiesMatchConditionParameters struct {
 	OdataType *string `json:"@odata.type,omitempty"`
 	// Selector - Name of Cookies to be matched
 	Selector *string `json:"selector,omitempty"`
-	// Operator - Describes operator to be matched. Possible values include: 'Any', 'Equal', 'Contains', 'BeginsWith', 'EndsWith', 'LessThan', 'LessThanOrEqual', 'GreaterThan', 'GreaterThanOrEqual', 'RegEx'
+	// Operator - Describes operator to be matched. Possible values include: 'CookiesOperatorAny', 'CookiesOperatorEqual', 'CookiesOperatorContains', 'CookiesOperatorBeginsWith', 'CookiesOperatorEndsWith', 'CookiesOperatorLessThan', 'CookiesOperatorLessThanOrEqual', 'CookiesOperatorGreaterThan', 'CookiesOperatorGreaterThanOrEqual', 'CookiesOperatorRegEx'
 	Operator CookiesOperator `json:"operator,omitempty"`
 	// NegateCondition - Describes if this is negate condition or not
 	NegateCondition *bool `json:"negateCondition,omitempty"`
@@ -2167,14 +2167,14 @@ type CookiesMatchConditionParameters struct {
 type CustomDomain struct {
 	autorest.Response       `json:"-"`
 	*CustomDomainProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CustomDomain.
@@ -2204,15 +2204,6 @@ func (cd *CustomDomain) UnmarshalJSON(body []byte) error {
 				}
 				cd.CustomDomainProperties = &customDomainProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				cd.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -2240,6 +2231,15 @@ func (cd *CustomDomain) UnmarshalJSON(body []byte) error {
 				}
 				cd.Type = &typeVar
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				cd.SystemData = &systemData
+			}
 		}
 	}
 
@@ -2255,7 +2255,7 @@ type BasicCustomDomainHTTPSParameters interface {
 
 // CustomDomainHTTPSParameters the JSON object that contains the properties to secure a custom domain.
 type CustomDomainHTTPSParameters struct {
-	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ServerNameIndication', 'IPBased'
+	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ProtocolTypeServerNameIndication', 'ProtocolTypeIPBased'
 	ProtocolType ProtocolType `json:"protocolType,omitempty"`
 	// MinimumTLSVersion - TLS protocol version that will be used for Https. Possible values include: 'MinimumTLSVersionNone', 'MinimumTLSVersionTLS10', 'MinimumTLSVersionTLS12'
 	MinimumTLSVersion MinimumTLSVersion `json:"minimumTlsVersion,omitempty"`
@@ -2555,8 +2555,10 @@ type CustomDomainProperties struct {
 	ResourceState CustomDomainResourceState `json:"resourceState,omitempty"`
 	// CustomHTTPSProvisioningState - READ-ONLY; Provisioning status of Custom Https of the custom domain. Possible values include: 'CustomHTTPSProvisioningStateEnabling', 'CustomHTTPSProvisioningStateEnabled', 'CustomHTTPSProvisioningStateDisabling', 'CustomHTTPSProvisioningStateDisabled', 'CustomHTTPSProvisioningStateFailed'
 	CustomHTTPSProvisioningState CustomHTTPSProvisioningState `json:"customHttpsProvisioningState,omitempty"`
-	// CustomHTTPSProvisioningSubstate - READ-ONLY; Provisioning substate shows the progress of custom HTTPS enabling/disabling process step by step. Possible values include: 'SubmittingDomainControlValidationRequest', 'PendingDomainControlValidationREquestApproval', 'DomainControlValidationRequestApproved', 'DomainControlValidationRequestRejected', 'DomainControlValidationRequestTimedOut', 'IssuingCertificate', 'DeployingCertificate', 'CertificateDeployed', 'DeletingCertificate', 'CertificateDeleted'
+	// CustomHTTPSProvisioningSubstate - READ-ONLY; Provisioning substate shows the progress of custom HTTPS enabling/disabling process step by step. Possible values include: 'CustomHTTPSProvisioningSubstateSubmittingDomainControlValidationRequest', 'CustomHTTPSProvisioningSubstatePendingDomainControlValidationREquestApproval', 'CustomHTTPSProvisioningSubstateDomainControlValidationRequestApproved', 'CustomHTTPSProvisioningSubstateDomainControlValidationRequestRejected', 'CustomHTTPSProvisioningSubstateDomainControlValidationRequestTimedOut', 'CustomHTTPSProvisioningSubstateIssuingCertificate', 'CustomHTTPSProvisioningSubstateDeployingCertificate', 'CustomHTTPSProvisioningSubstateCertificateDeployed', 'CustomHTTPSProvisioningSubstateDeletingCertificate', 'CustomHTTPSProvisioningSubstateCertificateDeleted'
 	CustomHTTPSProvisioningSubstate CustomHTTPSProvisioningSubstate `json:"customHttpsProvisioningSubstate,omitempty"`
+	// CustomHTTPSParameters - Certificate parameters for securing custom HTTPS
+	CustomHTTPSParameters BasicCustomDomainHTTPSParameters `json:"customHttpsParameters,omitempty"`
 	// ValidationData - Special validation or data may be required when delivering CDN to some regions due to local compliance reasons. E.g. ICP license number of a custom domain is required to deliver content in China.
 	ValidationData *string `json:"validationData,omitempty"`
 	// ProvisioningState - READ-ONLY; Provisioning status of the custom domain.
@@ -2569,10 +2571,88 @@ func (cdp CustomDomainProperties) MarshalJSON() ([]byte, error) {
 	if cdp.HostName != nil {
 		objectMap["hostName"] = cdp.HostName
 	}
+	objectMap["customHttpsParameters"] = cdp.CustomHTTPSParameters
 	if cdp.ValidationData != nil {
 		objectMap["validationData"] = cdp.ValidationData
 	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CustomDomainProperties struct.
+func (cdp *CustomDomainProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "hostName":
+			if v != nil {
+				var hostName string
+				err = json.Unmarshal(*v, &hostName)
+				if err != nil {
+					return err
+				}
+				cdp.HostName = &hostName
+			}
+		case "resourceState":
+			if v != nil {
+				var resourceState CustomDomainResourceState
+				err = json.Unmarshal(*v, &resourceState)
+				if err != nil {
+					return err
+				}
+				cdp.ResourceState = resourceState
+			}
+		case "customHttpsProvisioningState":
+			if v != nil {
+				var customHTTPSProvisioningState CustomHTTPSProvisioningState
+				err = json.Unmarshal(*v, &customHTTPSProvisioningState)
+				if err != nil {
+					return err
+				}
+				cdp.CustomHTTPSProvisioningState = customHTTPSProvisioningState
+			}
+		case "customHttpsProvisioningSubstate":
+			if v != nil {
+				var customHTTPSProvisioningSubstate CustomHTTPSProvisioningSubstate
+				err = json.Unmarshal(*v, &customHTTPSProvisioningSubstate)
+				if err != nil {
+					return err
+				}
+				cdp.CustomHTTPSProvisioningSubstate = customHTTPSProvisioningSubstate
+			}
+		case "customHttpsParameters":
+			if v != nil {
+				customHTTPSParameters, err := unmarshalBasicCustomDomainHTTPSParameters(*v)
+				if err != nil {
+					return err
+				}
+				cdp.CustomHTTPSParameters = customHTTPSParameters
+			}
+		case "validationData":
+			if v != nil {
+				var validationData string
+				err = json.Unmarshal(*v, &validationData)
+				if err != nil {
+					return err
+				}
+				cdp.ValidationData = &validationData
+			}
+		case "provisioningState":
+			if v != nil {
+				var provisioningState string
+				err = json.Unmarshal(*v, &provisioningState)
+				if err != nil {
+					return err
+				}
+				cdp.ProvisioningState = &provisioningState
+			}
+		}
+	}
+
+	return nil
 }
 
 // CustomDomainPropertiesParameters the JSON object that contains the properties of the custom domain to
@@ -2668,6 +2748,92 @@ func (future *CustomDomainsDeleteFuture) result(client CustomDomainsClient) (cd 
 	return
 }
 
+// CustomDomainsDisableCustomHTTPSFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CustomDomainsDisableCustomHTTPSFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomDomainsClient) (CustomDomain, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CustomDomainsDisableCustomHTTPSFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CustomDomainsDisableCustomHTTPSFuture.Result.
+func (future *CustomDomainsDisableCustomHTTPSFuture) result(client CustomDomainsClient) (cd CustomDomain, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsDisableCustomHTTPSFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		cd.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("cdn.CustomDomainsDisableCustomHTTPSFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cd.Response.Response, err = future.GetResult(sender); err == nil && cd.Response.Response.StatusCode != http.StatusNoContent {
+		cd, err = client.DisableCustomHTTPSResponder(cd.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.CustomDomainsDisableCustomHTTPSFuture", "Result", cd.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CustomDomainsEnableCustomHTTPSFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CustomDomainsEnableCustomHTTPSFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomDomainsClient) (CustomDomain, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CustomDomainsEnableCustomHTTPSFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CustomDomainsEnableCustomHTTPSFuture.Result.
+func (future *CustomDomainsEnableCustomHTTPSFuture) result(client CustomDomainsClient) (cd CustomDomain, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsEnableCustomHTTPSFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		cd.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("cdn.CustomDomainsEnableCustomHTTPSFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cd.Response.Response, err = future.GetResult(sender); err == nil && cd.Response.Response.StatusCode != http.StatusNoContent {
+		cd, err = client.EnableCustomHTTPSResponder(cd.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.CustomDomainsEnableCustomHTTPSFuture", "Result", cd.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // CustomerCertificate customer Certificate used for https
 type CustomerCertificate struct {
 	// Version - Certificate version.
@@ -2700,13 +2866,13 @@ type CustomerCertificateParameters struct {
 	UseLatestVersion *bool `json:"useLatestVersion,omitempty"`
 	// SubjectAlternativeNames - The list of SANs.
 	SubjectAlternativeNames *[]string `json:"subjectAlternativeNames,omitempty"`
-	// Type - Possible values include: 'TypeSecretParameters', 'TypeURLSigningKey', 'TypeManagedCertificate', 'TypeCustomerCertificate'
+	// Type - Possible values include: 'TypeBasicSecretParametersTypeSecretParameters', 'TypeBasicSecretParametersTypeURLSigningKey', 'TypeBasicSecretParametersTypeManagedCertificate', 'TypeBasicSecretParametersTypeCustomerCertificate'
 	Type TypeBasicSecretParameters `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CustomerCertificateParameters.
 func (ccp CustomerCertificateParameters) MarshalJSON() ([]byte, error) {
-	ccp.Type = TypeCustomerCertificate
+	ccp.Type = TypeBasicSecretParametersTypeCustomerCertificate
 	objectMap := make(map[string]interface{})
 	if ccp.SecretSource != nil {
 		objectMap["secretSource"] = ccp.SecretSource
@@ -2758,13 +2924,13 @@ func (ccp CustomerCertificateParameters) AsBasicSecretParameters() (BasicSecretP
 type CustomRule struct {
 	// Name - Defines the name of the custom rule
 	Name *string `json:"name,omitempty"`
-	// EnabledState - Describes if the custom rule is in enabled or disabled state. Defaults to Enabled if not specified. Possible values include: 'Disabled', 'Enabled'
+	// EnabledState - Describes if the custom rule is in enabled or disabled state. Defaults to Enabled if not specified. Possible values include: 'CustomRuleEnabledStateDisabled', 'CustomRuleEnabledStateEnabled'
 	EnabledState CustomRuleEnabledState `json:"enabledState,omitempty"`
 	// Priority - Defines in what order this rule be evaluated in the overall list of custom rules
 	Priority *int32 `json:"priority,omitempty"`
 	// MatchConditions - List of match conditions.
 	MatchConditions *[]MatchCondition `json:"matchConditions,omitempty"`
-	// Action - Describes what action to be applied when rule matches. Possible values include: 'Allow', 'Block', 'Log', 'Redirect'
+	// Action - Describes what action to be applied when rule matches. Possible values include: 'ActionTypeAllow', 'ActionTypeBlock', 'ActionTypeLog', 'ActionTypeRedirect'
 	Action ActionType `json:"action,omitempty"`
 }
 
@@ -2993,7 +3159,7 @@ type BasicDeliveryRuleAction interface {
 
 // DeliveryRuleAction an action for the delivery rule.
 type DeliveryRuleAction struct {
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
@@ -3005,35 +3171,35 @@ func unmarshalBasicDeliveryRuleAction(body []byte) (BasicDeliveryRuleAction, err
 	}
 
 	switch m["name"] {
-	case string(NameURLRedirect):
+	case string(NameBasicDeliveryRuleActionNameURLRedirect):
 		var ura URLRedirectAction
 		err := json.Unmarshal(body, &ura)
 		return ura, err
-	case string(NameURLSigning):
+	case string(NameBasicDeliveryRuleActionNameURLSigning):
 		var usa URLSigningAction
 		err := json.Unmarshal(body, &usa)
 		return usa, err
-	case string(NameOriginGroupOverride):
+	case string(NameBasicDeliveryRuleActionNameOriginGroupOverride):
 		var ogoa OriginGroupOverrideAction
 		err := json.Unmarshal(body, &ogoa)
 		return ogoa, err
-	case string(NameURLRewrite):
+	case string(NameBasicDeliveryRuleActionNameURLRewrite):
 		var ura URLRewriteAction
 		err := json.Unmarshal(body, &ura)
 		return ura, err
-	case string(NameModifyRequestHeader):
+	case string(NameBasicDeliveryRuleActionNameModifyRequestHeader):
 		var drrha DeliveryRuleRequestHeaderAction
 		err := json.Unmarshal(body, &drrha)
 		return drrha, err
-	case string(NameModifyResponseHeader):
+	case string(NameBasicDeliveryRuleActionNameModifyResponseHeader):
 		var drrha DeliveryRuleResponseHeaderAction
 		err := json.Unmarshal(body, &drrha)
 		return drrha, err
-	case string(NameCacheExpiration):
+	case string(NameBasicDeliveryRuleActionNameCacheExpiration):
 		var drcea DeliveryRuleCacheExpirationAction
 		err := json.Unmarshal(body, &drcea)
 		return drcea, err
-	case string(NameCacheKeyQueryString):
+	case string(NameBasicDeliveryRuleActionNameCacheKeyQueryString):
 		var drckqsa DeliveryRuleCacheKeyQueryStringAction
 		err := json.Unmarshal(body, &drckqsa)
 		return drckqsa, err
@@ -3064,7 +3230,7 @@ func unmarshalBasicDeliveryRuleActionArray(body []byte) ([]BasicDeliveryRuleActi
 
 // MarshalJSON is the custom marshaler for DeliveryRuleAction.
 func (dra DeliveryRuleAction) MarshalJSON() ([]byte, error) {
-	dra.Name = NameDeliveryRuleAction
+	dra.Name = NameBasicDeliveryRuleActionNameDeliveryRuleAction
 	objectMap := make(map[string]interface{})
 	if dra.Name != "" {
 		objectMap["name"] = dra.Name
@@ -3126,13 +3292,13 @@ func (dra DeliveryRuleAction) AsBasicDeliveryRuleAction() (BasicDeliveryRuleActi
 type DeliveryRuleCacheExpirationAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *CacheExpirationActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DeliveryRuleCacheExpirationAction.
 func (drcea DeliveryRuleCacheExpirationAction) MarshalJSON() ([]byte, error) {
-	drcea.Name = NameCacheExpiration
+	drcea.Name = NameBasicDeliveryRuleActionNameCacheExpiration
 	objectMap := make(map[string]interface{})
 	if drcea.Parameters != nil {
 		objectMap["parameters"] = drcea.Parameters
@@ -3197,13 +3363,13 @@ func (drcea DeliveryRuleCacheExpirationAction) AsBasicDeliveryRuleAction() (Basi
 type DeliveryRuleCacheKeyQueryStringAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *CacheKeyQueryStringActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DeliveryRuleCacheKeyQueryStringAction.
 func (drckqsa DeliveryRuleCacheKeyQueryStringAction) MarshalJSON() ([]byte, error) {
-	drckqsa.Name = NameCacheKeyQueryString
+	drckqsa.Name = NameBasicDeliveryRuleActionNameCacheKeyQueryString
 	objectMap := make(map[string]interface{})
 	if drckqsa.Parameters != nil {
 		objectMap["parameters"] = drckqsa.Parameters
@@ -4179,13 +4345,13 @@ func (drrbc DeliveryRuleRequestBodyCondition) AsBasicDeliveryRuleCondition() (Ba
 type DeliveryRuleRequestHeaderAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *HeaderActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DeliveryRuleRequestHeaderAction.
 func (drrha DeliveryRuleRequestHeaderAction) MarshalJSON() ([]byte, error) {
-	drrha.Name = NameModifyRequestHeader
+	drrha.Name = NameBasicDeliveryRuleActionNameModifyRequestHeader
 	objectMap := make(map[string]interface{})
 	if drrha.Parameters != nil {
 		objectMap["parameters"] = drrha.Parameters
@@ -4654,13 +4820,13 @@ func (drruc DeliveryRuleRequestURICondition) AsBasicDeliveryRuleCondition() (Bas
 type DeliveryRuleResponseHeaderAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *HeaderActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DeliveryRuleResponseHeaderAction.
 func (drrha DeliveryRuleResponseHeaderAction) MarshalJSON() ([]byte, error) {
-	drrha.Name = NameModifyResponseHeader
+	drrha.Name = NameBasicDeliveryRuleActionNameModifyResponseHeader
 	objectMap := make(map[string]interface{})
 	if drrha.Parameters != nil {
 		objectMap["parameters"] = drrha.Parameters
@@ -5041,14 +5207,14 @@ func (dvp DomainValidationProperties) MarshalJSON() ([]byte, error) {
 // EdgeNode edgenode is a global Point of Presence (POP) location used to deliver CDN content to end users.
 type EdgeNode struct {
 	*EdgeNodeProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for EdgeNode.
@@ -5078,15 +5244,6 @@ func (en *EdgeNode) UnmarshalJSON(body []byte) error {
 				}
 				en.EdgeNodeProperties = &edgeNodeProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				en.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -5113,6 +5270,15 @@ func (en *EdgeNode) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				en.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				en.SystemData = &systemData
 			}
 		}
 	}
@@ -5305,14 +5471,14 @@ type Endpoint struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Endpoint.
@@ -5366,15 +5532,6 @@ func (e *Endpoint) UnmarshalJSON(body []byte) error {
 				}
 				e.Tags = tags
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				e.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -5401,6 +5558,15 @@ func (e *Endpoint) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				e.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				e.SystemData = &systemData
 			}
 		}
 	}
@@ -5603,7 +5769,7 @@ type EndpointProperties struct {
 	IsHTTPSAllowed *bool `json:"isHttpsAllowed,omitempty"`
 	// QueryStringCachingBehavior - Defines how CDN caches requests that include query strings. You can ignore any query strings when caching, bypass caching to prevent requests that contain query strings from being cached, or cache every request with a unique URL. Possible values include: 'QueryStringCachingBehaviorIgnoreQueryString', 'QueryStringCachingBehaviorBypassCaching', 'QueryStringCachingBehaviorUseQueryString', 'QueryStringCachingBehaviorNotSet'
 	QueryStringCachingBehavior QueryStringCachingBehavior `json:"queryStringCachingBehavior,omitempty"`
-	// OptimizationType - Specifies what scenario the customer wants this CDN endpoint to optimize for, e.g. Download, Media services. With this information, CDN can apply scenario driven optimization. Possible values include: 'GeneralWebDelivery', 'GeneralMediaStreaming', 'VideoOnDemandMediaStreaming', 'LargeFileDownload', 'DynamicSiteAcceleration'
+	// OptimizationType - Specifies what scenario the customer wants this CDN endpoint to optimize for, e.g. Download, Media services. With this information, CDN can apply scenario driven optimization. Possible values include: 'OptimizationTypeGeneralWebDelivery', 'OptimizationTypeGeneralMediaStreaming', 'OptimizationTypeVideoOnDemandMediaStreaming', 'OptimizationTypeLargeFileDownload', 'OptimizationTypeDynamicSiteAcceleration'
 	OptimizationType OptimizationType `json:"optimizationType,omitempty"`
 	// ProbePath - Path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the origin path. This property is only relevant when using a single origin.
 	ProbePath *string `json:"probePath,omitempty"`
@@ -5689,7 +5855,7 @@ type EndpointPropertiesUpdateParameters struct {
 	IsHTTPSAllowed *bool `json:"isHttpsAllowed,omitempty"`
 	// QueryStringCachingBehavior - Defines how CDN caches requests that include query strings. You can ignore any query strings when caching, bypass caching to prevent requests that contain query strings from being cached, or cache every request with a unique URL. Possible values include: 'QueryStringCachingBehaviorIgnoreQueryString', 'QueryStringCachingBehaviorBypassCaching', 'QueryStringCachingBehaviorUseQueryString', 'QueryStringCachingBehaviorNotSet'
 	QueryStringCachingBehavior QueryStringCachingBehavior `json:"queryStringCachingBehavior,omitempty"`
-	// OptimizationType - Specifies what scenario the customer wants this CDN endpoint to optimize for, e.g. Download, Media services. With this information, CDN can apply scenario driven optimization. Possible values include: 'GeneralWebDelivery', 'GeneralMediaStreaming', 'VideoOnDemandMediaStreaming', 'LargeFileDownload', 'DynamicSiteAcceleration'
+	// OptimizationType - Specifies what scenario the customer wants this CDN endpoint to optimize for, e.g. Download, Media services. With this information, CDN can apply scenario driven optimization. Possible values include: 'OptimizationTypeGeneralWebDelivery', 'OptimizationTypeGeneralMediaStreaming', 'OptimizationTypeVideoOnDemandMediaStreaming', 'OptimizationTypeLargeFileDownload', 'OptimizationTypeDynamicSiteAcceleration'
 	OptimizationType OptimizationType `json:"optimizationType,omitempty"`
 	// ProbePath - Path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the origin path. This property is only relevant when using a single origin.
 	ProbePath *string `json:"probePath,omitempty"`
@@ -6090,7 +6256,7 @@ type GeoFilter struct {
 // HeaderActionParameters defines the parameters for the request header action.
 type HeaderActionParameters struct {
 	OdataType *string `json:"@odata.type,omitempty"`
-	// HeaderAction - Action to perform. Possible values include: 'Append', 'Overwrite', 'Delete'
+	// HeaderAction - Action to perform. Possible values include: 'HeaderActionAppend', 'HeaderActionOverwrite', 'HeaderActionDelete'
 	HeaderAction HeaderAction `json:"headerAction,omitempty"`
 	// HeaderName - Name of the header to modify
 	HeaderName *string `json:"headerName,omitempty"`
@@ -6215,13 +6381,13 @@ type ManagedCertificate struct {
 
 // ManagedCertificateParameters managed Certificate used for https
 type ManagedCertificateParameters struct {
-	// Type - Possible values include: 'TypeSecretParameters', 'TypeURLSigningKey', 'TypeManagedCertificate', 'TypeCustomerCertificate'
+	// Type - Possible values include: 'TypeBasicSecretParametersTypeSecretParameters', 'TypeBasicSecretParametersTypeURLSigningKey', 'TypeBasicSecretParametersTypeManagedCertificate', 'TypeBasicSecretParametersTypeCustomerCertificate'
 	Type TypeBasicSecretParameters `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedCertificateParameters.
 func (mcp ManagedCertificateParameters) MarshalJSON() ([]byte, error) {
-	mcp.Type = TypeManagedCertificate
+	mcp.Type = TypeBasicSecretParametersTypeManagedCertificate
 	objectMap := make(map[string]interface{})
 	if mcp.Type != "" {
 		objectMap["type"] = mcp.Type
@@ -6259,7 +6425,7 @@ func (mcp ManagedCertificateParameters) AsBasicSecretParameters() (BasicSecretPa
 type ManagedHTTPSParameters struct {
 	// CertificateSourceParameters - Defines the certificate source parameters using CDN managed certificate for enabling SSL.
 	CertificateSourceParameters *CertificateSourceParameters `json:"certificateSourceParameters,omitempty"`
-	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ServerNameIndication', 'IPBased'
+	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ProtocolTypeServerNameIndication', 'ProtocolTypeIPBased'
 	ProtocolType ProtocolType `json:"protocolType,omitempty"`
 	// MinimumTLSVersion - TLS protocol version that will be used for Https. Possible values include: 'MinimumTLSVersionNone', 'MinimumTLSVersionTLS10', 'MinimumTLSVersionTLS12'
 	MinimumTLSVersion MinimumTLSVersion `json:"minimumTlsVersion,omitempty"`
@@ -6350,7 +6516,7 @@ type ManagedRuleOverride struct {
 	RuleID *string `json:"ruleId,omitempty"`
 	// EnabledState - Describes if the managed rule is in enabled or disabled state. Defaults to Disabled if not specified. Possible values include: 'ManagedRuleEnabledStateDisabled', 'ManagedRuleEnabledStateEnabled'
 	EnabledState ManagedRuleEnabledState `json:"enabledState,omitempty"`
-	// Action - Describes the override action to be applied when rule matches. Possible values include: 'Allow', 'Block', 'Log', 'Redirect'
+	// Action - Describes the override action to be applied when rule matches. Possible values include: 'ActionTypeAllow', 'ActionTypeBlock', 'ActionTypeLog', 'ActionTypeRedirect'
 	Action ActionType `json:"action,omitempty"`
 }
 
@@ -6378,6 +6544,8 @@ type ManagedRuleSetDefinition struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedRuleSetDefinition.
@@ -6445,6 +6613,15 @@ func (mrsd *ManagedRuleSetDefinition) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mrsd.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				mrsd.SystemData = &systemData
 			}
 		}
 	}
@@ -6647,7 +6824,7 @@ type ManagedRuleSetList struct {
 
 // MatchCondition define match conditions
 type MatchCondition struct {
-	// MatchVariable - Match variable to compare against. Possible values include: 'RemoteAddr', 'SocketAddr', 'RequestMethod', 'RequestHeader', 'RequestURI', 'QueryString', 'RequestBody', 'Cookies', 'PostArgs'
+	// MatchVariable - Match variable to compare against. Possible values include: 'MatchVariableRemoteAddr', 'MatchVariableSocketAddr', 'MatchVariableRequestMethod', 'MatchVariableRequestHeader', 'MatchVariableRequestURI', 'MatchVariableQueryString', 'MatchVariableRequestBody', 'MatchVariableCookies', 'MatchVariablePostArgs'
 	MatchVariable MatchVariable `json:"matchVariable,omitempty"`
 	// Selector - Selector can used to match a specific key for QueryString, Cookies, RequestHeader or PostArgs.
 	Selector *string `json:"selector,omitempty"`
@@ -6666,7 +6843,7 @@ type MetricsResponse struct {
 	autorest.Response `json:"-"`
 	DateTimeBegin     *date.Time `json:"dateTimeBegin,omitempty"`
 	DateTimeEnd       *date.Time `json:"dateTimeEnd,omitempty"`
-	// Granularity - Possible values include: 'PT5M', 'PT1H', 'P1D'
+	// Granularity - Possible values include: 'GranularityPT5M', 'GranularityPT1H', 'GranularityP1D'
 	Granularity Granularity                  `json:"granularity,omitempty"`
 	Series      *[]MetricsResponseSeriesItem `json:"series,omitempty"`
 }
@@ -6674,7 +6851,7 @@ type MetricsResponse struct {
 // MetricsResponseSeriesItem ...
 type MetricsResponseSeriesItem struct {
 	Metric *string `json:"metric,omitempty"`
-	// Unit - Possible values include: 'Count', 'Bytes', 'BitsPerSecond'
+	// Unit - Possible values include: 'UnitCount', 'UnitBytes', 'UnitBitsPerSecond'
 	Unit   Unit                                   `json:"unit,omitempty"`
 	Groups *[]MetricsResponseSeriesItemGroupsItem `json:"groups,omitempty"`
 	Data   *[]MetricsResponseSeriesItemDataItem   `json:"data,omitempty"`
@@ -6900,14 +7077,14 @@ func NewOperationsListResultPage(cur OperationsListResult, getNextPage func(cont
 type Origin struct {
 	autorest.Response `json:"-"`
 	*OriginProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Origin.
@@ -6937,15 +7114,6 @@ func (o *Origin) UnmarshalJSON(body []byte) error {
 				}
 				o.OriginProperties = &originProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				o.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -6973,6 +7141,15 @@ func (o *Origin) UnmarshalJSON(body []byte) error {
 				}
 				o.Type = &typeVar
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				o.SystemData = &systemData
+			}
 		}
 	}
 
@@ -6984,14 +7161,14 @@ func (o *Origin) UnmarshalJSON(body []byte) error {
 type OriginGroup struct {
 	autorest.Response      `json:"-"`
 	*OriginGroupProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for OriginGroup.
@@ -7021,15 +7198,6 @@ func (og *OriginGroup) UnmarshalJSON(body []byte) error {
 				}
 				og.OriginGroupProperties = &originGroupProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				og.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -7056,6 +7224,15 @@ func (og *OriginGroup) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				og.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				og.SystemData = &systemData
 			}
 		}
 	}
@@ -7236,13 +7413,13 @@ func NewOriginGroupListResultPage(cur OriginGroupListResult, getNextPage func(co
 type OriginGroupOverrideAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *OriginGroupOverrideActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for OriginGroupOverrideAction.
 func (ogoa OriginGroupOverrideAction) MarshalJSON() ([]byte, error) {
-	ogoa.Name = NameOriginGroupOverride
+	ogoa.Name = NameBasicDeliveryRuleActionNameOriginGroupOverride
 	objectMap := make(map[string]interface{})
 	if ogoa.Parameters != nil {
 		objectMap["parameters"] = ogoa.Parameters
@@ -8034,7 +8211,7 @@ func (future *PoliciesUpdateFuture) result(client PoliciesClient) (wafp WebAppli
 type PolicySettings struct {
 	// EnabledState - describes if the policy is in enabled state or disabled state. Possible values include: 'PolicyEnabledStateDisabled', 'PolicyEnabledStateEnabled'
 	EnabledState PolicyEnabledState `json:"enabledState,omitempty"`
-	// Mode - Describes if it is in detection mode or prevention mode at policy level. Possible values include: 'Prevention', 'Detection'
+	// Mode - Describes if it is in detection mode or prevention mode at policy level. Possible values include: 'PolicyModePrevention', 'PolicyModeDetection'
 	Mode PolicyMode `json:"mode,omitempty"`
 	// DefaultRedirectURL - If action type is redirect, this field represents the default redirect URL for the client.
 	DefaultRedirectURL *string `json:"defaultRedirectUrl,omitempty"`
@@ -8070,14 +8247,14 @@ type Profile struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Profile.
@@ -8143,15 +8320,6 @@ func (p *Profile) UnmarshalJSON(body []byte) error {
 				}
 				p.Tags = tags
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				p.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -8178,6 +8346,15 @@ func (p *Profile) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				p.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				p.SystemData = &systemData
 			}
 		}
 	}
@@ -8511,14 +8688,14 @@ func (pup ProfileUpdateParameters) MarshalJSON() ([]byte, error) {
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
 // required location and tags
 type ProxyResource struct {
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ProxyResource.
@@ -8581,13 +8758,13 @@ type RateLimitRule struct {
 	RateLimitDurationInMinutes *int32 `json:"rateLimitDurationInMinutes,omitempty"`
 	// Name - Defines the name of the custom rule
 	Name *string `json:"name,omitempty"`
-	// EnabledState - Describes if the custom rule is in enabled or disabled state. Defaults to Enabled if not specified. Possible values include: 'Disabled', 'Enabled'
+	// EnabledState - Describes if the custom rule is in enabled or disabled state. Defaults to Enabled if not specified. Possible values include: 'CustomRuleEnabledStateDisabled', 'CustomRuleEnabledStateEnabled'
 	EnabledState CustomRuleEnabledState `json:"enabledState,omitempty"`
 	// Priority - Defines in what order this rule be evaluated in the overall list of custom rules
 	Priority *int32 `json:"priority,omitempty"`
 	// MatchConditions - List of match conditions.
 	MatchConditions *[]MatchCondition `json:"matchConditions,omitempty"`
-	// Action - Describes what action to be applied when rule matches. Possible values include: 'Allow', 'Block', 'Log', 'Redirect'
+	// Action - Describes what action to be applied when rule matches. Possible values include: 'ActionTypeAllow', 'ActionTypeBlock', 'ActionTypeLog', 'ActionTypeRedirect'
 	Action ActionType `json:"action,omitempty"`
 }
 
@@ -8681,6 +8858,8 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -8915,7 +9094,7 @@ func NewResourceUsageListResultPage(cur ResourceUsageListResult, getNextPage fun
 // ResponseBasedOriginErrorDetectionParameters the JSON object that contains the properties to determine
 // origin health using real requests/responses.
 type ResponseBasedOriginErrorDetectionParameters struct {
-	// ResponseBasedDetectedErrorTypes - Type of response errors for real user requests for which origin will be deemed unhealthy. Possible values include: 'None', 'TCPErrorsOnly', 'TCPAndHTTPErrors'
+	// ResponseBasedDetectedErrorTypes - Type of response errors for real user requests for which origin will be deemed unhealthy. Possible values include: 'ResponseBasedDetectedErrorTypesNone', 'ResponseBasedDetectedErrorTypesTCPErrorsOnly', 'ResponseBasedDetectedErrorTypesTCPAndHTTPErrors'
 	ResponseBasedDetectedErrorTypes ResponseBasedDetectedErrorTypes `json:"responseBasedDetectedErrorTypes,omitempty"`
 	// ResponseBasedFailoverThresholdPercentage - The percentage of failed requests in the sample where failover should trigger.
 	ResponseBasedFailoverThresholdPercentage *int32 `json:"responseBasedFailoverThresholdPercentage,omitempty"`
@@ -8927,14 +9106,14 @@ type ResponseBasedOriginErrorDetectionParameters struct {
 type Route struct {
 	autorest.Response `json:"-"`
 	*RouteProperties  `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Route.
@@ -8964,15 +9143,6 @@ func (r *Route) UnmarshalJSON(body []byte) error {
 				}
 				r.RouteProperties = &routeProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				r.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -8999,6 +9169,15 @@ func (r *Route) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				r.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				r.SystemData = &systemData
 			}
 		}
 	}
@@ -9191,9 +9370,9 @@ type RouteProperties struct {
 	PatternsToMatch *[]string `json:"patternsToMatch,omitempty"`
 	// CompressionSettings - compression settings.
 	CompressionSettings interface{} `json:"compressionSettings,omitempty"`
-	// QueryStringCachingBehavior - Defines how CDN caches requests that include query strings. You can ignore any query strings when caching, bypass caching to prevent requests that contain query strings from being cached, or cache every request with a unique URL. Possible values include: 'IgnoreQueryString', 'UseQueryString', 'NotSet'
+	// QueryStringCachingBehavior - Defines how CDN caches requests that include query strings. You can ignore any query strings when caching, bypass caching to prevent requests that contain query strings from being cached, or cache every request with a unique URL. Possible values include: 'AfdQueryStringCachingBehaviorIgnoreQueryString', 'AfdQueryStringCachingBehaviorUseQueryString', 'AfdQueryStringCachingBehaviorNotSet'
 	QueryStringCachingBehavior AfdQueryStringCachingBehavior `json:"queryStringCachingBehavior,omitempty"`
-	// ForwardingProtocol - Protocol this rule will use when forwarding traffic to backends. Possible values include: 'HTTPOnly', 'HTTPSOnly', 'MatchRequest'
+	// ForwardingProtocol - Protocol this rule will use when forwarding traffic to backends. Possible values include: 'ForwardingProtocolHTTPOnly', 'ForwardingProtocolHTTPSOnly', 'ForwardingProtocolMatchRequest'
 	ForwardingProtocol ForwardingProtocol `json:"forwardingProtocol,omitempty"`
 	// LinkToDefaultDomain - whether this route will be linked to the default endpoint domain. Possible values include: 'LinkToDefaultDomainEnabled', 'LinkToDefaultDomainDisabled'
 	LinkToDefaultDomain LinkToDefaultDomain `json:"linkToDefaultDomain,omitempty"`
@@ -9201,7 +9380,7 @@ type RouteProperties struct {
 	HTTPSRedirect HTTPSRedirect `json:"httpsRedirect,omitempty"`
 	// EnabledState - Whether to enable use of this rule. Permitted values are 'Enabled' or 'Disabled'. Possible values include: 'EnabledStateEnabled', 'EnabledStateDisabled'
 	EnabledState EnabledState `json:"enabledState,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -9423,9 +9602,9 @@ type RouteUpdatePropertiesParameters struct {
 	PatternsToMatch *[]string `json:"patternsToMatch,omitempty"`
 	// CompressionSettings - compression settings.
 	CompressionSettings interface{} `json:"compressionSettings,omitempty"`
-	// QueryStringCachingBehavior - Defines how CDN caches requests that include query strings. You can ignore any query strings when caching, bypass caching to prevent requests that contain query strings from being cached, or cache every request with a unique URL. Possible values include: 'IgnoreQueryString', 'UseQueryString', 'NotSet'
+	// QueryStringCachingBehavior - Defines how CDN caches requests that include query strings. You can ignore any query strings when caching, bypass caching to prevent requests that contain query strings from being cached, or cache every request with a unique URL. Possible values include: 'AfdQueryStringCachingBehaviorIgnoreQueryString', 'AfdQueryStringCachingBehaviorUseQueryString', 'AfdQueryStringCachingBehaviorNotSet'
 	QueryStringCachingBehavior AfdQueryStringCachingBehavior `json:"queryStringCachingBehavior,omitempty"`
-	// ForwardingProtocol - Protocol this rule will use when forwarding traffic to backends. Possible values include: 'HTTPOnly', 'HTTPSOnly', 'MatchRequest'
+	// ForwardingProtocol - Protocol this rule will use when forwarding traffic to backends. Possible values include: 'ForwardingProtocolHTTPOnly', 'ForwardingProtocolHTTPSOnly', 'ForwardingProtocolMatchRequest'
 	ForwardingProtocol ForwardingProtocol `json:"forwardingProtocol,omitempty"`
 	// LinkToDefaultDomain - whether this route will be linked to the default endpoint domain. Possible values include: 'LinkToDefaultDomainEnabled', 'LinkToDefaultDomainDisabled'
 	LinkToDefaultDomain LinkToDefaultDomain `json:"linkToDefaultDomain,omitempty"`
@@ -9439,14 +9618,14 @@ type RouteUpdatePropertiesParameters struct {
 type Rule struct {
 	autorest.Response `json:"-"`
 	*RuleProperties   `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Rule.
@@ -9476,15 +9655,6 @@ func (r *Rule) UnmarshalJSON(body []byte) error {
 				}
 				r.RuleProperties = &ruleProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				r.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -9511,6 +9681,15 @@ func (r *Rule) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				r.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				r.SystemData = &systemData
 			}
 		}
 	}
@@ -9695,9 +9874,9 @@ type RuleProperties struct {
 	Conditions *[]BasicDeliveryRuleCondition `json:"conditions,omitempty"`
 	// Actions - A list of actions that are executed when all the conditions of a rule are satisfied.
 	Actions *[]BasicDeliveryRuleAction `json:"actions,omitempty"`
-	// MatchProcessingBehavior - If this rule is a match should the rules engine continue running the remaining rules or stop. If not present, defaults to Continue. Possible values include: 'Continue', 'Stop'
+	// MatchProcessingBehavior - If this rule is a match should the rules engine continue running the remaining rules or stop. If not present, defaults to Continue. Possible values include: 'MatchProcessingBehaviorContinue', 'MatchProcessingBehaviorStop'
 	MatchProcessingBehavior MatchProcessingBehavior `json:"matchProcessingBehavior,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -9870,14 +10049,14 @@ func (future *RulesDeleteFuture) result(client RulesClient) (ar autorest.Respons
 type RuleSet struct {
 	autorest.Response  `json:"-"`
 	*RuleSetProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for RuleSet.
@@ -9907,15 +10086,6 @@ func (rs *RuleSet) UnmarshalJSON(body []byte) error {
 				}
 				rs.RuleSetProperties = &ruleSetProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				rs.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -9942,6 +10112,15 @@ func (rs *RuleSet) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				rs.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				rs.SystemData = &systemData
 			}
 		}
 	}
@@ -10120,7 +10299,7 @@ func NewRuleSetListResultPage(cur RuleSetListResult, getNextPage func(context.Co
 
 // RuleSetProperties the JSON object that contains the properties of the Rule Set to create.
 type RuleSetProperties struct {
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -10300,7 +10479,7 @@ type RuleUpdatePropertiesParameters struct {
 	Conditions *[]BasicDeliveryRuleCondition `json:"conditions,omitempty"`
 	// Actions - A list of actions that are executed when all the conditions of a rule are satisfied.
 	Actions *[]BasicDeliveryRuleAction `json:"actions,omitempty"`
-	// MatchProcessingBehavior - If this rule is a match should the rules engine continue running the remaining rules or stop. If not present, defaults to Continue. Possible values include: 'Continue', 'Stop'
+	// MatchProcessingBehavior - If this rule is a match should the rules engine continue running the remaining rules or stop. If not present, defaults to Continue. Possible values include: 'MatchProcessingBehaviorContinue', 'MatchProcessingBehaviorStop'
 	MatchProcessingBehavior MatchProcessingBehavior `json:"matchProcessingBehavior,omitempty"`
 }
 
@@ -10357,14 +10536,14 @@ func (rupp *RuleUpdatePropertiesParameters) UnmarshalJSON(body []byte) error {
 type Secret struct {
 	autorest.Response `json:"-"`
 	*SecretProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Secret.
@@ -10394,15 +10573,6 @@ func (s *Secret) UnmarshalJSON(body []byte) error {
 				}
 				s.SecretProperties = &secretProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				s.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -10429,6 +10599,15 @@ func (s *Secret) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				s.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				s.SystemData = &systemData
 			}
 		}
 	}
@@ -10615,7 +10794,7 @@ type BasicSecretParameters interface {
 
 // SecretParameters the json object containing secret parameters
 type SecretParameters struct {
-	// Type - Possible values include: 'TypeSecretParameters', 'TypeURLSigningKey', 'TypeManagedCertificate', 'TypeCustomerCertificate'
+	// Type - Possible values include: 'TypeBasicSecretParametersTypeSecretParameters', 'TypeBasicSecretParametersTypeURLSigningKey', 'TypeBasicSecretParametersTypeManagedCertificate', 'TypeBasicSecretParametersTypeCustomerCertificate'
 	Type TypeBasicSecretParameters `json:"type,omitempty"`
 }
 
@@ -10627,15 +10806,15 @@ func unmarshalBasicSecretParameters(body []byte) (BasicSecretParameters, error) 
 	}
 
 	switch m["type"] {
-	case string(TypeURLSigningKey):
+	case string(TypeBasicSecretParametersTypeURLSigningKey):
 		var uskp URLSigningKeyParameters
 		err := json.Unmarshal(body, &uskp)
 		return uskp, err
-	case string(TypeManagedCertificate):
+	case string(TypeBasicSecretParametersTypeManagedCertificate):
 		var mcp ManagedCertificateParameters
 		err := json.Unmarshal(body, &mcp)
 		return mcp, err
-	case string(TypeCustomerCertificate):
+	case string(TypeBasicSecretParametersTypeCustomerCertificate):
 		var ccp CustomerCertificateParameters
 		err := json.Unmarshal(body, &ccp)
 		return ccp, err
@@ -10666,7 +10845,7 @@ func unmarshalBasicSecretParametersArray(body []byte) ([]BasicSecretParameters, 
 
 // MarshalJSON is the custom marshaler for SecretParameters.
 func (sp SecretParameters) MarshalJSON() ([]byte, error) {
-	sp.Type = TypeSecretParameters
+	sp.Type = TypeBasicSecretParametersTypeSecretParameters
 	objectMap := make(map[string]interface{})
 	if sp.Type != "" {
 		objectMap["type"] = sp.Type
@@ -10703,7 +10882,7 @@ func (sp SecretParameters) AsBasicSecretParameters() (BasicSecretParameters, boo
 type SecretProperties struct {
 	// Parameters - object which contains secret parameters
 	Parameters BasicSecretParameters `json:"parameters,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -11007,14 +11186,14 @@ func (future *SecurityPoliciesPatchFuture) result(client SecurityPoliciesClient)
 type SecurityPolicy struct {
 	autorest.Response         `json:"-"`
 	*SecurityPolicyProperties `json:"properties,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SecurityPolicy.
@@ -11044,15 +11223,6 @@ func (sp *SecurityPolicy) UnmarshalJSON(body []byte) error {
 				}
 				sp.SecurityPolicyProperties = &securityPolicyProperties
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				sp.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -11079,6 +11249,15 @@ func (sp *SecurityPolicy) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				sp.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sp.SystemData = &systemData
 			}
 		}
 	}
@@ -11333,7 +11512,7 @@ func (spp SecurityPolicyParameters) AsBasicSecurityPolicyParameters() (BasicSecu
 type SecurityPolicyProperties struct {
 	// Parameters - object which contains security policy parameters
 	Parameters BasicSecurityPolicyParameters `json:"parameters,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'Succeeded', 'Failed', 'Updating', 'Deleting', 'Creating'
+	// ProvisioningState - READ-ONLY; Provisioning status. Possible values include: 'AfdProvisioningStateSucceeded', 'AfdProvisioningStateFailed', 'AfdProvisioningStateUpdating', 'AfdProvisioningStateDeleting', 'AfdProvisioningStateCreating'
 	ProvisioningState AfdProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentStatus - READ-ONLY; Possible values include: 'DeploymentStatusNotStarted', 'DeploymentStatusInProgress', 'DeploymentStatusSucceeded', 'DeploymentStatusFailed'
 	DeploymentStatus DeploymentStatus `json:"deploymentStatus,omitempty"`
@@ -11453,7 +11632,7 @@ type SharedPrivateLinkResourceProperties struct {
 
 // Sku the pricing tier (defines a CDN provider, feature list and rate) of the CDN profile.
 type Sku struct {
-	// Name - Name of the pricing tier. Possible values include: 'StandardVerizon', 'PremiumVerizon', 'CustomVerizon', 'StandardAkamai', 'StandardChinaCdn', 'StandardMicrosoft', 'PremiumChinaCdn', 'StandardAzureFrontDoor', 'PremiumAzureFrontDoor', 'Standard955BandWidthChinaCdn', 'StandardAvgBandWidthChinaCdn', 'StandardPlusChinaCdn', 'StandardPlus955BandWidthChinaCdn', 'StandardPlusAvgBandWidthChinaCdn'
+	// Name - Name of the pricing tier. Possible values include: 'SkuNameStandardVerizon', 'SkuNamePremiumVerizon', 'SkuNameCustomVerizon', 'SkuNameStandardAkamai', 'SkuNameStandardChinaCdn', 'SkuNameStandardMicrosoft', 'SkuNamePremiumChinaCdn', 'SkuNameStandardAzureFrontDoor', 'SkuNamePremiumAzureFrontDoor', 'SkuNameStandard955BandWidthChinaCdn', 'SkuNameStandardAvgBandWidthChinaCdn', 'SkuNameStandardPlusChinaCdn', 'SkuNameStandardPlus955BandWidthChinaCdn', 'SkuNameStandardPlusAvgBandWidthChinaCdn'
 	Name SkuName `json:"name,omitempty"`
 }
 
@@ -11487,13 +11666,13 @@ func (sotlr SupportedOptimizationTypesListResult) MarshalJSON() ([]byte, error) 
 type SystemData struct {
 	// CreatedBy - An identifier for the identity that created the resource
 	CreatedBy *string `json:"createdBy,omitempty"`
-	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'IdentityTypeUser', 'IdentityTypeApplication', 'IdentityTypeManagedIdentity', 'IdentityTypeKey'
 	CreatedByType IdentityType `json:"createdByType,omitempty"`
 	// CreatedAt - The timestamp of resource creation (UTC)
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 	// LastModifiedBy - An identifier for the identity that last modified the resource
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
-	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'IdentityTypeUser', 'IdentityTypeApplication', 'IdentityTypeManagedIdentity', 'IdentityTypeKey'
 	LastModifiedByType IdentityType `json:"lastModifiedByType,omitempty"`
 	// LastModifiedAt - The timestamp of resource last modification (UTC)
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
@@ -11505,14 +11684,14 @@ type TrackedResource struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for TrackedResource.
@@ -11570,13 +11749,13 @@ type URLPathMatchConditionParameters struct {
 type URLRedirectAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *URLRedirectActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for URLRedirectAction.
 func (ura URLRedirectAction) MarshalJSON() ([]byte, error) {
-	ura.Name = NameURLRedirect
+	ura.Name = NameBasicDeliveryRuleActionNameURLRedirect
 	objectMap := make(map[string]interface{})
 	if ura.Parameters != nil {
 		objectMap["parameters"] = ura.Parameters
@@ -11640,7 +11819,7 @@ func (ura URLRedirectAction) AsBasicDeliveryRuleAction() (BasicDeliveryRuleActio
 // URLRedirectActionParameters defines the parameters for the url redirect action.
 type URLRedirectActionParameters struct {
 	OdataType *string `json:"@odata.type,omitempty"`
-	// RedirectType - The redirect type the rule will use when redirecting traffic. Possible values include: 'Moved', 'Found', 'TemporaryRedirect', 'PermanentRedirect'
+	// RedirectType - The redirect type the rule will use when redirecting traffic. Possible values include: 'RedirectTypeMoved', 'RedirectTypeFound', 'RedirectTypeTemporaryRedirect', 'RedirectTypePermanentRedirect'
 	RedirectType RedirectType `json:"redirectType,omitempty"`
 	// DestinationProtocol - Protocol to use for the redirect. The default value is MatchRequest. Possible values include: 'DestinationProtocolMatchRequest', 'DestinationProtocolHTTP', 'DestinationProtocolHTTPS'
 	DestinationProtocol DestinationProtocol `json:"destinationProtocol,omitempty"`
@@ -11658,13 +11837,13 @@ type URLRedirectActionParameters struct {
 type URLRewriteAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *URLRewriteActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for URLRewriteAction.
 func (ura URLRewriteAction) MarshalJSON() ([]byte, error) {
-	ura.Name = NameURLRewrite
+	ura.Name = NameBasicDeliveryRuleActionNameURLRewrite
 	objectMap := make(map[string]interface{})
 	if ura.Parameters != nil {
 		objectMap["parameters"] = ura.Parameters
@@ -11740,13 +11919,13 @@ type URLRewriteActionParameters struct {
 type URLSigningAction struct {
 	// Parameters - Defines the parameters for the action.
 	Parameters *URLSigningActionParameters `json:"parameters,omitempty"`
-	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameURLRedirect', 'NameURLSigning', 'NameOriginGroupOverride', 'NameURLRewrite', 'NameModifyRequestHeader', 'NameModifyResponseHeader', 'NameCacheExpiration', 'NameCacheKeyQueryString'
+	// Name - Possible values include: 'NameBasicDeliveryRuleActionNameDeliveryRuleAction', 'NameBasicDeliveryRuleActionNameURLRedirect', 'NameBasicDeliveryRuleActionNameURLSigning', 'NameBasicDeliveryRuleActionNameOriginGroupOverride', 'NameBasicDeliveryRuleActionNameURLRewrite', 'NameBasicDeliveryRuleActionNameModifyRequestHeader', 'NameBasicDeliveryRuleActionNameModifyResponseHeader', 'NameBasicDeliveryRuleActionNameCacheExpiration', 'NameBasicDeliveryRuleActionNameCacheKeyQueryString'
 	Name NameBasicDeliveryRuleAction `json:"name,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for URLSigningAction.
 func (usa URLSigningAction) MarshalJSON() ([]byte, error) {
-	usa.Name = NameURLSigning
+	usa.Name = NameBasicDeliveryRuleActionNameURLSigning
 	objectMap := make(map[string]interface{})
 	if usa.Parameters != nil {
 		objectMap["parameters"] = usa.Parameters
@@ -11810,7 +11989,7 @@ func (usa URLSigningAction) AsBasicDeliveryRuleAction() (BasicDeliveryRuleAction
 // URLSigningActionParameters defines the parameters for the Url Signing action.
 type URLSigningActionParameters struct {
 	OdataType *string `json:"@odata.type,omitempty"`
-	// Algorithm - Algorithm to use for URL signing. Possible values include: 'SHA256'
+	// Algorithm - Algorithm to use for URL signing. Possible values include: 'AlgorithmSHA256'
 	Algorithm Algorithm `json:"algorithm,omitempty"`
 	// ParameterNameOverride - Defines which query string parameters in the url to be considered for expires, key id etc.
 	ParameterNameOverride *[]URLSigningParamIdentifier `json:"parameterNameOverride,omitempty"`
@@ -11832,13 +12011,13 @@ type URLSigningKeyParameters struct {
 	SecretSource *ResourceReference `json:"secretSource,omitempty"`
 	// SecretVersion - Version of the secret to be used
 	SecretVersion *string `json:"secretVersion,omitempty"`
-	// Type - Possible values include: 'TypeSecretParameters', 'TypeURLSigningKey', 'TypeManagedCertificate', 'TypeCustomerCertificate'
+	// Type - Possible values include: 'TypeBasicSecretParametersTypeSecretParameters', 'TypeBasicSecretParametersTypeURLSigningKey', 'TypeBasicSecretParametersTypeManagedCertificate', 'TypeBasicSecretParametersTypeCustomerCertificate'
 	Type TypeBasicSecretParameters `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for URLSigningKeyParameters.
 func (uskp URLSigningKeyParameters) MarshalJSON() ([]byte, error) {
-	uskp.Type = TypeURLSigningKey
+	uskp.Type = TypeBasicSecretParametersTypeURLSigningKey
 	objectMap := make(map[string]interface{})
 	if uskp.KeyID != nil {
 		objectMap["keyId"] = uskp.KeyID
@@ -11882,7 +12061,7 @@ func (uskp URLSigningKeyParameters) AsBasicSecretParameters() (BasicSecretParame
 
 // URLSigningParamIdentifier defines how to identify a parameter for a specific purpose e.g. expires
 type URLSigningParamIdentifier struct {
-	// ParamIndicator - Indicates the purpose of the parameter. Possible values include: 'Expires', 'KeyID', 'Signature'
+	// ParamIndicator - Indicates the purpose of the parameter. Possible values include: 'ParamIndicatorExpires', 'ParamIndicatorKeyID', 'ParamIndicatorSignature'
 	ParamIndicator ParamIndicator `json:"paramIndicator,omitempty"`
 	// ParamName - Parameter name
 	ParamName *string `json:"paramName,omitempty"`
@@ -12092,7 +12271,7 @@ func NewUsagesListResultPage(cur UsagesListResult, getNextPage func(context.Cont
 type UserManagedHTTPSParameters struct {
 	// CertificateSourceParameters - Defines the certificate source parameters using user's keyvault certificate for enabling SSL.
 	CertificateSourceParameters *KeyVaultCertificateSourceParameters `json:"certificateSourceParameters,omitempty"`
-	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ServerNameIndication', 'IPBased'
+	// ProtocolType - Defines the TLS extension protocol that is used for secure delivery. Possible values include: 'ProtocolTypeServerNameIndication', 'ProtocolTypeIPBased'
 	ProtocolType ProtocolType `json:"protocolType,omitempty"`
 	// MinimumTLSVersion - TLS protocol version that will be used for Https. Possible values include: 'MinimumTLSVersionNone', 'MinimumTLSVersionTLS10', 'MinimumTLSVersionTLS12'
 	MinimumTLSVersion MinimumTLSVersion `json:"minimumTlsVersion,omitempty"`
@@ -12196,7 +12375,7 @@ type ValidateSecretInput struct {
 // ValidateSecretOutput output of the validated secret.
 type ValidateSecretOutput struct {
 	autorest.Response `json:"-"`
-	// Status - The validation status. Possible values include: 'Valid', 'Invalid', 'AccessDenied', 'CertificateExpired'
+	// Status - The validation status. Possible values include: 'StatusValid', 'StatusInvalid', 'StatusAccessDenied', 'StatusCertificateExpired'
 	Status Status `json:"status,omitempty"`
 	// Message - Detailed error message
 	Message *string `json:"message,omitempty"`
@@ -12281,14 +12460,14 @@ type WebApplicationFirewallPolicy struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WebApplicationFirewallPolicy.
@@ -12366,15 +12545,6 @@ func (wafp *WebApplicationFirewallPolicy) UnmarshalJSON(body []byte) error {
 				}
 				wafp.Tags = tags
 			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				wafp.SystemData = &systemData
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -12401,6 +12571,15 @@ func (wafp *WebApplicationFirewallPolicy) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				wafp.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				wafp.SystemData = &systemData
 			}
 		}
 	}

@@ -12,6 +12,8 @@ Manages a Key Vault Managed Hardware Security Module.
 
 ## Example Usage
 
+~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Managed Hardware Security Module resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_hardware_security_modules_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_hardware_security_modules_on_destroy) for more information.
+
 ```hcl
 data "azurerm_client_config" "current" {
 }
@@ -69,11 +71,11 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Hardware Security Module.
+* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Managed Hardware Security Module.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Managed Hardware Security Module.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Key Vault Managed Hardware Security Module.
 
 ## Import
 

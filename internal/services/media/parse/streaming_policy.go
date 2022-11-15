@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type StreamingPolicyId struct {
@@ -42,7 +42,7 @@ func (id StreamingPolicyId) ID() string {
 
 // StreamingPolicyID parses a StreamingPolicy ID into an StreamingPolicyId struct
 func StreamingPolicyID(input string) (*StreamingPolicyId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

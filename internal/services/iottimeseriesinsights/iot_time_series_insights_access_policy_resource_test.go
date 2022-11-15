@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IoTTimeSeriesInsightsAccessPolicyResource struct {
-}
+type IoTTimeSeriesInsightsAccessPolicyResource struct{}
 
 func TestAccIoTTimeSeriesInsightsAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_access_policy", "test")

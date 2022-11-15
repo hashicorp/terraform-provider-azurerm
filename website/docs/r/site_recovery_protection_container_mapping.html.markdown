@@ -81,7 +81,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "container-mapping
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network mapping.
+* `name` - (Required) The name of the protection container mapping.
 
 * `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
 
@@ -103,7 +103,7 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Protection Container Mapping.
 * `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Protection Container Mapping.

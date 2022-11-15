@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ConfigurationId struct {
@@ -42,7 +42,7 @@ func (id ConfigurationId) ID() string {
 
 // ConfigurationID parses a Configuration ID into an ConfigurationId struct
 func ConfigurationID(input string) (*ConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

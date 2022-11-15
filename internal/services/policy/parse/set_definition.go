@@ -7,6 +7,7 @@ import (
 
 type PolicySetDefinitionId struct {
 	Name string
+	Id   string
 	PolicyScopeId
 }
 
@@ -36,6 +37,7 @@ func PolicySetDefinitionID(input string) (*PolicySetDefinitionId, error) {
 	if scope == "" {
 		return &PolicySetDefinitionId{
 			Name: name,
+			Id:   input,
 		}, nil
 	}
 
@@ -46,6 +48,7 @@ func PolicySetDefinitionID(input string) (*PolicySetDefinitionId, error) {
 
 	return &PolicySetDefinitionId{
 		Name:          name,
+		Id:            input,
 		PolicyScopeId: scopeId,
 	}, nil
 }

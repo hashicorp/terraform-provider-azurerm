@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MySQLServerDataSource struct {
-}
+type MySQLServerDataSource struct{}
 
 func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
@@ -21,7 +20,7 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
-				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
 				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
 				check.That(data.ResourceName).Key("version").HasValue("5.7"),
@@ -40,7 +39,7 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicEightZero(t *testing
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
-				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
 				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
 				check.That(data.ResourceName).Key("version").HasValue("8.0"),

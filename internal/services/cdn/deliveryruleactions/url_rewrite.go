@@ -40,7 +40,7 @@ func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeli
 		item := v.(map[string]interface{})
 
 		output = append(output, cdn.URLRewriteAction{
-			Name: cdn.NameURLRewrite,
+			Name: cdn.NameBasicDeliveryRuleActionNameURLRewrite,
 			Parameters: &cdn.URLRewriteActionParameters{
 				OdataType:             utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRewriteActionParameters"),
 				SourcePattern:         utils.String(item["source_pattern"].(string)),

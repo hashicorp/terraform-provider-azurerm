@@ -121,7 +121,7 @@ func (client LogAnalyticsClient) GetLogAnalyticsLocationsResponder(resp *http.Re
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // profileName - name of the CDN profile which is unique within the resource group.
 // granularity -
-func (client LogAnalyticsClient) GetLogAnalyticsMetrics(ctx context.Context, resourceGroupName string, profileName string, metrics []string, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity string, groupBy []string, continents []string, countryOrRegions []string, customDomains []string, protocols []string) (result MetricsResponse, err error) {
+func (client LogAnalyticsClient) GetLogAnalyticsMetrics(ctx context.Context, resourceGroupName string, profileName string, metrics []LogMetric, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity LogMetricsGranularity, customDomains []string, protocols []string, groupBy []LogMetricsGroupBy, continents []string, countryOrRegions []string) (result MetricsResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LogAnalyticsClient.GetLogAnalyticsMetrics")
 		defer func() {
@@ -138,11 +138,15 @@ func (client LogAnalyticsClient) GetLogAnalyticsMetrics(ctx context.Context, res
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: metrics,
-			Constraints: []validation.Constraint{{Target: "metrics", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "metrics", Name: validation.Null, Rule: true, Chain: nil}}},
+		{TargetValue: customDomains,
+			Constraints: []validation.Constraint{{Target: "customDomains", Name: validation.Null, Rule: true, Chain: nil}}},
+		{TargetValue: protocols,
+			Constraints: []validation.Constraint{{Target: "protocols", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("cdn.LogAnalyticsClient", "GetLogAnalyticsMetrics", err.Error())
 	}
 
-	req, err := client.GetLogAnalyticsMetricsPreparer(ctx, resourceGroupName, profileName, metrics, dateTimeBegin, dateTimeEnd, granularity, groupBy, continents, countryOrRegions, customDomains, protocols)
+	req, err := client.GetLogAnalyticsMetricsPreparer(ctx, resourceGroupName, profileName, metrics, dateTimeBegin, dateTimeEnd, granularity, customDomains, protocols, groupBy, continents, countryOrRegions)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.LogAnalyticsClient", "GetLogAnalyticsMetrics", nil, "Failure preparing request")
 		return
@@ -165,7 +169,7 @@ func (client LogAnalyticsClient) GetLogAnalyticsMetrics(ctx context.Context, res
 }
 
 // GetLogAnalyticsMetricsPreparer prepares the GetLogAnalyticsMetrics request.
-func (client LogAnalyticsClient) GetLogAnalyticsMetricsPreparer(ctx context.Context, resourceGroupName string, profileName string, metrics []string, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity string, groupBy []string, continents []string, countryOrRegions []string, customDomains []string, protocols []string) (*http.Request, error) {
+func (client LogAnalyticsClient) GetLogAnalyticsMetricsPreparer(ctx context.Context, resourceGroupName string, profileName string, metrics []LogMetric, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity LogMetricsGranularity, customDomains []string, protocols []string, groupBy []LogMetricsGroupBy, continents []string, countryOrRegions []string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"profileName":       autorest.Encode("path", profileName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -175,25 +179,21 @@ func (client LogAnalyticsClient) GetLogAnalyticsMetricsPreparer(ctx context.Cont
 	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version":   APIVersion,
+		"customDomains": customDomains,
 		"dateTimeBegin": autorest.Encode("query", dateTimeBegin),
 		"dateTimeEnd":   autorest.Encode("query", dateTimeEnd),
 		"granularity":   autorest.Encode("query", granularity),
-		"metrics":       autorest.Encode("query", metrics, ","),
+		"metrics":       metrics,
+		"protocols":     protocols,
 	}
 	if groupBy != nil && len(groupBy) > 0 {
-		queryParameters["groupBy"] = autorest.Encode("query", groupBy, ",")
+		queryParameters["groupBy"] = groupBy
 	}
 	if continents != nil && len(continents) > 0 {
-		queryParameters["continents"] = autorest.Encode("query", continents, ",")
+		queryParameters["continents"] = continents
 	}
 	if countryOrRegions != nil && len(countryOrRegions) > 0 {
-		queryParameters["countryOrRegions"] = autorest.Encode("query", countryOrRegions, ",")
-	}
-	if customDomains != nil && len(customDomains) > 0 {
-		queryParameters["customDomains"] = autorest.Encode("query", customDomains, ",")
-	}
-	if protocols != nil && len(protocols) > 0 {
-		queryParameters["protocols"] = autorest.Encode("query", protocols, ",")
+		queryParameters["countryOrRegions"] = countryOrRegions
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -226,7 +226,7 @@ func (client LogAnalyticsClient) GetLogAnalyticsMetricsResponder(resp *http.Resp
 // Parameters:
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // profileName - name of the CDN profile which is unique within the resource group.
-func (client LogAnalyticsClient) GetLogAnalyticsRankings(ctx context.Context, resourceGroupName string, profileName string, rankings []string, metrics []string, maxRanking int32, dateTimeBegin date.Time, dateTimeEnd date.Time, customDomains []string) (result RankingsResponse, err error) {
+func (client LogAnalyticsClient) GetLogAnalyticsRankings(ctx context.Context, resourceGroupName string, profileName string, rankings []LogRanking, metrics []LogRankingMetric, maxRanking int32, dateTimeBegin date.Time, dateTimeEnd date.Time, customDomains []string) (result RankingsResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LogAnalyticsClient.GetLogAnalyticsRankings")
 		defer func() {
@@ -272,7 +272,7 @@ func (client LogAnalyticsClient) GetLogAnalyticsRankings(ctx context.Context, re
 }
 
 // GetLogAnalyticsRankingsPreparer prepares the GetLogAnalyticsRankings request.
-func (client LogAnalyticsClient) GetLogAnalyticsRankingsPreparer(ctx context.Context, resourceGroupName string, profileName string, rankings []string, metrics []string, maxRanking int32, dateTimeBegin date.Time, dateTimeEnd date.Time, customDomains []string) (*http.Request, error) {
+func (client LogAnalyticsClient) GetLogAnalyticsRankingsPreparer(ctx context.Context, resourceGroupName string, profileName string, rankings []LogRanking, metrics []LogRankingMetric, maxRanking int32, dateTimeBegin date.Time, dateTimeEnd date.Time, customDomains []string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"profileName":       autorest.Encode("path", profileName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -285,11 +285,11 @@ func (client LogAnalyticsClient) GetLogAnalyticsRankingsPreparer(ctx context.Con
 		"dateTimeBegin": autorest.Encode("query", dateTimeBegin),
 		"dateTimeEnd":   autorest.Encode("query", dateTimeEnd),
 		"maxRanking":    autorest.Encode("query", maxRanking),
-		"metrics":       autorest.Encode("query", metrics, ","),
-		"rankings":      autorest.Encode("query", rankings, ","),
+		"metrics":       metrics,
+		"rankings":      rankings,
 	}
 	if customDomains != nil && len(customDomains) > 0 {
-		queryParameters["customDomains"] = autorest.Encode("query", customDomains, ",")
+		queryParameters["customDomains"] = customDomains
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -407,7 +407,7 @@ func (client LogAnalyticsClient) GetLogAnalyticsResourcesResponder(resp *http.Re
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // profileName - name of the CDN profile which is unique within the resource group.
 // granularity -
-func (client LogAnalyticsClient) GetWafLogAnalyticsMetrics(ctx context.Context, resourceGroupName string, profileName string, metrics []string, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity string, actions []string, groupBy []string, ruleTypes []string) (result WafMetricsResponse, err error) {
+func (client LogAnalyticsClient) GetWafLogAnalyticsMetrics(ctx context.Context, resourceGroupName string, profileName string, metrics []WafMetric, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity WafGranularity, actions []WafAction, groupBy []WafRankingGroupBy, ruleTypes []WafRuleType) (result WafMetricsResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LogAnalyticsClient.GetWafLogAnalyticsMetrics")
 		defer func() {
@@ -451,7 +451,7 @@ func (client LogAnalyticsClient) GetWafLogAnalyticsMetrics(ctx context.Context, 
 }
 
 // GetWafLogAnalyticsMetricsPreparer prepares the GetWafLogAnalyticsMetrics request.
-func (client LogAnalyticsClient) GetWafLogAnalyticsMetricsPreparer(ctx context.Context, resourceGroupName string, profileName string, metrics []string, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity string, actions []string, groupBy []string, ruleTypes []string) (*http.Request, error) {
+func (client LogAnalyticsClient) GetWafLogAnalyticsMetricsPreparer(ctx context.Context, resourceGroupName string, profileName string, metrics []WafMetric, dateTimeBegin date.Time, dateTimeEnd date.Time, granularity WafGranularity, actions []WafAction, groupBy []WafRankingGroupBy, ruleTypes []WafRuleType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"profileName":       autorest.Encode("path", profileName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -464,16 +464,16 @@ func (client LogAnalyticsClient) GetWafLogAnalyticsMetricsPreparer(ctx context.C
 		"dateTimeBegin": autorest.Encode("query", dateTimeBegin),
 		"dateTimeEnd":   autorest.Encode("query", dateTimeEnd),
 		"granularity":   autorest.Encode("query", granularity),
-		"metrics":       autorest.Encode("query", metrics, ","),
+		"metrics":       metrics,
 	}
 	if actions != nil && len(actions) > 0 {
-		queryParameters["actions"] = autorest.Encode("query", actions, ",")
+		queryParameters["actions"] = actions
 	}
 	if groupBy != nil && len(groupBy) > 0 {
-		queryParameters["groupBy"] = autorest.Encode("query", groupBy, ",")
+		queryParameters["groupBy"] = groupBy
 	}
 	if ruleTypes != nil && len(ruleTypes) > 0 {
-		queryParameters["ruleTypes"] = autorest.Encode("query", ruleTypes, ",")
+		queryParameters["ruleTypes"] = ruleTypes
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -506,7 +506,7 @@ func (client LogAnalyticsClient) GetWafLogAnalyticsMetricsResponder(resp *http.R
 // Parameters:
 // resourceGroupName - name of the Resource group within the Azure subscription.
 // profileName - name of the CDN profile which is unique within the resource group.
-func (client LogAnalyticsClient) GetWafLogAnalyticsRankings(ctx context.Context, resourceGroupName string, profileName string, metrics []string, dateTimeBegin date.Time, dateTimeEnd date.Time, maxRanking int32, rankings []string, actions []string, ruleTypes []string) (result WafRankingsResponse, err error) {
+func (client LogAnalyticsClient) GetWafLogAnalyticsRankings(ctx context.Context, resourceGroupName string, profileName string, metrics []WafMetric, dateTimeBegin date.Time, dateTimeEnd date.Time, maxRanking int32, rankings []WafRankingType, actions []WafAction, ruleTypes []WafRuleType) (result WafRankingsResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LogAnalyticsClient.GetWafLogAnalyticsRankings")
 		defer func() {
@@ -552,7 +552,7 @@ func (client LogAnalyticsClient) GetWafLogAnalyticsRankings(ctx context.Context,
 }
 
 // GetWafLogAnalyticsRankingsPreparer prepares the GetWafLogAnalyticsRankings request.
-func (client LogAnalyticsClient) GetWafLogAnalyticsRankingsPreparer(ctx context.Context, resourceGroupName string, profileName string, metrics []string, dateTimeBegin date.Time, dateTimeEnd date.Time, maxRanking int32, rankings []string, actions []string, ruleTypes []string) (*http.Request, error) {
+func (client LogAnalyticsClient) GetWafLogAnalyticsRankingsPreparer(ctx context.Context, resourceGroupName string, profileName string, metrics []WafMetric, dateTimeBegin date.Time, dateTimeEnd date.Time, maxRanking int32, rankings []WafRankingType, actions []WafAction, ruleTypes []WafRuleType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"profileName":       autorest.Encode("path", profileName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -565,14 +565,14 @@ func (client LogAnalyticsClient) GetWafLogAnalyticsRankingsPreparer(ctx context.
 		"dateTimeBegin": autorest.Encode("query", dateTimeBegin),
 		"dateTimeEnd":   autorest.Encode("query", dateTimeEnd),
 		"maxRanking":    autorest.Encode("query", maxRanking),
-		"metrics":       autorest.Encode("query", metrics, ","),
-		"rankings":      autorest.Encode("query", rankings, ","),
+		"metrics":       metrics,
+		"rankings":      rankings,
 	}
 	if actions != nil && len(actions) > 0 {
-		queryParameters["actions"] = autorest.Encode("query", actions, ",")
+		queryParameters["actions"] = actions
 	}
 	if ruleTypes != nil && len(ruleTypes) > 0 {
-		queryParameters["ruleTypes"] = autorest.Encode("query", ruleTypes, ",")
+		queryParameters["ruleTypes"] = ruleTypes
 	}
 
 	preparer := autorest.CreatePreparer(

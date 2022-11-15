@@ -45,7 +45,7 @@ resource "azurerm_eventgrid_system_topic" "example" {
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "example" {
   name                = "example-event-subscription"
-  system_topic        = azurerm_system_topic.example.name
+  system_topic        = azurerm_eventgrid_system_topic.example.name
   resource_group_name = azurerm_resource_group.example.name
 
   storage_queue_endpoint {
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `eventhub_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **NOTE:** One of `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -92,6 +92,8 @@ The following arguments are supported:
 * `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
+
+* `delivery_property` - (Optional) One or more `delivery_property` blocks as defined below.
 
 * `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
 
@@ -112,6 +114,8 @@ A `storage_queue_endpoint` supports the following:
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
+
+* `queue_message_time_to_live_in_seconds` - (Optional) Storage queue message time to live in seconds.
 
 ---
 
@@ -179,7 +183,7 @@ Each nested block consists of a key and a value(s) element.
 
 * `value` - (Required) Specifies a single value to compare to when using a single value operator.
 
-**OR**
+OR
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
@@ -189,13 +193,33 @@ Each nested block consists of a key and a value(s) element.
 
 A `delivery_identity` supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`, `UserAssigned`.
+
+* `user_assigned_identity` - (Optional) The user identity associated with the resource.
+
+---
+
+A `delivery_property` supports the following:
+
+~> **NOTE:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_topic_endpoint_id`, or `webhook_endpoint` endpoint specification.
+
+* `header_name` - (Required) The name of the header to send on to the destination.
+
+* `type` - (Required) Either `Static` or `Dynamic`.
+
+* `value` - (Optional) If the `type` is `Static`, then provide the value to use.
+
+* `source_field` - (Optional) If the `type` is `Dynamic`, then provide the payload field to be used as the value. Valid source fields differ by subscription type.
+
+* `secret` - (Optional) Set to `true` if the `value` is a secret and should be protected, otherwise `false`. If `true` then this value won't be returned from Azure API calls.
 
 ---
 
 A `dead_letter_identity` supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`, `UserAssigned`.
+
+* `user_assigned_identity` - (Optional) The user identity associated with the resource.
 
 ---
 
@@ -211,7 +235,7 @@ A `retry_policy` supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
-* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/en-us/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
+* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
 
 ## Attributes Reference
 
@@ -221,7 +245,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Messaging.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Messaging.
@@ -233,5 +257,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventGrid System Topic Event Subscriptions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventgrid_system_topic_event_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/systemTopics/topic1/eventSubscriptions/subscription1
+terraform import azurerm_eventgrid_system_topic_event_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/systemTopics/topic1/eventSubscriptions/subscription1
 ```

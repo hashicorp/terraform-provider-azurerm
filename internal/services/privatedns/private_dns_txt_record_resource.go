@@ -5,13 +5,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,10 +26,15 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 		Update: resourcePrivateDnsTxtRecordCreateUpdate,
 		Delete: resourcePrivateDnsTxtRecordDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.TxtRecordID(id)
-			return err
+			resourceId, err := recordsets.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if resourceId.RecordType != recordsets.RecordTypeTXT {
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, recordsets.RecordTypeTXT, resourceId.RecordType)
+			}
+			return nil
 		}),
-
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -44,6 +50,8 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/6641
 				ValidateFunc: validate.LowerCasedString,
 			},
+
+			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
 
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -80,7 +88,7 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -91,34 +99,39 @@ func resourcePrivateDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewTxtRecordID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), d.Get("name").(string))
+	id := recordsets.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), recordsets.RecordTypeTXT, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.TXT, resourceId.TXTName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_private_dns_txt_record", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_private_dns_txt_record", id.ID())
 		}
 	}
 
-	parameters := privatedns.RecordSet{
-		Name: utils.String(resourceId.TXTName),
-		RecordSetProperties: &privatedns.RecordSetProperties{
+	parameters := recordsets.RecordSet{
+		Name: utils.String(id.RelativeRecordSetName),
+		Properties: &recordsets.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
-			TTL:        utils.Int64(int64(d.Get("ttl").(int))),
+			Ttl:        utils.Int64(int64(d.Get("ttl").(int))),
 			TxtRecords: expandAzureRmPrivateDnsTxtRecords(d),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.TXT, resourceId.TXTName, parameters, "", ""); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
+	options := recordsets.CreateOrUpdateOperationOptions{
+		IfMatch:     utils.String(""),
+		IfNoneMatch: utils.String(""),
 	}
 
-	d.SetId(resourceId.ID())
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, options); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
 	return resourcePrivateDnsTxtRecordRead(d, meta)
 }
 
@@ -127,32 +140,38 @@ func resourcePrivateDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TxtRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.TXT, id.TXTName)
+	resp, err := dnsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.TXTName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.PrivateDnsZoneName)
+	d.Set("name", id.RelativeRecordSetName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("zone_name", id.PrivateZoneName)
 
-	d.Set("ttl", resp.TTL)
-	d.Set("fqdn", resp.Fqdn)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("ttl", props.Ttl)
+			d.Set("fqdn", props.Fqdn)
 
-	if err := d.Set("record", flattenAzureRmPrivateDnsTxtRecords(resp.TxtRecords)); err != nil {
-		return fmt.Errorf("setting `record`: %+v", err)
+			if err := d.Set("record", flattenAzureRmPrivateDnsTxtRecords(props.TxtRecords)); err != nil {
+				return fmt.Errorf("setting `record`: %+v", err)
+			}
+
+			return tags.FlattenAndSet(d, props.Metadata)
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Metadata)
+	return nil
 }
 
 func resourcePrivateDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -160,19 +179,21 @@ func resourcePrivateDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TxtRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = dnsClient.Delete(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.TXT, id.PrivateDnsZoneName, ""); err != nil {
+	options := recordsets.DeleteOperationOptions{IfMatch: utils.String("")}
+
+	if _, err = dnsClient.Delete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func flattenAzureRmPrivateDnsTxtRecords(records *[]privatedns.TxtRecord) []map[string]interface{} {
+func flattenAzureRmPrivateDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
@@ -191,9 +212,9 @@ func flattenAzureRmPrivateDnsTxtRecords(records *[]privatedns.TxtRecord) []map[s
 	return results
 }
 
-func expandAzureRmPrivateDnsTxtRecords(d *pluginsdk.ResourceData) *[]privatedns.TxtRecord {
+func expandAzureRmPrivateDnsTxtRecords(d *pluginsdk.ResourceData) *[]recordsets.TxtRecord {
 	recordStrings := d.Get("record").(*pluginsdk.Set).List()
-	records := make([]privatedns.TxtRecord, len(recordStrings))
+	records := make([]recordsets.TxtRecord, len(recordStrings))
 
 	segmentLen := 254
 	for i, v := range recordStrings {
@@ -211,7 +232,7 @@ func expandAzureRmPrivateDnsTxtRecords(d *pluginsdk.ResourceData) *[]privatedns.
 		}
 		value = append(value, v)
 
-		txtRecord := privatedns.TxtRecord{
+		txtRecord := recordsets.TxtRecord{
 			Value: &value,
 		}
 

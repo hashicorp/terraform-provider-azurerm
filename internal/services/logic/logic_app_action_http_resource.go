@@ -80,6 +80,15 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"queries": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"run_after": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -121,10 +130,17 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	queriesRaw := d.Get("queries").(map[string]interface{})
+	queries, err := expandLogicAppActionHttpQueries(queriesRaw)
+	if err != nil {
+		return err
+	}
+
 	inputs := map[string]interface{}{
 		"method":  d.Get("method").(string),
 		"uri":     d.Get("uri").(string),
 		"headers": headers,
+		"queries": queries,
 	}
 
 	// storing action's body in json object to keep consistent with azure portal
@@ -199,23 +215,25 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if body := inputs["body"]; body != nil {
-		// TODO: remove in 3.0, this is preserved for backward compatibility
-		if v, ok := body.(string); ok {
-			d.Set("body", v)
-		} else {
-			// if user edit workflow in portal, the body becomes json object
-			v, err := json.Marshal(body)
-			if err != nil {
-				return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
-			}
-			d.Set("body", string(v))
+		// if user edit workflow in portal, the body becomes json object
+		v, err := json.Marshal(body)
+		if err != nil {
+			return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
 		}
+		d.Set("body", string(v))
 	}
 
 	if headers := inputs["headers"]; headers != nil {
 		hv := headers.(map[string]interface{})
 		if err := d.Set("headers", hv); err != nil {
 			return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", id.Name, err)
+		}
+	}
+
+	if queries := inputs["queries"]; queries != nil {
+		qv := queries.(map[string]interface{})
+		if err := d.Set("queries", qv); err != nil {
+			return fmt.Errorf("setting `queries` for HTTP Action %q: %+v", id.Name, err)
 		}
 	}
 
@@ -260,4 +278,19 @@ func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[st
 	}
 
 	return &headers, nil
+}
+
+func expandLogicAppActionHttpQueries(queriesRaw map[string]interface{}) (*map[string]string, error) {
+	queries := make(map[string]string)
+
+	for i, v := range queriesRaw {
+		value, err := tags.TagValueToString(v)
+		if err != nil {
+			return nil, err
+		}
+
+		queries[i] = value
+	}
+
+	return &queries, nil
 }

@@ -166,13 +166,13 @@ The `policy_settings` block supports the following:
 
 * `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `true`.
 
-* `mode` - (Optional) Describes if it is in detection mode or prevention mode at the policy level. Defaults to `Prevention`.
+* `mode` - (Optional) Describes if it is in detection mode or prevention mode at the policy level. Valid values are `Detection` and `Prevention`. Defaults to `Prevention`.
 
-* `file_upload_limit_in_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
+* `file_upload_limit_in_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `4000`. Defaults to `100`.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
-* `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `8` to `128`. Defaults to `128`.
+* `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `8` to `2000`. Defaults to `128`.
 
 ---
 
@@ -186,11 +186,31 @@ The `managed_rules` block supports the following:
 
 The `exclusion` block supports the following:
 
-* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames`, `RequestHeaderValues`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection.
 
 * `selector_match_operator` - (Required) Describes operator to be matched. Possible values: `Contains`, `EndsWith`, `Equals`, `EqualsAny`, `StartsWith`.
+
+* `excluded_rule_set` - (Optional) One or more `excluded_rule_set` block defined below.
+
+---
+
+The `excluded_rule_set` block supports the following:
+
+* `type` - (Optional) The rule set type. The only possible value is `OWASP` . Defaults to `OWASP`.
+
+* `version` - (Optional) The rule set version. The only possible value is `3.2` . Defaults to `3.2`.
+
+* `rule_group` - (Optional) One or more `rule_group` block defined below.
+
+---
+
+The `rule_group` block supports the following:
+
+* `rule_group_name` - (Required) The name of rule group for exclusion.
+
+* `excluded_rules` - (Optional) One or more Rule IDs for exclusion.
 
 ---
 
@@ -208,7 +228,7 @@ The `rule_group_override` block supports the following:
 
 * `rule_group_name` - (Required) The name of the Rule Group
 
-* `disabled_rules` - (Optional) One or more Rule ID's
+* `disabled_rules` - (Optional) One or more Rule IDs
 
 ## Attributes Reference
 
@@ -222,7 +242,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Application Firewall Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the Web Application Firewall Policy.
@@ -234,5 +254,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
+terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
 ```

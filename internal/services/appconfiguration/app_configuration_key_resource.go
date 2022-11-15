@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -19,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyResource struct {
-}
+type KeyResource struct{}
 
 var _ sdk.ResourceWithCustomizeDiff = KeyResource{}
 
@@ -122,14 +122,17 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
 
 			appCfgKeyResourceID := parse.AppConfigurationKeyId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
-				Key:                  model.Key,
-				Label:                model.Label,
+				Key:                  url.QueryEscape(model.Key),
+				Label:                url.QueryEscape(model.Label),
 			}
 
 			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
@@ -202,20 +205,34 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				// if the parent AppConfiguration is gone, all the data will be too
+				return metadata.MarkAsGone(resourceID)
+			}
 			if err != nil {
 				return err
 			}
 
-			kv, err := client.GetKeyValue(ctx, resourceID.Key, resourceID.Label, "", "", "", []string{})
+			decodedKey, err := url.QueryUnescape(resourceID.Key)
+			if err != nil {
+				return fmt.Errorf("while decoding key of resource ID: %+v", err)
+			}
+
+			decodedLabel, err := url.QueryUnescape(resourceID.Label)
+			if err != nil {
+				return fmt.Errorf("while decoding label of resource ID: %+v", err)
+			}
+
+			kv, err := client.GetKeyValue(ctx, decodedKey, decodedLabel, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(resourceID)
 					}
 				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
+					return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
+				return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
 			}
 
 			model := KeyResourceModel{
@@ -262,6 +279,9 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -321,17 +341,30 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
 
-			if _, err = client.DeleteLock(ctx, resourceID.Key, resourceID.Label, "", ""); err != nil {
-				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Key, resourceID.Label, err)
+			decodedKey, err := url.QueryUnescape(resourceID.Key)
+			if err != nil {
+				return fmt.Errorf("while decoding key of resource ID: %+v", err)
 			}
 
-			_, err = client.DeleteKeyValue(ctx, resourceID.Key, resourceID.Label, "")
+			decodedLabel, err := url.QueryUnescape(resourceID.Label)
 			if err != nil {
-				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", resourceID.Key, resourceID.ConfigurationStoreId, err)
+				return fmt.Errorf("while decoding label of resource ID: %+v", err)
+			}
+
+			if _, err = client.DeleteLock(ctx, decodedKey, decodedLabel, "", ""); err != nil {
+				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", decodedKey, resourceID.Label, err)
+			}
+
+			_, err = client.DeleteKeyValue(ctx, decodedKey, resourceID.Label, "")
+			if err != nil {
+				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", decodedKey, resourceID.ConfigurationStoreId, err)
 			}
 
 			return nil
@@ -367,6 +400,7 @@ func (k KeyResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 	}
 }
+
 func (k KeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.AppConfigurationKeyID
 }

@@ -10,7 +10,7 @@ description: |-
 
 Manages an Alias for a Subscription - which adds an Alias to an existing Subscription, allowing it to be managed in Terraform - or create a new Subscription with a new Alias.
 
-~> **NOTE:** Destroying a Subscription controlled by this resource will place the Subscription into a cancelled state. It is possible to re-activate a subscription within 90-days of cancellation, after which time the Subscription is irrevocably deleted, and the Subscription ID cannot be re-used. For further information see [here](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/cancel-azure-subscription#what-happens-after-subscription-cancellation). Users can optionally delete a Subscription once 72 hours have passed, however, this functionality is not suitable for Terraform. A `Deleted` subscription cannot be reactivated.
+~> **NOTE:** Destroying a Subscription controlled by this resource will place the Subscription into a cancelled state. It is possible to re-activate a subscription within 90-days of cancellation, after which time the Subscription is irrevocably deleted, and the Subscription ID cannot be re-used. For further information see [here](https://docs.microsoft.com/azure/cost-management-billing/manage/cancel-azure-subscription#what-happens-after-subscription-cancellation). Users can optionally delete a Subscription once 72 hours have passed, however, this functionality is not suitable for Terraform. A `Deleted` subscription cannot be reactivated.
 
 ~> **NOTE:** It is not possible to destroy (cancel) a subscription if it contains resources. If resources are present that are not managed by Terraform then these will need to be removed before the Subscription can be destroyed.
 
@@ -45,6 +45,20 @@ resource "azurerm_subscription" "example" {
 }
 ```
 
+## Example Usage - creating a new Alias and Subscription for a Microsoft Partner Account
+
+```hcl
+data "azurerm_billing_mpa_account_scope" "example" {
+  billing_account_name = "e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31"
+  customer_name        = "2281f543-7321-4cf9-1e23-edb4Oc31a31c"
+}
+
+resource "azurerm_subscription" "example" {
+  subscription_name = "My Example MPA Subscription"
+  billing_scope_id  = data.azurerm_billing_mpa_account_scope.example.id
+}
+```
+
 ## Example Usage - adding an Alias to an existing Subscription
 
 ```hcl
@@ -65,19 +79,21 @@ The following arguments are supported:
 
 * `alias` - (Optional) The Alias name for the subscription. Terraform will generate a new GUID if this is not supplied. Changing this forces a new Subscription to be created.
 
-* `billing_scope_id` - (Optional) The Azure Billing Scope ID. Can be either a Microsoft Customer Account Billing Scope ID or an Enrollment Billing Scope ID.
+* `billing_scope_id` - (Optional) The Azure Billing Scope ID. Can be a Microsoft Customer Account Billing Scope ID, a Microsoft Partner Account Billing Scope ID or an Enrollment Billing Scope ID.
 
 * `subscription_id` - (Optional) The ID of the Subscription. Changing this forces a new Subscription to be created.
- 
+
 ~> **NOTE:** This value can be specified only for adopting control of an existing Subscription, it cannot be used to provide a custom Subscription ID.
 
 ~> **NOTE:** Either `billing_scope_id` or `subscription_id` has to be specified.
 
 * `workload` - (Optional) The workload type of the Subscription.  Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the Subscription.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Resource ID of the Alias.
 
@@ -85,7 +101,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Subscription.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Subscription.
@@ -100,5 +116,5 @@ Subscriptions can be imported using the `resource id`, e.g.
 terraform import azurerm_subscription.example "/providers/Microsoft.Subscription/aliases/subscription1"
 ```
 
-!> **NOTE:** When importing a Subscription that was not created programmatically, either by this Terraform resource or using the Alias API, it will have no Alias ID to import via `terraform import`.  
+!> **NOTE:** When importing a Subscription that was not created programmatically, either by this Terraform resource or using the Alias API, it will have no Alias ID to import via `terraform import`.
 In this scenario, the `subscription_id` property can be completed and Terraform will assume control of the existing subscription by creating an Alias. See the `adding an Alias to an existing Subscription` above. Terrafom requires an alias to correctly manage Subscription resources due to Azure Subscription API design.

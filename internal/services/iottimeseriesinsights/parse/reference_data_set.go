@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ReferenceDataSetId struct {
@@ -42,7 +42,7 @@ func (id ReferenceDataSetId) ID() string {
 
 // ReferenceDataSetID parses a ReferenceDataSet ID into an ReferenceDataSetId struct
 func ReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

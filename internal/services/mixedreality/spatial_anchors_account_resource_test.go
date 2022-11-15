@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpatialAnchorsAccountResource struct {
-}
+type SpatialAnchorsAccountResource struct{}
 
 func TestAccSpatialAnchorsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
@@ -51,17 +50,17 @@ func TestAccSpatialAnchorsAccount_complete(t *testing.T) {
 }
 
 func (SpatialAnchorsAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpatialAnchorsAccountID(state.ID)
+	id, err := resource.ParseSpatialAnchorsAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MixedReality.SpatialAnchorsAccountClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.MixedReality.SpatialAnchorsAccountClient.SpatialAnchorsAccountsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Spatial Anchors Account %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AccountProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (SpatialAnchorsAccountResource) basic(data acceptance.TestData) string {

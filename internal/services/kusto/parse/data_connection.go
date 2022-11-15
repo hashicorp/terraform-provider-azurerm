@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type DataConnectionId struct {
@@ -45,7 +45,7 @@ func (id DataConnectionId) ID() string {
 
 // DataConnectionID parses a DataConnection ID into an DataConnectionId struct
 func DataConnectionID(input string) (*DataConnectionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

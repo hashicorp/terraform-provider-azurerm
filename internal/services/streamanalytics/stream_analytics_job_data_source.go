@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func dataSourceArmStreamAnalyticsJob() *pluginsdk.Resource {
+func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmStreamAnalyticsJobRead,
+		Read: dataSourceStreamAnalyticsJobRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -25,9 +27,9 @@ func dataSourceArmStreamAnalyticsJob() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"compatibility_level": {
 				Type:     pluginsdk.TypeString,
@@ -59,28 +61,24 @@ func dataSourceArmStreamAnalyticsJob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
+			"identity": commonschema.SystemAssignedIdentityComputed(),
+
+			"last_output_time": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"output_error_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"start_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"start_time": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -98,46 +96,54 @@ func dataSourceArmStreamAnalyticsJob() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name, "transformation")
+	id := parse.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Stream Analytics Job %q was not found in Resource Group %q!", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if resp.Location != nil {
-		d.Set("location", azure.NormalizeLocation(*resp.Location))
-	}
-	if err := d.Set("identity", flattenStreamAnalyticsJobIdentity(resp.Identity)); err != nil {
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if err := d.Set("identity", flattenJobIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %v", err)
 	}
 
 	if props := resp.StreamingJobProperties; props != nil {
 		d.Set("compatibility_level", string(props.CompatibilityLevel))
 		d.Set("data_locale", props.DataLocale)
-		if props.EventsLateArrivalMaxDelayInSeconds != nil {
-			d.Set("events_late_arrival_max_delay_in_seconds", int(*props.EventsLateArrivalMaxDelayInSeconds))
+		if v := props.EventsLateArrivalMaxDelayInSeconds; v != nil {
+			d.Set("events_late_arrival_max_delay_in_seconds", int(*v))
 		}
-		if props.EventsOutOfOrderMaxDelayInSeconds != nil {
-			d.Set("events_out_of_order_max_delay_in_seconds", int(*props.EventsOutOfOrderMaxDelayInSeconds))
+		if v := props.EventsOutOfOrderMaxDelayInSeconds; v != nil {
+			d.Set("events_out_of_order_max_delay_in_seconds", int(*v))
 		}
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("job_id", props.JobID)
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
+
+		if v := props.LastOutputEventTime; v != nil {
+			d.Set("last_output_time", v.String())
+		}
+
+		if v := props.OutputStartTime; v != nil {
+			d.Set("start_time", v.String())
+		}
+
+		d.Set("start_mode", props.OutputStartMode)
 
 		if props.Transformation != nil && props.Transformation.TransformationProperties != nil {
 			d.Set("streaming_units", props.Transformation.TransformationProperties.StreamingUnits)

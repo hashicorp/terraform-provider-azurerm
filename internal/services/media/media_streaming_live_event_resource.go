@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -45,7 +46,7 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				ValidateFunc: validate.LiveEventName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"media_services_account_name": {
 				Type:         pluginsdk.TypeString,
@@ -60,7 +61,7 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"input": {
 				Type:     pluginsdk.TypeList,
@@ -91,7 +92,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 									},
 								},
 							},
-							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+							AtLeastOneOf: []string{
+								"input.0.ip_access_control_allow", "input.0.access_token",
 								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
 							},
 						},
@@ -102,7 +104,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+							AtLeastOneOf: []string{
+								"input.0.ip_access_control_allow", "input.0.access_token",
 								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
 							},
 						},
@@ -128,7 +131,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+							AtLeastOneOf: []string{
+								"input.0.ip_access_control_allow", "input.0.access_token",
 								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
 							},
 						},
@@ -141,7 +145,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 								string(media.LiveEventInputProtocolRTMP),
 								string(media.LiveEventInputProtocolFragmentedMP4),
 							}, false),
-							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token",
+							AtLeastOneOf: []string{
+								"input.0.ip_access_control_allow", "input.0.access_token",
 								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
 							},
 						},
@@ -260,7 +265,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 									},
 								},
 							},
-							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+							AtLeastOneOf: []string{
+								"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
 								"preview.0.preview_locator", "preview.0.streaming_policy_name",
 							},
 						},
@@ -269,7 +275,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
-							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+							AtLeastOneOf: []string{
+								"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
 								"preview.0.preview_locator", "preview.0.streaming_policy_name",
 							},
 						},
@@ -297,7 +304,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+							AtLeastOneOf: []string{
+								"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
 								"preview.0.preview_locator", "preview.0.streaming_policy_name",
 							},
 						},
@@ -308,7 +316,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
+							AtLeastOneOf: []string{
+								"preview.0.ip_access_control_allow", "preview.0.alternative_media_id",
 								"preview.0.preview_locator", "preview.0.streaming_policy_name",
 							},
 						},

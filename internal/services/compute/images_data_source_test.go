@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ImagesDataSource struct {
-}
+type ImagesDataSource struct{}
 
 func TestAccDataSourceAzureRMImages_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_images", "test")

@@ -13,7 +13,6 @@ import (
 var sdkEnvironmentLookupMap = map[string]azure.Environment{
 	"public":       azure.PublicCloud,
 	"usgovernment": azure.USGovernmentCloud,
-	"german":       azure.GermanCloud,
 	"china":        azure.ChinaCloud,
 }
 
@@ -57,7 +56,7 @@ func DetermineEnvironment(name string) (*azure.Environment, error) {
 	env, envErr := azure.EnvironmentFromName(name)
 
 	if envErr != nil {
-		// try again with wrapped value to support readable values like german instead of AZUREGERMANCLOUD
+		// try again with wrapped value to support readable values like china instead of AZURECHINACLOUD
 		wrapped := fmt.Sprintf("AZURE%sCLOUD", name)
 		env, envErr = azure.EnvironmentFromName(wrapped)
 		if envErr != nil {
@@ -114,11 +113,17 @@ func AzureEnvironmentByNameFromEndpoint(ctx context.Context, endpoint string, en
 
 	// while the array contains values
 	for _, env := range environments {
-		if strings.EqualFold(env.Name, environmentName) {
+		if strings.EqualFold(env.Name, environmentName) || (environmentName == "" && len(environments) == 1) {
+			// if resourceManager endpoint is empty, assume it's the provided endpoint
+			if env.ResourceManager == "" {
+				env.ResourceManager = fmt.Sprintf("https://%s/", endpoint)
+			}
+
 			aEnv, err := buildAzureEnvironment(env)
 			if err != nil {
 				return nil, err
 			}
+
 			return aEnv, nil
 		}
 	}
@@ -155,7 +160,7 @@ func IsEnvironmentAzureStack(ctx context.Context, endpoint string, environmentNa
 
 func getSupportedEnvironments(ctx context.Context, endpoint string) ([]Environment, error) {
 	uri := fmt.Sprintf("https://%s/metadata/endpoints?api-version=2020-06-01", endpoint)
-	client := http.Client{
+	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 		},

@@ -3,25 +3,23 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"strings"
+	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementApiSchemaResource struct {
-}
+type ApiManagementApiSchemaResource struct{}
 
 func TestAccApiManagementApiSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}
-	schema, _ := ioutil.ReadFile("testdata/api_management_api_schema.xml")
+	schema, _ := os.ReadFile("testdata/api_management_api_schema.xml")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,14 +36,13 @@ func TestAccApiManagementApiSchema_basic(t *testing.T) {
 func TestAccApiManagementApiSchema_basicSwagger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}
-	schema, _ := ioutil.ReadFile("testdata/api_management_api_schema_swagger.json")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicSwagger(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("value").HasValue(strings.TrimRight(string(schema), "\r\n")),
+				check.That(data.ResourceName).Key("value").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -67,19 +64,46 @@ func TestAccApiManagementApiSchema_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApiSchema_components(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
+	r := ApiManagementApiSchemaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.components(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("components").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApiSchema_definitions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
+	r := ApiManagementApiSchemaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.definitionsJson(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ApiSchemaID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
-	schemaID := id.Path["schemas"]
 
-	resp, err := clients.ApiManagement.ApiSchemasClient.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
+	resp, err := clients.ApiManagement.ApiSchemasClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagementApi Schema (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -109,7 +133,7 @@ resource "azurerm_api_management_api_schema" "test" {
   api_management_name = azurerm_api_management_api.test.api_management_name
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
-  content_type        = "application/vnd.ms-azure-apim.swagger.definitions+json"
+  content_type        = "application/json"
   value               = file("testdata/api_management_api_schema_swagger.json")
 }
 `, r.template(data), data.RandomInteger)
@@ -160,4 +184,48 @@ resource "azurerm_api_management_api" "test" {
   revision            = "1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApiManagementApiSchemaResource) components(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_schema" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  schema_id           = "acctestSchema%d"
+  content_type        = "application/vnd.oai.openapi.components+json"
+  components          = file("testdata/api_management_api_schema_swagger.json")
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementApiSchemaResource) definitionsJson(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_schema" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  schema_id           = "acctestSchema%d"
+  content_type        = "application/vnd.ms-azure-apim.swagger.definitions+json"
+  definitions         = file("testdata/api_management_api_swagger_definitions.json")
+}
+`, r.template(data), data.RandomInteger)
+}
+func (r ApiManagementApiSchemaResource) definitionsYaml(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_schema" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  schema_id           = "acctestSchema%d"
+  content_type        = "application/vnd.ms-azure-apim.swagger.definitions+json"
+  definitions         = file("testdata/api_management_api_swagger_definitions.yaml")
+}
+`, r.template(data), data.RandomInteger)
 }

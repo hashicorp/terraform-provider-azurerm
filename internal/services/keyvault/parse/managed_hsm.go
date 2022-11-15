@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type ManagedHSMId struct {
@@ -39,7 +39,7 @@ func (id ManagedHSMId) ID() string {
 
 // ManagedHSMID parses a ManagedHSM ID into an ManagedHSMId struct
 func ManagedHSMID(input string) (*ManagedHSMId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

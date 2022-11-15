@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 func resourceIotHubFallbackRoute() *pluginsdk.Resource {
@@ -35,13 +36,28 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"iothub_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubName,
+			},
+
+			"source": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(devices.RoutingSourceDeviceConnectionStateEvents),
+					string(devices.RoutingSourceDeviceJobLifecycleEvents),
+					string(devices.RoutingSourceDeviceLifecycleEvents),
+					string(devices.RoutingSourceDeviceMessages),
+					string(devices.RoutingSourceDigitalTwinChangeEvents),
+					string(devices.RoutingSourceInvalid),
+					string(devices.RoutingSourceTwinChangeEvents),
+				}, false),
+				Default: devices.RoutingSourceDeviceMessages,
 			},
 
 			"condition": {
@@ -73,7 +89,7 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 
 func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
-	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -101,7 +117,7 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
-		Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
+		Source:        utils.String(d.Get("source").(string)),
 		Condition:     utils.String(d.Get("condition").(string)),
 		EndpointNames: utils.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
 		IsEnabled:     utils.Bool(d.Get("enabled").(bool)),
@@ -145,6 +161,7 @@ func resourceIotHubFallbackRouteRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("condition", fallbackRoute.Condition)
 				d.Set("enabled", fallbackRoute.IsEnabled)
 				d.Set("endpoint_names", fallbackRoute.EndpointNames)
+				d.Set("source", fallbackRoute.Source)
 			}
 		}
 	}

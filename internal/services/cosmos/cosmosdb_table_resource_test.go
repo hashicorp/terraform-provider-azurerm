@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosTableResource struct {
-}
+type CosmosTableResource struct{}
 
 func TestAccCosmosDbTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
@@ -38,7 +37,6 @@ func TestAccCosmosDbTable_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.throughput(data, 700),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -47,7 +45,6 @@ func TestAccCosmosDbTable_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.throughput(data, 1700),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

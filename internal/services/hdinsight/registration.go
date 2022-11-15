@@ -1,10 +1,17 @@
 package hdinsight
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/hdinsight"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -32,9 +39,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_hdinsight_hbase_cluster":             resourceHDInsightHBaseCluster(),
 		"azurerm_hdinsight_interactive_query_cluster": resourceHDInsightInteractiveQueryCluster(),
 		"azurerm_hdinsight_kafka_cluster":             resourceHDInsightKafkaCluster(),
-		"azurerm_hdinsight_ml_services_cluster":       resourceHDInsightMLServicesCluster(),
-		"azurerm_hdinsight_rserver_cluster":           resourceHDInsightRServerCluster(),
 		"azurerm_hdinsight_spark_cluster":             resourceHDInsightSparkCluster(),
-		"azurerm_hdinsight_storm_cluster":             resourceHDInsightStormCluster(),
 	}
 }

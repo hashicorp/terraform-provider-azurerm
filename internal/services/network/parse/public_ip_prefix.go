@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type PublicIpPrefixId struct {
@@ -39,7 +39,7 @@ func (id PublicIpPrefixId) ID() string {
 
 // PublicIpPrefixID parses a PublicIpPrefix ID into an PublicIpPrefixId struct
 func PublicIpPrefixID(input string) (*PublicIpPrefixId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

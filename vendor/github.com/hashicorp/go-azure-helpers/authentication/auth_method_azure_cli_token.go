@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/go-version"
+	"github.com/manicminer/hamilton/environments"
 )
 
 type azureCLIProfile struct {
@@ -24,6 +25,8 @@ type azureCLIProfile struct {
 	subscriptionId string
 	tenantId       string
 	tenantOnly     bool
+
+	azVersion version.Version
 }
 
 type azureCliTokenAuth struct {
@@ -32,19 +35,19 @@ type azureCliTokenAuth struct {
 }
 
 func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
+	ver, err := populateAzVersion(b.TenantOnly)
+	if err != nil {
+		return nil, err
+	}
 	auth := azureCliTokenAuth{
-
 		profile: &azureCLIProfile{
 			subscriptionId: b.SubscriptionID,
 			tenantId:       b.TenantID,
 			tenantOnly:     b.TenantOnly,
 			clientId:       "04b07795-8ddb-461a-bbee-02f9e1bf7b46", // fixed first party client id for Az CLI
+			azVersion:      *ver,
 		},
 		servicePrincipalAuthDocsLink: b.ClientSecretDocsLink,
-	}
-
-	if err := auth.checkAzVersion(); err != nil {
-		return nil, err
 	}
 
 	var acc *cli.Subscription
@@ -92,9 +95,9 @@ func (a azureCliTokenAuth) isApplicable(b Builder) bool {
 	return b.SupportsAzureCliToken
 }
 
-func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
-	if oauth.OAuth == nil {
-		return nil, fmt.Errorf("Error getting Authorization Token for cli auth: an OAuth token wasn't configured correctly; please file a bug with more details")
+func (a azureCliTokenAuth) getADALToken(_ context.Context, _ autorest.Sender, oauthConfig *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	if oauthConfig.OAuth == nil {
+		return nil, fmt.Errorf("getting Authorization Token for cli auth: an OAuth token wasn't configured correctly; please file a bug with more details")
 	}
 
 	// the Azure CLI appears to cache these, so to maintain compatibility with the interface this method is intentionally not on the pointer
@@ -106,15 +109,15 @@ func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *
 		token, err = obtainAuthorizationToken(endpoint, a.profile.subscriptionId, "")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error obtaining Authorization Token from the Azure CLI: %s", err)
+		return nil, fmt.Errorf("obtaining Authorization Token from the Azure CLI: %s", err)
 	}
 
 	adalToken, err := token.ToADALToken()
 	if err != nil {
-		return nil, fmt.Errorf("Error converting Authorization Token to an ADAL Token: %s", err)
+		return nil, fmt.Errorf("converting Authorization Token to an ADAL Token: %s", err)
 	}
 
-	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauth.OAuth, a.profile.clientId, endpoint, adalToken)
+	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig.OAuth, a.profile.clientId, endpoint, adalToken)
 	if err != nil {
 		return nil, err
 	}
@@ -144,6 +147,11 @@ func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *
 	return auth, nil
 }
 
+func (a azureCliTokenAuth) getMSALToken(ctx context.Context, _ environments.Api, sender autorest.Sender, oauthConfig *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	// token version is the decision of az-cli, so we'll pass through to the existing method for continuity
+	return a.getADALToken(ctx, sender, oauthConfig, endpoint)
+}
+
 func (a azureCliTokenAuth) name() string {
 	return "Obtaining a token from the Azure CLI"
 }
@@ -154,10 +162,10 @@ func (a azureCliTokenAuth) populateConfig(c *Config) error {
 	c.Environment = a.profile.environment
 	c.SubscriptionID = a.profile.subscriptionId
 
-	c.GetAuthenticatedObjectID = func(ctx context.Context) (string, error) {
-		objectId, err := obtainAuthenticatedObjectID()
+	c.GetAuthenticatedObjectID = func(ctx context.Context) (*string, error) {
+		objectId, err := obtainAuthenticatedObjectID(a.profile.azVersion)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		return objectId, nil
@@ -190,10 +198,33 @@ func (a azureCliTokenAuth) validate() error {
 	return err.ErrorOrNil()
 }
 
-func (a azureCliTokenAuth) checkAzVersion() error {
+func obtainAuthenticatedObjectID(azVersion version.Version) (*string, error) {
+	// Since v2.37.0, CLI migrated the underlying API for `az ad` to using MS graph: https://github.com/Azure/azure-cli/pull/22432.
+	// This causes different format for the output of `az ad signed-in-user show -o=json`.
+	v2_37 := version.Must(version.NewVersion("2.37.0"))
+	args := []string{"ad", "signed-in-user", "show", "-o=json"}
+	if azVersion.LessThan(v2_37) {
+		var json struct {
+			ObjectId string `json:"objectId"`
+		}
+		if err := jsonUnmarshalAzCmd(&json, args...); err != nil {
+			return nil, fmt.Errorf("parsing json result from the Azure CLI: %v", err)
+		}
+		return &json.ObjectId, nil
+	}
+	var json struct {
+		Id string `json:"id"`
+	}
+	if err := jsonUnmarshalAzCmd(&json, args...); err != nil {
+		return nil, fmt.Errorf("parsing json result from the Azure CLI: %v", err)
+	}
+	return &json.Id, nil
+}
+
+func populateAzVersion(tenantOnly bool) (*version.Version, error) {
 	// Azure CLI v2.0.79 is the earliest version to have a `version` command
 	var minimumVersion string
-	if a.profile.tenantOnly {
+	if tenantOnly {
 		// v2.0.81 introduced the `--tenant` option to the `account get-access-token` subcommand
 		minimumVersion = "2.0.81"
 	} else {
@@ -208,55 +239,35 @@ func (a azureCliTokenAuth) checkAzVersion() error {
 	}
 	err := jsonUnmarshalAzCmd(&cliVersion, "version", "-o=json")
 	if err != nil {
-		return fmt.Errorf("Please ensure you have installed Azure CLI version %s or newer. Error parsing json result from the Azure CLI: %v.", minimumVersion, err)
+		return nil, fmt.Errorf("please ensure you have installed Azure CLI version %s or newer. Error parsing json result from the Azure CLI: %v.", minimumVersion, err)
 	}
 
 	if cliVersion.AzureCli == nil {
-		return fmt.Errorf("Could not detect Azure CLI version. Please ensure you have installed Azure CLI version %s or newer.", minimumVersion)
+		return nil, fmt.Errorf("could not detect Azure CLI version. Please ensure you have installed Azure CLI version %s or newer.", minimumVersion)
 	}
 
 	actual, err := version.NewVersion(*cliVersion.AzureCli)
 	if err != nil {
-		return fmt.Errorf("Could not parse detected Azure CLI version %q: %+v", *cliVersion.AzureCli, err)
+		return nil, fmt.Errorf("could not parse detected Azure CLI version %q: %+v", *cliVersion.AzureCli, err)
 	}
 
-	supported, err := version.NewVersion(minimumVersion)
-	if err != nil {
-		return fmt.Errorf("Could not parse supported Azure CLI version: %+v", err)
-	}
+	supported := version.Must(version.NewVersion(minimumVersion))
 
-	nextMajor, err := version.NewVersion("3.0.0")
-	if err != nil {
-		return fmt.Errorf("Could not parse next major Azure CLI version: %+v", err)
-	}
+	nextMajor := version.Must(version.NewVersion("3.0.0"))
 
 	if nextMajor.LessThanOrEqual(actual) {
-		return fmt.Errorf(`Authenticating using the Azure CLI requires a version older than %[1]s but Terraform detected version %[3]s.
+		return nil, fmt.Errorf(`Authenticating using the Azure CLI requires a version older than %[1]s but Terraform detected version %[3]s.
 
 Please install v%[2]s or newer (but also older than %[1]s) and ensure the correct version is in your path.`, nextMajor.String(), supported.String(), actual.String())
 	}
 
 	if actual.LessThan(supported) {
-		return fmt.Errorf(`Authenticating using the Azure CLI requires version %[1]s but Terraform detected version %[2]s.
+		return nil, fmt.Errorf(`Authenticating using the Azure CLI requires version %[1]s but Terraform detected version %[2]s.
 
 Please install v%[1]s or greater and ensure the correct version is in your path.`, supported.String(), actual.String())
 	}
 
-	return nil
-}
-
-func obtainAuthenticatedObjectID() (string, error) {
-
-	var json struct {
-		ObjectId string `json:"objectId"`
-	}
-
-	err := jsonUnmarshalAzCmd(&json, "ad", "signed-in-user", "show", "-o=json")
-	if err != nil {
-		return "", fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
-	}
-
-	return json.ObjectId, nil
+	return actual, nil
 }
 
 func obtainAuthorizationToken(endpoint string, subscriptionId string, tenantId string) (*cli.Token, error) {
@@ -268,7 +279,7 @@ func obtainAuthorizationToken(endpoint string, subscriptionId string, tenantId s
 		err = jsonUnmarshalAzCmd(&token, "account", "get-access-token", "--resource", endpoint, "--subscription", subscriptionId, "-o=json")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+		return nil, fmt.Errorf("parsing json result from the Azure CLI: %v", err)
 	}
 
 	return &token, nil
@@ -285,7 +296,7 @@ func obtainSubscription(subscriptionId string) (*cli.Subscription, error) {
 	}
 	err := jsonUnmarshalAzCmd(&acc, cmd...)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+		return nil, fmt.Errorf("parsing json result from the Azure CLI: %v", err)
 	}
 
 	return &acc, nil
@@ -301,7 +312,7 @@ func obtainTenant(tenantId string) (*cli.Subscription, error) {
 		cmd = []string{"account", "show", "-o=json"}
 		err := jsonUnmarshalAzCmd(&acc, cmd...)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+			return nil, fmt.Errorf("parsing json result from the Azure CLI: %v", err)
 		}
 	} else {
 		var accs []cli.Subscription
@@ -309,7 +320,7 @@ func obtainTenant(tenantId string) (*cli.Subscription, error) {
 		cmd = []string{"account", "list", "-o=json"}
 		err := jsonUnmarshalAzCmd(&accs, cmd...)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+			return nil, fmt.Errorf("parsing json result from the Azure CLI: %v", err)
 		}
 
 		for _, a := range accs {
@@ -320,7 +331,7 @@ func obtainTenant(tenantId string) (*cli.Subscription, error) {
 		}
 
 		if acc.TenantID == "" {
-			return nil, fmt.Errorf("Tenant %q was not found", tenantId)
+			return nil, fmt.Errorf("tenant %q was not found", tenantId)
 		}
 	}
 
@@ -337,7 +348,7 @@ func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
 	cmd.Stdout = &stdout
 
 	if err := cmd.Start(); err != nil {
-		err := fmt.Errorf("Error launching Azure CLI: %+v", err)
+		err := fmt.Errorf("launching Azure CLI: %+v", err)
 		if stdErrStr := stderr.String(); stdErrStr != "" {
 			err = fmt.Errorf("%s: %s", err, strings.TrimSpace(stdErrStr))
 		}
@@ -345,7 +356,7 @@ func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		err := fmt.Errorf("Error waiting for the Azure CLI: %+v", err)
+		err := fmt.Errorf("waiting for the Azure CLI: %+v", err)
 		if stdErrStr := stderr.String(); stdErrStr != "" {
 			err = fmt.Errorf("%s: %s", err, strings.TrimSpace(stdErrStr))
 		}
@@ -353,7 +364,7 @@ func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
 	}
 
 	if err := json.Unmarshal([]byte(stdout.String()), &i); err != nil {
-		return fmt.Errorf("Error unmarshaling the result of Azure CLI: %v", err)
+		return fmt.Errorf("unmarshaling the result of Azure CLI: %v", err)
 	}
 
 	return nil

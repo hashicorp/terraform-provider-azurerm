@@ -13,7 +13,7 @@ func TestPrivateLinkSubResourceName(t *testing.T) {
 		{
 			Name:  "Empty Value",
 			Input: "",
-			Valid: false,
+			Valid: true,
 		},
 		{
 			Name:  "Whitespace",

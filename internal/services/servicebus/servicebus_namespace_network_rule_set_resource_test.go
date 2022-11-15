@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusNamespaceNetworkRuleSetResource struct {
-}
+type ServiceBusNamespaceNetworkRuleSetResource struct{}
 
 func TestAccServiceBusNamespaceNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
@@ -40,6 +39,7 @@ func TestAccServiceBusNamespaceNetworkRule_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("trusted_services_allowed").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -91,17 +91,17 @@ func TestAccServiceBusNamespaceNetworkRule_requiresImport(t *testing.T) {
 }
 
 func (t ServiceBusNamespaceNetworkRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceNetworkRuleSetID(state.ID)
+	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.NamespacesClient.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
+	resp, err := clients.ServiceBus.NamespacesClient.GetNetworkRuleSet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Service Bus NameSpace Network Rule Set (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ServiceBusNamespaceNetworkRuleSetResource) basic(data acceptance.TestData) string {
@@ -109,8 +109,7 @@ func (r ServiceBusNamespaceNetworkRuleSetResource) basic(data acceptance.TestDat
 %s
 
 resource "azurerm_servicebus_namespace_network_rule_set" "test" {
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   default_action = "Deny"
 
@@ -127,10 +126,11 @@ func (r ServiceBusNamespaceNetworkRuleSetResource) complete(data acceptance.Test
 %s
 
 resource "azurerm_servicebus_namespace_network_rule_set" "test" {
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 
-  default_action = "Deny"
+  default_action                = "Deny"
+  trusted_services_allowed      = true
+  public_network_access_enabled = true
 
   network_rules {
     subnet_id                            = azurerm_subnet.test.id
@@ -174,7 +174,7 @@ resource "azurerm_subnet" "test" {
   name                 = "${azurerm_virtual_network.test.name}-default"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.17.0.0/24"
+  address_prefixes     = ["172.17.0.0/24"]
 
   service_endpoints = ["Microsoft.ServiceBus"]
 }
@@ -186,8 +186,7 @@ func (r ServiceBusNamespaceNetworkRuleSetResource) requiresImport(data acceptanc
 %s
 
 resource "azurerm_servicebus_namespace_network_rule_set" "import" {
-  namespace_name      = azurerm_servicebus_namespace_network_rule_set.test.namespace_name
-  resource_group_name = azurerm_servicebus_namespace_network_rule_set.test.resource_group_name
+  namespace_id = azurerm_servicebus_namespace_network_rule_set.test.namespace_id
 }
 `, r.basic(data))
 }

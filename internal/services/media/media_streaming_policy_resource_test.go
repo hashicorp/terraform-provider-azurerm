@@ -120,7 +120,6 @@ resource "azurerm_media_streaming_policy" "test" {
     smooth_streaming = true
   }
 }
-
 `, r.template(data))
 }
 
@@ -139,7 +138,6 @@ resource "azurerm_media_streaming_policy" "import" {
     smooth_streaming = true
   }
 }
-
 `, r.basic(data))
 }
 
@@ -178,7 +176,6 @@ resource "azurerm_media_streaming_policy" "test" {
     }
   }
 }
-
 `, r.template(data))
 }
 

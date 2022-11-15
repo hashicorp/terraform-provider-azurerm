@@ -50,6 +50,21 @@ func TestAccStreamAnalyticsOutputSql_update(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputSql_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
+	r := StreamAnalyticsOutputSqlResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
 func TestAccStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
 	r := StreamAnalyticsOutputSqlResource{}
@@ -62,6 +77,42 @@ func TestAccStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccStreamAnalyticsOutputSql_maxBatchCountAndMaxWriterCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
+	r := StreamAnalyticsOutputSqlResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+		{
+			Config: r.maxBatchCountAndMaxWriterCount(data, 10001, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+		{
+			Config: r.maxBatchCountAndMaxWriterCount(data, 10002, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
 	})
 }
 
@@ -135,6 +186,48 @@ resource "azurerm_stream_analytics_output_mssql" "import" {
   table    = "AccTestTable"
 }
 `, template)
+}
+
+func (r StreamAnalyticsOutputSqlResource) maxBatchCountAndMaxWriterCount(data acceptance.TestData, maxBatchCount, maxWriterCount float64) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_mssql" "test" {
+  name                      = "acctestoutput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+
+  server   = azurerm_sql_server.test.fully_qualified_domain_name
+  user     = azurerm_sql_server.test.administrator_login
+  password = azurerm_sql_server.test.administrator_login_password
+  database = azurerm_sql_database.test.name
+  table    = "AccTestTable"
+
+  max_batch_count  = %f
+  max_writer_count = %f
+}
+`, template, data.RandomInteger, maxBatchCount, maxWriterCount)
+}
+
+func (r StreamAnalyticsOutputSqlResource) authenticationMode(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_mssql" "test" {
+  name                      = "acctestoutput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  authentication_mode       = "Msi"
+
+  server   = azurerm_sql_server.test.fully_qualified_domain_name
+  user     = azurerm_sql_server.test.administrator_login
+  password = azurerm_sql_server.test.administrator_login_password
+  database = azurerm_sql_database.test.name
+  table    = "AccTestTable"
+}
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputSqlResource) template(data acceptance.TestData) string {

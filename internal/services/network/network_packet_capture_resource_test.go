@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkPacketCaptureResource struct {
-}
+type NetworkPacketCaptureResource struct{}
 
 func testAccNetworkPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
@@ -136,7 +135,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -171,6 +170,8 @@ resource "azurerm_virtual_machine" "test" {
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
+
+  delete_os_disk_on_termination = true
 
   os_profile {
     computer_name  = "hostname%d"

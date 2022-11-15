@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = ElasticPoolId{}
+var _ resourceids.Id = ElasticPoolId{}
 
 func TestElasticPoolIDFormatter(t *testing.T) {
 	actual := NewElasticPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "elasticPool1").ID()

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IoTTimeSeriesInsightsStandardEnvironmentResource struct {
-}
+type IoTTimeSeriesInsightsStandardEnvironmentResource struct{}
 
 func TestAccIoTTimeSeriesInsightsStandardEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")

@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
-	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
@@ -158,6 +157,10 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
+						"threshold_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"operator": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -220,35 +223,27 @@ func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subscriptionId, err := subscriptionParse.SubscriptionID(d.Get("subscription_id").(string))
-	if err != nil {
-		return err
-	}
+	id := budgets.NewScopedBudgetID(d.Get("subscription_id").(string), d.Get("name").(string))
 
-	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, d.Get("name").(string))
-	d.SetId(id.ID())
-
-	resp, err := client.Get(ctx, subscriptionId.ID(), id.BudgetName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	if resp.Amount != nil {
-		amount, _ := resp.Amount.Float64()
-		d.Set("amount", amount)
+	d.SetId(id.ID())
+	d.Set("name", id.BudgetName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("amount", props.Amount)
+			d.Set("time_grain", string(props.TimeGrain))
+			d.Set("time_period", flattenConsumptionBudgetTimePeriod(&props.TimePeriod))
+			d.Set("notification", flattenConsumptionBudgetNotifications(props.Notifications, id.Scope))
+			d.Set("filter", flattenConsumptionBudgetFilter(props.Filter))
+		}
 	}
-	d.Set("time_grain", string(resp.TimeGrain))
-	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", FlattenConsumptionBudgetNotifications(resp.Notifications))
-	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
-
-	// The scope of a Subscription budget resource is the Subscription budget ID
-	d.Set("subscription_id", d.Get("subscription_id").(string))
 
 	return nil
 }

@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorScheduledQueryRulesResource struct {
-}
+type MonitorScheduledQueryRulesResource struct{}
 
 func TestAccMonitorScheduledQueryRules_AlertingActionBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
@@ -86,6 +85,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T)
 		data.ImportStep(),
 	})
 }
+
 func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 	r := MonitorScheduledQueryRulesResource{}
@@ -306,6 +306,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
       metric_trigger_type = "Total"
       metric_column       = "TimeGenerated"
     }
+  }
+
+  tags = {
+    Env = "test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)

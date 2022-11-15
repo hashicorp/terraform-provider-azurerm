@@ -13,6 +13,10 @@ Manages an Certificate within an API Management Service.
 ## Example Usage (with Base64 Certificate)
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -39,6 +43,10 @@ resource "azurerm_api_management_certificate" "example" {
 ## Example Usage (with Key Vault Certificate)
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -64,9 +72,8 @@ resource "azurerm_key_vault" "example" {
   name                = "examplekeyvault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  soft_delete_enabled = true
 
-  tenant_id = data.azurerm_client_config.example.tenant_id
+  tenant_id = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 }
@@ -77,11 +84,11 @@ resource "azurerm_key_vault_access_policy" "example" {
   object_id    = azurerm_api_management.example.identity.0.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 
@@ -139,7 +146,7 @@ The following arguments are supported:
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.
 
--> **NOTE:** Setting this field requires the `identity` block to be specified in API Management Service, since this identity is used to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires that Secret version isn't specified.
+-> **NOTE:** Setting this field requires the `identity` block to be specified in API Management Service, since this identity is used to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires that Secret version isn't specified.
 
 * `key_vault_identity_client_id` - (Optional) The Client ID of the User Assigned Managed Identity to use for retrieving certificate.
 
@@ -161,7 +168,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Certificate.

@@ -4,27 +4,32 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	mariaDB "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	mariaDBParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	mysqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	postgresqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	privateDnsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
-	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourcePrivateEndpoint() *pluginsdk.Resource {
@@ -53,7 +58,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validate.PrivateLinkName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -81,6 +86,12 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				},
 			},
 
+			"custom_network_interface_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"private_dns_zone_group": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -101,7 +112,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
+								ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 							},
 						},
 					},
@@ -156,6 +167,34 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.PrivateLinkName,
+						},
+						"private_ip_address": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"subresource_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -265,7 +304,9 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
@@ -275,20 +316,67 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.PrivateLinkServiceConnections)
 	if err != nil {
-		if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err)
-		} else {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+		return err
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.ManualPrivateLinkServiceConnections)
+	if err != nil {
+		return err
+	}
+
+	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.PrivateEndpointProperties)
+	for _, cosmosDbResId := range cosmosDbResIds {
+		log.Printf("[DEBUG] Add Lock For Private Endpoint %q, lock name: %q", id.Name, cosmosDbResId)
+		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
+		//goland:noinspection GoDeferInLoop
+		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
+	}
+	locks.ByName(subnetId, "azurerm_private_endpoint")
+	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
+
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+		if err != nil {
+			switch {
+			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
+						Retryable: false,
+					}
+				}
+			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+						Retryable: true,
+					}
+				}
+			default:
+				return &resource.RetryError{
+					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+					Retryable: false,
+				}
+			}
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return &resource.RetryError{
+				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+				Retryable: false,
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -304,6 +392,49 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return resourcePrivateEndpointRead(d, meta)
+}
+
+func validatePrivateLinkServiceId(endpoints []network.PrivateLinkServiceConnection) error {
+	for _, connection := range endpoints {
+		_, errors := azure.ValidateResourceID(*connection.PrivateLinkServiceID, "PrivateLinkServiceID")
+		if len(errors) == 0 {
+			continue
+		}
+		_, errors = validate.PrivateConnectionResourceAlias(*connection.PrivateLinkServiceID, "PrivateLinkServiceID")
+		if len(errors) != 0 {
+			return fmt.Errorf("PrivateLinkServiceId Invalid: %q", *connection.PrivateLinkServiceID)
+		}
+	}
+	return nil
+}
+
+func getCosmosDbResIdInPrivateServiceConnections(p *network.PrivateEndpointProperties) []string {
+	var ids []string
+	exists := make(map[string]struct{})
+
+	for _, l := range *p.PrivateLinkServiceConnections {
+		id := *l.PrivateLinkServiceID
+		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+			_, ok := exists[id]
+			if !ok {
+				ids = append(ids, id)
+				exists[id] = struct{}{}
+			}
+		}
+	}
+	for _, l := range *p.ManualPrivateLinkServiceConnections {
+		id := *l.PrivateLinkServiceID
+		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+			_, ok := exists[id]
+			if !ok {
+				ids = append(ids, id)
+				exists[id] = struct{}{}
+			}
+		}
+	}
+	// Sort ids, force adding lock in consistent order to avoid potential deadlock
+	sort.Strings(ids)
+	return ids
 }
 
 func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -324,7 +455,9 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := network.PrivateEndpoint{
@@ -335,20 +468,59 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.PrivateLinkServiceConnections)
 	if err != nil {
-		if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
-			return fmt.Errorf("updating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err)
-		} else {
-			return fmt.Errorf("updating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+		return err
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	err = validatePrivateLinkServiceId(*parameters.PrivateEndpointProperties.ManualPrivateLinkServiceConnections)
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(subnetId, "azurerm_private_endpoint")
+	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
+
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+		if err != nil {
+			switch {
+			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("updating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
+						Retryable: false,
+					}
+				}
+			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
+				{
+					return &resource.RetryError{
+						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+						Retryable: true,
+					}
+				}
+			default:
+				return &resource.RetryError{
+					Err: fmt.Errorf("updating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+				}
+			}
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return &resource.RetryError{
+				Err:       fmt.Errorf("waiting for update of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+				Retryable: false,
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	// 1 Private Endpoint can have 1 Private DNS Zone Group - so to update we need to Delete & Recreate
@@ -445,7 +617,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		networkInterface := getNetworkInterface(networkInterfaceId)
+		networkInterface := flattenNetworkInterface(networkInterfaceId)
 		if err := d.Set("network_interface", networkInterface); err != nil {
 			return fmt.Errorf("setting `network_interface`: %+v", err)
 		}
@@ -455,11 +627,22 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `private_service_connection`: %+v", err)
 		}
 
+		flattenedipconfiguration := flattenPrivateEndpointIPConfigurations(props.IPConfigurations)
+		if err := d.Set("ip_configuration", flattenedipconfiguration); err != nil {
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
+		}
+
 		subnetId := ""
 		if props.Subnet != nil && props.Subnet.ID != nil {
 			subnetId = *props.Subnet.ID
 		}
 		d.Set("subnet_id", subnetId)
+		customNicName := ""
+		if props.CustomNetworkInterfaceName != nil {
+			customNicName = *props.CustomNetworkInterfaceName
+		}
+		d.Set("custom_network_interface_name", customNicName)
+
 	}
 
 	privateDnsZoneConfigs := make([]interface{}, 0)
@@ -507,6 +690,23 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 
+	subnetId := d.Get("subnet_id").(string)
+	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+	parameters := network.PrivateEndpoint{
+		PrivateEndpointProperties: &network.PrivateEndpointProperties{
+			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
+			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
+		},
+	}
+	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.PrivateEndpointProperties)
+	for _, cosmosDbResId := range cosmosDbResIds {
+		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
+		//goland:noinspection GoDeferInLoop
+		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
+	}
+	locks.ByName(subnetId, "azurerm_private_endpoint")
+	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
+
 	log.Printf("[DEBUG] Deleting the Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -528,9 +728,9 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		privateConnectonResourceId := v["private_connection_resource_id"].(string)
-		if privateConnectonResourceId == "" {
-			privateConnectonResourceId = v["private_connection_resource_alias"].(string)
+		privateConnectionResourceId := v["private_connection_resource_id"].(string)
+		if privateConnectionResourceId == "" {
+			privateConnectionResourceId = v["private_connection_resource_alias"].(string)
 		}
 		subresourceNames := v["subresource_names"].([]interface{})
 		requestMessage := v["request_message"].(string)
@@ -542,7 +742,7 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 				Name: utils.String(name),
 				PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
 					GroupIds:             utils.ExpandStringSlice(subresourceNames),
-					PrivateLinkServiceID: utils.String(privateConnectonResourceId),
+					PrivateLinkServiceID: utils.String(privateConnectionResourceId),
 				},
 			}
 
@@ -555,6 +755,45 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 	}
 
 	return &results
+}
+
+func expandPrivateEndpointIPConfigurations(input []interface{}) *[]network.PrivateEndpointIPConfiguration {
+	results := make([]network.PrivateEndpointIPConfiguration, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		privateIPAddress := v["private_ip_address"].(string)
+		subResourceName := v["subresource_name"].(string)
+		name := v["name"].(string)
+		result := network.PrivateEndpointIPConfiguration{
+			Name: utils.String(name),
+			PrivateEndpointIPConfigurationProperties: &network.PrivateEndpointIPConfigurationProperties{
+				PrivateIPAddress: utils.String(privateIPAddress),
+				GroupID:          utils.String(subResourceName),
+				MemberName:       utils.String(subResourceName),
+			},
+		}
+		results = append(results, result)
+	}
+
+	return &results
+}
+
+func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]network.PrivateEndpointIPConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+	if ipConfigurations == nil {
+		return results
+	}
+
+	for _, item := range *ipConfigurations {
+		results = append(results, map[string]interface{}{
+			"name":               item.Name,
+			"private_ip_address": item.PrivateIPAddress,
+			"subresource_name":   item.GroupID,
+		})
+	}
+
+	return results
 }
 
 func flattenCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPropertiesFormat) []interface{} {
@@ -609,7 +848,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -619,8 +858,13 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 					}
 				}
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
-					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := mariaDB.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.signalrservice") {
+					if serviceId, err := signalr.ParseSignalRIDInsensitively(privateConnectionId); err == nil {
+						privateConnectionId = serviceId.ID()
 					}
 				}
 				attrs["private_connection_resource_id"] = privateConnectionId
@@ -666,7 +910,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -676,7 +920,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 					}
 				}
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
-					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
+					if serverId, err := mariaDB.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -702,13 +946,13 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 	for _, item := range privateDnsZoneIdsRaw {
 		v := item.(string)
 
-		privateDnsZone, err := privateDnsParse.PrivateDnsZoneID(v)
+		privateDnsZone, err := privatezones.ParsePrivateDnsZoneID(v)
 		if err != nil {
 			return err
 		}
 
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
-			Name: utils.String(privateDnsZone.Name),
+			Name: utils.String(privateDnsZone.PrivateZoneName),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
 				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},

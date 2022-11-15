@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HPCCacheBlobTargetResource struct {
-}
+type HPCCacheBlobTargetResource struct{}
 
 func TestAccHPCCacheBlobTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
@@ -233,6 +232,13 @@ resource "azurerm_hpc_cache" "test" {
   cache_size_in_gb    = 3072
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
+
+  # hpc_cache_blob_target depends on below role_assignments, however these role_assignments need up to 5 minutes to take effect.
+  # Since hpc_cache_blob_target depends on the hpc_cache and hpc_cache takes far more than 5 minutes to create, put the dependency here so role_assignments are ready before creating hpc_cache_blob_target.
+  depends_on = [
+    azurerm_role_assignment.test_storage_account_contrib,
+    azurerm_role_assignment.test_storage_blob_data_contrib,
+  ]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -261,7 +267,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 data "azuread_service_principal" "test" {

@@ -49,11 +49,17 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
+	maintenance_configuration_name := "SQL_Default"
+	if data.Locations.Primary == "westeurope" {
+		maintenance_configuration_name = "SQL_WestEurope_DB_2"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardDTU(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_configuration_name").HasValue(maintenance_configuration_name),
 			),
 		},
 		data.ImportStep("max_size_gb"),
@@ -63,6 +69,9 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 func TestAccMsSqlElasticPool_premiumDTUZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
+
+	// Limited regional availability for ZRS
+	data.Locations.Primary = "westeurope"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -143,6 +152,60 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 		data.ImportStep("max_size_gb"),
 		{
 			Config: r.resizeVCore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
+func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	// Limited regional availability for Fsv2 family
+	data.Locations.Primary = "westeurope"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fsv2VCore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
+func TestAccMsSqlElasticPool_dcFamilyVCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	// Limited regional availability for DC-series
+	data.Locations.Primary = "westeurope"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dcVCore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
+func TestAccMsSqlElasticPool_dcFamilyBcTierVCore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	// Limited regional availability for DC-series
+	data.Locations.Primary = "westeurope"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dcVCoreBc(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -237,6 +300,18 @@ func (r MsSqlElasticPoolResource) basicVCore(data acceptance.TestData) string {
 	return r.templateVCore(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
 }
 
+func (r MsSqlElasticPoolResource) fsv2VCore(data acceptance.TestData) string {
+	return r.templateVCore(data, "GP_Fsv2", "GeneralPurpose", 8, "Fsv2", 0, 8)
+}
+
+func (r MsSqlElasticPoolResource) dcVCore(data acceptance.TestData) string {
+	return r.templateVCore(data, "GP_DC", "GeneralPurpose", 2, "DC", 2, 2)
+}
+
+func (r MsSqlElasticPoolResource) dcVCoreBc(data acceptance.TestData) string {
+	return r.templateVCore(data, "BC_DC", "BusinessCritical", 2, "DC", 2, 2)
+}
+
 func (r MsSqlElasticPoolResource) basicVCoreMaxSizeBytes(data acceptance.TestData) string {
 	return r.templateVCoreMaxSizeBytes(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
 }
@@ -256,7 +331,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctest%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -269,9 +344,11 @@ resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-dtu-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
   max_size_gb         = %.7[6]f
   zone_redundant      = %[9]t
+
+  maintenance_configuration_name = "%[4]s" != "Basic" && azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
 
   sku {
     name     = "%[3]s"
@@ -298,7 +375,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctest%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -311,7 +388,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-vcore-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
   max_size_gb         = 5
 
   sku {
@@ -340,7 +417,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctest%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -353,7 +430,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-vcore-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
   max_size_bytes      = 214748364800
 
   sku {
@@ -382,7 +459,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctest%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -395,7 +472,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-dtu-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
   max_size_gb         = 50
   zone_redundant      = false
   license_type        = "%[3]s"

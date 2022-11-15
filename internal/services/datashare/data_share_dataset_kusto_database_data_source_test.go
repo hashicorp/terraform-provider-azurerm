@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DataShareDatasetKustoDatabaseDataSource struct {
-}
+type DataShareDatasetKustoDatabaseDataSource struct{}
 
 func TestAccDataShareDatasetKustoDatabaseDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_kusto_database", "test")

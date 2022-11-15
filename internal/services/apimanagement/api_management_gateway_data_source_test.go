@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ApiManagementGatewayDataSource struct {
-}
+type ApiManagementGatewayDataSource struct{}
 
 func TestAccDataSourceApiManagementGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_gateway", "test")

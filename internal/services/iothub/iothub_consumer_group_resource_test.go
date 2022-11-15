@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotHubConsumerGroupResource struct {
-}
+type IotHubConsumerGroupResource struct{}
 
 func TestAccIotHubConsumerGroup_events(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")

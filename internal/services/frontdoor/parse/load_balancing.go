@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type LoadBalancingId struct {
@@ -42,7 +42,7 @@ func (id LoadBalancingId) ID() string {
 
 // LoadBalancingID parses a LoadBalancing ID into an LoadBalancingId struct
 func LoadBalancingID(input string) (*LoadBalancingId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func LoadBalancingID(input string) (*LoadBalancingId, error) {
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func LoadBalancingIDInsensitively(input string) (*LoadBalancingId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

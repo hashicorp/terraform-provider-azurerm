@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ApplicationSecurityGroupDataSource struct {
-}
+type ApplicationSecurityGroupDataSource struct{}
 
 func TestAccDataSourceApplicationSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_security_group", "test")

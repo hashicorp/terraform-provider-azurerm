@@ -5,16 +5,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
@@ -23,9 +25,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 		Read:   resourceWebApplicationFirewallPolicyRead,
 		Update: resourceWebApplicationFirewallPolicyCreateUpdate,
 		Delete: resourceWebApplicationFirewallPolicyDelete,
-
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -42,7 +45,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -172,9 +175,15 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
 										}, false),
 									},
 									"selector": {
@@ -192,6 +201,47 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEqualsAny),
 											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
 										}, false),
+									},
+									"excluded_rule_set": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"type": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													Default:      "OWASP",
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetType,
+												},
+												"version": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													Default:      "3.2",
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion,
+												},
+												"rule_group": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"rule_group_name": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+															},
+															"excluded_rules": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																Elem: &pluginsdk.Schema{
+																	Type: pluginsdk.TypeString,
+																},
+															},
+														},
+													},
+												},
+											},
+										},
 									},
 								},
 							},
@@ -224,7 +274,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 												},
 												"disabled_rules": {
 													Type:     pluginsdk.TypeList,
-													Required: true,
+													Optional: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -267,13 +317,13 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 						"file_upload_limit_in_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 750),
+							ValidateFunc: validation.IntBetween(1, 4000),
 							Default:      100,
 						},
 						"max_request_body_size_in_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(8, 128),
+							ValidateFunc: validation.IntBetween(8, 2000),
 							Default:      128,
 						},
 					},
@@ -299,17 +349,17 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
@@ -333,18 +383,11 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData,
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("creating Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Web Application Firewall Policy %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
@@ -354,25 +397,23 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["ApplicationGatewayWebApplicationFirewallPolicies"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Web Application Firewall Policy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -402,20 +443,18 @@ func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["ApplicationGatewayWebApplicationFirewallPolicies"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -484,6 +523,62 @@ func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{
 	}
 }
 
+func expandWebApplicationFirewallPolicyExclusionManagedRules(input []interface{}) *[]network.ExclusionManagedRule {
+	results := make([]network.ExclusionManagedRule, 0)
+	for _, item := range input {
+		ruleID := item.(string)
+
+		result := network.ExclusionManagedRule{
+			RuleID: utils.String(ruleID),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(input []interface{}) *[]network.ExclusionManagedRuleGroup {
+	results := make([]network.ExclusionManagedRuleGroup, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleGroupName := v["rule_group_name"].(string)
+
+		result := network.ExclusionManagedRuleGroup{
+			RuleGroupName: utils.String(ruleGroupName),
+		}
+
+		if excludedRules := v["excluded_rules"].([]interface{}); len(excludedRules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyExclusionManagedRules(excludedRules)
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExclusionManagedRuleSet(input []interface{}) *[]network.ExclusionManagedRuleSet {
+	results := make([]network.ExclusionManagedRuleSet, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleSetType := v["type"].(string)
+		ruleSetVersion := v["version"].(string)
+		ruleGroups := make([]interface{}, 0)
+		if value, exists := v["rule_group"]; exists {
+			ruleGroups = value.([]interface{})
+		}
+		result := network.ExclusionManagedRuleSet{
+			RuleSetType:    utils.String(ruleSetType),
+			RuleSetVersion: utils.String(ruleSetVersion),
+			RuleGroups:     expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(ruleGroups),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
 func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]network.OwaspCrsExclusionEntry {
 	results := make([]network.OwaspCrsExclusionEntry, 0)
 	for _, item := range input {
@@ -492,11 +587,13 @@ func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]networ
 		matchVariable := v["match_variable"].(string)
 		selectorMatchOperator := v["selector_match_operator"].(string)
 		selector := v["selector"].(string)
+		exclusionManagedRuleSets := v["excluded_rule_set"].([]interface{})
 
 		result := network.OwaspCrsExclusionEntry{
-			MatchVariable:         network.OwaspCrsExclusionEntryMatchVariable(matchVariable),
-			SelectorMatchOperator: network.OwaspCrsExclusionEntrySelectorMatchOperator(selectorMatchOperator),
-			Selector:              utils.String(selector),
+			MatchVariable:            network.OwaspCrsExclusionEntryMatchVariable(matchVariable),
+			SelectorMatchOperator:    network.OwaspCrsExclusionEntrySelectorMatchOperator(selectorMatchOperator),
+			Selector:                 utils.String(selector),
+			ExclusionManagedRuleSets: expandWebApplicationFirewallPolicyExclusionManagedRuleSet(exclusionManagedRuleSets),
 		}
 
 		results = append(results, result)
@@ -532,11 +629,13 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}) *
 		v := item.(map[string]interface{})
 
 		ruleGroupName := v["rule_group_name"].(string)
-		disabledRules := v["disabled_rules"].([]interface{})
 
 		result := network.ManagedRuleGroupOverride{
 			RuleGroupName: utils.String(ruleGroupName),
-			Rules:         expandWebApplicationFirewallPolicyRules(disabledRules),
+		}
+
+		if disabledRules := v["disabled_rules"].([]interface{}); len(disabledRules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyRules(disabledRules)
 		}
 
 		results = append(results, result)
@@ -660,6 +759,57 @@ func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input *network.Ma
 	return results
 }
 
+func flattenWebApplicationFirewallPolicyExclusionManagedRules(input *[]network.ExclusionManagedRule) []string {
+	results := make([]string, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		if item.RuleID != nil {
+			v := *item.RuleID
+			results = append(results, v)
+		}
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(input *[]network.ExclusionManagedRuleGroup) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["rule_group_name"] = item.RuleGroupName
+		v["excluded_rules"] = flattenWebApplicationFirewallPolicyExclusionManagedRules(item.Rules)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(input *[]network.ExclusionManagedRuleSet) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["type"] = item.RuleSetType
+		v["version"] = item.RuleSetVersion
+		v["rule_group"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(item.RuleGroups)
+
+		results = append(results, v)
+	}
+	return results
+}
+
 func flattenWebApplicationFirewallPolicyExclusions(input *[]network.OwaspCrsExclusionEntry) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -675,7 +825,9 @@ func flattenWebApplicationFirewallPolicyExclusions(input *[]network.OwaspCrsExcl
 		if selector != nil {
 			v["selector"] = *selector
 		}
+
 		v["selector_match_operator"] = string(item.SelectorMatchOperator)
+		v["excluded_rule_set"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(item.ExclusionManagedRuleSets)
 
 		results = append(results, v)
 	}
@@ -719,12 +871,12 @@ func flattenWebApplicationFirewallPolicyRuleGroupOverrides(input *[]network.Mana
 
 func flattenWebApplicationFirewallPolicyManagedRuleOverrides(input *[]network.ManagedRuleOverride) []string {
 	results := make([]string, 0)
-	if input == nil {
+	if input == nil || len(*input) == 0 {
 		return results
 	}
 
 	for _, item := range *input {
-		if item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled {
+		if (item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled) && item.RuleID != nil {
 			v := *item.RuleID
 
 			results = append(results, v)

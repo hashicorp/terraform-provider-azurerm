@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type NotificationRecipientEmailId struct {
@@ -45,7 +45,7 @@ func (id NotificationRecipientEmailId) ID() string {
 
 // NotificationRecipientEmailID parses a NotificationRecipientEmail ID into an NotificationRecipientEmailId struct
 func NotificationRecipientEmailID(input string) (*NotificationRecipientEmailId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

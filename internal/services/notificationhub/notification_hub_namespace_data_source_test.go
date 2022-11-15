@@ -17,7 +17,6 @@ func TestAccNotificationHubNamespaceDataSource_free(t *testing.T) {
 		{
 			Config: d.free(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				acceptance.TestCheckResourceAttr(data.ResourceName, "namespace_type", "NotificationHub"),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free"),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 			),

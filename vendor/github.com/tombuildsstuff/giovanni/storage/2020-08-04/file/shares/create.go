@@ -13,12 +13,27 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
+type AccessTier string
+
+const (
+	TransactionOptimizedAccessTier AccessTier = "TransactionOptimized"
+	HotAccessTier                  AccessTier = "Hot"
+	CoolAccessTier                 AccessTier = "Cool"
+	PremiumAccessTier              AccessTier = "Premium"
+)
+
 type CreateInput struct {
 	// Specifies the maximum size of the share, in gigabytes.
 	// Must be greater than 0, and less than or equal to 5TB (5120).
 	QuotaInGB int
 
+	// Specifies the enabled protocols on the share. If not specified, the default is SMB.
+	EnabledProtocol ShareProtocol
+
 	MetaData map[string]string
+
+	// Specifies the access tier of the share.
+	AccessTier *AccessTier
 }
 
 // Create creates the specified Storage Share within the specified Storage Account
@@ -74,6 +89,16 @@ func (client Client) CreatePreparer(ctx context.Context, accountName, shareName 
 	headers := map[string]interface{}{
 		"x-ms-version":     APIVersion,
 		"x-ms-share-quota": input.QuotaInGB,
+	}
+
+	protocol := SMB
+	if input.EnabledProtocol != "" {
+		protocol = input.EnabledProtocol
+	}
+	headers["x-ms-enabled-protocols"] = protocol
+
+	if input.AccessTier != nil {
+		headers["x-ms-access-tier"] = string(*input.AccessTier)
 	}
 
 	headers = metadata.SetIntoHeaders(headers, input.MetaData)

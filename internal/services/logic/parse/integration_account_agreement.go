@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type IntegrationAccountAgreementId struct {
@@ -42,7 +42,7 @@ func (id IntegrationAccountAgreementId) ID() string {
 
 // IntegrationAccountAgreementID parses a IntegrationAccountAgreement ID into an IntegrationAccountAgreementId struct
 func IntegrationAccountAgreementID(input string) (*IntegrationAccountAgreementId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

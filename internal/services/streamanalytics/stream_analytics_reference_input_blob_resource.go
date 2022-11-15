@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -23,10 +23,11 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsReferenceInputBlobRead,
 		Update: resourceStreamAnalyticsReferenceInputBlobUpdate,
 		Delete: resourceStreamAnalyticsReferenceInputBlobDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.StreamInputID(id)
 			return err
-		}),
+		}, importStreamAnalyticsReferenceInput(streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -50,7 +51,7 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"date_format": {
 				Type:         pluginsdk.TypeString,
@@ -90,6 +91,16 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
+
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+				}, false),
+			},
 		},
 	}
 }
@@ -101,17 +112,17 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input Blob creation.")
-	resourceId := parse.NewStreamInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := parse.NewStreamInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", resourceId.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", id.ID())
 		}
 	}
 
@@ -120,11 +131,11 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating the input props for resource creation: %v", err)
 	}
 
-	if _, err := client.CreateOrReplace(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, "", ""); err != nil {
-		return fmt.Errorf("creating %s: %+v", resourceId, err)
+	if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.InputName, "", ""); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 
@@ -145,7 +156,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.InputName, ""); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
@@ -164,7 +175,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
@@ -191,6 +202,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 		d.Set("path_pattern", blobInputDataSource.PathPattern)
 		d.Set("storage_container_name", blobInputDataSource.Container)
 		d.Set("time_format", blobInputDataSource.TimeFormat)
+		d.Set("authentication_mode", blobInputDataSource.AuthenticationMode)
 
 		if accounts := blobInputDataSource.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 			account := (*accounts)[0]
@@ -217,7 +229,7 @@ func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, 
 
 	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
@@ -232,6 +244,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 	storageAccountKey := d.Get("storage_account_key").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
+	authenticationMode := d.Get("authentication_mode").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
@@ -242,7 +255,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 	props := streamanalytics.Input{
 		Name: utils.String(name),
 		Properties: &streamanalytics.ReferenceInputProperties{
-			Type: streamanalytics.TypeReference,
+			Type: streamanalytics.TypeBasicInputPropertiesTypeReference,
 			Datasource: &streamanalytics.BlobReferenceInputDataSource{
 				Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob,
 				BlobReferenceInputDataSourceProperties: &streamanalytics.BlobReferenceInputDataSourceProperties{
@@ -256,6 +269,7 @@ func getBlobReferenceInputProps(d *pluginsdk.ResourceData) (streamanalytics.Inpu
 							AccountKey:  utils.String(storageAccountKey),
 						},
 					},
+					AuthenticationMode: streamanalytics.AuthenticationMode(authenticationMode),
 				},
 			},
 			Serialization: serialization,

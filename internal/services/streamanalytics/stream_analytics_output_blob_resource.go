@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -51,7 +51,7 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"date_format": {
 				Type:         pluginsdk.TypeString,
@@ -62,13 +62,6 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 			"path_pattern": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-			},
-
-			"storage_account_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_name": {
@@ -91,6 +84,16 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
 
+			"authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+				}, false),
+			},
+
 			"batch_max_wait_time": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -101,37 +104,41 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.FloatBetween(0, 10000),
 			},
+
+			"storage_account_key": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
 
 func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output Blob creation.")
-	name := d.Get("name").(string)
-	jobName := d.Get("stream_analytics_job_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Stream Analytics Output Blob %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", id.ID())
 		}
 	}
 
 	containerName := d.Get("storage_container_name").(string)
 	dateFormat := d.Get("date_format").(string)
 	pathPattern := d.Get("path_pattern").(string)
-	storageAccountKey := d.Get("storage_account_key").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
 
@@ -142,21 +149,22 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	props := streamanalytics.Output{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.BlobOutputDataSource{
-				Type: streamanalytics.TypeMicrosoftStorageBlob,
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageBlob,
 				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
 					StorageAccounts: &[]streamanalytics.StorageAccount{
 						{
-							AccountKey:  utils.String(storageAccountKey),
+							AccountKey:  getStorageAccountKey(d.Get("storage_account_key").(string)),
 							AccountName: utils.String(storageAccountName),
 						},
 					},
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+					Container:          utils.String(containerName),
+					DateFormat:         utils.String(dateFormat),
+					PathPattern:        utils.String(pathPattern),
+					TimeFormat:         utils.String(timeFormat),
+					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -174,25 +182,17 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	// timeWindow and sizeWindow must be set for Parquet serialization
 	_, isParquet := serialization.AsParquetSerialization()
 	if isParquet && (props.TimeWindow == nil || props.SizeWindow == nil) {
-		return fmt.Errorf("cannot create Stream Analytics Output Blob %q (Job %q / Resource Group %q): batch_min_rows and batch_time_window must be set for Parquet serialization", name, jobName, resourceGroup)
+		return fmt.Errorf("cannot create %s: batch_min_rows and batch_time_window must be set for Parquet serialization", id)
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Creating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
-		read, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("retrieving Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Output Blob %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
-		}
-
-		d.SetId(*read.ID)
-	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-		return fmt.Errorf("Updating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		d.SetId(id.ID())
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceStreamAnalyticsOutputBlobRead(d, meta)
@@ -233,6 +233,7 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("path_pattern", v.PathPattern)
 		d.Set("storage_container_name", v.Container)
 		d.Set("time_format", v.TimeFormat)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
 		if accounts := v.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 			account := (*accounts)[0]
@@ -266,4 +267,12 @@ func resourceStreamAnalyticsOutputBlobDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func getStorageAccountKey(input string) *string {
+	if input == "" {
+		return nil
+	}
+
+	return utils.String(input)
 }

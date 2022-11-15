@@ -5,13 +5,15 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMariaDbServer() *pluginsdk.Resource {
@@ -32,9 +34,9 @@ func dataSourceMariaDbServer() *pluginsdk.Resource {
 				),
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -89,54 +91,67 @@ func dataSourceMariaDbServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("MariaDB Server %q (Resource Group %q) was not found", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): `id` was nil", name, resourceGroup)
-	}
+	d.SetId(id.ID())
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.SetId(*resp.ID)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-
-	if properties := resp.ServerProperties; properties != nil {
-		d.Set("administrator_login", properties.AdministratorLogin)
-		d.Set("version", string(properties.Version))
-		d.Set("ssl_enforcement", string(properties.SslEnforcement))
-		d.Set("fqdn", properties.FullyQualifiedDomainName)
-
-		if err := d.Set("storage_profile", flattenMariaDbStorageProfile(properties.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
 		}
+
+		if props := model.Properties; props != nil {
+			adminLogin := ""
+			if v := props.AdministratorLogin; v != nil {
+				adminLogin = *v
+			}
+
+			fqdn := ""
+			if v := props.FullyQualifiedDomainName; v != nil {
+				fqdn = *v
+			}
+
+			sslEnforcement := ""
+			if v := props.SslEnforcement; v != nil {
+				sslEnforcement = string(*v)
+			}
+
+			version := ""
+			if v := props.Version; v != nil {
+				version = string(*v)
+			}
+
+			d.Set("administrator_login", adminLogin)
+			d.Set("fqdn", fqdn)
+			d.Set("ssl_enforcement", sslEnforcement)
+			d.Set("version", version)
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+
+	return nil
 }

@@ -1,7 +1,7 @@
 ---
 subcategory: "Time Series Insights"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_iot_time_series_insights_standard_environment"
+page_title: "Azure Resource Manager: azurerm_iot_time_series_insights_reference_data_set"
 description: |-
   Manages an Azure IoT Time Series Insights Reference Data Set.
 ---
@@ -68,7 +68,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IoT Time Series Insights Reference Data Set.
 * `update` - (Defaults to 30 minutes) Used when updating the IoT Time Series Insights Reference Data Set.

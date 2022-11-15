@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SubnetDataSource struct {
-}
+type SubnetDataSource struct{}
 
 func TestAccDataSourceSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
@@ -110,8 +109,6 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
 				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
 				check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
-				check.That(data.ResourceName).Key("service_endpoints.0").HasValue("Microsoft.Sql"),
-				check.That(data.ResourceName).Key("service_endpoints.1").HasValue("Microsoft.Storage"),
 			),
 		},
 	})
@@ -125,7 +122,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
 data "azurerm_subnet" "test" {
@@ -173,7 +170,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -221,7 +218,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
 resource "azurerm_route_table" "test" {

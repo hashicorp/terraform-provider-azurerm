@@ -6,15 +6,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ func resourcePostgreSQLServerKey() *pluginsdk.Resource {
 		Delete: resourcePostgreSQLServerKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ServerKeyID(id)
+			_, err := serverkeys.ParseKeyID(id)
 			return err
 		}),
 
@@ -45,7 +44,7 @@ func resourcePostgreSQLServerKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: serverkeys.ValidateServerID,
 			},
 
 			"key_vault_key_id": {
@@ -84,93 +83,85 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.ServerID(d.Get("server_id").(string))
+	serverId, err := serverkeys.ParseServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
 	name, err := getPostgreSQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
 	if err != nil {
-		return fmt.Errorf("cannot compose name for PostgreSQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("cannot compose name for %s: %+v", serverId, err)
 	}
 
-	locks.ByName(serverID.Name, postgreSQLServerResourceName)
-	defer locks.UnlockByName(serverID.Name, postgreSQLServerResourceName)
+	locks.ByName(serverId.ServerName, postgreSQLServerResourceName)
+	defer locks.UnlockByName(serverId.ServerName, postgreSQLServerResourceName)
+
+	id := serverkeys.NewKeyID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, *name)
 
 	if d.IsNewResource() {
 		// This resource is a singleton, but its name can be anything.
 		// If you create a new key with different name with the old key, the service will not give you any warning but directly replace the old key with the new key.
 		// Therefore sometimes you cannot get the old key using the GET API since you may not know the name of the old key
-		resp, err := keysClient.List(ctx, serverID.ResourceGroup, serverID.Name)
+		resp, err := keysClient.List(ctx, *serverId)
 		if err != nil {
-			return fmt.Errorf("listing existing PostgreSQL Server Keys in Resource Group %q / Server %q: %+v", serverID.ResourceGroup, serverID.Name, err)
+			return fmt.Errorf("listing existing Keys in %s: %+v", serverId, err)
 		}
-		keys := resp.Values()
-		if len(keys) > 1 {
-			return fmt.Errorf("expecting at most one PostgreSQL Server Key, but got %q", len(keys))
-		}
-		if len(keys) == 1 && keys[0].ID != nil && *keys[0].ID != "" {
-			return tf.ImportAsExistsError("azurerm_postgresql_server_key", *keys[0].ID)
+		if resp.Model != nil && len(*resp.Model) >= 1 {
+			keys := *resp.Model
+			if rawId := keys[0].Id; rawId != nil && *rawId != "" {
+				id, err := serverkeys.ParseKeyID(*rawId)
+				if err != nil {
+					return fmt.Errorf("parsing existing Server Key ID %q: %+v", *rawId, err)
+				}
+
+				// API allows adding same key again with Create action, which would trigger revalidation of the key on the server.
+				// This is required to revalidate Replica server after creation.
+				if *rawId != id.ID() {
+					return tf.ImportAsExistsError("azurerm_postgresql_server_key", id.ID())
+				}
+			}
 		}
 	}
 
-	param := postgresql.ServerKey{
-		ServerKeyProperties: &postgresql.ServerKeyProperties{
-			ServerKeyType: utils.String("AzureKeyVault"),
-			URI:           utils.String(d.Get("key_vault_key_id").(string)),
+	param := serverkeys.ServerKey{
+		Properties: &serverkeys.ServerKeyProperties{
+			ServerKeyType: serverkeys.ServerKeyTypeAzureKeyVault,
+			Uri:           utils.String(d.Get("key_vault_key_id").(string)),
 		},
 	}
 
-	future, err := keysClient.CreateOrUpdate(ctx, serverID.Name, *name, param, serverID.ResourceGroup)
-	if err != nil {
-		return fmt.Errorf("creating/updating PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, keysClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
+	if err = keysClient.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, *name)
-	if err != nil {
-		return fmt.Errorf("retrieving PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("nil or empty ID returned for PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourcePostgreSQLServerKeyRead(d, meta)
 }
 
 func resourcePostgreSQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	serversClient := meta.(*clients.Client).Postgres.ServersClient
 	keysClient := meta.(*clients.Client).Postgres.ServerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerKeyID(d.Id())
+	id, err := serverkeys.ParseKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := keysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
+	resp, err := keysClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Server Key %q was not found (Resource Group %q / Server %q)", id.KeyName, id.ResourceGroup, id.ServerName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.KeyName, id.ResourceGroup, id.ServerName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	respServer, err := serversClient.Get(ctx, id.ResourceGroup, id.ServerName)
-	if err != nil {
-		return fmt.Errorf("cannot get MySQL Server ID: %+v", err)
-	}
-
-	d.Set("server_id", respServer.ID)
-	if props := resp.ServerKeyProperties; props != nil {
-		d.Set("key_vault_key_id", props.URI)
+	d.Set("server_id", serverkeys.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName).ID())
+	if resp.Model != nil && resp.Model.Properties != nil {
+		d.Set("key_vault_key_id", resp.Model.Properties.Uri)
 	}
 
 	return nil
@@ -181,7 +172,7 @@ func resourcePostgreSQLServerKeyDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerKeyID(d.Id())
+	id, err := serverkeys.ParseKeyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -189,12 +180,8 @@ func resourcePostgreSQLServerKeyDelete(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.ServerName, postgreSQLServerResourceName)
 	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
 
-	future, err := client.Delete(ctx, id.ServerName, id.KeyName, id.ResourceGroup)
-	if err != nil {
-		return fmt.Errorf("deleting PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.KeyName, id.ResourceGroup, id.ServerName, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.KeyName, id.ResourceGroup, id.ServerName, err)
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

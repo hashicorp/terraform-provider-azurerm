@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type CustomHttpsConfigurationId struct {
@@ -42,7 +42,7 @@ func (id CustomHttpsConfigurationId) ID() string {
 
 // CustomHttpsConfigurationID parses a CustomHttpsConfiguration ID into an CustomHttpsConfigurationId struct
 func CustomHttpsConfigurationID(input string) (*CustomHttpsConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func CustomHttpsConfigurationID(input string) (*CustomHttpsConfigurationId, erro
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
 func CustomHttpsConfigurationIDInsensitively(input string) (*CustomHttpsConfigurationId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

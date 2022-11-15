@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutomationCertificateResource struct {
-}
+type AutomationCertificateResource struct{}
 
 var (
 	testCertThumbprintRaw, _ = os.ReadFile(filepath.Join("testdata", "automation_certificate_test.thumb"))

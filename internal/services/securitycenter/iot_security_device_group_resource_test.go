@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DeviceSecurityGroupResource struct {
-}
+type DeviceSecurityGroupResource struct{}
 
 func TestIotSecurityDeviceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")

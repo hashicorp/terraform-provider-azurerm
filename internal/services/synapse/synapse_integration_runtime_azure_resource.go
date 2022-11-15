@@ -5,7 +5,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,16 +55,26 @@ func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					location.EnhancedValidate,
+					validation.StringInSlice([]string{"AutoResolve"}, false),
+				),
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
 
 			"compute_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(synapse.General),
+				Default:  string(synapse.DataFlowComputeTypeGeneral),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(synapse.General),
-					string(synapse.ComputeOptimized),
-					string(synapse.MemoryOptimized),
+					string(synapse.DataFlowComputeTypeGeneral),
+					string(synapse.DataFlowComputeTypeComputeOptimized),
+					string(synapse.DataFlowComputeTypeMemoryOptimized),
 				}, false),
 			},
 
@@ -110,7 +121,7 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_azure", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_azure", id.ID())
 		}
 	}
 
@@ -118,7 +129,7 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 		Name: utils.String(id.Name),
 		Properties: synapse.ManagedIntegrationRuntime{
 			Description: utils.String(d.Get("description").(string)),
-			Type:        synapse.TypeManaged,
+			Type:        synapse.TypeBasicIntegrationRuntimeTypeManaged,
 			ManagedIntegrationRuntimeTypeProperties: &synapse.ManagedIntegrationRuntimeTypeProperties{
 				ComputeProperties: &synapse.IntegrationRuntimeComputeProperties{
 					Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),

@@ -4,23 +4,38 @@ func Default() UserFeatures {
 	return UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
 		ApiManagement: ApiManagementFeatures{
-			PurgeSoftDeleteOnDestroy: false,
+			PurgeSoftDeleteOnDestroy: true,
+			RecoverSoftDeleted:       true,
+		},
+		AppConfiguration: AppConfigurationFeatures{
+			PurgeSoftDeleteOnDestroy: true,
+			RecoverSoftDeleted:       true,
+		},
+		ApplicationInsights: ApplicationInsightFeatures{
+			DisableGeneratedRule: false,
 		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
 		KeyVault: KeyVaultFeatures{
-			PurgeSoftDeleteOnDestroy:    true,
-			RecoverSoftDeletedKeyVaults: true,
+			PurgeSoftDeleteOnDestroy:         true,
+			PurgeSoftDeletedKeysOnDestroy:    true,
+			PurgeSoftDeletedCertsOnDestroy:   true,
+			PurgeSoftDeletedSecretsOnDestroy: true,
+			PurgeSoftDeletedHSMsOnDestroy:    true,
+			RecoverSoftDeletedKeyVaults:      true,
+			RecoverSoftDeletedKeys:           true,
+			RecoverSoftDeletedCerts:          true,
+			RecoverSoftDeletedSecrets:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: false,
+			PermanentlyDeleteOnDestroy: true,
 		},
-		Network: NetworkFeatures{
-			RelaxedLocking: false,
+		ManagedDisk: ManagedDiskFeatures{
+			ExpandWithoutDowntime: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
-			PreventDeletionIfContainsResources: false,
+			PreventDeletionIfContainsResources: true,
 		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,
@@ -33,6 +48,7 @@ func Default() UserFeatures {
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,
 			RollInstancesWhenRequired: true,
+			ScaleToZeroOnDelete:       true,
 		},
 	}
 }

@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -20,13 +21,15 @@ import (
 )
 
 func resourceApiManagementApi() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceApiManagementApiCreateUpdate,
 		Read:   resourceApiManagementApiRead,
 		Update: resourceApiManagementApiCreateUpdate,
 		Delete: resourceApiManagementApiDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -40,7 +43,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"display_name": {
 				Type:         pluginsdk.TypeString,
@@ -65,6 +68,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(apimanagement.ProtocolHTTP),
 						string(apimanagement.ProtocolHTTPS),
+						string(apimanagement.ProtocolWs),
+						string(apimanagement.ProtocolWss),
 					}, false),
 				},
 			},
@@ -83,6 +88,44 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			},
 
 			// Optional
+			"api_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.APITypeGraphql),
+					string(apimanagement.APITypeHTTP),
+					string(apimanagement.APITypeSoap),
+					string(apimanagement.APITypeWebsocket),
+				}, false),
+			},
+
+			"contact": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"email": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.EmailAddress,
+						},
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"url": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+					},
+				},
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -104,16 +147,16 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.Openapi),
-								string(apimanagement.Openapijson),
-								string(apimanagement.OpenapijsonLink),
-								string(apimanagement.OpenapiLink),
-								string(apimanagement.SwaggerJSON),
-								string(apimanagement.SwaggerLinkJSON),
-								string(apimanagement.WadlLinkJSON),
-								string(apimanagement.WadlXML),
-								string(apimanagement.Wsdl),
-								string(apimanagement.WsdlLink),
+								string(apimanagement.ContentFormatOpenapi),
+								string(apimanagement.ContentFormatOpenapijson),
+								string(apimanagement.ContentFormatOpenapijsonLink),
+								string(apimanagement.ContentFormatOpenapiLink),
+								string(apimanagement.ContentFormatSwaggerJSON),
+								string(apimanagement.ContentFormatSwaggerLinkJSON),
+								string(apimanagement.ContentFormatWadlLinkJSON),
+								string(apimanagement.ContentFormatWadlXML),
+								string(apimanagement.ContentFormatWsdl),
+								string(apimanagement.ContentFormatWsdlLink),
 							}, false),
 						},
 
@@ -136,6 +179,27 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"license": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"url": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 					},
 				},
@@ -174,10 +238,10 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"soap_pass_through": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+			"terms_of_service_url": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 
 			"source_api_id": {
@@ -262,19 +326,33 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["api_type"].ConflictsWith = []string{"soap_pass_through"}
+
+		resource.Schema["soap_pass_through"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`soap_pass_through` will be removed in favour of the property `api_type` in version 4.0 of the AzureRM Provider",
+			ConflictsWith: []string{"api_type"},
+		}
+	}
+
+	return resource
 }
 
 func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+
 	revision := d.Get("revision").(string)
 	path := d.Get("path").(string)
-	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
+	apiId := fmt.Sprintf("%s;rev=%s", id.Name, revision)
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
 	displayName := d.Get("display_name").(string)
@@ -291,29 +369,34 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apiId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing API %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_api", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_api", id.ID())
 		}
 	}
 
-	var apiType apimanagement.APIType
-	var soapApiType apimanagement.SoapAPIType
-
-	soapPassThrough := d.Get("soap_pass_through").(bool)
-	if soapPassThrough {
-		apiType = apimanagement.Soap
-		soapApiType = apimanagement.SoapPassThrough
-	} else {
-		apiType = apimanagement.HTTP
-		soapApiType = apimanagement.SoapToRest
+	apiType := apimanagement.APITypeHTTP
+	if v, ok := d.GetOk("api_type"); ok {
+		apiType = apimanagement.APIType(v.(string))
 	}
+	if !features.FourPointOhBeta() {
+		if d.Get("soap_pass_through").(bool) {
+			apiType = apimanagement.APITypeSoap
+		}
+	}
+
+	soapApiType := map[apimanagement.APIType]apimanagement.SoapAPIType{
+		apimanagement.APITypeGraphql:   apimanagement.SoapAPITypeGraphQL,
+		apimanagement.APITypeHTTP:      apimanagement.SoapAPITypeSoapToRest,
+		apimanagement.APITypeSoap:      apimanagement.SoapAPITypeSoapPassThrough,
+		apimanagement.APITypeWebsocket: apimanagement.SoapAPITypeWebSocket,
+	}[apiType]
 
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
@@ -323,7 +406,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		contentFormat := importV["content_format"].(string)
 		contentValue := importV["content_value"].(string)
 
-		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, contentFormat)
+		log.Printf("[DEBUG] Importing API Management API %q of type %q", id.Name, contentFormat)
 		apiParams := apimanagement.APICreateOrUpdateParameter{
 			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
 				APIType:     apiType,
@@ -337,8 +420,8 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
 		// `wsdl_selector` is necessary under format `wsdl`
-		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.Wsdl) {
-			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", name)
+		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.ContentFormatWsdl) {
+			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", id.Name)
 		}
 
 		if len(wsdlSelectorVs) > 0 {
@@ -356,13 +439,13 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			apiParams.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
 		}
 
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, "")
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, apiId, apiParams, "")
 		if err != nil {
-			return fmt.Errorf("creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting on creating/updating %s: %+v", id, err)
 		}
 	}
 
@@ -383,6 +466,12 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 	authenticationSettings.Openid = openIDAuthorizationSettings
 
+	contactInfoRaw := d.Get("contact").([]interface{})
+	contactInfo := expandApiManagementApiContact(contactInfoRaw)
+
+	licenseInfoRaw := d.Get("license").([]interface{})
+	licenseInfo := expandApiManagementApiLicense(licenseInfoRaw)
+
 	params := apimanagement.APICreateOrUpdateParameter{
 		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
 			APIType:                       apiType,
@@ -397,6 +486,8 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			AuthenticationSettings:        authenticationSettings,
 			APIRevisionDescription:        utils.String(d.Get("revision_description").(string)),
 			APIVersionDescription:         utils.String(d.Get("version_description").(string)),
+			Contact:                       contactInfo,
+			License:                       licenseInfo,
 		},
 	}
 
@@ -412,25 +503,20 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		params.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, "")
+	if v, ok := d.GetOk("terms_of_service_url"); ok {
+		params.APICreateOrUpdateProperties.TermsOfServiceURL = utils.String(v.(string))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, apiId, params, "")
 	if err != nil {
-		return fmt.Errorf("creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting on creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, serviceName, apiId)
-	if err != nil {
-		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for API %q / Revision %q (API Management Service %q / Resource Group %q)", name, revision, serviceName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 	return resourceApiManagementApiRead(d, meta)
 }
 
@@ -444,33 +530,34 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiid := id.Name
-
-	name := apiid
+	name := id.Name
 	revision := ""
-	if strings.Contains(apiid, ";") {
-		name = strings.Split(apiid, ";")[0]
-		revision = strings.Split(apiid, "=")[1]
+	if strings.Contains(id.Name, ";") {
+		name = strings.Split(id.Name, ";")[0]
+		revision = strings.Split(id.Name, "=")[1]
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiid)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API %q Revision %q (API Management Service %q / Resource Group %q) does not exist - removing from state!", name, revision, serviceName, resourceGroup)
+			log.Printf("[DEBUG] API %q Revision %q (API Management Service %q / Resource Group %q) does not exist - removing from state!", name, revision, id.ServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, id.ServiceName, id.ResourceGroup, err)
 	}
 
-	d.Set("api_management_name", serviceName)
+	d.Set("api_management_name", id.ServiceName)
 	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.APIContractProperties; props != nil {
+		apiType := string(props.APIType)
+		if len(apiType) == 0 {
+			apiType = string(apimanagement.APITypeHTTP)
+		}
+		d.Set("api_type", apiType)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("is_current", props.IsCurrent)
@@ -478,12 +565,15 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("path", props.Path)
 		d.Set("service_url", props.ServiceURL)
 		d.Set("revision", props.APIRevision)
-		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
+		if !features.FourPointOhBeta() {
+			d.Set("soap_pass_through", apiType == string(apimanagement.SoapAPITypeSoapPassThrough))
+		}
 		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 		d.Set("revision_description", props.APIRevisionDescription)
 		d.Set("version_description", props.APIVersionDescription)
+		d.Set("terms_of_service_url", props.TermsOfServiceURL)
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 			return fmt.Errorf("setting `protocols`: %s", err)
@@ -500,6 +590,14 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("openid_authentication", flattenApiManagementOpenIDAuthentication(props.AuthenticationSettings.Openid)); err != nil {
 			return fmt.Errorf("setting `openid_authentication`: %+v", err)
 		}
+
+		if err := d.Set("contact", flattenApiManagementApiContact(props.Contact)); err != nil {
+			return fmt.Errorf("setting `contact`: %+v", err)
+		}
+
+		if err := d.Set("license", flattenApiManagementApiLicense(props.License)); err != nil {
+			return fmt.Errorf("setting `license`: %+v", err)
+		}
 	}
 
 	return nil
@@ -515,21 +613,17 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiid := id.Name
-
-	name := apiid
+	name := id.Name
 	revision := ""
-	if strings.Contains(apiid, ";") {
-		name = strings.Split(apiid, ";")[0]
-		revision = strings.Split(apiid, "=")[1]
+	if strings.Contains(id.Name, ";") {
+		name = strings.Split(id.Name, ";")[0]
+		revision = strings.Split(id.Name, "=")[1]
 	}
 
 	deleteRevisions := utils.Bool(true)
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", deleteRevisions); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, name, "", deleteRevisions); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting API %q / Revision %q (API Management Service %q / Resource Group %q): %s", name, revision, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting API %q / Revision %q (API Management Service %q / Resource Group %q): %s", name, revision, id.ServiceName, id.ResourceGroup, err)
 		}
 	}
 
@@ -671,6 +765,71 @@ func flattenApiManagementOpenIDAuthentication(input *apimanagement.OpenIDAuthent
 		}
 	}
 	result["bearer_token_sending_methods"] = pluginsdk.NewSet(pluginsdk.HashString, bearerTokenSendingMethods)
+
+	return []interface{}{result}
+}
+
+func expandApiManagementApiContact(input []interface{}) *apimanagement.APIContactInformation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &apimanagement.APIContactInformation{
+		Email: utils.String(v["email"].(string)),
+		Name:  utils.String(v["name"].(string)),
+		URL:   utils.String(v["url"].(string)),
+	}
+}
+
+func flattenApiManagementApiContact(contact *apimanagement.APIContactInformation) []interface{} {
+	if contact == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	if contact.Email != nil {
+		result["email"] = *contact.Email
+	}
+
+	if contact.Name != nil {
+		result["name"] = *contact.Name
+	}
+
+	if contact.URL != nil {
+		result["url"] = *contact.URL
+	}
+
+	return []interface{}{result}
+}
+
+func expandApiManagementApiLicense(input []interface{}) *apimanagement.APILicenseInformation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &apimanagement.APILicenseInformation{
+		Name: utils.String(v["name"].(string)),
+		URL:  utils.String(v["url"].(string)),
+	}
+}
+
+func flattenApiManagementApiLicense(license *apimanagement.APILicenseInformation) []interface{} {
+	if license == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	if license.Name != nil {
+		result["name"] = *license.Name
+	}
+
+	if license.URL != nil {
+		result["url"] = *license.URL
+	}
 
 	return []interface{}{result}
 }

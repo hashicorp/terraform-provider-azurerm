@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorMetricAlertResource struct {
-}
+type MonitorMetricAlertResource struct{}
 
 func TestAccMonitorMetricAlert_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
@@ -46,6 +45,21 @@ func TestAccMonitorMetricAlert_requiresImport(t *testing.T) {
 			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_monitor_metric_alert"),
 		},
+	})
+}
+
+func TestAccMonitorMetricAlert_multiCriteria(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiCriteria(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -181,6 +195,13 @@ resource "azurerm_monitor_metric_alert" "test" {
   }
 
   window_size = "PT1H"
+
+  tags = {
+    test      = "123"
+    Example   = "Example123"
+    terraform = "Coolllll"
+    CUSTOMER  = "CUSTOMERx"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -204,6 +225,63 @@ resource "azurerm_monitor_metric_alert" "import" {
   window_size = "PT1H"
 }
 `, r.basic(data))
+}
+
+func (MonitorMetricAlertResource) multiCriteria(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa1%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_metric_alert" "test" {
+  name                = "acctestMetricAlert-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
+  enabled             = true
+  auto_mitigate       = false
+  severity            = 4
+  description         = "This is a complete metric alert acceptance."
+  frequency           = "PT30M"
+  window_size         = "PT12H"
+
+  criteria {
+    metric_namespace       = "Microsoft.Storage/storageAccounts"
+    metric_name            = "Transactions"
+    aggregation            = "Total"
+    operator               = "GreaterThan"
+    threshold              = 99
+    skip_metric_validation = true
+
+    dimension {
+      name     = "GeoType"
+      operator = "Include"
+      values   = ["Primary"]
+    }
+  }
+
+  criteria {
+    metric_namespace = "Microsoft.Storage/storageAccounts"
+    metric_name      = "UsedCapacity"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 55.5
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (MonitorMetricAlertResource) complete(data acceptance.TestData) string {
@@ -265,10 +343,23 @@ resource "azurerm_monitor_metric_alert" "test" {
 
   action {
     action_group_id = azurerm_monitor_action_group.test1.id
+    webhook_properties = {
+      from = "terraform"
+    }
   }
 
   action {
     action_group_id = azurerm_monitor_action_group.test2.id
+  }
+
+  tags = {
+    test          = "456"
+    Example       = "Example456"
+    Terraform     = "Coolllll"
+    tfazurerm     = "Awesome"
+    CUSTOMER      = "CUSTOMERx"
+    "EXAMPLE.TAG" = "sample"
+    "Foo.Bar"     = "Test tag"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -297,7 +388,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal-${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.${count.index}.0/24"
+  address_prefixes     = ["10.0.${count.index}.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -357,9 +448,12 @@ resource "azurerm_monitor_metric_alert" "test" {
     metric_name      = "CPU Credits Consumed"
     aggregation      = "Average"
 
-    operator               = "GreaterOrLessThan"
-    alert_sensitivity      = "Medium"
-    skip_metric_validation = true
+    operator                 = "GreaterOrLessThan"
+    alert_sensitivity        = "Medium"
+    skip_metric_validation   = true
+    evaluation_failure_count = 4
+    evaluation_total_count   = 5
+    ignore_data_before       = "2022-03-02T15:04:05Z"
   }
   window_size              = "PT5M"
   frequency                = "PT5M"

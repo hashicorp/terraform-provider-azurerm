@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type NatGatewayDataSource struct {
-}
+type NatGatewayDataSource struct{}
 
 func TestAccDataSourceatGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_nat_gateway", "test")
@@ -35,8 +34,6 @@ func TestAccDataSourceatGateway_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
 			),

@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NotificationHubResource struct {
-}
+type NotificationHubResource struct{}
 
 func TestAccNotificationHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
@@ -80,17 +79,17 @@ func TestAccNotificationHub_requiresImport(t *testing.T) {
 }
 
 func (NotificationHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NotificationHubID(state.ID)
+	id, err := notificationhubs.ParseNotificationHubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NotificationHubs.HubsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := clients.NotificationHubs.HubsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NotificationHubResource) basic(data acceptance.TestData) string {

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubRouteTableRouteResource struct {
-}
+type VirtualHubRouteTableRouteResource struct{}
 
 func TestAccVirtualHubRouteTableRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route_table_route", "test")
@@ -53,6 +52,7 @@ func TestAccVirtualHubRouteTableRoute_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_virtual_hub_route_table_route.test_2").ExistsInAzure(r),
+				check.That("azurerm_virtual_hub_route_table_route.test_3").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -67,6 +67,7 @@ func TestAccVirtualHubRouteTableRoute_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("destinations.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -74,7 +75,9 @@ func TestAccVirtualHubRouteTableRoute_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("destinations.#").HasValue("2"),
 				check.That("azurerm_virtual_hub_route_table_route.test_2").ExistsInAzure(r),
+				check.That("azurerm_virtual_hub_route_table_route.test_3").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -82,6 +85,7 @@ func TestAccVirtualHubRouteTableRoute_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("destinations.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -215,10 +219,10 @@ func (r VirtualHubRouteTableRouteResource) complete(data acceptance.TestData) st
 resource "azurerm_virtual_hub_route_table_route" "test" {
   route_table_id = azurerm_virtual_hub_route_table.test.id
 
-  name = "acctest-Route-%d-renamed"
+  name = "acctest-Route-%d"
 
   destinations_type = "CIDR"
-  destinations      = ["10.1.0.0/16"]
+  destinations      = ["10.0.0.0/16", "10.1.0.0/16"]
   next_hop_type     = "ResourceId"
   next_hop          = azurerm_virtual_hub_connection.test.id
 }
@@ -226,12 +230,24 @@ resource "azurerm_virtual_hub_route_table_route" "test" {
 resource "azurerm_virtual_hub_route_table_route" "test_2" {
   route_table_id = azurerm_virtual_hub_route_table.test.id
 
-  name = "acctest-Route-%d"
+  name = "acctest-Route-%d-2"
 
   destinations_type = "CIDR"
   destinations      = ["10.2.0.0/16"]
   next_hop_type     = "ResourceId"
   next_hop          = azurerm_virtual_hub_connection.test.id
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+
+// test a route on the default route table
+resource "azurerm_virtual_hub_route_table_route" "test_3" {
+  route_table_id = azurerm_virtual_hub.test.default_route_table_id
+
+  name = "acctest-Route-%d-3"
+
+  destinations_type = "CIDR"
+  destinations      = ["10.3.0.0/16"]
+  next_hop_type     = "ResourceId"
+  next_hop          = azurerm_virtual_hub_connection.test.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

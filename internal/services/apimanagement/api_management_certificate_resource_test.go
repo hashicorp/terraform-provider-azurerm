@@ -6,16 +6,15 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementCertificateResource struct {
-}
+type ApiManagementCertificateResource struct{}
 
 func TestAccApiManagementCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_certificate", "test")
@@ -127,17 +126,14 @@ func TestAccApiManagementCertificate_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.CertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	name := id.Path["certificates"]
 
-	resp, err := clients.ApiManagement.CertificatesClient.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := clients.ApiManagement.CertificatesClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Certificate (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -196,11 +192,11 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = azurerm_api_management.test.identity.0.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 
@@ -246,11 +242,11 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 
@@ -282,7 +278,6 @@ resource "azurerm_key_vault" "test" {
   name                = "acct%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  soft_delete_enabled = true
 
   tenant_id = data.azurerm_client_config.test.tenant_id
 
@@ -295,18 +290,18 @@ resource "azurerm_key_vault_access_policy" "sptest" {
   object_id    = data.azurerm_client_config.test.object_id
 
   secret_permissions = [
-    "delete",
-    "get",
-    "purge",
-    "set",
+    "Delete",
+    "Get",
+    "Purge",
+    "Set",
   ]
 
   certificate_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "import",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Import",
   ]
 }
 

@@ -31,18 +31,18 @@ resource "azurerm_databox_edge_order" "example" {
   device_name         = azurerm_databox_edge_device.example.name
 
   contact {
-    company_name = "Contoso Corporation"
-    name         = "Bart"
-    email_lists  = ["bart@example.com"]
-    phone        = "(800) 867-5309"
+    name         = "TerraForm Test"
+    emails       = ["creator4983@FlynnsArcade.com"]
+    company_name = "Flynn's Arcade"
+    phone_number = "(800) 555-1234"
   }
 
   shipment_address {
-    address     = ["740 Evergreen Terrace"]
-    city        = "Springfield"
+    address     = ["One Microsoft Way"]
+    city        = "Redmond"
+    postal_code = "98052"
+    state       = "WA"
     country     = "United States"
-    postal_code = "97403"
-    state       = "OR"
   }
 }
 ```
@@ -87,7 +87,7 @@ An `shipment_address` block includes the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Databox Edge Order.
 
@@ -119,7 +119,7 @@ A `shipment_tracking` block exports the following:
 
 A `status` block exports the following:
 
- * `info` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
+* `info` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
 
 * `additional_details` - Dictionary to hold generic information which is not stored by the already existing properties.
 
@@ -151,7 +151,7 @@ A `return_tracking` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating a Databox Edge Order.
 * `read` - (Defaults to 5 minutes) Used when retrieving a Databox Edge Order.
@@ -163,5 +163,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Databox Edge Orders can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databoxedge_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/device1/orders/default
+terraform import azurerm_databox_edge_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/device1/orders/default
 ```

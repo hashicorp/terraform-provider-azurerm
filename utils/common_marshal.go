@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 func ExpandStringSlice(input []interface{}) *[]string {
 	result := make([]string, 0)
@@ -46,6 +49,15 @@ func ExpandInt32Slice(input []interface{}) *[]int32 {
 	result := make([]int32, len(input))
 	for i, item := range input {
 		result[i] = int32(item.(int))
+	}
+
+	return &result
+}
+
+func ExpandInt64Slice(input []interface{}) *[]int64 {
+	result := make([]int64, len(input))
+	for i, item := range input {
+		result[i] = int64(item.(int))
 	}
 
 	return &result
@@ -103,11 +115,33 @@ func FlattenInt32Slice(input *[]int32) []interface{} {
 	return result
 }
 
+func FlattenInt64Slice(input *[]int64) []interface{} {
+	result := make([]interface{}, 0)
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
 func ExpandStringSliceWithDelimiter(input []interface{}, delimiter string) *string {
 	result := make([]string, 0)
 	for _, item := range input {
 		if item != nil {
 			result = append(result, item.(string))
+		} else {
+			result = append(result, "")
+		}
+	}
+	return String(strings.Join(result, delimiter))
+}
+
+func ExpandIntSliceWithDelimiter(input []interface{}, delimiter string) *string {
+	result := make([]string, 0)
+	for _, item := range input {
+		if item != nil {
+			result = append(result, strconv.Itoa(item.(int)))
 		} else {
 			result = append(result, "")
 		}

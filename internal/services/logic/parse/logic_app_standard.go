@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type LogicAppStandardId struct {
@@ -39,7 +39,7 @@ func (id LogicAppStandardId) ID() string {
 
 // LogicAppStandardID parses a LogicAppStandard ID into an LogicAppStandardId struct
 func LogicAppStandardID(input string) (*LogicAppStandardId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}

@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func dataSourceSharedImageVersions() *pluginsdk.Resource {
@@ -35,7 +36,7 @@ func dataSourceSharedImageVersions() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"tags_filter": tags.Schema(),
 
@@ -49,7 +50,7 @@ func dataSourceSharedImageVersions() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"managed_image_id": {
 							Type:     pluginsdk.TypeString,
@@ -164,10 +165,7 @@ func flattenSharedImageVersion(input compute.GalleryImageVersion) map[string]int
 	output := make(map[string]interface{})
 
 	output["name"] = input.Name
-
-	if location := input.Location; location != nil {
-		output["location"] = azure.NormalizeLocation(*location)
-	}
+	output["location"] = location.NormalizeNilable(input.Location)
 
 	if props := input.GalleryImageVersionProperties; props != nil {
 		if profile := props.PublishingProfile; profile != nil {

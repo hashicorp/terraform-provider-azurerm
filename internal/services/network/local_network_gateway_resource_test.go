@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LocalNetworkGatewayResource struct {
-}
+type LocalNetworkGatewayResource struct{}
 
 func TestAccLocalNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
@@ -181,7 +180,7 @@ func TestAccLocalNetworkGateway_updateAddressSpace(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.noneAddressSpace(data),
+			Config: r.singleAddressSpace(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -227,36 +226,32 @@ func TestAccLocalNetworkGateway_fqdn(t *testing.T) {
 }
 
 func (t LocalNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LocalNetworkGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	name := id.Path["localNetworkGateways"]
-	resGroup := id.ResourceGroup
 
-	resp, err := clients.Network.LocalNetworkGatewaysClient.Get(ctx, resGroup, name)
+	resp, err := clients.Network.LocalNetworkGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Local Network Gateway (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (LocalNetworkGatewayResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.LocalNetworkGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	name := id.Path["localNetworkGateways"]
-	resGroup := id.ResourceGroup
 
-	future, err := client.Network.LocalNetworkGatewaysClient.Delete(ctx, resGroup, name)
+	future, err := client.Network.LocalNetworkGatewaysClient.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("deleting Local Network Gateway %q: %+v", id, err)
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.LocalNetworkGatewaysClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Local Network Gateway %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for %s : %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -375,7 +370,7 @@ resource "azurerm_local_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (LocalNetworkGatewayResource) noneAddressSpace(data acceptance.TestData) string {
+func (LocalNetworkGatewayResource) singleAddressSpace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -391,6 +386,7 @@ resource "azurerm_local_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
