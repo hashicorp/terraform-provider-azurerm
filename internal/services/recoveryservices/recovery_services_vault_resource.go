@@ -311,18 +311,21 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
 	}
-	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Encryption != nil {
-		if encryption == nil {
-			return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
-		}
-		if encryption.InfrastructureEncryption != existing.Model.Properties.Encryption.InfrastructureEncryption {
-			return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
-		}
-		if d.HasChange("sku") {
-			// Once encryption has been enabled, calling `CreateOrUpdate` without it is not allowed.
-			// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://docs.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
-			// TODO remove this restriction and add `encryption` to below `sku` update block when `encryption` in `CreateOrUpdate` is GA
-			return fmt.Errorf("`sku` cannot be changed when encryption with your own key has been enabled")
+	if existing.Model != nil && existing.Model.Properties != nil {
+		prop := existing.Model.Properties
+		if prop.Encryption != nil {
+			if encryption == nil {
+				return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
+			}
+			if *encryption.InfrastructureEncryption != *prop.Encryption.InfrastructureEncryption {
+				return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
+			}
+			if d.HasChange("sku") {
+				// Once encryption has been enabled, calling `CreateOrUpdate` without it is not allowed.
+				// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://docs.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
+				// TODO remove this restriction and add `encryption` to below `sku` update block when `encryption` in `CreateOrUpdate` is GA
+				return fmt.Errorf("`sku` cannot be changed when encryption with your own key has been enabled")
+			}
 		}
 	}
 
@@ -511,7 +514,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
-		d.Set("immutability", model.Properties.SecuritySettings.ImmutabilitySettings.State)
+		d.Set("immutability", *model.Properties.SecuritySettings.ImmutabilitySettings.State)
 	}
 
 	cfg, err := cfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName)
