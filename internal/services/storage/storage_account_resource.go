@@ -1336,17 +1336,22 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 		shareProperties := expandShareProperties(val.([]interface{}))
+
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
-		if accountTier != string(storage.SkuTierPremium) {
+		if accountTier != string(storage.SkuTierPremium) && shareProperties.FileServicePropertiesProperties.ProtocolSettings != nil {
 
 			// Error if the user has tried to enable multichannel on a standard tier storage account
-			if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
-				if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
-					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
-				}
-			}
+			smb := shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb
+			if smb != nil && smb.Multichannel != nil {
 
-			shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+				if smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
+				}
+
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
 		}
 
 		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
