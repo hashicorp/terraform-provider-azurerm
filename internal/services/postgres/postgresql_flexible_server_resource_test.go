@@ -659,7 +659,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 
-  auth_config {
+  authentication {
     active_directory_auth_enabled = %[3]t
     password_auth_enabled         = %[4]t
    %[5]s

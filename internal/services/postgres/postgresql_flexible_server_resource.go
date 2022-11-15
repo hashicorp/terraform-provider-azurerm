@@ -76,7 +76,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"auth_config": {
+			"authentication": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
@@ -96,7 +96,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
 							RequiredWith: []string{
-								"auth_config.0.active_directory_auth_enabled",
+								"authentication.0.active_directory_auth_enabled",
 							},
 						},
 					},
@@ -349,7 +349,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
 	}
 
-	if authRaw, ok := d.GetOk("auth_config"); ok {
+	if authRaw, ok := d.GetOk("authentication"); ok {
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw)
 	}
 
@@ -439,7 +439,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			if props.AuthConfig != nil {
-				d.Set("auth_config", flattenFlexibleServerAuthConfig(props.AuthConfig))
+				d.Set("authentication", flattenFlexibleServerAuthConfig(props.AuthConfig))
 			}
 		}
 
@@ -517,8 +517,8 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
 	}
 
-	if d.HasChange("auth_config") {
-		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("auth_config"))
+	if d.HasChange("authentication") {
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication"))
 	}
 
 	if d.HasChange("storage_mb") {
