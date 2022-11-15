@@ -37,7 +37,7 @@ resource "azurerm_example_resource" "example" {
 
 ## Separate resource
 
-While inlining might make a lot of sense for most properties, there are also good reasons to seperate it out. These arguments may not be conclusive, but can help steer in the right direction.
+While inlining might make a lot of sense for many APIs, there are also good reasons to separate them out. These arguments may not be conclusive, but can help steer in the right direction.
 
 ### Category 1: the obvious new resource
 - It is a new resource with it's own lifecycle, own API endpoints (at least `Update` and `Delete`), it just feels natural to put it in a separate resource
