@@ -120,9 +120,7 @@ The following arguments are supported:
 * `eventhub_consumer_group_name` - (Required) Specifies the Event Hub consumer group this data connection will use for
   ingestion. Changing this forces a new resource to be created.
 
-* `blob_storage_event_type` - (Optional) Specifies the blob storage event type that needs to be processed. Possible
-  Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults
-  to `Microsoft.Storage.BlobCreated`.
+* `blob_storage_event_type` - (Optional) Specifies the blob storage event type that needs to be processed. Possible Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults to `Microsoft.Storage.BlobCreated`.
 
 * `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`.
 
