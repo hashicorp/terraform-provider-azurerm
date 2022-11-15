@@ -74,7 +74,7 @@ resource "azurerm_kusto_iothub_data_connection" "example" {
   iothub_id                 = azurerm_iothub.example.id
   consumer_group            = azurerm_iothub_consumer_group.example.name
   shared_access_policy_name = azurerm_iothub_shared_access_policy.example.name
-  event_system_properties   = ["message-id", "sequence-number", "to"]
+  event_system_properties   = ["message-id", "to"]
 
   table_name        = "my-table"
   mapping_rule_name = "my-table-mapping"
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `shared_access_policy_name` - (Required) Specifies the IotHub Shared Access Policy this data connection will use for ingestion, which must have read permission. Changing this forces a new resource to be created.
 
-* `event_system_properties` - (Optional) Specifies the System Properties that each IoT Hub message should contain. Changing this forces a new resource to be created.
+* `event_system_properties` - (Optional) Specifies the System Properties that each IoT Hub message should contain. Supported Values are `content-type`, `content-encoding`, `dt-dataschema`, `dt-subject`, `iothub-connection-auth-generation-id`, `iothub-connection-auth-method`, `iothub-connection-device-id`, `iothub-connection-module-id`, `iothub-creation-time-utc`, `iothub-enqueuedtime`, `message-id`, `to`, `user-id`, Changing this forces a new resource to be created.
 
 * `table_name` - (Optional) Specifies the target table name used for the message ingestion. Table must exist before resource is created.
 
