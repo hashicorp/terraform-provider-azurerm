@@ -1,8 +1,8 @@
-# Guide: When to choose for an inline property (block) versus a new resource
+# Guide: When to inline new functionality (as either a block or property) versus a new resource
 
-Sometimes it might be a bit unclear whether it is necessary to create a new resource versus to add a new property or property block to an existing resource.
+Sometimes when implementing new functionality it can be a bit unclear whether it is necessary to create a new resource versus to add a new property or block to an existing resource. 
 
-To get a bit of insight in how the decission will be made, this are some rules of thumb to decide. In case it is unclear, please contact one of the HashiCorp Maintainers.
+To get a bit of insight in how a decision can be made, this are some rules of thumb to decide. In case it is unclear, please contact one of the HashiCorp Maintainers.
 
 ## Inline
 Most extra functionality will end up inline an existing resource. 
