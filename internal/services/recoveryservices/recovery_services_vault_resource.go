@@ -91,6 +91,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+			// set `immutability` to Computed, because it will start to return from the service once it has been set.
 			"immutability": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -618,7 +619,7 @@ func flattenVaultEncryption(model vaults.Vault) interface{} {
 }
 
 func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.SecuritySettings {
-	if input == nil {
+	if input == nil || len(input.(string)) == 0 {
 		return nil
 	}
 	immutabilityState := vaults.ImmutabilityState(input.(string))

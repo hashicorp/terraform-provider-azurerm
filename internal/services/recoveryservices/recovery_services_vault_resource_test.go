@@ -206,7 +206,13 @@ func TestAccRecoveryServicesVault_immutability(t *testing.T) {
 			Config: r.basicWithImmutability(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("immutability.0.state").HasValue("Unlocked"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -214,7 +220,6 @@ func TestAccRecoveryServicesVault_immutability(t *testing.T) {
 			Config: r.basicWithImmutability(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("immutability.0.state").HasValue("Disabled"),
 			),
 		},
 		data.ImportStep(),
