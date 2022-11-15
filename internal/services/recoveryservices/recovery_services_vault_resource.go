@@ -459,6 +459,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
+	// tracked by https://github.com/Azure/azure-rest-api-specs/issues/21548
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   StateRefreshPendingStrings,
 		Target:                    StateRefreshTargetStrings,
