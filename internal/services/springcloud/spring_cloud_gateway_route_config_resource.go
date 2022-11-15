@@ -75,6 +75,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"order": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+
 						"description": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -88,11 +93,6 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-						},
-
-						"order": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
 						},
 
 						"predicates": {
