@@ -5,9 +5,9 @@ Sometimes when implementing new functionality it can be a bit unclear whether it
 To get a bit of insight in how a decision can be made, this are some rules of thumb to decide. In case it is unclear, please contact one of the HashiCorp Maintainers.
 
 ## Inline
-Most extra functionality will end up inline an existing resource. 
+Most additional functionality will end up inline an existing resource. 
 
-Properties to enable or disable functionality, define the resource functionality or configure details on a resource are most of the time inlined. Relations between resources with clearly separate concern (i.e. which VNet a K8s cluster will land in) are most of the time inlined.
+APIs to enable or disable functionality, define the resource functionality or configure details on a resource are most of the time inlined. Relations between resources with clearly separate concern (i.e. which VNet a K8s cluster will land in) are most of the time inlined.
 
 A few categories of inlined functionality with possible motivations to inline are summed up below.
 
