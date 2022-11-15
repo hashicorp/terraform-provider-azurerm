@@ -168,6 +168,30 @@ func TestAccRecoveryServicesVault_identity(t *testing.T) {
 	})
 }
 
+func TestAccRecoveryServicesVault_immutability(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithImmutability(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("immutability.0.state").HasValue("Unlocked"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithImmutability(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("immutability.0.state").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccRecoveryServicesVault_softDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
@@ -497,6 +521,34 @@ resource "azurerm_recovery_services_vault" "test" {
   soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) basicWithImmutability(data acceptance.TestData, enabled bool) string {
+	immutability := `Disabled`
+	if enabled {
+		immutability = `Unlocked`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  immutability        = "%s"
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, immutability)
 }
 
 func (RecoveryServicesVaultResource) complete(data acceptance.TestData) string {

@@ -92,6 +92,17 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			// TODO: the API for this also supports UserAssigned & SystemAssigned, UserAssigned
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
+			"immutability": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(vaults.ImmutabilityStateLocked),
+					string(vaults.ImmutabilityStateUnlocked),
+					string(vaults.ImmutabilityStateDisabled),
+				}, false),
+			},
+
 			"tags": commonschema.Tags(),
 
 			"sku": {
@@ -178,6 +189,10 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if vaults.SkuName(sku) == vaults.SkuNameRSZero {
 		vault.Sku.Tier = utils.String("Standard")
+	}
+
+	if immutability, ok := d.GetOk("immutability"); ok {
+		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
@@ -399,22 +414,24 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	vault := vaults.PatchVault{}
+	vault := vaults.PatchVault{
+		Properties: &vaults.VaultProperties{},
+	}
 
 	if d.HasChange("identity") {
 		vault.Identity = expandedIdentity
 	}
 
 	if d.HasChange("encryption") {
-		if vault.Properties == nil {
-			vault.Properties = &vaults.VaultProperties{}
-		}
-
 		vault.Properties.Encryption = encryption
 	}
 
 	if d.HasChange("tags") {
 		vault.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("immutability") {
+		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(d.Get("immutability"))
 	}
 
 	err = client.UpdateThenPoll(ctx, id, vault)
@@ -491,6 +508,10 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	if sku := model.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
+	}
+
+	if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
+		d.Set("immutability", model.Properties.SecuritySettings.ImmutabilitySettings.State)
 	}
 
 	cfg, err := cfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName)
@@ -595,4 +616,16 @@ func flattenVaultEncryption(model vaults.Vault) interface{} {
 	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
 	encryptionMap["infrastructure_encryption_enabled"] = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
 	return encryptionMap
+}
+
+func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.SecuritySettings {
+	if input == nil {
+		return nil
+	}
+	immutabilityState := vaults.ImmutabilityState(input.(string))
+	return &vaults.SecuritySettings{
+		ImmutabilitySettings: &vaults.ImmutabilitySettings{
+			State: &immutabilityState,
+		},
+	}
 }
