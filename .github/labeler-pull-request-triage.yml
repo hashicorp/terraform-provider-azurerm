@@ -153,6 +153,9 @@ service/key-vault:
 service/kusto:
   - internal/services/kusto/**/*
 
+service/labservice:
+  - internal/services/labservice/**/*
+
 service/lighthouse:
   - internal/services/lighthouse/**/*
 
