@@ -171,7 +171,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			applicationinsights.Registration{},
 			attestation.Registration{},
 			authorization.Registration{},
-			automanage.Registration{},
 			automation.Registration{},
 			azurestackhci.Registration{},
 			batch.Registration{},
