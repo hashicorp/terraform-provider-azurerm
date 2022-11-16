@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible values are `MemoryOptimized` and `None`.
 
-* `node_size` - (Required) The level of node in the Spark Pool. Possible value is `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
+* `node_size` - (Required) The level of node in the Spark Pool. Possible values are `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
 
 * `node_count` - (Optional) The number of nodes in the Spark Pool. Exactly one of `node_count` or `auto_scale` must be specified.
 
