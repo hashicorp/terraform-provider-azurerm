@@ -80,6 +80,12 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"federated_client_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 			"tags": commonschema.Tags(),
@@ -144,6 +150,10 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags:     tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("federated_client_id"); ok {
+		params.Properties.FederatedClientId = utils.String(v.(string))
+	}
+
 	if keyVaultDetails != nil {
 		params.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
 			Id: utils.String(keyVaultDetails.keyVaultId),
@@ -205,6 +215,12 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			encryptionType = string(*props.EncryptionType)
 		}
 		d.Set("encryption_type", encryptionType)
+
+		federatedClientId := ""
+		if props.FederatedClientId != nil {
+			federatedClientId = *props.FederatedClientId
+		}
+		d.Set("federated_client_id", federatedClientId)
 	}
 
 	flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
@@ -271,6 +287,18 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		update.Properties.RotationToLatestKeyVersionEnabled = utils.Bool(d.Get("auto_key_rotation_enabled").(bool))
+	}
+
+	if d.HasChange("federated_client_id") {
+		if update.Properties == nil {
+			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{}
+		}
+		v, ok := d.GetOk("federated_client_id")
+		if ok {
+			update.Properties.FederatedClientId = utils.String(v.(string))
+		} else {
+			update.Properties.FederatedClientId = utils.String("None") // this is the only way to remove the federated client id
+		}
 	}
 
 	err = client.UpdateThenPoll(ctx, *id, update)
