@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
@@ -49,14 +50,10 @@ func resourceAutomanageConfigurationProfile() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"configuration_json": {
-				Type:     pluginsdk.TypeString,
-				ForceNew: true,
-				Required: true,
-			},
-
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
+				Required:     true,
+				ValidateFunc: validation.StringIsJSON,
 			},
 
 			"tags": tags.Schema(),
@@ -77,7 +74,7 @@ func resourceAutomanageConfigurationProfileCreate(d *pluginsdk.ResourceData, met
 	existing, err := client.Get(ctx, name, resourceGroup)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing Automanage ConfigurationProfile %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
@@ -97,7 +94,7 @@ func resourceAutomanageConfigurationProfileCreate(d *pluginsdk.ResourceData, met
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if _, err := client.CreateOrUpdate(ctx, name, resourceGroup, parameters); err != nil {
-		return fmt.Errorf("creating Automanage ConfigurationProfile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id)
@@ -121,7 +118,7 @@ func resourceAutomanageConfigurationProfileRead(d *pluginsdk.ResourceData, meta 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfile %q (Resource Group %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.ConfigurationProfileName)
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -136,7 +133,6 @@ func resourceAutomanageConfigurationProfileRead(d *pluginsdk.ResourceData, meta 
 			d.Set("configuration_json", configurationStr)
 		}
 	}
-	d.Set("type", resp.Type)
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -151,13 +147,13 @@ func resourceAutomanageConfigurationProfileUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	parameters := automanage.ConfigurationProfileUpdate{}
-	// PATCH update only support tags
+
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if _, err := client.Update(ctx, id.ConfigurationProfileName, id.ResourceGroup, parameters); err != nil {
-		return fmt.Errorf("updating Automanage ConfigurationProfile %q (Resource Group %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 	return resourceAutomanageConfigurationProfileRead(d, meta)
 }
@@ -173,7 +169,7 @@ func resourceAutomanageConfigurationProfileDelete(d *pluginsdk.ResourceData, met
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileName); err != nil {
-		return fmt.Errorf("deleting Automanage ConfigurationProfile %q (Resource Group %q): %+v", id.ConfigurationProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }

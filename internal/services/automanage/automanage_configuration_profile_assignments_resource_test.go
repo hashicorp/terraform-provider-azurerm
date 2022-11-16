@@ -54,7 +54,7 @@ func (r AutomanageConfigurationProfileAssignmentResource) Exists(ctx context.Con
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }

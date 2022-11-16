@@ -17,9 +17,9 @@ import (
 
 func resourceAutomanageConfigurationProfileAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomanageConfigurationProfileAssignmentCreateUpdate,
+		Create: resourceAutomanageConfigurationProfileAssignmentCreate,
 		Read:   resourceAutomanageConfigurationProfileAssignmentRead,
-		Update: resourceAutomanageConfigurationProfileAssignmentCreateUpdate,
+		Update: resourceAutomanageConfigurationProfileAssignmentUpdate,
 		Delete: resourceAutomanageConfigurationProfileAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -54,24 +54,14 @@ func resourceAutomanageConfigurationProfileAssignment() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"managed_by": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"target_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
-func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileAssignmentClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -86,8 +76,8 @@ func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *pluginsdk.R
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, vmName)
 		if err != nil {
-			if !response.WasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", name, resourceGroup, vmName, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -101,7 +91,34 @@ func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *pluginsdk.R
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, name, parameters, resourceGroup, vmName); err != nil {
-		return fmt.Errorf("creating/updating Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", name, resourceGroup, vmName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id)
+	return resourceAutomanageConfigurationProfileAssignmentRead(d, meta)
+}
+
+func resourceAutomanageConfigurationProfileAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Automanage.ConfigurationProfileAssignmentClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	vmName := d.Get("vm_name").(string)
+
+	id := parse.NewAutomanageConfigurationProfileAssignmentID(subscriptionId, resourceGroup, vmName, name).ID()
+
+	if d.HasChange("configuration_profile_id") {
+		parameters := automanage.ConfigurationProfileAssignment{
+			Properties: &automanage.ConfigurationProfileAssignmentProperties{
+				ConfigurationProfile: utils.String(d.Get("configuration_profile_id").(string)),
+			},
+		}
+		if _, err := client.CreateOrUpdate(ctx, name, parameters, resourceGroup, vmName); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id)
@@ -125,7 +142,7 @@ func resourceAutomanageConfigurationProfileAssignmentRead(d *pluginsdk.ResourceD
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.ConfigurationProfileAssignmentName)
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -134,8 +151,6 @@ func resourceAutomanageConfigurationProfileAssignmentRead(d *pluginsdk.ResourceD
 		d.Set("configuration_profile_id", props.ConfigurationProfile)
 		d.Set("target_id", props.TargetID)
 	}
-	d.Set("managed_by", resp.ManagedBy)
-	d.Set("type", resp.Type)
 	return nil
 }
 
@@ -150,7 +165,7 @@ func resourceAutomanageConfigurationProfileAssignmentDelete(d *pluginsdk.Resourc
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileAssignmentName, id.VirtualMachineName); err != nil {
-		return fmt.Errorf("deleting Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return nil
 }
