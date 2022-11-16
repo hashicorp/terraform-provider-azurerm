@@ -13,10 +13,9 @@ import (
 //
 // Example Usage:
 //
-//	type Person struct {
-//		 Name string `tfschema:"name"
-//	}
-//
+// type Person struct {
+//	 Name string `tfschema:"name"
+// }
 // var person Person
 // if err := metadata.Decode(&person); err != nil { .. }
 func (rmd ResourceMetaData) Decode(input interface{}) error {
