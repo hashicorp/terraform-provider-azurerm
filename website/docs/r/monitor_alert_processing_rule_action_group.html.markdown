@@ -244,7 +244,7 @@ A `target_resource_type` block supports the following:
 
 A `weekly` block supports the following:
 
-* `days_of_week` - (Required) Specifies a list of dayOfWeek to recurrence.Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, and  `Saturday`.
+* `days_of_week` - (Required) Specifies a list of dayOfWeek to recurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, and  `Saturday`.
 
 * `start_time` - (Optional) Specifies the recurrence start time (H:M:S).
 

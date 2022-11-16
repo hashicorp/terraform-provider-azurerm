@@ -78,7 +78,7 @@ The following arguments are supported:
 
 An `identity` block exports the following:
 
-* `type` - The type of Managed Service Identity that is configured on this Workbook.
+* `type` - The type of Managed Service Identity that is configured on this Workbook. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`.
 
 * `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Workbook.
 
