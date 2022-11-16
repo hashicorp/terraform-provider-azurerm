@@ -156,7 +156,7 @@ The `match_conditions` block supports the following:
 
 The `match_variables` block supports the following:
 
-* `variable_name` - (Required) The name of the Match VariablePossible values are `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestUri`, `RequestHeaders`, `RequestBody` and `RequestCookies`.
+* `variable_name` - (Required) The name of the Match Variable. Possible values are `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestUri`, `RequestHeaders`, `RequestBody` and `RequestCookies`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection
 
