@@ -132,7 +132,7 @@ The `custom_rules` block supports the following:
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
 
-* `rule_type` - (Required) Describes the type of rule.Possible values are `MatchRule` and `Invalid`.
+* `rule_type` - (Required) Describes the type of rule. Possible values are `MatchRule` and `Invalid`.
 
 * `match_conditions` - (Required) One or more `match_conditions` blocks as defined below.
 
