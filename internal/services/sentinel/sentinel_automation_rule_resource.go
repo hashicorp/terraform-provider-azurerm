@@ -1,6 +1,7 @@
 package sentinel
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -22,6 +24,272 @@ import (
 )
 
 func resourceSentinelAutomationRule() *pluginsdk.Resource {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"log_analytics_workspace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
+		},
+
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"order": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		},
+
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"triggers_on": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(securityinsight.TriggersOnIncidents),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(securityinsight.TriggersOnIncidents),
+				string(securityinsight.TriggersOnAlerts),
+			}, false),
+		},
+
+		"triggers_when": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(securityinsight.TriggersWhenCreated),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(securityinsight.TriggersWhenCreated),
+				string(securityinsight.TriggersWhenUpdated),
+			}, false),
+		},
+
+		"expiration": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: suppress.RFC3339Time,
+			ValidateFunc:     validation.IsRFC3339Time,
+		},
+
+		"condition_json": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// We can't use the pluginsdk.SuppressJsonDiff here as the "condition_json" is always an array, while that function assume its input is an object.
+			// Once https://github.com/hashicorp/terraform-plugin-sdk/pull/1102 is merged, we can switch to pluginsdk.SuppressJsonDiff.
+			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+				return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+			},
+			ValidateFunc: validation.StringIsJSON,
+		},
+
+		"action_incident": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"order": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"status": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(securityinsight.IncidentStatusActive),
+							string(securityinsight.IncidentStatusClosed),
+							string(securityinsight.IncidentStatusNew),
+						}, false),
+					},
+
+					"classification": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(securityinsight.IncidentClassificationUndetermined),
+							string(securityinsight.IncidentClassificationBenignPositive) + "_" + string(securityinsight.IncidentClassificationReasonSuspiciousButExpected),
+							string(securityinsight.IncidentClassificationFalsePositive) + "_" + string(securityinsight.IncidentClassificationReasonIncorrectAlertLogic),
+							string(securityinsight.IncidentClassificationFalsePositive) + "_" + string(securityinsight.IncidentClassificationReasonInaccurateData),
+							string(securityinsight.IncidentClassificationTruePositive) + "_" + string(securityinsight.IncidentClassificationReasonSuspiciousActivity),
+						}, false),
+					},
+
+					"classification_comment": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"labels": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"owner_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"severity": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(securityinsight.IncidentSeverityHigh),
+							string(securityinsight.IncidentSeverityInformational),
+							string(securityinsight.IncidentSeverityLow),
+							string(securityinsight.IncidentSeverityMedium),
+						}, false),
+					},
+				},
+			},
+			AtLeastOneOf: []string{"action_incident", "action_playbook"},
+		},
+
+		"action_playbook": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"order": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"logic_app_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+
+					"tenant_id": {
+						Type: pluginsdk.TypeString,
+						// We'll use the current tenant id if this property is absent.
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+			AtLeastOneOf: []string{"action_incident", "action_playbook"},
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		schema["condition"] = &pluginsdk.Schema{
+			Deprecated: "This is deprecated in favor of `condition_json`",
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"property": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountAadTenantID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountAadUserID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountNTDomain),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountObjectGUID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountPUID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountSid),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountUPNSuffix),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAzureResourceResourceID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAzureResourceSubscriptionID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyDNSDomainName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyFileDirectory),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyFileHashValue),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyFileName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostAzureID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostNTDomain),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostNetBiosName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostOSVersion),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIPAddress),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentDescription),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentProviderName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentRelatedAnalyticRuleIds),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentSeverity),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentStatus),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentTactics),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentTitle),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceModel),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceOperatingSystem),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceType),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceVendor),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryAction),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryLocation),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageP1Sender),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageP2Sender),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageRecipient),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageSenderIP),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageSubject),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailboxUPN),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMalwareCategory),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMalwareName),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyProcessCommandLine),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyProcessID),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyRegistryKey),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyRegistryValueData),
+							string(securityinsight.AutomationRulePropertyConditionSupportedPropertyURL),
+						}, false),
+					},
+
+					"operator": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorContains),
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorEndsWith),
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorEquals),
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotContains),
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotEndsWith),
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotEquals),
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotStartsWith),
+							string(securityinsight.AutomationRulePropertyConditionSupportedOperatorStartsWith),
+						}, false),
+					},
+
+					"values": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+			ConflictsWith: []string{"condition_json"},
+		}
+		schema["condition_json"].Computed = true
+		schema["condition_json"].ConflictsWith = []string{"condition"}
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceSentinelAutomationRuleCreateUpdate,
 		Read:   resourceSentinelAutomationRuleRead,
@@ -40,253 +308,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
-			"log_analytics_workspace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: workspaces.ValidateWorkspaceID,
-			},
-
-			"display_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"order": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 1000),
-			},
-
-			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"triggers_on": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(securityinsight.TriggersOnIncidents),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityinsight.TriggersOnIncidents),
-					string(securityinsight.TriggersOnAlerts),
-				}, false),
-			},
-
-			"triggers_when": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(securityinsight.TriggersWhenCreated),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityinsight.TriggersWhenCreated),
-					string(securityinsight.TriggersWhenUpdated),
-				}, false),
-			},
-
-			"expiration": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validation.IsRFC3339Time,
-			},
-
-			"condition": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"property": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountAadTenantID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountAadUserID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountNTDomain),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountObjectGUID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountPUID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountSid),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAccountUPNSuffix),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAzureResourceResourceID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyAzureResourceSubscriptionID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyDNSDomainName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyFileDirectory),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyFileHashValue),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyFileName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostAzureID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostNTDomain),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostNetBiosName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyHostOSVersion),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIPAddress),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentDescription),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentProviderName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentRelatedAnalyticRuleIds),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentSeverity),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentStatus),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentTactics),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIncidentTitle),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceModel),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceOperatingSystem),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceType),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyIoTDeviceVendor),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryAction),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryLocation),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageP1Sender),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageP2Sender),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageRecipient),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageSenderIP),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailMessageSubject),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMailboxUPN),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMalwareCategory),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyMalwareName),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyProcessCommandLine),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyProcessID),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyRegistryKey),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyRegistryValueData),
-								string(securityinsight.AutomationRulePropertyConditionSupportedPropertyURL),
-							}, false),
-						},
-
-						"operator": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorContains),
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorEndsWith),
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorEquals),
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotContains),
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotEndsWith),
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotEquals),
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorNotStartsWith),
-								string(securityinsight.AutomationRulePropertyConditionSupportedOperatorStartsWith),
-							}, false),
-						},
-
-						"values": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-					},
-				},
-			},
-
-			"action_incident": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"order": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntAtLeast(0),
-						},
-
-						"status": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(securityinsight.IncidentStatusActive),
-								string(securityinsight.IncidentStatusClosed),
-								string(securityinsight.IncidentStatusNew),
-							}, false),
-						},
-
-						"classification": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(securityinsight.IncidentClassificationUndetermined),
-								string(securityinsight.IncidentClassificationBenignPositive) + "_" + string(securityinsight.IncidentClassificationReasonSuspiciousButExpected),
-								string(securityinsight.IncidentClassificationFalsePositive) + "_" + string(securityinsight.IncidentClassificationReasonIncorrectAlertLogic),
-								string(securityinsight.IncidentClassificationFalsePositive) + "_" + string(securityinsight.IncidentClassificationReasonInaccurateData),
-								string(securityinsight.IncidentClassificationTruePositive) + "_" + string(securityinsight.IncidentClassificationReasonSuspiciousActivity),
-							}, false),
-						},
-
-						"classification_comment": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"labels": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-
-						"owner_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"severity": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(securityinsight.IncidentSeverityHigh),
-								string(securityinsight.IncidentSeverityInformational),
-								string(securityinsight.IncidentSeverityLow),
-								string(securityinsight.IncidentSeverityMedium),
-							}, false),
-						},
-					},
-				},
-				AtLeastOneOf: []string{"action_incident", "action_playbook"},
-			},
-
-			"action_playbook": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"order": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntAtLeast(0),
-						},
-
-						"logic_app_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-
-						"tenant_id": {
-							Type: pluginsdk.TypeString,
-							// We'll use the current tenant id if this property is absent.
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-					},
-				},
-				AtLeastOneOf: []string{"action_incident", "action_playbook"},
-			},
-		},
+		Schema: schema,
 	}
 }
 
@@ -332,6 +354,18 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			},
 			Actions: actions,
 		},
+	}
+
+	if v, ok := d.GetOk("condition_json"); ok {
+		conditions, err := expandAutomationRuleConditionsFromJSON(v.(string))
+		if err != nil {
+			return fmt.Errorf("expanding `condition_json`: %v", err)
+		}
+		params.AutomationRuleProperties.TriggeringLogic.Conditions = conditions
+	} else {
+		if !features.FourPointOhBeta() {
+			params.AutomationRuleProperties.TriggeringLogic.Conditions = expandAutomationRuleConditions(d.Get("condition").([]interface{}))
+		}
 	}
 
 	if expiration := d.Get("expiration").(string); expiration != "" {
@@ -397,9 +431,17 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			d.Set("expiration", expiration)
 
-			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
-				return fmt.Errorf("setting `condition`: %v", err)
+			if !features.FourPointOhBeta() {
+				if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
+					return fmt.Errorf("setting `condition`: %v", err)
+				}
 			}
+
+			conditionJSON, err := flattenAutomationRuleConditionsToJSON(tl.Conditions)
+			if err != nil {
+				return fmt.Errorf("flattening `condition_json`: %v", err)
+			}
+			d.Set("condition_json", conditionJSON)
 		}
 
 		actionIncident, actionPlaybook := flattenAutomationRuleActions(prop.Actions)
@@ -462,7 +504,11 @@ func flattenAutomationRuleConditions(conditions *[]securityinsight.BasicAutomati
 
 	out := make([]interface{}, 0, len(*conditions))
 	for _, condition := range *conditions {
-		condition := condition.(securityinsight.PropertyConditionProperties)
+		// "condition" only applies to the Property condition
+		condition, ok := condition.(securityinsight.PropertyConditionProperties)
+		if !ok {
+			continue
+		}
 
 		var (
 			property string
@@ -482,6 +528,26 @@ func flattenAutomationRuleConditions(conditions *[]securityinsight.BasicAutomati
 		})
 	}
 	return out
+}
+
+func expandAutomationRuleConditionsFromJSON(input string) (*[]securityinsight.BasicAutomationRuleCondition, error) {
+	if input == "" {
+		return nil, nil
+	}
+	triggerLogic := &securityinsight.AutomationRuleTriggeringLogic{}
+	err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input)))
+	if err != nil {
+		return nil, err
+	}
+	return triggerLogic.Conditions, nil
+}
+
+func flattenAutomationRuleConditionsToJSON(input *[]securityinsight.BasicAutomationRuleCondition) (string, error) {
+	if input == nil {
+		return "", nil
+	}
+	result, err := json.Marshal(input)
+	return string(result), err
 }
 
 func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId string) (*[]securityinsight.BasicAutomationRuleAction, error) {
