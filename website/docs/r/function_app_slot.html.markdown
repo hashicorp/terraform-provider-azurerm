@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) A `connection_string` block as defined below.
 
-* `os_type` - (Optional) A string indicating the Operating System type for this function app.
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. The only possible value is `linux`.
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default).
 

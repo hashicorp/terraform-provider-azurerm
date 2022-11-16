@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `profile_status` - (Optional) The status of the profile, can be set to either `Enabled` or `Disabled`. Defaults to `Enabled`.
 
-* `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic, possible values are:
+* `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic. Possible values are `Geographic`, `Weighted`, `Performance`, `Priority`, `Subnet` and `MultiValue`.
   * `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
   * `MultiValue` - All healthy Endpoints are returned.  MultiValue routing method works only if all the endpoints of type ‘External’ and are specified as IPv4 or IPv6 addresses.
   * `Performance` - Traffic is routed via the User's closest Endpoint
