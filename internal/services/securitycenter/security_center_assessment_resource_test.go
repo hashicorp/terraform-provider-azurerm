@@ -27,6 +27,10 @@ func TestAccSecurityCenterAssessment_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			// reset pricing to free
+			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
+		},
 	})
 }
 
@@ -42,6 +46,10 @@ func TestAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			// reset pricing to free
+			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
+		},
 	})
 }
 
@@ -57,6 +65,10 @@ func TestAccSecurityCenterAssessment_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			// reset pricing to free
+			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
+		},
 	})
 }
 
@@ -86,6 +98,10 @@ func TestAccSecurityCenterAssessment_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			// reset pricing to free
+			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
+		},
 	})
 }
 
@@ -218,6 +234,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "VirtualMachines"
+  subplan       = "P2"
 }
 
 resource "azurerm_security_center_assessment_policy" "test" {
