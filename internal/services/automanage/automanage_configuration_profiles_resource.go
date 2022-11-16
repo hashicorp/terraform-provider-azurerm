@@ -2,7 +2,6 @@ package automanage
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"log"
 	"time"
 
