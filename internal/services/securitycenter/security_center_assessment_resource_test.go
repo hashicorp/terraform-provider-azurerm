@@ -220,6 +220,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "VirtualMachines"
+}
+
 resource "azurerm_security_center_assessment_policy" "test" {
   display_name = "Test Display Name"
   severity     = "Medium"
