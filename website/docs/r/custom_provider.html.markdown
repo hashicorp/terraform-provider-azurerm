@@ -56,7 +56,7 @@ A `resource_type` block supports the following:
 
 * `endpoint` - (Required) Specifies the endpoint of the route definition.
 
-* `routing_type` - (Optional) The routing type that is supported for the resource request. Valid values are `ResourceTypeRoutingProxy` or `ResourceTypeRoutingProxyCache`. This value defaults to `ResourceTypeRoutingProxy`.
+* `routing_type` - (Optional) The routing type that is supported for the resource request. Valid values are `Proxy` and `Proxy,Cache`. This value defaults to `ResourceTypeRoutingProxy`.
 
 ---
 

@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `sql_pool_id` - (Required) Specifies the ID of the Synapse SQL Pool. Changing this forces a new resource to be created.
 
-* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific SQL pool. Allowed values are: `Disabled`, `Enabled`.
+* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific SQL pool. Possible values are `Disabled`, `Enabled` and `New`.
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
