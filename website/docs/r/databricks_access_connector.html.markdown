@@ -8,8 +8,6 @@ description: |-
 
 # azurerm_databricks_access_connector
 
-~> **NOTE:** Databricks Access Connectors are in Public Preview and potentially subject to breaking change without notice.
-
 Manages a Databricks Access Connector
 
 ## Example Usage
