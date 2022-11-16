@@ -146,7 +146,7 @@ The `match_conditions` block supports the following:
 
 * `match_values` - (Required) A list of match values.
 
-* `operator` - (Required) Describes operator to be matched.Possible values are `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith`, `EndsWith` and `Regex`.
+* `operator` - (Required) Describes operator to be matched. Possible values are `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith`, `EndsWith` and `Regex`.
 
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
