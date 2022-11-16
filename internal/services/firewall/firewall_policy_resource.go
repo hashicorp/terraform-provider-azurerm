@@ -83,6 +83,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
 			TransportSecurity:    expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
 			Insights:             expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
+			ExplicitProxy:        expandFirewallPolicyExplicitProxy(d.Get("explicit_proxy").([]interface{})),
 		},
 		Identity: expandedIdentity,
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -109,6 +110,13 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{
 			PrivateRanges: privateIPRanges,
 		}
+	}
+
+	if v, ok := d.GetOk("auto_learn_private_ranges_mode"); ok {
+		if props.FirewallPolicyPropertiesFormat.Snat == nil {
+			props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{}
+		}
+		props.FirewallPolicyPropertiesFormat.Snat.AutoLearnPrivateRanges = network.AutoLearnPrivateRangesMode(v.(string))
 	}
 
 	locks.ByName(id.Name, azureFirewallPolicyResourceName)
@@ -201,8 +209,17 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 		}
 
+		if err := d.Set("auto_learn_private_ranges_mode", prop.Snat.AutoLearnPrivateRanges); err != nil {
+			return fmt.Errorf("setting `auto_learn_private_ranges_mode`: %+v", err)
+		}
+
 		if err := d.Set("insights", flattenFirewallPolicyInsights(prop.Insights)); err != nil {
 			return fmt.Errorf(`setting "insights": %+v`, err)
+		}
+
+		proxySettings := flattenFirewallPolicyExplicitProxy(prop.ExplicitProxy)
+		if err := d.Set("explicit_proxy", proxySettings); err != nil {
+			return fmt.Errorf("setting `explicit_proxy`: %+v", err)
 		}
 
 		if prop.SQL != nil && prop.SQL.AllowSQLRedirect != nil {
@@ -376,6 +393,31 @@ func expandFirewallPolicyInsights(input []interface{}) *network.FirewallPolicyIn
 		IsEnabled:             utils.Bool(raw["enabled"].(bool)),
 		RetentionDays:         utils.Int32(int32(raw["retention_in_days"].(int))),
 		LogAnalyticsResources: expandFirewallPolicyLogAnalyticsResources(raw["default_log_analytics_workspace_id"].(string), raw["log_analytics_workspace"].([]interface{})),
+	}
+
+	return output
+}
+
+func expandFirewallPolicyExplicitProxy(input []interface{}) *network.ExplicitProxy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	if raw == nil {
+		return nil
+	}
+
+	output := &network.ExplicitProxy{
+		EnableExplicitProxy: utils.Bool(raw["enabled"].(bool)),
+		HTTPPort:            utils.Int32(int32(raw["http_port"].(int))),
+		HTTPSPort:           utils.Int32(int32(raw["https_port"].(int))),
+		PacFilePort:         utils.Int32(int32(raw["pac_file_port"].(int))),
+		PacFile:             utils.String(raw["pac_file"].(string)),
+	}
+
+	if val, ok := raw["enable_pac_file"]; ok {
+		output.EnablePacFile = utils.Bool(val.(bool))
 	}
 
 	return output
@@ -587,6 +629,21 @@ func flattenFirewallPolicyInsights(input *network.FirewallPolicyInsights) []inte
 			"log_analytics_workspace":            logAnalyticsWorkspaces,
 		},
 	}
+}
+
+func flattenFirewallPolicyExplicitProxy(input *network.ExplicitProxy) (result []interface{}) {
+	if input == nil {
+		return
+	}
+	output := map[string]interface{}{
+		"enabled":         input.EnableExplicitProxy,
+		"http_port":       input.HTTPPort,
+		"https_port":      input.HTTPSPort,
+		"enable_pac_file": input.EnablePacFile,
+		"pac_file_port":   input.PacFilePort,
+		"pac_file":        input.PacFile,
+	}
+	return []interface{}{output}
 }
 
 func flattenFirewallPolicyLogAnalyticsResources(input *network.FirewallPolicyLogAnalyticsResources) (string, []interface{}) {
@@ -883,6 +940,44 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"explicit_proxy": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"http_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 35536),
+					},
+					"https_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 35536),
+					},
+					"enable_pac_file": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"pac_file_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 35536),
+					},
+					"pac_file": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
 		"sql_redirect_allowed": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -923,6 +1018,15 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					validation.IsIPv4Address,
 				),
 			},
+		},
+
+		"auto_learn_private_ranges_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.AutoLearnPrivateRangesModeEnabled),
+				string(network.AutoLearnPrivateRangesModeDisabled),
+			}, false),
 		},
 
 		"tags": tags.Schema(),
