@@ -17,9 +17,9 @@ import (
 
 func resourceAutomanageConfigurationProfileHCIAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate,
+		Create: resourceAutomanageConfigurationProfileHCIAssignmentCreate,
 		Read:   resourceAutomanageConfigurationProfileHCIAssignmentRead,
-		Update: resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate,
+		Update: resourceAutomanageConfigurationProfileHCIAssignmentUpdate,
 		Delete: resourceAutomanageConfigurationProfileHCIAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -54,24 +54,14 @@ func resourceAutomanageConfigurationProfileHCIAssignment() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"managed_by": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"target_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
-func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomanageConfigurationProfileHCIAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -87,7 +77,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *pluginsd
 		existing, err := client.Get(ctx, resourceGroup, clusterName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", name, resourceGroup, clusterName, err)
+				return fmt.Errorf("checking for existing%s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -101,7 +91,34 @@ func resourceAutomanageConfigurationProfileHCIAssignmentCreateUpdate(d *pluginsd
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, clusterName, name); err != nil {
-		return fmt.Errorf("creating/updating Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id)
+	return resourceAutomanageConfigurationProfileHCIAssignmentRead(d, meta)
+}
+
+func resourceAutomanageConfigurationProfileHCIAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	clusterName := d.Get("cluster_name").(string)
+
+	id := parse.NewAutomanageConfigurationProfileHCIAssignmentID(subscriptionId, resourceGroup, clusterName, name).ID()
+
+	if d.HasChange("configuration_profile_id") {
+		parameters := automanage.ConfigurationProfileAssignment{
+			Properties: &automanage.ConfigurationProfileAssignmentProperties{
+				ConfigurationProfile: utils.String(d.Get("configuration_profile_id").(string)),
+			},
+		}
+		if _, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, clusterName, name); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id)
@@ -125,7 +142,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentRead(d *pluginsdk.Resour
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.ConfigurationProfileAssignmentName)
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -134,8 +151,6 @@ func resourceAutomanageConfigurationProfileHCIAssignmentRead(d *pluginsdk.Resour
 		d.Set("configuration_profile_id", props.ConfigurationProfile)
 		d.Set("target_id", props.TargetID)
 	}
-	d.Set("managed_by", resp.ManagedBy)
-	d.Set("type", resp.Type)
 	return nil
 }
 
@@ -150,7 +165,7 @@ func resourceAutomanageConfigurationProfileHCIAssignmentDelete(d *pluginsdk.Reso
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.ConfigurationProfileAssignmentName); err != nil {
-		return fmt.Errorf("deleting Automanage ConfigurationProfileHCIAssignment %q (Resource Group %q / clusterName %q): %+v", id.ConfigurationProfileAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }
