@@ -46,7 +46,7 @@ func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 func testAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventhubDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,7 +60,7 @@ func testAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 func testAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventhub(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -75,7 +75,7 @@ func testAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventhub(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -93,7 +93,7 @@ func testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.logAnalyticsWorkspace(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -108,7 +108,7 @@ func testAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
