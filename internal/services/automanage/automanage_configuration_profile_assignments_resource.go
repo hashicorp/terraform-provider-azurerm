@@ -86,7 +86,7 @@ func resourceAutomanageConfigurationProfileAssignmentCreateUpdate(d *pluginsdk.R
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, vmName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing Automanage ConfigurationProfileAssignment %q (Resource Group %q / vmName %q): %+v", name, resourceGroup, vmName, err)
 			}
 		}
