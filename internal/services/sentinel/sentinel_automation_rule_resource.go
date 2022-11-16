@@ -362,10 +362,8 @@ func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			return fmt.Errorf("expanding `condition_json`: %v", err)
 		}
 		params.AutomationRuleProperties.TriggeringLogic.Conditions = conditions
-	} else {
-		if !features.FourPointOhBeta() {
-			params.AutomationRuleProperties.TriggeringLogic.Conditions = expandAutomationRuleConditions(d.Get("condition").([]interface{}))
-		}
+	} else if !features.FourPointOhBeta() {
+		params.AutomationRuleProperties.TriggeringLogic.Conditions = expandAutomationRuleConditions(d.Get("condition").([]interface{}))
 	}
 
 	if expiration := d.Get("expiration").(string); expiration != "" {
