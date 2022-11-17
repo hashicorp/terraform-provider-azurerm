@@ -57,6 +57,7 @@ func TestAccLabServiceLabPlan_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -71,18 +72,21 @@ func TestAccLabServiceLabPlan_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -146,24 +150,6 @@ func (r LabServiceLabPlanResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-provider "azuread" {}
-
-resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctestsig%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-data "azuread_service_principal" "test" {
-  display_name = "Azure Lab Services"
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_shared_image_gallery.test.id
-  role_definition_name = "Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
-}
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
   address_space       = ["10.0.0.0/16"]
@@ -195,7 +181,6 @@ resource "azurerm_lab_service_lab_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allowed_regions     = [azurerm_resource_group.test.location]
-  shared_gallery_id   = azurerm_shared_image_gallery.test.id
 
   default_auto_shutdown_profile {
     disconnect_delay                    = "PT15M"
@@ -227,45 +212,13 @@ resource "azurerm_lab_service_lab_plan" "test" {
   tags = {
     Env = "Test"
   }
-
-  depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LabServiceLabPlanResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azuread" {}
-
-resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctestsig%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_shared_image_gallery" "test2" {
-  name                = "acctestsig2%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-data "azuread_service_principal" "test" {
-  display_name = "Azure Lab Services"
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_shared_image_gallery.test.id
-  role_definition_name = "Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
-}
-
-resource "azurerm_role_assignment" "test2" {
-  scope                = azurerm_shared_image_gallery.test2.id
-  role_definition_name = "Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
-}
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
@@ -317,7 +270,6 @@ resource "azurerm_lab_service_lab_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allowed_regions     = [azurerm_resource_group.test.location, "%s"]
-  shared_gallery_id   = azurerm_shared_image_gallery.test2.id
 
   default_auto_shutdown_profile {
     disconnect_delay                    = "PT16M"
@@ -349,8 +301,6 @@ resource "azurerm_lab_service_lab_plan" "test" {
   tags = {
     Env = "Test2"
   }
-
-  depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Secondary)
 }
