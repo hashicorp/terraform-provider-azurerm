@@ -287,7 +287,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	//`allow_resource_only_permissions` needs an additional update, tacked on https://github.com/Azure/azure-rest-api-specs/issues/21591
+	// `allow_resource_only_permissions` needs an additional update, tacked on https://github.com/Azure/azure-rest-api-specs/issues/21591
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return err

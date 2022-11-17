@@ -28,7 +28,7 @@ type Client struct {
 	StorageInsightsClient      *storageinsights.StorageInsightsClient
 	QueryPackQueriesClient     *querypackqueries.QueryPackQueriesClient
 	WorkspacesClient           *workspaces.WorkspacesClient
-	FeatureWorkspaceClient     *featureWorkspaces.WorkspacesClient //2022-10-01 API version does not contain sharedkeys related API, so we keep two versions SDK of this API
+	FeatureWorkspaceClient     *featureWorkspaces.WorkspacesClient // 2022-10-01 API version does not contain sharedkeys related API, so we keep two versions SDK of this API
 }
 
 func NewClient(o *common.ClientOptions) *Client {
