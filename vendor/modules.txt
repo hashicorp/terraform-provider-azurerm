@@ -600,6 +600,7 @@ github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
 # github.com/tombuildsstuff/kermit v0.20221104.1101437
 ## explicit; go 1.18
+github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage
 github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute
 github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network
