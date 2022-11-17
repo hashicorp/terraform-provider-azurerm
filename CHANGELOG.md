@@ -6,6 +6,7 @@ DEPRECATIONS
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20221116.1175352` of `github.com/hashicorp/go-azure-sdk` [GH-19319]
 * `azurerm_security_center_subscription_pricing` - support for the `subplan` property [GH-19273]
 * `azurerm_storage_account` - support for the `sas_policy` block [GH-19222]
 * `azurerm_windows_web_app`, `azurerm_windows_web_app_slot` - aupport for `17` value for `java_version` property [GH-19249]
