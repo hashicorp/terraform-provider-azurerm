@@ -54,13 +54,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group for the PostgreSQL server. Changing this forces a new resource to be created.
 
-* `object_id` - (Required) The object ID of a user, service principal or security group in the Azure Active Directory tenant set as the Flexible Server Admin.
+* `object_id` - (Required) The object ID of a user, service principal or security group in the Azure Active Directory tenant set as the Flexible Server Admin. Changing this forces a new resource to be created.
 
-* `tenant_id` - (Required) The Azure Tenant ID.
+* `tenant_id` - (Required) The Azure Tenant ID. Changing this forces a new resource to be created.
 
-* `principal_name` - (Required) The name of Azure active directory principal.
+* `principal_name` - (Required) The name of Azure active directory principal. Changing this forces a new resource to be created.
 
-* `principal_type` - (Required) The type of Azure active directory principal. Possible values are `Group`, `ServicePrincipal` and `User`.
+* `principal_type` - (Required) The type of Azure active directory principal. Possible values are `Group`, `ServicePrincipal` and `User`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
