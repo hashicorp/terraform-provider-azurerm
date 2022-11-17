@@ -10,7 +10,9 @@ type AccountProperties struct {
 	Capabilities                  *[]SkuCapability             `json:"capabilities,omitempty"`
 	CustomSubDomainName           *string                      `json:"customSubDomainName,omitempty"`
 	DateCreated                   *string                      `json:"dateCreated,omitempty"`
+	DeletionDate                  *string                      `json:"deletionDate,omitempty"`
 	DisableLocalAuth              *bool                        `json:"disableLocalAuth,omitempty"`
+	DynamicThrottlingEnabled      *bool                        `json:"dynamicThrottlingEnabled,omitempty"`
 	Encryption                    *Encryption                  `json:"encryption,omitempty"`
 	Endpoint                      *string                      `json:"endpoint,omitempty"`
 	Endpoints                     *map[string]string           `json:"endpoints,omitempty"`
@@ -24,6 +26,7 @@ type AccountProperties struct {
 	QuotaLimit                    *QuotaLimit                  `json:"quotaLimit,omitempty"`
 	Restore                       *bool                        `json:"restore,omitempty"`
 	RestrictOutboundNetworkAccess *bool                        `json:"restrictOutboundNetworkAccess,omitempty"`
+	ScheduledPurgeDate            *string                      `json:"scheduledPurgeDate,omitempty"`
 	SkuChangeInfo                 *SkuChangeInfo               `json:"skuChangeInfo,omitempty"`
 	UserOwnedStorage              *[]UserOwnedStorage          `json:"userOwnedStorage,omitempty"`
 }

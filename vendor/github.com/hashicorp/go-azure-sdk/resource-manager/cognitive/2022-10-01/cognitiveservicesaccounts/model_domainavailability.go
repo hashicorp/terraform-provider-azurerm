@@ -5,6 +5,7 @@ package cognitiveservicesaccounts
 
 type DomainAvailability struct {
 	IsSubdomainAvailable *bool   `json:"isSubdomainAvailable,omitempty"`
+	Kind                 *string `json:"kind,omitempty"`
 	Reason               *string `json:"reason,omitempty"`
 	SubdomainName        *string `json:"subdomainName,omitempty"`
 	Type                 *string `json:"type,omitempty"`
