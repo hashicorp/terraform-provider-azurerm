@@ -273,6 +273,13 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 			var healthCheckCount *int
 			webApp.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+
+			// Remove node version if not set by user explicitly
+			appSettingRawData := metadata.ResourceData.Get("app_settings").(map[string]interface{})
+			if appSettingRawData["WEBSITE_NODE_DEFAULT_VERSION"] == nil && webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
+				delete(webApp.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
+			}
+
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)

@@ -302,7 +302,21 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
+			// for node app, we need to add the key WEBSITE_NODE_DEFAULT_VERSION in app_setting for windows web app.
+			appSetting := make(map[string]string)
+			if webApp.AppSettings != nil {
+				appSetting = webApp.AppSettings
+			}
+			if currentStack != nil && *currentStack == "node" {
+				nodeKey := "WEBSITE_NODE_DEFAULT_VERSION"
+				nodeVersion := ""
+				if siteConfig.NodeVersion != nil {
+					nodeVersion = "~" + strings.TrimSuffix(*siteConfig.NodeVersion, "-LTS")
+				}
+				appSetting[nodeKey] = nodeVersion
+			}
+
+			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(appSetting)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -355,7 +369,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(appSetting)
 			if appSettings != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
@@ -541,6 +555,12 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			var healthCheckCount *int
 			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
+			// Remove node version if not set by user explicitly
+			appSettingRawData := metadata.ResourceData.Get("app_settings").(map[string]interface{})
+			if appSettingRawData["WEBSITE_NODE_DEFAULT_VERSION"] == nil && state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
+				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
+			}
+
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
 				state.OutboundIPAddressList = strings.Split(*v, ",")
@@ -705,10 +725,18 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				currentStack = stateConfig.ApplicationStack[0].CurrentStack
 			}
 
+			addNodeVersion := false
+			nodeVersion := ""
 			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
 				siteConfig, stack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
+				}
+				if *stack == "node" {
+					addNodeVersion = true
+					if siteConfig.NodeVersion != nil {
+						nodeVersion = *siteConfig.NodeVersion
+					}
 				}
 				currentStack = *stack
 				existing.SiteConfig = siteConfig
@@ -729,7 +757,12 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
+			if metadata.ResourceData.HasChange("app_settings") || addNodeVersion {
+				if addNodeVersion {
+					nodeKey := "WEBSITE_NODE_DEFAULT_VERSION"
+					nodeVersion = "~" + strings.TrimSuffix(nodeVersion, "-LTS")
+					state.AppSettings[nodeKey] = nodeVersion
+				}
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)

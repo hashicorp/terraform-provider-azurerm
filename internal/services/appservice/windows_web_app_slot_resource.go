@@ -262,7 +262,21 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
+			// for node app, we need to add the key WEBSITE_NODE_DEFAULT_VERSION in app_setting for windows web app.
+			appSetting := make(map[string]string)
+			if webAppSlot.AppSettings != nil {
+				appSetting = webAppSlot.AppSettings
+			}
+			if currentStack != nil && *currentStack == "node" {
+				nodeKey := "WEBSITE_NODE_DEFAULT_VERSION"
+				nodeVersion := ""
+				if siteConfig.NodeVersion != nil {
+					nodeVersion = "~" + strings.TrimSuffix(*siteConfig.NodeVersion, "-LTS")
+				}
+				appSetting[nodeKey] = nodeVersion
+			}
+
+			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(appSetting)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -312,7 +326,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(appSetting)
 			if appSettings != nil {
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettings, id.SlotName); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
@@ -479,6 +493,12 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			var healthCheckCount *int
 			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
+			// Remove node version if not set by user explicitly
+			appSettingRawData := metadata.ResourceData.Get("app_settings").(map[string]interface{})
+			if appSettingRawData["WEBSITE_NODE_DEFAULT_VERSION"] == nil && state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] != "" {
+				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
+			}
+
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
 				state.OutboundIPAddressList = strings.Split(*v, ",")
@@ -605,10 +625,18 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				currentStack = stateConfig.ApplicationStack[0].CurrentStack
 			}
 
+			addNodeVersion := false
+			nodeVersion := ""
 			if metadata.ResourceData.HasChange("site_config") {
 				siteConfig, stack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
+				}
+				if *stack == "node" {
+					addNodeVersion = true
+					if siteConfig.NodeVersion != nil {
+						nodeVersion = *siteConfig.NodeVersion
+					}
 				}
 				currentStack = *stack
 				existing.SiteConfig = siteConfig
@@ -643,6 +671,11 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
+				if addNodeVersion {
+					nodeKey := "WEBSITE_NODE_DEFAULT_VERSION"
+					nodeVersion = "~" + strings.TrimSuffix(nodeVersion, "-LTS")
+					state.AppSettings[nodeKey] = nodeVersion
+				}
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
