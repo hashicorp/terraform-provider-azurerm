@@ -8,10 +8,11 @@ package appplatform
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // BuildpackBindingClient is the REST API for Azure Spring Apps
@@ -69,15 +70,15 @@ func (client BuildpackBindingClient) CreateOrUpdate(ctx context.Context, resourc
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client BuildpackBindingClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string, buildpackBindingName string, buildpackBinding BuildpackBindingResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"buildServiceName":     autorest.Encode("path", buildServiceName),
 		"builderName":          autorest.Encode("path", builderName),
 		"buildpackBindingName": autorest.Encode("path", buildpackBindingName),
-		"buildServiceName":     autorest.Encode("path", buildServiceName),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"serviceName":          autorest.Encode("path", serviceName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,15 +158,15 @@ func (client BuildpackBindingClient) Delete(ctx context.Context, resourceGroupNa
 // DeletePreparer prepares the Delete request.
 func (client BuildpackBindingClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string, buildpackBindingName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"buildServiceName":     autorest.Encode("path", buildServiceName),
 		"builderName":          autorest.Encode("path", builderName),
 		"buildpackBindingName": autorest.Encode("path", buildpackBindingName),
-		"buildServiceName":     autorest.Encode("path", buildServiceName),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"serviceName":          autorest.Encode("path", serviceName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -249,15 +250,15 @@ func (client BuildpackBindingClient) Get(ctx context.Context, resourceGroupName 
 // GetPreparer prepares the Get request.
 func (client BuildpackBindingClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string, buildpackBindingName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"buildServiceName":     autorest.Encode("path", buildServiceName),
 		"builderName":          autorest.Encode("path", builderName),
 		"buildpackBindingName": autorest.Encode("path", buildpackBindingName),
-		"buildServiceName":     autorest.Encode("path", buildServiceName),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"serviceName":          autorest.Encode("path", serviceName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -336,14 +337,14 @@ func (client BuildpackBindingClient) List(ctx context.Context, resourceGroupName
 // ListPreparer prepares the List request.
 func (client BuildpackBindingClient) ListPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"builderName":       autorest.Encode("path", builderName),
 		"buildServiceName":  autorest.Encode("path", buildServiceName),
+		"builderName":       autorest.Encode("path", builderName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

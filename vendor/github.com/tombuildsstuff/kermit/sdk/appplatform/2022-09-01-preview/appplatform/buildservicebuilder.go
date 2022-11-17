@@ -8,10 +8,11 @@ package appplatform
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // BuildServiceBuilderClient is the REST API for Azure Spring Apps
@@ -68,14 +69,14 @@ func (client BuildServiceBuilderClient) CreateOrUpdate(ctx context.Context, reso
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client BuildServiceBuilderClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string, builderResource BuilderResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"builderName":       autorest.Encode("path", builderName),
 		"buildServiceName":  autorest.Encode("path", buildServiceName),
+		"builderName":       autorest.Encode("path", builderName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -154,14 +155,14 @@ func (client BuildServiceBuilderClient) Delete(ctx context.Context, resourceGrou
 // DeletePreparer prepares the Delete request.
 func (client BuildServiceBuilderClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"builderName":       autorest.Encode("path", builderName),
 		"buildServiceName":  autorest.Encode("path", buildServiceName),
+		"builderName":       autorest.Encode("path", builderName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,14 +245,14 @@ func (client BuildServiceBuilderClient) Get(ctx context.Context, resourceGroupNa
 // GetPreparer prepares the Get request.
 func (client BuildServiceBuilderClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"builderName":       autorest.Encode("path", builderName),
 		"buildServiceName":  autorest.Encode("path", buildServiceName),
+		"builderName":       autorest.Encode("path", builderName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -335,7 +336,7 @@ func (client BuildServiceBuilderClient) ListPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -400,5 +401,86 @@ func (client BuildServiceBuilderClient) ListComplete(ctx context.Context, resour
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, serviceName, buildServiceName)
+	return
+}
+
+// ListDeployments list deployments that are using the builder.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// buildServiceName - the name of the build service resource.
+// builderName - the name of the builder resource.
+func (client BuildServiceBuilderClient) ListDeployments(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string) (result DeploymentList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BuildServiceBuilderClient.ListDeployments")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListDeploymentsPreparer(ctx, resourceGroupName, serviceName, buildServiceName, builderName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceBuilderClient", "ListDeployments", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListDeploymentsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceBuilderClient", "ListDeployments", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListDeploymentsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceBuilderClient", "ListDeployments", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListDeploymentsPreparer prepares the ListDeployments request.
+func (client BuildServiceBuilderClient) ListDeploymentsPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, builderName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"buildServiceName":  autorest.Encode("path", buildServiceName),
+		"builderName":       autorest.Encode("path", builderName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-09-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/buildServices/{buildServiceName}/builders/{builderName}/listUsingDeployments", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListDeploymentsSender sends the ListDeployments request. The method will close the
+// http.Response Body if it receives an error.
+func (client BuildServiceBuilderClient) ListDeploymentsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListDeploymentsResponder handles the response to the ListDeployments request. The method always
+// closes the http.Response Body.
+func (client BuildServiceBuilderClient) ListDeploymentsResponder(resp *http.Response) (result DeploymentList, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

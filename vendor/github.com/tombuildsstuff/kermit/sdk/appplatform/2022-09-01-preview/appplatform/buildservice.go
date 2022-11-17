@@ -8,10 +8,11 @@ package appplatform
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // BuildServiceClient is the REST API for Azure Spring Apps
@@ -81,7 +82,7 @@ func (client BuildServiceClient) CreateOrUpdateBuildPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -164,7 +165,7 @@ func (client BuildServiceClient) GetBuildPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -247,7 +248,7 @@ func (client BuildServiceClient) GetBuildResultPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -330,7 +331,7 @@ func (client BuildServiceClient) GetBuildResultLogPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -409,7 +410,7 @@ func (client BuildServiceClient) GetBuildServicePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -488,7 +489,7 @@ func (client BuildServiceClient) GetResourceUploadURLPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -562,14 +563,14 @@ func (client BuildServiceClient) GetSupportedBuildpack(ctx context.Context, reso
 // GetSupportedBuildpackPreparer prepares the GetSupportedBuildpack request.
 func (client BuildServiceClient) GetSupportedBuildpackPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string, buildpackName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"buildpackName":     autorest.Encode("path", buildpackName),
 		"buildServiceName":  autorest.Encode("path", buildServiceName),
+		"buildpackName":     autorest.Encode("path", buildpackName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -650,7 +651,7 @@ func (client BuildServiceClient) GetSupportedStackPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -736,7 +737,7 @@ func (client BuildServiceClient) ListBuildResultsPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -804,127 +805,6 @@ func (client BuildServiceClient) ListBuildResultsComplete(ctx context.Context, r
 	return
 }
 
-// ListBuilds list KPack builds.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// serviceName - the name of the Service resource.
-// buildServiceName - the name of the build service resource.
-func (client BuildServiceClient) ListBuilds(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string) (result BuildCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BuildServiceClient.ListBuilds")
-		defer func() {
-			sc := -1
-			if result.bc.Response.Response != nil {
-				sc = result.bc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.fn = client.listBuildsNextResults
-	req, err := client.ListBuildsPreparer(ctx, resourceGroupName, serviceName, buildServiceName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "ListBuilds", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListBuildsSender(req)
-	if err != nil {
-		result.bc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "ListBuilds", resp, "Failure sending request")
-		return
-	}
-
-	result.bc, err = client.ListBuildsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "ListBuilds", resp, "Failure responding to request")
-		return
-	}
-	if result.bc.hasNextLink() && result.bc.IsEmpty() {
-		err = result.NextWithContext(ctx)
-		return
-	}
-
-	return
-}
-
-// ListBuildsPreparer prepares the ListBuilds request.
-func (client BuildServiceClient) ListBuildsPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"buildServiceName":  autorest.Encode("path", buildServiceName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"serviceName":       autorest.Encode("path", serviceName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2022-05-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/buildServices/{buildServiceName}/builds", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListBuildsSender sends the ListBuilds request. The method will close the
-// http.Response Body if it receives an error.
-func (client BuildServiceClient) ListBuildsSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListBuildsResponder handles the response to the ListBuilds request. The method always
-// closes the http.Response Body.
-func (client BuildServiceClient) ListBuildsResponder(resp *http.Response) (result BuildCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listBuildsNextResults retrieves the next set of results, if any.
-func (client BuildServiceClient) listBuildsNextResults(ctx context.Context, lastResults BuildCollection) (result BuildCollection, err error) {
-	req, err := lastResults.buildCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "listBuildsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListBuildsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "listBuildsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListBuildsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "listBuildsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListBuildsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BuildServiceClient) ListBuildsComplete(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string) (result BuildCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BuildServiceClient.ListBuilds")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListBuilds(ctx, resourceGroupName, serviceName, buildServiceName)
-	return
-}
-
 // ListBuildServices list build services resource.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -976,7 +856,7 @@ func (client BuildServiceClient) ListBuildServicesPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1044,6 +924,127 @@ func (client BuildServiceClient) ListBuildServicesComplete(ctx context.Context, 
 	return
 }
 
+// ListBuilds list KPack builds.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// buildServiceName - the name of the build service resource.
+func (client BuildServiceClient) ListBuilds(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string) (result BuildCollectionPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BuildServiceClient.ListBuilds")
+		defer func() {
+			sc := -1
+			if result.bc.Response.Response != nil {
+				sc = result.bc.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listBuildsNextResults
+	req, err := client.ListBuildsPreparer(ctx, resourceGroupName, serviceName, buildServiceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "ListBuilds", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListBuildsSender(req)
+	if err != nil {
+		result.bc.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "ListBuilds", resp, "Failure sending request")
+		return
+	}
+
+	result.bc, err = client.ListBuildsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "ListBuilds", resp, "Failure responding to request")
+		return
+	}
+	if result.bc.hasNextLink() && result.bc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListBuildsPreparer prepares the ListBuilds request.
+func (client BuildServiceClient) ListBuildsPreparer(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"buildServiceName":  autorest.Encode("path", buildServiceName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-09-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/buildServices/{buildServiceName}/builds", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListBuildsSender sends the ListBuilds request. The method will close the
+// http.Response Body if it receives an error.
+func (client BuildServiceClient) ListBuildsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListBuildsResponder handles the response to the ListBuilds request. The method always
+// closes the http.Response Body.
+func (client BuildServiceClient) ListBuildsResponder(resp *http.Response) (result BuildCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listBuildsNextResults retrieves the next set of results, if any.
+func (client BuildServiceClient) listBuildsNextResults(ctx context.Context, lastResults BuildCollection) (result BuildCollection, err error) {
+	req, err := lastResults.buildCollectionPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "listBuildsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBuildsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "listBuildsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBuildsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BuildServiceClient", "listBuildsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBuildsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BuildServiceClient) ListBuildsComplete(ctx context.Context, resourceGroupName string, serviceName string, buildServiceName string) (result BuildCollectionIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BuildServiceClient.ListBuilds")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListBuilds(ctx, resourceGroupName, serviceName, buildServiceName)
+	return
+}
+
 // ListSupportedBuildpacks get all supported buildpacks.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -1092,7 +1093,7 @@ func (client BuildServiceClient) ListSupportedBuildpacksPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1171,7 +1172,7 @@ func (client BuildServiceClient) ListSupportedStacksPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -8,10 +8,11 @@ package appplatform
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // OperationsClient is the REST API for Azure Spring Apps
@@ -71,7 +72,7 @@ func (client OperationsClient) List(ctx context.Context) (result AvailableOperat
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

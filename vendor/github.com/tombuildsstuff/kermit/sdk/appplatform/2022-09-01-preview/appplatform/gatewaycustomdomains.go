@@ -8,10 +8,11 @@ package appplatform
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // GatewayCustomDomainsClient is the REST API for Azure Spring Apps
@@ -75,7 +76,7 @@ func (client GatewayCustomDomainsClient) CreateOrUpdatePreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -161,7 +162,7 @@ func (client GatewayCustomDomainsClient) DeletePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -251,7 +252,7 @@ func (client GatewayCustomDomainsClient) GetPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -335,7 +336,7 @@ func (client GatewayCustomDomainsClient) ListPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

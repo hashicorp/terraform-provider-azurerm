@@ -9,23 +9,17 @@ package appplatform
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
-
-// ActiveDeploymentCollection object that includes an array of Deployment resource name and set them as
-// active.
-type ActiveDeploymentCollection struct {
-	// ActiveDeploymentNames - Collection of Deployment name.
-	ActiveDeploymentNames *[]string `json:"activeDeploymentNames,omitempty"`
-}
+const fqdn = "home/runner/work/kermit/kermit/sdk/appplatform/2022-09-01-preview/appplatform"
 
 // APIPortalCustomDomainProperties the properties of custom domain for API portal
 type APIPortalCustomDomainProperties struct {
@@ -641,16 +635,11 @@ func (future *APIPortalsDeleteFuture) result(client APIPortalsClient) (ar autore
 	return
 }
 
-// ApplicationInsightsAgentVersions application Insights agent versions properties payload
-type ApplicationInsightsAgentVersions struct {
-	// Java - READ-ONLY; Indicates the version of application insight java agent
-	Java *string `json:"java,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ApplicationInsightsAgentVersions.
-func (aiav ApplicationInsightsAgentVersions) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
+// ActiveDeploymentCollection object that includes an array of Deployment resource name and set them as
+// active.
+type ActiveDeploymentCollection struct {
+	// ActiveDeploymentNames - Collection of Deployment name.
+	ActiveDeploymentNames *[]string `json:"activeDeploymentNames,omitempty"`
 }
 
 // AppResource app resource payload
@@ -859,7 +848,7 @@ type AppResourceProperties struct {
 	AddonConfigs map[string]map[string]interface{} `json:"addonConfigs"`
 	// ProvisioningState - READ-ONLY; Provisioning state of the App. Possible values include: 'AppResourceProvisioningStateSucceeded', 'AppResourceProvisioningStateFailed', 'AppResourceProvisioningStateCreating', 'AppResourceProvisioningStateUpdating', 'AppResourceProvisioningStateDeleting'
 	ProvisioningState AppResourceProvisioningState `json:"provisioningState,omitempty"`
-	// Fqdn - Fully qualified dns Name.
+	// Fqdn - READ-ONLY; Fully qualified dns Name.
 	Fqdn *string `json:"fqdn,omitempty"`
 	// HTTPSOnly - Indicate if only https is allowed.
 	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
@@ -875,6 +864,8 @@ type AppResourceProperties struct {
 	LoadedCertificates *[]LoadedCertificate `json:"loadedCertificates,omitempty"`
 	// VnetAddons - Additional App settings in vnet injection instance
 	VnetAddons *AppVNetAddons `json:"vnetAddons,omitempty"`
+	// IngressSettings - App ingress settings payload.
+	IngressSettings *IngressSettings `json:"ingressSettings,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppResourceProperties.
@@ -885,9 +876,6 @@ func (arp AppResourceProperties) MarshalJSON() ([]byte, error) {
 	}
 	if arp.AddonConfigs != nil {
 		objectMap["addonConfigs"] = arp.AddonConfigs
-	}
-	if arp.Fqdn != nil {
-		objectMap["fqdn"] = arp.Fqdn
 	}
 	if arp.HTTPSOnly != nil {
 		objectMap["httpsOnly"] = arp.HTTPSOnly
@@ -910,6 +898,38 @@ func (arp AppResourceProperties) MarshalJSON() ([]byte, error) {
 	if arp.VnetAddons != nil {
 		objectMap["vnetAddons"] = arp.VnetAddons
 	}
+	if arp.IngressSettings != nil {
+		objectMap["ingressSettings"] = arp.IngressSettings
+	}
+	return json.Marshal(objectMap)
+}
+
+// AppVNetAddons additional App settings in vnet injection instance
+type AppVNetAddons struct {
+	// PublicEndpoint - Indicates whether the App in vnet injection instance exposes endpoint which could be accessed from internet.
+	PublicEndpoint *bool `json:"publicEndpoint,omitempty"`
+	// PublicEndpointURL - READ-ONLY; URL of the App in vnet injection instance which could be accessed from internet
+	PublicEndpointURL *string `json:"publicEndpointUrl,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AppVNetAddons.
+func (avna AppVNetAddons) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if avna.PublicEndpoint != nil {
+		objectMap["publicEndpoint"] = avna.PublicEndpoint
+	}
+	return json.Marshal(objectMap)
+}
+
+// ApplicationInsightsAgentVersions application Insights agent versions properties payload
+type ApplicationInsightsAgentVersions struct {
+	// Java - READ-ONLY; Indicates the version of application insight java agent
+	Java *string `json:"java,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationInsightsAgentVersions.
+func (aiav ApplicationInsightsAgentVersions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
 }
 
@@ -1075,23 +1095,6 @@ func (future *AppsUpdateFuture) result(client AppsClient) (ar AppResource, err e
 		}
 	}
 	return
-}
-
-// AppVNetAddons additional App settings in vnet injection instance
-type AppVNetAddons struct {
-	// PublicEndpoint - Indicates whether the App in vnet injection instance exposes endpoint which could be accessed from internet.
-	PublicEndpoint *bool `json:"publicEndpoint,omitempty"`
-	// PublicEndpointURL - READ-ONLY; URL of the App in vnet injection instance which could be accessed from internet
-	PublicEndpointURL *string `json:"publicEndpointUrl,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AppVNetAddons.
-func (avna AppVNetAddons) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if avna.PublicEndpoint != nil {
-		objectMap["publicEndpoint"] = avna.PublicEndpoint
-	}
-	return json.Marshal(objectMap)
 }
 
 // AvailableOperations available operations of the service
@@ -1847,539 +1850,6 @@ func NewBuildCollectionPage(cur BuildCollection, getNextPage func(context.Contex
 		fn: getNextPage,
 		bc: cur,
 	}
-}
-
-// BuilderProperties kPack Builder properties payload
-type BuilderProperties struct {
-	// ProvisioningState - READ-ONLY; Builder provision status. Possible values include: 'BuilderProvisioningStateCreating', 'BuilderProvisioningStateUpdating', 'BuilderProvisioningStateSucceeded', 'BuilderProvisioningStateFailed', 'BuilderProvisioningStateDeleting'
-	ProvisioningState BuilderProvisioningState `json:"provisioningState,omitempty"`
-	// Stack - Builder cluster stack property.
-	Stack *StackProperties `json:"stack,omitempty"`
-	// BuildpackGroups - Builder buildpack groups.
-	BuildpackGroups *[]BuildpacksGroupProperties `json:"buildpackGroups,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for BuilderProperties.
-func (bp BuilderProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if bp.Stack != nil {
-		objectMap["stack"] = bp.Stack
-	}
-	if bp.BuildpackGroups != nil {
-		objectMap["buildpackGroups"] = bp.BuildpackGroups
-	}
-	return json.Marshal(objectMap)
-}
-
-// BuilderResource kPack Builder resource
-type BuilderResource struct {
-	autorest.Response `json:"-"`
-	// Properties - Property of the Builder resource.
-	Properties *BuilderProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
-	Type       *string     `json:"type,omitempty"`
-	SystemData *SystemData `json:"systemData,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for BuilderResource.
-func (br BuilderResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if br.Properties != nil {
-		objectMap["properties"] = br.Properties
-	}
-	if br.SystemData != nil {
-		objectMap["systemData"] = br.SystemData
-	}
-	return json.Marshal(objectMap)
-}
-
-// BuilderResourceCollection object that includes an array of Builder resources and a possible link for
-// next set
-type BuilderResourceCollection struct {
-	autorest.Response `json:"-"`
-	// Value - Collection of Builder resources
-	Value *[]BuilderResource `json:"value,omitempty"`
-	// NextLink - URL client should use to fetch the next page (per server side paging).
-	// It's null for now, added for future use.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// BuilderResourceCollectionIterator provides access to a complete listing of BuilderResource values.
-type BuilderResourceCollectionIterator struct {
-	i    int
-	page BuilderResourceCollectionPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *BuilderResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BuilderResourceCollectionIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *BuilderResourceCollectionIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter BuilderResourceCollectionIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter BuilderResourceCollectionIterator) Response() BuilderResourceCollection {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter BuilderResourceCollectionIterator) Value() BuilderResource {
-	if !iter.page.NotDone() {
-		return BuilderResource{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the BuilderResourceCollectionIterator type.
-func NewBuilderResourceCollectionIterator(page BuilderResourceCollectionPage) BuilderResourceCollectionIterator {
-	return BuilderResourceCollectionIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (brc BuilderResourceCollection) IsEmpty() bool {
-	return brc.Value == nil || len(*brc.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (brc BuilderResourceCollection) hasNextLink() bool {
-	return brc.NextLink != nil && len(*brc.NextLink) != 0
-}
-
-// builderResourceCollectionPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (brc BuilderResourceCollection) builderResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if !brc.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(brc.NextLink)))
-}
-
-// BuilderResourceCollectionPage contains a page of BuilderResource values.
-type BuilderResourceCollectionPage struct {
-	fn  func(context.Context, BuilderResourceCollection) (BuilderResourceCollection, error)
-	brc BuilderResourceCollection
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *BuilderResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BuilderResourceCollectionPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.brc)
-		if err != nil {
-			return err
-		}
-		page.brc = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *BuilderResourceCollectionPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page BuilderResourceCollectionPage) NotDone() bool {
-	return !page.brc.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page BuilderResourceCollectionPage) Response() BuilderResourceCollection {
-	return page.brc
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page BuilderResourceCollectionPage) Values() []BuilderResource {
-	if page.brc.IsEmpty() {
-		return nil
-	}
-	return *page.brc.Value
-}
-
-// Creates a new instance of the BuilderResourceCollectionPage type.
-func NewBuilderResourceCollectionPage(cur BuilderResourceCollection, getNextPage func(context.Context, BuilderResourceCollection) (BuilderResourceCollection, error)) BuilderResourceCollectionPage {
-	return BuilderResourceCollectionPage{
-		fn:  getNextPage,
-		brc: cur,
-	}
-}
-
-// BuildpackBindingCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type BuildpackBindingCreateOrUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(BuildpackBindingClient) (BuildpackBindingResource, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *BuildpackBindingCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for BuildpackBindingCreateOrUpdateFuture.Result.
-func (future *BuildpackBindingCreateOrUpdateFuture) result(client BuildpackBindingClient) (bbr BuildpackBindingResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BuildpackBindingCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		bbr.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("appplatform.BuildpackBindingCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if bbr.Response.Response, err = future.GetResult(sender); err == nil && bbr.Response.Response.StatusCode != http.StatusNoContent {
-		bbr, err = client.CreateOrUpdateResponder(bbr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "appplatform.BuildpackBindingCreateOrUpdateFuture", "Result", bbr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// BuildpackBindingDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type BuildpackBindingDeleteFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(BuildpackBindingClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *BuildpackBindingDeleteFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for BuildpackBindingDeleteFuture.Result.
-func (future *BuildpackBindingDeleteFuture) result(client BuildpackBindingClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BuildpackBindingDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("appplatform.BuildpackBindingDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// BuildpackBindingLaunchProperties buildpack Binding Launch Properties
-type BuildpackBindingLaunchProperties struct {
-	// Properties - Non-sensitive properties for launchProperties
-	Properties map[string]*string `json:"properties"`
-	// Secrets - Sensitive properties for launchProperties
-	Secrets map[string]*string `json:"secrets"`
-}
-
-// MarshalJSON is the custom marshaler for BuildpackBindingLaunchProperties.
-func (bblp BuildpackBindingLaunchProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if bblp.Properties != nil {
-		objectMap["properties"] = bblp.Properties
-	}
-	if bblp.Secrets != nil {
-		objectMap["secrets"] = bblp.Secrets
-	}
-	return json.Marshal(objectMap)
-}
-
-// BuildpackBindingProperties properties of a buildpack binding
-type BuildpackBindingProperties struct {
-	// BindingType - Buildpack Binding Type. Possible values include: 'BindingTypeApplicationInsights', 'BindingTypeApacheSkyWalking', 'BindingTypeAppDynamics', 'BindingTypeDynatrace', 'BindingTypeNewRelic', 'BindingTypeElasticAPM'
-	BindingType BindingType `json:"bindingType,omitempty"`
-	// ProvisioningState - READ-ONLY; State of the Buildpack Binding. Possible values include: 'BuildpackBindingProvisioningStateCreating', 'BuildpackBindingProvisioningStateUpdating', 'BuildpackBindingProvisioningStateSucceeded', 'BuildpackBindingProvisioningStateFailed', 'BuildpackBindingProvisioningStateDeleting'
-	ProvisioningState BuildpackBindingProvisioningState `json:"provisioningState,omitempty"`
-	// LaunchProperties - The object describes the buildpack binding launch properties
-	LaunchProperties *BuildpackBindingLaunchProperties `json:"launchProperties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for BuildpackBindingProperties.
-func (bbp BuildpackBindingProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if bbp.BindingType != "" {
-		objectMap["bindingType"] = bbp.BindingType
-	}
-	if bbp.LaunchProperties != nil {
-		objectMap["launchProperties"] = bbp.LaunchProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// BuildpackBindingResource buildpack Binding Resource object
-type BuildpackBindingResource struct {
-	autorest.Response `json:"-"`
-	// Properties - Properties of a buildpack binding
-	Properties *BuildpackBindingProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
-	Type       *string     `json:"type,omitempty"`
-	SystemData *SystemData `json:"systemData,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for BuildpackBindingResource.
-func (bbr BuildpackBindingResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if bbr.Properties != nil {
-		objectMap["properties"] = bbr.Properties
-	}
-	if bbr.SystemData != nil {
-		objectMap["systemData"] = bbr.SystemData
-	}
-	return json.Marshal(objectMap)
-}
-
-// BuildpackBindingResourceCollection object that includes an array of BuildpackBinding resources and a
-// possible link for next set
-type BuildpackBindingResourceCollection struct {
-	autorest.Response `json:"-"`
-	// Value - Collection of BuildpackBinding resources
-	Value *[]BuildpackBindingResource `json:"value,omitempty"`
-	// NextLink - URL client should use to fetch the next page (per server side paging).
-	// It's null for now, added for future use.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// BuildpackBindingResourceCollectionIterator provides access to a complete listing of
-// BuildpackBindingResource values.
-type BuildpackBindingResourceCollectionIterator struct {
-	i    int
-	page BuildpackBindingResourceCollectionPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *BuildpackBindingResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BuildpackBindingResourceCollectionIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *BuildpackBindingResourceCollectionIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter BuildpackBindingResourceCollectionIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter BuildpackBindingResourceCollectionIterator) Response() BuildpackBindingResourceCollection {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter BuildpackBindingResourceCollectionIterator) Value() BuildpackBindingResource {
-	if !iter.page.NotDone() {
-		return BuildpackBindingResource{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the BuildpackBindingResourceCollectionIterator type.
-func NewBuildpackBindingResourceCollectionIterator(page BuildpackBindingResourceCollectionPage) BuildpackBindingResourceCollectionIterator {
-	return BuildpackBindingResourceCollectionIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (bbrc BuildpackBindingResourceCollection) IsEmpty() bool {
-	return bbrc.Value == nil || len(*bbrc.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (bbrc BuildpackBindingResourceCollection) hasNextLink() bool {
-	return bbrc.NextLink != nil && len(*bbrc.NextLink) != 0
-}
-
-// buildpackBindingResourceCollectionPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (bbrc BuildpackBindingResourceCollection) buildpackBindingResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if !bbrc.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(bbrc.NextLink)))
-}
-
-// BuildpackBindingResourceCollectionPage contains a page of BuildpackBindingResource values.
-type BuildpackBindingResourceCollectionPage struct {
-	fn   func(context.Context, BuildpackBindingResourceCollection) (BuildpackBindingResourceCollection, error)
-	bbrc BuildpackBindingResourceCollection
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *BuildpackBindingResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BuildpackBindingResourceCollectionPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.bbrc)
-		if err != nil {
-			return err
-		}
-		page.bbrc = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *BuildpackBindingResourceCollectionPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page BuildpackBindingResourceCollectionPage) NotDone() bool {
-	return !page.bbrc.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page BuildpackBindingResourceCollectionPage) Response() BuildpackBindingResourceCollection {
-	return page.bbrc
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page BuildpackBindingResourceCollectionPage) Values() []BuildpackBindingResource {
-	if page.bbrc.IsEmpty() {
-		return nil
-	}
-	return *page.bbrc.Value
-}
-
-// Creates a new instance of the BuildpackBindingResourceCollectionPage type.
-func NewBuildpackBindingResourceCollectionPage(cur BuildpackBindingResourceCollection, getNextPage func(context.Context, BuildpackBindingResourceCollection) (BuildpackBindingResourceCollection, error)) BuildpackBindingResourceCollectionPage {
-	return BuildpackBindingResourceCollectionPage{
-		fn:   getNextPage,
-		bbrc: cur,
-	}
-}
-
-// BuildpackProperties buildpack properties payload
-type BuildpackProperties struct {
-	// ID - Id of the buildpack
-	ID *string `json:"id,omitempty"`
-}
-
-// BuildpacksGroupProperties buildpack group properties of the Builder
-type BuildpacksGroupProperties struct {
-	// Name - Buildpack group name
-	Name *string `json:"name,omitempty"`
-	// Buildpacks - Buildpacks in the buildpack group
-	Buildpacks *[]BuildpackProperties `json:"buildpacks,omitempty"`
 }
 
 // BuildProperties build resource properties payload
@@ -3305,6 +2775,539 @@ type BuildStageProperties struct {
 func (bsp BuildStageProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// BuilderProperties kPack Builder properties payload
+type BuilderProperties struct {
+	// ProvisioningState - READ-ONLY; Builder provision status. Possible values include: 'BuilderProvisioningStateCreating', 'BuilderProvisioningStateUpdating', 'BuilderProvisioningStateSucceeded', 'BuilderProvisioningStateFailed', 'BuilderProvisioningStateDeleting'
+	ProvisioningState BuilderProvisioningState `json:"provisioningState,omitempty"`
+	// Stack - Builder cluster stack property.
+	Stack *StackProperties `json:"stack,omitempty"`
+	// BuildpackGroups - Builder buildpack groups.
+	BuildpackGroups *[]BuildpacksGroupProperties `json:"buildpackGroups,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BuilderProperties.
+func (bp BuilderProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bp.Stack != nil {
+		objectMap["stack"] = bp.Stack
+	}
+	if bp.BuildpackGroups != nil {
+		objectMap["buildpackGroups"] = bp.BuildpackGroups
+	}
+	return json.Marshal(objectMap)
+}
+
+// BuilderResource kPack Builder resource
+type BuilderResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Property of the Builder resource.
+	Properties *BuilderProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BuilderResource.
+func (br BuilderResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if br.Properties != nil {
+		objectMap["properties"] = br.Properties
+	}
+	if br.SystemData != nil {
+		objectMap["systemData"] = br.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// BuilderResourceCollection object that includes an array of Builder resources and a possible link for
+// next set
+type BuilderResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of Builder resources
+	Value *[]BuilderResource `json:"value,omitempty"`
+	// NextLink - URL client should use to fetch the next page (per server side paging).
+	// It's null for now, added for future use.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// BuilderResourceCollectionIterator provides access to a complete listing of BuilderResource values.
+type BuilderResourceCollectionIterator struct {
+	i    int
+	page BuilderResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *BuilderResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BuilderResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *BuilderResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter BuilderResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter BuilderResourceCollectionIterator) Response() BuilderResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter BuilderResourceCollectionIterator) Value() BuilderResource {
+	if !iter.page.NotDone() {
+		return BuilderResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the BuilderResourceCollectionIterator type.
+func NewBuilderResourceCollectionIterator(page BuilderResourceCollectionPage) BuilderResourceCollectionIterator {
+	return BuilderResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (brc BuilderResourceCollection) IsEmpty() bool {
+	return brc.Value == nil || len(*brc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (brc BuilderResourceCollection) hasNextLink() bool {
+	return brc.NextLink != nil && len(*brc.NextLink) != 0
+}
+
+// builderResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (brc BuilderResourceCollection) builderResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !brc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(brc.NextLink)))
+}
+
+// BuilderResourceCollectionPage contains a page of BuilderResource values.
+type BuilderResourceCollectionPage struct {
+	fn  func(context.Context, BuilderResourceCollection) (BuilderResourceCollection, error)
+	brc BuilderResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *BuilderResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BuilderResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.brc)
+		if err != nil {
+			return err
+		}
+		page.brc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *BuilderResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page BuilderResourceCollectionPage) NotDone() bool {
+	return !page.brc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page BuilderResourceCollectionPage) Response() BuilderResourceCollection {
+	return page.brc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page BuilderResourceCollectionPage) Values() []BuilderResource {
+	if page.brc.IsEmpty() {
+		return nil
+	}
+	return *page.brc.Value
+}
+
+// Creates a new instance of the BuilderResourceCollectionPage type.
+func NewBuilderResourceCollectionPage(cur BuilderResourceCollection, getNextPage func(context.Context, BuilderResourceCollection) (BuilderResourceCollection, error)) BuilderResourceCollectionPage {
+	return BuilderResourceCollectionPage{
+		fn:  getNextPage,
+		brc: cur,
+	}
+}
+
+// BuildpackBindingCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type BuildpackBindingCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(BuildpackBindingClient) (BuildpackBindingResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *BuildpackBindingCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for BuildpackBindingCreateOrUpdateFuture.Result.
+func (future *BuildpackBindingCreateOrUpdateFuture) result(client BuildpackBindingClient) (bbr BuildpackBindingResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BuildpackBindingCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		bbr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.BuildpackBindingCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if bbr.Response.Response, err = future.GetResult(sender); err == nil && bbr.Response.Response.StatusCode != http.StatusNoContent {
+		bbr, err = client.CreateOrUpdateResponder(bbr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BuildpackBindingCreateOrUpdateFuture", "Result", bbr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// BuildpackBindingDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type BuildpackBindingDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(BuildpackBindingClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *BuildpackBindingDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for BuildpackBindingDeleteFuture.Result.
+func (future *BuildpackBindingDeleteFuture) result(client BuildpackBindingClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.BuildpackBindingDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.BuildpackBindingDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// BuildpackBindingLaunchProperties buildpack Binding Launch Properties
+type BuildpackBindingLaunchProperties struct {
+	// Properties - Non-sensitive properties for launchProperties
+	Properties map[string]*string `json:"properties"`
+	// Secrets - Sensitive properties for launchProperties
+	Secrets map[string]*string `json:"secrets"`
+}
+
+// MarshalJSON is the custom marshaler for BuildpackBindingLaunchProperties.
+func (bblp BuildpackBindingLaunchProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bblp.Properties != nil {
+		objectMap["properties"] = bblp.Properties
+	}
+	if bblp.Secrets != nil {
+		objectMap["secrets"] = bblp.Secrets
+	}
+	return json.Marshal(objectMap)
+}
+
+// BuildpackBindingProperties properties of a buildpack binding
+type BuildpackBindingProperties struct {
+	// BindingType - Buildpack Binding Type. Possible values include: 'BindingTypeApplicationInsights', 'BindingTypeApacheSkyWalking', 'BindingTypeAppDynamics', 'BindingTypeDynatrace', 'BindingTypeNewRelic', 'BindingTypeElasticAPM'
+	BindingType BindingType `json:"bindingType,omitempty"`
+	// ProvisioningState - READ-ONLY; State of the Buildpack Binding. Possible values include: 'BuildpackBindingProvisioningStateCreating', 'BuildpackBindingProvisioningStateUpdating', 'BuildpackBindingProvisioningStateSucceeded', 'BuildpackBindingProvisioningStateFailed', 'BuildpackBindingProvisioningStateDeleting'
+	ProvisioningState BuildpackBindingProvisioningState `json:"provisioningState,omitempty"`
+	// LaunchProperties - The object describes the buildpack binding launch properties
+	LaunchProperties *BuildpackBindingLaunchProperties `json:"launchProperties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BuildpackBindingProperties.
+func (bbp BuildpackBindingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bbp.BindingType != "" {
+		objectMap["bindingType"] = bbp.BindingType
+	}
+	if bbp.LaunchProperties != nil {
+		objectMap["launchProperties"] = bbp.LaunchProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// BuildpackBindingResource buildpack Binding Resource object
+type BuildpackBindingResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of a buildpack binding
+	Properties *BuildpackBindingProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BuildpackBindingResource.
+func (bbr BuildpackBindingResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bbr.Properties != nil {
+		objectMap["properties"] = bbr.Properties
+	}
+	if bbr.SystemData != nil {
+		objectMap["systemData"] = bbr.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// BuildpackBindingResourceCollection object that includes an array of BuildpackBinding resources and a
+// possible link for next set
+type BuildpackBindingResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of BuildpackBinding resources
+	Value *[]BuildpackBindingResource `json:"value,omitempty"`
+	// NextLink - URL client should use to fetch the next page (per server side paging).
+	// It's null for now, added for future use.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// BuildpackBindingResourceCollectionIterator provides access to a complete listing of
+// BuildpackBindingResource values.
+type BuildpackBindingResourceCollectionIterator struct {
+	i    int
+	page BuildpackBindingResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *BuildpackBindingResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BuildpackBindingResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *BuildpackBindingResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter BuildpackBindingResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter BuildpackBindingResourceCollectionIterator) Response() BuildpackBindingResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter BuildpackBindingResourceCollectionIterator) Value() BuildpackBindingResource {
+	if !iter.page.NotDone() {
+		return BuildpackBindingResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the BuildpackBindingResourceCollectionIterator type.
+func NewBuildpackBindingResourceCollectionIterator(page BuildpackBindingResourceCollectionPage) BuildpackBindingResourceCollectionIterator {
+	return BuildpackBindingResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (bbrc BuildpackBindingResourceCollection) IsEmpty() bool {
+	return bbrc.Value == nil || len(*bbrc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (bbrc BuildpackBindingResourceCollection) hasNextLink() bool {
+	return bbrc.NextLink != nil && len(*bbrc.NextLink) != 0
+}
+
+// buildpackBindingResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (bbrc BuildpackBindingResourceCollection) buildpackBindingResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !bbrc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(bbrc.NextLink)))
+}
+
+// BuildpackBindingResourceCollectionPage contains a page of BuildpackBindingResource values.
+type BuildpackBindingResourceCollectionPage struct {
+	fn   func(context.Context, BuildpackBindingResourceCollection) (BuildpackBindingResourceCollection, error)
+	bbrc BuildpackBindingResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *BuildpackBindingResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BuildpackBindingResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.bbrc)
+		if err != nil {
+			return err
+		}
+		page.bbrc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *BuildpackBindingResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page BuildpackBindingResourceCollectionPage) NotDone() bool {
+	return !page.bbrc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page BuildpackBindingResourceCollectionPage) Response() BuildpackBindingResourceCollection {
+	return page.bbrc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page BuildpackBindingResourceCollectionPage) Values() []BuildpackBindingResource {
+	if page.bbrc.IsEmpty() {
+		return nil
+	}
+	return *page.bbrc.Value
+}
+
+// Creates a new instance of the BuildpackBindingResourceCollectionPage type.
+func NewBuildpackBindingResourceCollectionPage(cur BuildpackBindingResourceCollection, getNextPage func(context.Context, BuildpackBindingResourceCollection) (BuildpackBindingResourceCollection, error)) BuildpackBindingResourceCollectionPage {
+	return BuildpackBindingResourceCollectionPage{
+		fn:   getNextPage,
+		bbrc: cur,
+	}
+}
+
+// BuildpackProperties buildpack properties payload
+type BuildpackProperties struct {
+	// ID - Id of the buildpack
+	ID *string `json:"id,omitempty"`
+}
+
+// BuildpacksGroupProperties buildpack group properties of the Builder
+type BuildpacksGroupProperties struct {
+	// Name - Buildpack group name
+	Name *string `json:"name,omitempty"`
+	// Buildpacks - Buildpacks in the buildpack group
+	Buildpacks *[]BuildpackProperties `json:"buildpacks,omitempty"`
 }
 
 // BasicCertificateProperties certificate resource payload.
@@ -4293,6 +4296,17 @@ func (csrr ConfigurationServiceResourceRequests) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ConfigurationServiceSettings the settings of Application Configuration Service.
+type ConfigurationServiceSettings struct {
+	GitProperty *ConfigurationServiceGitProperty `json:"gitProperty,omitempty"`
+}
+
+// ConfigurationServiceSettingsValidateResult validation result for configuration service settings
+type ConfigurationServiceSettingsValidateResult struct {
+	autorest.Response           `json:"-"`
+	GitPropertyValidationResult *ConfigurationServiceGitPropertyValidateResult `json:"gitPropertyValidationResult,omitempty"`
+}
+
 // ConfigurationServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ConfigurationServicesCreateOrUpdateFuture struct {
@@ -4371,17 +4385,6 @@ func (future *ConfigurationServicesDeleteFuture) result(client ConfigurationServ
 	}
 	ar.Response = future.Response()
 	return
-}
-
-// ConfigurationServiceSettings the settings of Application Configuration Service.
-type ConfigurationServiceSettings struct {
-	GitProperty *ConfigurationServiceGitProperty `json:"gitProperty,omitempty"`
-}
-
-// ConfigurationServiceSettingsValidateResult validation result for configuration service settings
-type ConfigurationServiceSettingsValidateResult struct {
-	autorest.Response           `json:"-"`
-	GitPropertyValidationResult *ConfigurationServiceGitPropertyValidateResult `json:"gitPropertyValidationResult,omitempty"`
 }
 
 // ConfigurationServicesValidateFuture an abstraction for monitoring and retrieving the results of a
@@ -4787,6 +4790,21 @@ func NewCustomDomainResourceCollectionPage(cur CustomDomainResourceCollection, g
 	}
 }
 
+// CustomDomainValidatePayload custom domain validate payload.
+type CustomDomainValidatePayload struct {
+	// Name - Name to be validated
+	Name *string `json:"name,omitempty"`
+}
+
+// CustomDomainValidateResult validation result for custom domain.
+type CustomDomainValidateResult struct {
+	autorest.Response `json:"-"`
+	// IsValid - Indicates if domain name is valid.
+	IsValid *bool `json:"isValid,omitempty"`
+	// Message - Message of why domain name is invalid.
+	Message *string `json:"message,omitempty"`
+}
+
 // CustomDomainsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type CustomDomainsCreateOrUpdateFuture struct {
@@ -4908,21 +4926,6 @@ func (future *CustomDomainsUpdateFuture) result(client CustomDomainsClient) (cdr
 		}
 	}
 	return
-}
-
-// CustomDomainValidatePayload custom domain validate payload.
-type CustomDomainValidatePayload struct {
-	// Name - Name to be validated
-	Name *string `json:"name,omitempty"`
-}
-
-// CustomDomainValidateResult validation result for custom domain.
-type CustomDomainValidateResult struct {
-	autorest.Response `json:"-"`
-	// IsValid - Indicates if domain name is valid.
-	IsValid *bool `json:"isValid,omitempty"`
-	// Message - Message of why domain name is invalid.
-	Message *string `json:"message,omitempty"`
 }
 
 // BasicCustomPersistentDiskProperties custom persistent disk resource payload.
@@ -5074,6 +5077,13 @@ type DeploymentInstance struct {
 func (di DeploymentInstance) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// DeploymentList a list of deployments resource ids.
+type DeploymentList struct {
+	autorest.Response `json:"-"`
+	// Deployments - A list of deployment resource ids.
+	Deployments *[]string `json:"deployments,omitempty"`
 }
 
 // DeploymentResource deployment resource payload
@@ -5365,6 +5375,55 @@ func (drp *DeploymentResourceProperties) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// DeploymentSettings deployment settings payload
+type DeploymentSettings struct {
+	// ResourceRequests - The requested resource quantity for required CPU and Memory. It is recommended that using this field to represent the required CPU and Memory, the old field cpu and memoryInGB will be deprecated later.
+	ResourceRequests *ResourceRequests `json:"resourceRequests,omitempty"`
+	// EnvironmentVariables - Collection of environment variables
+	EnvironmentVariables map[string]*string `json:"environmentVariables"`
+	// AddonConfigs - Collection of addons
+	AddonConfigs map[string]map[string]interface{} `json:"addonConfigs"`
+	// LivenessProbe - Periodic probe of App Instance liveness. App Instance will be restarted if the probe fails. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+	LivenessProbe *Probe `json:"livenessProbe,omitempty"`
+	// ReadinessProbe - Periodic probe of App Instance service readiness. App Instance will be removed from service endpoints if the probe fails. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+	ReadinessProbe *Probe `json:"readinessProbe,omitempty"`
+	// StartupProbe - StartupProbe indicates that the App Instance has successfully initialized. If specified, no other probes are executed until this completes successfully. If this probe fails, the Pod will be restarted, just as if the livenessProbe failed. This can be used to provide different probe parameters at the beginning of a App Instance's lifecycle, when it might take a long time to load data or warm a cache, than during steady-state operation. This cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+	StartupProbe *Probe `json:"startupProbe,omitempty"`
+	// TerminationGracePeriodSeconds - Optional duration in seconds the App Instance needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). If this value is nil, the default grace period will be used instead. The grace period is the duration in seconds after the processes running in the App Instance are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. Defaults to 90 seconds.
+	TerminationGracePeriodSeconds *int32                  `json:"terminationGracePeriodSeconds,omitempty"`
+	ContainerProbeSettings        *ContainerProbeSettings `json:"containerProbeSettings,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeploymentSettings.
+func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ds.ResourceRequests != nil {
+		objectMap["resourceRequests"] = ds.ResourceRequests
+	}
+	if ds.EnvironmentVariables != nil {
+		objectMap["environmentVariables"] = ds.EnvironmentVariables
+	}
+	if ds.AddonConfigs != nil {
+		objectMap["addonConfigs"] = ds.AddonConfigs
+	}
+	if ds.LivenessProbe != nil {
+		objectMap["livenessProbe"] = ds.LivenessProbe
+	}
+	if ds.ReadinessProbe != nil {
+		objectMap["readinessProbe"] = ds.ReadinessProbe
+	}
+	if ds.StartupProbe != nil {
+		objectMap["startupProbe"] = ds.StartupProbe
+	}
+	if ds.TerminationGracePeriodSeconds != nil {
+		objectMap["terminationGracePeriodSeconds"] = ds.TerminationGracePeriodSeconds
+	}
+	if ds.ContainerProbeSettings != nil {
+		objectMap["containerProbeSettings"] = ds.ContainerProbeSettings
+	}
+	return json.Marshal(objectMap)
+}
+
 // DeploymentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type DeploymentsCreateOrUpdateFuture struct {
@@ -5445,53 +5504,90 @@ func (future *DeploymentsDeleteFuture) result(client DeploymentsClient) (ar auto
 	return
 }
 
-// DeploymentSettings deployment settings payload
-type DeploymentSettings struct {
-	// ResourceRequests - The requested resource quantity for required CPU and Memory. It is recommended that using this field to represent the required CPU and Memory, the old field cpu and memoryInGB will be deprecated later.
-	ResourceRequests *ResourceRequests `json:"resourceRequests,omitempty"`
-	// EnvironmentVariables - Collection of environment variables
-	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// AddonConfigs - Collection of addons
-	AddonConfigs map[string]map[string]interface{} `json:"addonConfigs"`
-	// LivenessProbe - Periodic probe of App Instance liveness. App Instance will be restarted if the probe fails. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
-	LivenessProbe *Probe `json:"livenessProbe,omitempty"`
-	// ReadinessProbe - Periodic probe of App Instance service readiness. App Instance will be removed from service endpoints if the probe fails. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
-	ReadinessProbe *Probe `json:"readinessProbe,omitempty"`
-	// StartupProbe - StartupProbe indicates that the App Instance has successfully initialized. If specified, no other probes are executed until this completes successfully. If this probe fails, the Pod will be restarted, just as if the livenessProbe failed. This can be used to provide different probe parameters at the beginning of a App Instance's lifecycle, when it might take a long time to load data or warm a cache, than during steady-state operation. This cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
-	StartupProbe *Probe `json:"startupProbe,omitempty"`
-	// TerminationGracePeriodSeconds - Optional duration in seconds the App Instance needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). If this value is nil, the default grace period will be used instead. The grace period is the duration in seconds after the processes running in the App Instance are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. Defaults to 90 seconds.
-	TerminationGracePeriodSeconds *int32                  `json:"terminationGracePeriodSeconds,omitempty"`
-	ContainerProbeSettings        *ContainerProbeSettings `json:"containerProbeSettings,omitempty"`
+// DeploymentsDisableRemoteDebuggingFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DeploymentsDisableRemoteDebuggingFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DeploymentsClient) (RemoteDebugging, error)
 }
 
-// MarshalJSON is the custom marshaler for DeploymentSettings.
-func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ds.ResourceRequests != nil {
-		objectMap["resourceRequests"] = ds.ResourceRequests
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DeploymentsDisableRemoteDebuggingFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
 	}
-	if ds.EnvironmentVariables != nil {
-		objectMap["environmentVariables"] = ds.EnvironmentVariables
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DeploymentsDisableRemoteDebuggingFuture.Result.
+func (future *DeploymentsDisableRemoteDebuggingFuture) result(client DeploymentsClient) (rd RemoteDebugging, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsDisableRemoteDebuggingFuture", "Result", future.Response(), "Polling failure")
+		return
 	}
-	if ds.AddonConfigs != nil {
-		objectMap["addonConfigs"] = ds.AddonConfigs
+	if !done {
+		rd.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsDisableRemoteDebuggingFuture")
+		return
 	}
-	if ds.LivenessProbe != nil {
-		objectMap["livenessProbe"] = ds.LivenessProbe
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if rd.Response.Response, err = future.GetResult(sender); err == nil && rd.Response.Response.StatusCode != http.StatusNoContent {
+		rd, err = client.DisableRemoteDebuggingResponder(rd.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.DeploymentsDisableRemoteDebuggingFuture", "Result", rd.Response.Response, "Failure responding to request")
+		}
 	}
-	if ds.ReadinessProbe != nil {
-		objectMap["readinessProbe"] = ds.ReadinessProbe
+	return
+}
+
+// DeploymentsEnableRemoteDebuggingFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DeploymentsEnableRemoteDebuggingFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DeploymentsClient) (RemoteDebugging, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DeploymentsEnableRemoteDebuggingFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
 	}
-	if ds.StartupProbe != nil {
-		objectMap["startupProbe"] = ds.StartupProbe
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DeploymentsEnableRemoteDebuggingFuture.Result.
+func (future *DeploymentsEnableRemoteDebuggingFuture) result(client DeploymentsClient) (rd RemoteDebugging, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsEnableRemoteDebuggingFuture", "Result", future.Response(), "Polling failure")
+		return
 	}
-	if ds.TerminationGracePeriodSeconds != nil {
-		objectMap["terminationGracePeriodSeconds"] = ds.TerminationGracePeriodSeconds
+	if !done {
+		rd.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.DeploymentsEnableRemoteDebuggingFuture")
+		return
 	}
-	if ds.ContainerProbeSettings != nil {
-		objectMap["containerProbeSettings"] = ds.ContainerProbeSettings
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if rd.Response.Response, err = future.GetResult(sender); err == nil && rd.Response.Response.StatusCode != http.StatusNoContent {
+		rd, err = client.EnableRemoteDebuggingResponder(rd.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.DeploymentsEnableRemoteDebuggingFuture", "Result", rd.Response.Response, "Failure responding to request")
+		}
 	}
-	return json.Marshal(objectMap)
+	return
 }
 
 // DeploymentsGenerateHeapDumpFuture an abstraction for monitoring and retrieving the results of a
@@ -6452,6 +6548,8 @@ type GatewayRouteConfigProperties struct {
 	// AppResourceID - The resource Id of the Azure Spring Apps app, required unless route defines `uri`.
 	AppResourceID *string                              `json:"appResourceId,omitempty"`
 	OpenAPI       *GatewayRouteConfigOpenAPIProperties `json:"openApi,omitempty"`
+	// Protocol - Protocol of routed Azure Spring Apps applications. Possible values include: 'GatewayRouteConfigProtocolHTTP', 'GatewayRouteConfigProtocolHTTPS'
+	Protocol GatewayRouteConfigProtocol `json:"protocol,omitempty"`
 	// Routes - Array of API routes, each route contains properties such as `title`, `uri`, `ssoEnabled`, `predicates`, `filters`.
 	Routes *[]GatewayAPIRoute `json:"routes,omitempty"`
 }
@@ -6464,6 +6562,9 @@ func (grcp GatewayRouteConfigProperties) MarshalJSON() ([]byte, error) {
 	}
 	if grcp.OpenAPI != nil {
 		objectMap["openApi"] = grcp.OpenAPI
+	}
+	if grcp.Protocol != "" {
+		objectMap["protocol"] = grcp.Protocol
 	}
 	if grcp.Routes != nil {
 		objectMap["routes"] = grcp.Routes
@@ -6910,6 +7011,28 @@ type ImageRegistryCredential struct {
 type IngressConfig struct {
 	// ReadTimeoutInSeconds - Ingress read time out in seconds.
 	ReadTimeoutInSeconds *int32 `json:"readTimeoutInSeconds,omitempty"`
+}
+
+// IngressSettings app ingress settings payload.
+type IngressSettings struct {
+	// ReadTimeoutInSeconds - Ingress read time out in seconds.
+	ReadTimeoutInSeconds *int32 `json:"readTimeoutInSeconds,omitempty"`
+	// SendTimeoutInSeconds - Ingress send time out in seconds.
+	SendTimeoutInSeconds *int32 `json:"sendTimeoutInSeconds,omitempty"`
+	// SessionAffinity - Type of the affinity, set this to Cookie to enable session affinity. Possible values include: 'SessionAffinityCookie', 'SessionAffinityNone'
+	SessionAffinity SessionAffinity `json:"sessionAffinity,omitempty"`
+	// SessionCookieMaxAge - Time in seconds until the cookie expires.
+	SessionCookieMaxAge *int32 `json:"sessionCookieMaxAge,omitempty"`
+	// BackendProtocol - How ingress should communicate with this app backend service. Possible values include: 'BackendProtocolGRPC', 'BackendProtocolDefault'
+	BackendProtocol BackendProtocol `json:"backendProtocol,omitempty"`
+	// ClientAuth - Client-Certification Authentication.
+	ClientAuth *IngressSettingsClientAuth `json:"clientAuth,omitempty"`
+}
+
+// IngressSettingsClientAuth client-Certification Authentication.
+type IngressSettingsClientAuth struct {
+	// Certificates - Collection of certificate resource id.
+	Certificates *[]string `json:"certificates,omitempty"`
 }
 
 // JarUploadedUserSourceInfo uploaded Jar binary for a deployment
@@ -7433,6 +7556,8 @@ type NetworkProfile struct {
 	RequiredTraffics *[]RequiredTraffic `json:"requiredTraffics,omitempty"`
 	// IngressConfig - Ingress configuration payload for Azure Spring Apps resource.
 	IngressConfig *IngressConfig `json:"ingressConfig,omitempty"`
+	// OutboundType - The egress traffic type of Azure Spring Apps VNet instances.
+	OutboundType *string `json:"outboundType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for NetworkProfile.
@@ -7455,6 +7580,9 @@ func (np NetworkProfile) MarshalJSON() ([]byte, error) {
 	}
 	if np.IngressConfig != nil {
 		objectMap["ingressConfig"] = np.IngressConfig
+	}
+	if np.OutboundType != nil {
+		objectMap["outboundType"] = np.OutboundType
 	}
 	return json.Marshal(objectMap)
 }
@@ -7763,6 +7891,21 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 type RegenerateTestKeyRequestPayload struct {
 	// KeyType - Type of the test key. Possible values include: 'TestKeyTypePrimary', 'TestKeyTypeSecondary'
 	KeyType TestKeyType `json:"keyType,omitempty"`
+}
+
+// RemoteDebugging remote debugging config.
+type RemoteDebugging struct {
+	autorest.Response `json:"-"`
+	// Port - Application debugging port
+	Port *int32 `json:"port,omitempty"`
+	// Enabled - Indicate if remote debugging is enabled
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// RemoteDebuggingPayload remote debugging payload.
+type RemoteDebuggingPayload struct {
+	// Port - Application debugging port.
+	Port *int32 `json:"port,omitempty"`
 }
 
 // RequiredTraffic required inbound or outbound traffic for Azure Spring Apps resource.
@@ -8568,6 +8711,20 @@ func NewServiceResourceListPage(cur ServiceResourceList, getNextPage func(contex
 	}
 }
 
+// ServiceSpecification service specification payload
+type ServiceSpecification struct {
+	// LogSpecifications - Specifications of the Log for Azure Monitoring
+	LogSpecifications *[]LogSpecification `json:"logSpecifications,omitempty"`
+	// MetricSpecifications - Specifications of the Metrics for Azure Monitoring
+	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
+}
+
+// ServiceVNetAddons additional Service settings in vnet injection instance
+type ServiceVNetAddons struct {
+	// LogStreamPublicEndpoint - Indicates whether the log stream in vnet injection instance could be accessed from internet.
+	LogStreamPublicEndpoint *bool `json:"logStreamPublicEndpoint,omitempty"`
+}
+
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ServicesCreateOrUpdateFuture struct {
@@ -8646,14 +8803,6 @@ func (future *ServicesDeleteFuture) result(client ServicesClient) (ar autorest.R
 	}
 	ar.Response = future.Response()
 	return
-}
-
-// ServiceSpecification service specification payload
-type ServiceSpecification struct {
-	// LogSpecifications - Specifications of the Log for Azure Monitoring
-	LogSpecifications *[]LogSpecification `json:"logSpecifications,omitempty"`
-	// MetricSpecifications - Specifications of the Metrics for Azure Monitoring
-	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
 // ServicesStartFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -8770,12 +8919,6 @@ func (future *ServicesUpdateFuture) result(client ServicesClient) (sr ServiceRes
 		}
 	}
 	return
-}
-
-// ServiceVNetAddons additional Service settings in vnet injection instance
-type ServiceVNetAddons struct {
-	// LogStreamPublicEndpoint - Indicates whether the log stream in vnet injection instance could be accessed from internet.
-	LogStreamPublicEndpoint *bool `json:"logStreamPublicEndpoint,omitempty"`
 }
 
 // Sku sku of Azure Spring Apps
