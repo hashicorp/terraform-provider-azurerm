@@ -14,6 +14,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_public_certificate` - add custom poller to prevent `Root resource was present, but now absent.` result [GH-19348]
 * `azurerm_eventhub_namespace` - correct `zone_redundant` property [GH-19164]
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow no image to be specified [GH-19263]
 * `azurerm_synapse_firewall_rule` - wait for the firewall to be ready [GH-19227]
