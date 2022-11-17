@@ -59,6 +59,14 @@ func unmarshalPresetImplementation(input []byte) (Preset, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "#Microsoft.Media.VideoAnalyzerPreset") {
+		var out VideoAnalyzerPreset
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into VideoAnalyzerPreset: %+v", err)
+		}
+		return out, nil
+	}
+
 	type RawPresetImpl struct {
 		Type   string                 `json:"-"`
 		Values map[string]interface{} `json:"-"`

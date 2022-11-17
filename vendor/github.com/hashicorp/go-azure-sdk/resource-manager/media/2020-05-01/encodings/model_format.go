@@ -35,10 +35,42 @@ func unmarshalFormatImplementation(input []byte) (Format, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "#Microsoft.Media.JpgFormat") {
+		var out JpgFormat
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into JpgFormat: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.Mp4Format") {
+		var out Mp4Format
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into Mp4Format: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "#Microsoft.Media.MultiBitrateFormat") {
 		var out MultiBitrateFormat
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into MultiBitrateFormat: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.PngFormat") {
+		var out PngFormat
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into PngFormat: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.TransportStreamFormat") {
+		var out TransportStreamFormat
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into TransportStreamFormat: %+v", err)
 		}
 		return out, nil
 	}

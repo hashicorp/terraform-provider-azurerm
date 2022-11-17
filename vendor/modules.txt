@@ -31,7 +31,6 @@ github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
-github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media
 github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers
@@ -311,7 +310,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/contentkeypo
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveoutputs
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoint
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingpoliciesandstreaminglocators
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01

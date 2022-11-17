@@ -121,3 +121,20 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
+
+
+### Example Usage: `StreamingEndpointsClient.Update`
+
+```go
+ctx := context.TODO()
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+
+payload := streamingendpoints.StreamingEndpoint{
+	// ...
+}
+
+
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```

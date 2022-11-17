@@ -1,4 +1,4 @@
-package streamingendpoint
+package streamingendpoints
 
 import (
 	"context"
@@ -19,16 +19,16 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c StreamingEndpointClient) Update(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint) (result UpdateOperationResponse, err error) {
+func (c StreamingEndpointsClient) Update(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamingendpoint.StreamingEndpointClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "streamingendpoints.StreamingEndpointsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = c.senderForUpdate(ctx, req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamingendpoint.StreamingEndpointClient", "Update", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamingendpoints.StreamingEndpointsClient", "Update", result.HttpResponse, "Failure sending request")
 		return
 	}
 
@@ -36,7 +36,7 @@ func (c StreamingEndpointClient) Update(ctx context.Context, id StreamingEndpoin
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c StreamingEndpointClient) UpdateThenPoll(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint) error {
+func (c StreamingEndpointsClient) UpdateThenPoll(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
@@ -50,7 +50,7 @@ func (c StreamingEndpointClient) UpdateThenPoll(ctx context.Context, id Streamin
 }
 
 // preparerForUpdate prepares the Update request.
-func (c StreamingEndpointClient) preparerForUpdate(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint) (*http.Request, error) {
+func (c StreamingEndpointsClient) preparerForUpdate(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -67,7 +67,7 @@ func (c StreamingEndpointClient) preparerForUpdate(ctx context.Context, id Strea
 
 // senderForUpdate sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (c StreamingEndpointClient) senderForUpdate(ctx context.Context, req *http.Request) (future UpdateOperationResponse, err error) {
+func (c StreamingEndpointsClient) senderForUpdate(ctx context.Context, req *http.Request) (future UpdateOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {

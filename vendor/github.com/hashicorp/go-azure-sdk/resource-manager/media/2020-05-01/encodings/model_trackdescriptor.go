@@ -35,6 +35,38 @@ func unmarshalTrackDescriptorImplementation(input []byte) (TrackDescriptor, erro
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "#Microsoft.Media.SelectAudioTrackByAttribute") {
+		var out SelectAudioTrackByAttribute
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into SelectAudioTrackByAttribute: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.SelectAudioTrackById") {
+		var out SelectAudioTrackById
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into SelectAudioTrackById: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.SelectVideoTrackByAttribute") {
+		var out SelectVideoTrackByAttribute
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into SelectVideoTrackByAttribute: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.SelectVideoTrackById") {
+		var out SelectVideoTrackById
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into SelectVideoTrackById: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "#Microsoft.Media.VideoTrackDescriptor") {
 		var out VideoTrackDescriptor
 		if err := json.Unmarshal(input, &out); err != nil {

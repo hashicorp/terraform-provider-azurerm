@@ -5,6 +5,37 @@ import "strings"
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AacAudioProfile string
+
+const (
+	AacAudioProfileAacLc     AacAudioProfile = "AacLc"
+	AacAudioProfileHeAacVOne AacAudioProfile = "HeAacV1"
+	AacAudioProfileHeAacVTwo AacAudioProfile = "HeAacV2"
+)
+
+func PossibleValuesForAacAudioProfile() []string {
+	return []string{
+		string(AacAudioProfileAacLc),
+		string(AacAudioProfileHeAacVOne),
+		string(AacAudioProfileHeAacVTwo),
+	}
+}
+
+func parseAacAudioProfile(input string) (*AacAudioProfile, error) {
+	vals := map[string]AacAudioProfile{
+		"aaclc":   AacAudioProfileAacLc,
+		"heaacv1": AacAudioProfileHeAacVOne,
+		"heaacv2": AacAudioProfileHeAacVTwo,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AacAudioProfile(input)
+	return &out, nil
+}
+
 type AnalysisResolution string
 
 const (
@@ -30,6 +61,40 @@ func parseAnalysisResolution(input string) (*AnalysisResolution, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := AnalysisResolution(input)
+	return &out, nil
+}
+
+type AttributeFilter string
+
+const (
+	AttributeFilterAll         AttributeFilter = "All"
+	AttributeFilterBottom      AttributeFilter = "Bottom"
+	AttributeFilterTop         AttributeFilter = "Top"
+	AttributeFilterValueEquals AttributeFilter = "ValueEquals"
+)
+
+func PossibleValuesForAttributeFilter() []string {
+	return []string{
+		string(AttributeFilterAll),
+		string(AttributeFilterBottom),
+		string(AttributeFilterTop),
+		string(AttributeFilterValueEquals),
+	}
+}
+
+func parseAttributeFilter(input string) (*AttributeFilter, error) {
+	vals := map[string]AttributeFilter{
+		"all":         AttributeFilterAll,
+		"bottom":      AttributeFilterBottom,
+		"top":         AttributeFilterTop,
+		"valueequals": AttributeFilterValueEquals,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AttributeFilter(input)
 	return &out, nil
 }
 
@@ -273,6 +338,34 @@ func parseEncoderNamedPreset(input string) (*EncoderNamedPreset, error) {
 	return &out, nil
 }
 
+type EntropyMode string
+
+const (
+	EntropyModeCabac EntropyMode = "Cabac"
+	EntropyModeCavlc EntropyMode = "Cavlc"
+)
+
+func PossibleValuesForEntropyMode() []string {
+	return []string{
+		string(EntropyModeCabac),
+		string(EntropyModeCavlc),
+	}
+}
+
+func parseEntropyMode(input string) (*EntropyMode, error) {
+	vals := map[string]EntropyMode{
+		"cabac": EntropyModeCabac,
+		"cavlc": EntropyModeCavlc,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EntropyMode(input)
+	return &out, nil
+}
+
 type FaceRedactorMode string
 
 const (
@@ -301,6 +394,167 @@ func parseFaceRedactorMode(input string) (*FaceRedactorMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := FaceRedactorMode(input)
+	return &out, nil
+}
+
+type H264Complexity string
+
+const (
+	H264ComplexityBalanced H264Complexity = "Balanced"
+	H264ComplexityQuality  H264Complexity = "Quality"
+	H264ComplexitySpeed    H264Complexity = "Speed"
+)
+
+func PossibleValuesForH264Complexity() []string {
+	return []string{
+		string(H264ComplexityBalanced),
+		string(H264ComplexityQuality),
+		string(H264ComplexitySpeed),
+	}
+}
+
+func parseH264Complexity(input string) (*H264Complexity, error) {
+	vals := map[string]H264Complexity{
+		"balanced": H264ComplexityBalanced,
+		"quality":  H264ComplexityQuality,
+		"speed":    H264ComplexitySpeed,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := H264Complexity(input)
+	return &out, nil
+}
+
+type H264VideoProfile string
+
+const (
+	H264VideoProfileAuto             H264VideoProfile = "Auto"
+	H264VideoProfileBaseline         H264VideoProfile = "Baseline"
+	H264VideoProfileHigh             H264VideoProfile = "High"
+	H264VideoProfileHighFourFourFour H264VideoProfile = "High444"
+	H264VideoProfileHighFourTwoTwo   H264VideoProfile = "High422"
+	H264VideoProfileMain             H264VideoProfile = "Main"
+)
+
+func PossibleValuesForH264VideoProfile() []string {
+	return []string{
+		string(H264VideoProfileAuto),
+		string(H264VideoProfileBaseline),
+		string(H264VideoProfileHigh),
+		string(H264VideoProfileHighFourFourFour),
+		string(H264VideoProfileHighFourTwoTwo),
+		string(H264VideoProfileMain),
+	}
+}
+
+func parseH264VideoProfile(input string) (*H264VideoProfile, error) {
+	vals := map[string]H264VideoProfile{
+		"auto":     H264VideoProfileAuto,
+		"baseline": H264VideoProfileBaseline,
+		"high":     H264VideoProfileHigh,
+		"high444":  H264VideoProfileHighFourFourFour,
+		"high422":  H264VideoProfileHighFourTwoTwo,
+		"main":     H264VideoProfileMain,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := H264VideoProfile(input)
+	return &out, nil
+}
+
+type H265Complexity string
+
+const (
+	H265ComplexityBalanced H265Complexity = "Balanced"
+	H265ComplexityQuality  H265Complexity = "Quality"
+	H265ComplexitySpeed    H265Complexity = "Speed"
+)
+
+func PossibleValuesForH265Complexity() []string {
+	return []string{
+		string(H265ComplexityBalanced),
+		string(H265ComplexityQuality),
+		string(H265ComplexitySpeed),
+	}
+}
+
+func parseH265Complexity(input string) (*H265Complexity, error) {
+	vals := map[string]H265Complexity{
+		"balanced": H265ComplexityBalanced,
+		"quality":  H265ComplexityQuality,
+		"speed":    H265ComplexitySpeed,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := H265Complexity(input)
+	return &out, nil
+}
+
+type H265VideoProfile string
+
+const (
+	H265VideoProfileAuto H265VideoProfile = "Auto"
+	H265VideoProfileMain H265VideoProfile = "Main"
+)
+
+func PossibleValuesForH265VideoProfile() []string {
+	return []string{
+		string(H265VideoProfileAuto),
+		string(H265VideoProfileMain),
+	}
+}
+
+func parseH265VideoProfile(input string) (*H265VideoProfile, error) {
+	vals := map[string]H265VideoProfile{
+		"auto": H265VideoProfileAuto,
+		"main": H265VideoProfileMain,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := H265VideoProfile(input)
+	return &out, nil
+}
+
+type InsightsType string
+
+const (
+	InsightsTypeAllInsights       InsightsType = "AllInsights"
+	InsightsTypeAudioInsightsOnly InsightsType = "AudioInsightsOnly"
+	InsightsTypeVideoInsightsOnly InsightsType = "VideoInsightsOnly"
+)
+
+func PossibleValuesForInsightsType() []string {
+	return []string{
+		string(InsightsTypeAllInsights),
+		string(InsightsTypeAudioInsightsOnly),
+		string(InsightsTypeVideoInsightsOnly),
+	}
+}
+
+func parseInsightsType(input string) (*InsightsType, error) {
+	vals := map[string]InsightsType{
+		"allinsights":       InsightsTypeAllInsights,
+		"audioinsightsonly": InsightsTypeAudioInsightsOnly,
+		"videoinsightsonly": InsightsTypeVideoInsightsOnly,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := InsightsType(input)
 	return &out, nil
 }
 
@@ -588,6 +842,34 @@ func parseStretchMode(input string) (*StretchMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := StretchMode(input)
+	return &out, nil
+}
+
+type TrackAttribute string
+
+const (
+	TrackAttributeBitrate  TrackAttribute = "Bitrate"
+	TrackAttributeLanguage TrackAttribute = "Language"
+)
+
+func PossibleValuesForTrackAttribute() []string {
+	return []string{
+		string(TrackAttributeBitrate),
+		string(TrackAttributeLanguage),
+	}
+}
+
+func parseTrackAttribute(input string) (*TrackAttribute, error) {
+	vals := map[string]TrackAttribute{
+		"bitrate":  TrackAttributeBitrate,
+		"language": TrackAttributeLanguage,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := TrackAttribute(input)
 	return &out, nil
 }
 

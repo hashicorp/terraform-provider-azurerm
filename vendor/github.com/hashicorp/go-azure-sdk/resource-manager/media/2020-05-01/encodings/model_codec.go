@@ -27,6 +27,14 @@ func unmarshalCodecImplementation(input []byte) (Codec, error) {
 		return nil, nil
 	}
 
+	if strings.EqualFold(value, "#Microsoft.Media.AacAudio") {
+		var out AacAudio
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AacAudio: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "#Microsoft.Media.Audio") {
 		var out Audio
 		if err := json.Unmarshal(input, &out); err != nil {
@@ -47,6 +55,30 @@ func unmarshalCodecImplementation(input []byte) (Codec, error) {
 		var out CopyVideo
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into CopyVideo: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.H264Video") {
+		var out H264Video
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into H264Video: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.H265Video") {
+		var out H265Video
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into H265Video: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.Image") {
+		var out Image
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into Image: %+v", err)
 		}
 		return out, nil
 	}

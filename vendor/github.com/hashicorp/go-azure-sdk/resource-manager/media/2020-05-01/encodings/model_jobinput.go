@@ -27,10 +27,26 @@ func unmarshalJobInputImplementation(input []byte) (JobInput, error) {
 		return nil, nil
 	}
 
+	if strings.EqualFold(value, "#Microsoft.Media.JobInputAsset") {
+		var out JobInputAsset
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into JobInputAsset: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "#Microsoft.Media.JobInputClip") {
 		var out JobInputClip
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into JobInputClip: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.JobInputHttp") {
+		var out JobInputHTTP
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into JobInputHTTP: %+v", err)
 		}
 		return out, nil
 	}
