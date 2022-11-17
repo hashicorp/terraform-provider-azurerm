@@ -251,7 +251,7 @@ func TestAccMsSqlDatabase_createPITRMode(t *testing.T) {
 
 		{
 			PreConfig: func() { time.Sleep(11 * time.Minute) },
-			Config:    r.createPITRMode(data, time.Now().Add(time.Duration(9)*time.Minute).UTC().Format(time.RFC3339)),
+			Config:    r.createPITRMode(data, time.Now().Add(time.Duration(13)*time.Minute).UTC().Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_mssql_database.pitr").ExistsInAzure(r),
 			),
@@ -328,56 +328,56 @@ func TestAccMsSqlDatabase_scaleReplicaSet(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 		{
 			Config: r.scaleReplicaSet(data, "P2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 		{
 			Config: r.scaleReplicaSet(data, "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 		{
 			Config: r.scaleReplicaSet(data, "BC_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 		{
 			Config: r.scaleReplicaSet(data, "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 		{
 			Config: r.scaleReplicaSet(data, "S2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 		{
 			Config: r.scaleReplicaSet(data, "Basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 		{
 			Config: r.scaleReplicaSet(data, "S1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "license_type"),
 	})
 }
 
