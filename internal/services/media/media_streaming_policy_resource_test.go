@@ -97,12 +97,12 @@ func (StreamingPolicyResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	resp, err := clients.Media.StreamingPoliciesClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingPolicyName)
+	resp, err := clients.Media.V20200501Client.StreamingPoliciesAndStreamingLocators.StreamingPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.StreamingPolicyProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r StreamingPolicyResource) basic(data acceptance.TestData) string {

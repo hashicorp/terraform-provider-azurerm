@@ -6,7 +6,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -101,44 +102,44 @@ func resourceMediaAsset() *pluginsdk.Resource {
 }
 
 func resourceMediaAssetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.AssetsClient
+	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := assetsandassetfilters.NewAssetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName)
+		existing, err := client.AssetsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_media_asset", id.ID())
 		}
 	}
 
-	parameters := media.Asset{
-		AssetProperties: &media.AssetProperties{
+	payload := assetsandassetfilters.Asset{
+		Properties: &assetsandassetfilters.AssetProperties{
 			Description: utils.String(d.Get("description").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("container"); ok {
-		parameters.Container = utils.String(v.(string))
+		payload.Properties.Container = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("alternate_id"); ok {
-		parameters.AlternateID = utils.String(v.(string))
+		payload.Properties.AlternateId = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_name"); ok {
-		parameters.StorageAccountName = utils.String(v.(string))
+		payload.Properties.StorageAccountName = utils.String(v.(string))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, parameters); err != nil {
+	if _, err := client.AssetsCreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -147,7 +148,7 @@ func resourceMediaAssetCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.AssetsClient
+	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -156,9 +157,9 @@ func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName)
+	resp, err := client.AssetsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -171,18 +172,20 @@ func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("media_services_account_name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.AssetProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("alternate_id", props.AlternateID)
-		d.Set("container", props.Container)
-		d.Set("storage_account_name", props.StorageAccountName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
+			d.Set("alternate_id", props.AlternateId)
+			d.Set("container", props.Container)
+			d.Set("storage_account_name", props.StorageAccountName)
+		}
 	}
 
 	return nil
 }
 
 func resourceMediaAssetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.AssetsClient
+	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -191,7 +194,7 @@ func resourceMediaAssetDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.AssetName); err != nil {
+	if _, err := client.AssetsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

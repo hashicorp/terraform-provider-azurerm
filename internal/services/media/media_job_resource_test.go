@@ -3,8 +3,9 @@ package media_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
 	"testing"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -109,12 +110,12 @@ func (MediaJobResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.Media.JobsClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName)
+	resp, err := clients.Media.V20200501Client.Encodings.JobsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.JobProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MediaJobResource) basic(data acceptance.TestData) string {

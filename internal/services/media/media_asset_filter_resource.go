@@ -6,7 +6,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -157,8 +158,8 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.FilterTrackPropertyCompareOperationEqual),
-											string(media.FilterTrackPropertyCompareOperationNotEqual),
+											string(assetsandassetfilters.FilterTrackPropertyCompareOperationEqual),
+											string(assetsandassetfilters.FilterTrackPropertyCompareOperationNotEqual),
 										}, false),
 									},
 
@@ -166,11 +167,11 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.FilterTrackPropertyTypeBitrate),
-											string(media.FilterTrackPropertyTypeFourCC),
-											string(media.FilterTrackPropertyTypeLanguage),
-											string(media.FilterTrackPropertyTypeName),
-											string(media.FilterTrackPropertyTypeType),
+											string(assetsandassetfilters.FilterTrackPropertyTypeBitrate),
+											string(assetsandassetfilters.FilterTrackPropertyTypeFourCC),
+											string(assetsandassetfilters.FilterTrackPropertyTypeLanguage),
+											string(assetsandassetfilters.FilterTrackPropertyTypeName),
+											string(assetsandassetfilters.FilterTrackPropertyTypeType),
 										}, false),
 									},
 
@@ -190,48 +191,47 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 }
 
 func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.AssetFiltersClient
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	assetID, err := assetsandassetfilters.ParseAssetID(d.Get("asset_id").(string))
+	assetId, err := assetsandassetfilters.ParseAssetID(d.Get("asset_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := assetsandassetfilters.NewAssetFilterID(subscriptionID, assetID.ResourceGroupName, assetID.AccountName, assetID.AssetName, d.Get("name").(string))
+	id := assetsandassetfilters.NewAssetFilterID(assetId.SubscriptionId, assetId.ResourceGroupName, assetId.AccountName, assetId.AssetName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName)
+		existing, err := client.AssetFiltersGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_media_asset_filter", id.ID())
 		}
 	}
 
-	parameters := media.AssetFilter{
-		FilterProperties: &media.FilterProperties{
-			FirstQuality: &media.FirstQuality{},
+	payload := assetsandassetfilters.AssetFilter{
+		Properties: &assetsandassetfilters.MediaFilterProperties{
+			FirstQuality: &assetsandassetfilters.FirstQuality{},
 		},
 	}
 
 	if firstQualityBitrate, ok := d.GetOk("first_quality_bitrate"); ok {
-		parameters.FilterProperties.FirstQuality.Bitrate = utils.Int32(int32(firstQualityBitrate.(int)))
+		payload.Properties.FirstQuality.Bitrate = int64(firstQualityBitrate.(int))
 	}
 
 	if v, ok := d.GetOk("presentation_time_range"); ok {
-		parameters.FilterProperties.PresentationTimeRange = expandPresentationTimeRange(v.([]interface{}))
+		payload.Properties.PresentationTimeRange = expandPresentationTimeRange(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("track_selection"); ok {
-		parameters.FilterProperties.Tracks = expandTracks(v.([]interface{}))
+		payload.Properties.Tracks = expandTracks(v.([]interface{}))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName, parameters); err != nil {
+	if _, err = client.AssetFiltersCreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -241,8 +241,7 @@ func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.AssetFiltersClient
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -251,9 +250,9 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName)
+	resp, err := client.AssetFiltersGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -262,21 +261,23 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.FilterName)
-	d.Set("asset_id", assetsandassetfilters.NewAssetID(subscriptionID, id.ResourceGroupName, id.AccountName, id.AssetName).ID())
+	d.Set("asset_id", assetsandassetfilters.NewAssetID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.AssetName).ID())
 
-	if props := resp.FilterProperties; props != nil {
-		var firstQualityBitrate int32
-		if props.FirstQuality != nil && props.FirstQuality.Bitrate != nil {
-			firstQualityBitrate = *props.FirstQuality.Bitrate
-		}
-		d.Set("first_quality_bitrate", firstQualityBitrate)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			var firstQualityBitrate int64
+			if props.FirstQuality != nil {
+				firstQualityBitrate = props.FirstQuality.Bitrate
+			}
+			d.Set("first_quality_bitrate", firstQualityBitrate)
 
-		if err := d.Set("presentation_time_range", flattenPresentationTimeRange(resp.PresentationTimeRange)); err != nil {
-			return fmt.Errorf("flattening `presentation_time_range`: %s", err)
-		}
+			if err := d.Set("presentation_time_range", flattenPresentationTimeRange(props.PresentationTimeRange)); err != nil {
+				return fmt.Errorf("flattening `presentation_time_range`: %s", err)
+			}
 
-		if err := d.Set("track_selection", flattenTracks(resp.Tracks)); err != nil {
-			return fmt.Errorf("flattening `track`: %s", err)
+			if err := d.Set("track_selection", flattenTracks(props.Tracks)); err != nil {
+				return fmt.Errorf("flattening `track`: %s", err)
+			}
 		}
 	}
 
@@ -284,7 +285,7 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceMediaAssetFilterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.AssetFiltersClient
+	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -293,20 +294,20 @@ func resourceMediaAssetFilterDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName); err != nil {
+	if _, err = client.AssetFiltersDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandPresentationTimeRange(input []interface{}) *media.PresentationTimeRange {
+func expandPresentationTimeRange(input []interface{}) *assetsandassetfilters.PresentationTimeRange {
 	if len(input) == 0 {
 		return nil
 	}
 
 	timeRange := input[0].(map[string]interface{})
-	presentationTimeRange := &media.PresentationTimeRange{}
+	presentationTimeRange := &assetsandassetfilters.PresentationTimeRange{}
 
 	var baseUnit int64
 	if v := timeRange["unit_timescale_in_miliseconds"]; v != nil {
@@ -338,7 +339,7 @@ func expandPresentationTimeRange(input []interface{}) *media.PresentationTimeRan
 	return presentationTimeRange
 }
 
-func flattenPresentationTimeRange(input *media.PresentationTimeRange) []interface{} {
+func flattenPresentationTimeRange(input *assetsandassetfilters.PresentationTimeRange) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -387,39 +388,39 @@ func flattenPresentationTimeRange(input *media.PresentationTimeRange) []interfac
 	}
 }
 
-func expandTracks(input []interface{}) *[]media.FilterTrackSelection {
-	results := make([]media.FilterTrackSelection, 0)
+func expandTracks(input []interface{}) *[]assetsandassetfilters.FilterTrackSelection {
+	results := make([]assetsandassetfilters.FilterTrackSelection, 0)
 
 	for _, trackRaw := range input {
 		track := trackRaw.(map[string]interface{})
 
 		if rawSelection := track["condition"]; rawSelection != nil {
 			trackSelectionList := rawSelection.([]interface{})
-			filterTrackSelections := make([]media.FilterTrackPropertyCondition, 0)
+			filterTrackSelections := make([]assetsandassetfilters.FilterTrackPropertyCondition, 0)
 			for _, trackSelection := range trackSelectionList {
 				if trackSelection == nil {
 					continue
 				}
-				filterTrackSelection := media.FilterTrackPropertyCondition{}
+				filterTrackSelection := assetsandassetfilters.FilterTrackPropertyCondition{}
 				track := trackSelection.(map[string]interface{})
 
 				if v := track["operation"]; v != nil {
-					filterTrackSelection.Operation = media.FilterTrackPropertyCompareOperation(v.(string))
+					filterTrackSelection.Operation = assetsandassetfilters.FilterTrackPropertyCompareOperation(v.(string))
 				}
 
 				if v := track["property"]; v != nil {
-					filterTrackSelection.Property = media.FilterTrackPropertyType(v.(string))
+					filterTrackSelection.Property = assetsandassetfilters.FilterTrackPropertyType(v.(string))
 				}
 
 				if v := track["value"]; v != nil {
-					filterTrackSelection.Value = utils.String(v.(string))
+					filterTrackSelection.Value = v.(string)
 				}
 
 				filterTrackSelections = append(filterTrackSelections, filterTrackSelection)
 			}
 
-			results = append(results, media.FilterTrackSelection{
-				TrackSelections: &filterTrackSelections,
+			results = append(results, assetsandassetfilters.FilterTrackSelection{
+				TrackSelections: filterTrackSelections,
 			})
 		}
 	}
@@ -427,24 +428,17 @@ func expandTracks(input []interface{}) *[]media.FilterTrackSelection {
 	return &results
 }
 
-func flattenTracks(input *[]media.FilterTrackSelection) []interface{} {
+func flattenTracks(input *[]assetsandassetfilters.FilterTrackSelection) []interface{} {
 	tracks := make([]interface{}, 0)
 
 	for _, v := range *input {
 		selections := make([]interface{}, 0)
-		if v.TrackSelections != nil {
-			for _, selection := range *v.TrackSelections {
-				value := ""
-				if selection.Value != nil {
-					value = *selection.Value
-				}
-
-				selections = append(selections, map[string]interface{}{
-					"operation": string(selection.Operation),
-					"property":  string(selection.Property),
-					"value":     value,
-				})
-			}
+		for _, selection := range v.TrackSelections {
+			selections = append(selections, map[string]interface{}{
+				"operation": string(selection.Operation),
+				"property":  string(selection.Property),
+				"value":     selection.Value,
+			})
 		}
 		tracks = append(tracks, map[string]interface{}{
 			"condition": selections,

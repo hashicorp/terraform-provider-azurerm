@@ -3,8 +3,9 @@ package media_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/contentkeypolicies"
 	"testing"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/contentkeypolicies"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -69,12 +70,12 @@ func (r MediaContentKeyPolicyResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Media.ContentKeyPoliciesClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.ContentKeyPolicyName)
+	resp, err := clients.Media.V20200501Client.ContentKeyPolicies.ContentKeyPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ContentKeyPolicyProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MediaContentKeyPolicyResource) basic(data acceptance.TestData) string {

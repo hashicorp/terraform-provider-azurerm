@@ -2,16 +2,17 @@ package media
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"log"
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -79,12 +80,9 @@ func resourceMediaTransform() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"on_error_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(media.OnErrorTypeContinueJob),
-								string(media.OnErrorTypeStopProcessingJob),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForOnErrorType(), false),
 						},
 						//lintignore:XS003
 						"builtin_preset": {
@@ -94,21 +92,9 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"preset_name": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(media.EncoderNamedPresetAACGoodQualityAudio),
-											string(media.EncoderNamedPresetAdaptiveStreaming),
-											string(media.EncoderNamedPresetContentAwareEncoding),
-											string(media.EncoderNamedPresetContentAwareEncodingExperimental),
-											string(media.EncoderNamedPresetCopyAllBitrateNonInterleaved),
-											string(media.EncoderNamedPresetH264MultipleBitrate1080p),
-											string(media.EncoderNamedPresetH264MultipleBitrate720p),
-											string(media.EncoderNamedPresetH264MultipleBitrateSD),
-											string(media.EncoderNamedPresetH264SingleBitrate1080p),
-											string(media.EncoderNamedPresetH264SingleBitrate720p),
-											string(media.EncoderNamedPresetH264SingleBitrateSD),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForEncoderNamedPreset(), false),
 									},
 								},
 							},
@@ -143,12 +129,9 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										}, false),
 									},
 									"audio_analysis_mode": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(media.AudioAnalysisModeBasic),
-											string(media.AudioAnalysisModeStandard),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAudioAnalysisMode(), false),
 									},
 								},
 							},
@@ -183,21 +166,14 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										}, false),
 									},
 									"audio_analysis_mode": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(media.AudioAnalysisModeBasic),
-											string(media.AudioAnalysisModeStandard),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAudioAnalysisMode(), false),
 									},
 									"insights_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(media.InsightsTypeAllInsights),
-											string(media.InsightsTypeAudioInsightsOnly),
-											string(media.InsightsTypeVideoInsightsOnly),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForInsightsType(), false),
 									},
 								},
 							},
@@ -210,24 +186,17 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"analysis_resolution": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(media.AnalysisResolutionSourceResolution),
-											string(media.AnalysisResolutionStandardDefinition),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAnalysisResolution(), false),
 									},
 								},
 							},
 						},
 						"relative_priority": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(media.PriorityHigh),
-								string(media.PriorityNormal),
-								string(media.PriorityLow),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForPriority(), false),
 						},
 					},
 				},
@@ -237,40 +206,40 @@ func resourceMediaTransform() *pluginsdk.Resource {
 }
 
 func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.TransformsClient
+	client := meta.(*clients.Client).Media.V20200501Client.Encodings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := encodings.NewTransformID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName)
+		existing, err := client.TransformsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_media_transform", id.ID())
 		}
 	}
 
-	parameters := media.Transform{
-		TransformProperties: &media.TransformProperties{
+	payload := encodings.Transform{
+		Properties: &encodings.TransformProperties{
 			Description: utils.String(d.Get("description").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("output"); ok {
-		transformOutput, err := expandTransformOuputs(v.([]interface{}))
+		transformOutput, err := expandTransformOutputs(v.([]interface{}))
 		if err != nil {
 			return err
 		}
-		parameters.Outputs = transformOutput
+		payload.Properties.Outputs = *transformOutput
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, id.TransformName, parameters); err != nil {
+	if _, err := client.TransformsCreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -279,7 +248,7 @@ func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.TransformsClient
+	client := meta.(*clients.Client).Media.V20200501Client.Encodings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -288,9 +257,9 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName)
+	resp, err := client.TransformsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -303,12 +272,14 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("media_services_account_name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.TransformProperties; props != nil {
-		d.Set("description", props.Description)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
 
-		outputs := flattenTransformOutputs(props.Outputs)
-		if err := d.Set("output", outputs); err != nil {
-			return fmt.Errorf("flattening `output`: %s", err)
+			outputs := flattenTransformOutputs(props.Outputs)
+			if err := d.Set("output", outputs); err != nil {
+				return fmt.Errorf("flattening `output`: %s", err)
+			}
 		}
 	}
 
@@ -316,7 +287,7 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.TransformsClient
+	client := meta.(*clients.Client).Media.V20200501Client.Encodings
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -325,15 +296,15 @@ func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.TransformName); err != nil {
+	if _, err := client.TransformsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandTransformOuputs(input []interface{}) (*[]media.TransformOutput, error) {
-	results := make([]media.TransformOutput, 0)
+func expandTransformOutputs(input []interface{}) (*[]encodings.TransformOutput, error) {
+	results := make([]encodings.TransformOutput, 0)
 
 	for _, transformOutputRaw := range input {
 		if transformOutputRaw == nil {
@@ -346,16 +317,16 @@ func expandTransformOuputs(input []interface{}) (*[]media.TransformOutput, error
 			return nil, err
 		}
 
-		transformOutput := media.TransformOutput{
+		transformOutput := encodings.TransformOutput{
 			Preset: preset,
 		}
 
 		if transform["on_error_action"] != nil {
-			transformOutput.OnError = media.OnErrorType(transform["on_error_action"].(string))
+			transformOutput.OnError = pointer.To(encodings.OnErrorType(transform["on_error_action"].(string)))
 		}
 
 		if transform["relative_priority"] != nil {
-			transformOutput.RelativePriority = media.Priority(transform["relative_priority"].(string))
+			transformOutput.RelativePriority = pointer.To(encodings.Priority(transform["relative_priority"].(string)))
 		}
 
 		results = append(results, transformOutput)
@@ -364,149 +335,176 @@ func expandTransformOuputs(input []interface{}) (*[]media.TransformOutput, error
 	return &results, nil
 }
 
-func flattenTransformOutputs(input *[]media.TransformOutput) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
+func flattenTransformOutputs(input []encodings.TransformOutput) []interface{} {
 	results := make([]interface{}, 0)
-	for _, transformOuput := range *input {
-		output := make(map[string]interface{})
-		output["on_error_action"] = string(transformOuput.OnError)
-		output["relative_priority"] = string(transformOuput.RelativePriority)
-
-		// TODO: this needs refactoring to ensure all fields are always set into the state
-		attribute, preset := flattenPreset(transformOuput.Preset)
-		if attribute != "" {
-			output[attribute] = preset
+	for _, transformOutput := range input {
+		onErrorAction := ""
+		if transformOutput.OnError != nil {
+			onErrorAction = string(*transformOutput.OnError)
 		}
-		results = append(results, output)
+
+		relativePriority := ""
+		if transformOutput.RelativePriority != nil {
+			relativePriority = string(*transformOutput.RelativePriority)
+		}
+
+		preset := flattenPreset(transformOutput.Preset)
+		results = append(results, map[string]interface{}{
+			"audio_analyzer_preset": preset.audioAnalyzerPresets,
+			"builtin_preset":        preset.builtInPresets,
+			"face_detector_preset":  preset.faceDetectorPresets,
+			"on_error_action":       onErrorAction,
+			"relative_priority":     relativePriority,
+			"video_analyzer_preset": preset.videoAnalyzerPresets,
+		})
 	}
 
 	return results
 }
 
-func expandPreset(transform map[string]interface{}) (media.BasicPreset, error) {
-	presetsCount := 0
-	presetType := ""
-	if transform["builtin_preset"] != nil && len(transform["builtin_preset"].([]interface{})) > 0 && transform["builtin_preset"].([]interface{})[0] != nil {
-		presetsCount++
-		presetType = string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset)
-	}
-	if transform["audio_analyzer_preset"] != nil && len(transform["audio_analyzer_preset"].([]interface{})) > 0 && transform["audio_analyzer_preset"].([]interface{})[0] != nil {
-		presetsCount++
-		presetType = string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset)
-	}
-	if transform["video_analyzer_preset"] != nil && len(transform["video_analyzer_preset"].([]interface{})) > 0 && transform["video_analyzer_preset"].([]interface{})[0] != nil {
-		presetsCount++
-		presetType = string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset)
-	}
-	if transform["face_detector_preset"] != nil && len(transform["face_detector_preset"].([]interface{})) > 0 && transform["face_detector_preset"].([]interface{})[0] != nil {
-		presetsCount++
-		presetType = string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset)
-	}
+func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
+	audioAnalyzerPresets := transform["audio_analyzer_preset"].([]interface{})
+	builtInPresets := transform["builtin_preset"].([]interface{})
+	faceDetectorPresets := transform["face_detector_preset"].([]interface{})
+	videoAnalyzerPresets := transform["video_analyzer_preset"].([]interface{})
 
+	presetsCount := 0
+	if len(audioAnalyzerPresets) > 0 {
+		presetsCount++
+	}
+	if len(builtInPresets) > 0 {
+		presetsCount++
+	}
+	if len(faceDetectorPresets) > 0 {
+		presetsCount++
+	}
+	if len(videoAnalyzerPresets) > 0 {
+		presetsCount++
+	}
 	if presetsCount == 0 {
 		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset.")
 	}
-
 	if presetsCount > 1 {
 		return nil, fmt.Errorf("more than one type of preset in the same output is not allowed.")
 	}
 
-	switch presetType {
-	case string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset):
-		presets := transform["builtin_preset"].([]interface{})
-		preset := presets[0].(map[string]interface{})
-		if preset["preset_name"] == nil {
-			return nil, fmt.Errorf("preset_name is required for BuiltInStandardEncoderPreset")
-		}
-		presetName := preset["preset_name"].(string)
-		builtInPreset := &media.BuiltInStandardEncoderPreset{
-			PresetName: media.EncoderNamedPreset(presetName),
-			OdataType:  media.OdataTypeBasicPresetOdataTypeMicrosoftMediaBuiltInStandardEncoderPreset,
-		}
-		return builtInPreset, nil
-	case string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset):
-		presets := transform["audio_analyzer_preset"].([]interface{})
-		preset := presets[0].(map[string]interface{})
-		audioAnalyzerPreset := &media.AudioAnalyzerPreset{
-			OdataType: media.OdataTypeBasicPresetOdataTypeMicrosoftMediaAudioAnalyzerPreset,
-		}
+	if len(audioAnalyzerPresets) > 0 {
+		preset := audioAnalyzerPresets[0].(map[string]interface{})
+		audioAnalyzerPreset := &encodings.AudioAnalyzerPreset{}
 		if preset["audio_language"] != nil && preset["audio_language"].(string) != "" {
 			audioAnalyzerPreset.AudioLanguage = utils.String(preset["audio_language"].(string))
 		}
 		if preset["audio_analysis_mode"] != nil {
-			audioAnalyzerPreset.Mode = media.AudioAnalysisMode(preset["audio_analysis_mode"].(string))
+			audioAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(preset["audio_analysis_mode"].(string)))
 		}
 		return audioAnalyzerPreset, nil
-	case string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset):
-		presets := transform["face_detector_preset"].([]interface{})
-		preset := presets[0].(map[string]interface{})
-		faceDetectorPreset := &media.FaceDetectorPreset{
-			OdataType: media.OdataTypeBasicPresetOdataTypeMicrosoftMediaFaceDetectorPreset,
+	}
+
+	if len(builtInPresets) > 0 {
+		preset := builtInPresets[0].(map[string]interface{})
+		presetName := preset["preset_name"].(string)
+		builtInPreset := &encodings.BuiltInStandardEncoderPreset{
+			PresetName: encodings.EncoderNamedPreset(presetName),
 		}
+		return builtInPreset, nil
+	}
+
+	if len(faceDetectorPresets) > 0 {
+		preset := faceDetectorPresets[0].(map[string]interface{})
+		faceDetectorPreset := &encodings.FaceDetectorPreset{}
 		if preset["analysis_resolution"] != nil {
-			faceDetectorPreset.Resolution = media.AnalysisResolution(preset["analysis_resolution"].(string))
+			faceDetectorPreset.Resolution = pointer.To(encodings.AnalysisResolution(preset["analysis_resolution"].(string)))
 		}
 		return faceDetectorPreset, nil
-	case string(media.OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset):
+	}
+
+	if len(videoAnalyzerPresets) > 0 {
 		presets := transform["video_analyzer_preset"].([]interface{})
 		preset := presets[0].(map[string]interface{})
-		videoAnalyzerPreset := &media.VideoAnalyzerPreset{
-			OdataType: media.OdataTypeBasicPresetOdataTypeMicrosoftMediaVideoAnalyzerPreset,
-		}
+		videoAnalyzerPreset := &encodings.VideoAnalyzerPreset{}
 		if preset["audio_language"] != nil {
 			videoAnalyzerPreset.AudioLanguage = utils.String(preset["audio_language"].(string))
 		}
 		if preset["audio_analysis_mode"] != nil {
-			videoAnalyzerPreset.Mode = media.AudioAnalysisMode(preset["audio_analysis_mode"].(string))
+			videoAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(preset["audio_analysis_mode"].(string)))
 		}
 		if preset["insights_type"] != nil {
-			videoAnalyzerPreset.InsightsToExtract = media.InsightsType(preset["insights_type"].(string))
+			videoAnalyzerPreset.InsightsToExtract = pointer.To(encodings.InsightsType(preset["insights_type"].(string)))
 		}
 		return videoAnalyzerPreset, nil
-	default:
-		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset")
 	}
+
+	return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset")
 }
 
-func flattenPreset(preset media.BasicPreset) (string, []interface{}) {
-	if preset == nil {
-		return "", []interface{}{}
+type flattenedPresets struct {
+	audioAnalyzerPresets []interface{}
+	builtInPresets       []interface{}
+	faceDetectorPresets  []interface{}
+	videoAnalyzerPresets []interface{}
+}
+
+func flattenPreset(input encodings.Preset) flattenedPresets {
+	out := flattenedPresets{
+		audioAnalyzerPresets: []interface{}{},
+		builtInPresets:       []interface{}{},
+		faceDetectorPresets:  []interface{}{},
+		videoAnalyzerPresets: []interface{}{},
+	}
+	if input == nil {
+		return out
 	}
 
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-	switch preset.(type) {
-	case media.AudioAnalyzerPreset:
-		mediaAudioAnalyzerPreset, _ := preset.AsAudioAnalyzerPreset()
-		result["audio_analysis_mode"] = string(mediaAudioAnalyzerPreset.Mode)
-		if mediaAudioAnalyzerPreset.AudioLanguage != nil {
-			result["audio_language"] = mediaAudioAnalyzerPreset.AudioLanguage
+	if v, ok := input.(encodings.AudioAnalyzerPreset); ok {
+		language := ""
+		if v.AudioLanguage != nil {
+			language = *v.AudioLanguage
 		}
-		results = append(results, result)
-		return "audio_analyzer_preset", results
-	case media.BuiltInStandardEncoderPreset:
-		builtInStandardEncoderPreset, _ := preset.AsBuiltInStandardEncoderPreset()
-		result["preset_name"] = string(builtInStandardEncoderPreset.PresetName)
-		results = append(results, result)
-		return "builtin_preset", results
-	case media.FaceDetectorPreset:
-		faceDetectorPreset, _ := preset.AsFaceDetectorPreset()
-		result["analysis_resolution"] = string(faceDetectorPreset.Resolution)
-		results = append(results, result)
-		return "face_detector_preset", results
-	case media.VideoAnalyzerPreset:
-		videoAnalyzerPreset, _ := preset.AsVideoAnalyzerPreset()
-		result["audio_analysis_mode"] = string(videoAnalyzerPreset.Mode)
-		result["insights_type"] = string(videoAnalyzerPreset.InsightsToExtract)
-		if videoAnalyzerPreset.AudioLanguage != nil {
-			result["audio_language"] = videoAnalyzerPreset.AudioLanguage
+		mode := ""
+		if v.Mode != nil {
+			mode = string(*v.Mode)
 		}
-		results = append(results, result)
-		return "video_analyzer_preset", results
+		out.audioAnalyzerPresets = append(out.audioAnalyzerPresets, map[string]interface{}{
+			"audio_analysis_mode": mode,
+			"audio_language":      language,
+		})
 	}
 
-	return "", results
+	if v, ok := input.(encodings.BuiltInStandardEncoderPreset); ok {
+		out.builtInPresets = append(out.builtInPresets, map[string]interface{}{
+			"preset_name": string(v.PresetName),
+		})
+	}
+
+	if v, ok := input.(encodings.FaceDetectorPreset); ok {
+		resolution := ""
+		if v.Resolution != nil {
+			resolution = string(*v.Resolution)
+		}
+		out.faceDetectorPresets = append(out.faceDetectorPresets, map[string]interface{}{
+			"analysis_resolution": resolution,
+		})
+	}
+
+	if v, ok := input.(encodings.VideoAnalyzerPreset); ok {
+		audioLanguage := ""
+		if v.AudioLanguage != nil {
+			audioLanguage = *v.AudioLanguage
+		}
+		insightsType := ""
+		if v.InsightsToExtract != nil {
+			insightsType = string(*v.InsightsToExtract)
+		}
+		mode := ""
+		if v.Mode != nil {
+			mode = string(*v.Mode)
+		}
+		out.videoAnalyzerPresets = append(out.videoAnalyzerPresets, map[string]interface{}{
+			"audio_analysis_mode": mode,
+			"audio_language":      audioLanguage,
+			"insights_type":       insightsType,
+		})
+	}
+
+	return out
 }

@@ -102,12 +102,12 @@ func (MediaAssetResource) Exists(ctx context.Context, clients *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := clients.Media.AssetsClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName)
+	resp, err := clients.Media.V20200501Client.AssetsAndAssetFilters.AssetsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AssetProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MediaAssetResource) basic(data acceptance.TestData) string {

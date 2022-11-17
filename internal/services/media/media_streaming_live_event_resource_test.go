@@ -67,12 +67,12 @@ func (LiveEventResource) Exists(ctx context.Context, clients *clients.Client, st
 		return nil, err
 	}
 
-	resp, err := clients.Media.LiveEventsClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.LiveEventName)
+	resp, err := clients.Media.V20200501Client.LiveEvents.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.LiveEventProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r LiveEventResource) basic(data acceptance.TestData) string {

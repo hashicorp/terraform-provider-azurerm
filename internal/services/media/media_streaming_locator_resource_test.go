@@ -3,8 +3,9 @@ package media_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingpoliciesandstreaminglocators"
 	"testing"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingpoliciesandstreaminglocators"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -101,12 +102,12 @@ func (StreamingLocatorResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Media.StreamingLocatorsClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingLocatorName)
+	resp, err := clients.Media.V20200501Client.StreamingPoliciesAndStreamingLocators.StreamingLocatorsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.StreamingLocatorProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r StreamingLocatorResource) basic(data acceptance.TestData) string {

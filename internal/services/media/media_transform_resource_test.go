@@ -104,12 +104,12 @@ func (r MediaTransformResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Media.TransformsClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.TransformName)
+	resp, err := clients.Media.V20200501Client.Encodings.TransformsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.TransformProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MediaTransformResource) basic(data acceptance.TestData) string {

@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingpoliciesandstreaminglocators"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -120,9 +120,9 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(media.StreamingLocatorContentKeyTypeCommonEncryptionCbcs),
-								string(media.StreamingLocatorContentKeyTypeCommonEncryptionCenc),
-								string(media.StreamingLocatorContentKeyTypeEnvelopeEncryption),
+								string(streamingpoliciesandstreaminglocators.StreamingLocatorContentKeyTypeCommonEncryptionCbcs),
+								string(streamingpoliciesandstreaminglocators.StreamingLocatorContentKeyTypeCommonEncryptionCenc),
+								string(streamingpoliciesandstreaminglocators.StreamingLocatorContentKeyTypeEnvelopeEncryption),
 							}, false),
 						},
 
@@ -170,42 +170,42 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 }
 
 func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.StreamingLocatorsClient
+	client := meta.(*clients.Client).Media.V20200501Client.StreamingPoliciesAndStreamingLocators
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingLocatorName)
+		existing, err := client.StreamingLocatorsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_media_streaming_locator", id.ID())
 		}
 	}
 
-	parameters := media.StreamingLocator{
-		StreamingLocatorProperties: &media.StreamingLocatorProperties{
-			AssetName:           utils.String(d.Get("asset_name").(string)),
-			StreamingPolicyName: utils.String(d.Get("streaming_policy_name").(string)),
+	payload := streamingpoliciesandstreaminglocators.StreamingLocator{
+		Properties: &streamingpoliciesandstreaminglocators.StreamingLocatorProperties{
+			AssetName:           d.Get("asset_name").(string),
+			StreamingPolicyName: d.Get("streaming_policy_name").(string),
 		},
 	}
 
 	if alternativeMediaID, ok := d.GetOk("alternative_media_id"); ok {
-		parameters.StreamingLocatorProperties.AlternativeMediaID = utils.String(alternativeMediaID.(string))
+		payload.Properties.AlternativeMediaId = utils.String(alternativeMediaID.(string))
 	}
 
 	if contentKeys, ok := d.GetOk("content_key"); ok {
-		parameters.StreamingLocatorProperties.ContentKeys = expandContentKeys(contentKeys.([]interface{}))
+		payload.Properties.ContentKeys = expandContentKeys(contentKeys.([]interface{}))
 	}
 
 	if defaultContentKeyPolicyName, ok := d.GetOk("default_content_key_policy_name"); ok {
-		parameters.StreamingLocatorProperties.DefaultContentKeyPolicyName = utils.String(defaultContentKeyPolicyName.(string))
+		payload.Properties.DefaultContentKeyPolicyName = utils.String(defaultContentKeyPolicyName.(string))
 	}
 
 	if endTimeRaw, ok := d.GetOk("end_time"); ok {
@@ -214,9 +214,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 			if err != nil {
 				return err
 			}
-			parameters.StreamingLocatorProperties.EndTime = &date.Time{
-				Time: endTime,
-			}
+			payload.Properties.SetEndTimeAsTime(endTime)
 		}
 	}
 
@@ -226,18 +224,15 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 			if err != nil {
 				return err
 			}
-			parameters.StreamingLocatorProperties.StartTime = &date.Time{
-				Time: startTime,
-			}
+			payload.Properties.SetStartTimeAsTime(startTime)
 		}
 	}
 
 	if idRaw, ok := d.GetOk("streaming_locator_id"); ok {
-		id := uuid.FromStringOrNil(idRaw.(string))
-		parameters.StreamingLocatorProperties.StreamingLocatorID = &id
+		payload.Properties.StreamingLocatorId = pointer.To(idRaw.(string))
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroupName, id.AccountName, id.StreamingLocatorName, parameters); err != nil {
+	if _, err := client.StreamingLocatorsCreate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -247,7 +242,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceMediaStreamingLocatorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.StreamingLocatorsClient
+	client := meta.(*clients.Client).Media.V20200501Client.StreamingPoliciesAndStreamingLocators
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -256,9 +251,9 @@ func resourceMediaStreamingLocatorRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName, id.StreamingLocatorName)
+	resp, err := client.StreamingLocatorsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -271,41 +266,47 @@ func resourceMediaStreamingLocatorRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("media_services_account_name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.StreamingLocatorProperties; props != nil {
-		d.Set("asset_name", props.AssetName)
-		d.Set("streaming_policy_name", props.StreamingPolicyName)
-		d.Set("alternative_media_id", props.AlternativeMediaID)
-		d.Set("default_content_key_policy_name", props.DefaultContentKeyPolicyName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("asset_name", props.AssetName)
+			d.Set("streaming_policy_name", props.StreamingPolicyName)
+			d.Set("alternative_media_id", props.AlternativeMediaId)
+			d.Set("default_content_key_policy_name", props.DefaultContentKeyPolicyName)
 
-		contentKeys := flattenContentKeys(resp.ContentKeys)
-		if err := d.Set("content_key", contentKeys); err != nil {
-			return fmt.Errorf("flattening `content_key`: %s", err)
-		}
+			contentKeys := flattenContentKeys(props.ContentKeys)
+			if err := d.Set("content_key", contentKeys); err != nil {
+				return fmt.Errorf("flattening `content_key`: %s", err)
+			}
 
-		endTime := ""
-		if props.EndTime != nil {
-			endTime = props.EndTime.Format(time.RFC3339)
-		}
-		d.Set("end_time", endTime)
+			endTime := ""
+			if props.EndTime != nil {
+				t, err := props.GetEndTimeAsTime()
+				if err != nil {
+					return fmt.Errorf("parsing EndTime: %+v", err)
+				}
+				endTime = t.Format(time.RFC3339)
+			}
+			d.Set("end_time", endTime)
 
-		startTime := ""
-		if props.StartTime != nil {
-			startTime = props.StartTime.Format(time.RFC3339)
-		}
-		d.Set("start_time", startTime)
+			startTime := ""
+			if props.StartTime != nil {
+				t, err := props.GetStartTimeAsTime()
+				if err != nil {
+					return fmt.Errorf("parsing StartTime: %+v", err)
+				}
+				startTime = t.Format(time.RFC3339)
+			}
+			d.Set("start_time", startTime)
 
-		id := ""
-		if props.StreamingLocatorID != nil {
-			id = props.StreamingLocatorID.String()
+			d.Set("streaming_locator_id", props.StreamingLocatorId)
 		}
-		d.Set("streaming_locator_id", id)
 	}
 
 	return nil
 }
 
 func resourceMediaStreamingLocatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.StreamingLocatorsClient
+	client := meta.(*clients.Client).Media.V20200501Client.StreamingPoliciesAndStreamingLocators
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -314,15 +315,15 @@ func resourceMediaStreamingLocatorDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroupName, id.AccountName, id.StreamingLocatorName); err != nil {
+	if _, err = client.StreamingLocatorsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandContentKeys(input []interface{}) *[]media.StreamingLocatorContentKey {
-	results := make([]media.StreamingLocatorContentKey, 0)
+func expandContentKeys(input []interface{}) *[]streamingpoliciesandstreaminglocators.StreamingLocatorContentKey {
+	results := make([]streamingpoliciesandstreaminglocators.StreamingLocatorContentKey, 0)
 
 	for _, contentKeyRaw := range input {
 		if contentKeyRaw == nil {
@@ -330,11 +331,10 @@ func expandContentKeys(input []interface{}) *[]media.StreamingLocatorContentKey 
 		}
 		contentKey := contentKeyRaw.(map[string]interface{})
 
-		streamingLocatorContentKey := media.StreamingLocatorContentKey{}
+		streamingLocatorContentKey := streamingpoliciesandstreaminglocators.StreamingLocatorContentKey{}
 
 		if contentKey["content_key_id"] != nil {
-			id := uuid.FromStringOrNil(contentKey["content_key_id"].(string))
-			streamingLocatorContentKey.ID = &id
+			streamingLocatorContentKey.Id = contentKey["content_key_id"].(string)
 		}
 
 		if contentKey["label_reference_in_streaming_policy"] != nil {
@@ -346,7 +346,7 @@ func expandContentKeys(input []interface{}) *[]media.StreamingLocatorContentKey 
 		}
 
 		if contentKey["type"] != nil {
-			streamingLocatorContentKey.Type = media.StreamingLocatorContentKeyType(contentKey["type"].(string))
+			streamingLocatorContentKey.Type = pointer.To(streamingpoliciesandstreaminglocators.StreamingLocatorContentKeyType(contentKey["type"].(string)))
 		}
 
 		if contentKey["value"] != nil {
@@ -359,18 +359,13 @@ func expandContentKeys(input []interface{}) *[]media.StreamingLocatorContentKey 
 	return &results
 }
 
-func flattenContentKeys(input *[]media.StreamingLocatorContentKey) []interface{} {
+func flattenContentKeys(input *[]streamingpoliciesandstreaminglocators.StreamingLocatorContentKey) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0)
 	for _, contentKey := range *input {
-		id := ""
-		if contentKey.ID != nil {
-			id = contentKey.ID.String()
-		}
-
 		labelReferenceInStreamingPolicy := ""
 		if contentKey.LabelReferenceInStreamingPolicy != nil {
 			labelReferenceInStreamingPolicy = *contentKey.LabelReferenceInStreamingPolicy
@@ -381,16 +376,21 @@ func flattenContentKeys(input *[]media.StreamingLocatorContentKey) []interface{}
 			policyName = *contentKey.PolicyName
 		}
 
+		contentKeyType := ""
+		if contentKey.Type != nil {
+			contentKeyType = string(*contentKey.Type)
+		}
+
 		value := ""
 		if contentKey.Value != nil {
 			value = *contentKey.Value
 		}
 
 		results = append(results, map[string]interface{}{
-			"content_key_id":                      id,
+			"content_key_id":                      contentKey.Id,
 			"label_reference_in_streaming_policy": labelReferenceInStreamingPolicy,
 			"policy_name":                         policyName,
-			"type":                                string(contentKey.Type),
+			"type":                                contentKeyType,
 			"value":                               value,
 		})
 	}

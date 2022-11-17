@@ -2,21 +2,21 @@ package media
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"log"
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01/accounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -89,8 +89,8 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(media.StorageAuthenticationSystem),
-					string(media.StorageAuthenticationManagedIdentity),
+					string(accounts.StorageAuthenticationSystem),
+					string(accounts.StorageAuthenticationManagedIdentity),
 				}, false),
 			},
 
@@ -105,8 +105,8 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(media.DefaultActionDeny),
-								string(media.DefaultActionAllow),
+								string(accounts.DefaultActionDeny),
+								string(accounts.DefaultActionAllow),
 							}, false),
 						},
 
@@ -122,32 +122,31 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.ServicesClient
+	client := meta.(*clients.Client).Media.V20210501Client.Accounts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := accounts.NewMediaServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroupName, id.AccountName)
+		existing, err := client.MediaservicesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_media_services_account", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	storageAccountsRaw := d.Get("storage_account").(*pluginsdk.Set).List()
@@ -156,30 +155,30 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	parameters := media.Service{
-		Location: utils.String(location),
-		Identity: expandedIdentity,
-		ServiceProperties: &media.ServiceProperties{
+	payload := accounts.MediaService{
+		Location: location.Normalize(d.Get("location").(string)),
+		Identity: identity,
+		Properties: &accounts.MediaServiceProperties{
 			StorageAccounts: storageAccounts,
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("storage_authentication_type"); ok {
-		parameters.StorageAuthentication = media.StorageAuthentication(v.(string))
-	}
-
 	if keyDelivery, ok := d.GetOk("key_delivery_access_control"); ok {
-		parameters.KeyDelivery = expandKeyDelivery(keyDelivery.([]interface{}))
+		payload.Properties.KeyDelivery = expandKeyDelivery(keyDelivery.([]interface{}))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.AccountName, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if v, ok := d.GetOk("storage_authentication_type"); ok {
+		payload.Properties.StorageAuthentication = pointer.To(accounts.StorageAuthentication(v.(string)))
+	}
+
+	if _, err := client.MediaservicesCreateOrUpdate(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -187,7 +186,7 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.ServicesClient
+	client := meta.(*clients.Client).Media.V20210501Client.Accounts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -196,9 +195,9 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.AccountName)
+	resp, err := client.MediaservicesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %q was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -209,32 +208,43 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.ServiceProperties; props != nil {
-		accounts, err := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
-		if err != nil {
-			return fmt.Errorf("flattening `storage_account`: %s", err)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("flattening `identity`: %s", err)
 		}
-		if err := d.Set("storage_account", accounts); err != nil {
-			return fmt.Errorf("setting `storage_account`: %s", err)
+
+		if props := model.Properties; props != nil {
+			accounts, err := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
+			if err != nil {
+				return fmt.Errorf("flattening `storage_account`: %s", err)
+			}
+			if err := d.Set("storage_account", accounts); err != nil {
+				return fmt.Errorf("setting `storage_account`: %s", err)
+			}
+
+			storageAuthenticationType := ""
+			if props.StorageAuthentication != nil {
+				storageAuthenticationType = string(*props.StorageAuthentication)
+			}
+			d.Set("storage_authentication_type", storageAuthenticationType)
+
+			if err := d.Set("key_delivery_access_control", flattenKeyDelivery(props.KeyDelivery)); err != nil {
+				return fmt.Errorf("flattening `key_delivery_access_control`: %s", err)
+			}
 		}
-		d.Set("storage_authentication_type", string(props.StorageAuthentication))
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
-	if err := d.Set("identity", flattenAccountIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening `identity`: %s", err)
-	}
-
-	if err := d.Set("key_delivery_access_control", flattenKeyDelivery(resp.KeyDelivery)); err != nil {
-		return fmt.Errorf("flattening `key_delivery_access_control`: %s", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceMediaServicesAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.ServicesClient
+	client := meta.(*clients.Client).Media.V20210501Client.Accounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -243,15 +253,15 @@ func resourceMediaServicesAccountDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroupName, id.AccountName); err != nil {
+	if _, err := client.MediaservicesDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]media.StorageAccount, error) {
-	results := make([]media.StorageAccount, 0)
+func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]accounts.StorageAccount, error) {
+	results := make([]accounts.StorageAccount, 0)
 
 	foundPrimary := false
 	for _, accountMapRaw := range input {
@@ -259,28 +269,26 @@ func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]media.St
 
 		id := accountMap["id"].(string)
 
-		storageType := media.StorageAccountTypeSecondary
+		storageType := accounts.StorageAccountTypeSecondary
 		if accountMap["is_primary"].(bool) {
 			if foundPrimary {
 				return nil, fmt.Errorf("Only one Storage Account can be set as Primary")
 			}
 
-			storageType = media.StorageAccountTypePrimary
+			storageType = accounts.StorageAccountTypePrimary
 			foundPrimary = true
 		}
 
-		storageAccount := media.StorageAccount{
-			ID:   utils.String(id),
+		results = append(results, accounts.StorageAccount{
+			Id:   utils.String(id),
 			Type: storageType,
-		}
-
-		results = append(results, storageAccount)
+		})
 	}
 
 	return &results, nil
 }
 
-func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) (*[]interface{}, error) {
+func flattenMediaServicesAccountStorageAccounts(input *[]accounts.StorageAccount) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
@@ -288,53 +296,24 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) (
 	results := make([]interface{}, 0)
 	for _, storageAccount := range *input {
 		storageAccountId := ""
-		if storageAccount.ID != nil {
-			id, err := storageaccounts.ParseStorageAccountIDInsensitively(*storageAccount.ID)
+		if storageAccount.Id != nil {
+			id, err := storageaccounts.ParseStorageAccountIDInsensitively(*storageAccount.Id)
 			if err != nil {
-				return nil, fmt.Errorf("parsing %q as a Storage Account ID: %+v", *storageAccount.ID, err)
+				return nil, fmt.Errorf("parsing %q as a Storage Account ID: %+v", *storageAccount.Id, err)
 			}
 			storageAccountId = id.ID()
 		}
 
 		results = append(results, map[string]interface{}{
 			"id":         storageAccountId,
-			"is_primary": storageAccount.Type == media.StorageAccountTypePrimary,
+			"is_primary": storageAccount.Type == accounts.StorageAccountTypePrimary,
 		})
 	}
 
 	return &results, nil
 }
 
-func expandAccountIdentity(input []interface{}) (*media.ServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &media.ServiceIdentity{
-		Type: media.ManagedIdentityType(string(expanded.Type)),
-	}, nil
-}
-
-func flattenAccountIdentity(input *media.ServiceIdentity) []interface{} {
-	var transform *identity.SystemAssigned
-
-	if input != nil {
-		transform = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transform.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transform.TenantId = *input.TenantID
-		}
-	}
-
-	return identity.FlattenSystemAssigned(transform)
-}
-
-func expandKeyDelivery(input []interface{}) *media.KeyDelivery {
+func expandKeyDelivery(input []interface{}) *accounts.KeyDelivery {
 	if len(input) == 0 {
 		return nil
 	}
@@ -348,22 +327,27 @@ func expandKeyDelivery(input []interface{}) *media.KeyDelivery {
 		ipAllowList = utils.ExpandStringSlice(ips)
 	}
 
-	return &media.KeyDelivery{
-		AccessControl: &media.AccessControl{
-			DefaultAction: media.DefaultAction(defaultAction),
+	return &accounts.KeyDelivery{
+		AccessControl: &accounts.AccessControl{
+			DefaultAction: pointer.To(accounts.DefaultAction(defaultAction)),
 			IPAllowList:   ipAllowList,
 		},
 	}
 }
 
-func flattenKeyDelivery(input *media.KeyDelivery) []interface{} {
+func flattenKeyDelivery(input *accounts.KeyDelivery) []interface{} {
 	if input == nil && input.AccessControl != nil {
 		return make([]interface{}, 0)
 	}
 
+	defaultAction := ""
+	if input.AccessControl.DefaultAction != nil {
+		defaultAction = string(*input.AccessControl.DefaultAction)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"default_action": string(input.AccessControl.DefaultAction),
+			"default_action": defaultAction,
 			"ip_allow_list":  utils.FlattenStringSlice(input.AccessControl.IPAllowList),
 		},
 	}

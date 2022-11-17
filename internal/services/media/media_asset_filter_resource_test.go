@@ -95,12 +95,12 @@ func (AssetFilterResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Media.AssetFiltersClient.Get(ctx, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName)
+	resp, err := clients.Media.V20200501Client.AssetsAndAssetFilters.AssetFiltersGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.FilterProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r AssetFilterResource) basic(data acceptance.TestData) string {
