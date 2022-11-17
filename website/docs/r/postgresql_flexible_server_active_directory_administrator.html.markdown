@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_postgresql_flexible_server_active_directory_administrator
 
-Allows you to set a user or group as the AD administrator for an PostgreSQL Flexible server in Azure
+Allows you to set a user or group as the AD administrator for a PostgreSQL Flexible Server.
 
 ## Example Usage
 
@@ -52,15 +52,15 @@ The following arguments are supported:
 
 * `server_name` - (Required) The name of the PostgreSQL Flexible Server on which to set the administrator. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group for the PostgreSQL server. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group for the PostgreSQL Server. Changing this forces a new resource to be created.
 
 * `object_id` - (Required) The object ID of a user, service principal or security group in the Azure Active Directory tenant set as the Flexible Server Admin. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Azure Tenant ID. Changing this forces a new resource to be created.
 
-* `principal_name` - (Required) The name of Azure active directory principal. Changing this forces a new resource to be created.
+* `principal_name` - (Required) The name of Azure Active Directory principal. Changing this forces a new resource to be created.
 
-* `principal_type` - (Required) The type of Azure active directory principal. Possible values are `Group`, `ServicePrincipal` and `User`. Changing this forces a new resource to be created.
+* `principal_type` - (Required) The type of Azure Active Directory principal. Possible values are `Group`, `ServicePrincipal` and `User`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

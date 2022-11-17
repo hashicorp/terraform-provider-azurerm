@@ -110,7 +110,7 @@ func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceDa
 	}
 
 	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
