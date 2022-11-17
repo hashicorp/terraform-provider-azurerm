@@ -154,9 +154,8 @@ resource "azurerm_shared_image_gallery" "test" {
   location            = azurerm_resource_group.test.location
 }
 
-// Azure Lab Services
 data "azuread_service_principal" "test" {
-  application_id = "c7bb12bf-0b39-4f7f-9171-f418ff39b76a"
+  display_name = "Azure Lab Services"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -252,9 +251,8 @@ resource "azurerm_shared_image_gallery" "test2" {
   location            = azurerm_resource_group.test.location
 }
 
-// Azure Lab Services
 data "azuread_service_principal" "test" {
-  application_id = "c7bb12bf-0b39-4f7f-9171-f418ff39b76a"
+  display_name = "Azure Lab Services"
 }
 
 resource "azurerm_role_assignment" "test" {
