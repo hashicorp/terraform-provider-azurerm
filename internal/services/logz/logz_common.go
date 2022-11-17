@@ -8,6 +8,7 @@ import (
 )
 
 const TagRuleName = "default"
+const PlanIdSuffix = "@TIDgmz7xq9ge3py"
 
 func SchemaUserInfo() *pluginsdk.Schema {
 	return &pluginsdk.Schema{

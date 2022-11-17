@@ -3,6 +3,7 @@ package logz
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz"
@@ -304,7 +305,7 @@ func expandMonitorPlanData(input []interface{}) *logz.PlanData {
 	return &logz.PlanData{
 		UsageType:     utils.String(v["usage_type"].(string)),
 		BillingCycle:  utils.String(v["billing_cycle"].(string)),
-		PlanDetails:   utils.String(v["plan_id"].(string)),
+		PlanDetails:   utils.String(v["plan_id"].(string) + PlanIdSuffix),
 		EffectiveDate: &date.Time{Time: effectiveDate},
 	}
 }
@@ -337,7 +338,7 @@ func flattenMonitorPlanData(input *logz.PlanData) []interface{} {
 
 	var planDetails string
 	if input.PlanDetails != nil {
-		planDetails = *input.PlanDetails
+		planDetails = strings.TrimSuffix(*input.PlanDetails, PlanIdSuffix)
 	}
 
 	var usageType string
