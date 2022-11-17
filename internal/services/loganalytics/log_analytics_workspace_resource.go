@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	featureWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -61,6 +62,12 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
+			"allow_resource_only_permissions": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"cmk_for_query_forced": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -95,6 +102,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// TODO 4.0: 2022-10-01 API version will limit the sku to the following values: 100,200,300,400,500,1000,2000,5000
 			"reservation_capacity_in_gb_per_day": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -227,6 +235,13 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		sku.Name = workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight
 	}
 
+	// convert features to interface{} to use 2020-08-01 version API, the 2022-10-01 version API has strict limitation on `reservation_capacity_in_gb_per_day` which will cause breaking change.
+	var featuresInterface interface{}
+	features := &featureWorkspaces.WorkspaceFeatures{
+		EnableLogAccessUsingOnlyResourcePermissions: utils.Bool(d.Get("allow_resource_only_permissions").(bool)),
+	}
+	featuresInterface = features
+
 	parameters := workspaces.Workspace{
 		Name:     &name,
 		Location: location,
@@ -236,6 +251,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 			PublicNetworkAccessForIngestion: &internetIngestionEnabled,
 			PublicNetworkAccessForQuery:     &internetQueryEnabled,
 			RetentionInDays:                 &retentionInDays,
+			Features:                        &featuresInterface,
 		},
 	}
 
@@ -267,6 +283,12 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
+	if err != nil {
+		return err
+	}
+
+	//`allow_resource_only_permissions` needs an additional update, tacked on https://github.com/Azure/azure-rest-api-specs/issues/21591
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return err
 	}
@@ -353,6 +375,13 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("daily_quota_gb", *props.WorkspaceCapping.DailyQuotaGb)
 			default:
 				d.Set("daily_quota_gb", utils.Float(-1))
+			}
+
+			if features := props.Features; features != nil {
+				v, ok := (*features).(map[string]interface{})["allow_resource_only_permissions"]
+				if ok {
+					d.Set("allow_resource_only_permissions", v)
+				}
 			}
 
 			sharedKeysResp, err := client.SharedKeysGetSharedKeys(ctx, *id)
