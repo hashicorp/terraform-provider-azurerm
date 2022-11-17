@@ -392,10 +392,9 @@ resource "azurerm_container_app" "test" {
           value = "no-cache"
         }
 
-        initial_delay                    = 5
-        termination_grace_period_seconds = 20
-        timeout                          = 2
-        failure_count_threshold          = 1
+        initial_delay           = 5
+        timeout                 = 2
+        failure_count_threshold = 1
       }
 
       startup_probe {
@@ -492,10 +491,9 @@ resource "azurerm_container_app" "test" {
           value = "no-cache"
         }
 
-        initial_delay                    = 5
-        termination_grace_period_seconds = 20
-        timeout                          = 2
-        failure_count_threshold          = 3
+        initial_delay           = 5
+        timeout                 = 2
+        failure_count_threshold = 3
       }
 
       startup_probe {
@@ -612,10 +610,9 @@ resource "azurerm_container_app" "test" {
           value = "no-cache"
         }
 
-        initial_delay                    = 5
-        termination_grace_period_seconds = 20
-        timeout                          = 2
-        failure_count_threshold          = 3
+        initial_delay           = 5
+        timeout                 = 2
+        failure_count_threshold = 3
       }
 
       startup_probe {
