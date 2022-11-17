@@ -3,7 +3,8 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_manager"
 description: |-
-Manages a Network Managers.
+  Manages a Network Managers.
+
 ---
 
 # azurerm_network_manager
