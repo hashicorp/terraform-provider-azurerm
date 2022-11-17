@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -15,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+const StorageAccountManagementPolicyResourceName = "azurerm_storage_account_management_policy"
 
 func resourceStorageManagementPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -257,6 +260,9 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
+	locks.ByName(rid.Name, StorageAccountManagementPolicyResourceName)
+	defer locks.UnlockByName(rid.Name, StorageAccountManagementPolicyResourceName)
+
 	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroup, rid.Name, "default")
 
@@ -329,6 +335,9 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(rid.StorageAccountName, StorageAccountManagementPolicyResourceName)
+	defer locks.UnlockByName(rid.StorageAccountName, StorageAccountManagementPolicyResourceName)
 
 	if _, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", rid, err)
