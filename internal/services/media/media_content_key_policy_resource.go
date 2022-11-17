@@ -1,7 +1,6 @@
 package media
 
 import (
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -677,7 +676,7 @@ func flattenTokenRestriction(input contentkeypolicies.ContentKeyPolicyTokenRestr
 				return nil, fmt.Errorf("token key was not Symmetric Token Key")
 			}
 
-			symmetricToken = base64.StdEncoding.EncodeToString([]byte(symmetricTokenKey.KeyValue))
+			symmetricToken = symmetricTokenKey.KeyValue
 		case contentkeypolicies.ContentKeyPolicyRsaTokenKey:
 			rsaTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicyRsaTokenKey)
 			if !ok {
@@ -796,12 +795,8 @@ func expandVerificationKey(input map[string]interface{}) (contentkeypolicies.Con
 		return rsaTokenKey, nil
 	}
 	if primarySymmetricTokenKey != "" {
-		keyValue, err := base64.StdEncoding.DecodeString(primarySymmetricTokenKey)
-		if err != nil {
-			return nil, fmt.Errorf("base64-decoding %q: %+v", primarySymmetricTokenKey, err)
-		}
 		symmetricTokenKey := &contentkeypolicies.ContentKeyPolicySymmetricTokenKey{
-			KeyValue: string(keyValue),
+			KeyValue: primarySymmetricTokenKey,
 		}
 		return symmetricTokenKey, nil
 	}
