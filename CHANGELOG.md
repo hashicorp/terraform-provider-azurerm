@@ -6,14 +6,21 @@ DEPRECATIONS
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20221116.1175352` of `github.com/hashicorp/go-azure-sdk` [GH-19319]
 * `azurerm_security_center_subscription_pricing` - support for the `subplan` property [GH-19273]
 * `azurerm_storage_account` - support for the `sas_policy` block [GH-19222]
 * `azurerm_windows_web_app`, `azurerm_windows_web_app_slot` - aupport for `17` value for `java_version` property [GH-19249]
+* `azurerm_storage_blob_inventory_policy` - support for `include_deleted` property [GH-19286]
 
 BUG FIXES:
 
+* `azurerm_app_service_public_certificate` - add custom poller to prevent `Root resource was present, but now absent.` result [GH-19348]
+* `azurerm_eventhub_namespace` - correct `zone_redundant` property [GH-19164]
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow no image to be specified [GH-19263]
 * `azurerm_synapse_firewall_rule` - wait for the firewall to be ready [GH-19227]
+* `azurerm_service_fabric_managed_cluster` - correctly define `active_directory` as a List [GH-19163]
+* `azurerm_orchestrated_virtual_machine_scale_set` -  instance parameter is now set on update [GH-19337]
+
 
 ## 3.31.0 (November 10, 2022)
 

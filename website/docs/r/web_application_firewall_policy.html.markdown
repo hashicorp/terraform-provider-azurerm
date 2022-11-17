@@ -132,11 +132,11 @@ The `custom_rules` block supports the following:
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
 
-* `rule_type` - (Required) Describes the type of rule.
+* `rule_type` - (Required) Describes the type of rule. Possible values are `MatchRule` and `Invalid`.
 
 * `match_conditions` - (Required) One or more `match_conditions` blocks as defined below.
 
-* `action` - (Required) Type of action.
+* `action` - (Required) Type of action. Possible values are `Allow`, `Block` and `Log`.
 
 ---
 
@@ -146,17 +146,17 @@ The `match_conditions` block supports the following:
 
 * `match_values` - (Required) A list of match values.
 
-* `operator` - (Required) Describes operator to be matched.
+* `operator` - (Required) Describes operator to be matched. Possible values are `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith`, `EndsWith` and `Regex`.
 
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
-* `transforms` - (Optional) A list of transformations to do before the match is attempted.
+* `transforms` - (Optional) A list of transformations to do before the match is attempted. Possible values are `HtmlEntityDecode`, `Lowercase`, `RemoveNulls`, `Trim`, `UrlDecode` and `UrlEncode`.
 
 ---
 
 The `match_variables` block supports the following:
 
-* `variable_name` - (Required) The name of the Match Variable
+* `variable_name` - (Required) The name of the Match Variable. Possible values are `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestUri`, `RequestHeaders`, `RequestBody` and `RequestCookies`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection
 

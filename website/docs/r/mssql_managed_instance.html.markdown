@@ -211,7 +211,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
-* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `PriceIncluded` or `BasePrice`.
+* `license_type` - (Required) What type of license the Managed Instance will use. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 

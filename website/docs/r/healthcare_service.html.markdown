@@ -81,7 +81,7 @@ A `cors_configuration` block supports the following:
 
 * `allowed_origins` - (Required) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.
-* `allowed_methods` - (Required) The methods to be allowed via CORS.
+* `allowed_methods` - (Required) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
 * `max_age_in_seconds` - (Required) The max age to be allowed via CORS.
 * `allow_credentials` - (Boolean) If credentials are allowed via CORS.
 

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the Healthcare DICOM service. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, an `identity_ids` must be set as well.
+* `type` - (Required) The type of identity used for the Healthcare DICOM service. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`. If `UserAssigned` is set, an `identity_ids` must be set as well.
 
 * `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Healthcare DICOM service.
 

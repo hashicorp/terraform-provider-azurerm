@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
-* `language_framework` - (Optional) Specifies the language framework of the container image.
+* `language_framework` - (Optional) Specifies the language framework of the container image. The only possible value is `springboot`.
 
 * `quota` - (Optional) A `quota` block as defined below.
 
