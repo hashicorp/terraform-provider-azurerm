@@ -537,53 +537,38 @@ func flattenPolicyOptions(input []contentkeypolicies.ContentKeyPolicyOption) ([]
 		playReadyLicense := make([]interface{}, 0)
 		widevineTemplate := ""
 		fairplayConfiguration := make([]interface{}, 0)
-		if v := option.Configuration; v != nil {
-			switch v.(type) {
-			case contentkeypolicies.ContentKeyPolicyClearKeyConfiguration:
-				clearKeyConfigurationEnabled = true
-			case contentkeypolicies.ContentKeyPolicyWidevineConfiguration:
-				wideVineConfiguration, ok := v.(contentkeypolicies.ContentKeyPolicyWidevineConfiguration)
-				if !ok {
-					return nil, fmt.Errorf("content key configuration was not a Widevine Configuration")
-				}
 
-				widevineTemplate = wideVineConfiguration.WidevineTemplate
-			case contentkeypolicies.ContentKeyPolicyFairPlayConfiguration:
-				fairPlayConfiguration, ok := v.(contentkeypolicies.ContentKeyPolicyFairPlayConfiguration)
-				if !ok {
-					return nil, fmt.Errorf("content key configuration was not a Fairplay Configuration")
-				}
-				fairplayConfiguration = flattenFairplayConfiguration(fairPlayConfiguration)
-			case contentkeypolicies.ContentKeyPolicyPlayReadyConfiguration:
-				playReadyConfiguration, ok := v.(contentkeypolicies.ContentKeyPolicyPlayReadyConfiguration)
-				if !ok {
-					return nil, fmt.Errorf("content key configuration was not a Playready Configuration")
-				}
-				license, err := flattenPlayReadyLicenses(playReadyConfiguration.Licenses)
-				if err != nil {
-					return nil, err
-				}
-				playReadyLicense = license
+		if _, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyClearKeyConfiguration); ok {
+			clearKeyConfigurationEnabled = true
+		}
+
+		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyFairPlayConfiguration); ok {
+			fairplayConfiguration = flattenFairplayConfiguration(v)
+		}
+
+		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyPlayReadyConfiguration); ok {
+			license, err := flattenPlayReadyLicenses(v.Licenses)
+			if err != nil {
+				return nil, err
 			}
+			playReadyLicense = license
+		}
+
+		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyWidevineConfiguration); ok {
+			widevineTemplate = v.WidevineTemplate
 		}
 
 		openRestrictionEnabled := false
 		tokenRestriction := make([]interface{}, 0)
-		if v := option.Restriction; v != nil {
-			switch v.(type) {
-			case contentkeypolicies.ContentKeyPolicyOpenRestriction:
-				openRestrictionEnabled = true
-			case contentkeypolicies.ContentKeyPolicyTokenRestriction:
-				token, ok := v.(contentkeypolicies.ContentKeyPolicyTokenRestriction)
-				if !ok {
-					return nil, fmt.Errorf("content key restriction was not a Token Restriction")
-				}
-				restriction, err := flattenTokenRestriction(token)
-				if err != nil {
-					return nil, err
-				}
-				tokenRestriction = restriction
+		if _, ok := option.Restriction.(contentkeypolicies.ContentKeyPolicyOpenRestriction); ok {
+			openRestrictionEnabled = true
+		}
+		if v, ok := option.Restriction.(contentkeypolicies.ContentKeyPolicyTokenRestriction); ok {
+			restriction, err := flattenTokenRestriction(v)
+			if err != nil {
+				return nil, err
 			}
+			tokenRestriction = restriction
 		}
 
 		results = append(results, map[string]interface{}{
