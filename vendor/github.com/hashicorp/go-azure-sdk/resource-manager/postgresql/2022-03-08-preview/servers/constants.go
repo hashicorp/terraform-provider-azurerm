@@ -197,6 +197,7 @@ const (
 	ReplicationRoleAsyncReplica    ReplicationRole = "AsyncReplica"
 	ReplicationRoleGeoAsyncReplica ReplicationRole = "GeoAsyncReplica"
 	ReplicationRoleGeoSyncReplica  ReplicationRole = "GeoSyncReplica"
+	ReplicationRoleNone            ReplicationRole = "None"
 	ReplicationRolePrimary         ReplicationRole = "Primary"
 	ReplicationRoleSecondary       ReplicationRole = "Secondary"
 	ReplicationRoleSyncReplica     ReplicationRole = "SyncReplica"
@@ -208,6 +209,7 @@ func PossibleValuesForReplicationRole() []string {
 		string(ReplicationRoleAsyncReplica),
 		string(ReplicationRoleGeoAsyncReplica),
 		string(ReplicationRoleGeoSyncReplica),
+		string(ReplicationRoleNone),
 		string(ReplicationRolePrimary),
 		string(ReplicationRoleSecondary),
 		string(ReplicationRoleSyncReplica),
@@ -220,6 +222,7 @@ func parseReplicationRole(input string) (*ReplicationRole, error) {
 		"asyncreplica":    ReplicationRoleAsyncReplica,
 		"geoasyncreplica": ReplicationRoleGeoAsyncReplica,
 		"geosyncreplica":  ReplicationRoleGeoSyncReplica,
+		"none":            ReplicationRoleNone,
 		"primary":         ReplicationRolePrimary,
 		"secondary":       ReplicationRoleSecondary,
 		"syncreplica":     ReplicationRoleSyncReplica,
