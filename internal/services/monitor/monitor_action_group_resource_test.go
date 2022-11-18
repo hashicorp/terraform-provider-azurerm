@@ -125,44 +125,43 @@ func TestAccMonitorActionGroup_webhookReceiver(t *testing.T) {
 }
 
 /*
-
 @favoretti: Disabling this one, since it's written in such a way that it will never succeed in CI
 
-func TestAccMonitorActionGroup_secureWebhookReceiver(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
-	r := MonitorActionGroupResource{}
+	func TestAccMonitorActionGroup_secureWebhookReceiver(t *testing.T) {
+		data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
+		r := MonitorActionGroupResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.webhookReceiver(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.secureWebhookReceiver(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.webhookReceiver(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.secureWebhookReceiver(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+	}
 */
 func TestAccMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
