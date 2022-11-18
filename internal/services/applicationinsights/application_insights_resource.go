@@ -228,7 +228,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
-		workspaceID, err := workspaces.ParseWorkspaceIDInsensitively(workspaceRaw.(string))
+		workspaceID, err := workspaces.ParseWorkspaceID(workspaceRaw.(string))
 		if err != nil {
 			return err
 		}
@@ -380,7 +380,15 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 				return err
 			}
 			d.Set("workspace_id", id.ID())
+		workspaceId := ""
+		if v := props.WorkspaceResourceID; v != nil {
+			id, err := workspaces.ParseWorkspaceIDInsensitively(*v)
+ 			if err != nil {
+ 				return err
+ 			}
+ 			workspaceId = id.ID()
 		}
+		d.Set("workspace_id", workspaceId)
 
 		if v := props.RetentionInDays; v != nil {
 			d.Set("retention_in_days", v)
