@@ -9,9 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type LabServiceLabModel struct {
@@ -46,7 +47,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.LabName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -56,19 +57,19 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.LabDescription,
 		},
 
 		"lab_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: labplan.ValidateLabPlanID,
 		},
 
 		"title": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.LabTitle,
 		},
 
 		"tags": commonschema.Tags(),
