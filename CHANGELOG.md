@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `cognitive`: updating to API Version `2022-10-01` [GH-19344]
+* `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
 
 BUG FIXES:
 
