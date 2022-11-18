@@ -6,11 +6,16 @@ ENHANCEMENTS:
 * `cognitive`: updating to API Version `2022-10-01` [GH-19344]
 * `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
 * `azurerm_databricks_workspace` - support for `storage_account_identity` property in datasource [GH-19336]
+* `azurerm_postgresql_flexible_server` - support for `authentication` [GH-19269]
 
 BUG FIXES:
 
 * `azurerm_monitor_alert_processing_rule_action_group` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
 * `azurerm_monitor_alert_processing_rule_suppression` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
+
+FEATURES:
+
+* **New Resource:** `azurerm_postgresql_flexible_server_active_directory_administrator` [GH-19269]
 
 ## 3.32.0 (November 17, 2022)
 
