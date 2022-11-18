@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts` Documentation
 
-The `cognitiveservicesaccounts` SDK allows for interaction with the Azure Resource Manager Service `cognitive` (API Version `2021-04-30`).
+The `cognitiveservicesaccounts` SDK allows for interaction with the Azure Resource Manager Service `cognitive` (API Version `2022-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts"
 ```
 
 
@@ -111,6 +111,23 @@ if err != nil {
 }
 if model := read.Model; model != nil {
 	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsListModels`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
+// alternatively `client.AccountsListModels(ctx, id)` can be used to do batched pagination
+items, err := client.AccountsListModelsComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 

@@ -38,6 +38,34 @@ func (p AccountOperationPredicate) Matches(input Account) bool {
 	return true
 }
 
+type AccountModelOperationPredicate struct {
+	Format      *string
+	MaxCapacity *int64
+	Name        *string
+	Version     *string
+}
+
+func (p AccountModelOperationPredicate) Matches(input AccountModel) bool {
+
+	if p.Format != nil && (input.Format == nil && *p.Format != *input.Format) {
+		return false
+	}
+
+	if p.MaxCapacity != nil && (input.MaxCapacity == nil && *p.MaxCapacity != *input.MaxCapacity) {
+		return false
+	}
+
+	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+		return false
+	}
+
+	if p.Version != nil && (input.Version == nil && *p.Version != *input.Version) {
+		return false
+	}
+
+	return true
+}
+
 type ResourceSkuOperationPredicate struct {
 	Kind         *string
 	Name         *string
