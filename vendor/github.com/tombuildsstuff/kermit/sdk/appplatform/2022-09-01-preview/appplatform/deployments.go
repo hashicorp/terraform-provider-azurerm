@@ -8,11 +8,12 @@ package appplatform
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // DeploymentsClient is the REST API for Azure Spring Apps
@@ -90,7 +91,7 @@ func (client DeploymentsClient) CreateOrUpdatePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -176,7 +177,7 @@ func (client DeploymentsClient) DeletePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -213,6 +214,180 @@ func (client DeploymentsClient) DeleteResponder(resp *http.Response) (result aut
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// DisableRemoteDebugging disable remote debugging.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// appName - the name of the App resource.
+// deploymentName - the name of the Deployment resource.
+func (client DeploymentsClient) DisableRemoteDebugging(ctx context.Context, resourceGroupName string, serviceName string, appName string, deploymentName string) (result DeploymentsDisableRemoteDebuggingFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.DisableRemoteDebugging")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.DisableRemoteDebuggingPreparer(ctx, resourceGroupName, serviceName, appName, deploymentName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "DisableRemoteDebugging", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DisableRemoteDebuggingSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "DisableRemoteDebugging", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DisableRemoteDebuggingPreparer prepares the DisableRemoteDebugging request.
+func (client DeploymentsClient) DisableRemoteDebuggingPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, deploymentName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"appName":           autorest.Encode("path", appName),
+		"deploymentName":    autorest.Encode("path", deploymentName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-09-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/deployments/{deploymentName}/disableRemoteDebugging", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DisableRemoteDebuggingSender sends the DisableRemoteDebugging request. The method will close the
+// http.Response Body if it receives an error.
+func (client DeploymentsClient) DisableRemoteDebuggingSender(req *http.Request) (future DeploymentsDisableRemoteDebuggingFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// DisableRemoteDebuggingResponder handles the response to the DisableRemoteDebugging request. The method always
+// closes the http.Response Body.
+func (client DeploymentsClient) DisableRemoteDebuggingResponder(resp *http.Response) (result RemoteDebugging, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// EnableRemoteDebugging enable remote debugging.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// appName - the name of the App resource.
+// deploymentName - the name of the Deployment resource.
+// remoteDebuggingPayload - parameters for enable remote debugging
+func (client DeploymentsClient) EnableRemoteDebugging(ctx context.Context, resourceGroupName string, serviceName string, appName string, deploymentName string, remoteDebuggingPayload *RemoteDebuggingPayload) (result DeploymentsEnableRemoteDebuggingFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.EnableRemoteDebugging")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.EnableRemoteDebuggingPreparer(ctx, resourceGroupName, serviceName, appName, deploymentName, remoteDebuggingPayload)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "EnableRemoteDebugging", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.EnableRemoteDebuggingSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "EnableRemoteDebugging", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// EnableRemoteDebuggingPreparer prepares the EnableRemoteDebugging request.
+func (client DeploymentsClient) EnableRemoteDebuggingPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, deploymentName string, remoteDebuggingPayload *RemoteDebuggingPayload) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"appName":           autorest.Encode("path", appName),
+		"deploymentName":    autorest.Encode("path", deploymentName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-09-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/deployments/{deploymentName}/enableRemoteDebugging", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	if remoteDebuggingPayload != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(remoteDebuggingPayload))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// EnableRemoteDebuggingSender sends the EnableRemoteDebugging request. The method will close the
+// http.Response Body if it receives an error.
+func (client DeploymentsClient) EnableRemoteDebuggingSender(req *http.Request) (future DeploymentsEnableRemoteDebuggingFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// EnableRemoteDebuggingResponder handles the response to the EnableRemoteDebugging request. The method always
+// closes the http.Response Body.
+func (client DeploymentsClient) EnableRemoteDebuggingResponder(resp *http.Response) (result RemoteDebugging, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -260,7 +435,7 @@ func (client DeploymentsClient) GenerateHeapDumpPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -346,7 +521,7 @@ func (client DeploymentsClient) GenerateThreadDumpPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -438,7 +613,7 @@ func (client DeploymentsClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -519,7 +694,7 @@ func (client DeploymentsClient) GetLogFileURLPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -544,6 +719,87 @@ func (client DeploymentsClient) GetLogFileURLResponder(resp *http.Response) (res
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetRemoteDebuggingConfig get remote debugging config.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// appName - the name of the App resource.
+// deploymentName - the name of the Deployment resource.
+func (client DeploymentsClient) GetRemoteDebuggingConfig(ctx context.Context, resourceGroupName string, serviceName string, appName string, deploymentName string) (result RemoteDebugging, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.GetRemoteDebuggingConfig")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetRemoteDebuggingConfigPreparer(ctx, resourceGroupName, serviceName, appName, deploymentName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "GetRemoteDebuggingConfig", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetRemoteDebuggingConfigSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "GetRemoteDebuggingConfig", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetRemoteDebuggingConfigResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "GetRemoteDebuggingConfig", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetRemoteDebuggingConfigPreparer prepares the GetRemoteDebuggingConfig request.
+func (client DeploymentsClient) GetRemoteDebuggingConfigPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, deploymentName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"appName":           autorest.Encode("path", appName),
+		"deploymentName":    autorest.Encode("path", deploymentName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-09-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/deployments/{deploymentName}/getRemoteDebuggingConfig", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetRemoteDebuggingConfigSender sends the GetRemoteDebuggingConfig request. The method will close the
+// http.Response Body if it receives an error.
+func (client DeploymentsClient) GetRemoteDebuggingConfigSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetRemoteDebuggingConfigResponder handles the response to the GetRemoteDebuggingConfig request. The method always
+// closes the http.Response Body.
+func (client DeploymentsClient) GetRemoteDebuggingConfigResponder(resp *http.Response) (result RemoteDebugging, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -604,7 +860,7 @@ func (client DeploymentsClient) ListPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -727,7 +983,7 @@ func (client DeploymentsClient) ListForClusterPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -841,7 +1097,7 @@ func (client DeploymentsClient) RestartPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -924,7 +1180,7 @@ func (client DeploymentsClient) StartPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1008,7 +1264,7 @@ func (client DeploymentsClient) StartJFRPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1093,7 +1349,7 @@ func (client DeploymentsClient) StopPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1177,7 +1433,7 @@ func (client DeploymentsClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

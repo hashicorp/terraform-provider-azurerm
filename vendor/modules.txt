@@ -36,7 +36,6 @@ github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
-github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation
 github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint
@@ -598,8 +597,9 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
-# github.com/tombuildsstuff/kermit v0.20221104.1101437
+# github.com/tombuildsstuff/kermit v0.20221116.1100927
 ## explicit; go 1.18
+github.com/tombuildsstuff/kermit/sdk/appplatform/2022-09-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute
 github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network

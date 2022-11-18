@@ -8,10 +8,11 @@ package appplatform
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // RuntimeVersionsClient is the REST API for Azure Spring Apps
@@ -66,7 +67,7 @@ func (client RuntimeVersionsClient) ListRuntimeVersions(ctx context.Context) (re
 
 // ListRuntimeVersionsPreparer prepares the ListRuntimeVersions request.
 func (client RuntimeVersionsClient) ListRuntimeVersionsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2022-05-01-preview"
+	const APIVersion = "2022-09-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
