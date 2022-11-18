@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* build: updating to use Go `1.19.3` [GH-19362]
 * dependencies: upgrading to `v2.24.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-19303]
 * `cognitive`: updating to API Version `2022-10-01` [GH-19344]
 * `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
