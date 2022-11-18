@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v2.24.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-19303]
 * `cognitive`: updating to API Version `2022-10-01` [GH-19344]
 * `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
+* `azurerm_databricks_workspace` - support for `storage_account_identity` property in datasource [GH-19336]
 
 BUG FIXES:
 
