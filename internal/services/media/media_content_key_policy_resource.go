@@ -1,6 +1,7 @@
 package media
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -543,7 +544,11 @@ func flattenPolicyOptions(input []contentkeypolicies.ContentKeyPolicyOption) ([]
 		}
 
 		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyFairPlayConfiguration); ok {
-			fairplayConfiguration = flattenFairplayConfiguration(v)
+			flattened, err := flattenFairplayConfiguration(v)
+			if err != nil {
+				return nil, fmt.Errorf("flattening fairplay configuration: %+v", err)
+			}
+			fairplayConfiguration = *flattened
 		}
 
 		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyPlayReadyConfiguration); ok {
@@ -897,7 +902,7 @@ func expandFairplayConfiguration(input []interface{}) (*contentkeypolicies.Conte
 		if err != nil {
 			return nil, err
 		}
-		fairplayConfiguration.Ask = string(askBytes)
+		fairplayConfiguration.Ask = base64.StdEncoding.EncodeToString(askBytes)
 	}
 
 	if fairplay["pfx"] != nil && fairplay["pfx"].(string) != "" {
@@ -911,22 +916,31 @@ func expandFairplayConfiguration(input []interface{}) (*contentkeypolicies.Conte
 	return fairplayConfiguration, nil
 }
 
-func flattenFairplayConfiguration(input contentkeypolicies.ContentKeyPolicyFairPlayConfiguration) []interface{} {
+func flattenFairplayConfiguration(input contentkeypolicies.ContentKeyPolicyFairPlayConfiguration) (*[]interface{}, error) {
 	offlineRentalConfiguration := make([]interface{}, 0)
 	if input.OfflineRentalConfiguration != nil {
 		offlineRentalConfiguration = flattenRentalConfiguration(input.OfflineRentalConfiguration)
 	}
 
-	return []interface{}{
+	ask := ""
+	if input.Ask != "" {
+		decodedAsk, err := base64.StdEncoding.DecodeString(input.Ask)
+		if err != nil {
+			return nil, fmt.Errorf("base64-decoding %q: %+v", input.Ask, err)
+		}
+		ask = hex.EncodeToString(decodedAsk)
+	}
+
+	return &[]interface{}{
 		map[string]interface{}{
 			"rental_duration_seconds":      input.RentalDuration,
 			"offline_rental_configuration": offlineRentalConfiguration,
 			"rental_and_lease_key_type":    string(input.RentalAndLeaseKeyType),
 			"pfx":                          input.FairPlayPfx,
 			"pfx_password":                 input.FairPlayPfxPassword,
-			"ask":                          hex.EncodeToString([]byte(input.Ask)),
+			"ask":                          string(ask),
 		},
-	}
+	}, nil
 }
 
 func expandPlayReadyLicenses(input []interface{}) (*[]contentkeypolicies.ContentKeyPolicyPlayReadyLicense, error) {
