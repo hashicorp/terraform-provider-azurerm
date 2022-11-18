@@ -122,14 +122,14 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 
 	id := parse.NewFunctionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_udf", id.ID())
 		}
 	}
@@ -158,12 +158,12 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, function, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+		if _, err := client.CreateOrReplace(ctx, function, id.ResourceGroupName, id.JobName, id.Name, "", ""); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, function, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+	} else if _, err := client.Update(ctx, function, id.ResourceGroupName, id.JobName, id.Name, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -180,9 +180,9 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -192,8 +192,8 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.Set("name", id.Name)
-	d.Set("stream_analytics_job_name", id.StreamingjobName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.Properties; props != nil {
 		scalarProps, ok := props.AsScalarFunctionProperties()
@@ -232,8 +232,8 @@ func resourceStreamAnalyticsFunctionUDFDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
-		if !response.WasNotFound(resp.Response) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}

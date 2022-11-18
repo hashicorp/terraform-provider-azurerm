@@ -26,7 +26,7 @@ func NewClusterID(subscriptionId, resourceGroup, name string) ClusterId {
 func (id ClusterId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroupName),
 	}
 	segmentsStr := strings.Join(segments, " / ")
 	return fmt.Sprintf("%s: (%s)", "Cluster", segmentsStr)
@@ -34,7 +34,7 @@ func (id ClusterId) String() string {
 
 func (id ClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/clusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.Name)
 }
 
 // ClusterID parses a Cluster ID into an ClusterId struct
@@ -46,14 +46,14 @@ func ClusterID(input string) (*ClusterId, error) {
 
 	resourceId := ClusterId{
 		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroupName,
 	}
 
 	if resourceId.SubscriptionId == "" {
 		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
-	if resourceId.ResourceGroup == "" {
+	if resourceid.ResourceGroupName == "" {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 

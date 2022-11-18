@@ -204,14 +204,14 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.Name, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_job", id.ID())
 		}
 	}
@@ -302,7 +302,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.IsNewResource() {
 		props.StreamingJobProperties.Transformation = &transformation
 
-		future, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.Name, "", "")
+		future, err := client.CreateOrReplace(ctx, props, id.ResourceGroupName, id.Name, "", "")
 		if err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
@@ -313,17 +313,17 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 		d.SetId(id.ID())
 	} else {
-		if _, err := client.Update(ctx, props, id.ResourceGroup, id.Name, ""); err != nil {
+		if _, err := client.Update(ctx, props, id.ResourceGroupName, id.Name, ""); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
-		job, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
+		job, err := client.Get(ctx, id.ResourceGroupName, id.Name, "transformation")
 		if err != nil {
 			return err
 		}
 
 		if readTransformation := job.Transformation; readTransformation != nil {
-			if _, err := transformationsClient.Update(ctx, transformation, id.ResourceGroup, id.Name, *readTransformation.Name, ""); err != nil {
+			if _, err := transformationsClient.Update(ctx, transformation, id.ResourceGroupName, id.Name, *readTransformation.Name, ""); err != nil {
 				return fmt.Errorf("updating transformation for %s: %+v", id, err)
 			}
 		}
@@ -342,9 +342,9 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.Name, "transformation")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -354,7 +354,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if resp.Location != nil {
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
@@ -406,7 +406,7 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

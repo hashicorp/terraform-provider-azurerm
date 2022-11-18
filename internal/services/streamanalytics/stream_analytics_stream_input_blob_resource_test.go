@@ -3,6 +3,8 @@ package streamanalytics_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -96,16 +98,17 @@ func TestAccStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	jobName := state.Attributes["stream_analytics_job_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-
-	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, resourceGroup, jobName, name)
+	id, err := inputs.ParseInputID(state.ID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return utils.Bool(false), err
+	}
+
+	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Stream Output %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }

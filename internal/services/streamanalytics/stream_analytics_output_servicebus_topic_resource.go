@@ -2,6 +2,7 @@ package streamanalytics
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,7 +24,7 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 		Update: resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputServiceBusTopicDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OutputID(id)
+			_, err := outputs.ParseOutputID(id)
 			return err
 		}),
 
@@ -117,17 +117,17 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Topic creation.")
-	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_topic", id.ID())
 		}
 	}
@@ -140,7 +140,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 
 	props := streamanalytics.Output{
 		Name: utils.String(id.Name),
-		OutputProperties: &streamanalytics.OutputProperties{
+		Properties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.ServiceBusTopicOutputDataSource{
 				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftServiceBusTopic,
 				ServiceBusTopicOutputDataSourceProperties: &streamanalytics.ServiceBusTopicOutputDataSourceProperties{
@@ -158,10 +158,10 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
-	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+	} else if _, err := client.Update(ctx, *id, props, opts); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -175,14 +175,14 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OutputID(d.Id())
+	id, err := outputs.ParseOutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -192,8 +192,8 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 	}
 
 	d.Set("name", id.Name)
-	d.Set("stream_analytics_job_name", id.StreamingjobName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.OutputProperties; props != nil {
 		v, ok := props.Datasource.AsServiceBusTopicOutputDataSource()
@@ -224,13 +224,13 @@ func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OutputID(d.Id())
+	id, err := outputs.ParseOutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
-		if !response.WasNotFound(resp.Response) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

@@ -2,6 +2,7 @@ package streamanalytics
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -140,38 +141,45 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 	return nil, fmt.Errorf("Unsupported Output Type %q", outputType)
 }
 
-func flattenStreamAnalyticsOutputSerialization(input streamanalytics.BasicSerialization) []interface{} {
+func flattenStreamAnalyticsOutputSerialization(input outputs.Serialization) []interface{} {
 	var encoding string
 	var outputType string
 	var fieldDelimiter string
 	var format string
 
-	if _, ok := input.AsAvroSerialization(); ok {
-		outputType = string(streamanalytics.TypeAvro)
+	if _, ok := input.(outputs.AvroSerialization); ok {
+		outputType = string(outputs.EventSerializationTypeAvro)
 	}
 
-	if v, ok := input.AsCsvSerialization(); ok {
-		if props := v.CsvSerializationProperties; props != nil {
-			encoding = string(props.Encoding)
+	if csv, ok := input.(outputs.CsvSerialization); ok {
+		if props := csv.Properties; props != nil {
+			if props.Encoding != nil {
+				encoding = string(*props.Encoding)
+			}
+
 			if props.FieldDelimiter != nil {
 				fieldDelimiter = *props.FieldDelimiter
 			}
 		}
 
-		outputType = string(streamanalytics.TypeCsv)
+		outputType = string(outputs.EventSerializationTypeCsv)
 	}
 
-	if v, ok := input.AsJSONSerialization(); ok {
-		if props := v.JSONSerializationProperties; props != nil {
-			encoding = string(props.Encoding)
-			format = string(props.Format)
+	if json, ok := input.(outputs.JsonSerialization); ok {
+		if props := json.Properties; props != nil {
+			if props.Encoding != nil {
+				encoding = string(*props.Encoding)
+			}
+			if props.Format != nil {
+				format = string(*props.Format)
+			}
 		}
 
-		outputType = string(streamanalytics.TypeJSON)
+		outputType = string(outputs.EventSerializationTypeJson)
 	}
 
-	if _, ok := input.AsParquetSerialization(); ok {
-		outputType = string(streamanalytics.TypeParquet)
+	if _, ok := input.(outputs.ParquetSerialization); ok {
+		outputType = string(outputs.EventSerializationTypeParquet)
 	}
 
 	return []interface{}{

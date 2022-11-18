@@ -123,16 +123,16 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	id := parse.NewFunctionID(subscriptionId, jobId.ResourceGroup, jobId.Name, d.Get("name").(string))
+	id := parse.NewFunctionID(subscriptionId, jobid.ResourceGroupName, jobId.Name, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_uda", id.ID())
 	}
 
@@ -152,7 +152,7 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+	if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -171,9 +171,9 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -184,7 +184,7 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 
 	d.Set("name", id.Name)
 
-	jobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+	jobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
 	d.Set("stream_analytics_job_id", jobId.ID())
 
 	if props := resp.Properties; props != nil {
@@ -240,7 +240,7 @@ func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+	if _, err := client.Update(ctx, *id, props, opts); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -257,8 +257,8 @@ func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
-		if !response.WasNotFound(resp.Response) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

@@ -26,7 +26,7 @@ func NewStreamingJobID(subscriptionId, resourceGroup, name string) StreamingJobI
 func (id StreamingJobId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroupName),
 	}
 	segmentsStr := strings.Join(segments, " / ")
 	return fmt.Sprintf("%s: (%s)", "Streaming Job", segmentsStr)
@@ -34,7 +34,7 @@ func (id StreamingJobId) String() string {
 
 func (id StreamingJobId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/streamingjobs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.Name)
 }
 
 // StreamingJobID parses a StreamingJob ID into an StreamingJobId struct
@@ -46,14 +46,14 @@ func StreamingJobID(input string) (*StreamingJobId, error) {
 
 	resourceId := StreamingJobId{
 		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroupName,
 	}
 
 	if resourceId.SubscriptionId == "" {
 		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
-	if resourceId.ResourceGroup == "" {
+	if resourceid.ResourceGroupName == "" {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 

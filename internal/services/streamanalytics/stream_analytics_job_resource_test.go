@@ -154,9 +154,9 @@ func (r StreamAnalyticsJobResource) Exists(ctx context.Context, client *clients.
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, id.ResourceGroupName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), err
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)

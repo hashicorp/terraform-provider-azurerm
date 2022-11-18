@@ -14,7 +14,6 @@ import (
 	streamAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type JobScheduleResource struct{}
@@ -91,13 +90,13 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 			}
 
 			// This is a virtual resource so the last segment is hardcoded
-			id := parse.NewStreamingJobScheduleID(streamAnalyticsId.SubscriptionId, streamAnalyticsId.ResourceGroup, streamAnalyticsId.Name, "default")
+			id := parse.NewStreamingJobScheduleID(streamAnalyticsId.SubscriptionId, streamAnalyticsid.ResourceGroupName, streamAnalyticsId.Name, "default")
 
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, "")
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.JobName, "")
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
@@ -124,7 +123,7 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			future, err := client.Start(ctx, id.ResourceGroup, id.StreamingjobName, props)
+			future, err := client.Start(ctx, id.ResourceGroupName, id.JobName, props)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -150,11 +149,11 @@ func (r JobScheduleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			streamAnalyticsId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+			streamAnalyticsId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, "")
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.JobName, "")
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -216,13 +215,13 @@ func (r JobScheduleResource) Update() sdk.ResourceFunc {
 					props.OutputStartTime = outputStartTime
 				}
 
-				existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, "")
+				existing, err := client.Get(ctx, id.ResourceGroupName, id.JobName, "")
 				if err != nil {
 					return fmt.Errorf("retrieving %s: %+v", *id, err)
 				}
 
 				if v := existing.StreamingJobProperties; v != nil && v.JobState != nil && *v.JobState == "Running" {
-					future, err := client.Stop(ctx, id.ResourceGroup, id.StreamingjobName)
+					future, err := client.Stop(ctx, id.ResourceGroupName, id.JobName)
 					if err != nil {
 						return err
 					}
@@ -231,7 +230,7 @@ func (r JobScheduleResource) Update() sdk.ResourceFunc {
 					}
 				}
 
-				future, err := client.Start(ctx, id.ResourceGroup, id.StreamingjobName, props)
+				future, err := client.Start(ctx, id.ResourceGroupName, id.JobName, props)
 				if err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
@@ -257,7 +256,7 @@ func (r JobScheduleResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			future, err := client.Stop(ctx, id.ResourceGroup, id.StreamingjobName)
+			future, err := client.Stop(ctx, id.ResourceGroupName, id.JobName)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

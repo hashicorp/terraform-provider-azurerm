@@ -90,11 +90,11 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewPrivateEndpointID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsCluster, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.ClusterName, id.Name)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -111,7 +111,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, props, id.ResourceGroup, id.ClusterName, id.Name, "", ""); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, props, id.ResourceGroupName, id.ClusterName, id.Name, "", ""); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -132,9 +132,9 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.ClusterName, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
@@ -146,7 +146,7 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 
 			state := ManagedPrivateEndpointModel{
 				Name:                   id.Name,
-				ResourceGroup:          id.ResourceGroup,
+				ResourceGroup:          id.ResourceGroupName,
 				StreamAnalyticsCluster: id.ClusterName,
 			}
 
@@ -172,7 +172,7 @@ func (r ManagedPrivateEndpointResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+			future, err := client.Delete(ctx, id.ResourceGroupName, id.ClusterName, id.Name)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

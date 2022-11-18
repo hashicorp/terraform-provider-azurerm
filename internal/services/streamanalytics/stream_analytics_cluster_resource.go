@@ -85,11 +85,11 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewClusterID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.Name)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -103,7 +103,7 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(model.Tags),
 			}
 
-			future, err := client.CreateOrUpdate(ctx, props, id.ResourceGroup, id.Name, "", "")
+			future, err := client.CreateOrUpdate(ctx, props, id.ResourceGroupName, id.Name, "", "")
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -129,9 +129,9 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
@@ -139,7 +139,7 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 
 			state := ClusterModel{
 				Name:              id.Name,
-				ResourceGroup:     id.ResourceGroup,
+				ResourceGroup:     id.ResourceGroupName,
 				Location:          *resp.Location,
 				StreamingCapacity: *resp.Sku.Capacity,
 				Tags:              tags.Flatten(resp.Tags),
@@ -162,8 +162,8 @@ func (r ClusterResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-				if !response.WasNotFound(resp.Response()) {
+			if resp, err := client.Delete(ctx, id.ResourceGroupName, id.Name); err != nil {
+				if !response.WasNotFound(resp.HttpResponse()) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}
@@ -196,7 +196,7 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 					Tags: tags.Expand(state.Tags),
 				}
 
-				future, err := client.Update(ctx, props, id.ResourceGroup, id.Name, "")
+				future, err := client.Update(ctx, props, id.ResourceGroupName, id.Name, "")
 				if err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}

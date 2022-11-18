@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
@@ -103,9 +102,9 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := parse.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.Name, "transformation")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -115,7 +114,7 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 	d.SetId(id.ID())
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if err := d.Set("identity", flattenJobIdentity(resp.Identity)); err != nil {

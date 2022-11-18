@@ -28,8 +28,8 @@ func NewFunctionID(subscriptionId, resourceGroup, streamingjobName, name string)
 func (id FunctionId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("Streamingjob Name %q", id.StreamingjobName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Streamingjob Name %q", id.JobName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroupName),
 	}
 	segmentsStr := strings.Join(segments, " / ")
 	return fmt.Sprintf("%s: (%s)", "Function", segmentsStr)
@@ -37,7 +37,7 @@ func (id FunctionId) String() string {
 
 func (id FunctionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/streamingjobs/%s/functions/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StreamingjobName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.JobName, id.Name)
 }
 
 // FunctionID parses a Function ID into an FunctionId struct
@@ -49,18 +49,18 @@ func FunctionID(input string) (*FunctionId, error) {
 
 	resourceId := FunctionId{
 		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroupName,
 	}
 
 	if resourceId.SubscriptionId == "" {
 		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
-	if resourceId.ResourceGroup == "" {
+	if resourceid.ResourceGroupName == "" {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.StreamingjobName, err = id.PopSegment("streamingjobs"); err != nil {
+	if resourceid.JobName, err = id.PopSegment("streamingjobs"); err != nil {
 		return nil, err
 	}
 	if resourceId.Name, err = id.PopSegment("functions"); err != nil {

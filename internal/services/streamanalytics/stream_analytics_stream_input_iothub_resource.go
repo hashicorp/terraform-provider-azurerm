@@ -2,14 +2,14 @@ package streamanalytics
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,7 +23,7 @@ func resourceStreamAnalyticsStreamInputIoTHub() *pluginsdk.Resource {
 		Update: resourceStreamAnalyticsStreamInputIoTHubCreateUpdate,
 		Delete: resourceStreamAnalyticsStreamInputIoTHubDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StreamInputID(id)
+			_, err := inputs.ParseInputID(id)
 			return err
 		}),
 
@@ -96,17 +96,17 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input IoTHub creation.")
 
-	resourceId := parse.NewStreamInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", resourceId, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", id.ID())
 		}
 	}
 
@@ -122,13 +122,13 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := streamanalytics.Input{
-		Name: utils.String(resourceId.InputName),
-		Properties: &streamanalytics.StreamInputProperties{
-			Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
-			Datasource: &streamanalytics.IoTHubStreamInputDataSource{
-				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs,
-				IoTHubStreamInputDataSourceProperties: &streamanalytics.IoTHubStreamInputDataSourceProperties{
+	props := inputs.Input{
+		Name: utils.String(id.InputName),
+		Properties: &inputs.StreamInputProperties{
+			//Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
+			Datasource: &inputs.IoTHubStreamInputDataSource{
+				//Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs,
+				Properties: &inputs.IoTHubStreamInputDataSourceProperties{
 					ConsumerGroupName:      utils.String(consumerGroupName),
 					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
 					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
@@ -140,14 +140,16 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 		},
 	}
 
+	var createOpts inputs.CreateOrReplaceOperationOptions
+	var updateOpts inputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, "", ""); err != nil {
-			return fmt.Errorf("creating %s: %+v", resourceId, err)
+		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
-		d.SetId(resourceId.ID())
-	} else if _, err := client.Update(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, ""); err != nil {
-		return fmt.Errorf("updating %s: %+v", resourceId, err)
+		d.SetId(id.ID())
+	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceStreamAnalyticsStreamInputIoTHubRead(d, meta)
@@ -158,14 +160,14 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamInputID(d.Id())
+	id, err := inputs.ParseInputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -175,27 +177,56 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.InputName)
-	d.Set("stream_analytics_job_name", id.StreamingjobName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("resource_group_name", id.ResourceGroupNameName)
 
-	if props := resp.Properties; props != nil {
-		v, ok := props.AsStreamInputProperties()
-		if !ok {
-			return fmt.Errorf("converting Stream Input IoTHub to an Stream Input: %+v", err)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			input, ok := props.(inputs.InputProperties)
+			if !ok {
+				return fmt.Errorf("converting to an Input: %+v", err)
+			}
 
-		eventHub, ok := v.Datasource.AsIoTHubStreamInputDataSource()
-		if !ok {
-			return fmt.Errorf("converting Stream Input IoTHub to an IoTHub Stream Input: %+v", err)
-		}
+			streamInput, ok := input.(inputs.StreamInputProperties)
+			if !ok {
+				return fmt.Errorf("converting to a Stream Input: %+v", err)
+			}
 
-		d.Set("eventhub_consumer_group_name", eventHub.ConsumerGroupName)
-		d.Set("endpoint", eventHub.Endpoint)
-		d.Set("iothub_namespace", eventHub.IotHubNamespace)
-		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
+			streamIotHubInput, ok := streamInput.Datasource.(inputs.IoTHubStreamInputDataSource)
+			if !ok {
+				return fmt.Errorf("converting Stream Input Blob to an Stream Input: %+v", err)
+			}
 
-		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
-			return fmt.Errorf("setting `serialization`: %+v", err)
+			if streamIotHubInputProps := streamIotHubInput.Properties; streamIotHubInputProps != nil {
+				eventHubConsumerGroupName := ""
+				if v := streamIotHubInputProps.ConsumerGroupName; v != nil {
+					eventHubConsumerGroupName = *v
+				}
+				d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
+
+				endpoint := ""
+				if v := streamIotHubInputProps.Endpoint; v != nil {
+					endpoint = *v
+				}
+				d.Set("endpoint", endpoint)
+
+				iothubNamespace := ""
+				if v := streamIotHubInputProps.IotHubNamespace; v != nil {
+					iothubNamespace = *v
+				}
+				d.Set("iothub_namespace", iothubNamespace)
+
+				sharedAccessPolicyName := ""
+				if v := streamIotHubInputProps.SharedAccessPolicyName; v != nil {
+					sharedAccessPolicyName = *v
+				}
+				d.Set("shared_access_policy_name", sharedAccessPolicyName)
+
+				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization2(streamInput.Serialization)); err != nil {
+					return fmt.Errorf("setting `serialization`: %+v", err)
+				}
+			}
+
 		}
 	}
 
@@ -207,12 +238,12 @@ func resourceStreamAnalyticsStreamInputIoTHubDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamInputID(d.Id())
+	id, err := inputs.ParseInputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

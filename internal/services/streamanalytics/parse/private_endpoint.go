@@ -29,7 +29,7 @@ func (id PrivateEndpointId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Cluster Name %q", id.ClusterName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroupName),
 	}
 	segmentsStr := strings.Join(segments, " / ")
 	return fmt.Sprintf("%s: (%s)", "Private Endpoint", segmentsStr)
@@ -37,7 +37,7 @@ func (id PrivateEndpointId) String() string {
 
 func (id PrivateEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/clusters/%s/privateEndpoints/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.Name)
 }
 
 // PrivateEndpointID parses a PrivateEndpoint ID into an PrivateEndpointId struct
@@ -49,14 +49,14 @@ func PrivateEndpointID(input string) (*PrivateEndpointId, error) {
 
 	resourceId := PrivateEndpointId{
 		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroupName,
 	}
 
 	if resourceId.SubscriptionId == "" {
 		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
-	if resourceId.ResourceGroup == "" {
+	if resourceid.ResourceGroupName == "" {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 

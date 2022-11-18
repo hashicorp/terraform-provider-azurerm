@@ -51,9 +51,9 @@ func (r StreamAnalyticsManagedPrivateEndpointResource) Exists(ctx context.Contex
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.EndpointsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.StreamAnalytics.EndpointsClient.Get(ctx, id.ResourceGroupName, id.ClusterName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)

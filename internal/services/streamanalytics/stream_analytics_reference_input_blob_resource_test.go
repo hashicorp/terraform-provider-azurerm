@@ -3,12 +3,13 @@ package streamanalytics_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -112,17 +113,17 @@ func TestAccStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T) {
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StreamInputID(state.ID)
+	id, err := inputs.ParseInputID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
+	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -133,19 +134,19 @@ func (r StreamAnalyticsReferenceInputBlobResource) avro(data acceptance.TestData
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.test.name
-  storage_account_key       = azurerm_storage_account.test.primary_access_key
-  storage_container_name    = azurerm_storage_container.test.name
-  path_pattern              = "some-random-pattern"
-  date_format               = "yyyy/MM/dd"
-  time_format               = "HH"
+ name                      = "acctestinput-%d"
+ stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+ resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+ storage_account_name      = azurerm_storage_account.test.name
+ storage_account_key       = azurerm_storage_account.test.primary_access_key
+ storage_container_name    = azurerm_storage_container.test.name
+ path_pattern              = "some-random-pattern"
+ date_format               = "yyyy/MM/dd"
+ time_format               = "HH"
 
-  serialization {
-    type = "Avro"
-  }
+ serialization {
+   type = "Avro"
+ }
 }
 `, template, data.RandomInteger)
 }
@@ -156,21 +157,21 @@ func (r StreamAnalyticsReferenceInputBlobResource) csv(data acceptance.TestData)
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.test.name
-  storage_account_key       = azurerm_storage_account.test.primary_access_key
-  storage_container_name    = azurerm_storage_container.test.name
-  path_pattern              = "some-random-pattern"
-  date_format               = "yyyy/MM/dd"
-  time_format               = "HH"
+ name                      = "acctestinput-%d"
+ stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+ resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+ storage_account_name      = azurerm_storage_account.test.name
+ storage_account_key       = azurerm_storage_account.test.primary_access_key
+ storage_container_name    = azurerm_storage_container.test.name
+ path_pattern              = "some-random-pattern"
+ date_format               = "yyyy/MM/dd"
+ time_format               = "HH"
 
-  serialization {
-    type            = "Csv"
-    encoding        = "UTF8"
-    field_delimiter = ","
-  }
+ serialization {
+   type            = "Csv"
+   encoding        = "UTF8"
+   field_delimiter = ","
+ }
 }
 `, template, data.RandomInteger)
 }
@@ -181,20 +182,20 @@ func (r StreamAnalyticsReferenceInputBlobResource) json(data acceptance.TestData
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.test.name
-  storage_account_key       = azurerm_storage_account.test.primary_access_key
-  storage_container_name    = azurerm_storage_container.test.name
-  path_pattern              = "some-random-pattern"
-  date_format               = "yyyy/MM/dd"
-  time_format               = "HH"
+ name                      = "acctestinput-%d"
+ stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+ resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+ storage_account_name      = azurerm_storage_account.test.name
+ storage_account_key       = azurerm_storage_account.test.primary_access_key
+ storage_container_name    = azurerm_storage_container.test.name
+ path_pattern              = "some-random-pattern"
+ date_format               = "yyyy/MM/dd"
+ time_format               = "HH"
 
-  serialization {
-    type     = "Json"
-    encoding = "UTF8"
-  }
+ serialization {
+   type     = "Json"
+   encoding = "UTF8"
+ }
 }
 `, template, data.RandomInteger)
 }
@@ -205,33 +206,33 @@ func (r StreamAnalyticsReferenceInputBlobResource) updated(data acceptance.TestD
 %s
 
 resource "azurerm_storage_account" "updated" {
-  name                     = "acctestsa2%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+ name                     = "acctestsa2%s"
+ resource_group_name      = azurerm_resource_group.test.name
+ location                 = azurerm_resource_group.test.location
+ account_tier             = "Standard"
+ account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "updated" {
-  name                  = "example2"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+ name                  = "example2"
+ storage_account_name  = azurerm_storage_account.test.name
+ container_access_type = "private"
 }
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.updated.name
-  storage_account_key       = azurerm_storage_account.updated.primary_access_key
-  storage_container_name    = azurerm_storage_container.updated.name
-  path_pattern              = "some-other-pattern"
-  date_format               = "yyyy-MM-dd"
-  time_format               = "HH"
+ name                      = "acctestinput-%d"
+ stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+ resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+ storage_account_name      = azurerm_storage_account.updated.name
+ storage_account_key       = azurerm_storage_account.updated.primary_access_key
+ storage_container_name    = azurerm_storage_container.updated.name
+ path_pattern              = "some-other-pattern"
+ date_format               = "yyyy-MM-dd"
+ time_format               = "HH"
 
-  serialization {
-    type = "Avro"
-  }
+ serialization {
+   type = "Avro"
+ }
 }
 `, template, data.RandomString, data.RandomInteger)
 }
@@ -242,21 +243,21 @@ func (r StreamAnalyticsReferenceInputBlobResource) authenticationMode(data accep
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.test.name
-  storage_account_key       = azurerm_storage_account.test.primary_access_key
-  storage_container_name    = azurerm_storage_container.test.name
-  path_pattern              = "some-random-pattern"
-  date_format               = "yyyy/MM/dd"
-  time_format               = "HH"
-  authentication_mode       = "Msi"
+ name                      = "acctestinput-%d"
+ stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+ resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+ storage_account_name      = azurerm_storage_account.test.name
+ storage_account_key       = azurerm_storage_account.test.primary_access_key
+ storage_container_name    = azurerm_storage_container.test.name
+ path_pattern              = "some-random-pattern"
+ date_format               = "yyyy/MM/dd"
+ time_format               = "HH"
+ authentication_mode       = "Msi"
 
-  serialization {
-    type     = "Json"
-    encoding = "UTF8"
-  }
+ serialization {
+   type     = "Json"
+   encoding = "UTF8"
+ }
 }
 `, template, data.RandomInteger)
 }
@@ -267,22 +268,22 @@ func (r StreamAnalyticsReferenceInputBlobResource) requiresImport(data acceptanc
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "import" {
-  name                      = azurerm_stream_analytics_reference_input_blob.test.name
-  stream_analytics_job_name = azurerm_stream_analytics_reference_input_blob.test.stream_analytics_job_name
-  resource_group_name       = azurerm_stream_analytics_reference_input_blob.test.resource_group_name
-  storage_account_name      = azurerm_stream_analytics_reference_input_blob.test.storage_account_name
-  storage_account_key       = azurerm_stream_analytics_reference_input_blob.test.storage_account_key
-  storage_container_name    = azurerm_stream_analytics_reference_input_blob.test.storage_container_name
-  path_pattern              = azurerm_stream_analytics_reference_input_blob.test.path_pattern
-  date_format               = azurerm_stream_analytics_reference_input_blob.test.date_format
-  time_format               = azurerm_stream_analytics_reference_input_blob.test.time_format
-  dynamic "serialization" {
-    for_each = azurerm_stream_analytics_reference_input_blob.test.serialization
-    content {
-      encoding = lookup(serialization.value, "encoding", null)
-      type     = serialization.value.type
-    }
-  }
+ name                      = azurerm_stream_analytics_reference_input_blob.test.name
+ stream_analytics_job_name = azurerm_stream_analytics_reference_input_blob.test.stream_analytics_job_name
+ resource_group_name       = azurerm_stream_analytics_reference_input_blob.test.resource_group_name
+ storage_account_name      = azurerm_stream_analytics_reference_input_blob.test.storage_account_name
+ storage_account_key       = azurerm_stream_analytics_reference_input_blob.test.storage_account_key
+ storage_container_name    = azurerm_stream_analytics_reference_input_blob.test.storage_container_name
+ path_pattern              = azurerm_stream_analytics_reference_input_blob.test.path_pattern
+ date_format               = azurerm_stream_analytics_reference_input_blob.test.date_format
+ time_format               = azurerm_stream_analytics_reference_input_blob.test.time_format
+ dynamic "serialization" {
+   for_each = azurerm_stream_analytics_reference_input_blob.test.serialization
+   content {
+     encoding = lookup(serialization.value, "encoding", null)
+     type     = serialization.value.type
+   }
+ }
 }
 `, template)
 }
@@ -290,44 +291,44 @@ resource "azurerm_stream_analytics_reference_input_blob" "import" {
 func (r StreamAnalyticsReferenceInputBlobResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+ features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+ name     = "acctestRG-%d"
+ location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+ name                     = "acctestsa%s"
+ resource_group_name      = azurerm_resource_group.test.name
+ location                 = azurerm_resource_group.test.location
+ account_tier             = "Standard"
+ account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "example"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+ name                  = "example"
+ storage_account_name  = azurerm_storage_account.test.name
+ container_access_type = "private"
 }
 
 resource "azurerm_stream_analytics_job" "test" {
-  name                                     = "acctestjob-%d"
-  resource_group_name                      = azurerm_resource_group.test.name
-  location                                 = azurerm_resource_group.test.location
-  compatibility_level                      = "1.0"
-  data_locale                              = "en-GB"
-  events_late_arrival_max_delay_in_seconds = 60
-  events_out_of_order_max_delay_in_seconds = 50
-  events_out_of_order_policy               = "Adjust"
-  output_error_policy                      = "Drop"
-  streaming_units                          = 3
+ name                                     = "acctestjob-%d"
+ resource_group_name                      = azurerm_resource_group.test.name
+ location                                 = azurerm_resource_group.test.location
+ compatibility_level                      = "1.0"
+ data_locale                              = "en-GB"
+ events_late_arrival_max_delay_in_seconds = 60
+ events_out_of_order_max_delay_in_seconds = 50
+ events_out_of_order_policy               = "Adjust"
+ output_error_policy                      = "Drop"
+ streaming_units                          = 3
 
-  transformation_query = <<QUERY
-    SELECT *
-    INTO [YourOutputAlias]
-    FROM [YourInputAlias]
+ transformation_query = <<QUERY
+   SELECT *
+   INTO [YourOutputAlias]
+   FROM [YourInputAlias]
 QUERY
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)

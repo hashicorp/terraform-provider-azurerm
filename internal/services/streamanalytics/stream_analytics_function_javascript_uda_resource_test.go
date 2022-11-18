@@ -124,9 +124,9 @@ func (r StreamAnalyticsFunctionJavaScriptUDAResource) Exists(ctx context.Context
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.FunctionsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	resp, err := client.StreamAnalytics.Functionsclient.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s : %+v", *id, err)

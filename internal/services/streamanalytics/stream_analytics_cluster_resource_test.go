@@ -94,9 +94,9 @@ func (r StreamAnalyticsClusterResource) Exists(ctx context.Context, client *clie
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.StreamAnalytics.ClustersClient.Get(ctx, id.ResourceGroupName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)

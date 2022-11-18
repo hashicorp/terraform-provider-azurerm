@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -112,7 +110,7 @@ func (r OutputTableResource) ResourceType() string {
 }
 
 func (r OutputTableResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.OutputID
+	return outputs.ValidateOutputID
 }
 
 func (r OutputTableResource) Create() sdk.ResourceFunc {
@@ -127,14 +125,14 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
+			id := outputs.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -153,7 +151,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 
 			props := streamanalytics.Output{
 				Name: utils.String(model.Name),
-				OutputProperties: &streamanalytics.OutputProperties{
+				Properties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
 						Type:                                 streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: tableOutputProps,
@@ -161,7 +159,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err = client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+			if _, err = client.CreateOrReplace(ctx, id, props, opts); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -177,14 +175,14 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := parse.OutputID(metadata.ResourceData.Id())
+			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
@@ -202,8 +200,8 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 
 				state := OutputTableResourceModel{
 					Name:               id.Name,
-					ResourceGroup:      id.ResourceGroup,
-					StreamAnalyticsJob: id.StreamingjobName,
+					ResourceGroup:      id.ResourceGroupName,
+					StreamAnalyticsJob: id.JobName,
 					StorageAccount:     *v.AccountName,
 					StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
 					Table:              *v.Table,
@@ -230,7 +228,7 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := parse.OutputID(metadata.ResourceData.Id())
+			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -242,7 +240,7 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 
 			props := streamanalytics.Output{
 				Name: utils.String(state.Name),
-				OutputProperties: &streamanalytics.OutputProperties{
+				Properties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
 						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: &streamanalytics.AzureTableOutputDataSourceProperties{
@@ -265,7 +263,7 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 				tableOutput.ColumnsToRemove = &state.ColumnsToRemove
 			}
 
-			if _, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+			if _, err = client.Update(ctx, *id, props, opts); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -279,15 +277,15 @@ func (r OutputTableResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := parse.OutputID(metadata.ResourceData.Id())
+			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
-				if !response.WasNotFound(resp.Response) {
+			if resp, err := client.Delete(ctx, *id); err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}
@@ -298,14 +296,14 @@ func (r OutputTableResource) Delete() sdk.ResourceFunc {
 
 func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := parse.OutputID(metadata.ResourceData.Id())
+		id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
 		client := metadata.Client.StreamAnalytics.OutputsClient
-		resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
-		if err != nil || resp.OutputProperties == nil {
+		resp, err := client.Get(ctx, id)
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
 			return fmt.Errorf("reading %s: %+v", *id, err)
 		}
 

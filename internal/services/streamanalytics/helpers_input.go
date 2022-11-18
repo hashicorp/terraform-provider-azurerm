@@ -2,6 +2,7 @@ package streamanalytics
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -178,33 +179,79 @@ func flattenStreamAnalyticsStreamInputSerialization(input streamanalytics.BasicS
 	}
 }
 
-func flattenStreamAnalyticsStreamInputSerializationTyped(input streamanalytics.BasicSerialization) Serialization {
+func flattenStreamAnalyticsStreamInputSerialization2(input inputs.Serialization) []interface{} {
 	var encoding string
 	var fieldDelimiter string
 	var inputType string
 
-	if _, ok := input.AsAvroSerialization(); ok {
+	if _, ok := input.(inputs.AvroSerialization); ok {
 		inputType = string(streamanalytics.TypeAvro)
 	}
 
-	if v, ok := input.AsCsvSerialization(); ok {
-		if props := v.CsvSerializationProperties; props != nil {
-			encoding = string(props.Encoding)
+	if csv, ok := input.(inputs.CsvSerialization); ok {
+		if props := csv.Properties; props != nil {
+			if v := props.Encoding; v != nil {
+				encoding = string(*v)
+			}
 
-			if props.FieldDelimiter != nil {
-				fieldDelimiter = *props.FieldDelimiter
+			if v := props.FieldDelimiter; v != nil {
+				fieldDelimiter = string(*v)
 			}
 		}
 
-		inputType = string(streamanalytics.TypeCsv)
+		inputType = string(inputs.EventSerializationTypeCsv)
 	}
 
-	if v, ok := input.AsJSONSerialization(); ok {
-		if props := v.JSONSerializationProperties; props != nil {
-			encoding = string(props.Encoding)
+	if json, ok := input.(inputs.JsonSerialization); ok {
+		if props := json.Properties; props != nil {
+			if v := props.Encoding; v != nil {
+				encoding = string(*v)
+			}
 		}
 
-		inputType = string(streamanalytics.TypeJSON)
+		inputType = string(inputs.EventSerializationTypeJson)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"encoding":        encoding,
+			"type":            inputType,
+			"field_delimiter": fieldDelimiter,
+		},
+	}
+}
+
+func flattenStreamAnalyticsStreamInputSerializationTyped(input inputs.Serialization) Serialization {
+	var encoding string
+	var fieldDelimiter string
+	var inputType string
+
+	if _, ok := input.(inputs.AvroSerialization); ok {
+		inputType = string(streamanalytics.TypeAvro)
+	}
+
+	if csv, ok := input.(inputs.CsvSerialization); ok {
+		if props := csv.Properties; props != nil {
+			if v := props.Encoding; v != nil {
+				encoding = string(*v)
+			}
+
+			if v := props.FieldDelimiter; v != nil {
+				fieldDelimiter = string(*v)
+			}
+		}
+
+		inputType = string(inputs.EventSerializationTypeCsv)
+	}
+
+	if json, ok := input.(inputs.JsonSerialization); ok {
+		if props := json.Properties; props != nil {
+			if v := props.Encoding; v != nil {
+				encoding = string(*v)
+			}
+		}
+
+		inputType = string(inputs.EventSerializationTypeJson)
 	}
 
 	return Serialization{
