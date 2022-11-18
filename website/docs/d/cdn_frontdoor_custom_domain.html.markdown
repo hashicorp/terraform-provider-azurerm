@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `profile_name` - (Required) The name of the Front Door Profile which the Front Door Custom Domain is bound to.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Front Door Custom Profile exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Front Door Profile exists.
 
 ## Attributes Reference
 
