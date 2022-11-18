@@ -1,5 +1,9 @@
 ## 3.33.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `cognitive`: updating to API Version `2022-10-01` [GH-19344]
+
 BUG FIXES:
 
 * `azurerm_monitor_alert_processing_rule_action_group` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
