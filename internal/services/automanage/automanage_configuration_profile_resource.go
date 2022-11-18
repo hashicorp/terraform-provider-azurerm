@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -84,11 +83,11 @@ func (r AutoManageConfigurationProfileResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := parse.NewAutomanageConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
 			existing, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
-			if err != nil && !response.WasNotFound(existing.Response.Response) {
+			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !response.WasNotFound(existing.Response.Response) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -176,7 +175,7 @@ func (r AutoManageConfigurationProfileResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
 			if err != nil {
-				if response.WasNotFound(resp.Response.Response) {
+				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 
