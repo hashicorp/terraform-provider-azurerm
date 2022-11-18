@@ -136,6 +136,8 @@ A `condition` block supports the following:
 
 * `target_resource_type` - (Optional) A `target_resource_type` block as defined below.
 
+-> **Note:** At least one of the `alert_context`, `alert_rule_id`, `alert_rule_name`, `description`, `monitor_condition`, `monitor_service`, `severity`, `signal_type`, `target_resource`, `target_resource_group`, `target_resource_type` must be specified.
+
 ---
 
 A `daily` block supports the following:
