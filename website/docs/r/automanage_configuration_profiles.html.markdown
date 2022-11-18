@@ -22,16 +22,16 @@ resource "azurerm_automanage_configuration_profile" "example" {
   name                = "example-configurationprofile"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  configuration_json  = jsonencode({
-    "Antimalware/Enable":false,
-    "AzureSecurityCenter/Enable":true,
-    "Backup/Enable":false,
-    "BootDiagnostics/Enable":true,
-    "ChangeTrackingAndInventory/Enable":true,
-    "GuestConfiguration/Enable":true,
-    "LogAnalytics/Enable":true,
-    "UpdateManagement/Enable":true,
-    "VMInsights/Enable":true
+  configuration_json = jsonencode({
+    "Antimalware/Enable" : false,
+    "AzureSecurityCenter/Enable" : true,
+    "Backup/Enable" : false,
+    "BootDiagnostics/Enable" : true,
+    "ChangeTrackingAndInventory/Enable" : true,
+    "GuestConfiguration/Enable" : true,
+    "LogAnalytics/Enable" : true,
+    "UpdateManagement/Enable" : true,
+    "VMInsights/Enable" : true
   })
 }
 ```

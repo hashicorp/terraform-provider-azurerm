@@ -118,16 +118,16 @@ resource "azurerm_automanage_configuration_profile" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json  = jsonencode({
-    "Antimalware/Enable":false,
-    "AzureSecurityCenter/Enable":true,
-    "Backup/Enable":false,
-    "BootDiagnostics/Enable":true,
-    "ChangeTrackingAndInventory/Enable":true,
-    "GuestConfiguration/Enable":true,
-    "LogAnalytics/Enable":true,
-    "UpdateManagement/Enable":true,
-    "VMInsights/Enable":true
+  configuration_json = jsonencode({
+    "Antimalware/Enable" : false,
+    "AzureSecurityCenter/Enable" : true,
+    "Backup/Enable" : false,
+    "BootDiagnostics/Enable" : true,
+    "ChangeTrackingAndInventory/Enable" : true,
+    "GuestConfiguration/Enable" : true,
+    "LogAnalytics/Enable" : true,
+    "UpdateManagement/Enable" : true,
+    "VMInsights/Enable" : true
   })
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -142,16 +142,16 @@ resource "azurerm_automanage_configuration_profile" "import" {
   name                = azurerm_automanage_configuration_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json  = jsonencode({
-    "Antimalware/Enable":false,
-    "AzureSecurityCenter/Enable":true,
-    "Backup/Enable":false,
-    "BootDiagnostics/Enable":true,
-    "ChangeTrackingAndInventory/Enable":true,
-    "GuestConfiguration/Enable":true,
-    "LogAnalytics/Enable":true,
-    "UpdateManagement/Enable":true,
-    "VMInsights/Enable":true
+  configuration_json = jsonencode({
+    "Antimalware/Enable" : false,
+    "AzureSecurityCenter/Enable" : true,
+    "Backup/Enable" : false,
+    "BootDiagnostics/Enable" : true,
+    "ChangeTrackingAndInventory/Enable" : true,
+    "GuestConfiguration/Enable" : true,
+    "LogAnalytics/Enable" : true,
+    "UpdateManagement/Enable" : true,
+    "VMInsights/Enable" : true
   })
 }
 `, config, data.Locations.Primary)
@@ -166,16 +166,16 @@ resource "azurerm_automanage_configuration_profile" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json  = jsonencode({
-    "Antimalware/Enable":false,
-    "AzureSecurityCenter/Enable":true,
-    "Backup/Enable":false,
-    "BootDiagnostics/Enable":true,
-    "ChangeTrackingAndInventory/Enable":true,
-    "GuestConfiguration/Enable":true,
-    "LogAnalytics/Enable":true,
-    "UpdateManagement/Enable":true,
-    "VMInsights/Enable":true
+  configuration_json = jsonencode({
+    "Antimalware/Enable" : false,
+    "AzureSecurityCenter/Enable" : true,
+    "Backup/Enable" : false,
+    "BootDiagnostics/Enable" : true,
+    "ChangeTrackingAndInventory/Enable" : true,
+    "GuestConfiguration/Enable" : true,
+    "LogAnalytics/Enable" : true,
+    "UpdateManagement/Enable" : true,
+    "VMInsights/Enable" : true
   })
   tags = {
     key = "value"
@@ -194,16 +194,16 @@ resource "azurerm_automanage_configuration_profile" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json  = jsonencode({
-    "Antimalware/Enable":false,
-    "AzureSecurityCenter/Enable":true,
-    "Backup/Enable":true,
-    "BootDiagnostics/Enable":true,
-    "ChangeTrackingAndInventory/Enable":true,
-    "GuestConfiguration/Enable":true,
-    "LogAnalytics/Enable":true,
-    "UpdateManagement/Enable":true,
-    "VMInsights/Enable":true
+  configuration_json = jsonencode({
+    "Antimalware/Enable" : false,
+    "AzureSecurityCenter/Enable" : true,
+    "Backup/Enable" : true,
+    "BootDiagnostics/Enable" : true,
+    "ChangeTrackingAndInventory/Enable" : true,
+    "GuestConfiguration/Enable" : true,
+    "LogAnalytics/Enable" : true,
+    "UpdateManagement/Enable" : true,
+    "VMInsights/Enable" : true
   })
   tags = {
     key2 = "value2"
