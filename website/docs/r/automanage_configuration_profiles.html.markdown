@@ -3,7 +3,7 @@ subcategory: "Automanage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automanage_configuration_profile"
 description: |-
-Manages a automanage ConfigurationProfile.
+  Manages a automanage ConfigurationProfile.
 ---
 
 # azurerm_automanage_configuration_profile
