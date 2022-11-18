@@ -9,6 +9,7 @@ import (
 
 type Server struct {
 	Id         *string                `json:"id,omitempty"`
+	Identity   *UserAssignedIdentity  `json:"identity,omitempty"`
 	Location   string                 `json:"location"`
 	Name       *string                `json:"name,omitempty"`
 	Properties *ServerProperties      `json:"properties,omitempty"`
