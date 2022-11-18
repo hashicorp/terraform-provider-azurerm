@@ -374,19 +374,13 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == insights.PublicNetworkAccessTypeEnabled)
 		d.Set("force_customer_storage_for_profiler", props.ForceCustomerStorageForProfiler)
 
+		workspaceId := ""
 		if v := props.WorkspaceResourceID; v != nil {
 			id, err := workspaces.ParseWorkspaceIDInsensitively(*v)
 			if err != nil {
 				return err
 			}
-			d.Set("workspace_id", id.ID())
-		workspaceId := ""
-		if v := props.WorkspaceResourceID; v != nil {
-			id, err := workspaces.ParseWorkspaceIDInsensitively(*v)
- 			if err != nil {
- 				return err
- 			}
- 			workspaceId = id.ID()
+			workspaceId = id.ID()
 		}
 		d.Set("workspace_id", workspaceId)
 
