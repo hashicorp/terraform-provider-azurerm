@@ -10,7 +10,7 @@ import (
 
 type BlueprintPublishedVersionDataSource struct{}
 
-//lintignore:AT001
+// lintignore:AT001
 func TestAccBlueprintPublishedVersionDataSource_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 	r := BlueprintPublishedVersionDataSource{}
