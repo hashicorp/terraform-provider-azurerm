@@ -79,7 +79,7 @@ func (r AutoManageConfigurationProfileResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AutoManage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationProfileClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := parse.NewAutomanageConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
 			existing, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
@@ -120,7 +120,7 @@ func (r AutoManageConfigurationProfileResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AutoManage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationProfileClient
 
 			id, err := parse.AutomanageConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
@@ -166,7 +166,7 @@ func (r AutoManageConfigurationProfileResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AutoManage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationProfileClient
 
 			id, err := parse.AutomanageConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
@@ -211,7 +211,7 @@ func (r AutoManageConfigurationProfileResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AutoManage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationProfileClient
 
 			id, err := parse.AutomanageConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {

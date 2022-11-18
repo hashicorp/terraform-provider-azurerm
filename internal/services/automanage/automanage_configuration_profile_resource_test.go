@@ -85,7 +85,7 @@ func (r AutoManageConfigurationProfileResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	client := clients.AutoManage.ConfigurationProfileClient
+	client := clients.Automanage.ConfigurationProfileClient
 	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
