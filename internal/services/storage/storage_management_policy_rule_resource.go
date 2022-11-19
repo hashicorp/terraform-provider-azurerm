@@ -83,60 +83,6 @@ func (r StorageAccountManagementPolicyRuleResource) Arguments() map[string]*plug
 			Optional: true,
 			Default:  true,
 		},
-		"filter": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"blob_types": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"blockBlob",
-								"appendBlob",
-							}, false),
-						},
-					},
-					"prefix_match": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					},
-					"match_blob_index_tag": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.StorageBlobIndexTagName,
-								},
-
-								"operation": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"==",
-									}, false),
-									Default: "==",
-								},
-
-								"value": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.StorageBlobIndexTagValue,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		//lintignore:XS003
 		"action": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -265,6 +211,59 @@ func (r StorageAccountManagementPolicyRuleResource) Arguments() map[string]*plug
 				},
 			},
 		},
+		"filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"blob_types": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"blockBlob",
+								"appendBlob",
+							}, false),
+						},
+					},
+					"prefix_match": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					},
+					"match_blob_index_tag": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validate.StorageBlobIndexTagName,
+								},
+
+								"operation": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										"==",
+									}, false),
+									Default: "==",
+								},
+
+								"value": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validate.StorageBlobIndexTagValue,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -273,7 +272,7 @@ func (r StorageAccountManagementPolicyRuleResource) Attributes() map[string]*plu
 }
 
 func (r StorageAccountManagementPolicyRuleResource) ResourceType() string {
-	return "azurerm_storage_account_management_policy_rule"
+	return "azurerm_storage_management_policy_rule"
 }
 
 func (r StorageAccountManagementPolicyRuleResource) ModelObject() interface{} {
@@ -314,11 +313,12 @@ func (r StorageAccountManagementPolicyRuleResource) Create() sdk.ResourceFunc {
 			if utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			if r.getRuleByName(existing, plan.Name) != nil {
+			if r.GetRuleInPolicy(existing, plan.Name) != nil {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			rule := &storage.ManagementPolicyRule{
+				Name:    &id.RuleName,
 				Enabled: &plan.Enabled,
 				Type:    utils.String("Lifecycle"),
 				Definition: &storage.ManagementPolicyDefinition{
@@ -327,7 +327,7 @@ func (r StorageAccountManagementPolicyRuleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			r.appendRuleToPolicy(&existing, *rule)
+			r.AddRuleInPolicy(&existing, *rule)
 
 			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.StorageAccountName, existing); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -350,7 +350,6 @@ func (r StorageAccountManagementPolicyRuleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			storageId := parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName)
 			policyId := parse.NewStorageAccountManagementPolicyID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.ManagementPolicyName)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
@@ -358,17 +357,17 @@ func (r StorageAccountManagementPolicyRuleResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", storageId, err)
+				return fmt.Errorf("retrieving %s: %+v", policyId, err)
 			}
 
-			rule := r.getRuleByName(existing, id.RuleName)
+			rule := r.GetRuleInPolicy(existing, id.RuleName)
 			if rule == nil {
 				return metadata.MarkAsGone(id)
 			}
 
 			enabled := false
 			if rule.Enabled != nil {
-				enabled = true
+				enabled = *rule.Enabled
 			}
 
 			model := StorageAccountManagementPolicyRuleModel{
@@ -399,8 +398,6 @@ func (r StorageAccountManagementPolicyRuleResource) Update() sdk.ResourceFunc {
 			locks.ByName(id.StorageAccountName, StorageAccountManagementPolicyResourceName)
 			defer locks.UnlockByName(id.StorageAccountName, StorageAccountManagementPolicyResourceName)
 
-			storageId := parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName)
-
 			var plan StorageAccountManagementPolicyRuleModel
 			if err := metadata.Decode(&plan); err != nil {
 				return err
@@ -408,14 +405,16 @@ func (r StorageAccountManagementPolicyRuleResource) Update() sdk.ResourceFunc {
 
 			client := metadata.Client.Storage.ManagementPoliciesClient
 
+			policyId := parse.NewStorageAccountManagementPolicyID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.ManagementPolicyName)
+
 			existing, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", storageId, err)
+				return fmt.Errorf("retrieving %s: %+v", policyId, err)
 			}
 
-			rule := r.getRuleByName(existing, id.RuleName)
+			rule := r.GetRuleInPolicy(existing, id.RuleName)
 			if rule == nil {
-				return fmt.Errorf("retrieving %s: no such rule found", id, err)
+				return fmt.Errorf("retrieving %s: no such rule found", id)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
@@ -433,7 +432,7 @@ func (r StorageAccountManagementPolicyRuleResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if err := r.updateRuleByName(&existing, id.RuleName, *rule); err != nil {
+			if err := r.UpdateRuleInPolicy(&existing, id.RuleName, *rule); err != nil {
 				return fmt.Errorf("updating %s within the management policy: %v", id, err)
 			}
 
@@ -460,9 +459,17 @@ func (r StorageAccountManagementPolicyRuleResource) Delete() sdk.ResourceFunc {
 			locks.ByName(id.StorageAccountName, StorageAccountManagementPolicyResourceName)
 			defer locks.UnlockByName(id.StorageAccountName, StorageAccountManagementPolicyResourceName)
 
-			existing, err := client.Delete(ctx, id.ResourceGroup, id.StorageAccountName)
+			policyId := parse.NewStorageAccountManagementPolicyID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.ManagementPolicyName)
+
+			existing, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", policyId, err)
+			}
+
+			r.DeleteRuleInPolicy(existing, id.RuleName)
+
+			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.StorageAccountName, existing); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -470,7 +477,24 @@ func (r StorageAccountManagementPolicyRuleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageAccountManagementPolicyRuleResource) getRuleByName(policy storage.ManagementPolicy, name string) *storage.ManagementPolicyRule {
+func (r StorageAccountManagementPolicyRuleResource) AddRuleInPolicy(policy *storage.ManagementPolicy, rule storage.ManagementPolicyRule) {
+	if policy == nil {
+		return
+	}
+	if policy.ManagementPolicyProperties == nil {
+		policy.ManagementPolicyProperties = &storage.ManagementPolicyProperties{}
+	}
+	if policy.Policy == nil {
+		policy.Policy = &storage.ManagementPolicySchema{}
+	}
+	if policy.Policy.Rules == nil {
+		policy.Policy.Rules = &[]storage.ManagementPolicyRule{}
+	}
+	*policy.Policy.Rules = append(*policy.Policy.Rules, rule)
+	return
+}
+
+func (r StorageAccountManagementPolicyRuleResource) GetRuleInPolicy(policy storage.ManagementPolicy, name string) *storage.ManagementPolicyRule {
 	if policy.ManagementPolicyProperties == nil {
 		return nil
 	}
@@ -491,7 +515,7 @@ func (r StorageAccountManagementPolicyRuleResource) getRuleByName(policy storage
 	return nil
 }
 
-func (r StorageAccountManagementPolicyRuleResource) updateRuleByName(policy *storage.ManagementPolicy, name string, rule storage.ManagementPolicyRule) error {
+func (r StorageAccountManagementPolicyRuleResource) UpdateRuleInPolicy(policy *storage.ManagementPolicy, name string, rule storage.ManagementPolicyRule) error {
 	if policy.ManagementPolicyProperties == nil {
 		return fmt.Errorf("nil .properties of the policy")
 	}
@@ -516,6 +540,8 @@ func (r StorageAccountManagementPolicyRuleResource) updateRuleByName(policy *sto
 		newRules = append(newRules, r)
 	}
 
+	*policy.ManagementPolicyProperties.Policy.Rules = newRules
+
 	if !updated {
 		return fmt.Errorf("no rule named %s", name)
 	}
@@ -523,21 +549,26 @@ func (r StorageAccountManagementPolicyRuleResource) updateRuleByName(policy *sto
 	return nil
 }
 
-func (r StorageAccountManagementPolicyRuleResource) appendRuleToPolicy(policy *storage.ManagementPolicy, rule storage.ManagementPolicyRule) {
-	if policy == nil {
+func (r StorageAccountManagementPolicyRuleResource) DeleteRuleInPolicy(policy storage.ManagementPolicy, name string) {
+	if policy.ManagementPolicyProperties == nil {
 		return
 	}
-	if policy.ManagementPolicyProperties == nil {
-		policy.ManagementPolicyProperties = &storage.ManagementPolicyProperties{}
+	if policy.ManagementPolicyProperties.Policy == nil {
+		return
 	}
-	if policy.Policy == nil {
-		policy.Policy = &storage.ManagementPolicySchema{}
+	if policy.ManagementPolicyProperties.Policy.Rules == nil {
+		return
 	}
-	if policy.Policy.Rules == nil {
-		policy.Policy.Rules = &[]storage.ManagementPolicyRule{}
+
+	var newRules []storage.ManagementPolicyRule
+	for _, r := range *policy.ManagementPolicyProperties.Policy.Rules {
+		if r.Name != nil && name == *r.Name {
+			continue
+		}
+		newRules = append(newRules, r)
 	}
-	*policy.Policy.Rules = append(*policy.Policy.Rules, rule)
-	return
+
+	*policy.ManagementPolicyProperties.Policy.Rules = newRules
 }
 
 func (r StorageAccountManagementPolicyRuleResource) expandFilter(input []StorageAccountManagementPolicyRuleFilterModel) *storage.ManagementPolicyFilter {
@@ -622,7 +653,7 @@ func (r StorageAccountManagementPolicyRuleResource) expandAction(input []Storage
 		baseBlob := &storage.ManagementPolicyBaseBlob{}
 
 		// Tier to cool
-		sinceMod := baseBlobModel.TierToCoolAfterDaysSinceLastAccessTimeGreaterThan
+		sinceMod := baseBlobModel.TierToCoolAfterDaysSinceModificationGreaterThan
 		sinceModOK := sinceMod != -1
 		sinceAccess := baseBlobModel.TierToCoolAfterDaysSinceLastAccessTimeGreaterThan
 		sinceAccessOK := sinceAccess != -1
@@ -680,7 +711,7 @@ func (r StorageAccountManagementPolicyRuleResource) expandAction(input []Storage
 		if v := snapshotModel.DeleteAfterDaysSinceCreationGreaterThan; v != -1 {
 			snapshot.Delete = &storage.DateAfterCreation{DaysAfterCreationGreaterThan: utils.Float(float64(v))}
 		}
-		if v := snapshotModel.ChangeTierToArchiveAfterDaysSinceCreation; v != 1 {
+		if v := snapshotModel.ChangeTierToArchiveAfterDaysSinceCreation; v != -1 {
 			snapshot.TierToArchive = &storage.DateAfterCreation{
 				DaysAfterCreationGreaterThan: utils.Float(float64(v)),
 			}
@@ -835,4 +866,5 @@ func (r StorageAccountManagementPolicyRuleResource) flattenAction(input *storage
 			},
 		}
 	}
+	return []StorageAccountManagementPolicyRuleActionModel{actionModel}
 }
