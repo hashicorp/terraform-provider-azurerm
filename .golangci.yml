@@ -15,7 +15,6 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - deadcode
     - errcheck
     - gocritic
     - gofmt
@@ -26,12 +25,10 @@ linters:
     - nakedret
     - misspell
     - staticcheck
-    - structcheck
     - typecheck
     - unused
     - unconvert
     - unparam
-    - varcheck
     - vet
     - vetshadow
     # - whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
