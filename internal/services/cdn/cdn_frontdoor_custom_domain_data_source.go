@@ -96,8 +96,6 @@ func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 	defer cancel()
 
 	id := parse.NewFrontDoorCustomDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
-	profile := parse.NewFrontDoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string))
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -110,7 +108,7 @@ func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("name", id.CustomDomainName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("profile_name", id.ProfileName)
-	d.Set("cdn_frontdoor_profile_id", profile.ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("host_name", props.HostName)
