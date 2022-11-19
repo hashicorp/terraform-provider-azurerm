@@ -108,7 +108,7 @@ func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("name", id.CustomDomainName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("profile_name", id.ProfileName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("host_name", props.HostName)
