@@ -17,6 +17,7 @@ BUG FIXES:
 
 FEATURES:
 
+* **New Data Source:** `azurerm_cdn_frontdoor_custom_domain` [GH-19357]
 * **New Resource:** `azurerm_postgresql_flexible_server_active_directory_administrator` [GH-19269]
 
 ## 3.32.0 (November 17, 2022)
