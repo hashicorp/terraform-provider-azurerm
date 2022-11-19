@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   gencheck:
-    runs-on: ubuntu-latest
+    runs-on: [custom, linux, large]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
