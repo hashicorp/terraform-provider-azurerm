@@ -379,6 +379,25 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			"image_cleaner": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"interval_hours": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"web_app_routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1225,6 +1244,16 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	imageCleanerSecurityProfileRaw := d.Get("image_cleaner").([]interface{})
+	imageCleanerSecurityProfile := expandKubernetesClusterimageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
+
+	if imageCleanerSecurityProfile != nil {
+		if securityProfile == nil {
+			securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		securityProfile.ImageCleaner = imageCleanerSecurityProfile
+	}
+
 	parameters := managedclusters.ManagedCluster{
 		Name:             utils.String(id.ResourceName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -1743,6 +1772,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChanges("image_cleaner") {
+		updateCluster = true
+		imageCleanerSecurityProfileRaw := d.Get("image_cleaner").([]interface{})
+		imageCleanerSecurityProfile := expandKubernetesClusterimageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		existing.Model.Properties.SecurityProfile.ImageCleaner = imageCleanerSecurityProfile
+	}
+
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
@@ -2024,6 +2063,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile, d)
 		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+		}
+
+		imageCleaner := flattenKubernetesClusterImageCleanerSecurityProfile(props.SecurityProfile.ImageCleaner, d)
+		if err := d.Set("image_cleaner", imageCleaner); err != nil {
+			return fmt.Errorf("setting `image_cleaner`: %+v", err)
 		}
 
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
@@ -2324,6 +2368,22 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *mana
 	}
 }
 
+func expandKubernetesClusterimageCleanerSecurityProfile(input []interface{}) *managedclusters.ManagedClusterSecurityProfileImageCleaner {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	imageCleaner := managedclusters.ManagedClusterSecurityProfileImageCleaner{}
+	if v := config["enabled"].(bool); v {
+		imageCleaner.Enabled = utils.Bool(v)
+	}
+
+	imageCleaner.IntervalHours = utils.Int64(int64(config["interval_hours"].(int)))
+
+	return &imageCleaner
+}
+
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
@@ -2381,6 +2441,24 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 	return []interface{}{
 		map[string]interface{}{
 			"keda_enabled": kedaEnabled,
+		},
+	}
+}
+
+func flattenKubernetesClusterImageCleanerSecurityProfile(profile *managedclusters.ManagedClusterSecurityProfileImageCleaner, d *pluginsdk.ResourceData) []interface{} {
+	if profile == nil || len(d.Get("image_cleaner").([]interface{})) == 0 {
+		return []interface{}{}
+	}
+
+	enabled := false
+	if v := profile.Enabled; v != nil {
+		enabled = *profile.Enabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":        enabled,
+			"interval_hours": profile.IntervalHours,
 		},
 	}
 }
