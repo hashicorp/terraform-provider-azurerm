@@ -1245,7 +1245,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	imageCleanerSecurityProfileRaw := d.Get("image_cleaner").([]interface{})
-	imageCleanerSecurityProfile := expandKubernetesClusterimageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
+	imageCleanerSecurityProfile := expandKubernetesClusterImageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
 
 	if imageCleanerSecurityProfile != nil {
 		if securityProfile == nil {
@@ -1775,7 +1775,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChanges("image_cleaner") {
 		updateCluster = true
 		imageCleanerSecurityProfileRaw := d.Get("image_cleaner").([]interface{})
-		imageCleanerSecurityProfile := expandKubernetesClusterimageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
+		imageCleanerSecurityProfile := expandKubernetesClusterImageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
 		if existing.Model.Properties.SecurityProfile == nil {
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 		}
@@ -2368,7 +2368,7 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *mana
 	}
 }
 
-func expandKubernetesClusterimageCleanerSecurityProfile(input []interface{}) *managedclusters.ManagedClusterSecurityProfileImageCleaner {
+func expandKubernetesClusterImageCleanerSecurityProfile(input []interface{}) *managedclusters.ManagedClusterSecurityProfileImageCleaner {
 	if len(input) == 0 {
 		return nil
 	}

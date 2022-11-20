@@ -395,7 +395,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   image_cleaner {
     enabled        = %t
-	interval_hours = 48
+    interval_hours = 48
   }
 
   default_node_pool {
