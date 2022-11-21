@@ -1105,7 +1105,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 
   conditions {
     url_path_condition {
-      match_values     = ["data/",]
+      match_values     = ["data/", ]
       negate_condition = false
       operator         = "BeginsWith"
     }
