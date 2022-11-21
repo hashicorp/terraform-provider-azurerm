@@ -1,5 +1,10 @@
 ## 3.33.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_cdn_frontdoor_custom_domain` [GH-19357]
+* **New Resource:** `azurerm_postgresql_flexible_server_active_directory_administrator` [GH-19269]
+
 ENHANCEMENTS:
 
 * build: updating to use Go `1.19.3` [GH-19362]
@@ -11,14 +16,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights` - validating/normalizing the `workspace_id` as a Workspace ID [GH-19325]
 * `azurerm_monitor_alert_processing_rule_action_group` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
 * `azurerm_monitor_alert_processing_rule_suppression` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
 * `azurerm_servicebus_subscription_rule` - `correlation_filter` with empty attributes no longer crashes [GH-19352]
-
-FEATURES:
-
-* **New Data Source:** `azurerm_cdn_frontdoor_custom_domain` [GH-19357]
-* **New Resource:** `azurerm_postgresql_flexible_server_active_directory_administrator` [GH-19269]
 
 ## 3.32.0 (November 17, 2022)
 
