@@ -10,19 +10,44 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type LabServiceLabModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Description       string            `tfschema:"description"`
-	LabPlanId         string            `tfschema:"lab_plan_id"`
-	Location          string            `tfschema:"location"`
-	Title             string            `tfschema:"title"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name                string                `tfschema:"name"`
+	ResourceGroupName   string                `tfschema:"resource_group_name"`
+	Location            string                `tfschema:"location"`
+	AutoShutdownProfile []AutoShutdownProfile `tfschema:"auto_shutdown_profile"`
+	ConnectionProfile   []ConnectionProfile   `tfschema:"connection_profile"`
+	SecurityProfile     []SecurityProfile     `tfschema:"security_profile"`
+	Title               string                `tfschema:"title"`
+	Description         string                `tfschema:"description"`
+	LabPlanId           string                `tfschema:"lab_plan_id"`
+	Tags                map[string]string     `tfschema:"tags"`
+}
+
+type AutoShutdownProfile struct {
+	DisconnectDelay                 string                 `tfschema:"disconnect_delay"`
+	IdleDelay                       string                 `tfschema:"idle_delay"`
+	NoConnectDelay                  string                 `tfschema:"no_connect_delay"`
+	ShutdownOnDisconnectEnabled     bool                   `tfschema:"shutdown_on_disconnect_enabled"`
+	ShutdownOnIdle                  lab.ShutdownOnIdleMode `tfschema:"shutdown_on_idle"`
+	ShutdownEnabledWhenNotConnected bool                   `tfschema:"shutdown_enabled_when_not_connected"`
+}
+
+type ConnectionProfile struct {
+	ClientRdpAccess lab.ConnectionType `tfschema:"client_rdp_access"`
+	ClientSshAccess lab.ConnectionType `tfschema:"client_ssh_access"`
+	WebRdpAccess    lab.ConnectionType `tfschema:"web_rdp_access"`
+	WebSshAccess    lab.ConnectionType `tfschema:"web_ssh_access"`
+}
+
+type SecurityProfile struct {
+	OpenAccessEnabled bool `tfschema:"open_access_enabled"`
 }
 
 type LabServiceLabResource struct{}
@@ -54,6 +79,122 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		"auto_shutdown_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disconnect_delay": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
+					},
+
+					"idle_delay": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
+					},
+
+					"no_connect_delay": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
+					},
+
+					"shutdown_on_disconnect_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
+					"shutdown_on_idle": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ShutdownOnIdleModeUserAbsence),
+							string(lab.ShutdownOnIdleModeLowUsage),
+							string(lab.ShutdownOnIdleModeNone),
+						}, false),
+					},
+
+					"shutdown_enabled_when_not_connected": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"connection_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_rdp_access": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypeNone),
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+
+					"client_ssh_access": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypeNone),
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+
+					"web_rdp_access": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypeNone),
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+
+					"web_ssh_access": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypeNone),
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+				},
+			},
+		},
+
+		"security_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"open_access_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"title": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.LabTitle,
+		},
+
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -64,12 +205,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: labplan.ValidateLabPlanID,
-		},
-
-		"title": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.LabTitle,
 		},
 
 		"tags": commonschema.Tags(),
@@ -103,10 +238,30 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 			}
 
 			props := &lab.Lab{
-				Location:   location.Normalize(model.Location),
-				Properties: lab.LabProperties{},
-				Tags:       &model.Tags,
+				Location: location.Normalize(model.Location),
+				Properties: lab.LabProperties{
+					Title: &model.Title,
+				},
+				Tags: &model.Tags,
 			}
+
+			autoShutdownProfile, err := expandAutoShutdownProfile(model.AutoShutdownProfile)
+			if err != nil {
+				return err
+			}
+			props.Properties.AutoShutdownProfile = *autoShutdownProfile
+
+			connectionProfile, err := expandConnectionProfile(model.ConnectionProfile)
+			if err != nil {
+				return err
+			}
+			props.Properties.ConnectionProfile = *connectionProfile
+
+			securityProfile, err := expandSecurityProfile(model.SecurityProfile)
+			if err != nil {
+				return err
+			}
+			props.Properties.SecurityProfile = *securityProfile
 
 			if model.Description != "" {
 				props.Properties.Description = &model.Description
@@ -114,10 +269,6 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 
 			if model.LabPlanId != "" {
 				props.Properties.LabPlanId = &model.LabPlanId
-			}
-
-			if model.Title != "" {
-				props.Properties.Title = &model.Title
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *props); err != nil {
@@ -156,6 +307,38 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
+			if metadata.ResourceData.HasChange("auto_shutdown_profile") {
+				autoShutdownProfile, err := expandAutoShutdownProfile(model.AutoShutdownProfile)
+				if err != nil {
+					return err
+				}
+				properties.Properties.AutoShutdownProfile = *autoShutdownProfile
+			}
+
+			if metadata.ResourceData.HasChange("connection_profile") {
+				connectionProfile, err := expandConnectionProfile(model.ConnectionProfile)
+				if err != nil {
+					return err
+				}
+				properties.Properties.ConnectionProfile = *connectionProfile
+			}
+
+			if metadata.ResourceData.HasChange("security_profile") {
+				securityProfile, err := expandSecurityProfile(model.SecurityProfile)
+				if err != nil {
+					return err
+				}
+				properties.Properties.SecurityProfile = *securityProfile
+			}
+
+			if metadata.ResourceData.HasChange("title") {
+				if model.Title != "" {
+					properties.Properties.Title = &model.Title
+				} else {
+					properties.Properties.Title = nil
+				}
+			}
+
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
 					properties.Properties.Description = &model.Description
@@ -169,14 +352,6 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 					properties.Properties.LabPlanId = &model.LabPlanId
 				} else {
 					properties.Properties.LabPlanId = nil
-				}
-			}
-
-			if metadata.ResourceData.HasChange("title") {
-				if model.Title != "" {
-					properties.Properties.Title = &model.Title
-				} else {
-					properties.Properties.Title = nil
 				}
 			}
 
@@ -226,16 +401,34 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 
 			properties := &model.Properties
 
+			autoShutdownProfile, err := flattenAutoShutdownProfile(&properties.AutoShutdownProfile)
+			if err != nil {
+				return err
+			}
+			state.AutoShutdownProfile = autoShutdownProfile
+
+			connectionProfile, err := flattenConnectionProfile(&properties.ConnectionProfile)
+			if err != nil {
+				return err
+			}
+			state.ConnectionProfile = connectionProfile
+
+			securityProfile, err := flattenSecurityProfile(&properties.SecurityProfile)
+			if err != nil {
+				return err
+			}
+			state.SecurityProfile = securityProfile
+
+			if properties.Title != nil {
+				state.Title = *properties.Title
+			}
+
 			if properties.Description != nil {
 				state.Description = *properties.Description
 			}
 
 			if properties.LabPlanId != nil {
 				state.LabPlanId = *properties.LabPlanId
-			}
-
-			if properties.Title != nil {
-				state.Title = *properties.Title
 			}
 
 			if model.Tags != nil {
@@ -265,4 +458,164 @@ func (r LabServiceLabResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandAutoShutdownProfile(input []AutoShutdownProfile) (*lab.AutoShutdownProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	autoShutdownProfile := &input[0]
+	result := lab.AutoShutdownProfile{}
+
+	if autoShutdownProfile.DisconnectDelay != "" {
+		result.DisconnectDelay = &autoShutdownProfile.DisconnectDelay
+	}
+
+	if autoShutdownProfile.IdleDelay != "" {
+		result.IdleDelay = &autoShutdownProfile.IdleDelay
+	}
+
+	if autoShutdownProfile.NoConnectDelay != "" {
+		result.NoConnectDelay = &autoShutdownProfile.NoConnectDelay
+	}
+
+	shutdownOnDisconnectEnabled := lab.EnableStateEnabled
+	if !autoShutdownProfile.ShutdownOnDisconnectEnabled {
+		shutdownOnDisconnectEnabled = lab.EnableStateDisabled
+	}
+	result.ShutdownOnDisconnect = &shutdownOnDisconnectEnabled
+
+	if autoShutdownProfile.ShutdownOnIdle != "" {
+		result.ShutdownOnIdle = &autoShutdownProfile.ShutdownOnIdle
+	}
+
+	shutdownEnabledWhenNotConnected := lab.EnableStateEnabled
+	if !autoShutdownProfile.ShutdownEnabledWhenNotConnected {
+		shutdownEnabledWhenNotConnected = lab.EnableStateDisabled
+	}
+	result.ShutdownWhenNotConnected = &shutdownEnabledWhenNotConnected
+
+	return &result, nil
+}
+
+func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) ([]AutoShutdownProfile, error) {
+	var autoShutdownProfiles []AutoShutdownProfile
+	if input == nil {
+		return autoShutdownProfiles, nil
+	}
+
+	autoShutdownProfile := AutoShutdownProfile{}
+
+	if input.DisconnectDelay != nil {
+		autoShutdownProfile.DisconnectDelay = *input.DisconnectDelay
+	}
+
+	if input.IdleDelay != nil {
+		autoShutdownProfile.IdleDelay = *input.IdleDelay
+	}
+
+	if input.NoConnectDelay != nil {
+		autoShutdownProfile.NoConnectDelay = *input.NoConnectDelay
+	}
+
+	if input.ShutdownOnDisconnect != nil {
+		autoShutdownProfile.ShutdownOnDisconnectEnabled = *input.ShutdownOnDisconnect == lab.EnableStateEnabled
+	}
+
+	if input.ShutdownOnIdle != nil {
+		autoShutdownProfile.ShutdownOnIdle = *input.ShutdownOnIdle
+	}
+
+	if input.ShutdownWhenNotConnected != nil {
+		autoShutdownProfile.ShutdownEnabledWhenNotConnected = *input.ShutdownWhenNotConnected == lab.EnableStateEnabled
+	}
+
+	return append(autoShutdownProfiles, autoShutdownProfile), nil
+}
+
+func expandConnectionProfile(input []ConnectionProfile) (*lab.ConnectionProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	connectionProfile := &input[0]
+	result := lab.ConnectionProfile{}
+
+	if connectionProfile.ClientRdpAccess != "" {
+		result.ClientRdpAccess = &connectionProfile.ClientRdpAccess
+	}
+
+	if connectionProfile.ClientSshAccess != "" {
+		result.ClientSshAccess = &connectionProfile.ClientSshAccess
+	}
+
+	if connectionProfile.WebRdpAccess != "" {
+		result.WebRdpAccess = &connectionProfile.WebRdpAccess
+	}
+
+	if connectionProfile.WebSshAccess != "" {
+		result.WebSshAccess = &connectionProfile.WebSshAccess
+	}
+
+	return &result, nil
+}
+
+func flattenConnectionProfile(input *lab.ConnectionProfile) ([]ConnectionProfile, error) {
+	var connectionProfiles []ConnectionProfile
+	if input == nil {
+		return connectionProfiles, nil
+	}
+
+	connectionProfile := ConnectionProfile{}
+
+	if input.ClientRdpAccess != nil {
+		connectionProfile.ClientRdpAccess = *input.ClientRdpAccess
+	}
+
+	if input.ClientSshAccess != nil {
+		connectionProfile.ClientSshAccess = *input.ClientSshAccess
+	}
+
+	if input.WebRdpAccess != nil {
+		connectionProfile.WebRdpAccess = *input.WebRdpAccess
+	}
+
+	if input.WebSshAccess != nil {
+		connectionProfile.WebSshAccess = *input.WebSshAccess
+	}
+
+	return append(connectionProfiles, connectionProfile), nil
+}
+
+func expandSecurityProfile(input []SecurityProfile) (*lab.SecurityProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	securityProfile := &input[0]
+	result := lab.SecurityProfile{}
+
+	openAccessEnabled := lab.EnableStateEnabled
+	if !securityProfile.OpenAccessEnabled {
+		openAccessEnabled = lab.EnableStateDisabled
+	}
+	result.OpenAccess = &openAccessEnabled
+
+	return &result, nil
+}
+
+func flattenSecurityProfile(input *lab.SecurityProfile) ([]SecurityProfile, error) {
+	var securityProfiles []SecurityProfile
+	if input == nil {
+		return securityProfiles, nil
+	}
+
+	securityProfile := SecurityProfile{}
+
+	if input.OpenAccess != nil {
+		securityProfile.OpenAccessEnabled = *input.OpenAccess == lab.EnableStateEnabled
+	}
+
+	return append(securityProfiles, securityProfile), nil
 }
