@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -109,7 +108,7 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			streamingJobId, err := parse.StreamingJobID(model.StreamAnalyticsJob)
+			streamingJobId, err := streamingjobs.ParseStreamingJobID(model.StreamAnalyticsJob)
 			if err != nil {
 				return err
 			}
@@ -260,7 +259,7 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("converting to PowerBI Output")
 					}
 
-					streamingJobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
 
 					state := OutputPowerBIResourceModel{
 						Name:               id.OutputName,

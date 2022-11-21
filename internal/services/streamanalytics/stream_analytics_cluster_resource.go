@@ -3,15 +3,14 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -23,7 +22,7 @@ type ClusterModel struct {
 	Name              string                 `tfschema:"name"`
 	ResourceGroup     string                 `tfschema:"resource_group_name"`
 	Location          string                 `tfschema:"location"`
-	StreamingCapacity int32                  `tfschema:"streaming_capacity"`
+	StreamingCapacity int64                  `tfschema:"streaming_capacity"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
@@ -63,7 +62,7 @@ func (r ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -83,9 +82,9 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.ClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewClusterID(subscriptionId, model.ResourceGroup, model.Name)
+			id := clusters.NewClusterID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroupName, id.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -93,23 +92,19 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			props := streamanalytics.Cluster{
+			props := clusters.Cluster{
 				Name:     utils.String(model.Name),
 				Location: utils.String(model.Location),
-				Sku: &streamanalytics.ClusterSku{
-					Name:     streamanalytics.ClusterSkuNameDefault,
-					Capacity: utils.Int32(model.StreamingCapacity),
+				Sku: &clusters.ClusterSku{
+					Name:     utils.ToPtr(clusters.ClusterSkuNameDefault),
+					Capacity: utils.ToPtr(model.StreamingCapacity),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
 
-			future, err := client.CreateOrUpdate(ctx, props, id.ResourceGroupName, id.Name, "", "")
-			if err != nil {
+			var opts clusters.CreateOrUpdateOperationOptions
+			if err := client.CreateOrUpdateThenPoll(ctx, id, props, opts); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -124,12 +119,12 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.ClustersClient
-			id, err := parse.ClusterID(metadata.ResourceData.Id())
+			id, err := clusters.ParseClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroupName, id.Name)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -138,11 +133,20 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ClusterModel{
-				Name:              id.Name,
+				Name:              id.ClusterName,
 				ResourceGroup:     id.ResourceGroupName,
-				Location:          *resp.Location,
-				StreamingCapacity: *resp.Sku.Capacity,
-				Tags:              tags.Flatten(resp.Tags),
+				StreamingCapacity: *resp.Model.Sku.Capacity,
+			}
+
+			if model := resp.Model; model != nil {
+				state.Location = *model.Location
+				state.Tags = tags.Flatten(model.Tags)
+
+				var capacity int64
+				if v := model.Sku.Capacity; v != nil {
+					capacity = *v
+				}
+				state.StreamingCapacity = capacity
 			}
 
 			return metadata.Encode(&state)
@@ -155,15 +159,15 @@ func (r ClusterResource) Delete() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.ClustersClient
-			id, err := parse.ClusterID(metadata.ResourceData.Id())
+			id, err := clusters.ParseClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, id.ResourceGroupName, id.Name); err != nil {
-				if !response.WasNotFound(resp.HttpResponse()) {
+			if resp, err := client.Delete(ctx, *id); err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}
@@ -176,7 +180,7 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.ClusterID(metadata.ResourceData.Id())
+			id, err := clusters.ParseClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -189,23 +193,18 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("streaming_capacity") || metadata.ResourceData.HasChange("tags") {
-				props := streamanalytics.Cluster{
-					Sku: &streamanalytics.ClusterSku{
-						Capacity: utils.Int32(state.StreamingCapacity),
+				props := clusters.Cluster{
+					Sku: &clusters.ClusterSku{
+						Capacity: utils.ToPtr(state.StreamingCapacity),
 					},
 					Tags: tags.Expand(state.Tags),
 				}
 
-				future, err := client.Update(ctx, props, id.ResourceGroupName, id.Name, "")
-				if err != nil {
+				var opts clusters.UpdateOperationOptions
+				if err := client.UpdateThenPoll(ctx, *id, props, opts); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
-
-				if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update to %s: %+v", *id, err)
-				}
 			}
-
 			return nil
 		},
 	}

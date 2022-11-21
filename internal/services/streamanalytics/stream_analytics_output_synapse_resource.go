@@ -2,10 +2,10 @@ package streamanalytics
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +24,7 @@ func resourceStreamAnalyticsOutputSynapse() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDataWarehouse)),
+		}, importStreamAnalyticsOutput(outputs.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDataWarehouse)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -112,12 +112,11 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	props := streamanalytics.Output{
-		Name: utils.String(id.Name),
-		Properties: &streamanalytics.OutputProperties{
-			Datasource: &streamanalytics.AzureSynapseOutputDataSource{
-				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDataWarehouse,
-				AzureSynapseOutputDataSourceProperties: &streamanalytics.AzureSynapseOutputDataSourceProperties{
+	props := outputs.Output{
+		Name: utils.String(id.OutputName),
+		Properties: &outputs.OutputProperties{
+			Datasource: &outputs.AzureSynapseOutputDataSource{
+				Properties: &outputs.AzureSynapseDataSourceProperties{
 					Server:   utils.String(d.Get("server").(string)),
 					Database: utils.String(d.Get("database").(string)),
 					User:     utils.String(d.Get("user").(string)),
@@ -128,13 +127,16 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 		},
 	}
 
+	var createOpts outputs.CreateOrReplaceOperationOptions
+	var updateOpts outputs.UpdateOperationOptions
+
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, *id, props, opts); err != nil {
+	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -151,7 +153,7 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
@@ -162,22 +164,43 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retreving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.OutputName)
 	d.Set("stream_analytics_job_name", id.JobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.OutputProperties; props != nil {
-		v, ok := props.Datasource.AsAzureSynapseOutputDataSource()
-		if !ok {
-			return fmt.Errorf("converting Output Data Source to Synapse Output: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			output, ok := props.Datasource.(outputs.AzureSynapseDataSourceProperties)
+			if !ok {
+				return fmt.Errorf("converting to Synapse Output")
+			}
+
+			server := ""
+			if v := output.Server; v != nil {
+				server = *v
+			}
+			d.Set("server", server)
+
+			database := ""
+			if v := output.Database; v != nil {
+				database = *v
+			}
+			d.Set("database", database)
+
+			table := ""
+			if v := output.Table; v != nil {
+				table = *v
+			}
+			d.Set("table", table)
+
+			user := ""
+			if v := output.User; v != nil {
+				user = *v
+			}
+			d.Set("user", user)
+
 		}
-
-		d.Set("server", v.Server)
-		d.Set("database", v.Database)
-		d.Set("table", v.Table)
-		d.Set("user", v.User)
 	}
-
 	return nil
 }
 

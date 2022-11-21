@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -132,7 +131,7 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.InputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			streamingJobStruct, err := parse.StreamingJobID(model.StreamAnalyticsJobId)
+			streamingJobStruct, err := streamingjobs.ParseStreamingJobID(model.StreamAnalyticsJobId)
 			if err != nil {
 				return err
 			}
@@ -262,7 +261,7 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			streamingJobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupNameName, id.JobName)
+			streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
 
 			state := StreamInputEventHubV2ResourceModel{
 				Name:                 id.InputName,

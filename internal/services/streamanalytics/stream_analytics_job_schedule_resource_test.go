@@ -3,6 +3,8 @@ package streamanalytics_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"testing"
 	"time"
 
@@ -74,14 +76,17 @@ func (r StreamAnalyticsJobScheduleResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, id.ResourceGroupName, id.JobName, "")
+	streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+
+	var opts streamingjobs.GetOperationOptions
+	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, streamingJobId, opts)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), err
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.StreamingJobProperties != nil && resp.StreamingJobProperties.OutputStartTime != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Properties.OutputStartTime != nil), nil
 }
 
 func (r StreamAnalyticsJobScheduleResource) basic(data acceptance.TestData) string {

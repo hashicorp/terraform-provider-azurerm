@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -105,7 +104,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			streamingJobId, err := parse.StreamingJobID(model.StreamAnalyticsJob)
+			streamingJobId, err := streamingjobs.ParseStreamingJobID(model.StreamAnalyticsJob)
 			if err != nil {
 				return err
 			}
@@ -180,7 +179,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("converting to CosmosDb Output")
 					}
 
-					streamingJobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
 					state := OutputCosmosDBResourceModel{
 						Name:               id.OutputName,
 						StreamAnalyticsJob: streamingJobId.ID(),

@@ -4,8 +4,6 @@ package validate
 
 import (
 	"fmt"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 )
 
 func FunctionID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func FunctionID(input interface{}, key string) (warnings []string, errors []erro
 		return
 	}
 
-	if _, err := parse.FunctionID(v); err != nil {
+	if _, err := functions.ParseFunctionID(v); err != nil {
 		errors = append(errors, err)
 	}
 

@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -100,10 +99,10 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				Default:  string(outputs.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.AuthenticationModeMsi),
-					string(streamanalytics.AuthenticationModeConnectionString),
+					string(outputs.AuthenticationModeMsi),
+					string(outputs.AuthenticationModeConnectionString),
 				}, false),
 			},
 		},
@@ -138,30 +137,33 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := streamanalytics.Output{
-		Name: utils.String(id.Name),
-		Properties: &streamanalytics.OutputProperties{
-			Datasource: &streamanalytics.ServiceBusTopicOutputDataSource{
-				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftServiceBusTopic,
-				ServiceBusTopicOutputDataSourceProperties: &streamanalytics.ServiceBusTopicOutputDataSourceProperties{
+	systemPropertyColumns := d.Get("system_property_columns").(map[string]interface{})
+	props := outputs.Output{
+		Name: utils.String(id.OutputName),
+		Properties: &outputs.OutputProperties{
+			Datasource: &outputs.ServiceBusTopicOutputDataSource{
+				Properties: &outputs.ServiceBusTopicOutputDataSourceProperties{
 					TopicName:              utils.String(d.Get("topic_name").(string)),
 					ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
 					SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
-					SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
-					AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
+					SystemPropertyColumns:  systemPropertyColumns,
+					//SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
+					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 				},
 			},
 			Serialization: serialization,
 		},
 	}
 
+	var createOpts outputs.CreateOrReplaceOperationOptions
+	var updateOpts outputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
-	} else if _, err := client.Update(ctx, *id, props, opts); err != nil {
+	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -180,7 +182,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
@@ -191,31 +193,56 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.OutputName)
 	d.Set("stream_analytics_job_name", id.JobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.OutputProperties; props != nil {
-		v, ok := props.Datasource.AsServiceBusTopicOutputDataSource()
-		if !ok {
-			return fmt.Errorf("converting Output Data Source to a ServiceBus Topic Output: %+v", err)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			output, ok := props.Datasource.(outputs.ServiceBusTopicOutputDataSourceProperties)
+			if !ok {
+				return fmt.Errorf("converting to ServiceBus Topic Output")
+			}
 
-		d.Set("topic_name", v.TopicName)
-		d.Set("servicebus_namespace", v.ServiceBusNamespace)
-		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
-		d.Set("property_columns", v.PropertyColumns)
-		d.Set("authentication_mode", v.AuthenticationMode)
+			topicName := ""
+			if v := output.TopicName; v != nil {
+				topicName = *v
+			}
+			d.Set("topic_name", topicName)
 
-		if err = d.Set("system_property_columns", utils.FlattenMapStringPtrString(v.SystemPropertyColumns)); err != nil {
-			return err
-		}
+			namespace := ""
+			if v := output.ServiceBusNamespace; v != nil {
+				namespace = *v
+			}
+			d.Set("servicebus_namespace", namespace)
 
-		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
-			return fmt.Errorf("setting `serialization`: %+v", err)
+			accessPolicy := ""
+			if v := output.SharedAccessPolicyName; v != nil {
+				accessPolicy = *v
+			}
+			d.Set("shared_access_policy_name", v.accessPolicy)
+
+			propertyColumns := ""
+			if v := output.PropertyColumns; v != nil {
+				propertyColumns = *v
+			}
+			d.Set("property_columns", propertyColumns)
+
+			authMode := ""
+			if v := output.AuthenticationMode; v != nil {
+				authMode = string(*v)
+			}
+			d.Set("authentication_mode", authMode)
+
+			if err = d.Set("system_property_columns", utils.FlattenMapStringPtrString(output.SystemPropertyColumns)); err != nil {
+				return err
+			}
+
+			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+				return fmt.Errorf("setting `serialization`: %+v", err)
+			}
 		}
 	}
-
 	return nil
 }
 

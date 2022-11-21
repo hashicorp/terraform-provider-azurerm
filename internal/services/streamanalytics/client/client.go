@@ -1,27 +1,31 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	FunctionsClient       *streamanalytics.FunctionsClient
-	JobsClient            *streamanalytics.StreamingJobsClient
+	FunctionsClient       *functions.FunctionsClient
+	JobsClient            *streamingjobs.StreamingJobsClient
 	InputsClient          *inputs.InputsClient
 	OutputsClient         *outputs.OutputsClient
-	TransformationsClient *streamanalytics.TransformationsClient
-	ClustersClient        *streamanalytics.ClustersClient
-	EndpointsClient       *streamanalytics.PrivateEndpointsClient
+	TransformationsClient *transformations.TransformationsClient
+	ClustersClient        *clusters.ClustersClient
+	EndpointsClient       *privateendpoints.PrivateEndpointsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	functionsClient := streamanalytics.NewFunctionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	functionsClient := functions.NewFunctionsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&functionsClient.Client, o.ResourceManagerAuthorizer)
 
-	jobsClient := streamanalytics.NewStreamingJobsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	jobsClient := streamingjobs.NewStreamingJobsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&jobsClient.Client, o.ResourceManagerAuthorizer)
 
 	inputsClient := inputs.NewInputsClientWithBaseURI(o.ResourceManagerEndpoint)
@@ -30,13 +34,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	outputsClient := outputs.NewOutputsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&outputsClient.Client, o.ResourceManagerAuthorizer)
 
-	transformationsClient := streamanalytics.NewTransformationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	transformationsClient := transformations.NewTransformationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&transformationsClient.Client, o.ResourceManagerAuthorizer)
 
-	clustersClient := streamanalytics.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	clustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
 
-	endpointsClient := streamanalytics.NewPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	endpointsClient := privateendpoints.NewPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&endpointsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

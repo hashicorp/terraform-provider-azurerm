@@ -3,14 +3,13 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/privateendpoints"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -35,7 +34,7 @@ func (r ManagedPrivateEndpointResource) ResourceType() string {
 }
 
 func (r ManagedPrivateEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.PrivateEndpointID
+	return privateendpoints.ValidatePrivateEndpointID
 }
 
 func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema {
@@ -88,9 +87,9 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.EndpointsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewPrivateEndpointID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsCluster, model.Name)
+			id := privateendpoints.NewPrivateEndpointID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsCluster, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroupName, id.ClusterName, id.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -98,12 +97,12 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			props := streamanalytics.PrivateEndpoint{
-				PrivateEndpointProperties: &streamanalytics.PrivateEndpointProperties{
-					ManualPrivateLinkServiceConnections: &[]streamanalytics.PrivateLinkServiceConnection{
+			props := privateendpoints.PrivateEndpoint{
+				Properties: &privateendpoints.PrivateEndpointProperties{
+					ManualPrivateLinkServiceConnections: &[]privateendpoints.PrivateLinkServiceConnection{
 						{
-							PrivateLinkServiceConnectionProperties: &streamanalytics.PrivateLinkServiceConnectionProperties{
-								PrivateLinkServiceID: utils.String(model.TargetResourceId),
+							Properties: &privateendpoints.PrivateLinkServiceConnectionProperties{
+								PrivateLinkServiceId: utils.String(model.TargetResourceId),
 								GroupIds:             &[]string{model.SubResourceName},
 							},
 						},
@@ -111,7 +110,8 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, props, id.ResourceGroupName, id.ClusterName, id.Name, "", ""); err != nil {
+			var opts privateendpoints.CreateOrUpdateOperationOptions
+			if _, err := client.CreateOrUpdate(ctx, id, props, opts); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -127,12 +127,12 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.EndpointsClient
-			id, err := parse.PrivateEndpointID(metadata.ResourceData.Id())
+			id, err := privateendpoints.ParsePrivateEndpointID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroupName, id.ClusterName, id.Name)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -140,21 +140,24 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			if resp.PrivateEndpointProperties.ManualPrivateLinkServiceConnections == nil {
-				return fmt.Errorf("TODO")
+			if resp.Model.Properties.ManualPrivateLinkServiceConnections == nil {
+				return fmt.Errorf("no private link service connections available")
 			}
 
 			state := ManagedPrivateEndpointModel{
-				Name:                   id.Name,
+				Name:                   id.PrivateEndpointName,
 				ResourceGroup:          id.ResourceGroupName,
 				StreamAnalyticsCluster: id.ClusterName,
 			}
 
-			for _, mplsc := range *resp.PrivateEndpointProperties.ManualPrivateLinkServiceConnections {
-				state.TargetResourceId = *mplsc.PrivateLinkServiceID
-				state.SubResourceName = strings.Join(*mplsc.GroupIds, "")
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					for _, mplsc := range *props.ManualPrivateLinkServiceConnections {
+						state.TargetResourceId = *mplsc.Properties.PrivateLinkServiceId
+						state.SubResourceName = strings.Join(*mplsc.Properties.GroupIds, "")
+					}
+				}
 			}
-
 			return metadata.Encode(&state)
 		},
 	}
@@ -165,20 +168,15 @@ func (r ManagedPrivateEndpointResource) Delete() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.EndpointsClient
-			id, err := parse.PrivateEndpointID(metadata.ResourceData.Id())
+			id, err := privateendpoints.ParsePrivateEndpointID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			future, err := client.Delete(ctx, id.ResourceGroupName, id.ClusterName, id.Name)
-			if err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 			}
 
 			return nil

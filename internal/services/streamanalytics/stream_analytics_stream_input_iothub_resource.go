@@ -178,7 +178,7 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 
 	d.Set("name", id.InputName)
 	d.Set("stream_analytics_job_name", id.JobName)
-	d.Set("resource_group_name", id.ResourceGroupNameName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

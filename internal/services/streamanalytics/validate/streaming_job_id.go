@@ -4,8 +4,6 @@ package validate
 
 import (
 	"fmt"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 )
 
 func StreamingJobID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func StreamingJobID(input interface{}, key string) (warnings []string, errors []
 		return
 	}
 
-	if _, err := parse.StreamingJobID(v); err != nil {
+	if _, err := streamingjobs.ParseStreamingJobID(v); err != nil {
 		errors = append(errors, err)
 	}
 
