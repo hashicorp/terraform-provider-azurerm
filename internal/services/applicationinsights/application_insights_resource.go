@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
@@ -79,7 +79,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"retention_in_days": {
@@ -228,7 +228,11 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
-		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(workspaceRaw.(string))
+		workspaceID, err := workspaces.ParseWorkspaceID(workspaceRaw.(string))
+		if err != nil {
+			return err
+		}
+		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(workspaceID.ID())
 	}
 
 	if v, ok := d.GetOk("retention_in_days"); ok {
@@ -370,9 +374,15 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == insights.PublicNetworkAccessTypeEnabled)
 		d.Set("force_customer_storage_for_profiler", props.ForceCustomerStorageForProfiler)
 
+		workspaceId := ""
 		if v := props.WorkspaceResourceID; v != nil {
-			d.Set("workspace_id", v)
+			id, err := workspaces.ParseWorkspaceIDInsensitively(*v)
+			if err != nil {
+				return err
+			}
+			workspaceId = id.ID()
 		}
+		d.Set("workspace_id", workspaceId)
 
 		if v := props.RetentionInDays; v != nil {
 			d.Set("retention_in_days", v)
