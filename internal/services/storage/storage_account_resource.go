@@ -11,7 +11,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
-	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -1033,7 +1032,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 }
 
 func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	envName := meta.(*clients.Client).Account.Environment.Name
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	storageClient := meta.(*clients.Client).Storage
@@ -1100,19 +1098,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
-		if allowBlobPublicAccess || minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-			return fmt.Errorf(`"allow_nested_items_to_be_public" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
-		}
-	} else {
-		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
-		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
-	}
+	parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
+	parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 
 	storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -1384,7 +1371,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	envName := meta.(*clients.Client).Account.Environment.Name
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultClient := meta.(*clients.Client).KeyVault
@@ -1569,48 +1555,28 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("min_tls_version") {
 		minimumTLSVersion := d.Get("min_tls_version").(string)
 
-		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "min_tls_version" in request body.
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
-			if minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
-			}
-		} else {
-			opts := storage.AccountUpdateParameters{
-				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-					MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
-				},
-			}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
+			},
+		}
 
-			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
-				return fmt.Errorf("updating Azure Storage Account min_tls_version %q: %+v", id.Name, err)
-			}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account min_tls_version %q: %+v", id.Name, err)
 		}
 	}
 
 	if d.HasChange("allow_nested_items_to_be_public") {
 		allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 
-		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-		// USGovernmentCloud "allow_blob_public_access" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
-			if allowBlobPublicAccess {
-				return fmt.Errorf("allow_nested_items_to_be_public is not supported for a Storage Account located in %q", envName)
-			}
-		} else {
-			opts := storage.AccountUpdateParameters{
-				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-					AllowBlobPublicAccess: &allowBlobPublicAccess,
-				},
-			}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				AllowBlobPublicAccess: &allowBlobPublicAccess,
+			},
+		}
 
-			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
-				return fmt.Errorf("updating Azure Storage Account allow_blob_public_access %q: %+v", id.Name, err)
-			}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account allow_blob_public_access %q: %+v", id.Name, err)
 		}
 	}
 
@@ -1919,22 +1885,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		// lintignore:R001
 		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
-		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		envName := meta.(*clients.Client).Account.Environment.Name
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
-			d.Set("min_tls_version", string(storage.MinimumTLSVersionTLS10))
-		} else {
-			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
-			minTlsVersion := string(storage.MinimumTLSVersionTLS10)
-			if props.MinimumTLSVersion != "" {
-				minTlsVersion = string(props.MinimumTLSVersion)
-			}
-			d.Set("min_tls_version", minTlsVersion)
+		// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
+		minTlsVersion := string(storage.MinimumTLSVersionTLS10)
+		if props.MinimumTLSVersion != "" {
+			minTlsVersion = string(props.MinimumTLSVersion)
 		}
+		d.Set("min_tls_version", minTlsVersion)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
