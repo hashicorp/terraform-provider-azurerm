@@ -3,6 +3,7 @@ package labservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -12,22 +13,24 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type LabServiceLabModel struct {
-	Name                string                `tfschema:"name"`
-	ResourceGroupName   string                `tfschema:"resource_group_name"`
-	Location            string                `tfschema:"location"`
-	AutoShutdownProfile []AutoShutdownProfile `tfschema:"auto_shutdown_profile"`
-	ConnectionProfile   []ConnectionProfile   `tfschema:"connection_profile"`
-	SecurityProfile     []SecurityProfile     `tfschema:"security_profile"`
-	Title               string                `tfschema:"title"`
-	Description         string                `tfschema:"description"`
-	LabPlanId           string                `tfschema:"lab_plan_id"`
-	Tags                map[string]string     `tfschema:"tags"`
+	Name                  string                  `tfschema:"name"`
+	ResourceGroupName     string                  `tfschema:"resource_group_name"`
+	Location              string                  `tfschema:"location"`
+	AutoShutdownProfile   []AutoShutdownProfile   `tfschema:"auto_shutdown_profile"`
+	ConnectionProfile     []ConnectionProfile     `tfschema:"connection_profile"`
+	SecurityProfile       []SecurityProfile       `tfschema:"security_profile"`
+	Title                 string                  `tfschema:"title"`
+	VirtualMachineProfile []VirtualMachineProfile `tfschema:"virtual_machine_profile"`
+	Description           string                  `tfschema:"description"`
+	LabPlanId             string                  `tfschema:"lab_plan_id"`
+	Tags                  map[string]string       `tfschema:"tags"`
 }
 
 type AutoShutdownProfile struct {
@@ -48,6 +51,39 @@ type ConnectionProfile struct {
 
 type SecurityProfile struct {
 	OpenAccessEnabled bool `tfschema:"open_access_enabled"`
+}
+
+type VirtualMachineProfile struct {
+	AdditionalCapability  []AdditionalCapability `tfschema:"additional_capability"`
+	AdminUser             []Credential           `tfschema:"admin_user"`
+	CreateOption          lab.CreateOption       `tfschema:"create_option"`
+	ImageReference        []ImageReference       `tfschema:"image_reference"`
+	NonAdminUser          []Credential           `tfschema:"non_admin_user"`
+	Sku                   []Sku                  `tfschema:"sku"`
+	UsageQuota            string                 `tfschema:"usage_quota"`
+	SharedPasswordEnabled bool                   `tfschema:"shared_password_enabled"`
+}
+
+type AdditionalCapability struct {
+	GpuDriversInstalled bool `tfschema:"gpu_drivers_installed"`
+}
+
+type Credential struct {
+	Password string `tfschema:"password"`
+	Username string `tfschema:"username"`
+}
+
+type ImageReference struct {
+	Id        string `tfschema:"id"`
+	Offer     string `tfschema:"offer"`
+	Publisher string `tfschema:"publisher"`
+	Sku       string `tfschema:"sku"`
+	Version   string `tfschema:"version"`
+}
+
+type Sku struct {
+	Capacity int64  `tfschema:"capacity"`
+	Name     string `tfschema:"name"`
 }
 
 type LabServiceLabResource struct{}
@@ -195,6 +231,176 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.LabTitle,
 		},
 
+		"virtual_machine_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"admin_user": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"username": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.LabUsername,
+								},
+
+								"password": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.LabPassword,
+								},
+							},
+						},
+					},
+
+					"create_option": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.CreateOptionImage),
+							string(lab.CreateOptionTemplateVM),
+						}, false),
+					},
+
+					"image_reference": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									ValidateFunc: computeValidate.SharedImageID,
+									ConflictsWith: []string{
+										"virtual_machine_profile.0.image_reference.0.offer",
+										"virtual_machine_profile.0.image_reference.0.publisher",
+										"virtual_machine_profile.0.image_reference.0.sku",
+										"virtual_machine_profile.0.image_reference.0.version",
+									},
+								},
+
+								"offer": {
+									Type:          pluginsdk.TypeString,
+									Optional:      true,
+									ForceNew:      true,
+									ValidateFunc:  validation.StringIsNotEmpty,
+									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+								},
+
+								"publisher": {
+									Type:          pluginsdk.TypeString,
+									Optional:      true,
+									ForceNew:      true,
+									ValidateFunc:  validation.StringIsNotEmpty,
+									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+								},
+
+								"sku": {
+									Type:          pluginsdk.TypeString,
+									Optional:      true,
+									ForceNew:      true,
+									ValidateFunc:  validation.StringIsNotEmpty,
+									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+								},
+
+								"version": {
+									Type:          pluginsdk.TypeString,
+									Optional:      true,
+									ForceNew:      true,
+									ValidateFunc:  validate.LabImageVersion,
+									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+								},
+							},
+						},
+					},
+
+					"sku": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.LabSkuName,
+								},
+
+								"capacity": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(0, 400),
+								},
+							},
+						},
+					},
+
+					"usage_quota": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
+					},
+
+					"shared_password_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+						ForceNew: true,
+					},
+
+					"additional_capability": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"gpu_drivers_installed": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									ForceNew: true,
+									Default:  false,
+								},
+							},
+						},
+					},
+
+					"non_admin_user": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"username": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.LabUsername,
+								},
+
+								"password": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.LabPassword,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -262,6 +468,12 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 				return err
 			}
 			props.Properties.SecurityProfile = *securityProfile
+
+			virtualMachineProfile, err := expandVirtualMachineProfile(model.VirtualMachineProfile, true)
+			if err != nil {
+				return err
+			}
+			props.Properties.VirtualMachineProfile = *virtualMachineProfile
 
 			if model.Description != "" {
 				props.Properties.Description = &model.Description
@@ -337,6 +549,14 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				} else {
 					properties.Properties.Title = nil
 				}
+			}
+
+			if metadata.ResourceData.HasChange("virtual_machine_profile") {
+				virtualMachineProfile, err := expandVirtualMachineProfile(model.VirtualMachineProfile, false)
+				if err != nil {
+					return err
+				}
+				properties.Properties.VirtualMachineProfile = *virtualMachineProfile
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -423,6 +643,12 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 				state.Title = *properties.Title
 			}
 
+			virtualMachineProfile, err := flattenVirtualMachineProfile(&properties.VirtualMachineProfile, metadata.ResourceData)
+			if err != nil {
+				return err
+			}
+			state.VirtualMachineProfile = virtualMachineProfile
+
 			if properties.Description != nil {
 				state.Description = *properties.Description
 			}
@@ -453,6 +679,23 @@ func (r LabServiceLabResource) Delete() sdk.ResourceFunc {
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			if oldVal, newVal := rd.GetChange("virtual_machine_profile.0.non_admin_user"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
+				if err := rd.ForceNew("virtual_machine_profile.0.non_admin_user"); err != nil {
+					return err
+				}
 			}
 
 			return nil
@@ -618,4 +861,258 @@ func flattenSecurityProfile(input *lab.SecurityProfile) ([]SecurityProfile, erro
 	}
 
 	return append(securityProfiles, securityProfile), nil
+}
+
+func expandVirtualMachineProfile(input []VirtualMachineProfile, includePassword bool) (*lab.VirtualMachineProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	virtualMachineProfile := &input[0]
+	result := lab.VirtualMachineProfile{
+		CreateOption: virtualMachineProfile.CreateOption,
+		UsageQuota:   virtualMachineProfile.UsageQuota,
+	}
+
+	sharedPasswordEnabled := lab.EnableStateEnabled
+	if !virtualMachineProfile.SharedPasswordEnabled {
+		sharedPasswordEnabled = lab.EnableStateDisabled
+	}
+	result.UseSharedPassword = &sharedPasswordEnabled
+
+	additionalCapability, err := expandAdditionalCapability(virtualMachineProfile.AdditionalCapability)
+	if err != nil {
+		return nil, err
+	}
+	result.AdditionalCapabilities = additionalCapability
+
+	adminUserValue, err := expandCredential(virtualMachineProfile.AdminUser, includePassword)
+	if err != nil {
+		return nil, err
+	}
+	result.AdminUser = *adminUserValue
+
+	imageReferenceValue, err := expandImageReference(virtualMachineProfile.ImageReference)
+	if err != nil {
+		return nil, err
+	}
+	result.ImageReference = *imageReferenceValue
+
+	nonAdminUserValue, err := expandCredential(virtualMachineProfile.NonAdminUser, includePassword)
+	if err != nil {
+		return nil, err
+	}
+	result.NonAdminUser = nonAdminUserValue
+
+	sku, err := expandSku(virtualMachineProfile.Sku)
+	if err != nil {
+		return nil, err
+	}
+	result.Sku = *sku
+
+	return &result, nil
+}
+
+func expandAdditionalCapability(input []AdditionalCapability) (*lab.VirtualMachineAdditionalCapabilities, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	additionalCapability := &input[0]
+	result := lab.VirtualMachineAdditionalCapabilities{}
+
+	gpuDriversInstalled := lab.EnableStateEnabled
+	if !additionalCapability.GpuDriversInstalled {
+		gpuDriversInstalled = lab.EnableStateDisabled
+	}
+	result.InstallGpuDrivers = &gpuDriversInstalled
+
+	return &result, nil
+}
+
+func expandCredential(input []Credential, includePassword bool) (*lab.Credentials, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	credential := &input[0]
+	result := lab.Credentials{
+		Username: credential.Username,
+	}
+
+	if includePassword && credential.Password != "" {
+		result.Password = &credential.Password
+	}
+
+	return &result, nil
+}
+
+func expandImageReference(input []ImageReference) (*lab.ImageReference, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	imageReference := &input[0]
+	result := lab.ImageReference{}
+
+	if imageReference.Id != "" {
+		result.Id = &imageReference.Id
+	}
+
+	if imageReference.Offer != "" {
+		result.Offer = &imageReference.Offer
+	}
+
+	if imageReference.Publisher != "" {
+		result.Publisher = &imageReference.Publisher
+	}
+
+	if imageReference.Sku != "" {
+		result.Sku = &imageReference.Sku
+	}
+
+	if imageReference.Version != "" {
+		result.Version = &imageReference.Version
+	}
+
+	return &result, nil
+}
+
+func expandSku(input []Sku) (*lab.Sku, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	sku := &input[0]
+	result := lab.Sku{
+		Name:     sku.Name,
+		Capacity: &sku.Capacity,
+	}
+
+	return &result, nil
+}
+
+func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *schema.ResourceData) ([]VirtualMachineProfile, error) {
+	var virtualMachineProfiles []VirtualMachineProfile
+	if input == nil {
+		return virtualMachineProfiles, nil
+	}
+
+	virtualMachineProfile := VirtualMachineProfile{
+		CreateOption: input.CreateOption,
+		UsageQuota:   input.UsageQuota,
+	}
+
+	additionalCapability, err := flattenAdditionalCapability(input.AdditionalCapabilities)
+	if err != nil {
+		return nil, err
+	}
+	virtualMachineProfile.AdditionalCapability = additionalCapability
+
+	adminUser, err := flattenCredential(&input.AdminUser, d.Get("virtual_machine_profile.0.admin_user.0.password").(string))
+	if err != nil {
+		return nil, err
+	}
+	virtualMachineProfile.AdminUser = adminUser
+
+	imageReference, err := flattenImageReference(&input.ImageReference)
+	if err != nil {
+		return nil, err
+	}
+	virtualMachineProfile.ImageReference = imageReference
+
+	nonAdminUser, err := flattenCredential(input.NonAdminUser, d.Get("virtual_machine_profile.0.non_admin_user.0.password").(string))
+	if err != nil {
+		return nil, err
+	}
+	virtualMachineProfile.NonAdminUser = nonAdminUser
+
+	sku, err := flattenSku(&input.Sku)
+	if err != nil {
+		return nil, err
+	}
+	virtualMachineProfile.Sku = sku
+
+	if input.UseSharedPassword != nil {
+		virtualMachineProfile.SharedPasswordEnabled = *input.UseSharedPassword == lab.EnableStateEnabled
+	}
+
+	return append(virtualMachineProfiles, virtualMachineProfile), nil
+}
+
+func flattenAdditionalCapability(input *lab.VirtualMachineAdditionalCapabilities) ([]AdditionalCapability, error) {
+	var additionalCapabilities []AdditionalCapability
+	if input == nil {
+		return additionalCapabilities, nil
+	}
+
+	additionalCapability := AdditionalCapability{}
+
+	if input.InstallGpuDrivers != nil {
+		additionalCapability.GpuDriversInstalled = *input.InstallGpuDrivers == lab.EnableStateEnabled
+	}
+
+	return append(additionalCapabilities, additionalCapability), nil
+}
+
+func flattenCredential(input *lab.Credentials, originalPassword string) ([]Credential, error) {
+	var credentials []Credential
+	if input == nil {
+		return credentials, nil
+	}
+
+	credential := Credential{
+		Username: input.Username,
+		Password: originalPassword,
+	}
+
+	return append(credentials, credential), nil
+}
+
+func flattenImageReference(input *lab.ImageReference) ([]ImageReference, error) {
+	var imageReferences []ImageReference
+	if input == nil {
+		return imageReferences, nil
+	}
+
+	imageReference := ImageReference{}
+
+	if input.Id != nil {
+		imageReference.Id = *input.Id
+	}
+
+	if input.Offer != nil {
+		imageReference.Offer = *input.Offer
+	}
+
+	if input.Publisher != nil {
+		imageReference.Publisher = *input.Publisher
+	}
+
+	if input.Sku != nil {
+		imageReference.Sku = *input.Sku
+	}
+
+	if input.Version != nil {
+		imageReference.Version = *input.Version
+	}
+
+	return append(imageReferences, imageReference), nil
+}
+
+func flattenSku(input *lab.Sku) ([]Sku, error) {
+	var skus []Sku
+	if input == nil {
+		return skus, nil
+	}
+
+	sku := Sku{
+		Name: input.Name,
+	}
+
+	if input.Capacity != nil {
+		sku.Capacity = *input.Capacity
+	}
+
+	return append(skus, sku), nil
 }
