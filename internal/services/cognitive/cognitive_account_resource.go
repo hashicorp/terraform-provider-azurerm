@@ -141,9 +141,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"dynamic_throttling_enabled":{
-				Type:pluginsdk.TypeBool,
-				Optional:true,
+			"dynamic_throttling_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"fqdns": {
@@ -559,11 +559,11 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
 			}
 
-			dynamicThrottlingEnabled:=false
-			if props.DynamicThrottlingEnabled!=nil{
-				dynamicThrottlingEnabled=*props.DynamicThrottlingEnabled
+			dynamicThrottlingEnabled := false
+			if props.DynamicThrottlingEnabled != nil {
+				dynamicThrottlingEnabled = *props.DynamicThrottlingEnabled
 			}
-			d.Set("dynamic_throttling_enabled",dynamicThrottlingEnabled)
+			d.Set("dynamic_throttling_enabled", dynamicThrottlingEnabled)
 
 			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
 

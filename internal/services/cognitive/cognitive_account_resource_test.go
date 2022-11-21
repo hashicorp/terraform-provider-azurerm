@@ -833,11 +833,11 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "LUIS"
-  sku_name            = "S0"
+  name                       = "acctestcogacc-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  kind                       = "LUIS"
+  sku_name                   = "S0"
   dynamic_throttling_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -853,11 +853,11 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "LUIS"
-  sku_name            = "S0"
+  name                       = "acctestcogacc-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  kind                       = "LUIS"
+  sku_name                   = "S0"
   dynamic_throttling_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
