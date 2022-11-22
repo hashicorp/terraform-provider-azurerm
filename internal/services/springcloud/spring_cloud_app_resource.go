@@ -121,6 +121,56 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"ingress_settings": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"backend_protocol": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(appplatform.BackendProtocolDefault),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(appplatform.BackendProtocolDefault),
+								string(appplatform.BackendProtocolGRPC),
+							}, false),
+						},
+
+						"read_timeout_in_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      300,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"send_timeout_in_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      60,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"session_affinity": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(appplatform.SessionAffinityNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(appplatform.SessionAffinityCookie),
+								string(appplatform.SessionAffinityNone),
+							}, false),
+						},
+
+						"session_cookie_max_age": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+					},
+				},
+			},
+
 			"persistent_disk": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -230,6 +280,9 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			PublicEndpoint: utils.Bool(enabled),
 		}
 	}
+	// IngressSettings could only be set by update
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21536
+	app.Properties.IngressSettings = expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{}))
 	future, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("update %q: %+v", id, err)
@@ -269,6 +322,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
 			Public:                utils.Bool(d.Get("is_public").(bool)),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
+			IngressSettings:       expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{})),
 			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
 			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
 		},
@@ -334,6 +388,9 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
 		}
 		if err := d.Set("custom_persistent_disk", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
+			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
+		}
+		if err := d.Set("ingress_settings", flattenSpringCloudAppIngressSettings(prop.IngressSettings)); err != nil {
 			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
 		}
 		if prop.VnetAddons != nil {
@@ -424,6 +481,21 @@ func expandSpringCloudAppAddon(input string) (map[string]map[string]interface{},
 		}
 	}
 	return addonConfig, nil
+}
+
+func expandSpringCloudAppIngressSetting(input []interface{}) *appplatform.IngressSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+
+	return &appplatform.IngressSettings{
+		ReadTimeoutInSeconds: utils.Int32(int32(raw["read_timeout_in_seconds"].(int))),
+		SendTimeoutInSeconds: utils.Int32(int32(raw["send_timeout_in_seconds"].(int))),
+		SessionAffinity:      appplatform.SessionAffinity(raw["session_affinity"].(string)),
+		SessionCookieMaxAge:  utils.Int32(int32(raw["session_cookie_max_age"].(int))),
+		BackendProtocol:      appplatform.BackendProtocol(raw["backend_protocol"].(string)),
+	}
 }
 
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]interface{}, error) {
@@ -522,4 +594,29 @@ func flattenSpringCloudAppAddon(configs map[string]map[string]interface{}) *stri
 	}
 	addonConfig, _ := json.Marshal(configs)
 	return utils.String(string(addonConfig))
+}
+
+func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	var readTimeout, sendTimeout, maxAge int32
+	backendProtocol := string(input.BackendProtocol)
+	sessionAffinity := string(input.SessionAffinity)
+	if input.ReadTimeoutInSeconds != nil {
+		readTimeout = *input.ReadTimeoutInSeconds
+	}
+	if input.SendTimeoutInSeconds != nil {
+		sendTimeout = *input.SendTimeoutInSeconds
+	}
+	if input.SessionCookieMaxAge != nil {
+		maxAge = *input.SessionCookieMaxAge
+	}
+	return []interface{}{map[string]interface{}{
+		"backend_protocol":        backendProtocol,
+		"read_timeout_in_seconds": readTimeout,
+		"send_timeout_in_seconds": sendTimeout,
+		"session_affinity":        sessionAffinity,
+		"session_cookie_max_age":  maxAge,
+	}}
 }
