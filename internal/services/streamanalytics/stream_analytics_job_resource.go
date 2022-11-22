@@ -253,8 +253,8 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			Sku: &streamingjobs.Sku{
 				Name: utils.ToPtr(streamingjobs.SkuNameStandard),
 			},
-			ContentStoragePolicy:               utils.ToPtr(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
-			CompatibilityLevel:                 utils.ToPtr(streamingjobs.CompatibilityLevel(d.Get("compatibility_level").(string))),
+			ContentStoragePolicy: utils.ToPtr(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
+			//CompatibilityLevel:                 utils.ToPtr(streamingjobs.CompatibilityLevel(d.Get("compatibility_level").(string))),
 			EventsLateArrivalMaxDelayInSeconds: utils.Int64(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
 			EventsOutOfOrderMaxDelayInSeconds:  utils.Int64(int64(d.Get("events_out_of_order_max_delay_in_seconds").(int))),
 			EventsOutOfOrderPolicy:             utils.ToPtr(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string))),
@@ -263,6 +263,11 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, ok := d.GetOk("compatibility_level"); ok {
+		compatibilityLevel := d.Get("compatibility_level").(string)
+		props.Properties.CompatibilityLevel = utils.ToPtr(streamingjobs.CompatibilityLevel(compatibilityLevel))
 	}
 
 	if contentStoragePolicy == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
@@ -345,7 +350,9 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	var opts streamingjobs.GetOperationOptions
+	opts := streamingjobs.GetOperationOptions{
+		Expand: utils.ToPtr("transformation"),
+	}
 	resp, err := client.Get(ctx, *id, opts)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
