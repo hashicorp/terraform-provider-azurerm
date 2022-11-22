@@ -142,7 +142,7 @@ The following arguments are supported:
 
 * `target_type` - (Optional) The target type of the resource provided. Possible values are `AzureVM` and `AzureVMSS`. Defaults to `AzureVM`. Changing this forces a new resource to be created.
 
-* `scope` - (Required) A `scope` block as defined below. Changing this forces a new resource to be created.
+* `scope` - (Optional) A `scope` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
