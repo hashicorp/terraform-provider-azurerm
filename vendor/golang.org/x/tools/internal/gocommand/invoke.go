@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	exec "golang.org/x/sys/execabs"
 	"io"
 	"os"
 	"regexp"
@@ -16,8 +17,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	exec "golang.org/x/sys/execabs"
 
 	"golang.org/x/tools/internal/event"
 )
@@ -132,16 +131,9 @@ type Invocation struct {
 	Verb       string
 	Args       []string
 	BuildFlags []string
-
-	// If ModFlag is set, the go command is invoked with -mod=ModFlag.
-	ModFlag string
-
-	// If ModFile is set, the go command is invoked with -modfile=ModFile.
-	ModFile string
-
-	// If Overlay is set, the go command is invoked with -overlay=Overlay.
-	Overlay string
-
+	ModFlag    string
+	ModFile    string
+	Overlay    string
 	// If CleanEnv is set, the invocation will run only with the environment
 	// in Env, not starting with os.Environ.
 	CleanEnv   bool
@@ -264,10 +256,8 @@ func cmdDebugStr(cmd *exec.Cmd) string {
 	env := make(map[string]string)
 	for _, kv := range cmd.Env {
 		split := strings.SplitN(kv, "=", 2)
-		if len(split) == 2 {
-			k, v := split[0], split[1]
-			env[k] = v
-		}
+		k, v := split[0], split[1]
+		env[k] = v
 	}
 
 	var args []string

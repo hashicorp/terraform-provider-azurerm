@@ -175,8 +175,8 @@ func (w *walker) shouldSkipDir(fi os.FileInfo, dir string) bool {
 
 // walk walks through the given path.
 func (w *walker) walk(path string, typ os.FileMode) error {
+	dir := filepath.Dir(path)
 	if typ.IsRegular() {
-		dir := filepath.Dir(path)
 		if dir == w.root.Path && (w.root.Type == RootGOROOT || w.root.Type == RootGOPATH) {
 			// Doesn't make sense to have regular files
 			// directly in your $GOPATH/src or $GOROOT/src.
@@ -209,7 +209,12 @@ func (w *walker) walk(path string, typ os.FileMode) error {
 			// Emacs noise.
 			return nil
 		}
-		if w.shouldTraverse(path) {
+		fi, err := os.Lstat(path)
+		if err != nil {
+			// Just ignore it.
+			return nil
+		}
+		if w.shouldTraverse(dir, fi) {
 			return fastwalk.ErrTraverseLink
 		}
 	}
@@ -219,8 +224,13 @@ func (w *walker) walk(path string, typ os.FileMode) error {
 // shouldTraverse reports whether the symlink fi, found in dir,
 // should be followed.  It makes sure symlinks were never visited
 // before to avoid symlink loops.
-func (w *walker) shouldTraverse(path string) bool {
-	ts, err := os.Stat(path)
+func (w *walker) shouldTraverse(dir string, fi os.FileInfo) bool {
+	path := filepath.Join(dir, fi.Name())
+	target, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return false
+	}
+	ts, err := os.Stat(target)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return false
@@ -228,7 +238,7 @@ func (w *walker) shouldTraverse(path string) bool {
 	if !ts.IsDir() {
 		return false
 	}
-	if w.shouldSkipDir(ts, filepath.Dir(path)) {
+	if w.shouldSkipDir(ts, dir) {
 		return false
 	}
 	// Check for symlink loops by statting each directory component

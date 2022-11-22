@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build go1.18
-// +build go1.18
+//go:build typeparams && go1.18
+// +build typeparams,go1.18
 
 package typeparams
 
@@ -12,8 +12,29 @@ import (
 	"go/types"
 )
 
-// IndexListExpr is an alias for ast.IndexListExpr.
-type IndexListExpr = ast.IndexListExpr
+// GetIndexExprData extracts data from AST nodes that represent index
+// expressions.
+//
+// For an ast.IndexExpr, the resulting IndexExprData will have exactly one
+// index expression. For an ast.IndexListExpr (go1.18+), it may have a
+// variable number of index expressions.
+//
+// For nodes that don't represent index expressions, GetIndexExprData returns
+// nil.
+func GetIndexExprData(n ast.Node) *IndexExprData {
+	switch e := n.(type) {
+	case *ast.IndexExpr:
+		return &IndexExprData{
+			X:       e.X,
+			Lbrack:  e.Lbrack,
+			Indices: []ast.Expr{e.Index},
+			Rbrack:  e.Rbrack,
+		}
+	case *ast.IndexListExpr:
+		return (*IndexExprData)(e)
+	}
+	return nil
+}
 
 // ForTypeSpec returns n.TypeParams.
 func ForTypeSpec(n *ast.TypeSpec) *ast.FieldList {
@@ -50,14 +71,14 @@ func SetTypeParamConstraint(tparam *TypeParam, constraint types.Type) {
 	tparam.SetConstraint(constraint)
 }
 
-// NewSignatureType calls types.NewSignatureType.
-func NewSignatureType(recv *types.Var, recvTypeParams, typeParams []*TypeParam, params, results *types.Tuple, variadic bool) *types.Signature {
-	return types.NewSignatureType(recv, recvTypeParams, typeParams, params, results, variadic)
-}
-
 // ForSignature returns sig.TypeParams()
 func ForSignature(sig *types.Signature) *TypeParamList {
 	return sig.TypeParams()
+}
+
+// SetForSignature calls sig.SetTypeParams(tparams)
+func SetForSignature(sig *types.Signature, tparams []*TypeParam) {
+	sig.SetTypeParams(tparams)
 }
 
 // RecvTypeParams returns sig.RecvTypeParams().
@@ -65,24 +86,19 @@ func RecvTypeParams(sig *types.Signature) *TypeParamList {
 	return sig.RecvTypeParams()
 }
 
+// SetRecvTypeParams calls sig.SetRecvTypeParams(rparams).
+func SetRecvTypeParams(sig *types.Signature, rparams []*TypeParam) {
+	sig.SetRecvTypeParams(rparams)
+}
+
 // IsComparable calls iface.IsComparable().
 func IsComparable(iface *types.Interface) bool {
 	return iface.IsComparable()
 }
 
-// IsMethodSet calls iface.IsMethodSet().
-func IsMethodSet(iface *types.Interface) bool {
-	return iface.IsMethodSet()
-}
-
-// IsImplicit calls iface.IsImplicit().
-func IsImplicit(iface *types.Interface) bool {
-	return iface.IsImplicit()
-}
-
-// MarkImplicit calls iface.MarkImplicit().
-func MarkImplicit(iface *types.Interface) {
-	iface.MarkImplicit()
+// IsConstraint calls iface.IsConstraint().
+func IsConstraint(iface *types.Interface) bool {
+	return iface.IsConstraint()
 }
 
 // ForNamed extracts the (possibly empty) type parameter object list from
@@ -129,23 +145,21 @@ func InitInstanceInfo(info *types.Info) {
 	info.Instances = make(map[*ast.Ident]types.Instance)
 }
 
-// Instance is an alias for types.Instance.
-type Instance = types.Instance
-
-// GetInstances returns info.Instances.
-func GetInstances(info *types.Info) map[*ast.Ident]Instance {
-	return info.Instances
+// GetInstance extracts information about the instantiation occurring at the
+// identifier id. id should be the identifier denoting a parameterized type or
+// function in an instantiation expression or function call.
+func GetInstance(info *types.Info, id *ast.Ident) (*TypeList, types.Type) {
+	if info.Instances != nil {
+		inf := info.Instances[id]
+		return inf.TypeArgs, inf.Type
+	}
+	return nil, nil
 }
 
-// Context is an alias for types.Context.
-type Context = types.Context
-
-// NewContext calls types.NewContext.
-func NewContext() *Context {
-	return types.NewContext()
-}
+// Environment is an alias for types.Environment.
+type Environment = types.Environment
 
 // Instantiate calls types.Instantiate.
-func Instantiate(ctxt *Context, typ types.Type, targs []types.Type, validate bool) (types.Type, error) {
-	return types.Instantiate(ctxt, typ, targs, validate)
+func Instantiate(env *Environment, typ types.Type, targs []types.Type, validate bool) (types.Type, error) {
+	return types.Instantiate(env, typ, targs, validate)
 }

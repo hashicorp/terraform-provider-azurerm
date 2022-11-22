@@ -11,8 +11,6 @@ import (
 	"go/ast"
 	"go/token"
 	"sort"
-
-	"golang.org/x/tools/internal/typeparams"
 )
 
 // PathEnclosingInterval returns the node that encloses the source
@@ -22,9 +20,9 @@ import (
 // additional whitespace abutting a node to be enclosed by it.
 // In this example:
 //
-//	z := x + y // add them
-//	     <-A->
-//	    <----B----->
+//              z := x + y // add them
+//                   <-A->
+//                  <----B----->
 //
 // the ast.BinaryExpr(+) node is considered to enclose interval B
 // even though its [Pos()..End()) is actually only interval A.
@@ -43,10 +41,10 @@ import (
 // interior whitespace of path[0].
 // In this example:
 //
-//	z := x + y // add them
-//	  <--C-->     <---E-->
-//	    ^
-//	    D
+//              z := x + y // add them
+//                <--C-->     <---E-->
+//                  ^
+//                  D
 //
 // intervals C, D and E are inexact.  C is contained by the
 // z-assignment statement, because it spans three of its children (:=,
@@ -54,11 +52,12 @@ import (
 // interior whitespace of the assignment.  E is considered interior
 // whitespace of the BlockStmt containing the assignment.
 //
-// The resulting path is never empty; it always contains at least the
-// 'root' *ast.File.  Ideally PathEnclosingInterval would reject
-// intervals that lie wholly or partially outside the range of the
-// file, but unfortunately ast.File records only the token.Pos of
-// the 'package' keyword, but not of the start of the file itself.
+// Precondition: [start, end) both lie within the same file as root.
+// TODO(adonovan): return (nil, false) in this case and remove precond.
+// Requires FileSet; see loader.tokenFileContainsPos.
+//
+// Postcondition: path is never nil; it always contains at least 'root'.
+//
 func PathEnclosingInterval(root *ast.File, start, end token.Pos) (path []ast.Node, exact bool) {
 	// fmt.Printf("EnclosingInterval %d %d\n", start, end) // debugging
 
@@ -134,7 +133,6 @@ func PathEnclosingInterval(root *ast.File, start, end token.Pos) (path []ast.Nod
 		return false // inexact: overlaps multiple children
 	}
 
-	// Ensure [start,end) is nondecreasing.
 	if start > end {
 		start, end = end, start
 	}
@@ -162,6 +160,7 @@ func PathEnclosingInterval(root *ast.File, start, end token.Pos) (path []ast.Nod
 // tokenNode is a dummy implementation of ast.Node for a single token.
 // They are used transiently by PathEnclosingInterval but never escape
 // this package.
+//
 type tokenNode struct {
 	pos token.Pos
 	end token.Pos
@@ -182,6 +181,7 @@ func tok(pos token.Pos, len int) ast.Node {
 // childrenOf returns the direct non-nil children of ast.Node n.
 // It may include fake ast.Node implementations for bare tokens.
 // it is not safe to call (e.g.) ast.Walk on such nodes.
+//
 func childrenOf(n ast.Node) []ast.Node {
 	var children []ast.Node
 
@@ -294,8 +294,8 @@ func childrenOf(n ast.Node) []ast.Node {
 
 	case *ast.FieldList:
 		children = append(children,
-			tok(n.Opening, len("(")), // or len("[")
-			tok(n.Closing, len(")"))) // or len("]")
+			tok(n.Opening, len("(")),
+			tok(n.Closing, len(")")))
 
 	case *ast.File:
 		// TODO test: Doc
@@ -322,9 +322,6 @@ func childrenOf(n ast.Node) []ast.Node {
 			children = append(children, n.Recv)
 		}
 		children = append(children, n.Name)
-		if tparams := typeparams.ForFuncType(n.Type); tparams != nil {
-			children = append(children, tparams)
-		}
 		if n.Type.Params != nil {
 			children = append(children, n.Type.Params)
 		}
@@ -374,13 +371,8 @@ func childrenOf(n ast.Node) []ast.Node {
 
 	case *ast.IndexExpr:
 		children = append(children,
-			tok(n.Lbrack, len("[")),
-			tok(n.Rbrack, len("]")))
-
-	case *typeparams.IndexListExpr:
-		children = append(children,
-			tok(n.Lbrack, len("[")),
-			tok(n.Rbrack, len("]")))
+			tok(n.Lbrack, len("{")),
+			tok(n.Rbrack, len("}")))
 
 	case *ast.InterfaceType:
 		children = append(children,
@@ -486,6 +478,7 @@ func (sl byPos) Swap(i, j int) {
 // TODO(adonovan): in some cases (e.g. Field, FieldList, Ident,
 // StarExpr) we could be much more specific given the path to the AST
 // root.  Perhaps we should do that.
+//
 func NodeDescription(n ast.Node) string {
 	switch n := n.(type) {
 	case *ast.ArrayType:
@@ -588,8 +581,6 @@ func NodeDescription(n ast.Node) string {
 		return "decrement statement"
 	case *ast.IndexExpr:
 		return "index expression"
-	case *typeparams.IndexListExpr:
-		return "index list expression"
 	case *ast.InterfaceType:
 		return "interface type"
 	case *ast.KeyValueExpr:
