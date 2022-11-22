@@ -49,7 +49,6 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
-
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -175,7 +174,6 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -191,6 +189,12 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"subresource_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"member_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
@@ -764,13 +768,14 @@ func expandPrivateEndpointIPConfigurations(input []interface{}) *[]network.Priva
 		v := item.(map[string]interface{})
 		privateIPAddress := v["private_ip_address"].(string)
 		subResourceName := v["subresource_name"].(string)
+		memberName := v["member_name"].(string)
 		name := v["name"].(string)
 		result := network.PrivateEndpointIPConfiguration{
 			Name: utils.String(name),
 			PrivateEndpointIPConfigurationProperties: &network.PrivateEndpointIPConfigurationProperties{
 				PrivateIPAddress: utils.String(privateIPAddress),
 				GroupID:          utils.String(subResourceName),
-				MemberName:       utils.String(subResourceName),
+				MemberName:       utils.String(memberName),
 			},
 		}
 		results = append(results, result)
@@ -790,6 +795,7 @@ func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]network.PrivateE
 			"name":               item.Name,
 			"private_ip_address": item.PrivateIPAddress,
 			"subresource_name":   item.GroupID,
+			"member_name":        item.MemberName,
 		})
 	}
 
