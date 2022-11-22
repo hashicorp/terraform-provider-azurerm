@@ -395,7 +395,7 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 
 	read, err := clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
-		return nil, err
+		return utils.Bool(false), err
 	}
 
 	rules := make([]network.AzureFirewallNetworkRuleCollection, 0)

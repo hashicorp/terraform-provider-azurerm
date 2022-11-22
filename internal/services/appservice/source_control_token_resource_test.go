@@ -65,7 +65,7 @@ func (r AppServiceGitHubTokenResource) Exists(ctx context.Context, client *clien
 	resp, err := client.AppService.BaseClient.GetSourceControl(ctx, "GitHub")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, err
+			return utils.Bool(false), err
 		}
 		return nil, fmt.Errorf("retrieving Source Control GitHub Token")
 	}
