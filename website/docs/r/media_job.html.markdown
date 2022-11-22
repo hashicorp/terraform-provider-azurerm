@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Optional customer supplied description of the Job.
 
-* `priority` - (Optional) Priority with which the job should be processed. Higher priority jobs are processed before lower priority jobs. If not set, the default is normal. Changing this forces a new Media Job to be created.
+* `priority` - (Optional) Priority with which the job should be processed. Higher priority jobs are processed before lower priority jobs. If not set, the default is normal. Changing this forces a new Media Job to be created. Possible values are `High`, `Normal` and `Low`.
 
 ---
 

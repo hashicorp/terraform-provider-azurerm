@@ -56,7 +56,7 @@ resource "azurerm_spring_cloud_api_portal" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Spring Cloud API Portal. Changing this forces a new Spring Cloud API Portal to be created.
+* `name` - (Required) The name which should be used for this Spring Cloud API Portal. Changing this forces a new Spring Cloud API Portal to be created. The only possible value is `default`.
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud API Portal to be created.
 

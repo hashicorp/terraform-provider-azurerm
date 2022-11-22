@@ -206,7 +206,7 @@ A `url_redirect_action` block supports the following:
 
 * `redirect_type` - (Required) Type of the redirect. Valid values are `Found`, `Moved`, `PermanentRedirect` and `TemporaryRedirect`.
 
-* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `Http` and `Https`.
+* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `MatchRequest`, `Http` and `Https`.
 
 * `hostname` - (Optional) Specifies the hostname part of the URL.
 

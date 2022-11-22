@@ -128,6 +128,8 @@ In this case, `azurerm_key_vault_access_policy` is not needed.
 
 * `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey`, `EncryptionAtRestWithPlatformAndCustomerKeys` and `ConfidentialVmEncryptedWithCustomerKey`. Defaults to `EncryptionAtRestWithCustomerKey`.
 
+* `federated_client_id` - (Optional) Multi-tenant application client id to access key vault in a different tenant.
+
 * `identity` - (Required) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Disk Encryption Set.

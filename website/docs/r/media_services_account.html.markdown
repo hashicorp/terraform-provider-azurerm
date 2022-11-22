@@ -52,8 +52,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `storage_authentication_type` - (Optional) Specifies the storage authentication type.
-Possible value is  `ManagedIdentity` or `System`.
+* `storage_authentication_type` - (Optional) Specifies the storage authentication type. Possible value is  `ManagedIdentity` or `System`.
 
 * `key_delivery_access_control` - (Optional) A `key_delivery_access_control` block as defined below.
 

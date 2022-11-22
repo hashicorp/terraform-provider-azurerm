@@ -1373,6 +1373,10 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 				validate.SharedGalleryImageID,
 				validate.SharedGalleryImageVersionID,
 			),
+			ExactlyOneOf: []string{
+				"source_image_id",
+				"source_image_reference",
+			},
 		},
 
 		"source_image_reference": sourceImageReferenceSchema(false),

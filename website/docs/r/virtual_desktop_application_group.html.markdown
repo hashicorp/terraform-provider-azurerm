@@ -77,8 +77,7 @@ The following arguments are supported:
 * `location` - (Required) The location/region where the Virtual Desktop Application Group is
     located. Changing the location/region forces a new resource to be created.
 
-* `type` - (Required) Type of Virtual Desktop Application Group.
-    Valid options are `RemoteApp` or `Desktop` application groups.
+* `type` - (Required) Type of Virtual Desktop Application Group. Valid options are `RemoteApp` or `Desktop` application groups.
 
 * `host_pool_id` - (Required) Resource ID for a Virtual Desktop Host Pool to associate with the
     Virtual Desktop Application Group.
