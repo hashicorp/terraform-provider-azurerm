@@ -27,7 +27,7 @@ output "healthcare_fhir_service_id" {
 
 * `name` - The name of the Healthcare FHIR Service.
 
-* `workspace_id` - The name of the Healthcare Workspace in which the Healthcare FHIR Service exists.
+* `workspace_id` - The id of the Healthcare Workspace in which the Healthcare FHIR Service exists.
 
 ## Attributes Reference
 
