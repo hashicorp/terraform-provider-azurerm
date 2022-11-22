@@ -887,7 +887,7 @@ locals {
     "SiteRecovery-prot2" = "10.5.2.24"
     "SiteRecovery-srs1"  = "10.5.2.25"
     "SiteRecovery-id1"   = "10.5.2.26"
-    "SiteRecovery-tel1"   = "10.5.2.27"
+    "SiteRecovery-tel1"  = "10.5.2.27"
     "SiteRecovery-rcm1"  = "10.5.2.28"
   }
 }
