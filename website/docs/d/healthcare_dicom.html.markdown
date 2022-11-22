@@ -27,7 +27,7 @@ output "azurerm_healthcare_dicom_service" {
 
 * `name` - The name of the Healthcare DICOM Service
 
-* `workspace_id` - The name of the Healthcare Workspace in which the Healthcare DICOM Service exists.
+* `workspace_id` - The id of the Healthcare Workspace in which the Healthcare DICOM Service exists.
 
 ## Attributes Reference
 
