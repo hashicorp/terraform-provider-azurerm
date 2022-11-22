@@ -46,6 +46,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "example" {
   name                    = "example"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.example.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.example.id
+  protocol                = "HTTPS"
   route {
     description            = "example description"
     filters                = ["StripPrefix=2", "RateLimit=1,1s"]
@@ -73,6 +74,8 @@ The following arguments are supported:
 * `route` - (Optional) One or more `route` blocks as defined below.
 
 * `open_api` - (Optional) One or more `open_api` blocks as defined below.
+
+* `protocol` - (Optional) Specifies the protocol of routed Spring Cloud App. Allowed values are `HTTP` and `HTTPS`.
 
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 

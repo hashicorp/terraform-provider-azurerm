@@ -64,6 +64,16 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				},
 			},
 
+			"protocol": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(appplatform.GatewayRouteConfigProtocolHTTP),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(appplatform.GatewayRouteConfigProtocolHTTP),
+					string(appplatform.GatewayRouteConfigProtocolHTTPS),
+				}, false),
+			},
+
 			"spring_cloud_app_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -168,6 +178,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
+			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
 			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
@@ -208,6 +219,7 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("spring_cloud_app_id", props.AppResourceID)
+		d.Set("protocol", props.Protocol)
 		if err := d.Set("route", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)
 		}
