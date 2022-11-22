@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -18,10 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/replicas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -117,9 +115,9 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				ValidateFunc: validate.ServerName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
@@ -441,11 +439,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("restore_point_in_time must be set when create_mode is PointInTimeRestore")
 		}
 
-		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
-		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
-			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
-		}
-
 		props = &servers.ServerPropertiesForRestore{
 			SourceServerId:           source,
 			RestorePointInTime:       v.(string),
@@ -520,6 +513,20 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == servers.CreateModeReplica {
+		log.Printf("[INFO] updating `public_network_access_enabled` and `identity` for %s", id)
+		properties := servers.ServerUpdateParameters{
+			Identity: expandedIdentity,
+			Properties: &servers.ServerUpdateParametersProperties{
+				PublicNetworkAccess: &publicAccess,
+			},
+		}
+
+		if err = client.UpdateThenPoll(ctx, id, properties); err != nil {
+			return fmt.Errorf("updating Public Network Access for Replica %q: %+v", id, err)
+		}
+	}
+
+	if mode == servers.CreateModePointInTimeRestore {
 		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
 		properties := servers.ServerUpdateParameters{
 			Properties: &servers.ServerUpdateParametersProperties{
@@ -528,7 +535,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if err = client.UpdateThenPoll(ctx, id, properties); err != nil {
-			return fmt.Errorf("updating Public Network Access for Replica %q: %+v", id, err)
+			return fmt.Errorf("updating Public Network Access for PointInTimeRestore %q: %+v", id, err)
 		}
 	}
 
@@ -637,18 +644,11 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if mode == servers.CreateModePointInTimeRestore {
-		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
-		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
-			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
-		}
-	} else {
-		publicAccess := servers.PublicNetworkAccessEnumEnabled
-		if v := d.Get("public_network_access_enabled"); !v.(bool) {
-			publicAccess = servers.PublicNetworkAccessEnumDisabled
-		}
-		properties.Properties.PublicNetworkAccess = &publicAccess
+	publicAccess := servers.PublicNetworkAccessEnumEnabled
+	if v := d.Get("public_network_access_enabled"); !v.(bool) {
+		publicAccess = servers.PublicNetworkAccessEnumDisabled
 	}
+	properties.Properties.PublicNetworkAccess = &publicAccess
 
 	oldCreateMode, newCreateMode := d.GetChange("create_mode")
 	replicaUpdatedToDefault := servers.CreateMode(oldCreateMode.(string)) == servers.CreateModeReplica && servers.CreateMode(newCreateMode.(string)) == servers.CreateModeDefault
@@ -993,6 +993,15 @@ func postgreSqlStateRefreshFunc(ctx context.Context, client *servers.ServersClie
 		res, err := client.Get(ctx, id)
 		if !response.WasNotFound(res.HttpResponse) && err != nil {
 			return nil, "", fmt.Errorf("retrieving status of %s: %+v", id, err)
+		}
+
+		// For Replica servers, with enabled BYOK, state would be reported as 'Inaccessible', even when deployment was in 'Succeeded' state.
+		// It is caused by a need to revalidate the key.
+		if res.Model != nil && res.Model.Properties != nil &&
+			res.Model.Properties.ReplicationRole != nil && *res.Model.Properties.ReplicationRole == "Replica" &&
+			res.Model.Properties.ByokEnforcement != nil && *res.Model.Properties.ByokEnforcement == "Enabled" &&
+			res.Model.Properties.UserVisibleState != nil && *res.Model.Properties.UserVisibleState == servers.ServerStateInaccessible {
+			return res, string(servers.ServerStateReady), nil
 		}
 
 		// This is an issue with the RP, there is a 10 to 15 second lag before the

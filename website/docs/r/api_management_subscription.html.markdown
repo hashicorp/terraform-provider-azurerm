@@ -10,7 +10,6 @@ description: |-
 
 Manages a Subscription within a API Management Service.
 
-
 ## Example Usage
 
 ```hcl
@@ -39,7 +38,6 @@ resource "azurerm_api_management_subscription" "example" {
   display_name        = "Parser API"
 }
 ```
-
 
 ## Argument Reference
 

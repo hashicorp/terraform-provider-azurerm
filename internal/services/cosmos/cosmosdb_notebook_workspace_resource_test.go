@@ -16,6 +16,7 @@ import (
 type CosmosDbNotebookWorkspaceResource struct{}
 
 func TestAccCosmosDbNotebookWorkspace_basic(t *testing.T) {
+	t.Skip("Skipping as CosmosDb Notebook Workspace is deprecated")
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_notebook_workspace", "test")
 	r := CosmosDbNotebookWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -30,6 +31,7 @@ func TestAccCosmosDbNotebookWorkspace_basic(t *testing.T) {
 }
 
 func TestAccCosmosDbNotebookWorkspace_requiresImport(t *testing.T) {
+	t.Skip("Skipping as CosmosDb Notebook Workspace is deprecated")
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_notebook_workspace", "test")
 	r := CosmosDbNotebookWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

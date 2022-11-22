@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
-## Attributes Reference:
+## Attributes Reference
 
 The following attributes are exported:
 
@@ -104,4 +104,3 @@ Web Pubsub Shared Private Link Resource can be imported using the `resource id`,
 ```shell
 terraform import azurerm_web_pubsub_shared_private_link_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/sharedPrivateLinkResources/resource1
 ```
-

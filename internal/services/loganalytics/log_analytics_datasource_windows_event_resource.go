@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/datasources"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
@@ -53,7 +52,7 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"workspace_name": {
 				Type:             pluginsdk.TypeString,
@@ -199,7 +198,7 @@ func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceW
 	for _, e := range eventTypes {
 		// The casing isn't preserved by the API for event types, so we need to normalise it here until
 		// https://github.com/Azure/azure-rest-api-specs/issues/18163 is fixed
-		output = append(output, strings.ToLower(e.EventType))
+		output = append(output, e.EventType)
 	}
 	return output
 }

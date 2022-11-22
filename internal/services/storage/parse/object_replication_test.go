@@ -5,11 +5,8 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2021-04-01/objectreplicationpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/objectreplicationpolicies"
 )
-
-var _ resourceid.Formatter = ObjectReplicationId{}
 
 func TestObjectReplicationIDFormatter(t *testing.T) {
 	actual := NewObjectReplicationID(

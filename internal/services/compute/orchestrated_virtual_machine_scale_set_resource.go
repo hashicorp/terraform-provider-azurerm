@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -25,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -60,9 +60,9 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"network_interface": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
 
@@ -226,9 +226,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					computeValidate.SharedGalleryImageID,
 					computeValidate.SharedGalleryImageVersionID,
 				),
+				ConflictsWith: []string{
+					"source_image_reference",
+				},
 			},
 
-			"source_image_reference": sourceImageReferenceSchema(false),
+			"source_image_reference": sourceImageReferenceSchemaOrchestratedVMSS(),
 
 			"zone_balance": {
 				Type:     pluginsdk.TypeBool,
@@ -247,6 +250,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"unique_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"user_data_base64": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsBase64,
 			},
 		},
 	}
@@ -298,7 +308,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.VirtualMachineScaleSetProperties.SinglePlacementGroup = utils.Bool(d.Get("single_placement_group").(bool))
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -375,6 +385,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			return err
 		}
 		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+	}
+
+	if userData, ok := d.GetOk("user_data_base64"); ok {
+		virtualMachineProfile.UserData = utils.String(userData.(string))
 	}
 
 	osType := compute.OperatingSystemTypesWindows
@@ -1005,20 +1019,26 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			update.Plan = expandPlan(planRaw)
 		}
 
-		if d.HasChange("sku") || d.HasChange("instances") {
+		if d.HasChange("sku_name") || d.HasChange("instances") {
 			// in-case ignore_changes is being used, since both fields are required
 			// look up the current values and override them as needed
 			sku := existing.Sku
 			instances := int(*sku.Capacity)
+			skuName := d.Get("sku_name").(string)
 
 			if d.HasChange("instances") {
 				instances = d.Get("instances").(int)
+
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(skuName, instances)
+				if err != nil {
+					return err
+				}
 			}
 
 			if d.HasChange("sku_name") {
 				updateInstances = true
 
-				sku, err = expandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(skuName, instances)
 				if err != nil {
 					return err
 				}
@@ -1060,6 +1080,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("user_data_base64") {
+		updateInstances = true
+		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data_base64").(string))
 	}
 
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
@@ -1113,7 +1138,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	var skuName *string
 	var instances int
@@ -1209,10 +1234,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `data_disk`: %+v", err)
 			}
 
-			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference)); err != nil {
-				return fmt.Errorf("setting `source_image_reference`: %+v", err)
-			}
-
 			var storageImageId string
 			if storageProfile.ImageReference != nil && storageProfile.ImageReference.ID != nil {
 				storageImageId = *storageProfile.ImageReference.ID
@@ -1224,6 +1245,10 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				storageImageId = *storageProfile.ImageReference.SharedGalleryImageID
 			}
 			d.Set("source_image_id", storageImageId)
+
+			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference, storageImageId != "")); err != nil {
+				return fmt.Errorf("setting `source_image_reference`: %+v", err)
+			}
 		}
 
 		if osProfile := profile.OsProfile; osProfile != nil {
@@ -1266,6 +1291,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
 		}
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+		d.Set("user_data_base64", profile.UserData)
 	}
 	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 

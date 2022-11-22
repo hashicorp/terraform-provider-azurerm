@@ -53,6 +53,7 @@ resource "azurerm_synapse_firewall_rule" "example" {
   end_ip_address       = "255.255.255.255"
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:

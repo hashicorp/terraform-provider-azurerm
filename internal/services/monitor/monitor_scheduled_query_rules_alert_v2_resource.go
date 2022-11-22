@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -208,9 +208,25 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"evaluation_frequency": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type: pluginsdk.TypeString,
+			// this field is required, missing this field will get an error from service
+			Optional: !features.FourPointOhBeta(),
+			Required: features.FourPointOhBeta(),
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT1M",
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+			}, false),
 		},
 
 		"scopes": {
@@ -232,9 +248,24 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"window_duration": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT1M",
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+				"P2D",
+			}, false),
 		},
 
 		"action": {
@@ -293,15 +324,44 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"mute_actions_after_alert_duration": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+				"P2D",
+			}, false),
 		},
 
 		"query_time_range_override": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT20M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+				"P2D",
+			}, false),
 		},
 
 		"skip_query_validation": {

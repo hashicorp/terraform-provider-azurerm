@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -48,8 +48,8 @@ type ADAuthentication struct {
 }
 
 type Authentication struct {
-	ADAuth             ADAuthentication `tfschema:"active_directory"`
-	CertAuthentication []ThumbprintAuth `tfschema:"certificate"`
+	ADAuth             []ADAuthentication `tfschema:"active_directory"`
+	CertAuthentication []ThumbprintAuth   `tfschema:"certificate"`
 }
 
 type PortRange struct {
@@ -137,7 +137,7 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -680,11 +680,15 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	if aad := properties.AzureActiveDirectory; aad != nil {
 		model.Authentication = append(model.Authentication, Authentication{})
+		adModels := make([]ADAuthentication, 0)
+
 		adModel := ADAuthentication{}
 		adModel.ClientApp = utils.NormalizeNilableString(aad.ClientApplication)
 		adModel.ClusterApp = utils.NormalizeNilableString(aad.ClusterApplication)
 		adModel.TenantId = utils.NormalizeNilableString(aad.TenantId)
-		model.Authentication[0].ADAuth = adModel
+
+		adModels = append(adModels, adModel)
+		model.Authentication[0].ADAuth = adModels
 	}
 
 	if clients := properties.Clients; clients != nil {
@@ -711,8 +715,8 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		for _, fs := range *fss {
 			for _, param := range fs.Parameters {
 				cfs = append(cfs, CustomFabricSetting{
-					Parameter: fs.Name,
-					Section:   param.Name,
+					Section:   fs.Name,
+					Parameter: param.Name,
 					Value:     param.Value,
 				})
 			}
@@ -840,12 +844,13 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	}
 
 	if auth := model.Authentication; len(auth) > 0 {
-		adAuth := auth[0].ADAuth
-		if adAuth.ClientApp != "" && adAuth.ClusterApp != "" && adAuth.TenantId != "" {
-			out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
-				ClientApplication:  utils.String(adAuth.ClientApp),
-				ClusterApplication: utils.String(adAuth.ClusterApp),
-				TenantId:           utils.String(adAuth.TenantId),
+		if adAuth := auth[0].ADAuth; len(adAuth) > 0 {
+			if adAuth[0].ClientApp != "" && adAuth[0].ClusterApp != "" && adAuth[0].TenantId != "" {
+				out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
+					ClientApplication:  utils.String(adAuth[0].ClientApp),
+					ClusterApplication: utils.String(adAuth[0].ClusterApp),
+					TenantId:           utils.String(adAuth[0].TenantId),
+				}
 			}
 		}
 		if certs := auth[0].CertAuthentication; len(certs) > 0 {
@@ -865,8 +870,6 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	out.ClusterUpgradeCadence = &model.UpgradeWave
 
 	if customSettings := model.CustomFabricSettings; len(customSettings) > 0 {
-		fs := make([]managedcluster.SettingsSectionDescription, len(customSettings))
-
 		// First we build a map of all settings per section
 		fsMap := make(map[string][]managedcluster.SettingsParameterDescription)
 		for _, cs := range customSettings {
@@ -878,6 +881,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		}
 
 		// Then we update the properties struct
+		fs := make([]managedcluster.SettingsSectionDescription, 0)
 		for k, v := range fsMap {
 			fs = append(fs, managedcluster.SettingsSectionDescription{
 				Name:       k,

@@ -10,8 +10,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,7 +53,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"recovery_vault_name": {
 				Type:         pluginsdk.TypeString,
@@ -177,10 +179,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.DiskStorageAccountTypesStandardLRS),
-								string(compute.DiskStorageAccountTypesPremiumLRS),
-								string(compute.DiskStorageAccountTypesStandardSSDLRS),
-								string(compute.DiskStorageAccountTypesUltraSSDLRS),
+								string(disks.DiskStorageAccountTypesStandardLRS),
+								string(disks.DiskStorageAccountTypesPremiumLRS),
+								string(disks.DiskStorageAccountTypesStandardSSDLRS),
+								string(disks.DiskStorageAccountTypesUltraSSDLRS),
 							}, false),
 						},
 						"target_replica_disk_type": {
@@ -188,10 +190,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.DiskStorageAccountTypesStandardLRS),
-								string(compute.DiskStorageAccountTypesPremiumLRS),
-								string(compute.DiskStorageAccountTypesStandardSSDLRS),
-								string(compute.DiskStorageAccountTypesUltraSSDLRS),
+								string(disks.DiskStorageAccountTypesStandardLRS),
+								string(disks.DiskStorageAccountTypesPremiumLRS),
+								string(disks.DiskStorageAccountTypesStandardSSDLRS),
+								string(disks.DiskStorageAccountTypesUltraSSDLRS),
 							}, false),
 						},
 						"target_disk_encryption_set_id": {

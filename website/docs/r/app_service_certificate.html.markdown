@@ -15,7 +15,6 @@ Manages an App Service certificate.
 
 This example provisions an App Service Certificate from a Local File. Additional examples of how to use the `azurerm_app_service_certificate` resource can be found [in the `./examples/app-service-certificate` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service-certificate).
 
-
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"

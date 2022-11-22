@@ -305,8 +305,8 @@ resource "azurerm_storage_blob" "test" {
   name                   = "scripts"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "[scripts file content]"
+  type                   = "Page" # Use Page Blob as a workaround to UnmanagedStorageAccount quota issue
+  size                   = 512
 }
 
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)

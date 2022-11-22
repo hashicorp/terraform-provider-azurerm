@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `type` - (Required) The content type of the Schema. Possible values are `xml` and `json`.
 
-* `value` - (Required) The string defining the document representing the Schema. 
+* `value` - (Required) The string defining the document representing the Schema.
 
 * `description` - (Optional) The description of the schema.
 

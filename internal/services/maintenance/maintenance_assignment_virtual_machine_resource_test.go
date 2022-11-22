@@ -135,7 +135,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_G5"
+  size                = "Standard_F2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
 

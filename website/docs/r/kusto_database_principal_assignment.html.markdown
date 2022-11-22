@@ -58,6 +58,8 @@ resource "azurerm_kusto_database_principal_assignment" "example" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name of the kusto principal assignment. Changing this forces a new resource to be created.
+
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 
 * `cluster_name` - (Required) The name of the cluster in which to create the resource. Changing this forces a new resource to be created.
@@ -74,7 +76,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kusto Database Principal Assignment.
 

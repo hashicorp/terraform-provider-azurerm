@@ -1,22 +1,26 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,8 +35,13 @@ func resourceManagedDisk() *pluginsdk.Resource {
 		Update: resourceManagedDiskUpdate,
 		Delete: resourceManagedDiskDelete,
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ManagedDiskV0ToV1{},
+		}),
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedDiskID(id)
+			_, err := disks.ParseDiskID(id)
 			return err
 		}),
 
@@ -50,20 +59,21 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"storage_account_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.StorageAccountTypesStandardLRS),
-					string(compute.StorageAccountTypesStandardSSDZRS),
-					string(compute.StorageAccountTypesPremiumLRS),
-					string(compute.StorageAccountTypesPremiumZRS),
-					string(compute.StorageAccountTypesStandardSSDLRS),
-					string(compute.StorageAccountTypesUltraSSDLRS),
+					string(disks.DiskStorageAccountTypesStandardLRS),
+					string(disks.DiskStorageAccountTypesStandardSSDZRS),
+					string(disks.DiskStorageAccountTypesPremiumLRS),
+					string(disks.DiskStorageAccountTypesPremiumVTwoLRS),
+					string(disks.DiskStorageAccountTypesPremiumZRS),
+					string(disks.DiskStorageAccountTypesStandardSSDLRS),
+					string(disks.DiskStorageAccountTypesUltraSSDLRS),
 				}, false),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -73,11 +83,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskCreateOptionCopy),
-					string(compute.DiskCreateOptionEmpty),
-					string(compute.DiskCreateOptionFromImage),
-					string(compute.DiskCreateOptionImport),
-					string(compute.DiskCreateOptionRestore),
+					string(disks.DiskCreateOptionCopy),
+					string(disks.DiskCreateOptionEmpty),
+					string(disks.DiskCreateOptionFromImage),
+					string(disks.DiskCreateOptionImport),
+					string(disks.DiskCreateOptionRestore),
 				}, false),
 			},
 
@@ -133,8 +143,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.OperatingSystemTypesWindows),
-					string(compute.OperatingSystemTypesLinux),
+					string(disks.OperatingSystemTypesWindows),
+					string(disks.OperatingSystemTypesLinux),
 				}, false),
 			},
 
@@ -189,9 +199,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.NetworkAccessPolicyAllowAll),
-					string(compute.NetworkAccessPolicyAllowPrivate),
-					string(compute.NetworkAccessPolicyDenyAll),
+					string(disks.NetworkAccessPolicyAllowAll),
+					string(disks.NetworkAccessPolicyAllowPrivate),
+					string(disks.NetworkAccessPolicyDenyAll),
 				}, false),
 			},
 			"disk_access_id": {
@@ -241,9 +251,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskSecurityTypesConfidentialVMVMGuestStateOnlyEncryptedWithPlatformKey),
-					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithPlatformKey),
-					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey),
+					string(disks.DiskSecurityTypesConfidentialVMVMGuestStateOnlyEncryptedWithPlatformKey),
+					string(disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithPlatformKey),
+					string(disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey),
 				}, false),
 			},
 
@@ -252,8 +262,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true, // Not supported by disk update
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.HyperVGenerationV1),
-					string(compute.HyperVGenerationV2),
+					string(disks.HyperVGenerationVOne),
+					string(disks.HyperVGenerationVTwo),
 				}, false),
 			},
 
@@ -264,8 +274,18 @@ func resourceManagedDisk() *pluginsdk.Resource {
 
 			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
+
+		// Encryption Settings cannot be disabled once enabled
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.FourPointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
@@ -280,49 +300,50 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := disks.NewDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_managed_disk", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	createOption := compute.DiskCreateOption(d.Get("create_option").(string))
+	createOption := disks.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
-	osType := d.Get("os_type").(string)
+	osType := disks.OperatingSystemTypes(d.Get("os_type").(string))
 	maxShares := d.Get("max_shares").(int)
 
 	t := d.Get("tags").(map[string]interface{})
-	skuName := compute.DiskStorageAccountTypes(storageAccountType)
+	skuName := disks.DiskStorageAccountTypes(storageAccountType)
+	encryptionTypePlatformKey := disks.EncryptionTypeEncryptionAtRestWithPlatformKey
 
-	props := &compute.DiskProperties{
-		CreationData: &compute.CreationData{
+	props := &disks.DiskProperties{
+		CreationData: disks.CreationData{
 			CreateOption: createOption,
 		},
-		OsType: compute.OperatingSystemTypes(osType),
-		Encryption: &compute.Encryption{
-			Type: compute.EncryptionTypeEncryptionAtRestWithPlatformKey,
+		OsType: &osType,
+		Encryption: &disks.Encryption{
+			Type: &encryptionTypePlatformKey,
 		},
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB != 0 {
-		props.DiskSizeGB = utils.Int32(int32(diskSizeGB))
+		props.DiskSizeGB = utils.Int64(int64(diskSizeGB))
 	}
 
 	if maxShares != 0 {
-		props.MaxShares = utils.Int32(int32(maxShares))
+		props.MaxShares = utils.Int64(int64(maxShares))
 	}
 
-	if storageAccountType == string(compute.StorageAccountTypesUltraSSDLRS) {
+	if storageAccountType == string(disks.DiskStorageAccountTypesUltraSSDLRS) || storageAccountType == string(disks.DiskStorageAccountTypesPremiumVTwoLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
@@ -337,7 +358,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if v, ok := d.GetOk("disk_iops_read_only"); ok {
 			if maxShares == 0 {
-				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks with shared disk enabled")
+				return fmt.Errorf("[ERROR] disk_iops_read_only is only available for UltraSSD disks and PremiumV2 disks with shared disk enabled")
 			}
 
 			props.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
@@ -345,20 +366,20 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if v, ok := d.GetOk("disk_mbps_read_only"); ok {
 			if maxShares == 0 {
-				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks with shared disk enabled")
+				return fmt.Errorf("[ERROR] disk_mbps_read_only is only available for UltraSSD disks and PremiumV2 disks with shared disk enabled")
 			}
 
 			props.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
 		}
 
 		if v, ok := d.GetOk("logical_sector_size"); ok {
-			props.CreationData.LogicalSectorSize = utils.Int32(int32(v.(int)))
+			props.CreationData.LogicalSectorSize = utils.Int64(int64(v.(int)))
 		}
 	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") || d.HasChange("logical_sector_size") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks")
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
-	if createOption == compute.DiskCreateOptionImport {
+	if createOption == disks.DiskCreateOptionImport {
 		sourceUri := d.Get("source_uri").(string)
 		if sourceUri == "" {
 			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import`")
@@ -369,25 +390,25 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("`storage_account_id` must be specified when `create_option` is set to `Import`")
 		}
 
-		props.CreationData.StorageAccountID = utils.String(storageAccountId)
-		props.CreationData.SourceURI = utils.String(sourceUri)
+		props.CreationData.StorageAccountId = utils.String(storageAccountId)
+		props.CreationData.SourceUri = utils.String(sourceUri)
 	}
-	if createOption == compute.DiskCreateOptionCopy || createOption == compute.DiskCreateOptionRestore {
+	if createOption == disks.DiskCreateOptionCopy || createOption == disks.DiskCreateOptionRestore {
 		sourceResourceId := d.Get("source_resource_id").(string)
 		if sourceResourceId == "" {
 			return fmt.Errorf("`source_resource_id` must be specified when `create_option` is set to `Copy` or `Restore`")
 		}
 
-		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
+		props.CreationData.SourceResourceId = utils.String(sourceResourceId)
 	}
-	if createOption == compute.DiskCreateOptionFromImage {
+	if createOption == disks.DiskCreateOptionFromImage {
 		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
-			props.CreationData.ImageReference = &compute.ImageDiskReference{
-				ID: utils.String(imageReferenceId),
+			props.CreationData.ImageReference = &disks.ImageDiskReference{
+				Id: utils.String(imageReferenceId),
 			}
 		} else if galleryImageReferenceId := d.Get("gallery_image_reference_id").(string); galleryImageReferenceId != "" {
-			props.CreationData.GalleryImageReference = &compute.ImageDiskReference{
-				ID: utils.String(galleryImageReferenceId),
+			props.CreationData.GalleryImageReference = &disks.ImageDiskReference{
+				Id: utils.String(galleryImageReferenceId),
 			}
 		} else {
 			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
@@ -395,9 +416,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("encryption_settings"); ok {
-		encryptionSettings := v.([]interface{})
-		settings := encryptionSettings[0].(map[string]interface{})
-		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
+		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(v.([]interface{}))
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
@@ -406,50 +425,55 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return err
 		}
 
-		props.Encryption = &compute.Encryption{
-			Type:                *encryptionType,
-			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+		props.Encryption = &disks.Encryption{
+			Type:                encryptionType,
+			DiskEncryptionSetId: utils.String(diskEncryptionSetId),
 		}
 	}
 
 	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
-		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+		policy := disks.NetworkAccessPolicy(networkAccessPolicy)
+		props.NetworkAccessPolicy = &policy
 	} else {
-		props.NetworkAccessPolicy = compute.NetworkAccessPolicyAllowAll
+		allowAllPolicy := disks.NetworkAccessPolicyAllowAll
+		props.NetworkAccessPolicy = &allowAllPolicy
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
 		switch {
-		case props.NetworkAccessPolicy == compute.NetworkAccessPolicyAllowPrivate:
-			props.DiskAccessID = utils.String(diskAccessID)
-		case diskAccessID != "" && props.NetworkAccessPolicy != compute.NetworkAccessPolicyAllowPrivate:
+		case *props.NetworkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
+			props.DiskAccessId = utils.String(diskAccessID)
+		case diskAccessID != "" && *props.NetworkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
-			props.DiskAccessID = nil
+			props.DiskAccessId = nil
 		}
 	}
 
 	if d.Get("public_network_access_enabled").(bool) {
-		props.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+		networkAccessEnabled := disks.PublicNetworkAccessEnabled
+		props.PublicNetworkAccess = &networkAccessEnabled
 	} else {
-		props.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+		networkAccessDisabled := disks.PublicNetworkAccessDisabled
+		props.PublicNetworkAccess = &networkAccessDisabled
 	}
 
 	if tier := d.Get("tier").(string); tier != "" {
-		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
+		if storageAccountType != string(disks.DiskStorageAccountTypesPremiumZRS) && storageAccountType != string(disks.DiskStorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		props.Tier = &tier
 	}
 
 	if d.Get("trusted_launch_enabled").(bool) {
-		props.SecurityProfile = &compute.DiskSecurityProfile{
-			SecurityType: compute.DiskSecurityTypesTrustedLaunch,
+		diskSecurityTypeTrustedLaunch := disks.DiskSecurityTypesTrustedLaunch
+		props.SecurityProfile = &disks.DiskSecurityProfile{
+			SecurityType: &diskSecurityTypeTrustedLaunch,
 		}
 
 		switch createOption {
-		case compute.DiskCreateOptionFromImage:
-		case compute.DiskCreateOptionImport:
+		case disks.DiskCreateOptionFromImage:
+		case disks.DiskCreateOptionImport:
 		default:
 			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
 		}
@@ -463,32 +487,33 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		switch createOption {
-		case compute.DiskCreateOptionFromImage:
-		case compute.DiskCreateOptionImport:
+		case disks.DiskCreateOptionFromImage:
+		case disks.DiskCreateOptionImport:
 		default:
 			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage` or `Import`")
 		}
 
-		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == compute.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
+		if disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == disks.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
 			return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 		}
 
-		props.SecurityProfile = &compute.DiskSecurityProfile{
-			SecurityType: compute.DiskSecurityTypes(securityType),
+		diskSecurityType := disks.DiskSecurityTypes(securityType)
+		props.SecurityProfile = &disks.DiskSecurityProfile{
+			SecurityType: &diskSecurityType,
 		}
 	}
 
 	if secureVMDiskEncryptionId != "" {
-		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey != compute.DiskSecurityTypes(securityType) {
+		if disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey != disks.DiskSecurityTypes(securityType) {
 			return fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 		}
-		props.SecurityProfile.SecureVMDiskEncryptionSetID = utils.String(secureVMDiskEncryptionId.(string))
+		props.SecurityProfile.SecureVMDiskEncryptionSetId = utils.String(secureVMDiskEncryptionId.(string))
 	}
 
 	if d.Get("on_demand_bursting_enabled").(bool) {
 		switch storageAccountType {
-		case string(compute.StorageAccountTypesPremiumLRS):
-		case string(compute.StorageAccountTypesPremiumZRS):
+		case string(disks.DiskStorageAccountTypesPremiumLRS):
+		case string(disks.DiskStorageAccountTypesPremiumZRS):
 		default:
 			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
@@ -501,16 +526,17 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("hyper_v_generation"); ok {
-		props.HyperVGeneration = compute.HyperVGeneration(v.(string))
+		hyperVGeneration := disks.HyperVGeneration(v.(string))
+		props.HyperVGeneration = &hyperVGeneration
 	}
 
-	createDisk := compute.Disk{
+	createDisk := disks.Disk{
 		Name:             &name,
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
-		Location:         &location,
-		DiskProperties:   props,
-		Sku: &compute.DiskSku{
-			Name: skuName,
+		ExtendedLocation: expandManagedDiskEdgeZone(d.Get("edge_zone").(string)),
+		Location:         location,
+		Properties:       props,
+		Sku: &disks.DiskSku{
+			Name: &skuName,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -521,20 +547,16 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
+	err := client.CreateOrUpdateThenPoll(ctx, id, createDisk)
 	if err != nil {
 		return fmt.Errorf("creating/updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if read.ID == nil {
+	if read.Model == nil {
 		return fmt.Errorf("reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 
@@ -545,6 +567,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
+	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
+	skusClient := meta.(*clients.Client).Compute.SkusClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -558,39 +582,44 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	onDemandBurstingEnabled := d.Get("on_demand_bursting_enabled").(bool)
 	shouldShutDown := false
 
-	disk, err := client.Get(ctx, resourceGroup, name)
+	id, err := disks.ParseDiskID(d.Id())
 	if err != nil {
-		if utils.ResponseWasNotFound(disk.Response) {
+		return err
+	}
+
+	disk, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(disk.HttpResponse) {
 			return fmt.Errorf("Managed Disk %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("making Read request on Azure Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	diskUpdate := compute.DiskUpdate{
-		DiskUpdateProperties: &compute.DiskUpdateProperties{},
+	diskUpdate := disks.DiskUpdate{
+		Properties: &disks.DiskUpdateProperties{},
 	}
 
 	if d.HasChange("max_shares") {
-		diskUpdate.MaxShares = utils.Int32(int32(maxShares))
-		var skuName compute.DiskStorageAccountTypes
-		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
-			if strings.EqualFold(storageAccountType, string(v)) {
-				skuName = v
+		diskUpdate.Properties.MaxShares = utils.Int64(int64(maxShares))
+		var skuName disks.DiskStorageAccountTypes
+		for _, v := range disks.PossibleValuesForDiskStorageAccountTypes() {
+			if strings.EqualFold(storageAccountType, v) {
+				skuName = disks.DiskStorageAccountTypes(v)
 			}
 		}
-		diskUpdate.Sku = &compute.DiskSku{
-			Name: skuName,
+		diskUpdate.Sku = &disks.DiskSku{
+			Name: &skuName,
 		}
 	}
 
 	if d.HasChange("tier") {
-		if storageAccountType != string(compute.StorageAccountTypesPremiumZRS) && storageAccountType != string(compute.StorageAccountTypesPremiumLRS) {
+		if storageAccountType != string(disks.DiskStorageAccountTypesPremiumZRS) && storageAccountType != string(disks.DiskStorageAccountTypesPremiumLRS) {
 			return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
 		shouldShutDown = true
 		tier := d.Get("tier").(string)
-		diskUpdate.Tier = &tier
+		diskUpdate.Properties.Tier = &tier
 	}
 
 	if d.HasChange("tags") {
@@ -600,28 +629,28 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("storage_account_type") {
 		shouldShutDown = true
-		var skuName compute.DiskStorageAccountTypes
-		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
-			if strings.EqualFold(storageAccountType, string(v)) {
-				skuName = v
+		var skuName disks.DiskStorageAccountTypes
+		for _, v := range disks.PossibleValuesForDiskStorageAccountTypes() {
+			if strings.EqualFold(storageAccountType, v) {
+				skuName = disks.DiskStorageAccountTypes(v)
 			}
 		}
-		diskUpdate.Sku = &compute.DiskSku{
-			Name: skuName,
+		diskUpdate.Sku = &disks.DiskSku{
+			Name: &skuName,
 		}
 	}
 
-	if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesUltraSSDLRS)) {
+	if strings.EqualFold(storageAccountType, string(disks.DiskStorageAccountTypesUltraSSDLRS)) || storageAccountType == string(disks.DiskStorageAccountTypesPremiumVTwoLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
-			diskUpdate.DiskIOPSReadWrite = &diskIOPS
+			diskUpdate.Properties.DiskIOPSReadWrite = &diskIOPS
 		}
 
 		if d.HasChange("disk_mbps_read_write") {
 			v := d.Get("disk_mbps_read_write")
 			diskMBps := int64(v.(int))
-			diskUpdate.DiskMBpsReadWrite = &diskMBps
+			diskUpdate.Properties.DiskMBpsReadWrite = &diskMBps
 		}
 
 		if d.HasChange("disk_iops_read_only") {
@@ -630,7 +659,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			v := d.Get("disk_iops_read_only")
-			diskUpdate.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
+			diskUpdate.Properties.DiskIOPSReadOnly = utils.Int64(int64(v.(int)))
 		}
 
 		if d.HasChange("disk_mbps_read_only") {
@@ -639,23 +668,45 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			v := d.Get("disk_mbps_read_only")
-			diskUpdate.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
+			diskUpdate.Properties.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
 		}
 	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") {
-		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks")
+		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
 	if d.HasChange("os_type") {
-		diskUpdate.DiskUpdateProperties.OsType = compute.OperatingSystemTypes(d.Get("os_type").(string))
+		operatingSystemType := disks.OperatingSystemTypes(d.Get("os_type").(string))
+		diskUpdate.Properties.OsType = &operatingSystemType
 	}
 
 	if d.HasChange("disk_size_gb") {
-		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			shouldShutDown = true
-			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
+		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
+			canBeResizedWithoutDowntime := false
+			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
+				diskSupportsNoDowntimeResize, err := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
+				if err != nil {
+					return fmt.Errorf("determining if the Disk supports no-downtime-resize: %+v", err)
+				}
+
+				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
+				if err != nil {
+					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
+				}
+
+				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
+			}
+			if !canBeResizedWithoutDowntime {
+				log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
+				shouldShutDown = true
+			}
+			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(newSize.(int)))
 		} else {
 			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
 		}
+	}
+
+	if d.HasChange("encryption_settings") {
+		diskUpdate.Properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
 	}
 
 	if d.HasChange("disk_encryption_set_id") {
@@ -666,9 +717,9 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return err
 			}
 
-			diskUpdate.Encryption = &compute.Encryption{
-				Type:                *encryptionType,
-				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+			diskUpdate.Properties.Encryption = &disks.Encryption{
+				Type:                encryptionType,
+				DiskEncryptionSetId: utils.String(diskEncryptionSetId),
 			}
 		} else {
 			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
@@ -676,34 +727,38 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
-		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+		policy := disks.NetworkAccessPolicy(networkAccessPolicy)
+		diskUpdate.Properties.NetworkAccessPolicy = &policy
 	} else {
-		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicyAllowAll
+		allowAllPolicy := disks.NetworkAccessPolicyAllowAll
+		diskUpdate.Properties.NetworkAccessPolicy = &allowAllPolicy
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
 		switch {
-		case diskUpdate.NetworkAccessPolicy == compute.NetworkAccessPolicyAllowPrivate:
-			diskUpdate.DiskAccessID = utils.String(diskAccessID)
-		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.NetworkAccessPolicyAllowPrivate:
+		case *diskUpdate.Properties.NetworkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
+			diskUpdate.Properties.DiskAccessId = utils.String(diskAccessID)
+		case diskAccessID != "" && *diskUpdate.Properties.NetworkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
-			diskUpdate.DiskAccessID = nil
+			diskUpdate.Properties.DiskAccessId = nil
 		}
 	}
 
 	if d.HasChange("public_network_access_enabled") {
 		if d.Get("public_network_access_enabled").(bool) {
-			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessEnabled
+			networkAccessEnabled := disks.PublicNetworkAccessEnabled
+			diskUpdate.Properties.PublicNetworkAccess = &networkAccessEnabled
 		} else {
-			diskUpdate.PublicNetworkAccess = compute.PublicNetworkAccessDisabled
+			networkAccessDisabled := disks.PublicNetworkAccessDisabled
+			diskUpdate.Properties.PublicNetworkAccess = &networkAccessDisabled
 		}
 	}
 
 	if onDemandBurstingEnabled {
 		switch storageAccountType {
-		case string(compute.StorageAccountTypesPremiumLRS):
-		case string(compute.StorageAccountTypesPremiumZRS):
+		case string(disks.DiskStorageAccountTypesPremiumLRS):
+		case string(disks.DiskStorageAccountTypesPremiumZRS):
 		default:
 			return fmt.Errorf("`on_demand_bursting_enabled` can only be set to true when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 		}
@@ -715,19 +770,19 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("on_demand_bursting_enabled") {
 		shouldShutDown = true
-		diskUpdate.BurstingEnabled = utils.Bool(onDemandBurstingEnabled)
+		diskUpdate.Properties.BurstingEnabled = utils.Bool(onDemandBurstingEnabled)
 	}
 
 	// whilst we need to shut this down, if we're not attached to anything there's no point
-	if shouldShutDown && disk.ManagedBy == nil {
+	if shouldShutDown && disk.Model.ManagedBy == nil {
 		shouldShutDown = false
 	}
 
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
 	if shouldShutDown {
-		virtualMachine, err := parse.VirtualMachineID(*disk.ManagedBy)
+		virtualMachine, err := parse.VirtualMachineID(*disk.Model.ManagedBy)
 		if err != nil {
-			return fmt.Errorf("parsing VMID %q for disk attachment: %+v", *disk.ManagedBy, err)
+			return fmt.Errorf("parsing VMID %q for disk attachment: %+v", *disk.Model.ManagedBy, err)
 		}
 		// check instanceView State
 		vmClient := meta.(*clients.Client).Compute.VMClient
@@ -805,12 +860,9 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		// Update Disk
-		updateFuture, err := client.Update(ctx, resourceGroup, name, diskUpdate)
+		err = client.UpdateThenPoll(ctx, *id, diskUpdate)
 		if err != nil {
 			return fmt.Errorf("updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-		if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
@@ -827,14 +879,9 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			log.Printf("[DEBUG] Started Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
 		}
 	} else { // otherwise, just update it
-		diskFuture, err := client.Update(ctx, resourceGroup, name, diskUpdate)
+		err := client.UpdateThenPoll(ctx, *id, diskUpdate)
 		if err != nil {
 			return fmt.Errorf("expanding managed disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		err = diskFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("waiting for expand operation on managed disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -846,39 +893,41 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedDiskID(d.Id())
+	id, err := disks.ParseDiskID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Disk %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Managed Disk %s (resource group %s): %s", id.DiskName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Managed Disk %s (resource group %s): %s", id.DiskName, id.ResourceGroupName, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
+	d.Set("name", id.DiskName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	zone := ""
-	if resp.Zones != nil && len(*resp.Zones) > 0 {
-		z := *resp.Zones
-		zone = z[0]
-	}
-	d.Set("zone", zone)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("edge_zone", flattenManagedDiskEdgeZone(model.ExtendedLocation))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("storage_account_type", string(sku.Name))
-	}
+		zone := ""
+		if model.Zones != nil && len(*model.Zones) > 0 {
+			z := *model.Zones
+			zone = z[0]
+		}
+		d.Set("zone", zone)
 
-	if props := resp.DiskProperties; props != nil {
-		if creationData := props.CreationData; creationData != nil {
+		if sku := model.Sku; sku != nil {
+			d.Set("storage_account_type", string(*sku.Name))
+		}
+
+		if props := model.Properties; props != nil {
+			creationData := props.CreationData
 			d.Set("create_option", string(creationData.CreateOption))
 			if creationData.LogicalSectorSize != nil {
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
@@ -887,72 +936,76 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
 			galleryImageReferenceId := ""
 			imageReferenceId := ""
-			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.ID != nil {
-				galleryImageReferenceId = *galleryImageReference.ID
-			} else if imageReference := creationData.ImageReference; imageReference != nil && imageReference.ID != nil {
-				imageReferenceId = *imageReference.ID
+			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.Id != nil {
+				galleryImageReferenceId = *galleryImageReference.Id
+			} else if imageReference := creationData.ImageReference; imageReference != nil && imageReference.Id != nil {
+				imageReferenceId = *imageReference.Id
 			}
 			d.Set("gallery_image_reference_id", galleryImageReferenceId)
 			d.Set("image_reference_id", imageReferenceId)
 
-			d.Set("source_resource_id", creationData.SourceResourceID)
-			d.Set("source_uri", creationData.SourceURI)
-			d.Set("storage_account_id", creationData.StorageAccountID)
-		}
+			d.Set("source_resource_id", creationData.SourceResourceId)
+			d.Set("source_uri", creationData.SourceUri)
+			d.Set("storage_account_id", creationData.StorageAccountId)
 
-		d.Set("disk_size_gb", props.DiskSizeGB)
-		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
-		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
-		d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
-		d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
-		d.Set("os_type", props.OsType)
-		d.Set("tier", props.Tier)
-		d.Set("max_shares", props.MaxShares)
-		d.Set("hyper_v_generation", props.HyperVGeneration)
+			d.Set("disk_size_gb", props.DiskSizeGB)
+			d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
+			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+			d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
+			d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
+			d.Set("os_type", props.OsType)
+			d.Set("tier", props.Tier)
+			d.Set("max_shares", props.MaxShares)
+			d.Set("hyper_v_generation", props.HyperVGeneration)
 
-		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.NetworkAccessPolicyAllowAll {
-			d.Set("network_access_policy", props.NetworkAccessPolicy)
-		}
-		d.Set("disk_access_id", props.DiskAccessID)
+			if networkAccessPolicy := props.NetworkAccessPolicy; *networkAccessPolicy != disks.NetworkAccessPolicyAllowAll {
+				d.Set("network_access_policy", props.NetworkAccessPolicy)
+			}
+			d.Set("disk_access_id", props.DiskAccessId)
 
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == compute.PublicNetworkAccessEnabled)
+			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == disks.PublicNetworkAccessEnabled)
 
-		diskEncryptionSetId := ""
-		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
-			diskEncryptionSetId = *props.Encryption.DiskEncryptionSetID
-		}
-		d.Set("disk_encryption_set_id", diskEncryptionSetId)
+			diskEncryptionSetId := ""
+			if props.Encryption != nil && props.Encryption.DiskEncryptionSetId != nil {
+				diskEncryptionSetId = *props.Encryption.DiskEncryptionSetId
+			}
+			d.Set("disk_encryption_set_id", diskEncryptionSetId)
 
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
-			return fmt.Errorf("setting `encryption_settings`: %+v", err)
-		}
-
-		trustedLaunchEnabled := false
-		securityType := ""
-		secureVMDiskEncryptionSetId := ""
-		if securityProfile := props.SecurityProfile; securityProfile != nil {
-			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
-				trustedLaunchEnabled = true
-			} else {
-				securityType = string(securityProfile.SecurityType)
+			if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+				return fmt.Errorf("setting `encryption_settings`: %+v", err)
 			}
 
-			if securityProfile.SecureVMDiskEncryptionSetID != nil {
-				secureVMDiskEncryptionSetId = *securityProfile.SecureVMDiskEncryptionSetID
-			}
-		}
-		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
-		d.Set("security_type", securityType)
-		d.Set("secure_vm_disk_encryption_set_id", secureVMDiskEncryptionSetId)
+			trustedLaunchEnabled := false
+			securityType := ""
+			secureVMDiskEncryptionSetId := ""
+			if securityProfile := props.SecurityProfile; securityProfile != nil {
+				if *securityProfile.SecurityType == disks.DiskSecurityTypesTrustedLaunch {
+					trustedLaunchEnabled = true
+				} else {
+					securityType = string(*securityProfile.SecurityType)
+				}
 
-		onDemandBurstingEnabled := false
-		if props.BurstingEnabled != nil {
-			onDemandBurstingEnabled = *props.BurstingEnabled
+				if securityProfile.SecureVMDiskEncryptionSetId != nil {
+					secureVMDiskEncryptionSetId = *securityProfile.SecureVMDiskEncryptionSetId
+				}
+			}
+			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+			d.Set("security_type", securityType)
+			d.Set("secure_vm_disk_encryption_set_id", secureVMDiskEncryptionSetId)
+
+			onDemandBurstingEnabled := false
+			if props.BurstingEnabled != nil {
+				onDemandBurstingEnabled = *props.BurstingEnabled
+			}
+			d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
 		}
-		d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -960,18 +1013,14 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedDiskID(d.Id())
+	id, err := disks.ParseDiskID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.DiskName)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroupName, err)
 	}
 
 	return nil

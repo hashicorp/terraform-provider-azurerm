@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse workspace to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all extended auditing logs.
+* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
 
 * `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
 

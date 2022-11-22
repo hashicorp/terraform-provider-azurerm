@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceSharedImage() *pluginsdk.Resource {
@@ -56,9 +57,9 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"architecture": {
 				Type:     pluginsdk.TypeString,
@@ -121,19 +122,19 @@ func resourceSharedImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Required:     true,
-							ValidateFunc: validate.SharedImageIdentifierAttribute,
+							ValidateFunc: validate.SharedImageIdentifierAttribute(128),
 						},
 						"offer": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Required:     true,
-							ValidateFunc: validate.SharedImageIdentifierAttribute,
+							ValidateFunc: validate.SharedImageIdentifierAttribute(64),
 						},
 						"sku": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Required:     true,
-							ValidateFunc: validate.SharedImageIdentifierAttribute,
+							ValidateFunc: validate.SharedImageIdentifierAttribute(64),
 						},
 					},
 				},

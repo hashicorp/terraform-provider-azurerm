@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,9 +55,14 @@ func resourceLogAnalyticsCluster() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 			"size_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1000,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Default: func() int {
+					if !features.FourPointOh() {
+						return 1000
+					}
+					return 500
+				}(),
 				ValidateFunc: validation.IntInSlice([]int{500, 1000, 2000, 5000}),
 			},
 
@@ -80,7 +86,7 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
@@ -149,21 +155,13 @@ func resourceLogAnalyticsClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
-		if err := identity.FlattenSystemAssigned(model.Identity); err != nil {
+		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 		if props := model.Properties; props != nil {
-			clusterId := ""
-			if props.ClusterId != nil {
-				parsedId, err := clusters.ParseClusterID(*props.ClusterId)
-				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *props.ClusterId, err)
-				}
-				clusterId = parsedId.ID()
-			}
-			d.Set("cluster_id", clusterId)
-		}
+			d.Set("cluster_id", props.ClusterId)
 
+		}
 		capacity := 0
 		if sku := model.Sku; sku != nil {
 			if sku.Capacity != nil {

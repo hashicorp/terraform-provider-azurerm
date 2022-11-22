@@ -86,7 +86,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
   }
 }
 
-resource "azurerm_monitor_data_collection_endpoint" "test" {
+resource "azurerm_monitor_data_collection_endpoint" "example" {
   name                = "example-dce"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -101,7 +101,7 @@ resource "azurerm_monitor_data_collection_rule_association" "example1" {
 }
 
 # associate to a Data Collection Endpoint
-resource "azurerm_monitor_data_collection_rule_association" "example1" {
+resource "azurerm_monitor_data_collection_rule_association" "example2" {
   target_resource_id          = azurerm_linux_virtual_machine.example.id
   data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.example.id
   description                 = "example"
@@ -124,7 +124,7 @@ The following arguments are supported:
 * `data_collection_endpoint_id` - (Optional) The ID of the Data Collection Endpoint which will be associated to the target resource.
 
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule which will be associated to the target resource.
- 
+
 -> **NOTE** Exactly one of `data_collection_endpoint_id` and `data_collection_rule_id` blocks must be specified.
 
 * `description` - (Optional) The description of the Data Collection Rule Association.

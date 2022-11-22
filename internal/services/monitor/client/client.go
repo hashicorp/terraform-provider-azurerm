@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
@@ -24,10 +25,12 @@ type Client struct {
 
 	// alerts management
 	ActionRulesClient             *alertsmanagement.ActionRulesClient
+	AlertProcessingRulesClient    *alertprocessingrules.AlertProcessingRulesClient
 	SmartDetectorAlertRulesClient *alertsmanagement.SmartDetectorAlertRulesClient
 
 	// Monitor
 	ActionGroupsClient                   *newActionGroupClient.ActionGroupsClient
+	ActivityLogsClient                   *classic.ActivityLogsClient
 	ActivityLogAlertsClient              *insights.ActivityLogAlertsClient
 	AlertRulesClient                     *classic.AlertRulesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
@@ -53,11 +56,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	ActionRulesClient := alertsmanagement.NewActionRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActionRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	AlertProcessingRulesClient := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&AlertProcessingRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	SmartDetectorAlertRulesClient := alertsmanagement.NewSmartDetectorAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SmartDetectorAlertRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	ActionGroupsClient := newActionGroupClient.NewActionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	activityLogsClient := classic.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&activityLogsClient.Client, o.ResourceManagerAuthorizer)
 
 	ActivityLogAlertsClient := insights.NewActivityLogAlertsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActivityLogAlertsClient.Client, o.ResourceManagerAuthorizer)
@@ -104,8 +113,10 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionRulesClient:                    &ActionRulesClient,
 		SmartDetectorAlertRulesClient:        &SmartDetectorAlertRulesClient,
 		ActionGroupsClient:                   &ActionGroupsClient,
+		ActivityLogsClient:                   &activityLogsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
 		AlertRulesClient:                     &AlertRulesClient,
+		AlertProcessingRulesClient:           &AlertProcessingRulesClient,
 		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
 		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,
 		DataCollectionRulesClient:            &DataCollectionRulesClient,

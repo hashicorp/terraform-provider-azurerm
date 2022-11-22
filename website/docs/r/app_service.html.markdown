@@ -173,7 +173,7 @@ An `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `sas_url` - (Required) The URL to the storage container with a shared access signature token appended. 
+* `sas_url` - (Required) The URL to the storage container with a shared access signature token appended.
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
@@ -255,7 +255,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
+* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2017` and `VS2019`.
 
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
@@ -268,7 +268,6 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 ~> **NOTE:** This setting supersedes the previous mechanism of setting the `app_settings` value of `WEBSITE_VNET_ROUTE_ALL`. However, to prevent older configurations breaking Terraform will update this value if it not explicitly set to the value in `app_settings.WEBSITE_VNET_ROUTE_ALL`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
-
 
 ---
 
@@ -298,7 +297,7 @@ A `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
@@ -330,7 +329,7 @@ A `facebook` block supports the following:
 
 * `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. https://developers.facebook.com/docs/facebook-login
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. <https://developers.facebook.com/docs/facebook-login>
 
 ---
 
@@ -340,7 +339,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Required) The client secret associated with the Google web application.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. https://developers.google.com/identity/sign-in/web/
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. <https://developers.google.com/identity/sign-in/web/>
 
 ---
 
@@ -402,7 +401,7 @@ A `microsoft` block supports the following:
 
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. <https://msdn.microsoft.com/en-us/library/dn631845.aspx>
 
 ---
 
@@ -436,13 +435,13 @@ A `source_control` block supports the following:
 
 * `repo_url` - (Required) The URL of the source code repository.
 
-* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'. 
+* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'.
 
-* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified. 
+* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified.
 
 * `rollback_enabled` - (Optional) Enable roll-back for the repository. Defaults to `false` if not specified.
 
-* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git. 
+* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git.
 
 ## Attributes Reference
 

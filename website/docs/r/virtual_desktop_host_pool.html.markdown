@@ -56,10 +56,9 @@ The following arguments are supported:
 * `location` - (Required) The location/region where the Virtual Desktop Host Pool is
     located. Changing the location/region forces a new resource to be created.
 
-* `type` - (Required) The type of the Virtual Desktop Host Pool. Valid options are
-    `Personal` or `Pooled`. Changing the type forces a new resource to be created.
+* `type` - (Required) The type of the Virtual Desktop Host Pool. Valid options are `Personal` or `Pooled`. Changing the type forces a new resource to be created.
 
-* `load_balancer_type` -  (Optional) `BreadthFirst` load balancing distributes new user sessions across all available session hosts in the host pool.
+* `load_balancer_type` -  (Optional) `BreadthFirst` load balancing distributes new user sessions across all available session hosts in the host pool. Possible values are `BreadthFirst`, `DepthFirst` and `Persistent`.
     `DepthFirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
     `Persistent` should be used if the host pool type is `Personal`
 
@@ -67,13 +66,13 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Desktop Host Pool.
 
-* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.  
+* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
 
-* `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.    
+* `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.
 
 * `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/windows-server/remote/remote-desktop-services/clients/rdp-files).
 
-* `personal_desktop_assignment_type` - (Optional) `Automatic` assignment – The service will select an available host and assign it to an user.
+* `personal_desktop_assignment_type` - (Optional) `Automatic` assignment – The service will select an available host and assign it to an user. Possible values are `Automatic` and `Direct`.
     `Direct` Assignment – Admin selects a specific host to assign to an user.
 
 ~> **NOTE:** `personal_desktop_assignment_type` is required if the `type` of your Virtual Desktop Host Pool is `Personal`
@@ -81,8 +80,7 @@ The following arguments are supported:
 * `maximum_sessions_allowed` - (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host.
     Should only be set if the `type` of your Virtual Desktop Host Pool is `Pooled`.
 
-* `preferred_app_group_type` - (Optional) Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.
-    Valid options are `None`, `Desktop` or `RailApplications`. Default is `None`.
+* `preferred_app_group_type` - (Optional) Option to specify the preferred Application Group type for the Virtual Desktop Host Pool. Valid options are `None`, `Desktop` or `RailApplications`. Default is `None`.
 
 * `scheduled_agent_updates` - (Optional) A `scheduled_agent_updates` block as defined below. This enables control of when Agent Updates will be applied to Session Hosts.
 
@@ -98,7 +96,7 @@ A `scheduled_agent_updates` block supports the following:
 
 * `timezone` - (Optional) Specifies the time zone in which the agent update schedule will apply, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). If `use_session_host_timezone` is enabled then it will override this setting. Default is `UTC`
 * `use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `timezone`. Default is `false`.
-* `schedule` - (Optional) A `schedule` block as defined below. A maximum of two blocks can be added. 
+* `schedule` - (Optional) A `schedule` block as defined below. A maximum of two blocks can be added.
 
 ---
 ---
@@ -109,7 +107,6 @@ A `schedule` block supports the following:
 * `hour_of_day` - (Required) The hour of day the update window should start. The update is a 2 hour period following the hour provided. The value should be provided as a number between 0 and 23, with 0 being midnight and 23 being 11pm. A leading zero should not be used.
 
 ---
-
 
 ## Attributes Reference
 
@@ -126,11 +123,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Desktop Host Pool.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Desktop Host Pool.
 
-
 ## Import
 
 Virtual Desktop Host Pools can be imported using the `resource id`, e.g.
 
-```
+```text
 terraform import azurerm_virtual_desktop_host_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/hostpools/myhostpool
 ```

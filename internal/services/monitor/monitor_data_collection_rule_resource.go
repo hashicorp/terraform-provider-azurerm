@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -66,6 +67,7 @@ type Syslog struct {
 	FacilityNames []string `tfschema:"facility_names"`
 	LogLevels     []string `tfschema:"log_levels"`
 	Name          string   `tfschema:"name"`
+	Streams       []string `tfschema:"streams"`
 }
 
 type WindowsEventLog struct {
@@ -118,9 +120,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 						Required: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(
-								datacollectionrules.PossibleValuesForKnownDataFlowStreams(), false),
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -198,10 +199,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice(
-											datacollectionrules.PossibleValuesForKnownExtensionDataSourceStreams(),
-											false),
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 								"extension_json": {
@@ -241,10 +240,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice(
-											datacollectionrules.PossibleValuesForKnownPerfCounterDataSourceStreams(),
-											false),
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 								"counter_specifiers": {
@@ -290,6 +287,17 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 											datacollectionrules.PossibleValuesForKnownSyslogDataSourceLogLevels(), false),
 									},
 								},
+								"streams": {
+									Type:     pluginsdk.TypeList,
+									Optional: !features.FourPointOhBeta(),
+									Computed: !features.FourPointOhBeta(),
+									Required: features.FourPointOhBeta(),
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
 							},
 						},
 					},
@@ -308,10 +316,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice(
-											datacollectionrules.PossibleValuesForKnownWindowsEventLogDataSourceStreams(),
-											false),
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 								"x_path_queries": {
@@ -692,8 +698,23 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 			FacilityNames: expandDataCollectionRuleDataSourceSyslogFacilityNames(v.FacilityNames),
 			LogLevels:     expandDataCollectionRuleDataSourceSyslogLogLevels(v.LogLevels),
 			Name:          utils.String(v.Name),
-			Streams:       &[]datacollectionrules.KnownSyslogDataSourceStreams{datacollectionrules.KnownSyslogDataSourceStreamsMicrosoftNegativeSyslog},
+			Streams:       expandDataCollectionRuleDataSourceSyslogStreams(v.Streams),
 		})
+	}
+	return &result
+}
+
+func expandDataCollectionRuleDataSourceSyslogStreams(input []string) *[]datacollectionrules.KnownSyslogDataSourceStreams {
+	if len(input) == 0 {
+		if !features.FourPointOhBeta() {
+			return &[]datacollectionrules.KnownSyslogDataSourceStreams{datacollectionrules.KnownSyslogDataSourceStreamsMicrosoftNegativeSyslog}
+		}
+		return nil
+	}
+
+	result := make([]datacollectionrules.KnownSyslogDataSourceStreams, 0)
+	for _, v := range input {
+		result = append(result, datacollectionrules.KnownSyslogDataSourceStreams(v))
 	}
 	return &result
 }
@@ -922,6 +943,7 @@ func flattenDataCollectionRuleDataSourceSyslog(input *[]datacollectionrules.Sysl
 			Name:          flattenStringPtr(v.Name),
 			FacilityNames: flattenDataCollectionRuleDataSourceSyslogFacilityNames(v.FacilityNames),
 			LogLevels:     flattenDataCollectionRuleDataSourceSyslogLogLevels(v.LogLevels),
+			Streams:       flattenDataCollectionRuleSyslogStreams(v.Streams),
 		})
 	}
 	return result
@@ -940,6 +962,18 @@ func flattenDataCollectionRuleDataSourceSyslogFacilityNames(input *[]datacollect
 }
 
 func flattenDataCollectionRuleDataSourceSyslogLogLevels(input *[]datacollectionrules.KnownSyslogDataSourceLogLevels) []string {
+	if input == nil {
+		return make([]string, 0)
+	}
+
+	result := make([]string, 0)
+	for _, v := range *input {
+		result = append(result, string(v))
+	}
+	return result
+}
+
+func flattenDataCollectionRuleSyslogStreams(input *[]datacollectionrules.KnownSyslogDataSourceStreams) []string {
 	if input == nil {
 		return make([]string, 0)
 	}

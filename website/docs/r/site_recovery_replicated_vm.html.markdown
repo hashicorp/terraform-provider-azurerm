@@ -254,7 +254,7 @@ The following arguments are supported:
 
 * `target_virtual_machine_scale_set_id` - (Optional) Id of the Virtual Machine Scale Set which the new Vm should belong to when a failover is done.
 
-* `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover). 
+* `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
 * `target_subnet_name` - (Optional) Name of subnet when a failover is done.
 
@@ -272,9 +272,9 @@ A `managed_disk` block supports the following:
 
 * `target_resource_group_id` - (Required) Resource group disk should belong to when a failover is done.
 
-* `target_disk_type` - (Required) What type should the disk be when a failover is done.
+* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`.
 
-* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data.
+* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`.
 
 * `target_disk_encryption_set_id` - (Optional)  The Disk Encryption Set that the Managed Disk will be associated with.
 

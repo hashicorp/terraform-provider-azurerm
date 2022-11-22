@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `spring_cloud_app_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Container Deployment to be created.
 
-* `image` - (Required) Container image of the custom container. This should be in the form of <repository>:<tag> without the server name of the registry.
+* `image` - (Required) Container image of the custom container. This should be in the form of `<repository>:<tag>` without the server name of the registry.
 
 * `server` - (Required) The name of the registry that contains the container image.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
-* `language_framework` - (Optional) Specifies the language framework of the container image.
+* `language_framework` - (Optional) Specifies the language framework of the container image. The only possible value is `springboot`.
 
 * `quota` - (Optional) A `quota` block as defined below.
 
@@ -93,7 +93,7 @@ A `quota` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Container Deployment.
 

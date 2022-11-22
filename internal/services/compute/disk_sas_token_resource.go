@@ -1,18 +1,30 @@
 package compute
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+type Result struct {
+	Properties Properties `tfschema:"properties"`
+}
+
+type Properties struct {
+	Output Output `tfschema:"output"`
+}
+
+type Output struct {
+	AccessSAS string `tfschema:"accessSAS"`
+}
 
 func resourceManagedDiskSasToken() *pluginsdk.Resource {
 
@@ -28,7 +40,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedDiskID(id)
+			_, err := disks.ParseDiskID(id)
 			return err
 		}),
 
@@ -37,7 +49,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedDiskID,
+				ValidateFunc: disks.ValidateDiskID,
 			},
 
 			// unable to provide upper value of 4294967295 as it's not comptabile with 32-bit (overflow errors)
@@ -53,8 +65,8 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AccessLevelRead),
-					string(compute.AccessLevelWrite),
+					string(disks.AccessLevelRead),
+					string(disks.AccessLevelWrite),
 				}, false),
 			},
 
@@ -74,47 +86,60 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Disk Export.")
-	durationInSeconds := int32(d.Get("duration_in_seconds").(int))
-	access := compute.AccessLevel(d.Get("access_level").(string))
+	durationInSeconds := int64(d.Get("duration_in_seconds").(int))
+	access := disks.AccessLevel(d.Get("access_level").(string))
 
-	diskId, err := parse.ManagedDiskID(d.Get("managed_disk_id").(string))
+	diskId, err := disks.ParseDiskID(d.Get("managed_disk_id").(string))
 	if err != nil {
 		return err
 	}
 
-	grantAccessData := compute.GrantAccessData{
+	grantAccessData := disks.GrantAccessData{
 		Access:            access,
-		DurationInSeconds: &durationInSeconds,
+		DurationInSeconds: durationInSeconds,
 	}
 
-	resp, err := client.Get(ctx, diskId.ResourceGroup, diskId.DiskName)
+	resp, err := client.Get(ctx, *diskId)
 	if err != nil {
 		return fmt.Errorf("error retrieving Disk %s: %+v", *diskId, err)
 	}
 
-	// checking whether disk export SAS URL is active already before creating. If yes, we raise an error
-	if resp.DiskState == "ActiveSAS" {
-		return fmt.Errorf("active SAS Token for Disk Export already exists, cannot create another one %s: %+v", *diskId, err)
-	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// checking whether disk export SAS URL is active already before creating. If yes, we raise an error
+			if string(*props.DiskState) == "ActiveSAS" {
+				return fmt.Errorf("active SAS Token for Disk Export already exists, cannot create another one %s: %+v", *diskId, err)
+			}
 
-	future, err := client.GrantAccess(ctx, diskId.ResourceGroup, diskId.DiskName, grantAccessData)
-	if err != nil {
-		return fmt.Errorf("granting access to %s: %+v", *diskId, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for access to be granted to %s: %+v", *diskId, err)
-	}
-	read, err := future.Result(*client)
-	if err != nil {
-		return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
-	}
-	if read.AccessSAS == nil {
-		return fmt.Errorf("retrieving SAS Token for Disk Access %s: SAS was nil", *diskId)
-	}
+			future, err := client.GrantAccess(ctx, *diskId, grantAccessData)
+			if err != nil {
+				return fmt.Errorf("granting access to %s: %+v", *diskId, err)
+			}
 
-	d.SetId(diskId.ID())
-	sasToken := *read.AccessSAS
-	d.Set("sas_url", sasToken)
+			if err := future.Poller.PollUntilDone(); err != nil {
+				return fmt.Errorf("waiting for access to be granted to %s: %+v", *diskId, err)
+			}
+
+			buf := new(bytes.Buffer)
+			_, err = buf.ReadFrom(future.Poller.HttpResponse.Body)
+			if err != nil {
+				return err
+			}
+
+			var result Result
+			err = json.Unmarshal([]byte(buf.String()), &result)
+			if err != nil {
+				return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
+			}
+			if result.Properties.Output.AccessSAS == "" {
+				return fmt.Errorf("retrieving SAS Token for Disk Access %s: SAS was nil", *diskId)
+			}
+
+			d.SetId(diskId.ID())
+			sasToken := result.Properties.Output.AccessSAS
+			d.Set("sas_url", sasToken)
+		}
+	}
 
 	return resourceManagedDiskSasTokenRead(d, meta)
 
@@ -125,20 +150,20 @@ func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diskId, err := parse.ManagedDiskID(d.Id())
+	diskId, err := disks.ParseDiskID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, diskId.ResourceGroup, diskId.DiskName)
+	resp, err := client.Get(ctx, *diskId)
 	if err != nil {
 		// checking whether disk export SAS URL is active post creation. If no, we raise an error
-		if resp.DiskState != "ActiveSAS" {
+		if string(*resp.Model.Properties.DiskState) != "ActiveSAS" {
 			log.Printf("[INFO] Disk SAS token %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Disk Export for SAS Token %s (resource group %s): %s", diskId.DiskName, diskId.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Disk Export for SAS Token %s (resource group %s): %s", diskId.DiskName, diskId.ResourceGroupName, err)
 	}
 
 	d.SetId(diskId.ID())
@@ -151,18 +176,14 @@ func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedDiskID(d.Id())
+	id, err := disks.ParseDiskID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.RevokeAccess(ctx, id.ResourceGroup, id.DiskName)
+	err = client.RevokeAccessThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("revoking access to %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for revocation of access to %s: %+v", *id, err)
 	}
 
 	return nil

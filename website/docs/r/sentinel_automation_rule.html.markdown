@@ -100,7 +100,7 @@ A `action_incident` block supports the following:
 
 * `owner_id` - (Optional) The object ID of the entity this incident is assigned to.
 
-* `severity` - (Optional) The severity to add to the incident.
+* `severity` - (Optional) The severity to add to the incident. Possible values are `High`, `Informational`, `Low` and `Medium`.
 
 ~> **Note:**: At least one of `status`, `labels`, `owner_id` and `severity` has to be set.
 
@@ -126,7 +126,7 @@ A `condition` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Sentinel Automation Rule.
 

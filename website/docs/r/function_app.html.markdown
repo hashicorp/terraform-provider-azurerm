@@ -52,6 +52,7 @@ resource "azurerm_function_app" "example" {
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
+
 ## Example Usage (in a Consumption Plan)
 
 ```hcl
@@ -89,6 +90,7 @@ resource "azurerm_function_app" "example" {
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
+
 ## Example Usage (Linux)
 
 ```hcl
@@ -129,6 +131,7 @@ resource "azurerm_function_app" "example" {
   version                    = "~3"
 }
 ```
+
 ~> **Note:** Version `~3` or `~4` is required for Linux Function Apps.
 
 ## Example Usage (Python in a Consumption Plan)
@@ -185,6 +188,7 @@ resource "azurerm_function_app" "example" {
   }
 }
 ```
+
 ~> **Note:** The Python runtime is only supported on a Linux based hosting plan.  See [the documentation for additional information](https://docs.microsoft.com/azure/azure-functions/functions-reference-python).
 
 ## Argument Reference
@@ -221,7 +225,7 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
 
-* `os_type` - (Optional) A string indicating the Operating System type for this function app. 
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. Possible values are `linux` and ``(empty string).
 
 ~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "Linux"` and `reserved = true`
 
@@ -275,7 +279,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11`.
+* `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11` & `17` (In-Preview).
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
@@ -291,7 +295,7 @@ The following arguments are supported:
 
 * `scm_type` - (Optional) The type of Source Control used by the Function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (default), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
-~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided. 
+~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided.
 
 * `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to false.  
 
@@ -345,7 +349,7 @@ An `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
@@ -377,7 +381,7 @@ A `facebook` block supports the following:
 
 * `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. https://developers.facebook.com/docs/facebook-login
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. <https://developers.facebook.com/docs/facebook-login>
 
 ---
 
@@ -387,7 +391,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Required) The client secret associated with the Google web application.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. https://developers.google.com/identity/sign-in/web/
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. <https://developers.google.com/identity/sign-in/web/>
 
 ---
 
@@ -397,7 +401,7 @@ A `microsoft` block supports the following:
 
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. <https://msdn.microsoft.com/en-us/library/dn631845.aspx>
 
 ---
 
@@ -459,20 +463,19 @@ A `headers` block supports the following:
 
 * `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
 
-
 ---
 
 A `source_control` block supports the following:
 
 * `repo_url` - (Required) The URL of the source code repository.
 
-* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'. 
+* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'.
 
-* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified. 
+* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified.
 
 * `rollback_enabled` - (Optional) Enable roll-back for the repository. Defaults to `false` if not specified.
 
-* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git. 
+* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git.
 
 ## Attributes Reference
 
@@ -480,7 +483,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Function App
 
-* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record. 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 

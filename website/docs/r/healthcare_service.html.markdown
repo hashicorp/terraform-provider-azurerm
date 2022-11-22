@@ -72,8 +72,8 @@ The following arguments are supported:
 An `authentication_configuration` supports the following:
 
 * `authority` - (Optional) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
-Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
-* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is https://azurehealthcareapis.com
+Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
+* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is <https://azurehealthcareapis.com>
 * `smart_proxy_enabled` - (Boolean) Enables the 'SMART on FHIR' option for mobile and web implementations.
 
 ---
@@ -81,7 +81,7 @@ A `cors_configuration` block supports the following:
 
 * `allowed_origins` - (Required) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.
-* `allowed_methods` - (Required) The methods to be allowed via CORS.
+* `allowed_methods` - (Required) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
 * `max_age_in_seconds` - (Required) The max age to be allowed via CORS.
 * `allow_credentials` - (Boolean) If credentials are allowed via CORS.
 
@@ -92,8 +92,6 @@ The following attributes are exported:
 * `id` - The ID of the Healthcare Service.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

@@ -330,6 +330,9 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
 
+	if configs[0] == nil {
+		return nil, fmt.Errorf("at least one property must not be empty in the `correlation_filter` block")
+	}
 	config := configs[0].(map[string]interface{})
 
 	contentType := config["content_type"].(string)
