@@ -15,22 +15,20 @@ import (
 )
 
 type RouteMapModel struct {
-	Name                          string   `tfschema:"name"`
-	VirtualHubId                  string   `tfschema:"virtual_hub_id"`
-	AssociatedInboundConnections  []string `tfschema:"associated_inbound_connections"`
-	AssociatedOutboundConnections []string `tfschema:"associated_outbound_connections"`
-	Rules                         []Rule   `tfschema:"rules"`
+	Name         string `tfschema:"name"`
+	VirtualHubId string `tfschema:"virtual_hub_id"`
+	Rules        []Rule `tfschema:"rule"`
 }
 
 type Rule struct {
-	Actions           []Action         `tfschema:"actions"`
-	MatchCriteria     []Criterion      `tfschema:"match_criteria"`
+	Actions           []Action         `tfschema:"action"`
+	MatchCriteria     []Criterion      `tfschema:"match_criterion"`
 	Name              string           `tfschema:"name"`
 	NextStepIfMatched network.NextStep `tfschema:"next_step_if_matched"`
 }
 
 type Action struct {
-	Parameters []Parameter                `tfschema:"parameters"`
+	Parameters []Parameter                `tfschema:"parameter"`
 	Type       network.RouteMapActionType `tfschema:"type"`
 }
 
@@ -79,37 +77,25 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.VirtualHubID,
 		},
 
-		"associated_inbound_connections": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
-
-		"associated_outbound_connections": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
-
-		"rules": {
+		"rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"actions": {
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"action": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"parameters": {
+								"parameter": {
 									Type:     pluginsdk.TypeList,
-									Optional: true,
+									Required: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"as_path": {
@@ -144,24 +130,36 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 
 								"type": {
 									Type:     pluginsdk.TypeString,
-									Optional: true,
+									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(network.RouteMapActionTypeReplace),
-										string(network.RouteMapActionTypeDrop),
-										string(network.RouteMapActionTypeUnknown),
-										string(network.RouteMapActionTypeRemove),
 										string(network.RouteMapActionTypeAdd),
+										string(network.RouteMapActionTypeDrop),
+										string(network.RouteMapActionTypeRemove),
+										string(network.RouteMapActionTypeReplace),
+										string(network.RouteMapActionTypeUnknown),
 									}, false),
 								},
 							},
 						},
 					},
 
-					"match_criteria": {
+					"match_criterion": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"match_condition": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.RouteMapMatchConditionContains),
+										string(network.RouteMapMatchConditionEquals),
+										string(network.RouteMapMatchConditionNotContains),
+										string(network.RouteMapMatchConditionNotEquals),
+										string(network.RouteMapMatchConditionUnknown),
+									}, false),
+								},
+
 								"as_path": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -180,18 +178,6 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 
-								"match_condition": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(network.RouteMapMatchConditionEquals),
-										string(network.RouteMapMatchConditionNotContains),
-										string(network.RouteMapMatchConditionNotEquals),
-										string(network.RouteMapMatchConditionUnknown),
-										string(network.RouteMapMatchConditionContains),
-									}, false),
-								},
-
 								"route_prefix": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -204,15 +190,10 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"next_step_if_matched": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						Default:  string(network.NextStepUnknown),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(network.NextStepUnknown),
 							string(network.NextStepContinue),
@@ -254,10 +235,7 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 			}
 
 			props := &network.RouteMap{
-				RouteMapProperties: &network.RouteMapProperties{
-					AssociatedInboundConnections:  &model.AssociatedInboundConnections,
-					AssociatedOutboundConnections: &model.AssociatedOutboundConnections,
-				},
+				RouteMapProperties: &network.RouteMapProperties{},
 			}
 
 			rules, err := expandRules(model.Rules)
@@ -302,15 +280,7 @@ func (r RouteMapResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if metadata.ResourceData.HasChange("associated_inbound_connections") {
-				existing.RouteMapProperties.AssociatedInboundConnections = &model.AssociatedInboundConnections
-			}
-
-			if metadata.ResourceData.HasChange("associated_outbound_connections") {
-				existing.RouteMapProperties.AssociatedOutboundConnections = &model.AssociatedOutboundConnections
-			}
-
-			if metadata.ResourceData.HasChange("rules") {
+			if metadata.ResourceData.HasChange("rule") {
 				rules, err := expandRules(model.Rules)
 				if err != nil {
 					return err
@@ -358,14 +328,6 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := resp.RouteMapProperties; props != nil {
-				if props.AssociatedInboundConnections != nil {
-					state.AssociatedInboundConnections = *props.AssociatedInboundConnections
-				}
-
-				if props.AssociatedOutboundConnections != nil {
-					state.AssociatedOutboundConnections = *props.AssociatedOutboundConnections
-				}
-
 				rules, err := flattenRules(props.Rules)
 				if err != nil {
 					return err
@@ -408,7 +370,7 @@ func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
 
 	for _, v := range input {
 		rule := network.RouteMapRule{
-			NextStepIfMatched: v.NextStepIfMatched,
+			Name: &v.Name,
 		}
 
 		actions, err := expandActions(v.Actions)
@@ -417,14 +379,14 @@ func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
 		}
 		rule.Actions = actions
 
-		matchCriteria, err := expandCriterions(v.MatchCriteria)
+		matchCriteria, err := expandCriteria(v.MatchCriteria)
 		if err != nil {
 			return nil, err
 		}
 		rule.MatchCriteria = matchCriteria
 
-		if v.Name != "" {
-			rule.Name = &v.Name
+		if v.NextStepIfMatched != "" {
+			rule.NextStepIfMatched = v.NextStepIfMatched
 		}
 
 		rules = append(rules, rule)
@@ -469,8 +431,8 @@ func expandParameters(input []Parameter) (*[]network.Parameter, error) {
 	return &paramters, nil
 }
 
-func expandCriterions(input []Criterion) (*[]network.Criterion, error) {
-	var criterions []network.Criterion
+func expandCriteria(input []Criterion) (*[]network.Criterion, error) {
+	var criteria []network.Criterion
 
 	for _, v := range input {
 		criterion := network.Criterion{
@@ -480,10 +442,10 @@ func expandCriterions(input []Criterion) (*[]network.Criterion, error) {
 			RoutePrefix:    &v.RoutePrefix,
 		}
 
-		criterions = append(criterions, criterion)
+		criteria = append(criteria, criterion)
 	}
 
-	return &criterions, nil
+	return &criteria, nil
 }
 
 func flattenRules(input *[]network.RouteMapRule) ([]Rule, error) {
@@ -501,7 +463,7 @@ func flattenRules(input *[]network.RouteMapRule) ([]Rule, error) {
 		}
 		rule.Actions = actions
 
-		matchCriteria, err := flattenCriterions(v.MatchCriteria)
+		matchCriteria, err := flattenCriteria(v.MatchCriteria)
 		if err != nil {
 			return nil, err
 		}
@@ -573,10 +535,10 @@ func flattenParameters(input *[]network.Parameter) ([]Parameter, error) {
 	return parameters, nil
 }
 
-func flattenCriterions(input *[]network.Criterion) ([]Criterion, error) {
-	var criterions []Criterion
+func flattenCriteria(input *[]network.Criterion) ([]Criterion, error) {
+	var criteria []Criterion
 	if input == nil {
-		return criterions, nil
+		return criteria, nil
 	}
 
 	for _, v := range *input {
@@ -598,8 +560,8 @@ func flattenCriterions(input *[]network.Criterion) ([]Criterion, error) {
 			criterion.RoutePrefix = *v.RoutePrefix
 		}
 
-		criterions = append(criterions, criterion)
+		criteria = append(criteria, criterion)
 	}
 
-	return criterions, nil
+	return criteria, nil
 }
