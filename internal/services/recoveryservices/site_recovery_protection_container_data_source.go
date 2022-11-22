@@ -2,12 +2,11 @@ package recoveryservices
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotectioncontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,7 +60,7 @@ func dataSourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("making Read request on site recovery protection container %s : %+v", id.String(), err)
 	}
 
-	d.SetId(strings.Replace(id.ID(), "Subscriptions", "subscriptions", 1))
+	d.SetId(handleAzureSdkForGoBug2824(id.ID()))
 	d.Set("name", id.ProtectionContainerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.ResourceName)

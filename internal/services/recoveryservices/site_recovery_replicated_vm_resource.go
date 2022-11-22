@@ -8,12 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -334,6 +332,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient
+
 	name := d.Get("name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
 	sourceVmId := d.Get("source_vm_id").(string)
@@ -420,17 +419,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("creating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving replicated vm %s (vault %s): %+v", name, vaultName, err)
-	}
-
-	model := resp.Model
-	if model == nil {
-		return fmt.Errorf("retrieving replicated vm %s (vault %s): model is nil", name, vaultName)
-	}
-
-	d.SetId(*model.Id)
+	d.SetId(id.ID())
 
 	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
 	// we can reconfigure. Hence this call to update when we create.

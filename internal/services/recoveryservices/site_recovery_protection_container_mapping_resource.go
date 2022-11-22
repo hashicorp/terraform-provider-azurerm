@@ -2,13 +2,11 @@ package recoveryservices
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotectioncontainermappings"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationprotectioncontainermappings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -124,17 +122,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
-	}
-
-	model := resp.Model
-	if model == nil {
-		return fmt.Errorf("retrieving site recovery protection container mapping %s (vault %s): model is nil", name, vaultName)
-	}
-
-	d.SetId(strings.Replace(*model.Id, "Subscriptions", "subscriptions", 1))
+	d.SetId(id.ID())
 
 	return resourceSiteRecoveryContainerMappingRead(d, meta)
 }

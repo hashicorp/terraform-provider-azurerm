@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -153,7 +153,8 @@ func TestAccSiteRecoveryReplicatedVm_targetDiskEncryption(t *testing.T) {
 func (SiteRecoveryReplicatedVmResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -338,7 +339,8 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func (r SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
@@ -519,7 +521,7 @@ resource "azurerm_network_interface" "test" {
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.test2.id
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
@@ -1288,6 +1290,14 @@ func (r SiteRecoveryReplicatedVmResource) withBootDiagStorageAccount(data accept
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctre%[2]d"
+  location                 = azurerm_resource_group.test2.location
+  resource_group_name      = azurerm_resource_group.test2.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_site_recovery_replicated_vm" "test" {
   name                                      = "repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
@@ -1300,7 +1310,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  target_boot_diag_storage_account_id     = azurerm_storage_account.test.id
+  target_boot_diag_storage_account_id     = azurerm_storage_account.test2.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -1386,8 +1396,8 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
   upgrade_policy_mode = "Manual"
   zones               = []
 
@@ -1410,7 +1420,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       primary   = true
-      subnet_id = azurerm_subnet.test2.id
+      subnet_id = azurerm_subnet.test2_1.id
     }
   }
 

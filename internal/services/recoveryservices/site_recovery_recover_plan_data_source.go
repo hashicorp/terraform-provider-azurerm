@@ -2,11 +2,12 @@ package recoveryservices
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationrecoveryplans"
+	"time"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -142,7 +143,7 @@ func dataSourceSiteRecoveryRecoverPlanRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationRecoverPlanClient
+	client := meta.(*clients.Client).RecoveryServices.ReplicationRecoveryPlansClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -152,12 +153,12 @@ func dataSourceSiteRecoveryRecoverPlanRead(d *pluginsdk.ResourceData, meta inter
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on site recovery recover plan %s : %+v", id.String(), err)
+		return fmt.Errorf("making Read request on site recovery replication plan %s : %+v", id.String(), err)
 	}
 
 	model := resp.Model
 	if model == nil {
-		return fmt.Errorf("making Read request on site recovery recover plan %s : model is nil", id.String())
+		return fmt.Errorf("making Read request on site recovery replication plan %s : model is nil", id.String())
 	}
 
 	d.Set("name", id.RecoveryPlanName)

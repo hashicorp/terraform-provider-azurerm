@@ -5,10 +5,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-05-01/replicationfabrics"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationfabrics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,17 +96,7 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	resp, err := client.Get(ctx, id, replicationfabrics.DefaultGetOperationOptions())
-	if err != nil {
-		return fmt.Errorf("retrieving site recovery fabric %s (vault %s): %+v", name, vaultName, err)
-	}
-
-	model := resp.Model
-	if model == nil {
-		return fmt.Errorf("retrieving site recovery fabric %s (vault %s): model is nil", name, vaultName)
-	}
-
-	d.SetId(handleAzureSdkForGoBug2824(*model.Id))
+	d.SetId(id.ID())
 
 	return resourceSiteRecoveryFabricRead(d, meta)
 }
