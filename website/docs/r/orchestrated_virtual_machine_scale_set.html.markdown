@@ -63,7 +63,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
 
--> **NOTE:** The `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
+-> **NOTE:** `capacity_reservation_group_id` cannot be specified with `proximity_placement_group_id`
 
 -> **NOTE:** If `capacity_reservation_group_id` is specified the `single_placement_group` must be set to `false`.
 
