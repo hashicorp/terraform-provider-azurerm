@@ -186,7 +186,7 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.JobName)
+	d.Set("name", id.FunctionName)
 	d.Set("stream_analytics_job_name", id.JobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -197,13 +197,13 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("converting to Scalar Function")
 			}
 
-			binding, ok := function.Properties.Binding.(functions.JavaScriptFunctionBindingProperties)
+			binding, ok := function.Properties.Binding.(functions.JavaScriptFunctionBinding)
 			if !ok {
 				return fmt.Errorf("converting to Binding")
 			}
 
 			script := ""
-			if v := binding.Script; v != nil {
+			if v := binding.Properties.Script; v != nil {
 				script = *v
 			}
 			d.Set("script", script)

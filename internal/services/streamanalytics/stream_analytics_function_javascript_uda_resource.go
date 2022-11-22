@@ -193,13 +193,13 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("converting to an Aggregate Function")
 			}
 
-			binding, ok := function.Properties.Binding.(functions.JavaScriptFunctionBindingProperties)
-			if !ok {
-				return fmt.Errorf("converting Binding to a JavaScript Function Binding")
-			}
+			binding := function.Properties.Binding.(functions.JavaScriptFunctionBinding)
+			//if !ok {
+			//	return fmt.Errorf("converting Binding to a JavaScript Function Binding")
+			//}
 
 			script := ""
-			if v := binding.Script; v != nil {
+			if v := binding.Properties.Script; v != nil {
 				script = *v
 			}
 			d.Set("script", script)
