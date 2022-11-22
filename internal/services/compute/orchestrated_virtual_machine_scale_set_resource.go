@@ -226,9 +226,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					computeValidate.SharedGalleryImageID,
 					computeValidate.SharedGalleryImageVersionID,
 				),
+				ConflictsWith: []string{
+					"source_image_reference",
+				},
 			},
 
-			"source_image_reference": sourceImageReferenceSchema(false),
+			"source_image_reference": sourceImageReferenceSchemaOrchestratedVMSS(),
 
 			"zone_balance": {
 				Type:     pluginsdk.TypeBool,
@@ -1016,20 +1019,26 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			update.Plan = expandPlan(planRaw)
 		}
 
-		if d.HasChange("sku") || d.HasChange("instances") {
+		if d.HasChange("sku_name") || d.HasChange("instances") {
 			// in-case ignore_changes is being used, since both fields are required
 			// look up the current values and override them as needed
 			sku := existing.Sku
 			instances := int(*sku.Capacity)
+			skuName := d.Get("sku_name").(string)
 
 			if d.HasChange("instances") {
 				instances = d.Get("instances").(int)
+
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(skuName, instances)
+				if err != nil {
+					return err
+				}
 			}
 
 			if d.HasChange("sku_name") {
 				updateInstances = true
 
-				sku, err = expandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(skuName, instances)
 				if err != nil {
 					return err
 				}

@@ -104,6 +104,33 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting on creation/update of %s: %+v", id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+
+	// The firewall is not taking effect immediately after firewall creation.
+	// Firewall has a cache and will refresh every 1 minute, so if requests sent before firewall refreshes, it will meet ClientIpAddressNotAuthorized.
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21516
+	stateChangeConf := &pluginsdk.StateChangeConf{
+		Pending: []string{string(synapse.ProvisioningStateProvisioning)},
+		Target:  []string{string(synapse.ProvisioningStateSucceeded)},
+		Refresh: func() (result interface{}, state string, err error) {
+			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			if err != nil {
+				return nil, "Error", err
+			}
+			return resp, string(resp.ProvisioningState), err
+		},
+		MinTimeout:                30 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err = stateChangeConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be ready", id)
+	}
+
 	d.SetId(id.ID())
 	return resourceSynapseFirewallRuleRead(d, meta)
 }

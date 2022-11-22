@@ -65,6 +65,7 @@ func TestAccCdnFrontDoorProfile_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("response_timeout_seconds").HasValue("240"),
 			),
 		},
 		data.ImportStep(),
@@ -72,6 +73,7 @@ func TestAccCdnFrontDoorProfile_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("response_timeout_seconds").HasValue("120"),
 			),
 		},
 		data.ImportStep(),
@@ -157,7 +159,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium_AzureFrontDoor"
 

@@ -88,6 +88,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance.
+* `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `criteria` - (Required) A `criteria` block as defined below.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
 * `description` - (Optional) The description of the scheduled query rule.

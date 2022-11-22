@@ -786,6 +786,31 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"sas_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"expiration_period": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"expiration_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "Log",
+							ValidateFunc: validation.StringInSlice([]string{
+								// There is no definition of this enum in the Track1 SDK due to: https://github.com/Azure/azure-sdk-for-go/issues/14589
+								"Log",
+							}, false),
+						},
+					},
+				},
+			},
+
 			"large_file_share_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1071,6 +1096,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowSharedKeyAccess:         &allowSharedKeyAccess,
 			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
 			AllowCrossTenantReplication:  &crossTenantReplication,
+			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 		},
 	}
 
@@ -1677,6 +1703,18 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("sas_policy") {
+		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				SasPolicy: expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
+			},
+		}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account sas_policy %q: %+v", id.Name, err)
+		}
+	}
+
 	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
 
 	if d.HasChange("blob_properties") {
@@ -2004,6 +2042,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
 		}
 		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+
+		if err := d.Set("sas_policy", flattenStorageAccountSASPolicy(props.SasPolicy)); err != nil {
+			return fmt.Errorf("setting `sas_policy`: %+v", err)
+		}
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
@@ -3465,4 +3507,40 @@ func flattenEdgeZone(input *storage.ExtendedLocation) string {
 		return ""
 	}
 	return edgezones.NormalizeNilable(input.Name)
+}
+
+func expandStorageAccountSASPolicy(input []interface{}) *storage.SasPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	e := input[0].(map[string]interface{})
+
+	return &storage.SasPolicy{
+		ExpirationAction:    utils.String(e["expiration_action"].(string)),
+		SasExpirationPeriod: utils.String(e["expiration_period"].(string)),
+	}
+}
+
+func flattenStorageAccountSASPolicy(input *storage.SasPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var expirationAction string
+	if input.ExpirationAction != nil {
+		expirationAction = *input.ExpirationAction
+	}
+
+	var expirationPeriod string
+	if input.SasExpirationPeriod != nil {
+		expirationPeriod = *input.SasExpirationPeriod
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"expiration_action": expirationAction,
+			"expiration_period": expirationPeriod,
+		},
+	}
 }

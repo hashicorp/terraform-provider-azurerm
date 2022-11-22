@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2021-04-01/objectreplicationpolicies"
 	storage_v2022_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
@@ -36,7 +35,6 @@ type Client struct {
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 azure.Environment
 	FileServicesClient          *storage.FileServicesClient
-	ObjectReplicationClient     *objectreplicationpolicies.ObjectReplicationPoliciesClient
 	SyncServiceClient           *storagesync.ServicesClient
 	SyncGroupsClient            *storagesync.SyncGroupsClient
 	SubscriptionId              string
@@ -75,9 +73,6 @@ func NewClient(options *common.ClientOptions) *Client {
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
 
-	objectReplicationPolicyClient := objectreplicationpolicies.NewObjectReplicationPoliciesClientWithBaseURI(options.ResourceManagerEndpoint)
-	options.ConfigureClient(&objectReplicationPolicyClient.Client, options.ResourceManagerAuthorizer)
-
 	resourceManager := storage_v2022_05_01.NewClientWithBaseURI(options.ResourceManagerEndpoint,
 		func(c *autorest.Client) {
 			c.Authorizer = options.ResourceManagerAuthorizer
@@ -102,7 +97,6 @@ func NewClient(options *common.ClientOptions) *Client {
 		EncryptionScopesClient:      &encryptionScopesClient,
 		Environment:                 options.Environment,
 		FileServicesClient:          &fileServicesClient,
-		ObjectReplicationClient:     &objectReplicationPolicyClient,
 		ResourceManager:             &resourceManager,
 		SubscriptionId:              options.SubscriptionId,
 		SyncServiceClient:           &syncServiceClient,

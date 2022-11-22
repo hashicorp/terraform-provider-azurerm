@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `sql_connectivity_port` - (Optional) The SQL Server port. Defaults to `1433`.
 
-* `sql_connectivity_type` - (Optional) The connectivity type used for this SQL Server. Defaults to `PRIVATE`.
+* `sql_connectivity_type` - (Optional) The connectivity type used for this SQL Server. Possible values are `LOCAL`, `PRIVATE` and `PUBLIC`. Defaults to `PRIVATE`.
 
 * `sql_connectivity_update_password` - (Optional) The SQL Server sysadmin login password.
 
@@ -103,7 +103,7 @@ The `manual_schedule` block supports the following:
 
 The `auto_patching` block supports the following:
 
-* `day_of_week` - (Required) The day of week to apply the patch on.
+* `day_of_week` - (Required) The day of week to apply the patch on. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 
 * `maintenance_window_starting_hour` - (Required) The Hour, in the Virtual Machine Time-Zone when the patching maintenance window should begin.
 
@@ -203,7 +203,7 @@ The `schedule` block supports the following:
 
 ~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
-* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`.
+* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
 * `start_time` - (Optional) What time the assessment will be run. Must be in the format `HH:mm`.
 

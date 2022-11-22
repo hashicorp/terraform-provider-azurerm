@@ -17,7 +17,17 @@ import (
 
 type SecurityCenterSettingResource struct{}
 
-func TestAccSecurityCenterSetting_update(t *testing.T) {
+func TestAccSecurityCenterSetting(t *testing.T) {
+	// there is only one workspace with the same name could exist, so run the tests in sequence.
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"setting": {
+			"update":         testAccSecurityCenterSetting_update,
+			"requiresImport": testAccSecurityCenterSetting_requiresImport,
+		},
+	})
+}
+
+func testAccSecurityCenterSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
 
@@ -70,7 +80,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterSetting_requiresImport(t *testing.T) {
+func testAccSecurityCenterSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
 

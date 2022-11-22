@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The SKU of the account - only `Basic` is supported at this time.
+* `sku_name` - (Required) The SKU of the account. Possible values are `Basic` and `Free`.
 
 * `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked.
 
