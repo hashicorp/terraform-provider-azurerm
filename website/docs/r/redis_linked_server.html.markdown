@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Redis caches exists. Changing this forces a new Redis to be created.
 
-* `server_role` - (Required) The role of the linked Redis cache (eg "Secondary"). Changing this forces a new Redis to be created.
+* `server_role` - (Required) The role of the linked Redis cache (eg "Secondary"). Changing this forces a new Redis to be created. Possible values are `Primary` and `Secondary`.
 
 ## Attributes Reference
 

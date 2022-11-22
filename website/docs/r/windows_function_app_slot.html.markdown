@@ -387,7 +387,7 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
 
-* `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
+* `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16` and `~18`.
 
 * `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`, and `7.2`.
 
@@ -449,7 +449,7 @@ A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
-* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected.
+* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected. The only possible value is `1`.
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 

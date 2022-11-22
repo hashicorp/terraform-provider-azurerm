@@ -131,8 +131,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
-* `type` - (Required) The type of the Virtual Network Gateway. Valid options are
-  `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
+* `type` - (Required) The type of the Virtual Network Gateway. Valid options are `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
 
 ---
 
@@ -166,8 +165,7 @@ The following arguments are supported:
   is documented below. In this block the Virtual Network Gateway can be configured
   to accept IPSec point-to-site connections.
 
-* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid
-  options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
+* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
 
 ---
 

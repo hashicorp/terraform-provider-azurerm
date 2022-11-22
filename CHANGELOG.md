@@ -1,3 +1,51 @@
+## 3.33.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_cdn_frontdoor_custom_domain` [GH-19357]
+* **New Resource:** `azurerm_postgresql_flexible_server_active_directory_administrator` [GH-19269]
+
+ENHANCEMENTS:
+
+* build: updating to use Go `1.19.3` [GH-19362]
+* dependencies: upgrading to `v2.24.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-19303]
+* `cognitive`: updating to API Version `2022-10-01` [GH-19344]
+* `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
+* `azurerm_cognitive_account` - Support for `dynamic_throttling_enabled` [GH-19371]
+* `azurerm_databricks_workspace` - support for `storage_account_identity` property in datasource [GH-19336]
+* `azurerm_postgresql_flexible_server` - support for `authentication` [GH-19269]
+
+BUG FIXES:
+
+* `azurerm_application_insights` - validating/normalizing the `workspace_id` as a Workspace ID [GH-19325]
+* `azurerm_monitor_alert_processing_rule_action_group` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
+* `azurerm_monitor_alert_processing_rule_suppression` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
+* `azurerm_servicebus_subscription_rule` - `correlation_filter` with empty attributes no longer crashes [GH-19352]
+
+## 3.32.0 (November 17, 2022)
+
+DEPRECATIONS
+
+* The `azurerm_integration_service_environment` resource is now deprecated as the underlying Azure Service is being retired on `2024-08-31` and new instances cannot be provisioned (by default) after `2022-11-01` ([#19265](https://github.com/hashicorp/terraform-provider-azurerm/issues/19265))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20221116.1175352` of `github.com/hashicorp/go-azure-sdk` ([#19319](https://github.com/hashicorp/terraform-provider-azurerm/issues/19319))
+* `azurerm_security_center_subscription_pricing` - support for the `subplan` property ([#19273](https://github.com/hashicorp/terraform-provider-azurerm/issues/19273))
+* `azurerm_storage_account` - support for the `sas_policy` block ([#19222](https://github.com/hashicorp/terraform-provider-azurerm/issues/19222))
+* `azurerm_windows_web_app`, `azurerm_windows_web_app_slot` - aupport for `17` value for `java_version` property ([#19249](https://github.com/hashicorp/terraform-provider-azurerm/issues/19249))
+* `azurerm_storage_blob_inventory_policy` - support for `include_deleted` property ([#19286](https://github.com/hashicorp/terraform-provider-azurerm/issues/19286))
+
+BUG FIXES:
+
+* `azurerm_app_service_public_certificate` - add custom poller to prevent `Root resource was present, but now absent.` result ([#19348](https://github.com/hashicorp/terraform-provider-azurerm/issues/19348))
+* `azurerm_eventhub_namespace` - correct `zone_redundant` property ([#19164](https://github.com/hashicorp/terraform-provider-azurerm/issues/19164))
+* `azurerm_orchestrated_virtual_machine_scale_set` - allow no image to be specified ([#19263](https://github.com/hashicorp/terraform-provider-azurerm/issues/19263))
+* `azurerm_synapse_firewall_rule` - wait for the firewall to be ready ([#19227](https://github.com/hashicorp/terraform-provider-azurerm/issues/19227))
+* `azurerm_service_fabric_managed_cluster` - correctly define `active_directory` as a List ([#19163](https://github.com/hashicorp/terraform-provider-azurerm/issues/19163))
+* `azurerm_orchestrated_virtual_machine_scale_set` -  instance parameter is now set on update ([#19337](https://github.com/hashicorp/terraform-provider-azurerm/issues/19337))
+
+
 ## 3.31.0 (November 10, 2022)
 
 FEATURES:
