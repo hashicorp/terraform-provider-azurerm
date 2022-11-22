@@ -180,7 +180,7 @@ func (r StorageManagementPolicyRuleResource) requiresImport(data acceptance.Test
 resource "azurerm_storage_management_policy_rule" "import" {
   name                 = azurerm_storage_management_policy_rule.test.name
   management_policy_id = azurerm_storage_management_policy_rule.test.management_policy_id
-  action               = azurerm_storage_management_policy_rule.test.action.0
+  action {}
 }
 `, template)
 }

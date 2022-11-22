@@ -10,6 +10,10 @@ description: |-
 
 Manages an Azure Storage Account Management Policy.
 
+~> **NOTE on Storage Management Policy and Storage Management Policy Rules:** Terraform currently
+provides both a standalone [Storage Management Policy Rule resource](storage_management_policy_rule.html), and allows for Storage Management Policy Rule to be defined in-line within the [Storage Management Policy](storage_management_policy.html).
+At this time as there must be at least one `rule` set for creating a Storage Management Policy, if you want to manage Storage Management Policy Rules in standalone, you'll have to use `ignore_changes` lifecycle instructions on the `azurerm_storage_management_policy` for `rule` property, and be careful not to manage rules via `azurerm_storage_management_policy_rule` that are already managed by the `azurerm_storage_management_policy`. 
+
 ## Example Usage
 
 ```hcl
