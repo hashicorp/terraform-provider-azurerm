@@ -98,5 +98,9 @@ func SchemaValue(sch *pluginsdk.Schema) Dict {
 		out[Id("Elem")] = Op("&").Qual(SchemaPath, "Resource").Values(ResourceValue(sch))
 	}
 
+	if sch.Set != nil {
+		out[Id("Set")] = Id("TODO")
+	}
+
 	return out
 }
