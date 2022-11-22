@@ -2,12 +2,12 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -148,7 +148,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 					SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
-					SystemPropertyColumns:  systemPropertyColumns,
+					SystemPropertyColumns:  expandSystemPropertyColumns(systemPropertyColumns),
 					//SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
 					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 				},
@@ -199,42 +199,42 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.ServiceBusTopicOutputDataSourceProperties)
+			output, ok := props.Datasource.(outputs.ServiceBusTopicOutputDataSource)
 			if !ok {
 				return fmt.Errorf("converting to ServiceBus Topic Output")
 			}
 
 			topicName := ""
-			if v := output.TopicName; v != nil {
+			if v := output.Properties.TopicName; v != nil {
 				topicName = *v
 			}
 			d.Set("topic_name", topicName)
 
 			namespace := ""
-			if v := output.ServiceBusNamespace; v != nil {
+			if v := output.Properties.ServiceBusNamespace; v != nil {
 				namespace = *v
 			}
 			d.Set("servicebus_namespace", namespace)
 
 			accessPolicy := ""
-			if v := output.SharedAccessPolicyName; v != nil {
+			if v := output.Properties.SharedAccessPolicyName; v != nil {
 				accessPolicy = *v
 			}
-			d.Set("shared_access_policy_name", v.accessPolicy)
+			d.Set("shared_access_policy_name", accessPolicy)
 
-			propertyColumns := ""
-			if v := output.PropertyColumns; v != nil {
+			var propertyColumns []string
+			if v := output.Properties.PropertyColumns; v != nil {
 				propertyColumns = *v
 			}
 			d.Set("property_columns", propertyColumns)
 
 			authMode := ""
-			if v := output.AuthenticationMode; v != nil {
+			if v := output.Properties.AuthenticationMode; v != nil {
 				authMode = string(*v)
 			}
 			d.Set("authentication_mode", authMode)
 
-			if err = d.Set("system_property_columns", utils.FlattenMapStringPtrString(output.SystemPropertyColumns)); err != nil {
+			if err = d.Set("system_property_columns", output.Properties.SystemPropertyColumns); err != nil {
 				return err
 			}
 
@@ -263,4 +263,12 @@ func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceDat
 	}
 
 	return nil
+}
+
+func expandSystemPropertyColumns(input map[string]interface{}) *map[string]string {
+	output := make(map[string]string)
+	for k, v := range input {
+		output[k] = v.(string)
+	}
+	return &output
 }

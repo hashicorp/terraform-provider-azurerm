@@ -2,11 +2,11 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +24,7 @@ func resourceStreamAnalyticsOutputSynapse() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDataWarehouse)),
+		}, importStreamAnalyticsOutput(outputs.AzureSynapseOutputDataSource{})),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -170,31 +170,31 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.AzureSynapseDataSourceProperties)
+			output, ok := props.Datasource.(outputs.AzureSynapseOutputDataSource)
 			if !ok {
 				return fmt.Errorf("converting to Synapse Output")
 			}
 
 			server := ""
-			if v := output.Server; v != nil {
+			if v := output.Properties.Server; v != nil {
 				server = *v
 			}
 			d.Set("server", server)
 
 			database := ""
-			if v := output.Database; v != nil {
+			if v := output.Properties.Database; v != nil {
 				database = *v
 			}
 			d.Set("database", database)
 
 			table := ""
-			if v := output.Table; v != nil {
+			if v := output.Properties.Table; v != nil {
 				table = *v
 			}
 			d.Set("table", table)
 
 			user := ""
-			if v := output.User; v != nil {
+			if v := output.Properties.User; v != nil {
 				user = *v
 			}
 			d.Set("user", user)

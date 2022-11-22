@@ -2,12 +2,12 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -198,37 +198,37 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.EventHubOutputDataSourceProperties)
+			output, ok := props.Datasource.(outputs.EventHubOutputDataSource)
 			if !ok {
 				return fmt.Errorf("converting to EventHub Output")
 			}
 
 			eventHubName := ""
-			if v := output.EventHubName; v != nil {
+			if v := output.Properties.EventHubName; v != nil {
 				eventHubName = *v
 			}
 			d.Set("eventhub_name", eventHubName)
 
 			serviceBusNamespace := ""
-			if v := output.ServiceBusNamespace; v != nil {
+			if v := output.Properties.ServiceBusNamespace; v != nil {
 				serviceBusNamespace = *v
 			}
 			d.Set("servicebus_namespace", serviceBusNamespace)
 
 			sharedAccessPolicyName := ""
-			if v := output.SharedAccessPolicyName; v != nil {
+			if v := output.Properties.SharedAccessPolicyName; v != nil {
 				sharedAccessPolicyName = *v
 			}
 			d.Set("shared_access_policy_name", sharedAccessPolicyName)
 
 			partitionKey := ""
-			if v := output.PartitionKey; v != nil {
+			if v := output.Properties.PartitionKey; v != nil {
 				partitionKey = *v
 			}
 			d.Set("partition_key", partitionKey)
 
 			authMode := ""
-			if v := output.AuthenticationMode; v != nil {
+			if v := output.Properties.AuthenticationMode; v != nil {
 				authMode = string(*v)
 			}
 			d.Set("authentication_mode", authMode)

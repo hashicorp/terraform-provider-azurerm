@@ -2,15 +2,14 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +24,7 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 		Update: resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate,
 		Delete: resourceStreamAnalyticsReferenceInputMsSqlDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.StreamInputID(id)
+			_, err := inputs.ParseInputID(id)
 			return err
 		}, importStreamAnalyticsReferenceInput("Microsoft.Sql/Server/Database")),
 
@@ -171,9 +170,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 	props := inputs.Input{
 		Name: utils.String(id.InputName),
 		Properties: &inputs.ReferenceInputProperties{
-			//Type: streamanalytics.TypeBasicInputPropertiesTypeReference,
 			Datasource: &inputs.AzureSqlReferenceInputDataSource{
-				//Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftSQLServerDatabase,
 				Properties: properties,
 			},
 		},
@@ -216,59 +213,65 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.Input)
+			input, ok := props.(inputs.InputProperties)
 			if !ok {
 				return fmt.Errorf("failed to convert to Input")
 			}
 
-			reference, ok := input.Properties.(inputs.ReferenceInputProperties)
+			reference, ok := input.(inputs.ReferenceInputProperties)
 			if !ok {
 				return fmt.Errorf("failed to convert to Reference Input")
 			}
 
-			referenceInputAzureSql, ok := reference.Datasource.(inputs.AzureSqlReferenceInputDataSourceProperties)
+			referenceInputAzureSql, ok := reference.Datasource.(inputs.AzureSqlReferenceInputDataSource)
 			if !ok {
 				return fmt.Errorf("failed to convert to Azure Sql Reference Input")
 			}
 
 			server := ""
-			if v := referenceInputAzureSql.Server; v != nil {
+			if v := referenceInputAzureSql.Properties.Server; v != nil {
 				server = *v
 			}
 			d.Set("server", server)
 
 			database := ""
-			if v := referenceInputAzureSql.Database; v != nil {
+			if v := referenceInputAzureSql.Properties.Database; v != nil {
 				database = *v
 			}
 			d.Set("database", database)
 
 			username := ""
-			if v := referenceInputAzureSql.User; v != nil {
+			if v := referenceInputAzureSql.Properties.User; v != nil {
 				username = *v
 			}
 			d.Set("username", username)
 
 			refreshType := ""
-			if v := referenceInputAzureSql.RefreshType; v != nil {
+			if v := referenceInputAzureSql.Properties.RefreshType; v != nil {
 				refreshType = string(*v)
 			}
 			d.Set("refresh_type", refreshType)
 
+			intervalDuration := ""
+			if v := referenceInputAzureSql.Properties.RefreshRate; v != nil {
+				intervalDuration = *v
+			}
+			d.Set("refresh_interval_duration", intervalDuration)
+
 			fullSnapshotQuery := ""
-			if v := referenceInputAzureSql.FullSnapshotQuery; v != nil {
+			if v := referenceInputAzureSql.Properties.FullSnapshotQuery; v != nil {
 				fullSnapshotQuery = *v
 			}
 			d.Set("full_snapshot_query", fullSnapshotQuery)
 
 			deltaSnapshotQuery := ""
-			if v := referenceInputAzureSql.DeltaSnapshotQuery; v != nil {
+			if v := referenceInputAzureSql.Properties.DeltaSnapshotQuery; v != nil {
 				deltaSnapshotQuery = *v
 			}
 			d.Set("delta_snapshot_query", deltaSnapshotQuery)
 
 			table := ""
-			if v := referenceInputAzureSql.Table; v != nil {
+			if v := referenceInputAzureSql.Properties.Table; v != nil {
 				table = *v
 			}
 			d.Set("table", table)

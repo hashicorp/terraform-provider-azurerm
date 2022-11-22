@@ -3,14 +3,13 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -37,7 +36,7 @@ func (r ClusterResource) ResourceType() string {
 }
 
 func (r ClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ClusterID
+	return clusters.ValidateClusterID
 }
 
 func (r ClusterResource) Arguments() map[string]*pluginsdk.Schema {

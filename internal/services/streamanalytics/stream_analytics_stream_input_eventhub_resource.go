@@ -2,13 +2,12 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -92,10 +91,10 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				Default:  string(inputs.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.AuthenticationModeMsi),
-					string(streamanalytics.AuthenticationModeConnectionString),
+					string(inputs.AuthenticationModeMsi),
+					string(inputs.AuthenticationModeConnectionString),
 				}, false),
 			},
 
@@ -149,9 +148,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 	props := inputs.Input{
 		Name: utils.String(id.InputName),
 		Properties: &inputs.StreamInputProperties{
-			//Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.EventHubStreamInputDataSource{
-				//Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
 				Properties: eventHubDataSourceProps,
 			},
 			Serialization: serialization,
@@ -233,7 +230,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 				if v := streamEventHubInputProps.AuthenticationMode; v != nil {
 					authMode = string(*v)
 				}
-				d.Set("eventhub_name", authMode)
+				d.Set("authentication_mode", authMode)
 
 				consumerGroupName := ""
 				if v := streamEventHubInputProps.ConsumerGroupName; v != nil {
@@ -243,7 +240,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 
 				sharedAccessPolicyName := ""
 				if v := streamEventHubInputProps.SharedAccessPolicyName; v != nil {
-					sharedAccessPolicyName = string(*v)
+					sharedAccessPolicyName = *v
 				}
 				d.Set("shared_access_policy_name", sharedAccessPolicyName)
 
@@ -253,7 +250,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 				}
 				d.Set("partition_key", partitionKey)
 
-				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization2(streamInput.Serialization)); err != nil {
+				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
 					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
 			}

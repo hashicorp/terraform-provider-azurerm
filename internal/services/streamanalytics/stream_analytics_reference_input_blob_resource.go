@@ -2,13 +2,12 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -95,10 +94,10 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				Default:  string(inputs.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.AuthenticationModeConnectionString),
-					string(streamanalytics.AuthenticationModeMsi),
+					string(inputs.AuthenticationModeConnectionString),
+					string(inputs.AuthenticationModeMsi),
 				}, false),
 			},
 		},
@@ -129,15 +128,13 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
-		fmt.Errorf("expanding `serialization`: %+v", err)
+		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
 	props := inputs.Input{
 		Name: utils.String(id.InputName),
 		Properties: &inputs.ReferenceInputProperties{
-			//Type: streamanalytics.TypeBasicInputPropertiesTypeReference,
 			Datasource: &inputs.BlobReferenceInputDataSource{
-				//Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobDataSourceProperties{
 					Container:   utils.String(d.Get("storage_container_name").(string)),
 					DateFormat:  utils.String(d.Get("date_format").(string)),
@@ -179,16 +176,14 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
-		fmt.Errorf("expanding `serialization`: %+v", err)
+		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
 	// TODO d.HasChanges()
 	props := inputs.Input{
 		Name: utils.String(id.InputName),
 		Properties: &inputs.ReferenceInputProperties{
-			//Type: streamanalytics.TypeBasicInputPropertiesTypeReference,
 			Datasource: &inputs.BlobReferenceInputDataSource{
-				//Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobDataSourceProperties{
 					Container:   utils.String(d.Get("storage_container_name").(string)),
 					DateFormat:  utils.String(d.Get("date_format").(string)),
@@ -242,57 +237,57 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.Input)
+			input, ok := props.(inputs.InputProperties)
 			if !ok {
 				return fmt.Errorf("blah")
 			}
 
-			dataSource, ok := input.Properties.(inputs.ReferenceInputProperties)
+			dataSource, ok := input.(inputs.ReferenceInputProperties)
 			if !ok {
 				return fmt.Errorf("blah2")
 			}
 
-			referenceInputBlob, ok := dataSource.Datasource.(inputs.BlobDataSourceProperties)
+			referenceInputBlob, ok := dataSource.Datasource.(inputs.BlobReferenceInputDataSource)
 			if !ok {
 				return fmt.Errorf("blah3")
 			}
 
 			dateFormat := ""
-			if v := referenceInputBlob.DateFormat; v != nil {
+			if v := referenceInputBlob.Properties.DateFormat; v != nil {
 				dateFormat = *v
 			}
 			d.Set("date_format", dateFormat)
 
 			pathPattern := ""
-			if v := referenceInputBlob.PathPattern; v != nil {
+			if v := referenceInputBlob.Properties.PathPattern; v != nil {
 				pathPattern = *v
 			}
 			d.Set("path_pattern", pathPattern)
 
 			containerName := ""
-			if v := referenceInputBlob.Container; v != nil {
+			if v := referenceInputBlob.Properties.Container; v != nil {
 				containerName = *v
 			}
 			d.Set("storage_container_name", containerName)
 
 			timeFormat := ""
-			if v := referenceInputBlob.TimeFormat; v != nil {
+			if v := referenceInputBlob.Properties.TimeFormat; v != nil {
 				timeFormat = *v
 			}
 			d.Set("time_format", timeFormat)
 
 			authMode := ""
-			if v := referenceInputBlob.AuthenticationMode; v != nil {
+			if v := referenceInputBlob.Properties.AuthenticationMode; v != nil {
 				authMode = string(*v)
 			}
 			d.Set("authentication_mode", authMode)
 
-			if accounts := referenceInputBlob.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+			if accounts := referenceInputBlob.Properties.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 				account := (*accounts)[0]
 				d.Set("storage_account_name", account.AccountName)
 			}
 
-			if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization2(dataSource.Serialization)); err != nil {
+			if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(dataSource.Serialization)); err != nil {
 				return fmt.Errorf("setting `serialization`: %+v", err)
 			}
 

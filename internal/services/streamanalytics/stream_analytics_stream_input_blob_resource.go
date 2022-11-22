@@ -2,12 +2,12 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -237,7 +237,7 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 					d.Set("storage_account_name", account.AccountName)
 				}
 
-				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization2(streamInput.Serialization)); err != nil {
+				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
 					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
 			}

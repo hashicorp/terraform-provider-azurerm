@@ -2,12 +2,12 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
@@ -178,7 +178,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	// timeWindow and sizeWindow must be set for Parquet serialization
-	_, isParquet := serialization.AsParquetSerialization()
+	_, isParquet := serialization.(outputs.ParquetSerialization)
 	if isParquet && (props.Properties.TimeWindow == nil || props.Properties.SizeWindow == nil) {
 		return fmt.Errorf("cannot create %s: batch_min_rows and batch_time_window must be set for Parquet serialization", id)
 	}
@@ -225,42 +225,42 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.BlobOutputDataSourceProperties)
+			output, ok := props.Datasource.(outputs.BlobOutputDataSource)
 			if !ok {
 				return fmt.Errorf("converting to Blob Output")
 			}
 
 			dateFormat := ""
-			if v := output.DateFormat; v != nil {
+			if v := output.Properties.DateFormat; v != nil {
 				dateFormat = *v
 			}
 			d.Set("date_format", dateFormat)
 
 			pathPattern := ""
-			if v := output.PathPattern; v != nil {
+			if v := output.Properties.PathPattern; v != nil {
 				pathPattern = *v
 			}
 			d.Set("path_pattern", pathPattern)
 
 			containerName := ""
-			if v := output.Container; v != nil {
+			if v := output.Properties.Container; v != nil {
 				containerName = *v
 			}
 			d.Set("storage_container_name", containerName)
 
 			timeFormat := ""
-			if v := output.TimeFormat; v != nil {
+			if v := output.Properties.TimeFormat; v != nil {
 				timeFormat = *v
 			}
 			d.Set("time_format", timeFormat)
 
 			authenticationMode := ""
-			if v := output.AuthenticationMode; v != nil {
+			if v := output.Properties.AuthenticationMode; v != nil {
 				authenticationMode = string(*v)
 			}
 			d.Set("authentication_mode", authenticationMode)
 
-			if accounts := output.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+			if accounts := output.Properties.StorageAccounts; accounts != nil && len(*accounts) > 0 {
 				account := (*accounts)[0]
 				d.Set("storage_account_name", account.AccountName)
 			}

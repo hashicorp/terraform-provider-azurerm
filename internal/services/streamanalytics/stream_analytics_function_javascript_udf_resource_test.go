@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,7 +96,7 @@ func (r StreamAnalyticsFunctionJavaScriptUDFResource) Exists(ctx context.Context
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.Functionsclient.Get(ctx, id)
+	resp, err := client.StreamAnalytics.FunctionsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

@@ -3,11 +3,11 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -190,12 +190,12 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.AzureTableOutputDataSourceProperties)
+					output, ok := props.Datasource.(outputs.AzureTableOutputDataSource)
 					if !ok {
 						return fmt.Errorf("converting to Table Output")
 					}
 
-					if output.AccountName == nil || output.Table == nil || output.PartitionKey == nil || output.RowKey == nil || output.BatchSize == nil {
+					if output.Properties.AccountName == nil || output.Properties.Table == nil || output.Properties.PartitionKey == nil || output.Properties.RowKey == nil || output.Properties.BatchSize == nil {
 						return nil
 					}
 
@@ -204,44 +204,40 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 						ResourceGroup:      id.ResourceGroupName,
 						StreamAnalyticsJob: id.JobName,
 						StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
-						Table:              *v.Table,
-						PartitionKey:       *v.PartitionKey,
-						RowKey:             *v.RowKey,
-						BatchSize:          *v.BatchSize,
 					}
 
 					accountName := ""
-					if v := output.AccountName; v != nil {
+					if v := output.Properties.AccountName; v != nil {
 						accountName = *v
 					}
 					state.StorageAccount = accountName
 
 					table := ""
-					if v := output.Table; v != nil {
+					if v := output.Properties.Table; v != nil {
 						table = *v
 					}
 					state.Table = table
 
 					partitonKey := ""
-					if v := output.PartitionKey; v != nil {
+					if v := output.Properties.PartitionKey; v != nil {
 						partitonKey = *v
 					}
 					state.PartitionKey = partitonKey
 
 					rowKey := ""
-					if v := output.RowKey; v != nil {
+					if v := output.Properties.RowKey; v != nil {
 						rowKey = *v
 					}
 					state.RowKey = rowKey
 
 					var batchSize int64
-					if v := output.BatchSize; v != nil {
+					if v := output.Properties.BatchSize; v != nil {
 						batchSize = *v
 					}
 					state.BatchSize = batchSize
 
 					var columnsToRemove []string
-					if columns := output.ColumnsToRemove; columns != nil && len(*columns) > 0 {
+					if columns := output.Properties.ColumnsToRemove; columns != nil && len(*columns) > 0 {
 						columnsToRemove = *columns
 					}
 					state.ColumnsToRemove = columnsToRemove
@@ -339,9 +335,8 @@ func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.AzureTableOutputDataSourceProperties); !ok {
-			// TODO should these types exist in pandora?
-			return fmt.Errorf("specified output is not of type %s", outputs.TypeBasicOutputDataSourceTypeMicrosoftStorageTable)
+		if _, ok := props.Datasource.(outputs.AzureTableOutputDataSource); !ok {
+			return fmt.Errorf("specified output is not of type")
 		}
 		return nil
 	}

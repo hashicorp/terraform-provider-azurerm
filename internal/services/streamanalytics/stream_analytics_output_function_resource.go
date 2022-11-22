@@ -3,11 +3,11 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -167,12 +167,12 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.AzureFunctionOutputDataSourceProperties)
+					output, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource)
 					if !ok {
 						return fmt.Errorf("converting to Function Output")
 					}
 
-					if output.FunctionAppName == nil || output.FunctionName == nil || output.MaxBatchCount == nil || output.MaxBatchSize == nil {
+					if output.Properties.FunctionAppName == nil || output.Properties.FunctionName == nil || output.Properties.MaxBatchCount == nil || output.Properties.MaxBatchSize == nil {
 						return nil
 					}
 
@@ -184,25 +184,25 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 					}
 
 					functionApp := ""
-					if v := output.FunctionAppName; v != nil {
+					if v := output.Properties.FunctionAppName; v != nil {
 						functionApp = *v
 					}
 					state.FunctionApp = functionApp
 
 					functionName := ""
-					if v := output.FunctionName; v != nil {
+					if v := output.Properties.FunctionName; v != nil {
 						functionName = *v
 					}
 					state.FunctionName = functionName
 
 					batchMaxInBytes := 0
-					if v := output.MaxBatchSize; v != nil {
+					if v := output.Properties.MaxBatchSize; v != nil {
 						batchMaxInBytes = int(*v)
 					}
 					state.BatchMaxInBytes = batchMaxInBytes
 
 					batchMaxCount := 0
-					if v := output.MaxBatchCount; v != nil {
+					if v := output.Properties.MaxBatchCount; v != nil {
 						batchMaxCount = int(*v)
 					}
 					state.BatchMaxCount = batchMaxCount
@@ -289,7 +289,7 @@ func (r OutputFunctionResource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.AzureFunctionOutputDataSourceProperties); !ok {
+		if _, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource); !ok {
 			return fmt.Errorf("specified output is not of type")
 		}
 		return nil

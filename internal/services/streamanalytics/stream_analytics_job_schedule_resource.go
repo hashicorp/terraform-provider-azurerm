@@ -3,12 +3,11 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -16,6 +15,7 @@ import (
 	streamAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type JobScheduleResource struct{}
@@ -33,7 +33,7 @@ func (r JobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: streamAnalyticsValidate.StreamingJobID,
+			ValidateFunc: streamingjobs.ValidateStreamingJobID,
 		},
 
 		"start_mode": {

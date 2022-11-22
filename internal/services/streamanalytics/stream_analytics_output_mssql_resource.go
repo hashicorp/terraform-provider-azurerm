@@ -2,11 +2,11 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -195,49 +195,49 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.AzureSqlDatabaseDataSourceProperties)
+			output, ok := props.Datasource.(outputs.AzureSqlDatabaseOutputDataSource)
 			if !ok {
 				return fmt.Errorf("converting to SQL Output")
 			}
 
 			server := ""
-			if v := output.Server; v != nil {
+			if v := output.Properties.Server; v != nil {
 				server = *v
 			}
 			d.Set("server", server)
 
 			database := ""
-			if v := output.Database; v != nil {
+			if v := output.Properties.Database; v != nil {
 				database = *v
 			}
 			d.Set("database", database)
 
 			table := ""
-			if v := output.Table; v != nil {
+			if v := output.Properties.Table; v != nil {
 				table = *v
 			}
 			d.Set("table", table)
 
 			user := ""
-			if v := output.User; v != nil {
+			if v := output.Properties.User; v != nil {
 				user = *v
 			}
 			d.Set("user", user)
 
 			authMode := ""
-			if v := output.AuthenticationMode; v != nil {
+			if v := output.Properties.AuthenticationMode; v != nil {
 				authMode = string(*v)
 			}
 			d.Set("authentication_mode", authMode)
 
 			maxBatchCount := float64(10000)
-			if v := output.MaxBatchCount; v != nil {
+			if v := output.Properties.MaxBatchCount; v != nil {
 				maxBatchCount = *v
 			}
 			d.Set("max_batch_count", maxBatchCount)
 
 			maxWriterCount := float64(1)
-			if v := output.MaxWriterCount; v != nil {
+			if v := output.Properties.MaxWriterCount; v != nil {
 				maxWriterCount = *v
 			}
 			d.Set("max_writer_count", maxWriterCount)

@@ -3,14 +3,13 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -53,7 +52,7 @@ func (r StreamInputEventHubV2Resource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StreamingJobID,
+			ValidateFunc: streamingjobs.ValidateStreamingJobID,
 		},
 
 		"servicebus_namespace": {
@@ -96,10 +95,10 @@ func (r StreamInputEventHubV2Resource) Arguments() map[string]*pluginsdk.Schema 
 		"authentication_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(streamanalytics.AuthenticationModeConnectionString),
+			Default:  string(inputs.AuthenticationModeConnectionString),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(streamanalytics.AuthenticationModeMsi),
-				string(streamanalytics.AuthenticationModeConnectionString),
+				string(inputs.AuthenticationModeMsi),
+				string(inputs.AuthenticationModeConnectionString),
 			}, false),
 		},
 
@@ -135,7 +134,7 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := inputs.NewInputID(subscriptionId, streamingJobStruct.ResourceGroup, streamingJobStruct.Name, model.Name)
+			id := inputs.NewInputID(subscriptionId, streamingJobStruct.ResourceGroupName, streamingJobStruct.JobName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -170,7 +169,6 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 				Name: utils.String(model.Name),
 				Properties: &inputs.StreamInputProperties{
 					Datasource: &inputs.EventHubV2StreamInputDataSource{
-						//Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftEventHubEventHub,
 						Properties: props,
 					},
 					Serialization: serialization,
@@ -224,7 +222,6 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 					Name: utils.String(state.Name),
 					Properties: &inputs.StreamInputProperties{
 						Datasource: &inputs.EventHubV2StreamInputDataSource{
-							//Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftEventHubEventHub,
 							Properties: props,
 						},
 						Serialization: serialization,
@@ -270,12 +267,12 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					input, ok := props.(inputs.InputProperties)
+					input, ok := props.(inputs.Input)
 					if !ok {
 						return fmt.Errorf("converting to an Input")
 					}
 
-					streamInput, ok := input.(inputs.StreamInputProperties)
+					streamInput, ok := input.Properties.(inputs.StreamInputProperties)
 					if !ok {
 						return fmt.Errorf("converting to a Stream Input")
 					}

@@ -2,9 +2,8 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -21,10 +20,10 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(streamanalytics.TypeAvro),
-						string(streamanalytics.TypeCsv),
-						string(streamanalytics.TypeJSON),
-						string(streamanalytics.TypeParquet),
+						string(outputs.EventSerializationTypeAvro),
+						string(outputs.EventSerializationTypeCsv),
+						string(outputs.EventSerializationTypeJson),
+						string(outputs.EventSerializationTypeParquet),
 					}, false),
 				},
 
@@ -44,7 +43,7 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(streamanalytics.EncodingUTF8),
+						string(outputs.EncodingUTFEight),
 					}, false),
 				},
 
@@ -52,8 +51,8 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(streamanalytics.JSONOutputSerializationFormatArray),
-						string(streamanalytics.JSONOutputSerializationFormatLineSeparated),
+						string(outputs.JsonOutputSerializationFormatArray),
+						string(outputs.JsonOutputSerializationFormatLineSeparated),
 					}, false),
 				},
 			},
@@ -61,16 +60,16 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 	}
 }
 
-func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalytics.BasicSerialization, error) {
+func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Serialization, error) {
 	v := input[0].(map[string]interface{})
 
-	outputType := streamanalytics.Type(v["type"].(string))
+	outputType := v["type"].(string)
 	encoding := v["encoding"].(string)
 	fieldDelimiter := v["field_delimiter"].(string)
 	format := v["format"].(string)
 
 	switch outputType {
-	case streamanalytics.TypeAvro:
+	case string(outputs.EventSerializationTypeAvro):
 		if encoding != "" {
 			return nil, fmt.Errorf("`encoding` cannot be set when `type` is set to `Avro`")
 		}
@@ -80,12 +79,12 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 		if format != "" {
 			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Avro`")
 		}
-		return streamanalytics.AvroSerialization{
-			Type:       streamanalytics.TypeAvro,
-			Properties: map[string]interface{}{},
+		var props interface{}
+		return outputs.AvroSerialization{
+			Properties: &props,
 		}, nil
 
-	case streamanalytics.TypeCsv:
+	case string(outputs.EventSerializationTypeCsv):
 		if encoding == "" {
 			return nil, fmt.Errorf("`encoding` must be specified when `type` is set to `Csv`")
 		}
@@ -95,15 +94,14 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 		if format != "" {
 			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Csv`")
 		}
-		return streamanalytics.CsvSerialization{
-			Type: streamanalytics.TypeCsv,
-			CsvSerializationProperties: &streamanalytics.CsvSerializationProperties{
-				Encoding:       streamanalytics.Encoding(encoding),
+		return outputs.CsvSerialization{
+			Properties: &outputs.CsvSerializationProperties{
+				Encoding:       utils.ToPtr(outputs.Encoding(encoding)),
 				FieldDelimiter: utils.String(fieldDelimiter),
 			},
 		}, nil
 
-	case streamanalytics.TypeJSON:
+	case string(outputs.EventSerializationTypeJson):
 		if encoding == "" {
 			return nil, fmt.Errorf("`encoding` must be specified when `type` is set to `Json`")
 		}
@@ -114,15 +112,14 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 			return nil, fmt.Errorf("`field_delimiter` cannot be set when `type` is set to `Json`")
 		}
 
-		return streamanalytics.JSONSerialization{
-			Type: streamanalytics.TypeJSON,
-			JSONSerializationProperties: &streamanalytics.JSONSerializationProperties{
-				Encoding: streamanalytics.Encoding(encoding),
-				Format:   streamanalytics.JSONOutputSerializationFormat(format),
+		return outputs.JsonSerialization{
+			Properties: &outputs.JsonSerializationProperties{
+				Encoding: utils.ToPtr(outputs.Encoding(encoding)),
+				Format:   utils.ToPtr(outputs.JsonOutputSerializationFormat(format)),
 			},
 		}, nil
 
-	case streamanalytics.TypeParquet:
+	case string(outputs.EventSerializationTypeParquet):
 		if encoding != "" {
 			return nil, fmt.Errorf("`encoding` cannot be set when `type` is set to `Parquet`")
 		}
@@ -132,9 +129,10 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (streamanalyt
 		if format != "" {
 			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Parquet`")
 		}
-		return streamanalytics.ParquetSerialization{
-			Type:       streamanalytics.TypeParquet,
-			Properties: map[string]interface{}{},
+
+		var props interface{}
+		return outputs.ParquetSerialization{
+			Properties: &props,
 		}, nil
 	}
 

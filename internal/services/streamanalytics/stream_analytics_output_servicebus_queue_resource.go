@@ -2,12 +2,12 @@ package streamanalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -140,7 +140,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	systemPropertyColumns := d.Get("system_property_columns").(interface{})
+	systemPropertyColumns := d.Get("system_property_columns")
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
@@ -202,43 +202,43 @@ func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.ServiceBusQueueOutputDataSourceProperties)
+			output, ok := props.Datasource.(outputs.ServiceBusQueueOutputDataSource)
 			if !ok {
 				return fmt.Errorf("converting to ServiceBus Queue Output")
 			}
 
 			queue := ""
-			if v := output.QueueName; v != nil {
+			if v := output.Properties.QueueName; v != nil {
 				queue = *v
 			}
 			d.Set("queue_name", queue)
 
 			namespace := ""
-			if v := output.ServiceBusNamespace; v != nil {
+			if v := output.Properties.ServiceBusNamespace; v != nil {
 				namespace = *v
 			}
 			d.Set("servicebus_namespace", namespace)
 
 			policyName := ""
-			if v := output.SharedAccessPolicyName; v != nil {
+			if v := output.Properties.SharedAccessPolicyName; v != nil {
 				policyName = *v
 			}
 			d.Set("shared_access_policy_name", policyName)
 
 			var columns []string
-			if v := output.PropertyColumns; v != nil {
+			if v := output.Properties.PropertyColumns; v != nil {
 				columns = *v
 			}
 			d.Set("property_columns", columns)
 
 			var systemColumns interface{}
-			if v := output.SystemPropertyColumns; v != nil {
+			if v := output.Properties.SystemPropertyColumns; v != nil {
 				systemColumns = *v
 			}
 			d.Set("system_property_columns", systemColumns)
 
 			authMode := ""
-			if v := output.AuthenticationMode; v != nil {
+			if v := output.Properties.AuthenticationMode; v != nil {
 				authMode = string(*v)
 			}
 			d.Set("authentication_mode", authMode)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -153,10 +155,11 @@ func (r StreamAnalyticsJobResource) Exists(ctx context.Context, client *clients.
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, id.ResourceGroupName, id.Name, "")
+	var opts streamingjobs.GetOperationOptions
+	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, *id, opts)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), err
+			return nil, err
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

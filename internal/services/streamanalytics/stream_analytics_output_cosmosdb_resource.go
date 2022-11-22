@@ -3,15 +3,15 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -44,7 +44,7 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StreamingJobID,
+			ValidateFunc: streamingjobs.ValidateStreamingJobID,
 		},
 
 		"cosmosdb_account_key": {
@@ -108,7 +108,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroup, streamingJobId.Name, model.Name)
+			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.JobName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -174,7 +174,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.DocumentDbOutputDataSourceProperties)
+					output, ok := props.Datasource.(outputs.DocumentDbOutputDataSource)
 					if !ok {
 						return fmt.Errorf("converting to CosmosDb Output")
 					}
@@ -187,23 +187,23 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 					state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
 
-					databaseId := cosmosParse.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.AccountId, *output.Database)
+					databaseId := cosmosParse.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
 					state.Database = databaseId.ID()
 
 					collectionName := ""
-					if v := output.CollectionNamePattern; v != nil {
+					if v := output.Properties.CollectionNamePattern; v != nil {
 						collectionName = *v
 					}
 					state.ContainerName = collectionName
 
 					document := ""
-					if v := output.DocumentId; v != nil {
+					if v := output.Properties.DocumentId; v != nil {
 						document = *v
 					}
 					state.DocumentID = document
 
 					partitionKey := ""
-					if v := output.PartitionKey; v != nil {
+					if v := output.Properties.PartitionKey; v != nil {
 						partitionKey = *v
 					}
 					state.PartitionKey = partitionKey

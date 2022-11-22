@@ -3,10 +3,10 @@ package streamanalytics_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,7 +100,7 @@ func TestAccStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
 func (r StreamAnalyticsStreamInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := inputs.ParseInputID(state.ID)
 	if err != nil {
-		return utils.Bool(false), err
+		return nil, err
 	}
 
 	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
