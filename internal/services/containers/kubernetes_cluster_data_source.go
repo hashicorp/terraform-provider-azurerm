@@ -613,6 +613,38 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"storage_blob_driver": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"storage_disk_driver": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"storage_file_driver": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"storage_snapshot_controller": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -729,6 +761,34 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
 			}
 
+			if storageProfile := props.StorageProfile; storageProfile != nil {
+				if storageProfile.BlobCSIDriver != nil {
+					blobDriver := *storageProfile.BlobCSIDriver.Enabled
+					if err := d.Set("storage_blob_driver", blobDriver); err != nil {
+						return fmt.Errorf("setting `storage_blob_driver`: %+v", err)
+					}
+				}
+
+				diskDriver := flattenKubernetesClusterDataSourceStorageProfileDiskDriver(storageProfile)
+				if err := d.Set("storage_disk_driver", diskDriver); err != nil {
+					return fmt.Errorf("setting `microsoft_defender`: %+v", err)
+				}
+
+				if storageProfile.FileCSIDriver != nil {
+					fileDriver := *storageProfile.FileCSIDriver.Enabled
+					if err := d.Set("storage_file_driver", fileDriver); err != nil {
+						return fmt.Errorf("setting `storage_file_driver`: %+v", err)
+					}
+				}
+
+				if storageProfile.SnapshotController != nil {
+					snapshotController := *storageProfile.SnapshotController.Enabled
+					if err := d.Set("storage_snapshot_controller", snapshotController); err != nil {
+						return fmt.Errorf("setting `storage_snapshot_controller`: %+v", err)
+					}
+				}
+			}
+
 			rbacEnabled := true
 			if props.EnableRBAC != nil {
 				rbacEnabled = *props.EnableRBAC
@@ -791,6 +851,22 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func flattenKubernetesClusterDataSourceStorageProfileDiskDriver(input *managedclusters.ManagedClusterStorageProfile) []interface{} {
+	if input == nil || input.DiskCSIDriver == nil {
+		return []interface{}{}
+	}
+
+	diskDriver := *input.DiskCSIDriver.Enabled
+	diskVersion := *input.DiskCSIDriver.Version
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": diskDriver,
+			"version": diskVersion,
+		},
+	}
 }
 
 func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.ManagedClusterAccessProfile) (*string, []interface{}) {

@@ -1004,6 +1004,48 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"storage_blob_driver": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"storage_disk_driver": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "V1",
+							ValidateFunc: validation.StringInSlice([]string{
+								"V1",
+								"V2",
+							}, false),
+						},
+					},
+				},
+			},
+
+			"storage_file_driver": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"storage_snapshot_controller": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": commonschema.Tags(),
 
 			"windows_profile": {
@@ -1208,11 +1250,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 	securityProfile := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 
+	clusterStorageProfile := expandClusterStorageProfile(d)
+
 	workloadIdentity := false
 	if v, ok := d.GetOk("workload_identity_enabled"); ok {
 		workloadIdentity = v.(bool)
 
-		if workloadIdentity == true && enableOidcIssuer == false {
+		if workloadIdentity && !enableOidcIssuer {
 			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
 		}
 
@@ -1251,6 +1295,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			HTTPProxyConfig:           httpProxyConfig,
 			OidcIssuerProfile:         oidcIssuerProfile,
 			SecurityProfile:           securityProfile,
+			StorageProfile:            clusterStorageProfile,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
@@ -1715,6 +1760,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 		existing.Model.Properties.SecurityProfile = microsoftDefender
+	}
+
+	if d.HasChanges("storage_disk_driver") || d.HasChanges("storage_blob_driver") || d.HasChanges("storage_file_driver") || d.HasChanges("storage_snapshot_controller") {
+		updateCluster = true
+		clusterStorageProfile := expandClusterStorageProfile(d)
+		existing.Model.Properties.StorageProfile = clusterStorageProfile
 	}
 
 	if d.HasChange("workload_autoscaler_profile") {
@@ -3315,6 +3366,45 @@ func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClu
 			"log_analytics_workspace_id": logAnalyticsWorkspace,
 		},
 	}
+}
+
+func expandClusterStorageProfile(d *pluginsdk.ResourceData) *managedclusters.ManagedClusterStorageProfile {
+
+	blobEnabled := d.Get("storage_blob_driver").(bool)
+	diskInterfrace := d.Get("storage_disk_driver").([]interface{})
+	fileEnabled := d.Get("storage_file_driver").(bool)
+	snapshotControllerEnabled := d.Get("storage_snapshot_controller").(bool)
+
+	profile := managedclusters.ManagedClusterStorageProfile{
+		BlobCSIDriver: &managedclusters.ManagedClusterStorageProfileBlobCSIDriver{
+			Enabled: utils.Bool(blobEnabled),
+		},
+		DiskCSIDriver: expandClusterStorageProfileDiskDriver(diskInterfrace),
+		FileCSIDriver: &managedclusters.ManagedClusterStorageProfileFileCSIDriver{
+			Enabled: utils.Bool(fileEnabled),
+		},
+		SnapshotController: &managedclusters.ManagedClusterStorageProfileSnapshotController{
+			Enabled: utils.Bool(snapshotControllerEnabled),
+		},
+	}
+
+	return &profile
+}
+
+func expandClusterStorageProfileDiskDriver(input []interface{}) *managedclusters.ManagedClusterStorageProfileDiskCSIDriver {
+
+	if (input == nil) || len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	diskDriver := managedclusters.ManagedClusterStorageProfileDiskCSIDriver{
+		Enabled: utils.Bool(raw["enabled"].(bool)),
+		Version: utils.String(raw["version"].(string)),
+	}
+
+	return &diskDriver
 }
 
 func expandEdgeZone(input string) *edgezones.Model {
