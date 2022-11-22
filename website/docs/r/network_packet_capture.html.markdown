@@ -140,6 +140,10 @@ The following arguments are supported:
 
 * `filter` - (Optional) One or more `filter` blocks as defined below. Changing this forces a new resource to be created.
 
+* `target_type` - (Optional) The target type of the resource provided. Possible values are `AzureVM` and `AzureVMSS`. Defaults to `AzureVM`. Changing this forces a new resource to be created.
+
+* `scope` - (Required) A `scope` block as defined below. Changing this forces a new resource to be created.
+
 ---
 
 A `storage_location` block contains:
@@ -161,6 +165,14 @@ A `filter` block contains:
 * `remote_ip_address` - (Optional) The remote IP Address to be filtered on. Notation: "127.0.0.1" for single address entry. "127.0.0.1-127.0.0.255" for range. "127.0.0.1;127.0.0.5;" for multiple entries. Multiple ranges not currently supported. Mixing ranges with multiple entries not currently supported.. Changing this forces a new resource to be created.
 
 * `remote_port` - (Optional) The remote port to be filtered on. Notation: "80" for single port entry."80-85" for range. "80;443;" for multiple entries. Multiple ranges not currently supported. Mixing ranges with multiple entries not currently supported. Changing this forces a new resource to be created.
+
+---
+
+A `scope` block contains:
+
+* `exclude` - (Optional) A list of Azure VMSS instance IDs which has to be excluded from Azure VMSS from running Packet Capture. Changing this forces a new resource to be created.
+
+* `include` - (Optional) A list of Azure VMSS instance IDs to run Packet Capture on. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

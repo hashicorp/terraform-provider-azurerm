@@ -3,6 +3,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -64,6 +65,7 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  string(network.PacketCaptureTargetTypeAzureVM),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.PacketCaptureTargetTypeAzureVM),
 					string(network.PacketCaptureTargetTypeAzureVMSS),
@@ -448,14 +450,30 @@ func expandNetworkPacketCaptureScope(input []interface{}) *network.PacketCapture
 }
 
 func flattenNetworkPacketCaptureScope(input *network.PacketCaptureMachineScope) []interface{} {
-	if input == nil {
+	if input == nil || (input.Exclude == nil && input.Include == nil) || (len(*input.Exclude) == 0 && len(*input.Include) == 0) {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"exclude": utils.FlattenStringSlice(input.Exclude),
-			"include": utils.FlattenStringSlice(input.Include),
+			"exclude": flattenNetworkPacketCaptureScopeInstanceIds(input.Exclude),
+			"include": flattenNetworkPacketCaptureScopeInstanceIds(input.Include),
 		},
 	}
+}
+
+func flattenNetworkPacketCaptureScopeInstanceIds(input *[]string) []string {
+	instances := make([]string, 0)
+	if input == nil {
+		return instances
+	}
+
+	for _, instance := range *input {
+		instanceSegments := strings.Split(instance, "/")
+		instanceLastSegment := instanceSegments[len(instanceSegments)-1]
+
+		instances = append(instances, instanceLastSegment)
+	}
+
+	return instances
 }

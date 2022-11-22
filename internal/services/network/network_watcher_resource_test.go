@@ -57,6 +57,7 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccNetworkPacketCapture_withFilters,
 			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
+			"scope":                      testAccNetworkPacketCapture_scope,
 		},
 		"FlowLog": {
 			"basic":                testAccNetworkWatcherFlowLog_basic,
