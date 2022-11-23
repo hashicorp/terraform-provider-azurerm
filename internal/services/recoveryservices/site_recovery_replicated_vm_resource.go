@@ -733,7 +733,7 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 	if ok {
 		return &protectedItem, nil
 	} else {
-		return nil, fmt.Errorf("waiting for site recovery return incompatible tyupe")
+		return nil, fmt.Errorf("waiting for site recovery return incompatible type")
 	}
 }
 
@@ -779,7 +779,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 		if resp.Model.Properties.ReplicationHealth == nil {
 			return nil, "", fmt.Errorf("Missing ReplicationHealth in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
 		}
-		return resp, *resp.Model.Properties.ReplicationHealth, nil
+		return resp.Model, *resp.Model.Properties.ReplicationHealth, nil
 	}
 }
 
