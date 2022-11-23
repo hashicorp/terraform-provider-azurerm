@@ -267,12 +267,12 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					input, ok := props.(inputs.Input)
+					input, ok := props.(inputs.InputProperties)
 					if !ok {
 						return fmt.Errorf("converting to an Input")
 					}
 
-					streamInput, ok := input.Properties.(inputs.StreamInputProperties)
+					streamInput, ok := input.(inputs.StreamInputProperties)
 					if !ok {
 						return fmt.Errorf("converting to a Stream Input")
 					}
@@ -384,7 +384,7 @@ func (r StreamInputEventHubV2Resource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("specified resource is not a Stream Input: %+v", err)
 		}
 
-		if _, ok := streamInput.Datasource.(inputs.EventHubV2StreamInputDataSource); ok {
+		if _, ok := streamInput.Datasource.(inputs.EventHubV2StreamInputDataSource); !ok {
 			return fmt.Errorf("specified input is not of type EventHubV2: %+v", err)
 		}
 
