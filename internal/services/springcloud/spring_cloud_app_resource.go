@@ -391,7 +391,7 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
 		}
 		if err := d.Set("ingress_settings", flattenSpringCloudAppIngressSettings(prop.IngressSettings)); err != nil {
-			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
+			return fmt.Errorf("setting `ingress_settings`: %+v", err)
 		}
 		if prop.VnetAddons != nil {
 			d.Set("public_endpoint_enabled", prop.VnetAddons.PublicEndpoint)
