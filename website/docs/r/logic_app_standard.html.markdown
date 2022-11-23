@@ -50,7 +50,7 @@ resource "azurerm_logic_app_standard" "example" {
   
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"      = "node"
-    "WEBSITE_NODE_DEFAULT_VERSION" = "<version>"
+    "WEBSITE_NODE_DEFAULT_VERSION" = "~18"
   }
 }
 ```
