@@ -194,9 +194,6 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			binding := function.Properties.Binding.(functions.JavaScriptFunctionBinding)
-			//if !ok {
-			//	return fmt.Errorf("converting Binding to a JavaScript Function Binding")
-			//}
 
 			script := ""
 			if v := binding.Properties.Script; v != nil {
