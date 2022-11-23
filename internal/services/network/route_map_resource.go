@@ -195,9 +195,9 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Default:  string(network.NextStepUnknown),
 						ValidateFunc: validation.StringInSlice([]string{
-							string(network.NextStepUnknown),
 							string(network.NextStepContinue),
 							string(network.NextStepTerminate),
+							string(network.NextStepUnknown),
 						}, false),
 					},
 				},
@@ -370,7 +370,7 @@ func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
 
 	for _, v := range input {
 		rule := network.RouteMapRule{
-			Name: &v.Name,
+			Name: utils.String(v.Name),
 		}
 
 		actions, err := expandActions(v.Actions)
@@ -416,30 +416,49 @@ func expandActions(input []Action) (*[]network.Action, error) {
 }
 
 func expandParameters(input []Parameter) (*[]network.Parameter, error) {
-	var paramters []network.Parameter
+	var parameters []network.Parameter
 
-	for _, v := range input {
-		parameter := network.Parameter{
-			AsPath:      &v.AsPath,
-			Community:   &v.Community,
-			RoutePrefix: &v.RoutePrefix,
+	for _, item := range input {
+		v := item
+		parameter := network.Parameter{}
+
+		if v.AsPath != nil {
+			parameter.AsPath = &v.AsPath
 		}
 
-		paramters = append(paramters, parameter)
+		if v.Community != nil {
+			parameter.Community = &v.Community
+		}
+
+		if v.RoutePrefix != nil {
+			parameter.RoutePrefix = &v.RoutePrefix
+		}
+
+		parameters = append(parameters, parameter)
 	}
 
-	return &paramters, nil
+	return &parameters, nil
 }
 
 func expandCriteria(input []Criterion) (*[]network.Criterion, error) {
 	var criteria []network.Criterion
 
-	for _, v := range input {
+	for _, item := range input {
+		v := item
 		criterion := network.Criterion{
-			AsPath:         &v.AsPath,
-			Community:      &v.Community,
 			MatchCondition: v.MatchCondition,
-			RoutePrefix:    &v.RoutePrefix,
+		}
+
+		if v.AsPath != nil {
+			criterion.AsPath = &v.AsPath
+		}
+
+		if v.Community != nil {
+			criterion.Community = &v.Community
+		}
+
+		if v.RoutePrefix != nil {
+			criterion.RoutePrefix = &v.RoutePrefix
 		}
 
 		criteria = append(criteria, criterion)
