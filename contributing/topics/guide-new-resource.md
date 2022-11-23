@@ -233,6 +233,57 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 }
 ```
 
+
+Let's start by implementing the Update function:
+
+```go
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+        // the Timeout is how long Terraform should wait for this function to run before returning an error
+        // whilst 30 minutes may initially seem excessive, we set this as a default to account for rate
+        // limiting - but having this here means that users can override this in their config as necessary
+		Timeout: 30 * time.Minute,
+
+		// the Func returns a function which retrieves the current state of the Resource Group into the state
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.GroupsClient
+
+			// retrieve the Name for this Resource Group from the Terraform Config
+			// and then create a Resource ID for this Resource Group
+			// using the Subscription ID & name 
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			name := metadata.ResourceData.Get("name").(string)
+			id := parse.NewResourceGroupID(subscriptionId, name)
+			
+			// then we want to check for the presence of an existing resource with this name
+			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
+			// so we don't want to unintentionally adopt this resource by using the same name
+			existing, err := client.Get(ctx, id.ResourceGroup)
+			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+			
+			// create the Resource Group
+			param := resources.Group{
+				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
+				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			}
+			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, param); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// set the Resource ID, meaning that we track this resource
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+```
+
+
 ---
 
 Next up, let's implement the Read function - which retrieves the information about the Resource Group from Azure:
@@ -426,6 +477,51 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			// create the Resource Group
+			param := resources.Group{
+				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
+				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			}
+			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, param); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// set the Resource ID, meaning that we track this resource
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+        // the Timeout is how long Terraform should wait for this function to run before returning an error
+        // whilst 30 minutes may initially seem excessive, we set this as a default to account for rate
+        // limiting - but having this here means that users can override this in their config as necessary
+		Timeout: 30 * time.Minute,
+
+		// the Func returns a function which retrieves the current state of the Resource Group into the state
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.GroupsClient
+
+			// retrieve the Name for this Resource Group from the Terraform Config
+			// and then create a Resource ID for this Resource Group
+			// using the Subscription ID & name 
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			name := metadata.ResourceData.Get("name").(string)
+			id := parse.NewResourceGroupID(subscriptionId, name)
+			
+			// then we want to check for the presence of an existing resource with this name
+			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
+			// so we don't want to unintentionally adopt this resource by using the same name
+			existing, err := client.Get(ctx, id.ResourceGroup)
+			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+			
 			// create the Resource Group
 			param := resources.Group{
 				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
