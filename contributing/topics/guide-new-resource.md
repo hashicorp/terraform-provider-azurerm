@@ -83,7 +83,7 @@ client := metadata.Client.Resource.GroupsClient
 
 Next we're going to generate a Resource ID Struct, Parser and Validator for the specific Azure Resource that we're working with, in this case for a Resource Group.
 
-We have [some automation within the codebase](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/generator-resource-id) which generates all of that using `go:generate` commands - what this means is that we can add a single line to the `resourceids.go` file within the Service Package (in this case `./internal/services/resources/resourceids.go`) to generate these.
+We have [some automation within the codebase](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/generator-resource-id) which generates all of that using `go:generate` commands - what this means is that we can add a single line to the `resourceids.go` file within the Service Package (in this case `./internal/services/resource/resourceids.go`) to generate these.
 
 An example of this is shown below:
 
@@ -107,7 +107,7 @@ These types can then be used in the Resource we're creating below, but [see this
 
 ### Step 4: Scaffold an empty/new Resource
 
-Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resources`.
+Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resource`.
 
 In this case, this'd be a file called `resource_group_example_resource.go`, which we'll start out with the following:
 
