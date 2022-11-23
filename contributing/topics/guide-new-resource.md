@@ -161,7 +161,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		
 		"location": commonschema.Location(),
 
-		"tags": commonschema.TagsDataSource(),
+		"tags": tags.Schema(),
 	}
 }
 
@@ -381,7 +381,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"tags": commonschema.TagsDataSource(),
+		"tags": tags.Schema(),
 	}
 }
 
