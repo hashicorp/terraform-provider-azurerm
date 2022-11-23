@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_cognitive_account` - Support for `dynamic_throttling_enabled` [GH-19371]
 * `azurerm_databricks_workspace` - support for `storage_account_identity` property in datasource [GH-19336]
 * `azurerm_postgresql_flexible_server` - support for `authentication` [GH-19269]
+* `azurerm_spring_cloud_app` - `ingress_settings` [GH-19386]
 
 BUG FIXES:
 
