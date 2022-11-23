@@ -124,6 +124,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		cognitive.Registration{},
 		compute.Registration{},
 		consumption.Registration{},
 		cosmos.Registration{},
