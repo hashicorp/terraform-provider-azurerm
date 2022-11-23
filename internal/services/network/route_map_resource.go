@@ -67,7 +67,7 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.RouteMapName,
 		},
 
 		"virtual_hub_id": {
