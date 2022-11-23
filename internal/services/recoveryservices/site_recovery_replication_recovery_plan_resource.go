@@ -100,13 +100,13 @@ func resourceSiteRecoveryReplicationRecoveryPlan() *pluginsdk.Resource {
 								ValidateFunc: azure.ValidateResourceID,
 							},
 						},
-						"pre_actions": {
-							Type:     pluginsdk.TypeSet,
+						"pre_action": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem:     schemaAction(),
 						},
-						"post_actions": {
-							Type:     pluginsdk.TypeSet,
+						"post_action": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem:     schemaAction(),
 						},
@@ -117,73 +117,71 @@ func resourceSiteRecoveryReplicationRecoveryPlan() *pluginsdk.Resource {
 	}
 }
 
-func schemaAction() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type: pluginsdk.TypeList,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*schema.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"action_detail_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+func schemaAction() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"action_detail_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(siterecovery.InstanceTypeAutomationRunbookActionDetails),
+					string(siterecovery.InstanceTypeManualActionDetails),
+					string(siterecovery.InstanceTypeScriptActionDetails),
+				}, false),
+			},
+
+			"fail_over_directions": {
+				Type:     pluginsdk.TypeSet,
+				Required: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(siterecovery.InstanceTypeAutomationRunbookActionDetails),
-						string(siterecovery.InstanceTypeManualActionDetails),
-						string(siterecovery.InstanceTypeScriptActionDetails),
+						string(siterecovery.PrimaryToRecovery),
+						string(siterecovery.RecoveryToPrimary),
 					}, false),
 				},
-				"fail_over_directions": {
-					Type:     pluginsdk.TypeSet,
-					Required: true,
-					Elem: &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(siterecovery.PrimaryToRecovery),
-							string(siterecovery.RecoveryToPrimary),
-						}, false),
-					},
-				},
-				"fail_over_types": {
-					Type:     pluginsdk.TypeSet,
-					Required: true,
-					Elem: &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(siterecovery.ReplicationProtectedItemOperationPlannedFailover),
-							string(siterecovery.ReplicationProtectedItemOperationTestFailover),
-							string(siterecovery.ReplicationProtectedItemOperationUnplannedFailover),
-						}, false),
-					},
-				},
-				"runbook_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				"fabric_location": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+			},
+
+			"fail_over_types": {
+				Type:     pluginsdk.TypeSet,
+				Required: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(siterecovery.Primary),
-						string(siterecovery.Recovery),
+						string(siterecovery.ReplicationProtectedItemOperationPlannedFailover),
+						string(siterecovery.ReplicationProtectedItemOperationTestFailover),
+						string(siterecovery.ReplicationProtectedItemOperationUnplannedFailover),
 					}, false),
 				},
-				"manual_action_instruction": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"script_path": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+			},
+			"runbook_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			"fabric_location": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(siterecovery.Primary),
+					string(siterecovery.Recovery),
+				}, false),
+			},
+			"manual_action_instruction": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"script_path": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -328,7 +326,7 @@ func expandRecoverGroup(input []interface{}) []replicationrecoveryplans.Recovery
 		}
 
 		var startActions []replicationrecoveryplans.RecoveryPlanAction
-		for _, startActionRaw := range groupInput["pre_actions"].(*pluginsdk.Set).List() {
+		for _, startActionRaw := range groupInput["pre_action"].([]interface{}) {
 			startActionInput := startActionRaw.(map[string]interface{})
 
 			var failOverTypes []replicationrecoveryplans.ReplicationProtectedItemOperation
@@ -365,10 +363,10 @@ func flattenRecoveryGroups(input []replicationrecoveryplans.RecoveryPlanGroup) [
 			recoveryGroupOutput["replicated_protected_items"] = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
 		}
 		if groupItem.StartGroupActions != nil {
-			recoveryGroupOutput["pre_actions"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
+			recoveryGroupOutput["pre_action"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
 		}
 		if groupItem.EndGroupActions != nil {
-			recoveryGroupOutput["post_actions"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
+			recoveryGroupOutput["post_action"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
 		}
 		output = append(output, recoveryGroupOutput)
 	}

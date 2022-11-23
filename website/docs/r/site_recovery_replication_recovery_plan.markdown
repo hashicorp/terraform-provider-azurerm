@@ -88,9 +88,9 @@ A `recovery_groups` block supports the following:
 
 * `replicated_protected_items` - (required) one or more id of protected VM.
 
-* `pre_actions` - (Optional) one or more `action` block. which will be executed before the group recovery.
+* `pre_action` - (Optional) one or more `action` block. which will be executed before the group recovery.
 
-* `post_actions` - (Optional) one or more `action` block. which will be executed after the group recovery.
+* `post_action` - (Optional) one or more `action` block. which will be executed after the group recovery.
 
 ---
 

@@ -340,7 +340,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   recovery_groups {
     group_type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-    pre_actions {
+    pre_action {
       name                      = "testPreAction"
       action_detail_type        = "ManualActionDetails"
       fail_over_directions      = ["PrimaryToRecovery"]
@@ -368,7 +368,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   recovery_groups {
     group_type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-    post_actions {
+    post_action {
       name                      = "testPreAction"
       action_detail_type        = "ManualActionDetails"
       fail_over_directions      = ["PrimaryToRecovery"]

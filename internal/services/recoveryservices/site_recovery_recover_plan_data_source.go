@@ -72,12 +72,12 @@ func dataSourceSiteRecoveryRecoverPlan() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 						},
-						"pre_actions": {
+						"pre_action": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem:     dataSourceSiteRecoveryRecoverPlanActions(),
 						},
-						"post_actions": {
+						"post_action": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem:     dataSourceSiteRecoveryRecoverPlanActions(),

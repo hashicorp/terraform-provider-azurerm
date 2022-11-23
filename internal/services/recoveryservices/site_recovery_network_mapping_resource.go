@@ -168,7 +168,7 @@ func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("source_network_id", props.PrimaryNetworkId)
 		d.Set("target_network_id", props.RecoveryNetworkId)
 
-		targetFabricId, err := parse.ReplicationFabricID(*props.RecoveryFabricArmId)
+		targetFabricId, err := parse.ReplicationFabricID(handleAzureSdkForGoBug2824(*props.RecoveryFabricArmId))
 		if err != nil {
 			return err
 		}
