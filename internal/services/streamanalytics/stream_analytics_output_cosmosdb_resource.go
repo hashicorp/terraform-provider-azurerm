@@ -301,7 +301,7 @@ func (r OutputCosmosDBResource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.DocumentDbOutputDataSourceProperties); !ok {
+		if _, ok := props.Datasource.(outputs.DocumentDbOutputDataSource); !ok {
 			return fmt.Errorf("specified output is not of type")
 		}
 		return nil

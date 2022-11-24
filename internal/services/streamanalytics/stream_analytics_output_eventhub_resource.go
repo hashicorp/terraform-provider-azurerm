@@ -232,6 +232,16 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 				authMode = string(*v)
 			}
 			d.Set("authentication_mode", authMode)
+
+			var propertyColumns []string
+			if v := output.Properties.PropertyColumns; v != nil {
+				propertyColumns = *v
+			}
+			d.Set("property_columns", propertyColumns)
+
+			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+				return fmt.Errorf("setting `serialization`: %+v", err)
+			}
 		}
 	}
 	return nil

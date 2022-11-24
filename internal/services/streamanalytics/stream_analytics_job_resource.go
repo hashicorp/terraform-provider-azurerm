@@ -253,8 +253,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			Sku: &streamingjobs.Sku{
 				Name: utils.ToPtr(streamingjobs.SkuNameStandard),
 			},
-			ContentStoragePolicy: utils.ToPtr(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
-			//CompatibilityLevel:                 utils.ToPtr(streamingjobs.CompatibilityLevel(d.Get("compatibility_level").(string))),
+			ContentStoragePolicy:               utils.ToPtr(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
 			EventsLateArrivalMaxDelayInSeconds: utils.Int64(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
 			EventsOutOfOrderMaxDelayInSeconds:  utils.Int64(int64(d.Get("events_out_of_order_max_delay_in_seconds").(int))),
 			EventsOutOfOrderPolicy:             utils.ToPtr(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string))),
@@ -313,26 +312,31 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
-		var getOpts streamingjobs.GetOperationOptions
-		job, err := client.Get(ctx, id, getOpts)
-		if err != nil {
-			return err
-		}
+		if d.HasChanges("streaming_units", "transformation_query") {
+			transformationUpdate := transformations.Transformation{
+				Name: utils.String("main"),
+				Properties: &transformations.TransformationProperties{
+					Query: utils.String(d.Get("transformation_query").(string)),
+				},
+			}
 
-		if job.Model != nil && job.Model.Properties != nil {
-			if job.Model.Properties.Transformation != nil && job.Model.Properties.Transformation.Name != nil {
-				transformationId := transformations.NewTransformationID(subscriptionId, id.ResourceGroupName, id.JobName, *transformation.Name)
-				transformation, err := transformationsClient.Get(ctx, transformationId)
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %+v", transformationId, err)
+			if jobType == string(streamingjobs.JobTypeEdge) {
+				if _, ok := d.GetOk("streaming_units"); ok {
+					return fmt.Errorf("the job type `Edge` doesn't support `streaming_units`")
 				}
+			} else {
+				if v, ok := d.GetOk("streaming_units"); ok {
+					transformationUpdate.Properties.StreamingUnits = utils.Int64(int64(v.(int)))
+				} else {
+					return fmt.Errorf("`streaming_units` must be set when `type` is `Cloud`")
+				}
+			}
 
-				if transformation.Model != nil {
-					var updateOpts transformations.UpdateOperationOptions
-					if _, err := transformationsClient.Update(ctx, transformationId, *transformation.Model, updateOpts); err != nil {
-						return fmt.Errorf("updating transformation for %s: %+v", id, err)
-					}
-				}
+			transformationId := transformations.NewTransformationID(subscriptionId, id.ResourceGroupName, id.JobName, *transformation.Name)
+
+			var updateOpts transformations.UpdateOperationOptions
+			if _, err := transformationsClient.Update(ctx, transformationId, transformationUpdate, updateOpts); err != nil {
+				return fmt.Errorf("updating transformation for %s: %+v", id, err)
 			}
 		}
 	}
