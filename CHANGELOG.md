@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_monitor_alert_processing_rule_suppression` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
 * `azurerm_mysql_flexible_server` - increase validation max value for the `iops` property [GH-19419]
 * `azurerm_servicebus_subscription_rule` - `correlation_filter` with empty attributes no longer crashes [GH-19352]
+* `azurerm_storage_account` - fix crash in multichannel checking [GH-19298]
 
 ## 3.32.0 (November 17, 2022)
 
