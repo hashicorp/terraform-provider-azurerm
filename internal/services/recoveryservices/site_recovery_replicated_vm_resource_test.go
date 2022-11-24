@@ -334,11 +334,15 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "accsa%[1]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -1346,6 +1350,16 @@ resource "azurerm_capacity_reservation_group" "test" {
   resource_group_name = azurerm_resource_group.test2.name
 }
 
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+
+  sku {
+    name     = "Standard_B1s"
+    capacity = 2
+  }
+}
+
 resource "azurerm_site_recovery_replicated_vm" "test" {
   name                                      = "repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
@@ -1377,9 +1391,9 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
     azurerm_site_recovery_network_mapping.test,
+    azurerm_capacity_reservation.test,
   ]
 }
-
 
 `, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -1388,9 +1402,21 @@ func (r SiteRecoveryReplicatedVmResource) withVMSS(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_container" "test" {
+resource "azurerm_storage_account" "vmss" {
+  name                     = "accsa%[2]d"
+  location                 = azurerm_resource_group.test2.location
+  resource_group_name      = azurerm_resource_group.test2.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_container" "vmss" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_name  = azurerm_storage_account.vmss.name
   container_access_type = "private"
 }
 
@@ -1428,7 +1454,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     name           = "osDiskProfile"
     caching        = "ReadWrite"
     create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    vhd_containers = ["${azurerm_storage_account.vmss.primary_blob_endpoint}${azurerm_storage_container.vmss.name}"]
   }
 
   storage_profile_image_reference {

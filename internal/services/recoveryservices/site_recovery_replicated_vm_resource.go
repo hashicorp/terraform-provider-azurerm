@@ -771,14 +771,14 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 				log.Printf("Waiting for Site Recover to replicate VM, %d%% complete.", *a2aDetails.MonitoringPercentageCompletion)
 			}
 			if a2aDetails.VmProtectionState != nil {
-				return resp, *a2aDetails.VmProtectionState, nil
+				return *resp.Model, *a2aDetails.VmProtectionState, nil
 			}
 		}
 
 		if resp.Model.Properties.ReplicationHealth == nil {
-			return nil, "", fmt.Errorf("Missing ReplicationHealth in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing ReplicationHealth in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
 		}
-		return resp.Model, *resp.Model.Properties.ReplicationHealth, nil
+		return *resp.Model, *resp.Model.Properties.ReplicationHealth, nil
 	}
 }
 
