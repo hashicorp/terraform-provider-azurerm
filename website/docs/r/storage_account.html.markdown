@@ -166,6 +166,10 @@ The following arguments are supported:
 
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
 
+* `stfp_enabled` - (Optional) Boolean, enable SFTP for the storage account
+
+-> **NOTE:** SFTP support requires `is_hns_enabled` set to `true`. SFTP Support is not yet available in the West Europe region. See [here](https://learn.microsoft.com/en-us/azure/storage/blobs/secure-file-transfer-protocol-support) for more information. Defaults to `False`
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
