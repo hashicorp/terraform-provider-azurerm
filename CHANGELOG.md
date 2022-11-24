@@ -13,12 +13,12 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v2.24.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-19303]
 * `cognitive`: updating to API Version `2022-10-01` [GH-19344]
 * `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
-* Data source: `azurerm_mssql_managed_instance` - support for `customer_managed_key_id` attribute and user-assigned identity [GH-18918]
-* `azurerm_cognitive_account` - Support for `dynamic_throttling_enabled` [GH-19371]
+* Data Source: `azurerm_mssql_managed_instance` - support for `customer_managed_key_id` attribute and user-assigned identity [GH-18918]
+* `azurerm_cognitive_account` - support for `dynamic_throttling_enabled` [GH-19371]
 * `azurerm_databricks_workspace` - support for `storage_account_identity` property in datasource [GH-19336]
 * `azurerm_mssql_managed_instance` - support for user-assigned identity [GH-18918]
 * `azurerm_postgresql_flexible_server` - support for `authentication` [GH-19269]
-* `azurerm_spring_cloud_app` - `ingress_settings` [GH-19386]
+* `azurerm_spring_cloud_app` - support for the `ingress_settings` block [GH-19386]
 
 BUG FIXES:
 
