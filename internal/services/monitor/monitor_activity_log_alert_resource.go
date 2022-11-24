@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strings"
@@ -269,7 +268,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 			},
 
 			"action": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -287,7 +286,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceMonitorActivityLogAlertActionHash,
 			},
 
 			"description": {
@@ -745,12 +743,4 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActionList) (result []
 		result = append(result, v)
 	}
 	return result
-}
-
-func resourceMonitorActivityLogAlertActionHash(input interface{}) int {
-	var buf bytes.Buffer
-	if v, ok := input.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
-	}
-	return pluginsdk.HashString(buf.String())
 }
