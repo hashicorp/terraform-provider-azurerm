@@ -23,6 +23,7 @@ BUG FIXES:
 * `azurerm_cdn_frontdoor_rule` - allow `cache_duration` to be `null` if `cache_behavior` is set to `HonorOrigin` [GH-19378]
 * `azurerm_monitor_alert_processing_rule_action_group` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
 * `azurerm_monitor_alert_processing_rule_suppression` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
+* `azurerm_mysql_flexible_server` - increase validation max value for the `iops` property [GH-19419]
 * `azurerm_servicebus_subscription_rule` - `correlation_filter` with empty attributes no longer crashes [GH-19352]
 
 ## 3.32.0 (November 17, 2022)
