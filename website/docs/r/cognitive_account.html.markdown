@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `custom_subdomain_name` - (Required) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
+* `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account. Defaults to `false`.
+
 * `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.

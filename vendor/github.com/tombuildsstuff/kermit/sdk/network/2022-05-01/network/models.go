@@ -16063,7 +16063,7 @@ type ErrorDetails struct {
 // ErrorResponse the error object.
 type ErrorResponse struct {
 	// Error - The error details object.
-	Error *ErrorDetails `json:"error,omitempty"`
+	Error *Error `json:"error,omitempty"`
 }
 
 // EvaluatedNetworkSecurityGroup results of network security group evaluation.
@@ -57089,11 +57089,16 @@ type WatcherListResult struct {
 type WatcherPropertiesFormat struct {
 	// ProvisioningState - READ-ONLY; The provisioning state of the network watcher resource. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateUpdating', 'ProvisioningStateDeleting', 'ProvisioningStateFailed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// RunningOperationIds - List of running operation IDs.
+	RunningOperationIds *[]int32 `json:"runningOperationIds,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WatcherPropertiesFormat.
 func (wpf WatcherPropertiesFormat) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if wpf.RunningOperationIds != nil {
+		objectMap["runningOperationIds"] = wpf.RunningOperationIds
+	}
 	return json.Marshal(objectMap)
 }
 

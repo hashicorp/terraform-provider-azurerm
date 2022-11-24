@@ -212,7 +212,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.IntBetween(360, 20000),
+							ValidateFunc: validation.IntBetween(360, 48000),
 						},
 
 						"size_gb": {
