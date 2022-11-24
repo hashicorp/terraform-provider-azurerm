@@ -234,7 +234,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 ```
 
 
-Let's start by implementing the Update function:
+Let's implement the Update function:
 
 ```go
 func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
@@ -259,7 +259,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
 			// so we don't want to unintentionally adopt this resource by using the same name
 			existing, err := client.Get(ctx, id.ResourceGroup)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			if err != nil{
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -515,7 +515,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
 			// so we don't want to unintentionally adopt this resource by using the same name
 			existing, err := client.Get(ctx, id.ResourceGroup)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			if err != nil  {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 			if !utils.ResponseWasNotFound(existing.Response) {
