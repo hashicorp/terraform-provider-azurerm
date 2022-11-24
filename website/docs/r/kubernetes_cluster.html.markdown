@@ -737,6 +737,8 @@ A `vpa_config` block supports the following:
 
 * `controlled_values` - (Required) Can be set to either `RequestsAndLimits` or `RequestsOnly`.
 
+-> **Note:** The ControlledValues of vertical Pod Autoscaler can't be changed in preview.
+
 ---
 
 A `http_proxy_config` block supports the following:
