@@ -659,28 +659,19 @@ func flattenTokenRestriction(input contentkeypolicies.ContentKeyPolicyTokenRestr
 	rsaTokenKeyModulus := ""
 	x509TokenBodyRaw := ""
 	if v := input.PrimaryVerificationKey; v != nil {
-		switch v.(type) {
-		case contentkeypolicies.ContentKeyPolicySymmetricTokenKey:
-			symmetricTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicySymmetricTokenKey)
-			if !ok {
-				return nil, fmt.Errorf("token key was not Symmetric Token Key")
-			}
-
+		symmetricTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicySymmetricTokenKey)
+		if ok {
 			symmetricToken = symmetricTokenKey.KeyValue
-		case contentkeypolicies.ContentKeyPolicyRsaTokenKey:
-			rsaTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicyRsaTokenKey)
-			if !ok {
-				return nil, fmt.Errorf("token key was not Rsa Token Key")
-			}
+		}
 
+		rsaTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicyRsaTokenKey)
+		if ok {
 			rsaTokenKeyExponent = rsaTokenKey.Exponent
 			rsaTokenKeyModulus = rsaTokenKey.Modulus
-		case contentkeypolicies.ContentKeyPolicyX509CertificateTokenKey:
-			x509CertificateTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicyX509CertificateTokenKey)
-			if !ok {
-				return nil, fmt.Errorf("token key was not x509Certificate Token Key")
-			}
+		}
 
+		x509CertificateTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicyX509CertificateTokenKey)
+		if ok {
 			x509TokenBodyRaw = x509CertificateTokenKey.RawBody
 		}
 	}
@@ -938,7 +929,7 @@ func flattenFairplayConfiguration(input contentkeypolicies.ContentKeyPolicyFairP
 			"rental_and_lease_key_type":    string(input.RentalAndLeaseKeyType),
 			"pfx":                          input.FairPlayPfx,
 			"pfx_password":                 input.FairPlayPfxPassword,
-			"ask":                          string(ask),
+			"ask":                          ask,
 		},
 	}, nil
 }
