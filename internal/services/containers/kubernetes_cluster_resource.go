@@ -2369,12 +2369,9 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *mana
 		profile.Keda = &kedaEnabled
 	}
 
-	vpaEnabled := managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{}
 	if v := config["vpa_enabled"].(bool); v {
-		vpaEnabled.Enabled = v
-
-		profile.VerticalPodAutoscaler = &vpaEnabled
 		profile.VerticalPodAutoscaler = expandKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(config["vpa_config"].([]interface{}))
+		profile.VerticalPodAutoscaler.Enabled = v
 	}
 
 	return profile
