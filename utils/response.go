@@ -50,8 +50,7 @@ func ResponseWasStatusCode(resp autorest.Response, statusCode int) bool { // nol
 	return false
 }
 
-// ResponseWasBadRequestWithNotRegistered is a workaround for https://github.com/Azure/azure-rest-api-specs/issues/12759
-func ResponseWasBadRequestWithNotRegistered(resp autorest.Response, err error) bool {
+func ResponseWasBadRequestWithServiceCode(resp autorest.Response, err error, serviceCode string) bool {
 	e, ok := err.(autorest.DetailedError)
 	if !ok {
 		return false
@@ -66,10 +65,10 @@ func ResponseWasBadRequestWithNotRegistered(resp autorest.Response, err error) b
 		return false
 	}
 
-	serviceCode, ok := r.ServiceError.Details[0]["code"]
+	sc, ok := r.ServiceError.Details[0]["code"]
 	if !ok {
 		return false
 	}
 
-	return ResponseWasStatusCode(resp, http.StatusBadRequest) && serviceCode == "SubscriptionIdNotRegisteredWithSrs"
+	return ResponseWasStatusCode(resp, http.StatusBadRequest) && sc == serviceCode
 }
