@@ -248,25 +248,29 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
 
-			// retrieve the Name for this Resource Group from the Terraform Config
-			// and then create a Resource ID for this Resource Group
-			// using the Subscription ID & name 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			name := metadata.ResourceData.Get("name").(string)
-			id := parse.NewResourceGroupID(subscriptionId, name)
-			
-			// then we want to check for the presence of an existing resource with this name
-			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
-			// so we don't want to unintentionally adopt this resource by using the same name
-			existing, err := client.Get(ctx, id.ResourceGroup)
-			if err != nil{
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			// parse the existing Resource ID from the State
+			id, err := parse.ResourceGroupID(metadata.ResourceData.Get("id").(string))
+			if err != nil {
+				return err
 			}
 			
-			// create the Resource Group
+			// update the Resource Group
+			// NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
+			// API and then conditionally updating it when fields in the config have been updated, which
+			// can be determined by using `d.HasChanges` - for example:
+			//
+			//   existing, err := client.Get(ctx, id.ResourceGroup)
+			//   if err != nil {
+			//     return fmt.Errorf("retrieving existing %s: %+v", id, err)
+			//   }
+			//   if d.HasChanges("tags") {
+			//     existing.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
+			//   }
+			//
+			// doing so allows users to take advantage of Terraform's `ignore_changes` functionality.
+			//
+			// However since a Resource Group only has one field which is updatable (tags) so in this case we'll only
+			// enter the update function if `tags` has been updated.
 			param := resources.Group{
 				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
 				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
