@@ -265,32 +265,29 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props := outputs.Output{
-				Name: utils.String(state.Name),
-				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.AzureTableOutputDataSource{
-						Properties: &outputs.AzureTableOutputDataSourceProperties{
-							AccountName:  utils.String(state.StorageAccount),
-							AccountKey:   utils.String(state.StorageAccountKey),
-							Table:        utils.String(state.Table),
-							PartitionKey: utils.String(state.PartitionKey),
-							RowKey:       utils.String(state.RowKey),
-							BatchSize:    utils.Int64(state.BatchSize),
-						},
-					},
-				},
+			props := &outputs.AzureTableOutputDataSourceProperties{
+				AccountName:  utils.String(state.StorageAccount),
+				AccountKey:   utils.String(state.StorageAccountKey),
+				Table:        utils.String(state.Table),
+				PartitionKey: utils.String(state.PartitionKey),
+				RowKey:       utils.String(state.RowKey),
+				BatchSize:    utils.Int64(state.BatchSize),
 			}
 
 			if metadata.ResourceData.HasChange("columns_to_remove") {
-				tableOutput, ok := props.Properties.Datasource.(outputs.AzureTableOutputDataSourceProperties)
-				if !ok {
-					return fmt.Errorf("converting output data source to a table output: %+v", err)
-				}
-				tableOutput.ColumnsToRemove = &state.ColumnsToRemove
+				props.ColumnsToRemove = &state.ColumnsToRemove
 			}
 
+			output := outputs.Output{
+				Name: utils.String(state.Name),
+				Properties: &outputs.OutputProperties{
+					Datasource: &outputs.AzureTableOutputDataSource{
+						Properties: props,
+					},
+				},
+			}
 			var opts outputs.UpdateOperationOptions
-			if _, err = client.Update(ctx, *id, props, opts); err != nil {
+			if _, err = client.Update(ctx, *id, output, opts); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
