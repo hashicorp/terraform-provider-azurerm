@@ -1063,6 +1063,38 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"vpa_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"vpa_config": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"update_mode": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.UpdateModeAuto),
+											string(managedclusters.UpdateModeInitial),
+											string(managedclusters.UpdateModeOff),
+											string(managedclusters.UpdateModeRecreate),
+										}, false),
+									},
+									"controlled_values": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.ControlledValuesRequestsAndLimits),
+											string(managedclusters.ControlledValuesRequestsOnly),
+										}, false),
+									},	
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1726,6 +1758,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
 					Enabled: false,
 				},
+				VerticalPodAutoscaler: &managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{
+					Enabled: false,
+				},
 			}
 		} else {
 			existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
@@ -2308,20 +2343,42 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *managedclusters
 	}
 }
 
+
+func expandKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(input []interface{}) *managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{
+		UpdateMode: managedclusters.UpdateMode(config["update_mode"].(string)),
+		ControlledValues: managedclusters.ControlledValues(config["controlled_values"].(string)),
+	}
+}
+
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
 	config := input[0].(map[string]interface{})
+	profile := &managedclusters.ManagedClusterWorkloadAutoScalerProfile{}
+
 	kedaEnabled := managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{}
 	if v := config["keda_enabled"].(bool); v {
 		kedaEnabled.Enabled = v
+		profile.Keda = &kedaEnabled
 	}
 
-	return &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
-		Keda: &kedaEnabled,
+	vpaEnabled := managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{}
+	if v := config["vpa_enabled"].(bool); v {
+		vpaEnabled.Enabled = v
+
+		profile.VerticalPodAutoscaler = &vpaEnabled
+		profile.VerticalPodAutoscaler = expandKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(config["vpa_config"].([]interface{}))
 	}
+
+	return profile
 }
 
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
@@ -2378,9 +2435,41 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 		kedaEnabled = profile.Keda.Enabled
 	}
 
+	vpaEnabled := false
+	if v := profile.VerticalPodAutoscaler; v != nil {
+		vpaEnabled = profile.VerticalPodAutoscaler.Enabled
+	}
+
+	vpaConfig := flattenKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(profile.VerticalPodAutoscaler)
+
 	return []interface{}{
 		map[string]interface{}{
 			"keda_enabled": kedaEnabled,
+			"vpa_enabled":  vpaEnabled,
+			"vpa_config":   vpaConfig,
+		},
+	}
+}
+
+func flattenKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	cv := ""
+	if controlledValues := profile.ControlledValues; controlledValues != "" {
+		cv =  string(profile.ControlledValues)
+	}
+
+	um := ""
+	if updateMode := profile.UpdateMode; updateMode != "" {
+		um = string(profile.UpdateMode)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"controlled_values":  cv,
+			"update_mode": um,
 		},
 	}
 }

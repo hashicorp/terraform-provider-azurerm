@@ -721,7 +721,21 @@ A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-KedaPreview](https://docs.microsoft.com/azure/aks/keda-deploy-add-on-arm#register-the-aks-kedapreview-feature-flag) for more information.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/keda-deploy-add-on-arm#register-the-aks-kedapreview-feature-flag) for more information.
+
+* `vpa_enabled` - (Optional) Specifies whether VerticalPodAutoscaler (VPA) can be used for workloads.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-VPAPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/azure/aks/vertical-pod-autoscaler#register-the-vpa-provider-feature) for more information.
+
+* `vpa_config` - (Optional) A `vpc_config` block as defined below.
+
+---
+
+A `vpa_config` block supports the following:
+
+* `update_mode` - (Required) Can be set to `Auto`, `Initial`, `Off` or `Recreate`.
+
+* `controlled_values` - (Required) Can be set to either `RequestsAndLimits` or `RequestsOnly`.
 
 ---
 
