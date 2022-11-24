@@ -1563,7 +1563,7 @@ func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.ReplicationMigrationItemsClient.Get(ctx, *id)
+	resp, err := clients.RecoveryServices.ReplicationProtectedItemsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading site recovery replicated vm (%s): %+v", id.String(), err)
 	}

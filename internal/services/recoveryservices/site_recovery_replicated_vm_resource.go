@@ -331,7 +331,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient
+	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
 	name := d.Get("name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
@@ -436,7 +436,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient
+	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
 	// We are only allowed to update the configuration once the VM is fully protected
 	state, err := waitForReplicationToBeHealthy(ctx, d, meta)
@@ -554,7 +554,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient
+	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -677,14 +677,13 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient
+	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
 	disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
 
 	disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
-			DisableProtectionReason:  &disableProtectionReason,
-			ReplicationProviderInput: replicationprotecteditems.InMageDisableProtectionProviderSpecificInput{},
+			DisableProtectionReason: &disableProtectionReason,
 		},
 	}
 
@@ -744,7 +743,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 			return nil, "", err
 		}
 
-		client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient
+		client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()

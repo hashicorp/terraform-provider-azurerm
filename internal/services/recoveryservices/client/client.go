@@ -29,7 +29,7 @@ type Client struct {
 	ReplicationPoliciesClient                 *replicationpolicies.ReplicationPoliciesClient
 	ContainerMappingClient                    *replicationprotectioncontainermappings.ReplicationProtectionContainerMappingsClient
 	NetworkMappingClient                      *replicationnetworkmappings.ReplicationNetworkMappingsClient
-	ReplicationMigrationItemsClient           *replicationprotecteditems.ReplicationProtectedItemsClient
+	ReplicationProtectedItemsClient           *replicationprotecteditems.ReplicationProtectedItemsClient
 	ReplicationRecoveryPlansClient            *replicationrecoveryplans.ReplicationRecoveryPlansClient
 }
 
@@ -106,7 +106,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ReplicationPoliciesClient:                 &replicationPoliciesClient,
 		ContainerMappingClient:                    &containerMappingClient,
 		NetworkMappingClient:                      &networkMappingClient,
-		ReplicationMigrationItemsClient:           &replicationMigrationItemsClient,
+		ReplicationProtectedItemsClient:           &replicationMigrationItemsClient,
 		ReplicationRecoveryPlansClient:            &replicationRecoveryPlanClient,
 	}
 }
