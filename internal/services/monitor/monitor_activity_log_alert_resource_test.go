@@ -396,6 +396,12 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
   resource_group_name      = azurerm_resource_group.test.name
@@ -419,11 +425,18 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     action_group_id = azurerm_monitor_action_group.test.id
     webhook_properties = {
       from = "terraform test"
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+    webhook_properties = {
       to   = "microsoft azure"
+      from = "terraform test"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func (MonitorActivityLogAlertResource) updateWebhook(data acceptance.TestData) string {
@@ -443,6 +456,12 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
   resource_group_name      = azurerm_resource_group.test.name
@@ -463,6 +482,15 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   }
 
   action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+    webhook_properties = {
+      from = "terraform test"
+      to   = "microsoft azure"
+      env  = "test"
+    }
+  }
+
+  action {
     action_group_id = azurerm_monitor_action_group.test.id
     webhook_properties = {
       from = "terraform test"
@@ -470,7 +498,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func (MonitorActivityLogAlertResource) complete(data acceptance.TestData) string {
