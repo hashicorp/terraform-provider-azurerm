@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
@@ -478,6 +479,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 					RecoverySubnetName:        &targetSubnetName,
 					RecoveryStaticIPAddress:   &targetStaticIp,
 					RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
+					IsPrimary:                 utils.Bool(true), //we only support one ip configured for now.
 				},
 			},
 		})
@@ -684,6 +686,10 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 	disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
 			DisableProtectionReason: &disableProtectionReason,
+			//It's a workaround for https://github.com/hashicorp/pandora/issues/1864
+			ReplicationProviderInput: &siterecovery.DisableProtectionProviderSpecificInput{
+				InstanceType: siterecovery.InstanceTypeDisableProtectionProviderSpecificInput,
+			},
 		},
 	}
 

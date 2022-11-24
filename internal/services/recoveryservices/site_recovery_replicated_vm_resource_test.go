@@ -1214,6 +1214,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_recovery_fabric_id                 = azurerm_site_recovery_fabric.test1.id
   target_recovery_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   target_network_id                         = azurerm_virtual_network.test1.id
+
   managed_disk {
     disk_id                    = data.azurerm_managed_disk.test.id
     staging_storage_account_id = azurerm_storage_account.test.id
