@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_cdn_frontdoor_custom_domain` [GH-19357]
+* **New Resource:** `azurerm_mssql_managed_instance_transparent_data_encryption` [GH-18918]
 * **New Resource:** `azurerm_postgresql_flexible_server_active_directory_administrator` [GH-19269]
 
 ENHANCEMENTS:
@@ -12,8 +13,10 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v2.24.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-19303]
 * `cognitive`: updating to API Version `2022-10-01` [GH-19344]
 * `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
+* Data source: `azurerm_mssql_managed_instance` - support for `customer_managed_key_id` attribute and user-assigned identity [GH-18918]
 * `azurerm_cognitive_account` - Support for `dynamic_throttling_enabled` [GH-19371]
 * `azurerm_databricks_workspace` - support for `storage_account_identity` property in datasource [GH-19336]
+* `azurerm_mssql_managed_instance` - support for user-assigned identity [GH-18918]
 * `azurerm_postgresql_flexible_server` - support for `authentication` [GH-19269]
 * `azurerm_spring_cloud_app` - `ingress_settings` [GH-19386]
 
