@@ -1091,7 +1091,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 											string(managedclusters.ControlledValuesRequestsAndLimits),
 											string(managedclusters.ControlledValuesRequestsOnly),
 										}, false),
-									},	
+									},
 								},
 							},
 						},
@@ -2343,7 +2343,6 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *managedclusters
 	}
 }
 
-
 func expandKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(input []interface{}) *managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler {
 	if len(input) == 0 {
 		return nil
@@ -2351,7 +2350,7 @@ func expandKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(input
 
 	config := input[0].(map[string]interface{})
 	return &managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{
-		UpdateMode: managedclusters.UpdateMode(config["update_mode"].(string)),
+		UpdateMode:       managedclusters.UpdateMode(config["update_mode"].(string)),
 		ControlledValues: managedclusters.ControlledValues(config["controlled_values"].(string)),
 	}
 }
@@ -2458,7 +2457,7 @@ func flattenKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(prof
 
 	cv := ""
 	if controlledValues := profile.ControlledValues; controlledValues != "" {
-		cv =  string(profile.ControlledValues)
+		cv = string(profile.ControlledValues)
 	}
 
 	um := ""
@@ -2468,8 +2467,8 @@ func flattenKubernetesClusterWorkloadAutoscalerProfileVerticalPodAutoscaler(prof
 
 	return []interface{}{
 		map[string]interface{}{
-			"controlled_values":  cv,
-			"update_mode": um,
+			"controlled_values": cv,
+			"update_mode":       um,
 		},
 	}
 }
