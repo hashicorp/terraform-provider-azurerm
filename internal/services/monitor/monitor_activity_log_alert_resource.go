@@ -329,11 +329,10 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 	description := d.Get("description").(string)
 	scopesRaw := d.Get("scopes").(*pluginsdk.Set).List()
 	criteriaRaw := d.Get("criteria").([]interface{})
-	actionRaw := d.Get("action").(*pluginsdk.Set).List()
+	actionRaw := d.Get("action").([]interface{})
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
-
 	parameters := insights.ActivityLogAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
 		AlertRuleProperties: &insights.AlertRuleProperties{
