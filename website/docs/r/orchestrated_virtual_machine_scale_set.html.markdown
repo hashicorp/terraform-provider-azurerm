@@ -63,11 +63,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
 
--> **NOTE:** `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
+-> **NOTE:** `capacity_reservation_group_id` cannot be specified with `proximity_placement_group_id`
 
-~> **NOTE:** `single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified.
-
-* `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the name field. If the value of the name field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
+-> **NOTE:** If `capacity_reservation_group_id` is specified the `single_placement_group` must be set to `false`.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
@@ -174,6 +172,8 @@ A `linux_configuration` block supports the following:
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
 * `admin_ssh_key` - (Optional) A `admin_ssh_key` block as documented below.
+
+* `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the name field. If the value of the name field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 
 * `disable_password_authentication` - (Optional) When an `admin_password` is specified `disable_password_authentication` must be set to `false`. Defaults to `true`.
 

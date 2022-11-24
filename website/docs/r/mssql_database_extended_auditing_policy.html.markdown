@@ -10,8 +10,6 @@ description: |-
 
 Manages a MS SQL Database Extended Auditing Policy.
 
-~> **NOTE:** The Database Extended Auditing Policy can also be set in the `extended_auditing_policy` block in the [azurerm_mssql_database](mssql_database.html) resource. You can only use one or the other and using both will cause a conflict.
-
 ## Example Usage
 
 ```hcl

@@ -8,16 +8,19 @@ FEATURES:
 ENHANCEMENTS:
 
 * build: updating to use Go `1.19.3` [GH-19362]
+* dependencies: updating to `v0.20221122.1115312` of `github.com/hashicorp/go-azure-sdk` [GH-19412]
 * dependencies: upgrading to `v2.24.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-19303]
 * `cognitive`: updating to API Version `2022-10-01` [GH-19344]
 * `springcloud`: updating to API Version `2022-09-01-preview` [GH-19340]
 * `azurerm_cognitive_account` - Support for `dynamic_throttling_enabled` [GH-19371]
 * `azurerm_databricks_workspace` - support for `storage_account_identity` property in datasource [GH-19336]
 * `azurerm_postgresql_flexible_server` - support for `authentication` [GH-19269]
+* `azurerm_spring_cloud_app` - `ingress_settings` [GH-19386]
 
 BUG FIXES:
 
 * `azurerm_application_insights` - validating/normalizing the `workspace_id` as a Workspace ID [GH-19325]
+* `azurerm_cdn_frontdoor_rule` - allow `cache_duration` to be `null` if `cache_behavior` is set to `HonorOrigin` [GH-19378]
 * `azurerm_monitor_alert_processing_rule_action_group` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
 * `azurerm_monitor_alert_processing_rule_suppression` - `condition.x.monitor_condition` can be correctly specified alone [GH-19338]
 * `azurerm_servicebus_subscription_rule` - `correlation_filter` with empty attributes no longer crashes [GH-19352]
