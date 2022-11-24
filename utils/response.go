@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 )
 
 func ResponseWasNotFound(resp autorest.Response) bool {
@@ -56,15 +57,19 @@ func ResponseWasBadRequestWithNotRegistered(resp autorest.Response, err error) b
 		return false
 	}
 
-	v, ok := e.Original.(*autorest.DetailedError)
+	r, ok := e.Original.(*azure.RequestError)
 	if !ok {
 		return false
 	}
 
-	originalCode, ok := v.StatusCode.(string)
+	if r.ServiceError == nil || len(r.ServiceError.Details) == 0 {
+		return false
+	}
+
+	serviceCode, ok := r.ServiceError.Details[0]["code"]
 	if !ok {
 		return false
 	}
 
-	return ResponseWasStatusCode(resp, http.StatusBadRequest) && originalCode == "SubscriptionIdNotRegisteredWithSrs"
+	return ResponseWasStatusCode(resp, http.StatusBadRequest) && serviceCode == "SubscriptionIdNotRegisteredWithSrs"
 }
