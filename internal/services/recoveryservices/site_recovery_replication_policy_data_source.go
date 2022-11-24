@@ -57,7 +57,7 @@ func dataSourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta
 	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-		if utils.ResponseWasNotFound(resp.Response) || utils.ResponseWasBadRequest(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) || utils.ResponseWasBadRequestWithNotRegistered(resp.Response, err) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on site recovery replication policy %s : %+v", id.String(), err)
