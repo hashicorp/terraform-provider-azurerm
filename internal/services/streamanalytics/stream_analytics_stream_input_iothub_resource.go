@@ -125,9 +125,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 	props := inputs.Input{
 		Name: utils.String(id.InputName),
 		Properties: &inputs.StreamInputProperties{
-			//Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.IoTHubStreamInputDataSource{
-				//Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs,
 				Properties: &inputs.IoTHubStreamInputDataSourceProperties{
 					ConsumerGroupName:      utils.String(consumerGroupName),
 					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
@@ -184,17 +182,17 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 		if props := model.Properties; props != nil {
 			input, ok := props.(inputs.InputProperties)
 			if !ok {
-				return fmt.Errorf("converting to an Input: %+v", err)
+				return fmt.Errorf("converting %s to an Input", *id)
 			}
 
 			streamInput, ok := input.(inputs.StreamInputProperties)
 			if !ok {
-				return fmt.Errorf("converting to a Stream Input: %+v", err)
+				return fmt.Errorf("converting %s to a Stream Input", *id)
 			}
 
 			streamIotHubInput, ok := streamInput.Datasource.(inputs.IoTHubStreamInputDataSource)
 			if !ok {
-				return fmt.Errorf("converting Stream Input Blob to an Stream Input: %+v", err)
+				return fmt.Errorf("converting %s Stream Input Blob to an Stream Input", *id)
 			}
 
 			if streamIotHubInputProps := streamIotHubInput.Properties; streamIotHubInputProps != nil {

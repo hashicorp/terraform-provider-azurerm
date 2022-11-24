@@ -192,7 +192,7 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					output, ok := props.Datasource.(outputs.AzureTableOutputDataSource)
 					if !ok {
-						return fmt.Errorf("converting to Table Output")
+						return fmt.Errorf("converting %s to a Table Output", *id)
 					}
 
 					if output.Properties.AccountName == nil || output.Properties.Table == nil || output.Properties.PartitionKey == nil || output.Properties.RowKey == nil || output.Properties.BatchSize == nil {

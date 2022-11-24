@@ -169,7 +169,7 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					output, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource)
 					if !ok {
-						return fmt.Errorf("converting to Function Output")
+						return fmt.Errorf("converting %s to a Function Output", *id)
 					}
 
 					if output.Properties.FunctionAppName == nil || output.Properties.FunctionName == nil || output.Properties.MaxBatchCount == nil || output.Properties.MaxBatchSize == nil {

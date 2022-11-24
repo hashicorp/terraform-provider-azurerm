@@ -215,17 +215,17 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 		if props := model.Properties; props != nil {
 			input, ok := props.(inputs.InputProperties)
 			if !ok {
-				return fmt.Errorf("failed to convert to Input")
+				return fmt.Errorf("converting %s to an Input", *id)
 			}
 
 			reference, ok := input.(inputs.ReferenceInputProperties)
 			if !ok {
-				return fmt.Errorf("failed to convert to Reference Input")
+				return fmt.Errorf("converting %s to Reference Input", *id)
 			}
 
 			referenceInputAzureSql, ok := reference.Datasource.(inputs.AzureSqlReferenceInputDataSource)
 			if !ok {
-				return fmt.Errorf("failed to convert to Azure Sql Reference Input")
+				return fmt.Errorf("converting %s to an Azure Sql Reference Input", *id)
 			}
 
 			server := ""

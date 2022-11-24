@@ -239,17 +239,17 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 		if props := model.Properties; props != nil {
 			input, ok := props.(inputs.InputProperties)
 			if !ok {
-				return fmt.Errorf("blah")
+				return fmt.Errorf("converting %s to an Input", *id)
 			}
 
 			dataSource, ok := input.(inputs.ReferenceInputProperties)
 			if !ok {
-				return fmt.Errorf("blah2")
+				return fmt.Errorf("converting %s to a Reference Input", *id)
 			}
 
 			referenceInputBlob, ok := dataSource.Datasource.(inputs.BlobReferenceInputDataSource)
 			if !ok {
-				return fmt.Errorf("blah3")
+				return fmt.Errorf("converting %s to a Blob Reference Input", *id)
 			}
 
 			dateFormat := ""

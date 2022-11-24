@@ -23,10 +23,10 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputBlobRead,
 		Update: resourceStreamAnalyticsOutputBlobCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputBlobDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}),
+		}, importStreamAnalyticsOutput(outputs.BlobOutputDataSource{})),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -227,7 +227,7 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		if props := model.Properties; props != nil {
 			output, ok := props.Datasource.(outputs.BlobOutputDataSource)
 			if !ok {
-				return fmt.Errorf("converting to Blob Output")
+				return fmt.Errorf("converting %s to a Blob Output", *id)
 			}
 
 			dateFormat := ""

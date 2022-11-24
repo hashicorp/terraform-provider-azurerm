@@ -200,17 +200,17 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 		if props := model.Properties; props != nil {
 			input, ok := props.(inputs.InputProperties)
 			if !ok {
-				return fmt.Errorf("failed to convert to Input")
+				return fmt.Errorf("converting %s to an Input", *id)
 			}
 
 			streamInput, ok := input.(inputs.StreamInputProperties)
 			if !ok {
-				return fmt.Errorf("failed to convert to Stream Input")
+				return fmt.Errorf("converting %s to a Stream Input", *id)
 			}
 
 			streamEventHubInput, ok := streamInput.Datasource.(inputs.EventHubStreamInputDataSource)
 			if !ok {
-				return fmt.Errorf("failed to convert to an Event Hub Stream Input")
+				return fmt.Errorf("converting %s to an Event Hub Stream Input", *id)
 			}
 
 			if streamEventHubInputProps := streamEventHubInput.Properties; streamEventHubInputProps != nil {

@@ -21,10 +21,10 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputSqlRead,
 		Update: resourceStreamAnalyticsOutputSqlCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputSqlDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}),
+		}, importStreamAnalyticsOutput(outputs.AzureSqlDatabaseOutputDataSource{})),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -197,7 +197,7 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			output, ok := props.Datasource.(outputs.AzureSqlDatabaseOutputDataSource)
 			if !ok {
-				return fmt.Errorf("converting to SQL Output")
+				return fmt.Errorf("converting %s to a SQL Output", *id)
 			}
 
 			server := ""

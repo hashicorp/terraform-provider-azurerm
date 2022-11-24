@@ -22,10 +22,10 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputEventHubRead,
 		Update: resourceStreamAnalyticsOutputEventHubCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputEventHubDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}),
+		}, importStreamAnalyticsOutput(outputs.EventHubOutputDataSource{})),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -200,7 +200,7 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 		if props := model.Properties; props != nil {
 			output, ok := props.Datasource.(outputs.EventHubOutputDataSource)
 			if !ok {
-				return fmt.Errorf("converting to EventHub Output")
+				return fmt.Errorf("converting %s to a EventHub Output", *id)
 			}
 
 			eventHubName := ""

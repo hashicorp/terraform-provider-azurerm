@@ -176,7 +176,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					output, ok := props.Datasource.(outputs.DocumentDbOutputDataSource)
 					if !ok {
-						return fmt.Errorf("converting to CosmosDb Output")
+						return fmt.Errorf("converting %s to a CosmosDb Output", *id)
 					}
 
 					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)

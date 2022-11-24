@@ -256,7 +256,7 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					output, ok := props.Datasource.(outputs.PowerBIOutputDataSource)
 					if !ok {
-						return fmt.Errorf("converting to PowerBI Output")
+						return fmt.Errorf("converting %s to a PowerBI Output", *id)
 					}
 
 					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)

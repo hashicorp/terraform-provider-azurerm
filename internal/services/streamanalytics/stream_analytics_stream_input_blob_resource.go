@@ -194,12 +194,12 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 		if props := model.Properties; props != nil {
 			input, ok := props.(inputs.InputProperties)
 			if !ok {
-				return fmt.Errorf("converting to an Input: %+v", err)
+				return fmt.Errorf("converting %s to an Input", *id)
 			}
 
 			streamInput, ok := input.(inputs.StreamInputProperties)
 			if !ok {
-				return fmt.Errorf("converting to a Stream Input: %+v", err)
+				return fmt.Errorf("converting %s to a Stream Input", *id)
 			}
 
 			streamBlobInput, ok := streamInput.Datasource.(inputs.BlobStreamInputDataSource)

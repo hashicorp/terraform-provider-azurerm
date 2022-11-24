@@ -22,10 +22,10 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputServiceBusTopicRead,
 		Update: resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputServiceBusTopicDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}),
+		}, importStreamAnalyticsOutput(outputs.ServiceBusTopicOutputDataSource{})),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -201,7 +201,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		if props := model.Properties; props != nil {
 			output, ok := props.Datasource.(outputs.ServiceBusTopicOutputDataSource)
 			if !ok {
-				return fmt.Errorf("converting to ServiceBus Topic Output")
+				return fmt.Errorf("converting %s to a ServiceBus Topic Output", *id)
 			}
 
 			topicName := ""

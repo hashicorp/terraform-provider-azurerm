@@ -269,17 +269,17 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					input, ok := props.(inputs.InputProperties)
 					if !ok {
-						return fmt.Errorf("converting to an Input")
+						return fmt.Errorf("converting %s to an Input", *id)
 					}
 
 					streamInput, ok := input.(inputs.StreamInputProperties)
 					if !ok {
-						return fmt.Errorf("converting to a Stream Input")
+						return fmt.Errorf("converting %s to a Stream Input", *id)
 					}
 
 					eventHubV2Input, ok := streamInput.Datasource.(inputs.EventHubV2StreamInputDataSource)
 					if !ok {
-						return fmt.Errorf("converting to an EventHub V2 Stream Input")
+						return fmt.Errorf("converting %s to an EventHub V2 Stream Input", *id)
 					}
 
 					if eventHubV2InputProps := eventHubV2Input.Properties; eventHubV2InputProps != nil {

@@ -172,7 +172,7 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 		if props := model.Properties; props != nil {
 			output, ok := props.Datasource.(outputs.AzureSynapseOutputDataSource)
 			if !ok {
-				return fmt.Errorf("converting to Synapse Output")
+				return fmt.Errorf("converting %s to a Synapse Output", *id)
 			}
 
 			server := ""
