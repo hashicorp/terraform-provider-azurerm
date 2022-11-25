@@ -150,7 +150,7 @@ resource "azurerm_lab_services_user" "test" {
   name                   = "acctest-lsu-%d"
   lab_id                 = azurerm_lab_service_lab.test.id
   email                  = "terraform-acctest@hashicorp.com"
-  additional_usage_quota = "5"
+  additional_usage_quota = "PT10H"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -163,7 +163,7 @@ resource "azurerm_lab_services_user" "test" {
   name                   = "acctest-lsu-%d"
   lab_id                 = azurerm_lab_service_lab.test.id
   email                  = "terraform-acctest@hashicorp.com"
-  additional_usage_quota = "6"
+  additional_usage_quota = "PT11H"
 }
 `, r.template(data), data.RandomInteger)
 }

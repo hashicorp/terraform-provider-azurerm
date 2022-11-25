@@ -38,9 +38,9 @@ The following arguments are supported:
 
 * `lab_id` - (Required) The ID of the Lab Service Lab. Changing this forces a new resource to be created.
 
-* `email` - (Required) The email address of the user.
+* `email` - (Required) The email address of the user. Changing this forces a new resource to be created.
 
-* `additional_usage_quota` - (Optional) The amount of usage quota time the user gets in addition to the lab usage quota.
+* `additional_usage_quota` - (Optional) The amount of usage quota time the user gets in addition to the lab usage quota. Defaults to `PT0S`.
 
 ## Attributes Reference
 

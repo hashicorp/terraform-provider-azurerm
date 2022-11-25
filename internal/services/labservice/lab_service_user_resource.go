@@ -3,6 +3,7 @@ package labservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -56,12 +57,14 @@ func (r LabServiceUserResource) Arguments() map[string]*pluginsdk.Schema {
 		"email": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
+			ValidateFunc: validate.Email,
 		},
 
 		"additional_usage_quota": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      "PT0S",
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
