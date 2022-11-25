@@ -23,6 +23,7 @@ func TestAccDataSourceApiManagement_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("tenant_access.#").HasValue("1"),
 			),
 		},
 	})
@@ -35,7 +36,12 @@ func TestAccDataSourceApiManagement_tenantAccess(t *testing.T) {
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.tenantAccess(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
+				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("tenant_access.0.enabled").Exists(),
+			),
 		},
 	})
 }

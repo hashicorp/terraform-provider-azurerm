@@ -291,14 +291,16 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku))
 
+	tenantAccess := make([]interface{}, 0)
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName, "access")
 		if err != nil {
 			return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
 		}
-		if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)); err != nil {
-			return fmt.Errorf("setting `tenant_access`: %+v", err)
-		}
+		tenantAccess = flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)
+	}
+	if err := d.Set("tenant_access", tenantAccess); err != nil {
+		return fmt.Errorf("setting `tenant_access`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

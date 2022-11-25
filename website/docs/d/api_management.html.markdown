@@ -179,11 +179,11 @@ A `sku` block exports the following:
 
 ---
 
-A `tenant_access` block supports the following:
+A `tenant_access` block exports the following:
 
-* `enabled` - Should the access to the management API be enabled?
+* `enabled` - Is access to the Management API enabled (presumably "for this Tenant")?
 
-* `tenant_id` - The identifier for the tenant access information contract.
+* `tenant_id` - The ID of the Tenant which has access to this API Management instance.
 
 * `primary_key` - Primary access key for the tenant access information contract.
 
