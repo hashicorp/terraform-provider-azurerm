@@ -99,6 +99,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"api_server_vnet_integration_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"api_server_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"automatic_channel_upgrade": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1264,11 +1276,18 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
 	}
 
+	enableAPIServerVnetIntegration := false
+	if v, ok := d.GetOk("api_server_vnet_integration_enabled"); ok {
+		enableAPIServerVnetIntegration = v.(bool)
+	}
+
 	apiAccessProfile := managedclusters.ManagedClusterAPIServerAccessProfile{
 		EnablePrivateCluster:           &enablePrivateCluster,
 		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
 		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 		DisableRunCommand:              utils.Bool(!d.Get("run_command_enabled").(bool)),
+		EnableVnetIntegration:          &enableAPIServerVnetIntegration,
+		SubnetId:                       utils.String(d.Get("api_server_subnet_id").(string)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -1595,6 +1614,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("private_cluster_public_fqdn_enabled") {
 		updateCluster = true
 		existing.Model.Properties.ApiServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
+	}
+
+	if d.HasChange("api_server_vnet_integration_enabled") {
+		updateCluster = true
+		existing.Model.Properties.ApiServerAccessProfile.EnableVnetIntegration = utils.Bool(d.Get("api_server_vnet_integration_enabled").(bool))
+	}
+
+	if d.HasChange("api_server_subnet_id") {
+		updateCluster = true
+		existing.Model.Properties.ApiServerAccessProfile.SubnetId = utils.String(d.Get("api_server_subnet_id").(string))
 	}
 
 	if d.HasChange("run_command_enabled") {
@@ -2051,6 +2080,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("automatic_channel_upgrade", upgradeChannel)
 
+		enableAPIServerVnetIntegration := false
 		enablePrivateCluster := false
 		enablePrivateClusterPublicFQDN := false
 		runCommandEnabled := true
@@ -2058,6 +2088,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
 				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
+			}
+			if accessProfile.EnableVnetIntegration != nil {
+				enableAPIServerVnetIntegration = *accessProfile.EnableVnetIntegration
+			}
+			if accessProfile.SubnetId != nil && *accessProfile.SubnetId != "" {
+				d.Set("api_server_subnet_id", accessProfile.SubnetId)
 			}
 			if accessProfile.EnablePrivateCluster != nil {
 				enablePrivateCluster = *accessProfile.EnablePrivateCluster
@@ -2078,6 +2114,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
+		d.Set("api_server_vnet_integration_enabled", enableAPIServerVnetIntegration)
 		d.Set("private_cluster_enabled", enablePrivateCluster)
 		d.Set("private_cluster_public_fqdn_enabled", enablePrivateClusterPublicFQDN)
 		d.Set("run_command_enabled", runCommandEnabled)
