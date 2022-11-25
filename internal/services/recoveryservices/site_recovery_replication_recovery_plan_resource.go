@@ -319,7 +319,7 @@ func expandRecoverGroup(input []interface{}) []replicationrecoveryplans.Recovery
 		groupInput := groupRaw.(map[string]interface{})
 
 		var protectedItems []replicationrecoveryplans.RecoveryPlanProtectedItem
-		for _, protectedItem := range groupInput["replicated_protected_items"].(*pluginsdk.Set).List() {
+		for _, protectedItem := range groupInput["replicated_protected_items"].([]interface{}) {
 			protectedItems = append(protectedItems, replicationrecoveryplans.RecoveryPlanProtectedItem{
 				VirtualMachineId: utils.String(protectedItem.(string)),
 			})

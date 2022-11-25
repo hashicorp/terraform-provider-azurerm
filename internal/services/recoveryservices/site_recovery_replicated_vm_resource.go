@@ -575,7 +575,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("making Read request on site recovery replicated vm %s: model is nil", id.String())
 	}
 
-	d.Set("name", id.ProtectionContainerName)
+	d.Set("name", id.ReplicatedProtectedItemName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.ResourceName)
 	d.Set("source_recovery_fabric_name", id.FabricName)
@@ -595,7 +595,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_boot_diag_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
 			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
 			d.Set("target_virtual_machine_scale_set_id", a2aDetails.RecoveryVirtualMachineScaleSetId)
-			d.Set("multi_vm_group_name", a2aDetails.MultiVmGroupId)
+			d.Set("multi_vm_group_name", a2aDetails.MultiVmGroupName)
 
 			if a2aDetails.ProtectedManagedDisks != nil {
 				disksOutput := make([]interface{}, 0)

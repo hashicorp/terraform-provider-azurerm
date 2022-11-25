@@ -1404,7 +1404,7 @@ func (r SiteRecoveryReplicatedVmResource) withVMSS(data acceptance.TestData) str
 %s
 
 resource "azurerm_storage_account" "vmss" {
-  name                     = "accsa%[2]d"
+  name                     = "accsa%[3]s"
   location                 = azurerm_resource_group.test2.location
   resource_group_name      = azurerm_resource_group.test2.name
   account_tier             = "Standard"
@@ -1501,7 +1501,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 }
 
 
-`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r SiteRecoveryReplicatedVmResource) withMultiVmGroup(data acceptance.TestData) string {
