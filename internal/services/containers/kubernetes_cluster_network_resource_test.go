@@ -817,6 +817,22 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.1.0.0/16"]
+
+  delegation {
+    name = "aks-delegation"
+
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.ContainerService/managedClusters"
+    }
+  }
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "acctestsubnet1%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.2.0.0/16"]
 }
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -849,9 +865,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 2
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test1.id
   }
 
   identity {
@@ -862,8 +879,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     network_plugin = "azure"
   }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) apiServerInManagedSubnet(data acceptance.TestData) string {
