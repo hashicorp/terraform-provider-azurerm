@@ -112,11 +112,13 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	if v, ok := d.GetOk("auto_learn_private_ranges_mode"); ok {
+	if v, ok := d.GetOk("auto_learn_private_ranges_enabled"); ok {
 		if props.FirewallPolicyPropertiesFormat.Snat == nil {
 			props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{}
 		}
-		props.FirewallPolicyPropertiesFormat.Snat.AutoLearnPrivateRanges = network.AutoLearnPrivateRangesMode(v.(string))
+		if v.(bool) {
+			props.FirewallPolicyPropertiesFormat.Snat.AutoLearnPrivateRanges = network.AutoLearnPrivateRangesModeEnabled
+		}
 	}
 
 	locks.ByName(id.Name, azureFirewallPolicyResourceName)
@@ -208,9 +210,9 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("private_ip_ranges", privateIPRanges); err != nil {
 			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 		}
-
-		if err := d.Set("auto_learn_private_ranges_mode", prop.Snat.AutoLearnPrivateRanges); err != nil {
-			return fmt.Errorf("setting `auto_learn_private_ranges_mode`: %+v", err)
+		isAutoLearnPrivateRangeEnabled := prop.Snat.AutoLearnPrivateRanges == network.AutoLearnPrivateRangesModeEnabled
+		if err := d.Set("auto_learn_private_ranges_enabled", isAutoLearnPrivateRangeEnabled); err != nil {
+			return fmt.Errorf("setting `auto_learn_private_ranges_enabled`: %+v", err)
 		}
 
 		if err := d.Set("insights", flattenFirewallPolicyInsights(prop.Insights)); err != nil {
@@ -1020,13 +1022,9 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"auto_learn_private_ranges_mode": {
-			Type:     pluginsdk.TypeString,
+		"auto_learn_private_ranges_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(network.AutoLearnPrivateRangesModeEnabled),
-				string(network.AutoLearnPrivateRangesModeDisabled),
-			}, false),
 		},
 
 		"tags": tags.Schema(),
