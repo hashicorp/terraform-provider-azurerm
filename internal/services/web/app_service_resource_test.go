@@ -4471,7 +4471,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = azurerm_app_service_plan.test.id
 
   site_config {
-    php_version = "7.3"
+    php_version = "8.0"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

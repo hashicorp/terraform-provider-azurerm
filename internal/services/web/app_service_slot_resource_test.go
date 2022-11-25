@@ -3426,7 +3426,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = azurerm_app_service.test.name
 
   site_config {
-    php_version = "7.3"
+    php_version = "8.0"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
