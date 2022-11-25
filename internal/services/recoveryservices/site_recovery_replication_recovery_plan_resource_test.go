@@ -30,21 +30,6 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_basic(t *testing.T) {
 	})
 }
 
-func TestAccSiteRecoveryReplicationRecoveryPlan_basicWithDeploymentModelClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
-	r := SiteRecoveryReplicationRecoveryPlan{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withDeploymentModelClassic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccSiteRecoveryReplicationRecoveryPlan_withPreActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
 	r := SiteRecoveryReplicationRecoveryPlan{}
@@ -293,28 +278,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   recovery_vault_name       = azurerm_recovery_services_vault.test.name
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
-  failover_deployment_model = "ResourceManager"
-
-  recovery_groups {
-    group_type                 = "Boot"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-  }
-
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SiteRecoveryReplicationRecoveryPlan) withDeploymentModelClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_site_recovery_replication_recovery_plan" "test" {
-  name                      = "acctest-%[2]d"
-  resource_group_name       = azurerm_resource_group.test2.name
-  recovery_vault_name       = azurerm_recovery_services_vault.test.name
-  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
-  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
-  failover_deployment_model = "Classic"
 
   recovery_groups {
     group_type                 = "Boot"
@@ -335,7 +298,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   recovery_vault_name       = azurerm_recovery_services_vault.test.name
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
-  failover_deployment_model = "Classic"
 
   recovery_groups {
     group_type                 = "Boot"
@@ -363,7 +325,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   recovery_vault_name       = azurerm_recovery_services_vault.test.name
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
-  failover_deployment_model = "Classic"
 
   recovery_groups {
     group_type                 = "Boot"

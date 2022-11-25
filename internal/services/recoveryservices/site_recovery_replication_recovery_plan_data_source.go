@@ -16,10 +16,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceSiteRecoveryRecoverPlan() *pluginsdk.Resource {
+func dataSourceSiteRecoveryReplicationPlan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 
-		Read: dataSourceSiteRecoveryRecoverPlanRead,
+		Read: dataSourceSiteRecoveryReplicationPlanRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -75,12 +75,12 @@ func dataSourceSiteRecoveryRecoverPlan() *pluginsdk.Resource {
 						"pre_action": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     dataSourceSiteRecoveryRecoverPlanActions(),
+							Elem:     dataSourceSiteRecoveryReplicationPlanActions(),
 						},
 						"post_action": {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
-							Elem:     dataSourceSiteRecoveryRecoverPlanActions(),
+							Elem:     dataSourceSiteRecoveryReplicationPlanActions(),
 						},
 					},
 				},
@@ -89,7 +89,7 @@ func dataSourceSiteRecoveryRecoverPlan() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSiteRecoveryRecoverPlanActions() *pluginsdk.Schema {
+func dataSourceSiteRecoveryReplicationPlanActions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type: pluginsdk.TypeList,
 		Elem: &pluginsdk.Resource{
@@ -137,7 +137,7 @@ func dataSourceSiteRecoveryRecoverPlanActions() *pluginsdk.Schema {
 	}
 }
 
-func dataSourceSiteRecoveryRecoverPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSiteRecoveryReplicationPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(d.Id())
 	if err != nil {
 		return err

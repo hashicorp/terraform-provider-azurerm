@@ -654,7 +654,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					if nic.IPConfigs != nil && len(*(nic.IPConfigs)) > 0 {
 						ipConfig := (*(nic.IPConfigs))[0]
 						if ipConfig.RecoveryStaticIPAddress != nil {
-							nicOutput["target_static_ip"] = *ipConfig.StaticIPAddress
+							nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
 						}
 						if ipConfig.RecoverySubnetName != nil {
 							nicOutput["target_subnet_name"] = *ipConfig.RecoverySubnetName

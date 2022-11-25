@@ -68,16 +68,6 @@ func resourceSiteRecoveryReplicationRecoveryPlan() *pluginsdk.Resource {
 				ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
 			},
 
-			"failover_deployment_model": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(siterecovery.Classic),
-					string(siterecovery.ResourceManager),
-				}, false),
-			},
-
 			"recovery_groups": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -213,7 +203,8 @@ func resourceSiteRecoveryReplicationRecoveryPlanCreate(d *pluginsdk.ResourceData
 		}
 	}
 
-	deploymentModel := replicationrecoveryplans.FailoverDeploymentModel(d.Get("failover_deployment_model").(string))
+	// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
+	deploymentModel := replicationrecoveryplans.FailoverDeploymentModelResourceManager
 
 	parameters := replicationrecoveryplans.CreateRecoveryPlanInput{
 		Properties: replicationrecoveryplans.CreateRecoveryPlanInputProperties{
@@ -265,7 +256,6 @@ func resourceSiteRecoveryReplicationRecoveryPlanRead(d *pluginsdk.ResourceData, 
 	if prop := model.Properties; prop != nil {
 		d.Set("source_recovery_fabric_id", prop.PrimaryFabricId)
 		d.Set("target_recovery_fabric_id", prop.RecoveryFabricId)
-		d.Set("failover_deployment_model", prop.FailoverDeploymentModel)
 
 		if group := prop.Groups; group != nil {
 			d.Set("recovery_groups", flattenRecoveryGroups(*group))

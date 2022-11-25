@@ -3,6 +3,7 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationprotecteditems"
@@ -151,6 +152,15 @@ func TestAccSiteRecoveryReplicatedVm_targetDiskEncryption(t *testing.T) {
 }
 
 func (SiteRecoveryReplicatedVmResource) template(data acceptance.TestData) string {
+	tags := ""
+	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
+		tags = `
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
+`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -315,6 +325,8 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
   network_interface_ids = [azurerm_network_interface.test.id]
+
+ %[4]s
 }
 
 resource "azurerm_public_ip" "test-source" {
@@ -344,7 +356,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, tags)
 }
 
 func (r SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
@@ -1421,26 +1433,17 @@ resource "azurerm_storage_container" "vmss" {
   container_access_type = "private"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "acctvmss-%[2]d"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
-  upgrade_policy_mode = "Manual"
-  zones               = []
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                 = "acctvmss-%[2]d"
+  location             = azurerm_resource_group.test2.location
+  resource_group_name  = azurerm_resource_group.test2.name
+  sku                  = "Standard_B1s"
+  instances            = 1
+  admin_username       = "testadmin"
+  admin_password       = "Password1234!"
+  computer_name_prefix = "testvm-%[2]d"
 
-  sku {
-    name     = "Standard_B1s"
-    tier     = "Standard"
-    capacity = 2
-  }
-
-  os_profile {
-    computer_name_prefix = "testvm-%[2]d"
-    admin_username       = "testadmin"
-    admin_password       = "Password1234!"
-  }
-
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile-%[2]d"
     primary = true
 
@@ -1451,14 +1454,14 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     }
   }
 
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
+  os_disk {
+    name           = "acctestOSDisk"
     caching        = "ReadWrite"
     create_option  = "FromImage"
     vhd_containers = ["${azurerm_storage_account.vmss.primary_blob_endpoint}${azurerm_storage_container.vmss.name}"]
   }
 
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"

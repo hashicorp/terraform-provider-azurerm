@@ -52,7 +52,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
   recovery_vault_name       = azurerm_recovery_services_vault.target.name
   source_recovery_fabric_id = azurerm_site_recovery_fabric.source.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.target.id
-  failover_deployment_model = "ResourceManager"
 
   recovery_groups {
     group_type                 = "Boot"
@@ -75,8 +74,6 @@ The following arguments are supported:
 * `source_recovery_fabric_id` - (Required) ID of source fabric to be recovered from. Changing this forces a new Replication Plan to be created.
 
 * `target_recovery_fabric_id` - (Required) ID of target fabric to recover. Changing this forces a new Replication Plan to be created.
-
-* `failover_deployment_model` - (Required) the deployment model of failover. Possible values are `Classic` and `ResourceManager`.  Changing this forces a new Replication Plan to be created.
 
 * `recovery_groups` - (Required) One or more `recovery_groups` block. 
 
