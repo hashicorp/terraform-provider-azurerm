@@ -3,7 +3,6 @@ package labservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -28,6 +28,8 @@ type LabServiceLabModel struct {
 	SecurityProfile       []SecurityProfile       `tfschema:"security_profile"`
 	Title                 string                  `tfschema:"title"`
 	VirtualMachineProfile []VirtualMachineProfile `tfschema:"virtual_machine_profile"`
+	NetworkProfile        []NetworkProfile        `tfschema:"network_profile"`
+	RosterProfile         []RosterProfile         `tfschema:"roster_profile"`
 	Description           string                  `tfschema:"description"`
 	LabPlanId             string                  `tfschema:"lab_plan_id"`
 	Tags                  map[string]string       `tfschema:"tags"`
@@ -84,6 +86,18 @@ type ImageReference struct {
 type Sku struct {
 	Capacity int64  `tfschema:"capacity"`
 	Name     string `tfschema:"name"`
+}
+
+type NetworkProfile struct {
+	SubnetId string `tfschema:"subnet_id"`
+}
+
+type RosterProfile struct {
+	ActiveDirectoryGroupId string `tfschema:"active_directory_group_id"`
+	LmsInstance            string `tfschema:"lms_instance"`
+	LtiClientId            string `tfschema:"lti_client_id"`
+	LtiContextId           string `tfschema:"lti_context_id"`
+	LtiRosterEndpoint      string `tfschema:"lti_roster_endpoint"`
 }
 
 type LabServiceLabResource struct{}
@@ -252,7 +266,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 								"password": {
 									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Optional:     true,
 									ForceNew:     true,
 									ValidateFunc: validate.LabPassword,
 								},
@@ -390,12 +404,67 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 								"password": {
 									Type:         pluginsdk.TypeString,
-									Required:     true,
+									Optional:     true,
 									ForceNew:     true,
 									ValidateFunc: validate.LabPassword,
 								},
 							},
 						},
+					},
+				},
+			},
+		},
+
+		"network_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: networkValidate.SubnetID,
+					},
+				},
+			},
+		},
+
+		"roster_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"active_directory_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"lms_instance": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
+
+					"lti_client_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"lti_context_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"lti_roster_endpoint": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 				},
 			},
@@ -423,7 +492,7 @@ func (r LabServiceLabResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model LabServiceLabModel
 			if err := metadata.Decode(&model); err != nil {
@@ -475,6 +544,18 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 			}
 			props.Properties.VirtualMachineProfile = *virtualMachineProfile
 
+			networkProfile, err := expandNetworkProfile(model.NetworkProfile)
+			if err != nil {
+				return err
+			}
+			props.Properties.NetworkProfile = networkProfile
+
+			rosterProfile, err := expandRosterProfile(model.RosterProfile)
+			if err != nil {
+				return err
+			}
+			props.Properties.RosterProfile = rosterProfile
+
 			if model.Description != "" {
 				props.Properties.Description = &model.Description
 			}
@@ -495,7 +576,7 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 
 func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LabService.LabClient
 
@@ -514,8 +595,8 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := resp.Model
-			if properties == nil {
+			props := resp.Model
+			if props == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
@@ -524,7 +605,7 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				properties.Properties.AutoShutdownProfile = *autoShutdownProfile
+				props.Properties.AutoShutdownProfile = *autoShutdownProfile
 			}
 
 			if metadata.ResourceData.HasChange("connection_profile") {
@@ -532,7 +613,7 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				properties.Properties.ConnectionProfile = *connectionProfile
+				props.Properties.ConnectionProfile = *connectionProfile
 			}
 
 			if metadata.ResourceData.HasChange("security_profile") {
@@ -540,14 +621,14 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				properties.Properties.SecurityProfile = *securityProfile
+				props.Properties.SecurityProfile = *securityProfile
 			}
 
 			if metadata.ResourceData.HasChange("title") {
 				if model.Title != "" {
-					properties.Properties.Title = &model.Title
+					props.Properties.Title = &model.Title
 				} else {
-					properties.Properties.Title = nil
+					props.Properties.Title = nil
 				}
 			}
 
@@ -556,30 +637,46 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				properties.Properties.VirtualMachineProfile = *virtualMachineProfile
+				props.Properties.VirtualMachineProfile = *virtualMachineProfile
+			}
+
+			if metadata.ResourceData.HasChange("network_profile") {
+				networkProfile, err := expandNetworkProfile(model.NetworkProfile)
+				if err != nil {
+					return err
+				}
+				props.Properties.NetworkProfile = networkProfile
+			}
+
+			if metadata.ResourceData.HasChange("roster_profile") {
+				rosterProfile, err := expandRosterProfile(model.RosterProfile)
+				if err != nil {
+					return err
+				}
+				props.Properties.RosterProfile = rosterProfile
 			}
 
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
-					properties.Properties.Description = &model.Description
+					props.Properties.Description = &model.Description
 				} else {
-					properties.Properties.Description = nil
+					props.Properties.Description = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("lab_plan_id") {
 				if model.LabPlanId != "" {
-					properties.Properties.LabPlanId = &model.LabPlanId
+					props.Properties.LabPlanId = &model.LabPlanId
 				} else {
-					properties.Properties.LabPlanId = nil
+					props.Properties.LabPlanId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
+				props.Tags = &model.Tags
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *props); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -649,6 +746,18 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 			}
 			state.VirtualMachineProfile = virtualMachineProfile
 
+			networkProfile, err := flattenNetworkProfile(properties.NetworkProfile)
+			if err != nil {
+				return err
+			}
+			state.NetworkProfile = networkProfile
+
+			rosterProfile, err := flattenRosterProfile(properties.RosterProfile)
+			if err != nil {
+				return err
+			}
+			state.RosterProfile = rosterProfile
+
 			if properties.Description != nil {
 				state.Description = *properties.Description
 			}
@@ -668,7 +777,7 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 
 func (r LabServiceLabResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LabService.LabClient
 
@@ -694,6 +803,12 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if oldVal, newVal := rd.GetChange("virtual_machine_profile.0.non_admin_user"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
 				if err := rd.ForceNew("virtual_machine_profile.0.non_admin_user"); err != nil {
+					return err
+				}
+			}
+
+			if oldVal, newVal := rd.GetChange("network_profile.0.subnet_id"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
+				if err := rd.ForceNew("network_profile.0.subnet_id"); err != nil {
 					return err
 				}
 			}
@@ -992,7 +1107,7 @@ func expandSku(input []Sku) (*lab.Sku, error) {
 	return &result, nil
 }
 
-func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *schema.ResourceData) ([]VirtualMachineProfile, error) {
+func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *pluginsdk.ResourceData) ([]VirtualMachineProfile, error) {
 	var virtualMachineProfiles []VirtualMachineProfile
 	if input == nil {
 		return virtualMachineProfiles, nil
@@ -1115,4 +1230,96 @@ func flattenSku(input *lab.Sku) ([]Sku, error) {
 	}
 
 	return append(skus, sku), nil
+}
+
+func expandNetworkProfile(input []NetworkProfile) (*lab.LabNetworkProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	networkProfile := &input[0]
+	result := lab.LabNetworkProfile{}
+
+	if networkProfile.SubnetId != "" {
+		result.SubnetId = &networkProfile.SubnetId
+	}
+
+	return &result, nil
+}
+
+func flattenNetworkProfile(input *lab.LabNetworkProfile) ([]NetworkProfile, error) {
+	var networkProfiles []NetworkProfile
+	if input == nil {
+		return networkProfiles, nil
+	}
+
+	networkProfile := NetworkProfile{}
+
+	if input.SubnetId != nil {
+		networkProfile.SubnetId = *input.SubnetId
+	}
+
+	return append(networkProfiles, networkProfile), nil
+}
+
+func expandRosterProfile(input []RosterProfile) (*lab.RosterProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	rosterProfile := &input[0]
+	result := lab.RosterProfile{}
+
+	if rosterProfile.ActiveDirectoryGroupId != "" {
+		result.ActiveDirectoryGroupId = &rosterProfile.ActiveDirectoryGroupId
+	}
+
+	if rosterProfile.LmsInstance != "" {
+		result.LmsInstance = &rosterProfile.LmsInstance
+	}
+
+	if rosterProfile.LtiClientId != "" {
+		result.LtiClientId = &rosterProfile.LtiClientId
+	}
+
+	if rosterProfile.LtiContextId != "" {
+		result.LtiContextId = &rosterProfile.LtiContextId
+	}
+
+	if rosterProfile.LtiRosterEndpoint != "" {
+		result.LtiRosterEndpoint = &rosterProfile.LtiRosterEndpoint
+	}
+
+	return &result, nil
+}
+
+func flattenRosterProfile(input *lab.RosterProfile) ([]RosterProfile, error) {
+	var rosterProfiles []RosterProfile
+	if input == nil {
+		return rosterProfiles, nil
+	}
+
+	rosterProfile := RosterProfile{}
+
+	if input.ActiveDirectoryGroupId != nil {
+		rosterProfile.ActiveDirectoryGroupId = *input.ActiveDirectoryGroupId
+	}
+
+	if input.LmsInstance != nil {
+		rosterProfile.LmsInstance = *input.LmsInstance
+	}
+
+	if input.LtiClientId != nil {
+		rosterProfile.LtiClientId = *input.LtiClientId
+	}
+
+	if input.LtiContextId != nil {
+		rosterProfile.LtiContextId = *input.LtiContextId
+	}
+
+	if input.LtiRosterEndpoint != nil {
+		rosterProfile.LtiRosterEndpoint = *input.LtiRosterEndpoint
+	}
+
+	return append(rosterProfiles, rosterProfile), nil
 }
