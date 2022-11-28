@@ -88,6 +88,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					string(disks.DiskCreateOptionFromImage),
 					string(disks.DiskCreateOptionImport),
 					string(disks.DiskCreateOptionRestore),
+					string(disks.DiskCreateOptionUpload),
 				}, false),
 			},
 
@@ -153,6 +154,12 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.ManagedDiskSizeGB,
+			},
+
+			"upload_size_bytes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_iops_read_write": {
@@ -412,6 +419,14 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		} else {
 			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
+		}
+	}
+
+	if createOption == disks.DiskCreateOptionUpload {
+		if uploadSizeBytes := d.Get("upload_size_bytes").(int); uploadSizeBytes != 0 {
+			props.CreationData.UploadSizeBytes = utils.Int64(int64(uploadSizeBytes))
+		} else {
+			return fmt.Errorf("`upload_size_bytes` must be specified when `create_option` is set to `Upload`")
 		}
 	}
 
