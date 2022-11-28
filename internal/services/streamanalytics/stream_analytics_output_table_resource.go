@@ -195,54 +195,56 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("converting %s to a Table Output", *id)
 					}
 
-					if output.Properties.AccountName == nil || output.Properties.Table == nil || output.Properties.PartitionKey == nil || output.Properties.RowKey == nil || output.Properties.BatchSize == nil {
-						return nil
-					}
+					if output.Properties != nil {
+						if output.Properties.AccountName == nil || output.Properties.Table == nil || output.Properties.PartitionKey == nil || output.Properties.RowKey == nil || output.Properties.BatchSize == nil {
+							return nil
+						}
 
-					state := OutputTableResourceModel{
-						Name:               id.OutputName,
-						ResourceGroup:      id.ResourceGroupName,
-						StreamAnalyticsJob: id.JobName,
-						StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
-					}
+						state := OutputTableResourceModel{
+							Name:               id.OutputName,
+							ResourceGroup:      id.ResourceGroupName,
+							StreamAnalyticsJob: id.JobName,
+							StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
+						}
 
-					accountName := ""
-					if v := output.Properties.AccountName; v != nil {
-						accountName = *v
-					}
-					state.StorageAccount = accountName
+						accountName := ""
+						if v := output.Properties.AccountName; v != nil {
+							accountName = *v
+						}
+						state.StorageAccount = accountName
 
-					table := ""
-					if v := output.Properties.Table; v != nil {
-						table = *v
-					}
-					state.Table = table
+						table := ""
+						if v := output.Properties.Table; v != nil {
+							table = *v
+						}
+						state.Table = table
 
-					partitonKey := ""
-					if v := output.Properties.PartitionKey; v != nil {
-						partitonKey = *v
-					}
-					state.PartitionKey = partitonKey
+						partitonKey := ""
+						if v := output.Properties.PartitionKey; v != nil {
+							partitonKey = *v
+						}
+						state.PartitionKey = partitonKey
 
-					rowKey := ""
-					if v := output.Properties.RowKey; v != nil {
-						rowKey = *v
-					}
-					state.RowKey = rowKey
+						rowKey := ""
+						if v := output.Properties.RowKey; v != nil {
+							rowKey = *v
+						}
+						state.RowKey = rowKey
 
-					var batchSize int64
-					if v := output.Properties.BatchSize; v != nil {
-						batchSize = *v
-					}
-					state.BatchSize = batchSize
+						var batchSize int64
+						if v := output.Properties.BatchSize; v != nil {
+							batchSize = *v
+						}
+						state.BatchSize = batchSize
 
-					var columnsToRemove []string
-					if columns := output.Properties.ColumnsToRemove; columns != nil && len(*columns) > 0 {
-						columnsToRemove = *columns
-					}
-					state.ColumnsToRemove = columnsToRemove
+						var columnsToRemove []string
+						if columns := output.Properties.ColumnsToRemove; columns != nil && len(*columns) > 0 {
+							columnsToRemove = *columns
+						}
+						state.ColumnsToRemove = columnsToRemove
 
-					return metadata.Encode(&state)
+						return metadata.Encode(&state)
+					}
 				}
 			}
 			return nil

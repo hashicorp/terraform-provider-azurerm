@@ -228,53 +228,55 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("converting %s to an Azure Sql Reference Input", *id)
 			}
 
-			server := ""
-			if v := referenceInputAzureSql.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
+			if referenceInputAzureSql.Properties != nil {
+				server := ""
+				if v := referenceInputAzureSql.Properties.Server; v != nil {
+					server = *v
+				}
+				d.Set("server", server)
 
-			database := ""
-			if v := referenceInputAzureSql.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
+				database := ""
+				if v := referenceInputAzureSql.Properties.Database; v != nil {
+					database = *v
+				}
+				d.Set("database", database)
 
-			username := ""
-			if v := referenceInputAzureSql.Properties.User; v != nil {
-				username = *v
-			}
-			d.Set("username", username)
+				username := ""
+				if v := referenceInputAzureSql.Properties.User; v != nil {
+					username = *v
+				}
+				d.Set("username", username)
 
-			refreshType := ""
-			if v := referenceInputAzureSql.Properties.RefreshType; v != nil {
-				refreshType = string(*v)
-			}
-			d.Set("refresh_type", refreshType)
+				refreshType := ""
+				if v := referenceInputAzureSql.Properties.RefreshType; v != nil {
+					refreshType = string(*v)
+				}
+				d.Set("refresh_type", refreshType)
 
-			intervalDuration := ""
-			if v := referenceInputAzureSql.Properties.RefreshRate; v != nil {
-				intervalDuration = *v
-			}
-			d.Set("refresh_interval_duration", intervalDuration)
+				intervalDuration := ""
+				if v := referenceInputAzureSql.Properties.RefreshRate; v != nil {
+					intervalDuration = *v
+				}
+				d.Set("refresh_interval_duration", intervalDuration)
 
-			fullSnapshotQuery := ""
-			if v := referenceInputAzureSql.Properties.FullSnapshotQuery; v != nil {
-				fullSnapshotQuery = *v
-			}
-			d.Set("full_snapshot_query", fullSnapshotQuery)
+				fullSnapshotQuery := ""
+				if v := referenceInputAzureSql.Properties.FullSnapshotQuery; v != nil {
+					fullSnapshotQuery = *v
+				}
+				d.Set("full_snapshot_query", fullSnapshotQuery)
 
-			deltaSnapshotQuery := ""
-			if v := referenceInputAzureSql.Properties.DeltaSnapshotQuery; v != nil {
-				deltaSnapshotQuery = *v
-			}
-			d.Set("delta_snapshot_query", deltaSnapshotQuery)
+				deltaSnapshotQuery := ""
+				if v := referenceInputAzureSql.Properties.DeltaSnapshotQuery; v != nil {
+					deltaSnapshotQuery = *v
+				}
+				d.Set("delta_snapshot_query", deltaSnapshotQuery)
 
-			table := ""
-			if v := referenceInputAzureSql.Properties.Table; v != nil {
-				table = *v
+				table := ""
+				if v := referenceInputAzureSql.Properties.Table; v != nil {
+					table = *v
+				}
+				d.Set("table", table)
 			}
-			d.Set("table", table)
 		}
 	}
 

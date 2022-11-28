@@ -252,45 +252,45 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 				return fmt.Errorf("converting %s to a Blob Reference Input", *id)
 			}
 
-			dateFormat := ""
-			if v := referenceInputBlob.Properties.DateFormat; v != nil {
-				dateFormat = *v
-			}
-			d.Set("date_format", dateFormat)
+			if referenceInputBlob.Properties != nil {
+				dateFormat := ""
+				if v := referenceInputBlob.Properties.DateFormat; v != nil {
+					dateFormat = *v
+				}
+				d.Set("date_format", dateFormat)
 
-			pathPattern := ""
-			if v := referenceInputBlob.Properties.PathPattern; v != nil {
-				pathPattern = *v
-			}
-			d.Set("path_pattern", pathPattern)
+				pathPattern := ""
+				if v := referenceInputBlob.Properties.PathPattern; v != nil {
+					pathPattern = *v
+				}
+				d.Set("path_pattern", pathPattern)
 
-			containerName := ""
-			if v := referenceInputBlob.Properties.Container; v != nil {
-				containerName = *v
-			}
-			d.Set("storage_container_name", containerName)
+				containerName := ""
+				if v := referenceInputBlob.Properties.Container; v != nil {
+					containerName = *v
+				}
+				d.Set("storage_container_name", containerName)
 
-			timeFormat := ""
-			if v := referenceInputBlob.Properties.TimeFormat; v != nil {
-				timeFormat = *v
-			}
-			d.Set("time_format", timeFormat)
+				timeFormat := ""
+				if v := referenceInputBlob.Properties.TimeFormat; v != nil {
+					timeFormat = *v
+				}
+				d.Set("time_format", timeFormat)
 
-			authMode := ""
-			if v := referenceInputBlob.Properties.AuthenticationMode; v != nil {
-				authMode = string(*v)
-			}
-			d.Set("authentication_mode", authMode)
+				authMode := ""
+				if v := referenceInputBlob.Properties.AuthenticationMode; v != nil {
+					authMode = string(*v)
+				}
+				d.Set("authentication_mode", authMode)
 
-			if accounts := referenceInputBlob.Properties.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-				account := (*accounts)[0]
-				d.Set("storage_account_name", account.AccountName)
+				if accounts := referenceInputBlob.Properties.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+					account := (*accounts)[0]
+					d.Set("storage_account_name", account.AccountName)
+				}
 			}
-
 			if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(dataSource.Serialization)); err != nil {
 				return fmt.Errorf("setting `serialization`: %+v", err)
 			}
-
 		}
 	}
 

@@ -172,42 +172,44 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("converting %s to a Function Output", *id)
 					}
 
-					if output.Properties.FunctionAppName == nil || output.Properties.FunctionName == nil || output.Properties.MaxBatchCount == nil || output.Properties.MaxBatchSize == nil {
-						return nil
-					}
+					if output.Properties != nil {
+						if output.Properties.FunctionAppName == nil || output.Properties.FunctionName == nil || output.Properties.MaxBatchCount == nil || output.Properties.MaxBatchSize == nil {
+							return nil
+						}
 
-					state := OutputFunctionResourceModel{
-						Name:               id.OutputName,
-						ResourceGroup:      id.ResourceGroupName,
-						StreamAnalyticsJob: id.JobName,
-						ApiKey:             metadata.ResourceData.Get("api_key").(string),
-					}
+						state := OutputFunctionResourceModel{
+							Name:               id.OutputName,
+							ResourceGroup:      id.ResourceGroupName,
+							StreamAnalyticsJob: id.JobName,
+							ApiKey:             metadata.ResourceData.Get("api_key").(string),
+						}
 
-					functionApp := ""
-					if v := output.Properties.FunctionAppName; v != nil {
-						functionApp = *v
-					}
-					state.FunctionApp = functionApp
+						functionApp := ""
+						if v := output.Properties.FunctionAppName; v != nil {
+							functionApp = *v
+						}
+						state.FunctionApp = functionApp
 
-					functionName := ""
-					if v := output.Properties.FunctionName; v != nil {
-						functionName = *v
-					}
-					state.FunctionName = functionName
+						functionName := ""
+						if v := output.Properties.FunctionName; v != nil {
+							functionName = *v
+						}
+						state.FunctionName = functionName
 
-					batchMaxInBytes := 0
-					if v := output.Properties.MaxBatchSize; v != nil {
-						batchMaxInBytes = int(*v)
-					}
-					state.BatchMaxInBytes = batchMaxInBytes
+						batchMaxInBytes := 0
+						if v := output.Properties.MaxBatchSize; v != nil {
+							batchMaxInBytes = int(*v)
+						}
+						state.BatchMaxInBytes = batchMaxInBytes
 
-					batchMaxCount := 0
-					if v := output.Properties.MaxBatchCount; v != nil {
-						batchMaxCount = int(*v)
-					}
-					state.BatchMaxCount = batchMaxCount
+						batchMaxCount := 0
+						if v := output.Properties.MaxBatchCount; v != nil {
+							batchMaxCount = int(*v)
+						}
+						state.BatchMaxCount = batchMaxCount
 
-					return metadata.Encode(&state)
+						return metadata.Encode(&state)
+					}
 				}
 			}
 			return nil

@@ -54,6 +54,7 @@ func importStreamAnalyticsOutput(expectType outputs.OutputDataSource) pluginsdk.
 				return nil, fmt.Errorf("unable to convert output data source: %+v", props.Datasource)
 			}
 
+			// TODO refactor to a switch
 			if reflect.TypeOf(actualType) != reflect.TypeOf(expectType) {
 				return nil, fmt.Errorf("stream analytics output has mismatched type, expected: %q, got %q", expectType, actualType)
 			}
