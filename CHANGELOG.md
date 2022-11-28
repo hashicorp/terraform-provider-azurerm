@@ -1,3 +1,10 @@
+## 3.34.0 (Unreleased)
+
+
+ENHANCEMENTS:
+
+* media: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
+
 ## 3.33.0 (November 24, 2022)
 
 FEATURES:
