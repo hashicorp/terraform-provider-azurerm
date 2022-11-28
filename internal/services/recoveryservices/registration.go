@@ -23,6 +23,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		BackupProtectionPolicyVMWorkloadResource{},
+		SiteRecoveryReplicationRecoveryPlanResource{},
 	}
 }
 
@@ -67,6 +68,5 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_site_recovery_protection_container_mapping": resourceSiteRecoveryProtectionContainerMapping(),
 		"azurerm_site_recovery_replicated_vm":                resourceSiteRecoveryReplicatedVM(),
 		"azurerm_site_recovery_replication_policy":           resourceSiteRecoveryReplicationPolicy(),
-		"azurerm_site_recovery_replication_recovery_plan":    resourceSiteRecoveryReplicationRecoveryPlan(),
 	}
 }

@@ -1,6 +1,7 @@
 package recoveryservices
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,95 +13,119 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceSiteRecoveryReplicationRecoveryPlan() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceSiteRecoveryReplicationRecoveryPlanCreate,
-		Read:   resourceSiteRecoveryReplicationRecoveryPlanRead,
-		Update: resourceSiteRecoveryReplicationRecoveryPlanUpdate,
-		Delete: resourceSiteRecoveryReplicationRecoveryPlanDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(id)
-			return err
-		}),
+type SiteRecoveryReplicationRecoveryPlanModel struct {
+	Name                   string               `tfschema:"name"`
+	RecoveryGroup          []RecoveryGroupModel `tfschema:"recovery_group"`
+	RecoveryVaultName      string               `tfschema:"recovery_vault_name"`
+	ResourceGroupName      string               `tfschema:"resource_group_name"`
+	SourceRecoveryFabricId string               `tfschema:"source_recovery_fabric_id"`
+	TargetRecoveryFabricId string               `tfschema:"target_recovery_fabric_id"`
+}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+type RecoveryGroupModel struct {
+	GroupType                replicationrecoveryplans.RecoveryPlanGroupType `tfschema:"group_type"`
+	PostAction               []ActionModel                                  `tfschema:"post_action"`
+	PreAction                []ActionModel                                  `tfschema:"pre_action"`
+	ReplicatedProtectedItems []string                                       `tfschema:"replicated_protected_items"`
+}
+
+type ActionModel struct {
+	ActionDetailType        string                                                       `tfschema:"action_detail_type"`
+	FabricLocation          replicationrecoveryplans.RecoveryPlanActionLocation          `tfschema:"fabric_location"`
+	FailOverDirections      []replicationrecoveryplans.PossibleOperationsDirections      `tfschema:"fail_over_directions"`
+	FailOverTypes           []replicationrecoveryplans.ReplicationProtectedItemOperation `tfschema:"fail_over_types"`
+	ManualActionInstruction string                                                       `tfschema:"manual_action_instruction"`
+	Name                    string                                                       `tfschema:"name"`
+	RunbookId               string                                                       `tfschema:"runbook_id"`
+	ScriptPath              string                                                       `tfschema:"script_path"`
+}
+
+type SiteRecoveryReplicationRecoveryPlanResource struct{}
+
+var _ sdk.ResourceWithUpdate = SiteRecoveryReplicationRecoveryPlanResource{}
+
+func (r SiteRecoveryReplicationRecoveryPlanResource) ResourceType() string {
+	return "azurerm_site_recovery_replication_recovery_plan"
+}
+
+func (r SiteRecoveryReplicationRecoveryPlanResource) ModelObject() interface{} {
+	return &SiteRecoveryReplicationRecoveryPlanModel{}
+}
+
+func (r SiteRecoveryReplicationRecoveryPlanResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return replicationrecoveryplans.ValidateReplicationRecoveryPlanID
+}
+
+func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"recovery_vault_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			"resource_group_name": commonschema.ResourceGroupName(),
+		"source_recovery_fabric_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
+		},
 
-			"recovery_vault_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.RecoveryServicesVaultName,
-			},
+		"target_recovery_fabric_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
+		},
 
-			"source_recovery_fabric_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
-			},
-
-			"target_recovery_fabric_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
-			},
-
-			"recovery_group": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"group_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(siterecovery.Boot),
-								string(siterecovery.Shutdown),
-								string(siterecovery.Failover),
-							}, false),
+		"recovery_group": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"group_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(siterecovery.Boot),
+							string(siterecovery.Shutdown),
+							string(siterecovery.Failover),
+						}, false),
+					},
+					"replicated_protected_items": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: azure.ValidateResourceID,
 						},
-						"replicated_protected_items": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-						},
-						"pre_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem:     schemaAction(),
-						},
-						"post_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem:     schemaAction(),
-						},
+					},
+					"pre_action": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem:     schemaAction(),
+					},
+					"post_action": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem:     schemaAction(),
 					},
 				},
 			},
@@ -121,9 +146,9 @@ func schemaAction() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(siterecovery.InstanceTypeAutomationRunbookActionDetails),
-					string(siterecovery.InstanceTypeManualActionDetails),
-					string(siterecovery.InstanceTypeScriptActionDetails),
+					"AutomationRunbookActionDetails",
+					"ManualActionDetails",
+					"ScriptActionDetails",
 				}, false),
 			},
 
@@ -178,170 +203,184 @@ func schemaAction() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryReplicationRecoveryPlanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resGroup := d.Get("resource_group_name").(string)
-	vaultName := d.Get("recovery_vault_name").(string)
-	name := d.Get("name").(string)
+func (r SiteRecoveryReplicationRecoveryPlanResource) Attributes() map[string]*schema.Schema {
+	return map[string]*schema.Schema{}
+}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationRecoveryPlansClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, resGroup, vaultName, name)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing site recovery plan %s (vault %s): %+v", name, vaultName, err)
+func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model SiteRecoveryReplicationRecoveryPlanModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
-		}
 
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_replication_recovery_plan", *existing.Model.Id)
-		}
-	}
+			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
-	deploymentModel := replicationrecoveryplans.FailoverDeploymentModelResourceManager
+			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, model.ResourceGroupName, model.RecoveryVaultName, model.Name)
 
-	parameters := replicationrecoveryplans.CreateRecoveryPlanInput{
-		Properties: replicationrecoveryplans.CreateRecoveryPlanInputProperties{
-			PrimaryFabricId:         d.Get("source_recovery_fabric_id").(string),
-			RecoveryFabricId:        d.Get("target_recovery_fabric_id").(string),
-			FailoverDeploymentModel: &deploymentModel,
-			Groups:                  expandRecoverGroup(d.Get("recovery_group").([]interface{})),
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
+				if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing site recovery plan %q: %+v", id, err)
+				}
+			}
+
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+				return tf.ImportAsExistsError("azurerm_site_recovery_replication_recovery_plan", *existing.Model.Id)
+			}
+
+			// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
+			deploymentModel := replicationrecoveryplans.FailoverDeploymentModelResourceManager
+
+			parameters := replicationrecoveryplans.CreateRecoveryPlanInput{
+				Properties: replicationrecoveryplans.CreateRecoveryPlanInputProperties{
+					PrimaryFabricId:         model.SourceRecoveryFabricId,
+					RecoveryFabricId:        model.TargetRecoveryFabricId,
+					FailoverDeploymentModel: &deploymentModel,
+					Groups:                  expandRecoverGroup(model.RecoveryGroup),
+				},
+			}
+
+			err = client.CreateThenPoll(ctx, id, parameters)
+			if err != nil {
+				return fmt.Errorf("creating site recovery replication plan %q: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
 		},
 	}
-
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating site recovery replication plan %s (vault %s): %+v", name, vaultName, err)
-	}
-
-	d.SetId(id.ID())
-
-	return resourceSiteRecoveryReplicationRecoveryPlanRead(d, meta)
 }
 
-func resourceSiteRecoveryReplicationRecoveryPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(d.Id())
-	if err != nil {
-		return err
-	}
+func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationRecoveryPlansClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+			id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("making Read request on site recovery replication plan %s : %+v", id.String(), err)
+			}
+
+			model := resp.Model
+			if model == nil {
+				return fmt.Errorf("making Read request on site recovery replication plan %s : model is nil", id.String())
+			}
+
+			state := SiteRecoveryReplicationRecoveryPlanModel{
+				Name:              id.ResourceName,
+				ResourceGroupName: id.ResourceGroupName,
+				RecoveryVaultName: id.ResourceName,
+			}
+
+			if prop := model.Properties; prop != nil {
+				if prop.PrimaryFabricId != nil {
+					state.SourceRecoveryFabricId = handleAzureSdkForGoBug2824(*prop.PrimaryFabricId)
+				}
+				if prop.RecoveryFabricId != nil {
+					state.TargetRecoveryFabricId = handleAzureSdkForGoBug2824(*prop.PrimaryFabricId)
+				}
+
+				if group := prop.Groups; group != nil {
+					state.RecoveryGroup = flattenRecoveryGroups(*group)
+				}
+			}
 			return nil
-		}
-		return fmt.Errorf("making Read request on site recovery replication plan %s : %+v", id.String(), err)
+		},
 	}
-
-	model := resp.Model
-	if model == nil {
-		return fmt.Errorf("making Read request on site recovery replication plan %s : model is nil", id.String())
-	}
-
-	d.Set("name", id.RecoveryPlanName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
-
-	if prop := model.Properties; prop != nil {
-		if prop.PrimaryFabricId != nil {
-			d.Set("source_recovery_fabric_id", handleAzureSdkForGoBug2824(*prop.PrimaryFabricId))
-		}
-		if prop.RecoveryFabricId != nil {
-			d.Set("target_recovery_fabric_id", handleAzureSdkForGoBug2824(*prop.RecoveryFabricId))
-		}
-
-		if group := prop.Groups; group != nil {
-			d.Set("recovery_group", flattenRecoveryGroups(*group))
-		}
-	}
-	return nil
 }
 
-func resourceSiteRecoveryReplicationRecoveryPlanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RecoveryServices.ReplicationRecoveryPlansClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model SiteRecoveryReplicationRecoveryPlanModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
 
-	id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(d.Id())
-	if err != nil {
-		return fmt.Errorf("parse Site reocvery replication plan id: %+v", err)
-	}
+			id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf("parse Site reocvery replication plan id: %+v", err)
+			}
 
-	parameters := replicationrecoveryplans.UpdateRecoveryPlanInput{
-		Properties: &replicationrecoveryplans.UpdateRecoveryPlanInputProperties{},
-	}
-	err = client.UpdateThenPoll(ctx, *id, parameters)
-	if err != nil {
-		return fmt.Errorf("updating site recovery replication plan %s (vault %s): %+v", id.RecoveryPlanName, id.ResourceName, err)
-	}
+			recoveryPlanGroup := expandRecoverGroup(model.RecoveryGroup)
+			parameters := replicationrecoveryplans.UpdateRecoveryPlanInput{
+				Properties: &replicationrecoveryplans.UpdateRecoveryPlanInputProperties{
+					Groups: &recoveryPlanGroup,
+				},
+			}
 
-	return resourceSiteRecoveryReplicationRecoveryPlanRead(d, meta)
+			err = client.UpdateThenPoll(ctx, *id, parameters)
+			if err != nil {
+				return fmt.Errorf("updating site recovery replication plan %s (vault %s): %+v", id.RecoveryPlanName, id.ResourceName, err)
+			}
+
+			return nil
+		},
+	}
 }
 
-func resourceSiteRecoveryReplicationRecoveryPlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(d.Id())
-	if err != nil {
-		return err
+func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
+
+			id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			err = client.DeleteThenPoll(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("deleting site recovery protection replication plan %q : %+v", id, err)
+			}
+
+			return nil
+		},
 	}
-
-	client := meta.(*clients.Client).RecoveryServices.ReplicationRecoveryPlansClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("deleting site recovery protection replication plan %s : %+v", id.String(), err)
-	}
-
-	return nil
 }
 
-func expandRecoverGroup(input []interface{}) []replicationrecoveryplans.RecoveryPlanGroup {
+func expandRecoverGroup(input []RecoveryGroupModel) []replicationrecoveryplans.RecoveryPlanGroup {
 	var output []replicationrecoveryplans.RecoveryPlanGroup
-	for _, groupRaw := range input {
-		groupInput := groupRaw.(map[string]interface{})
+	for _, group := range input {
 
 		var protectedItems []replicationrecoveryplans.RecoveryPlanProtectedItem
-		for _, protectedItem := range groupInput["replicated_protected_items"].([]interface{}) {
+		for _, protectedItem := range group.ReplicatedProtectedItems {
 			protectedItems = append(protectedItems, replicationrecoveryplans.RecoveryPlanProtectedItem{
-				Id: utils.String(protectedItem.(string)),
+				Id: utils.String(protectedItem),
 			})
 		}
 
-		var startActions []replicationrecoveryplans.RecoveryPlanAction
-		for _, startActionRaw := range groupInput["pre_action"].([]interface{}) {
-			startActionInput := startActionRaw.(map[string]interface{})
+		var preActions []replicationrecoveryplans.RecoveryPlanAction
+		for _, preActionInput := range group.PreAction {
 
-			var failOverTypes []replicationrecoveryplans.ReplicationProtectedItemOperation
-			for _, failOverType := range startActionInput["fail_over_types"].(*pluginsdk.Set).List() {
-				failOverTypes = append(failOverTypes, replicationrecoveryplans.ReplicationProtectedItemOperation(failOverType.(string)))
-			}
-
-			startActions = append(startActions, replicationrecoveryplans.RecoveryPlanAction{
-				ActionName: startActionInput["name"].(string),
-				FailoverDirections: []replicationrecoveryplans.PossibleOperationsDirections{
-					replicationrecoveryplans.PossibleOperationsDirectionsPrimaryToRecovery,
-					replicationrecoveryplans.PossibleOperationsDirectionsRecoveryToPrimary,
-				},
-				FailoverTypes: failOverTypes,
-				CustomDetails: expandActionDetail(startActionInput),
+			preActions = append(preActions, replicationrecoveryplans.RecoveryPlanAction{
+				ActionName:         preActionInput.Name,
+				FailoverDirections: preActionInput.FailOverDirections,
+				FailoverTypes:      preActionInput.FailOverTypes,
+				CustomDetails:      expandActionDetail(preActionInput),
 			})
 		}
 
 		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
-			GroupType:                 replicationrecoveryplans.RecoveryPlanGroupType(groupInput["group_type"].(string)),
+			GroupType:                 group.GroupType,
 			ReplicationProtectedItems: &protectedItems,
 		})
 
@@ -349,81 +388,78 @@ func expandRecoverGroup(input []interface{}) []replicationrecoveryplans.Recovery
 	return output
 }
 
-func flattenRecoveryGroups(input []replicationrecoveryplans.RecoveryPlanGroup) []interface{} {
-	output := make([]interface{}, 0)
+func flattenRecoveryGroups(input []replicationrecoveryplans.RecoveryPlanGroup) []RecoveryGroupModel {
+	output := make([]RecoveryGroupModel, 0)
 	for _, groupItem := range input {
-		recoveryGroupOutput := make(map[string]interface{})
-		recoveryGroupOutput["group_type"] = groupItem.GroupType
+		recoveryGroupOutput := RecoveryGroupModel{}
+		recoveryGroupOutput.GroupType = groupItem.GroupType
 		if groupItem.ReplicationProtectedItems != nil {
-			recoveryGroupOutput["replicated_protected_items"] = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
+			recoveryGroupOutput.ReplicatedProtectedItems = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
 		}
 		if groupItem.StartGroupActions != nil {
-			recoveryGroupOutput["pre_action"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
+			recoveryGroupOutput.PreAction = flattenRecoveryPlanActions(groupItem.StartGroupActions)
 		}
 		if groupItem.EndGroupActions != nil {
-			recoveryGroupOutput["post_action"] = flattenRecoveryPlanActions(groupItem.StartGroupActions)
+			recoveryGroupOutput.PostAction = flattenRecoveryPlanActions(groupItem.StartGroupActions)
 		}
 		output = append(output, recoveryGroupOutput)
 	}
 	return output
 }
 
-func expandActionDetail(input map[string]interface{}) (output replicationrecoveryplans.RecoveryPlanActionDetails) {
-	switch input["action_detail_type"].(string) {
+func expandActionDetail(input ActionModel) (output replicationrecoveryplans.RecoveryPlanActionDetails) {
+	switch input.ActionDetailType {
 	case "AutomationRunbookActionDetails":
 		output = replicationrecoveryplans.RecoveryPlanAutomationRunbookActionDetails{
-			RunbookId:      utils.String(input["runbook_id"].(string)),
-			FabricLocation: replicationrecoveryplans.RecoveryPlanActionLocation(input["fabric_location"].(string)),
+			RunbookId:      utils.String(input.RunbookId),
+			FabricLocation: input.FabricLocation,
 		}
 	case "ManualActionDetails":
 		output = replicationrecoveryplans.RecoveryPlanManualActionDetails{
-			Description: utils.String(input["manual_action_instruction"].(string)),
+			Description: utils.String(input.ManualActionInstruction),
 		}
 	case "ScriptActionDetails":
 		output = replicationrecoveryplans.RecoveryPlanScriptActionDetails{
-			Path:           input["script_path"].(string),
-			FabricLocation: replicationrecoveryplans.RecoveryPlanActionLocation(input["fabric_location"].(string)),
+			Path:           input.ScriptPath,
+			FabricLocation: input.FabricLocation,
 		}
 	}
 	return
 }
 
-func flattenRecoveryPlanProtectedItems(input *[]replicationrecoveryplans.RecoveryPlanProtectedItem) []interface{} {
-	protectedItemOutputs := make([]interface{}, 0)
+func flattenRecoveryPlanProtectedItems(input *[]replicationrecoveryplans.RecoveryPlanProtectedItem) []string {
+	protectedItemOutputs := make([]string, 0)
 	for _, protectedItem := range *input {
-		protectedItemOutputs = append(protectedItemOutputs, protectedItem.Id)
+		protectedItemOutputs = append(protectedItemOutputs, *protectedItem.Id)
 	}
 	return protectedItemOutputs
 }
 
-func flattenRecoveryPlanActions(input *[]replicationrecoveryplans.RecoveryPlanAction) []interface{} {
-	actionOutputs := make([]interface{}, 0)
+func flattenRecoveryPlanActions(input *[]replicationrecoveryplans.RecoveryPlanAction) []ActionModel {
+	actionOutputs := make([]ActionModel, 0)
 	for _, action := range *input {
-		actionOutput := make(map[string]interface{}, 0)
-		actionOutput["name"] = action.ActionName
+		actionOutput := ActionModel{
+			Name: action.ActionName,
+		}
 		switch detail := action.CustomDetails.(type) {
 		case replicationrecoveryplans.RecoveryPlanAutomationRunbookActionDetails:
-			actionOutput["action_detail_type"] = "AutomationRunbookActionDetails"
-			actionOutput["runbook_id"] = detail.RunbookId
-			actionOutput["fabric_location"] = detail.FabricLocation
+			actionOutput.ActionDetailType = "AutomationRunbookActionDetails"
+			actionOutput.FabricLocation = detail.FabricLocation
+			if detail.RunbookId != nil {
+				actionOutput.RunbookId = *detail.RunbookId
+			}
 		case replicationrecoveryplans.RecoveryPlanManualActionDetails:
-			actionOutput["action_detail_type"] = "ManualActionDetails"
-			actionOutput["manual_action_instruction"] = detail.Description
+			actionOutput.ActionDetailType = "ManualActionDetails"
+			if detail.Description != nil {
+				actionOutput.ManualActionInstruction = *detail.Description
+			}
 		case replicationrecoveryplans.RecoveryPlanScriptActionDetails:
-			actionOutput["action_detail_type"] = "ScriptActionDetails"
-			actionOutput["script_path"] = detail.Path
-			actionOutput["fabric_location"] = detail.FabricLocation
+			actionOutput.ActionDetailType = "ScriptActionDetails"
+			actionOutput.ScriptPath = detail.Path
+			actionOutput.FabricLocation = detail.FabricLocation
 		}
-		directions := make([]interface{}, 0)
-		for _, direction := range action.FailoverDirections {
-			directions = append(directions, string(direction))
-		}
-		actionOutput["fail_over_directions"] = directions
-		failOverTypes := make([]interface{}, 0)
-		for _, failOverType := range action.FailoverTypes {
-			failOverTypes = append(failOverTypes, string(failOverType))
-		}
-		actionOutput["fail_over_types"] = failOverTypes
+		actionOutput.FailOverDirections = action.FailoverDirections
+		actionOutput.FailOverTypes = action.FailoverTypes
 		actionOutputs = append(actionOutputs, actionOutput)
 	}
 	return actionOutputs
