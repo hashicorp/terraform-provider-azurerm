@@ -6,6 +6,11 @@ ENHANCEMENTS:
 * media: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
 * `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
 
+BUG FIXES:
+
+* `azurerm_windows_web_app` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
+* `azurerm_windows_web_app_slot` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
+
 ## 3.33.0 (November 24, 2022)
 
 FEATURES:
