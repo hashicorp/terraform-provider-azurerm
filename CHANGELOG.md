@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * media: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
+* streamanalytics: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19395]
 * `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
 
 BUG FIXES:
