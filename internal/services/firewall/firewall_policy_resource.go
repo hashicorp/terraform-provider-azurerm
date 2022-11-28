@@ -204,13 +204,15 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		var privateIPRanges []interface{}
+		var isAutoLearnPrivateRangeEnabled bool
 		if prop.Snat != nil {
 			privateIPRanges = utils.FlattenStringSlice(prop.Snat.PrivateRanges)
+			isAutoLearnPrivateRangeEnabled = prop.Snat.AutoLearnPrivateRanges == network.AutoLearnPrivateRangesModeEnabled
 		}
 		if err := d.Set("private_ip_ranges", privateIPRanges); err != nil {
 			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 		}
-		isAutoLearnPrivateRangeEnabled := prop.Snat.AutoLearnPrivateRanges == network.AutoLearnPrivateRangesModeEnabled
+
 		if err := d.Set("auto_learn_private_ranges_enabled", isAutoLearnPrivateRangeEnabled); err != nil {
 			return fmt.Errorf("setting `auto_learn_private_ranges_enabled`: %+v", err)
 		}
