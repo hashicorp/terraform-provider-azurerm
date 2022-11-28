@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * `streamanalytics`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19395]
 * `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
 * `azurerm_storage_account` - support for `sftp_enabled` [GH-19428]
+* `tier_to_cool_after_days_since_creation_greater_than` - support for the `tier_to_cool_after_days_since_creation_greater_than`, `tier_to_archive_after_days_since_creation_greater_than`, `delete_after_days_since_creation_greater_than` properties [GH-19446]
 
 BUG FIXES:
 
