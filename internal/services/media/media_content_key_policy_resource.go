@@ -1,20 +1,20 @@
 package media
 
 import (
-	b64 "encoding/base64"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/contentkeypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,9 +37,14 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ContentKeyPolicyID(id)
+			_, err := contentkeypolicies.ParseContentKeyPolicyID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ContentKeyPolicyV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -122,9 +127,9 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.ContentKeyPolicyPlayReadyContentTypeUltraVioletDownload),
-											string(media.ContentKeyPolicyPlayReadyContentTypeUltraVioletStreaming),
-											string(media.ContentKeyPolicyPlayReadyContentTypeUnspecified),
+											string(contentkeypolicies.ContentKeyPolicyPlayReadyContentTypeUltraVioletDownload),
+											string(contentkeypolicies.ContentKeyPolicyPlayReadyContentTypeUltraVioletStreaming),
+											string(contentkeypolicies.ContentKeyPolicyPlayReadyContentTypeUnspecified),
 										}, false),
 									},
 
@@ -145,8 +150,8 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.ContentKeyPolicyPlayReadyLicenseTypeNonPersistent),
-											string(media.ContentKeyPolicyPlayReadyLicenseTypePersistent),
+											string(contentkeypolicies.ContentKeyPolicyPlayReadyLicenseTypeNonPersistent),
+											string(contentkeypolicies.ContentKeyPolicyPlayReadyLicenseTypePersistent),
 										}, false),
 									},
 
@@ -167,9 +172,9 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(media.ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowed),
-														string(media.ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowedWithVideoConstriction),
-														string(media.ContentKeyPolicyPlayReadyUnknownOutputPassingOptionNotAllowed),
+														string(contentkeypolicies.ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowed),
+														string(contentkeypolicies.ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowedWithVideoConstriction),
+														string(contentkeypolicies.ContentKeyPolicyPlayReadyUnknownOutputPassingOptionNotAllowed),
 													}, false),
 												},
 
@@ -289,10 +294,10 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeDualExpiry),
-											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentLimited),
-											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentUnlimited),
-											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeUndefined),
+											string(contentkeypolicies.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeDualExpiry),
+											string(contentkeypolicies.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentLimited),
+											string(contentkeypolicies.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentUnlimited),
+											string(contentkeypolicies.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeUndefined),
 										}, false),
 									},
 									"rental_duration_seconds": {
@@ -324,8 +329,8 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.ContentKeyPolicyRestrictionTokenTypeJwt),
-											string(media.ContentKeyPolicyRestrictionTokenTypeSwt),
+											string(contentkeypolicies.ContentKeyPolicyRestrictionTokenTypeJwt),
+											string(contentkeypolicies.ContentKeyPolicyRestrictionTokenTypeSwt),
 										}, false),
 									},
 									"primary_symmetric_token_key": {
@@ -391,30 +396,30 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 }
 
 func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
+	client := meta.(*clients.Client).Media.V20200501Client.ContentKeyPolicies
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceID := parse.NewContentKeyPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	id := contentkeypolicies.NewContentKeyPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
+		existing, err := client.ContentKeyPoliciesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", resourceID, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_content_key_policy", resourceID.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_media_content_key_policy", id.ID())
 		}
 	}
 
-	parameters := media.ContentKeyPolicy{
-		ContentKeyPolicyProperties: &media.ContentKeyPolicyProperties{},
+	payload := contentkeypolicies.ContentKeyPolicy{
+		Properties: &contentkeypolicies.ContentKeyPolicyProperties{},
 	}
 
 	if description, ok := d.GetOk("description"); ok {
-		parameters.ContentKeyPolicyProperties.Description = utils.String(description.(string))
+		payload.Properties.Description = utils.String(description.(string))
 	}
 
 	if v, ok := d.GetOk("policy_option"); ok {
@@ -422,32 +427,31 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta i
 		if err != nil {
 			return err
 		}
-		parameters.ContentKeyPolicyProperties.Options = options
+		payload.Properties.Options = *options
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceID, err)
+	if _, err := client.ContentKeyPoliciesCreateOrUpdate(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceID.ID())
+	d.SetId(id.ID())
 
 	return resourceMediaContentKeyPolicyRead(d, meta)
 }
 
 func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
+	client := meta.(*clients.Client).Media.V20200501Client.ContentKeyPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContentKeyPolicyID(d.Id())
+	id, err := contentkeypolicies.ParseContentKeyPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetPolicyPropertiesWithSecrets(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := client.ContentKeyPoliciesGetPolicyPropertiesWithSecrets(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -455,42 +459,44 @@ func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
-	d.Set("description", resp.Description)
+	d.Set("name", id.ContentKeyPolicyName)
+	d.Set("media_services_account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if resp.Options != nil {
-		options, err := flattenPolicyOptions(resp.Options)
+	if model := resp.Model; model != nil {
+		d.Set("description", model.Description)
+
+		options, err := flattenPolicyOptions(model.Options)
 		if err != nil {
-			return err
+			return fmt.Errorf("flattening `policy_option`: %+v", err)
 		}
-
-		d.Set("policy_option", options)
+		if err := d.Set("policy_option", options); err != nil {
+			return fmt.Errorf("setting `policy_option`: %+v", err)
+		}
 	}
 
 	return nil
 }
 
 func resourceMediaContentKeyPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
+	client := meta.(*clients.Client).Media.V20200501Client.ContentKeyPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContentKeyPolicyID(d.Id())
+	id, err := contentkeypolicies.ParseContentKeyPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
+	if _, err = client.ContentKeyPoliciesDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandPolicyOptions(input []interface{}) (*[]media.ContentKeyPolicyOption, error) {
-	results := make([]media.ContentKeyPolicyOption, 0)
+func expandPolicyOptions(input []interface{}) (*[]contentkeypolicies.ContentKeyPolicyOption, error) {
+	results := make([]contentkeypolicies.ContentKeyPolicyOption, 0)
 
 	for _, policyOptionRaw := range input {
 		policyOption := policyOptionRaw.(map[string]interface{})
@@ -505,7 +511,7 @@ func expandPolicyOptions(input []interface{}) (*[]media.ContentKeyPolicyOption, 
 			return nil, err
 		}
 
-		contentKeyPolicyOption := media.ContentKeyPolicyOption{
+		contentKeyPolicyOption := contentkeypolicies.ContentKeyPolicyOption{
 			Restriction:   restriction,
 			Configuration: configuration,
 		}
@@ -520,13 +526,9 @@ func expandPolicyOptions(input []interface{}) (*[]media.ContentKeyPolicyOption, 
 	return &results, nil
 }
 
-func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) ([]interface{}, error) {
-	if input == nil {
-		return []interface{}{}, nil
-	}
-
+func flattenPolicyOptions(input []contentkeypolicies.ContentKeyPolicyOption) ([]interface{}, error) {
 	results := make([]interface{}, 0)
-	for _, option := range *input {
+	for _, option := range input {
 		name := ""
 		if option.Name != nil {
 			name = *option.Name
@@ -536,57 +538,42 @@ func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) ([]interface{},
 		playReadyLicense := make([]interface{}, 0)
 		widevineTemplate := ""
 		fairplayConfiguration := make([]interface{}, 0)
-		if v := option.Configuration; v != nil {
-			switch v.(type) {
-			case media.ContentKeyPolicyClearKeyConfiguration:
-				clearKeyConfigurationEnabled = true
-			case media.ContentKeyPolicyWidevineConfiguration:
-				wideVineConfiguration, ok := v.AsContentKeyPolicyWidevineConfiguration()
-				if !ok {
-					return nil, fmt.Errorf("content key configuration was not a Widevine Configuration")
-				}
 
-				if wideVineConfiguration.WidevineTemplate != nil {
-					widevineTemplate = *wideVineConfiguration.WidevineTemplate
-				}
-			case media.ContentKeyPolicyFairPlayConfiguration:
-				fairPlayConfiguration, ok := v.AsContentKeyPolicyFairPlayConfiguration()
-				if !ok {
-					return nil, fmt.Errorf("content key configuration was not a Fairplay Configuration")
-				}
-				fairplayConfiguration = flattenFairplayConfiguration(fairPlayConfiguration)
-			case media.ContentKeyPolicyPlayReadyConfiguration:
-				playReadyConfiguration, ok := v.AsContentKeyPolicyPlayReadyConfiguration()
-				if !ok {
-					return nil, fmt.Errorf("content key configuration was not a Playready Configuration")
-				}
-				if playReadyConfiguration.Licenses != nil {
-					license, err := flattenPlayReadyLicenses(playReadyConfiguration.Licenses)
-					if err != nil {
-						return nil, err
-					}
-					playReadyLicense = license
-				}
+		if _, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyClearKeyConfiguration); ok {
+			clearKeyConfigurationEnabled = true
+		}
+
+		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyFairPlayConfiguration); ok {
+			flattened, err := flattenFairplayConfiguration(v)
+			if err != nil {
+				return nil, fmt.Errorf("flattening fairplay configuration: %+v", err)
 			}
+			fairplayConfiguration = *flattened
+		}
+
+		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyPlayReadyConfiguration); ok {
+			license, err := flattenPlayReadyLicenses(v.Licenses)
+			if err != nil {
+				return nil, err
+			}
+			playReadyLicense = license
+		}
+
+		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyWidevineConfiguration); ok {
+			widevineTemplate = v.WidevineTemplate
 		}
 
 		openRestrictionEnabled := false
 		tokenRestriction := make([]interface{}, 0)
-		if v := option.Restriction; v != nil {
-			switch v.(type) {
-			case media.ContentKeyPolicyOpenRestriction:
-				openRestrictionEnabled = true
-			case media.ContentKeyPolicyTokenRestriction:
-				token, ok := v.AsContentKeyPolicyTokenRestriction()
-				if !ok {
-					return nil, fmt.Errorf("content key restriction was not a Token Restriction")
-				}
-				restriction, err := flattenTokenRestriction(token)
-				if err != nil {
-					return nil, err
-				}
-				tokenRestriction = restriction
+		if _, ok := option.Restriction.(contentkeypolicies.ContentKeyPolicyOpenRestriction); ok {
+			openRestrictionEnabled = true
+		}
+		if v, ok := option.Restriction.(contentkeypolicies.ContentKeyPolicyTokenRestriction); ok {
+			restriction, err := flattenTokenRestriction(v)
+			if err != nil {
+				return nil, err
 			}
+			tokenRestriction = restriction
 		}
 
 		results = append(results, map[string]interface{}{
@@ -603,49 +590,43 @@ func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) ([]interface{},
 	return results, nil
 }
 
-func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPolicyRestriction, error) {
-	restrictionCount := 0
-	restrictionType := ""
-	if option["open_restriction_enabled"] != nil && option["open_restriction_enabled"].(bool) {
-		restrictionCount++
-		restrictionType = string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction)
-	}
-	if option["token_restriction"] != nil && len(option["token_restriction"].([]interface{})) > 0 && option["token_restriction"].([]interface{})[0] != nil {
-		restrictionCount++
-		restrictionType = string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction)
-	}
+func expandRestriction(option map[string]interface{}) (contentkeypolicies.ContentKeyPolicyRestriction, error) {
+	openRestrictionEnabled := option["open_restriction_enabled"].(bool)
+	tokenRestrictions := option["token_restriction"].([]interface{})
 
+	restrictionCount := 0
+	if openRestrictionEnabled {
+		restrictionCount++
+	}
+	if len(tokenRestrictions) > 0 {
+		restrictionCount++
+	}
 	if restrictionCount == 0 {
 		return nil, fmt.Errorf("policy_option must contain at least one type of restriction: open_restriction_enabled or token_restriction.")
 	}
-
 	if restrictionCount > 1 {
 		return nil, fmt.Errorf("more than one type of restriction in the same policy_option is not allowed.")
 	}
 
-	switch restrictionType {
-	case string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction):
-		openRestriction := &media.ContentKeyPolicyOpenRestriction{
-			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction,
-		}
+	if openRestrictionEnabled {
+		openRestriction := &contentkeypolicies.ContentKeyPolicyOpenRestriction{}
 		return openRestriction, nil
-	case string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction):
-		tokenRestrictions := option["token_restriction"].([]interface{})
+	}
+
+	if len(tokenRestrictions) > 0 {
 		tokenRestriction := tokenRestrictions[0].(map[string]interface{})
-		contentKeyPolicyTokenRestriction := &media.ContentKeyPolicyTokenRestriction{
-			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction,
-		}
+		contentKeyPolicyTokenRestriction := &contentkeypolicies.ContentKeyPolicyTokenRestriction{}
 		if tokenRestriction["audience"] != nil && tokenRestriction["audience"].(string) != "" {
-			contentKeyPolicyTokenRestriction.Audience = utils.String(tokenRestriction["audience"].(string))
+			contentKeyPolicyTokenRestriction.Audience = tokenRestriction["audience"].(string)
 		}
 		if tokenRestriction["issuer"] != nil && tokenRestriction["issuer"].(string) != "" {
-			contentKeyPolicyTokenRestriction.Issuer = utils.String(tokenRestriction["issuer"].(string))
+			contentKeyPolicyTokenRestriction.Issuer = tokenRestriction["issuer"].(string)
 		}
 		if tokenRestriction["token_type"] != nil && tokenRestriction["token_type"].(string) != "" {
-			contentKeyPolicyTokenRestriction.RestrictionTokenType = media.ContentKeyPolicyRestrictionTokenType(tokenRestriction["token_type"].(string))
+			contentKeyPolicyTokenRestriction.RestrictionTokenType = contentkeypolicies.ContentKeyPolicyRestrictionTokenType(tokenRestriction["token_type"].(string))
 		}
 		if tokenRestriction["open_id_connect_discovery_document"] != nil && tokenRestriction["open_id_connect_discovery_document"].(string) != "" {
-			contentKeyPolicyTokenRestriction.OpenIDConnectDiscoveryDocument = utils.String(tokenRestriction["open_id_connect_discovery_document"].(string))
+			contentKeyPolicyTokenRestriction.OpenIdConnectDiscoveryDocument = utils.String(tokenRestriction["open_id_connect_discovery_document"].(string))
 		}
 		if v := tokenRestriction["required_claim"]; v != nil {
 			contentKeyPolicyTokenRestriction.RequiredClaims = expandRequiredClaims(v.([]interface{}))
@@ -657,29 +638,15 @@ func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPoli
 		contentKeyPolicyTokenRestriction.PrimaryVerificationKey = primaryVerificationKey
 
 		return contentKeyPolicyTokenRestriction, nil
-	default:
-		return nil, fmt.Errorf("policy_option must contain at least one type of restriction: open_restriction_enabled or token_restriction.")
 	}
+
+	return nil, fmt.Errorf("policy_option must contain at least one type of restriction: open_restriction_enabled or token_restriction.")
 }
 
-func flattenTokenRestriction(input *media.ContentKeyPolicyTokenRestriction) ([]interface{}, error) {
-	if input == nil {
-		return make([]interface{}, 0), nil
-	}
-
-	audience := ""
-	if input.Audience != nil {
-		audience = *input.Audience
-	}
-
-	issuer := ""
-	if input.Issuer != nil {
-		issuer = *input.Issuer
-	}
-
+func flattenTokenRestriction(input contentkeypolicies.ContentKeyPolicyTokenRestriction) ([]interface{}, error) {
 	openIDConnectDiscoveryDocument := ""
-	if input.OpenIDConnectDiscoveryDocument != nil {
-		openIDConnectDiscoveryDocument = *input.OpenIDConnectDiscoveryDocument
+	if input.OpenIdConnectDiscoveryDocument != nil {
+		openIDConnectDiscoveryDocument = *input.OpenIdConnectDiscoveryDocument
 	}
 
 	requiredClaims := make([]interface{}, 0)
@@ -692,45 +659,27 @@ func flattenTokenRestriction(input *media.ContentKeyPolicyTokenRestriction) ([]i
 	rsaTokenKeyModulus := ""
 	x509TokenBodyRaw := ""
 	if v := input.PrimaryVerificationKey; v != nil {
-		switch v.(type) {
-		case media.ContentKeyPolicySymmetricTokenKey:
-			symmetricTokenKey, ok := v.AsContentKeyPolicySymmetricTokenKey()
-			if !ok {
-				return nil, fmt.Errorf("token key was not Symmetric Token Key")
-			}
+		symmetricTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicySymmetricTokenKey)
+		if ok {
+			symmetricToken = symmetricTokenKey.KeyValue
+		}
 
-			if symmetricTokenKey.KeyValue != nil {
-				symmetricToken = b64.StdEncoding.EncodeToString(*symmetricTokenKey.KeyValue)
-			}
-		case media.ContentKeyPolicyRsaTokenKey:
-			rsaTokenKey, ok := v.AsContentKeyPolicyRsaTokenKey()
-			if !ok {
-				return nil, fmt.Errorf("token key was not Rsa Token Key")
-			}
+		rsaTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicyRsaTokenKey)
+		if ok {
+			rsaTokenKeyExponent = rsaTokenKey.Exponent
+			rsaTokenKeyModulus = rsaTokenKey.Modulus
+		}
 
-			if rsaTokenKey.Exponent != nil {
-				rsaTokenKeyExponent = string(*rsaTokenKey.Exponent)
-			}
-
-			if rsaTokenKey.Modulus != nil {
-				rsaTokenKeyModulus = string(*rsaTokenKey.Modulus)
-			}
-		case media.ContentKeyPolicyX509CertificateTokenKey:
-			x509CertificateTokenKey, ok := v.AsContentKeyPolicyX509CertificateTokenKey()
-			if !ok {
-				return nil, fmt.Errorf("token key was not x509Certificate Token Key")
-			}
-
-			if x509CertificateTokenKey.RawBody != nil {
-				x509TokenBodyRaw = string(*x509CertificateTokenKey.RawBody)
-			}
+		x509CertificateTokenKey, ok := v.(contentkeypolicies.ContentKeyPolicyX509CertificateTokenKey)
+		if ok {
+			x509TokenBodyRaw = x509CertificateTokenKey.RawBody
 		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"audience":                           audience,
-			"issuer":                             issuer,
+			"audience":                           input.Audience,
+			"issuer":                             input.Issuer,
 			"token_type":                         string(input.RestrictionTokenType),
 			"open_id_connect_discovery_document": openIDConnectDiscoveryDocument,
 			"required_claim":                     requiredClaims,
@@ -742,134 +691,108 @@ func flattenTokenRestriction(input *media.ContentKeyPolicyTokenRestriction) ([]i
 	}, nil
 }
 
-func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPolicyConfiguration, error) {
+func expandConfiguration(input map[string]interface{}) (contentkeypolicies.ContentKeyPolicyConfiguration, error) {
+	clearKeyConfigurationEnabled := input["clear_key_configuration_enabled"].(bool)
+	fairPlayConfigurations := input["fairplay_configuration"].([]interface{})
+	playReadyConfigurationLicences := input["playready_configuration_license"].([]interface{})
+	widevineConfigurationTemplate := input["widevine_configuration_template"].(string)
+
 	configurationCount := 0
-	configurationType := ""
-	if input["clear_key_configuration_enabled"] != nil && input["clear_key_configuration_enabled"].(bool) {
+	if clearKeyConfigurationEnabled != false {
 		configurationCount++
-		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration)
 	}
-	if input["widevine_configuration_template"] != nil && input["widevine_configuration_template"].(string) != "" {
+	if len(fairPlayConfigurations) > 0 {
 		configurationCount++
-		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration)
 	}
-	if input["fairplay_configuration"] != nil && len(input["fairplay_configuration"].([]interface{})) > 0 && input["fairplay_configuration"].([]interface{})[0] != nil {
+	if len(playReadyConfigurationLicences) > 0 {
 		configurationCount++
-		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration)
 	}
-
-	if input["playready_configuration_license"] != nil && len(input["playready_configuration_license"].([]interface{})) > 0 {
+	if widevineConfigurationTemplate != "" {
 		configurationCount++
-		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration)
 	}
-
 	if configurationCount == 0 {
 		return nil, fmt.Errorf("policy_option must contain at least one type of configuration: clear_key_configuration_enabled , widevine_configuration_template, playready_configuration_license or fairplay_configuration.")
 	}
-
 	if configurationCount > 1 {
 		return nil, fmt.Errorf("more than one type of configuration in the same policy_option is not allowed.")
 	}
 
-	switch configurationType {
-	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration):
-		clearKeyConfiguration := &media.ContentKeyPolicyClearKeyConfiguration{
-			OdataType: media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration,
-		}
+	if clearKeyConfigurationEnabled {
+		clearKeyConfiguration := &contentkeypolicies.ContentKeyPolicyClearKeyConfiguration{}
 		return clearKeyConfiguration, nil
-	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration):
-		wideVineConfiguration := &media.ContentKeyPolicyWidevineConfiguration{
-			OdataType:        media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
-			WidevineTemplate: utils.String(input["widevine_configuration_template"].(string)),
-		}
-		return wideVineConfiguration, nil
-	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration):
+	}
+	if len(fairPlayConfigurations) > 0 {
 		fairplayConfiguration, err := expandFairplayConfiguration(input["fairplay_configuration"].([]interface{}))
 		if err != nil {
 			return nil, err
 		}
 		return fairplayConfiguration, nil
-	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration):
-		playReadyConfiguration := &media.ContentKeyPolicyPlayReadyConfiguration{
-			OdataType: media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration,
+	}
+	if len(playReadyConfigurationLicences) > 0 {
+		licenses, err := expandPlayReadyLicenses(input["playready_configuration_license"].([]interface{}))
+		if err != nil {
+			return nil, err
 		}
-
-		if input["playready_configuration_license"] != nil {
-			licenses, err := expandPlayReadyLicenses(input["playready_configuration_license"].([]interface{}))
-			if err != nil {
-				return nil, err
-			}
-			playReadyConfiguration.Licenses = licenses
+		playReadyConfiguration := &contentkeypolicies.ContentKeyPolicyPlayReadyConfiguration{
+			Licenses: *licenses,
 		}
 		return playReadyConfiguration, nil
-
-	default:
-		return nil, fmt.Errorf("policy_option must contain at least one type of configuration: clear_key_configuration_enabled , widevine_configuration_template, playready_configuration_license or fairplay_configuration.")
 	}
+	if widevineConfigurationTemplate != "" {
+		wideVineConfiguration := &contentkeypolicies.ContentKeyPolicyWidevineConfiguration{
+			WidevineTemplate: input["widevine_configuration_template"].(string),
+		}
+		return wideVineConfiguration, nil
+	}
+
+	return nil, fmt.Errorf("policy_option must contain at least one type of configuration: clear_key_configuration_enabled , widevine_configuration_template, playready_configuration_license or fairplay_configuration.")
 }
 
-func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyPolicyRestrictionTokenKey, error) {
+func expandVerificationKey(input map[string]interface{}) (contentkeypolicies.ContentKeyPolicyRestrictionTokenKey, error) {
+	primaryRsaTokenKeyExponent := input["primary_rsa_token_key_exponent"].(string)
+	primaryRsaTokenKeyModulus := input["primary_rsa_token_key_modulus"].(string)
+	primarySymmetricTokenKey := input["primary_symmetric_token_key"].(string)
+	primaryX509TokenKeyRaw := input["primary_x509_token_key_raw"].(string)
+
 	verificationKeyCount := 0
-	verificationKeyType := ""
-	if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
+	if primaryRsaTokenKeyExponent != "" || primaryRsaTokenKeyModulus != "" {
 		verificationKeyCount++
-		verificationKeyType = string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey)
 	}
-	if (input["primary_rsa_token_key_exponent"] != nil && input["primary_rsa_token_key_exponent"].(string) != "") || (input["primary_rsa_token_key_modulus"] != nil && input["primary_rsa_token_key_modulus"].(string) != "") {
+	if primarySymmetricTokenKey != "" {
 		verificationKeyCount++
-		verificationKeyType = string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey)
 	}
-
-	if input["primary_x509_token_key_raw"] != nil && input["primary_x509_token_key_raw"].(string) != "" {
+	if primaryX509TokenKeyRaw != "" {
 		verificationKeyCount++
-		verificationKeyType = string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey)
 	}
-
 	if verificationKeyCount > 1 {
 		return nil, fmt.Errorf("more than one type of token key in the same token_restriction is not allowed.")
 	}
 
-	switch verificationKeyType {
-	case string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey):
-		symmetricTokenKey := &media.ContentKeyPolicySymmetricTokenKey{
-			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey,
-		}
-
-		if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
-			keyValue, _ := b64.StdEncoding.DecodeString(input["primary_symmetric_token_key"].(string))
-			symmetricTokenKey.KeyValue = &keyValue
-		}
-		return symmetricTokenKey, nil
-	case string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey):
-		rsaTokenKey := &media.ContentKeyPolicyRsaTokenKey{
-			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey,
-		}
-		if input["primary_rsa_token_key_exponent"] != nil && input["primary_rsa_token_key_exponent"].(string) != "" {
-			exponent := []byte(input["primary_rsa_token_key_exponent"].(string))
-			rsaTokenKey.Exponent = &exponent
-		}
-		if input["primary_rsa_token_key_modulus"] != nil && input["primary_rsa_token_key_modulus"].(string) != "" {
-			modulus := []byte(input["primary_rsa_token_key_modulus"].(string))
-			rsaTokenKey.Modulus = &modulus
+	if primaryRsaTokenKeyExponent != "" || primaryRsaTokenKeyModulus != "" {
+		rsaTokenKey := &contentkeypolicies.ContentKeyPolicyRsaTokenKey{
+			Exponent: primaryRsaTokenKeyExponent,
+			Modulus:  primaryRsaTokenKeyModulus,
 		}
 		return rsaTokenKey, nil
-	case string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey):
-		x509CertificateTokenKey := &media.ContentKeyPolicyX509CertificateTokenKey{
-			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey,
+	}
+	if primarySymmetricTokenKey != "" {
+		symmetricTokenKey := &contentkeypolicies.ContentKeyPolicySymmetricTokenKey{
+			KeyValue: primarySymmetricTokenKey,
 		}
-
-		if input["primary_x509_token_key_raw"] != nil && input["primary_x509_token_key_raw"].(string) != "" {
-			rawBody := []byte(input["primary_x509_token_key_raw"].(string))
-			x509CertificateTokenKey.RawBody = &rawBody
+		return symmetricTokenKey, nil
+	}
+	if primaryX509TokenKeyRaw != "" {
+		x509CertificateTokenKey := &contentkeypolicies.ContentKeyPolicyX509CertificateTokenKey{
+			RawBody: primaryX509TokenKeyRaw,
 		}
 		return x509CertificateTokenKey, nil
-	default:
-		return nil, nil
 	}
+
+	return nil, nil
 }
 
-func expandRequiredClaims(input []interface{}) *[]media.ContentKeyPolicyTokenClaim {
-	results := make([]media.ContentKeyPolicyTokenClaim, 0)
+func expandRequiredClaims(input []interface{}) *[]contentkeypolicies.ContentKeyPolicyTokenClaim {
+	results := make([]contentkeypolicies.ContentKeyPolicyTokenClaim, 0)
 
 	for _, tokenClaimRaw := range input {
 		if tokenClaimRaw == nil {
@@ -887,7 +810,7 @@ func expandRequiredClaims(input []interface{}) *[]media.ContentKeyPolicyTokenCla
 			claimValue = v.(string)
 		}
 
-		contentPolicyTokenClaim := media.ContentKeyPolicyTokenClaim{
+		contentPolicyTokenClaim := contentkeypolicies.ContentKeyPolicyTokenClaim{
 			ClaimType:  &claimType,
 			ClaimValue: &claimValue,
 		}
@@ -898,7 +821,7 @@ func expandRequiredClaims(input []interface{}) *[]media.ContentKeyPolicyTokenCla
 	return &results
 }
 
-func flattenRequiredClaims(input *[]media.ContentKeyPolicyTokenClaim) []interface{} {
+func flattenRequiredClaims(input *[]contentkeypolicies.ContentKeyPolicyTokenClaim) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -924,49 +847,37 @@ func flattenRequiredClaims(input *[]media.ContentKeyPolicyTokenClaim) []interfac
 	return results
 }
 
-func expandRentalConfiguration(input []interface{}) *media.ContentKeyPolicyFairPlayOfflineRentalConfiguration {
+func expandRentalConfiguration(input []interface{}) *contentkeypolicies.ContentKeyPolicyFairPlayOfflineRentalConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	rentalConfiguration := input[0].(map[string]interface{})
-	playbackDuration := utils.Int64(int64(rentalConfiguration["playback_duration_seconds"].(int)))
-	storageDuration := utils.Int64(int64(rentalConfiguration["storage_duration_seconds"].(int)))
-	return &media.ContentKeyPolicyFairPlayOfflineRentalConfiguration{
+	playbackDuration := int64(rentalConfiguration["playback_duration_seconds"].(int))
+	storageDuration := int64(rentalConfiguration["storage_duration_seconds"].(int))
+	return &contentkeypolicies.ContentKeyPolicyFairPlayOfflineRentalConfiguration{
 		PlaybackDurationSeconds: playbackDuration,
 		StorageDurationSeconds:  storageDuration,
 	}
 }
 
-func flattenRentalConfiguration(input *media.ContentKeyPolicyFairPlayOfflineRentalConfiguration) []interface{} {
+func flattenRentalConfiguration(input *contentkeypolicies.ContentKeyPolicyFairPlayOfflineRentalConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	playbackDurationSeconds := 0
-	if input.PlaybackDurationSeconds != nil {
-		playbackDurationSeconds = int(*input.PlaybackDurationSeconds)
-	}
-
-	storageDurationSeconds := 0
-	if input.StorageDurationSeconds != nil {
-		storageDurationSeconds = int(*input.StorageDurationSeconds)
-	}
-
 	return []interface{}{map[string]interface{}{
-		"playback_duration_seconds": playbackDurationSeconds,
-		"storage_duration_seconds":  storageDurationSeconds,
+		"playback_duration_seconds": input.PlaybackDurationSeconds,
+		"storage_duration_seconds":  input.StorageDurationSeconds,
 	}}
 }
 
-func expandFairplayConfiguration(input []interface{}) (*media.ContentKeyPolicyFairPlayConfiguration, error) {
-	fairplayConfiguration := &media.ContentKeyPolicyFairPlayConfiguration{
-		OdataType: media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration,
-	}
+func expandFairplayConfiguration(input []interface{}) (*contentkeypolicies.ContentKeyPolicyFairPlayConfiguration, error) {
+	fairplayConfiguration := &contentkeypolicies.ContentKeyPolicyFairPlayConfiguration{}
 
 	fairplay := input[0].(map[string]interface{})
 	if fairplay["rental_duration_seconds"] != nil {
-		fairplayConfiguration.RentalDuration = utils.Int64(int64(fairplay["rental_duration_seconds"].(int)))
+		fairplayConfiguration.RentalDuration = int64(fairplay["rental_duration_seconds"].(int))
 	}
 
 	if fairplay["offline_rental_configuration"] != nil {
@@ -974,7 +885,7 @@ func expandFairplayConfiguration(input []interface{}) (*media.ContentKeyPolicyFa
 	}
 
 	if fairplay["rental_and_lease_key_type"] != nil {
-		fairplayConfiguration.RentalAndLeaseKeyType = media.ContentKeyPolicyFairPlayRentalAndLeaseKeyType(fairplay["rental_and_lease_key_type"].(string))
+		fairplayConfiguration.RentalAndLeaseKeyType = contentkeypolicies.ContentKeyPolicyFairPlayRentalAndLeaseKeyType(fairplay["rental_and_lease_key_type"].(string))
 	}
 
 	if fairplay["ask"] != nil && fairplay["ask"].(string) != "" {
@@ -982,70 +893,59 @@ func expandFairplayConfiguration(input []interface{}) (*media.ContentKeyPolicyFa
 		if err != nil {
 			return nil, err
 		}
-		fairplayConfiguration.Ask = &askBytes
+		fairplayConfiguration.Ask = base64.StdEncoding.EncodeToString(askBytes)
 	}
 
 	if fairplay["pfx"] != nil && fairplay["pfx"].(string) != "" {
-		fairplayConfiguration.FairPlayPfx = utils.String(fairplay["pfx"].(string))
+		fairplayConfiguration.FairPlayPfx = fairplay["pfx"].(string)
 	}
 
 	if fairplay["pfx_password"] != nil && fairplay["pfx_password"].(string) != "" {
-		fairplayConfiguration.FairPlayPfxPassword = utils.String(fairplay["pfx_password"].(string))
+		fairplayConfiguration.FairPlayPfxPassword = fairplay["pfx_password"].(string)
 	}
 
 	return fairplayConfiguration, nil
 }
 
-func flattenFairplayConfiguration(input *media.ContentKeyPolicyFairPlayConfiguration) []interface{} {
-	rentalDuration := 0
-	if input.RentalDuration != nil {
-		rentalDuration = int(*input.RentalDuration)
-	}
-
+func flattenFairplayConfiguration(input contentkeypolicies.ContentKeyPolicyFairPlayConfiguration) (*[]interface{}, error) {
 	offlineRentalConfiguration := make([]interface{}, 0)
 	if input.OfflineRentalConfiguration != nil {
 		offlineRentalConfiguration = flattenRentalConfiguration(input.OfflineRentalConfiguration)
 	}
 
-	pfx := ""
-	if input.FairPlayPfx != nil {
-		pfx = *input.FairPlayPfx
-	}
-
-	pfxPassword := ""
-	if input.FairPlayPfxPassword != nil {
-		pfxPassword = *input.FairPlayPfxPassword
-	}
-
 	ask := ""
-	if input.Ask != nil {
-		ask = hex.EncodeToString(*input.Ask)
+	if input.Ask != "" {
+		decodedAsk, err := base64.StdEncoding.DecodeString(input.Ask)
+		if err != nil {
+			return nil, fmt.Errorf("base64-decoding %q: %+v", input.Ask, err)
+		}
+		ask = hex.EncodeToString(decodedAsk)
 	}
 
-	return []interface{}{
+	return &[]interface{}{
 		map[string]interface{}{
-			"rental_duration_seconds":      rentalDuration,
+			"rental_duration_seconds":      input.RentalDuration,
 			"offline_rental_configuration": offlineRentalConfiguration,
 			"rental_and_lease_key_type":    string(input.RentalAndLeaseKeyType),
-			"pfx":                          pfx,
-			"pfx_password":                 pfxPassword,
+			"pfx":                          input.FairPlayPfx,
+			"pfx_password":                 input.FairPlayPfxPassword,
 			"ask":                          ask,
 		},
-	}
+	}, nil
 }
 
-func expandPlayReadyLicenses(input []interface{}) (*[]media.ContentKeyPolicyPlayReadyLicense, error) {
-	results := make([]media.ContentKeyPolicyPlayReadyLicense, 0)
+func expandPlayReadyLicenses(input []interface{}) (*[]contentkeypolicies.ContentKeyPolicyPlayReadyLicense, error) {
+	results := make([]contentkeypolicies.ContentKeyPolicyPlayReadyLicense, 0)
 
 	for _, licenseRaw := range input {
 		if licenseRaw == nil {
 			continue
 		}
 		license := licenseRaw.(map[string]interface{})
-		playReadyLicense := media.ContentKeyPolicyPlayReadyLicense{}
+		playReadyLicense := contentkeypolicies.ContentKeyPolicyPlayReadyLicense{}
 
 		if v := license["allow_test_devices"]; v != nil {
-			playReadyLicense.AllowTestDevices = utils.Bool(v.(bool))
+			playReadyLicense.AllowTestDevices = v.(bool)
 		}
 
 		if v := license["begin_date"]; v != nil && v != "" {
@@ -1053,16 +953,12 @@ func expandPlayReadyLicenses(input []interface{}) (*[]media.ContentKeyPolicyPlay
 			if err != nil {
 				return nil, err
 			}
-			playReadyLicense.BeginDate = &date.Time{
-				Time: beginDate,
-			}
+			playReadyLicense.SetBeginDateAsTime(beginDate)
 		}
 
 		locationFromHeader := false
 		if v := license["content_key_location_from_header_enabled"]; v != nil && v != "" {
-			playReadyLicense.ContentKeyLocation = media.ContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader{
-				OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader,
-			}
+			playReadyLicense.ContentKeyLocation = contentkeypolicies.ContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader{}
 			locationFromHeader = true
 		}
 
@@ -1071,15 +967,13 @@ func expandPlayReadyLicenses(input []interface{}) (*[]media.ContentKeyPolicyPlay
 				return nil, fmt.Errorf("playready_configuration_license only support one key location at time, you must to specify content_key_location_from_header_enabled or content_key_location_from_key_id but not both at the same time")
 			}
 
-			keyID := uuid.FromStringOrNil(v.(string))
-			playReadyLicense.ContentKeyLocation = media.ContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier{
-				OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader,
-				KeyID:     &keyID,
+			playReadyLicense.ContentKeyLocation = contentkeypolicies.ContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier{
+				KeyId: v.(string),
 			}
 		}
 
 		if v := license["content_type"]; v != nil && v != "" {
-			playReadyLicense.ContentType = media.ContentKeyPolicyPlayReadyContentType(v.(string))
+			playReadyLicense.ContentType = contentkeypolicies.ContentKeyPolicyPlayReadyContentType(v.(string))
 		}
 
 		if v := license["expiration_date"]; v != nil && v != "" {
@@ -1087,9 +981,7 @@ func expandPlayReadyLicenses(input []interface{}) (*[]media.ContentKeyPolicyPlay
 			if err != nil {
 				return nil, err
 			}
-			playReadyLicense.ExpirationDate = &date.Time{
-				Time: expirationDate,
-			}
+			playReadyLicense.SetExpirationDateAsTime(expirationDate)
 		}
 
 		if v := license["grace_period"]; v != nil && v != "" {
@@ -1097,7 +989,7 @@ func expandPlayReadyLicenses(input []interface{}) (*[]media.ContentKeyPolicyPlay
 		}
 
 		if v := license["license_type"]; v != nil && v != "" {
-			playReadyLicense.LicenseType = media.ContentKeyPolicyPlayReadyLicenseType(v.(string))
+			playReadyLicense.LicenseType = contentkeypolicies.ContentKeyPolicyPlayReadyLicenseType(v.(string))
 		}
 
 		if v := license["play_right"]; v != nil {
@@ -1118,41 +1010,28 @@ func expandPlayReadyLicenses(input []interface{}) (*[]media.ContentKeyPolicyPlay
 	return &results, nil
 }
 
-func flattenPlayReadyLicenses(input *[]media.ContentKeyPolicyPlayReadyLicense) ([]interface{}, error) {
-	if input == nil {
-		return []interface{}{}, nil
-	}
-
+func flattenPlayReadyLicenses(input []contentkeypolicies.ContentKeyPolicyPlayReadyLicense) ([]interface{}, error) {
 	results := make([]interface{}, 0)
-	for _, v := range *input {
-		allowTestDevices := false
-		if v.AllowTestDevices != nil {
-			allowTestDevices = *v.AllowTestDevices
-		}
-
+	for _, v := range input {
 		beginDate := ""
-		if v.BeginDate != nil {
-			beginDate = v.BeginDate.Format(time.RFC3339)
+		if t, err := v.GetBeginDateAsTime(); t != nil && err == nil {
+			beginDate = t.Format(time.RFC3339)
 		}
 
 		locationFromHeaderEnabled := false
 		locationFromKeyID := ""
 		if v.ContentKeyLocation != nil {
-			switch v.ContentKeyLocation.(type) {
-			case media.ContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader:
+			if _, ok := v.ContentKeyLocation.(contentkeypolicies.ContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader); ok {
 				locationFromHeaderEnabled = true
-			case media.ContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier:
-				keyLocation, ok := v.ContentKeyLocation.AsContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier()
-				if !ok {
-					return nil, fmt.Errorf("Content key Play ready location was not a Content Encryption Key from Key Identifier")
-				}
-				locationFromKeyID = keyLocation.KeyID.String()
+			}
+			if val, ok := v.ContentKeyLocation.(*contentkeypolicies.ContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier); ok {
+				locationFromKeyID = val.KeyId
 			}
 		}
 
 		expirationDate := ""
-		if v.ExpirationDate != nil {
-			expirationDate = v.ExpirationDate.Format(time.RFC3339)
+		if t, err := v.GetExpirationDateAsTime(); t != nil && err == nil {
+			expirationDate = t.Format(time.RFC3339)
 		}
 
 		gracePeriod := ""
@@ -1176,7 +1055,7 @@ func flattenPlayReadyLicenses(input *[]media.ContentKeyPolicyPlayReadyLicense) (
 		}
 
 		results = append(results, map[string]interface{}{
-			"allow_test_devices": allowTestDevices,
+			"allow_test_devices": v.AllowTestDevices,
 			"begin_date":         beginDate,
 			"content_key_location_from_header_enabled": locationFromHeaderEnabled,
 			"content_key_location_from_key_id":         locationFromKeyID,
@@ -1193,32 +1072,32 @@ func flattenPlayReadyLicenses(input *[]media.ContentKeyPolicyPlayReadyLicense) (
 	return results, nil
 }
 
-func expandPlayRight(input []interface{}) *media.ContentKeyPolicyPlayReadyPlayRight {
+func expandPlayRight(input []interface{}) *contentkeypolicies.ContentKeyPolicyPlayReadyPlayRight {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	playRight := &media.ContentKeyPolicyPlayReadyPlayRight{}
+	playRight := &contentkeypolicies.ContentKeyPolicyPlayReadyPlayRight{}
 	playRightConfiguration := input[0].(map[string]interface{})
 
 	if v := playRightConfiguration["agc_and_color_stripe_restriction"]; v != nil {
-		playRight.AgcAndColorStripeRestriction = utils.Int32(int32(v.(int)))
+		playRight.AgcAndColorStripeRestriction = utils.Int64(int64(v.(int)))
 	}
 
 	if v := playRightConfiguration["allow_passing_video_content_to_unknown_output"]; v != nil {
-		playRight.AllowPassingVideoContentToUnknownOutput = media.ContentKeyPolicyPlayReadyUnknownOutputPassingOption(v.(string))
+		playRight.AllowPassingVideoContentToUnknownOutput = contentkeypolicies.ContentKeyPolicyPlayReadyUnknownOutputPassingOption(v.(string))
 	}
 
 	if v := playRightConfiguration["analog_video_opl"]; v != nil && v != 0 {
-		playRight.AnalogVideoOpl = utils.Int32(int32(v.(int)))
+		playRight.AnalogVideoOpl = utils.Int64(int64(v.(int)))
 	}
 
 	if v := playRightConfiguration["compressed_digital_audio_opl"]; v != nil && v != 0 {
-		playRight.CompressedDigitalAudioOpl = utils.Int32(int32(v.(int)))
+		playRight.CompressedDigitalAudioOpl = utils.Int64(int64(v.(int)))
 	}
 
 	if v := playRightConfiguration["digital_video_only_content_restriction"]; v != nil {
-		playRight.DigitalVideoOnlyContentRestriction = utils.Bool(v.(bool))
+		playRight.DigitalVideoOnlyContentRestriction = v.(bool)
 	}
 
 	if v := playRightConfiguration["first_play_expiration"]; v != nil && v != "" {
@@ -1226,28 +1105,28 @@ func expandPlayRight(input []interface{}) *media.ContentKeyPolicyPlayReadyPlayRi
 	}
 
 	if v := playRightConfiguration["image_constraint_for_analog_component_video_restriction"]; v != nil {
-		playRight.ImageConstraintForAnalogComponentVideoRestriction = utils.Bool(v.(bool))
+		playRight.ImageConstraintForAnalogComponentVideoRestriction = v.(bool)
 	}
 
 	if v := playRightConfiguration["image_constraint_for_analog_computer_monitor_restriction"]; v != nil {
-		playRight.ImageConstraintForAnalogComputerMonitorRestriction = utils.Bool(v.(bool))
+		playRight.ImageConstraintForAnalogComputerMonitorRestriction = v.(bool)
 	}
 
 	if v := playRightConfiguration["scms_restriction"]; v != nil {
-		playRight.ScmsRestriction = utils.Int32(int32(v.(int)))
+		playRight.ScmsRestriction = utils.Int64(int64(v.(int)))
 	}
 	if v := playRightConfiguration["uncompressed_digital_audio_opl"]; v != nil && v != 0 {
-		playRight.UncompressedDigitalAudioOpl = utils.Int32(int32(v.(int)))
+		playRight.UncompressedDigitalAudioOpl = utils.Int64(int64(v.(int)))
 	}
 
 	if v := playRightConfiguration["uncompressed_digital_video_opl"]; v != nil && v != 0 {
-		playRight.UncompressedDigitalVideoOpl = utils.Int32(int32(v.(int)))
+		playRight.UncompressedDigitalVideoOpl = utils.Int64(int64(v.(int)))
 	}
 
 	return playRight
 }
 
-func flattenPlayRight(input *media.ContentKeyPolicyPlayReadyPlayRight) []interface{} {
+func flattenPlayRight(input *contentkeypolicies.ContentKeyPolicyPlayReadyPlayRight) []interface{} {
 	agcStripeRestriction := 0
 	if input.AgcAndColorStripeRestriction != nil {
 		agcStripeRestriction = int(*input.AgcAndColorStripeRestriction)
@@ -1263,24 +1142,9 @@ func flattenPlayRight(input *media.ContentKeyPolicyPlayReadyPlayRight) []interfa
 		compressedDigitalAudioOpl = int(*input.CompressedDigitalAudioOpl)
 	}
 
-	digitalVideoOnlyContentRestriction := false
-	if input.DigitalVideoOnlyContentRestriction != nil {
-		digitalVideoOnlyContentRestriction = *input.DigitalVideoOnlyContentRestriction
-	}
-
 	firstPlayExpiration := ""
 	if input.FirstPlayExpiration != nil {
 		firstPlayExpiration = *input.FirstPlayExpiration
-	}
-
-	imageConstraintForAnalogComponentVideoRestriction := false
-	if input.ImageConstraintForAnalogComponentVideoRestriction != nil {
-		imageConstraintForAnalogComponentVideoRestriction = *input.ImageConstraintForAnalogComponentVideoRestriction
-	}
-
-	imageConstraintForAnalogComputerMonitorRestriction := false
-	if input.ImageConstraintForAnalogComputerMonitorRestriction != nil {
-		imageConstraintForAnalogComputerMonitorRestriction = *input.ImageConstraintForAnalogComputerMonitorRestriction
 	}
 
 	scmsRestriction := 0
@@ -1304,10 +1168,10 @@ func flattenPlayRight(input *media.ContentKeyPolicyPlayReadyPlayRight) []interfa
 			"allow_passing_video_content_to_unknown_output":            string(input.AllowPassingVideoContentToUnknownOutput),
 			"analog_video_opl":                                         analogVideoOpl,
 			"compressed_digital_audio_opl":                             compressedDigitalAudioOpl,
-			"digital_video_only_content_restriction":                   digitalVideoOnlyContentRestriction,
+			"digital_video_only_content_restriction":                   input.DigitalVideoOnlyContentRestriction,
 			"first_play_expiration":                                    firstPlayExpiration,
-			"image_constraint_for_analog_component_video_restriction":  imageConstraintForAnalogComponentVideoRestriction,
-			"image_constraint_for_analog_computer_monitor_restriction": imageConstraintForAnalogComputerMonitorRestriction,
+			"image_constraint_for_analog_component_video_restriction":  input.ImageConstraintForAnalogComponentVideoRestriction,
+			"image_constraint_for_analog_computer_monitor_restriction": input.ImageConstraintForAnalogComputerMonitorRestriction,
 			"scms_restriction":                                         scmsRestriction,
 			"uncompressed_digital_audio_opl":                           uncompressedDigitalAudioOpl,
 			"uncompressed_digital_video_opl":                           uncompressedDigitalVideoOpl,
