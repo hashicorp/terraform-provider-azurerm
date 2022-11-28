@@ -1,4 +1,4 @@
-// Package appplatform implements the Azure ARM Appplatform service API version 2022-09-01-preview.
+// Package appplatform implements the Azure ARM Appplatform service API version 2022-11-01-preview.
 //
 // REST API for Azure Spring Apps
 package appplatform

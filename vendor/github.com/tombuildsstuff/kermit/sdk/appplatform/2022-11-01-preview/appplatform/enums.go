@@ -40,6 +40,27 @@ func PossibleActionTypeValues() []ActionType {
 	return []ActionType{ActionTypeInternal}
 }
 
+// ApmType enumerates the values for apm type.
+type ApmType string
+
+const (
+	// ApmTypeAppDynamics ...
+	ApmTypeAppDynamics ApmType = "AppDynamics"
+	// ApmTypeApplicationInsights ...
+	ApmTypeApplicationInsights ApmType = "ApplicationInsights"
+	// ApmTypeDynatrace ...
+	ApmTypeDynatrace ApmType = "Dynatrace"
+	// ApmTypeElasticAPM ...
+	ApmTypeElasticAPM ApmType = "ElasticAPM"
+	// ApmTypeNewRelic ...
+	ApmTypeNewRelic ApmType = "NewRelic"
+)
+
+// PossibleApmTypeValues returns an array of possible values for the ApmType const type.
+func PossibleApmTypeValues() []ApmType {
+	return []ApmType{ApmTypeAppDynamics, ApmTypeApplicationInsights, ApmTypeDynatrace, ApmTypeElasticAPM, ApmTypeNewRelic}
+}
+
 // AppResourceProvisioningState enumerates the values for app resource provisioning state.
 type AppResourceProvisioningState string
 
@@ -59,6 +80,70 @@ const (
 // PossibleAppResourceProvisioningStateValues returns an array of possible values for the AppResourceProvisioningState const type.
 func PossibleAppResourceProvisioningStateValues() []AppResourceProvisioningState {
 	return []AppResourceProvisioningState{AppResourceProvisioningStateCreating, AppResourceProvisioningStateDeleting, AppResourceProvisioningStateFailed, AppResourceProvisioningStateSucceeded, AppResourceProvisioningStateUpdating}
+}
+
+// ApplicationAcceleratorProvisioningState enumerates the values for application accelerator provisioning
+// state.
+type ApplicationAcceleratorProvisioningState string
+
+const (
+	// ApplicationAcceleratorProvisioningStateCreating ...
+	ApplicationAcceleratorProvisioningStateCreating ApplicationAcceleratorProvisioningState = "Creating"
+	// ApplicationAcceleratorProvisioningStateDeleting ...
+	ApplicationAcceleratorProvisioningStateDeleting ApplicationAcceleratorProvisioningState = "Deleting"
+	// ApplicationAcceleratorProvisioningStateFailed ...
+	ApplicationAcceleratorProvisioningStateFailed ApplicationAcceleratorProvisioningState = "Failed"
+	// ApplicationAcceleratorProvisioningStateSucceeded ...
+	ApplicationAcceleratorProvisioningStateSucceeded ApplicationAcceleratorProvisioningState = "Succeeded"
+	// ApplicationAcceleratorProvisioningStateUpdating ...
+	ApplicationAcceleratorProvisioningStateUpdating ApplicationAcceleratorProvisioningState = "Updating"
+)
+
+// PossibleApplicationAcceleratorProvisioningStateValues returns an array of possible values for the ApplicationAcceleratorProvisioningState const type.
+func PossibleApplicationAcceleratorProvisioningStateValues() []ApplicationAcceleratorProvisioningState {
+	return []ApplicationAcceleratorProvisioningState{ApplicationAcceleratorProvisioningStateCreating, ApplicationAcceleratorProvisioningStateDeleting, ApplicationAcceleratorProvisioningStateFailed, ApplicationAcceleratorProvisioningStateSucceeded, ApplicationAcceleratorProvisioningStateUpdating}
+}
+
+// ApplicationLiveViewProvisioningState enumerates the values for application live view provisioning state.
+type ApplicationLiveViewProvisioningState string
+
+const (
+	// ApplicationLiveViewProvisioningStateCanceled ...
+	ApplicationLiveViewProvisioningStateCanceled ApplicationLiveViewProvisioningState = "Canceled"
+	// ApplicationLiveViewProvisioningStateCreating ...
+	ApplicationLiveViewProvisioningStateCreating ApplicationLiveViewProvisioningState = "Creating"
+	// ApplicationLiveViewProvisioningStateDeleting ...
+	ApplicationLiveViewProvisioningStateDeleting ApplicationLiveViewProvisioningState = "Deleting"
+	// ApplicationLiveViewProvisioningStateFailed ...
+	ApplicationLiveViewProvisioningStateFailed ApplicationLiveViewProvisioningState = "Failed"
+	// ApplicationLiveViewProvisioningStateSucceeded ...
+	ApplicationLiveViewProvisioningStateSucceeded ApplicationLiveViewProvisioningState = "Succeeded"
+	// ApplicationLiveViewProvisioningStateUpdating ...
+	ApplicationLiveViewProvisioningStateUpdating ApplicationLiveViewProvisioningState = "Updating"
+)
+
+// PossibleApplicationLiveViewProvisioningStateValues returns an array of possible values for the ApplicationLiveViewProvisioningState const type.
+func PossibleApplicationLiveViewProvisioningStateValues() []ApplicationLiveViewProvisioningState {
+	return []ApplicationLiveViewProvisioningState{ApplicationLiveViewProvisioningStateCanceled, ApplicationLiveViewProvisioningStateCreating, ApplicationLiveViewProvisioningStateDeleting, ApplicationLiveViewProvisioningStateFailed, ApplicationLiveViewProvisioningStateSucceeded, ApplicationLiveViewProvisioningStateUpdating}
+}
+
+// AuthType enumerates the values for auth type.
+type AuthType string
+
+const (
+	// AuthTypeAcceleratorAuthSetting ...
+	AuthTypeAcceleratorAuthSetting AuthType = "AcceleratorAuthSetting"
+	// AuthTypeBasicAuth ...
+	AuthTypeBasicAuth AuthType = "BasicAuth"
+	// AuthTypePublic ...
+	AuthTypePublic AuthType = "Public"
+	// AuthTypeSSH ...
+	AuthTypeSSH AuthType = "SSH"
+)
+
+// PossibleAuthTypeValues returns an array of possible values for the AuthType const type.
+func PossibleAuthTypeValues() []AuthType {
+	return []AuthType{AuthTypeAcceleratorAuthSetting, AuthTypeBasicAuth, AuthTypePublic, AuthTypeSSH}
 }
 
 // BackendProtocol enumerates the values for backend protocol.
@@ -86,6 +171,8 @@ const (
 	BindingTypeAppDynamics BindingType = "AppDynamics"
 	// BindingTypeApplicationInsights ...
 	BindingTypeApplicationInsights BindingType = "ApplicationInsights"
+	// BindingTypeCACertificates ...
+	BindingTypeCACertificates BindingType = "CACertificates"
 	// BindingTypeDynatrace ...
 	BindingTypeDynatrace BindingType = "Dynatrace"
 	// BindingTypeElasticAPM ...
@@ -96,7 +183,7 @@ const (
 
 // PossibleBindingTypeValues returns an array of possible values for the BindingType const type.
 func PossibleBindingTypeValues() []BindingType {
-	return []BindingType{BindingTypeApacheSkyWalking, BindingTypeAppDynamics, BindingTypeApplicationInsights, BindingTypeDynatrace, BindingTypeElasticAPM, BindingTypeNewRelic}
+	return []BindingType{BindingTypeApacheSkyWalking, BindingTypeAppDynamics, BindingTypeApplicationInsights, BindingTypeCACertificates, BindingTypeDynatrace, BindingTypeElasticAPM, BindingTypeNewRelic}
 }
 
 // BuildProvisioningState enumerates the values for build provisioning state.
@@ -307,6 +394,43 @@ func PossibleCustomDomainResourceProvisioningStateValues() []CustomDomainResourc
 	return []CustomDomainResourceProvisioningState{CustomDomainResourceProvisioningStateCreating, CustomDomainResourceProvisioningStateDeleting, CustomDomainResourceProvisioningStateFailed, CustomDomainResourceProvisioningStateSucceeded, CustomDomainResourceProvisioningStateUpdating}
 }
 
+// CustomizedAcceleratorProvisioningState enumerates the values for customized accelerator provisioning state.
+type CustomizedAcceleratorProvisioningState string
+
+const (
+	// CustomizedAcceleratorProvisioningStateCreating ...
+	CustomizedAcceleratorProvisioningStateCreating CustomizedAcceleratorProvisioningState = "Creating"
+	// CustomizedAcceleratorProvisioningStateDeleting ...
+	CustomizedAcceleratorProvisioningStateDeleting CustomizedAcceleratorProvisioningState = "Deleting"
+	// CustomizedAcceleratorProvisioningStateFailed ...
+	CustomizedAcceleratorProvisioningStateFailed CustomizedAcceleratorProvisioningState = "Failed"
+	// CustomizedAcceleratorProvisioningStateSucceeded ...
+	CustomizedAcceleratorProvisioningStateSucceeded CustomizedAcceleratorProvisioningState = "Succeeded"
+	// CustomizedAcceleratorProvisioningStateUpdating ...
+	CustomizedAcceleratorProvisioningStateUpdating CustomizedAcceleratorProvisioningState = "Updating"
+)
+
+// PossibleCustomizedAcceleratorProvisioningStateValues returns an array of possible values for the CustomizedAcceleratorProvisioningState const type.
+func PossibleCustomizedAcceleratorProvisioningStateValues() []CustomizedAcceleratorProvisioningState {
+	return []CustomizedAcceleratorProvisioningState{CustomizedAcceleratorProvisioningStateCreating, CustomizedAcceleratorProvisioningStateDeleting, CustomizedAcceleratorProvisioningStateFailed, CustomizedAcceleratorProvisioningStateSucceeded, CustomizedAcceleratorProvisioningStateUpdating}
+}
+
+// CustomizedAcceleratorValidateResultState enumerates the values for customized accelerator validate result
+// state.
+type CustomizedAcceleratorValidateResultState string
+
+const (
+	// CustomizedAcceleratorValidateResultStateInvalid Customized accelerator properties are invalid.
+	CustomizedAcceleratorValidateResultStateInvalid CustomizedAcceleratorValidateResultState = "Invalid"
+	// CustomizedAcceleratorValidateResultStateValid Customized accelerator properties are valid.
+	CustomizedAcceleratorValidateResultStateValid CustomizedAcceleratorValidateResultState = "Valid"
+)
+
+// PossibleCustomizedAcceleratorValidateResultStateValues returns an array of possible values for the CustomizedAcceleratorValidateResultState const type.
+func PossibleCustomizedAcceleratorValidateResultStateValues() []CustomizedAcceleratorValidateResultState {
+	return []CustomizedAcceleratorValidateResultState{CustomizedAcceleratorValidateResultStateInvalid, CustomizedAcceleratorValidateResultStateValid}
+}
+
 // DeploymentResourceProvisioningState enumerates the values for deployment resource provisioning state.
 type DeploymentResourceProvisioningState string
 
@@ -339,6 +463,44 @@ const (
 // PossibleDeploymentResourceStatusValues returns an array of possible values for the DeploymentResourceStatus const type.
 func PossibleDeploymentResourceStatusValues() []DeploymentResourceStatus {
 	return []DeploymentResourceStatus{DeploymentResourceStatusRunning, DeploymentResourceStatusStopped}
+}
+
+// DevToolPortalFeatureState enumerates the values for dev tool portal feature state.
+type DevToolPortalFeatureState string
+
+const (
+	// DevToolPortalFeatureStateDisabled Disable the plugin in Dev Tool Portal.
+	DevToolPortalFeatureStateDisabled DevToolPortalFeatureState = "Disabled"
+	// DevToolPortalFeatureStateEnabled Enable the plugin in Dev Tool Portal.
+	DevToolPortalFeatureStateEnabled DevToolPortalFeatureState = "Enabled"
+)
+
+// PossibleDevToolPortalFeatureStateValues returns an array of possible values for the DevToolPortalFeatureState const type.
+func PossibleDevToolPortalFeatureStateValues() []DevToolPortalFeatureState {
+	return []DevToolPortalFeatureState{DevToolPortalFeatureStateDisabled, DevToolPortalFeatureStateEnabled}
+}
+
+// DevToolPortalProvisioningState enumerates the values for dev tool portal provisioning state.
+type DevToolPortalProvisioningState string
+
+const (
+	// DevToolPortalProvisioningStateCanceled ...
+	DevToolPortalProvisioningStateCanceled DevToolPortalProvisioningState = "Canceled"
+	// DevToolPortalProvisioningStateCreating ...
+	DevToolPortalProvisioningStateCreating DevToolPortalProvisioningState = "Creating"
+	// DevToolPortalProvisioningStateDeleting ...
+	DevToolPortalProvisioningStateDeleting DevToolPortalProvisioningState = "Deleting"
+	// DevToolPortalProvisioningStateFailed ...
+	DevToolPortalProvisioningStateFailed DevToolPortalProvisioningState = "Failed"
+	// DevToolPortalProvisioningStateSucceeded ...
+	DevToolPortalProvisioningStateSucceeded DevToolPortalProvisioningState = "Succeeded"
+	// DevToolPortalProvisioningStateUpdating ...
+	DevToolPortalProvisioningStateUpdating DevToolPortalProvisioningState = "Updating"
+)
+
+// PossibleDevToolPortalProvisioningStateValues returns an array of possible values for the DevToolPortalProvisioningState const type.
+func PossibleDevToolPortalProvisioningStateValues() []DevToolPortalProvisioningState {
+	return []DevToolPortalProvisioningState{DevToolPortalProvisioningStateCanceled, DevToolPortalProvisioningStateCreating, DevToolPortalProvisioningStateDeleting, DevToolPortalProvisioningStateFailed, DevToolPortalProvisioningStateSucceeded, DevToolPortalProvisioningStateUpdating}
 }
 
 // GatewayProvisioningState enumerates the values for gateway provisioning state.
@@ -481,6 +643,40 @@ const (
 // PossiblePowerStateValues returns an array of possible values for the PowerState const type.
 func PossiblePowerStateValues() []PowerState {
 	return []PowerState{PowerStateRunning, PowerStateStopped}
+}
+
+// PredefinedAcceleratorProvisioningState enumerates the values for predefined accelerator provisioning state.
+type PredefinedAcceleratorProvisioningState string
+
+const (
+	// PredefinedAcceleratorProvisioningStateCreating ...
+	PredefinedAcceleratorProvisioningStateCreating PredefinedAcceleratorProvisioningState = "Creating"
+	// PredefinedAcceleratorProvisioningStateFailed ...
+	PredefinedAcceleratorProvisioningStateFailed PredefinedAcceleratorProvisioningState = "Failed"
+	// PredefinedAcceleratorProvisioningStateSucceeded ...
+	PredefinedAcceleratorProvisioningStateSucceeded PredefinedAcceleratorProvisioningState = "Succeeded"
+	// PredefinedAcceleratorProvisioningStateUpdating ...
+	PredefinedAcceleratorProvisioningStateUpdating PredefinedAcceleratorProvisioningState = "Updating"
+)
+
+// PossiblePredefinedAcceleratorProvisioningStateValues returns an array of possible values for the PredefinedAcceleratorProvisioningState const type.
+func PossiblePredefinedAcceleratorProvisioningStateValues() []PredefinedAcceleratorProvisioningState {
+	return []PredefinedAcceleratorProvisioningState{PredefinedAcceleratorProvisioningStateCreating, PredefinedAcceleratorProvisioningStateFailed, PredefinedAcceleratorProvisioningStateSucceeded, PredefinedAcceleratorProvisioningStateUpdating}
+}
+
+// PredefinedAcceleratorState enumerates the values for predefined accelerator state.
+type PredefinedAcceleratorState string
+
+const (
+	// PredefinedAcceleratorStateDisabled Disable the predefined accelerator.
+	PredefinedAcceleratorStateDisabled PredefinedAcceleratorState = "Disabled"
+	// PredefinedAcceleratorStateEnabled Enable the predefined accelerator.
+	PredefinedAcceleratorStateEnabled PredefinedAcceleratorState = "Enabled"
+)
+
+// PossiblePredefinedAcceleratorStateValues returns an array of possible values for the PredefinedAcceleratorState const type.
+func PossiblePredefinedAcceleratorStateValues() []PredefinedAcceleratorState {
+	return []PredefinedAcceleratorState{PredefinedAcceleratorStateDisabled, PredefinedAcceleratorStateEnabled}
 }
 
 // ProvisioningState enumerates the values for provisioning state.

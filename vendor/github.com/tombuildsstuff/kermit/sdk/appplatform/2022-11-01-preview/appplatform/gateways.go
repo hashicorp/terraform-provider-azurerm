@@ -50,6 +50,15 @@ func (client GatewaysClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: gatewayResource,
+			Constraints: []validation.Constraint{{Target: "gatewayResource.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "gatewayResource.Properties.ApmTypes", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "gatewayResource.Properties.ApmTypes", Name: validation.UniqueItems, Rule: true, Chain: nil}}},
+				}}}}}); err != nil {
+		return result, validation.NewError("appplatform.GatewaysClient", "CreateOrUpdate", err.Error())
+	}
+
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, gatewayName, gatewayResource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -74,7 +83,7 @@ func (client GatewaysClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -158,7 +167,7 @@ func (client GatewaysClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,7 +255,7 @@ func (client GatewaysClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -328,7 +337,7 @@ func (client GatewaysClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -396,6 +405,85 @@ func (client GatewaysClient) ListComplete(ctx context.Context, resourceGroupName
 	return
 }
 
+// ListEnvSecrets list sensitive environment variables of Spring Cloud Gateway.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serviceName - the name of the Service resource.
+// gatewayName - the name of Spring Cloud Gateway.
+func (client GatewaysClient) ListEnvSecrets(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (result SetString, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GatewaysClient.ListEnvSecrets")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListEnvSecretsPreparer(ctx, resourceGroupName, serviceName, gatewayName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "ListEnvSecrets", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListEnvSecretsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "ListEnvSecrets", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListEnvSecretsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "ListEnvSecrets", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListEnvSecretsPreparer prepares the ListEnvSecrets request.
+func (client GatewaysClient) ListEnvSecretsPreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"gatewayName":       autorest.Encode("path", gatewayName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serviceName":       autorest.Encode("path", serviceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-11-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/listEnvSecrets", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListEnvSecretsSender sends the ListEnvSecrets request. The method will close the
+// http.Response Body if it receives an error.
+func (client GatewaysClient) ListEnvSecretsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListEnvSecretsResponder handles the response to the ListEnvSecrets request. The method always
+// closes the http.Response Body.
+func (client GatewaysClient) ListEnvSecretsResponder(resp *http.Response) (result SetString, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result.Value),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ValidateDomain check the domains are valid as well as not in use.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -451,7 +539,7 @@ func (client GatewaysClient) ValidateDomainPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

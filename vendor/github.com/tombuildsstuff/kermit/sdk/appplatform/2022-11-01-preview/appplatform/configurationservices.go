@@ -75,7 +75,7 @@ func (client ConfigurationServicesClient) CreateOrUpdatePreparer(ctx context.Con
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -159,7 +159,7 @@ func (client ConfigurationServicesClient) DeletePreparer(ctx context.Context, re
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -247,7 +247,7 @@ func (client ConfigurationServicesClient) GetPreparer(ctx context.Context, resou
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -329,7 +329,7 @@ func (client ConfigurationServicesClient) ListPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -439,7 +439,7 @@ func (client ConfigurationServicesClient) ValidatePreparer(ctx context.Context, 
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-09-01-preview"
+	const APIVersion = "2022-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
