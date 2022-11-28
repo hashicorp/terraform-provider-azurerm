@@ -68,9 +68,10 @@ func resourceSiteRecoveryReplicationRecoveryPlan() *pluginsdk.Resource {
 				ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
 			},
 
-			"recovery_groups": {
+			"recovery_group": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"group_type": {
@@ -211,7 +212,7 @@ func resourceSiteRecoveryReplicationRecoveryPlanCreate(d *pluginsdk.ResourceData
 			PrimaryFabricId:         d.Get("source_recovery_fabric_id").(string),
 			RecoveryFabricId:        d.Get("target_recovery_fabric_id").(string),
 			FailoverDeploymentModel: &deploymentModel,
-			Groups:                  expandRecoverGroup(d.Get("recovery_groups").([]interface{})),
+			Groups:                  expandRecoverGroup(d.Get("recovery_group").([]interface{})),
 		},
 	}
 
@@ -254,11 +255,15 @@ func resourceSiteRecoveryReplicationRecoveryPlanRead(d *pluginsdk.ResourceData, 
 	d.Set("recovery_vault_name", id.ResourceName)
 
 	if prop := model.Properties; prop != nil {
-		d.Set("source_recovery_fabric_id", prop.PrimaryFabricId)
-		d.Set("target_recovery_fabric_id", prop.RecoveryFabricId)
+		if prop.PrimaryFabricId != nil {
+			d.Set("source_recovery_fabric_id", handleAzureSdkForGoBug2824(*prop.PrimaryFabricId))
+		}
+		if prop.RecoveryFabricId != nil {
+			d.Set("target_recovery_fabric_id", handleAzureSdkForGoBug2824(*prop.RecoveryFabricId))
+		}
 
 		if group := prop.Groups; group != nil {
-			d.Set("recovery_groups", flattenRecoveryGroups(*group))
+			d.Set("recovery_group", flattenRecoveryGroups(*group))
 		}
 	}
 	return nil
@@ -311,7 +316,7 @@ func expandRecoverGroup(input []interface{}) []replicationrecoveryplans.Recovery
 		var protectedItems []replicationrecoveryplans.RecoveryPlanProtectedItem
 		for _, protectedItem := range groupInput["replicated_protected_items"].([]interface{}) {
 			protectedItems = append(protectedItems, replicationrecoveryplans.RecoveryPlanProtectedItem{
-				VirtualMachineId: utils.String(protectedItem.(string)),
+				Id: utils.String(protectedItem.(string)),
 			})
 		}
 
@@ -386,7 +391,7 @@ func expandActionDetail(input map[string]interface{}) (output replicationrecover
 func flattenRecoveryPlanProtectedItems(input *[]replicationrecoveryplans.RecoveryPlanProtectedItem) []interface{} {
 	protectedItemOutputs := make([]interface{}, 0)
 	for _, protectedItem := range *input {
-		protectedItemOutputs = append(protectedItemOutputs, protectedItem.VirtualMachineId)
+		protectedItemOutputs = append(protectedItemOutputs, protectedItem.Id)
 	}
 	return protectedItemOutputs
 }

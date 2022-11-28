@@ -1415,34 +1415,24 @@ func (r SiteRecoveryReplicatedVmResource) withVMSS(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_account" "vmss" {
-  name                     = "accsa%[3]s"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test2.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  tags = {
-    environment = "staging"
+  sku_name                    = "Standard_B1s"
+  instances                   = 2
+  platform_fault_domain_count = 2
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix = "testvm-%[2]d"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
+    }
   }
-}
-
-resource "azurerm_storage_container" "vmss" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.vmss.name
-  container_access_type = "private"
-}
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                 = "acctvmss-%[2]d"
-  location             = azurerm_resource_group.test2.location
-  resource_group_name  = azurerm_resource_group.test2.name
-  sku                  = "Standard_B1s"
-  instances            = 1
-  admin_username       = "testadmin"
-  admin_password       = "Password1234!"
-  computer_name_prefix = "testvm-%[2]d"
-
   network_interface {
     name    = "TestNetworkProfile-%[2]d"
     primary = true
@@ -1455,10 +1445,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   os_disk {
-    name           = "acctestOSDisk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.vmss.primary_blob_endpoint}${azurerm_storage_container.vmss.name}"]
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
   source_image_reference {
@@ -1481,7 +1469,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  target_virtual_machine_scale_set_id     = azurerm_virtual_machine_scale_set.test.id
+  target_virtual_machine_scale_set_id     = azurerm_orchestrated_virtual_machine_scale_set.test.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -1502,7 +1490,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-
 
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
