@@ -7,6 +7,6 @@ type SmbSetting struct {
 	AuthenticationMethods    *string       `json:"authenticationMethods,omitempty"`
 	ChannelEncryption        *string       `json:"channelEncryption,omitempty"`
 	KerberosTicketEncryption *string       `json:"kerberosTicketEncryption,omitempty"`
-	Multichannel             *Multichannel `json:"multichannel,omitempty"`
+	Multichannel             *Multichannel `json:"multichannel"`
 	Versions                 *string       `json:"versions,omitempty"`
 }

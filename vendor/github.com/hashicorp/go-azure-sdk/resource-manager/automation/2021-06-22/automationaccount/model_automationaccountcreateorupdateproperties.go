@@ -5,7 +5,7 @@ package automationaccount
 
 type AutomationAccountCreateOrUpdateProperties struct {
 	DisableLocalAuth    *bool                 `json:"disableLocalAuth,omitempty"`
-	Encryption          *EncryptionProperties `json:"encryption,omitempty"`
+	Encryption          *EncryptionProperties `json:"encryption"`
 	PublicNetworkAccess *bool                 `json:"publicNetworkAccess,omitempty"`
-	Sku                 *Sku                  `json:"sku,omitempty"`
+	Sku                 *Sku                  `json:"sku"`
 }

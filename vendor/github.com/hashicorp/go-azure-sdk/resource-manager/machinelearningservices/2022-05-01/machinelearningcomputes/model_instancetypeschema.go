@@ -5,5 +5,5 @@ package machinelearningcomputes
 
 type InstanceTypeSchema struct {
 	NodeSelector *map[string]string           `json:"nodeSelector,omitempty"`
-	Resources    *InstanceTypeSchemaResources `json:"resources,omitempty"`
+	Resources    *InstanceTypeSchemaResources `json:"resources"`
 }

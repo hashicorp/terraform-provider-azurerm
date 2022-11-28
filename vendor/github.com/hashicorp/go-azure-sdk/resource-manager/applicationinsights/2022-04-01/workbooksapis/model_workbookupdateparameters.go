@@ -5,6 +5,6 @@ package workbooksapis
 
 type WorkbookUpdateParameters struct {
 	Kind       *WorkbookUpdateSharedTypeKind       `json:"kind,omitempty"`
-	Properties *WorkbookPropertiesUpdateParameters `json:"properties,omitempty"`
+	Properties *WorkbookPropertiesUpdateParameters `json:"properties"`
 	Tags       *map[string]string                  `json:"tags,omitempty"`
 }

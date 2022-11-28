@@ -6,5 +6,5 @@ package virtualmachines
 type SecurityProfile struct {
 	EncryptionAtHost *bool          `json:"encryptionAtHost,omitempty"`
 	SecurityType     *SecurityTypes `json:"securityType,omitempty"`
-	UefiSettings     *UefiSettings  `json:"uefiSettings,omitempty"`
+	UefiSettings     *UefiSettings  `json:"uefiSettings"`
 }

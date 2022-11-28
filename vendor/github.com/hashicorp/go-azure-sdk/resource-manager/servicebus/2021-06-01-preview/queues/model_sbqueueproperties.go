@@ -12,7 +12,7 @@ import (
 type SBQueueProperties struct {
 	AccessedAt                          *string              `json:"accessedAt,omitempty"`
 	AutoDeleteOnIdle                    *string              `json:"autoDeleteOnIdle,omitempty"`
-	CountDetails                        *MessageCountDetails `json:"countDetails,omitempty"`
+	CountDetails                        *MessageCountDetails `json:"countDetails"`
 	CreatedAt                           *string              `json:"createdAt,omitempty"`
 	DeadLetteringOnMessageExpiration    *bool                `json:"deadLetteringOnMessageExpiration,omitempty"`
 	DefaultMessageTimeToLive            *string              `json:"defaultMessageTimeToLive,omitempty"`

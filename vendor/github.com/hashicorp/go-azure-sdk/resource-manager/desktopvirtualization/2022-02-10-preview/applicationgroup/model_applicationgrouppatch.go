@@ -6,7 +6,7 @@ package applicationgroup
 type ApplicationGroupPatch struct {
 	Id         *string                          `json:"id,omitempty"`
 	Name       *string                          `json:"name,omitempty"`
-	Properties *ApplicationGroupPatchProperties `json:"properties,omitempty"`
+	Properties *ApplicationGroupPatchProperties `json:"properties"`
 	Tags       *map[string]string               `json:"tags,omitempty"`
 	Type       *string                          `json:"type,omitempty"`
 }

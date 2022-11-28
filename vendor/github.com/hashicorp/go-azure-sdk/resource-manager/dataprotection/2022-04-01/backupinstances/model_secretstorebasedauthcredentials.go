@@ -11,7 +11,7 @@ import (
 var _ AuthCredentials = SecretStoreBasedAuthCredentials{}
 
 type SecretStoreBasedAuthCredentials struct {
-	SecretStoreResource *SecretStoreResource `json:"secretStoreResource,omitempty"`
+	SecretStoreResource *SecretStoreResource `json:"secretStoreResource"`
 
 	// Fields inherited from AuthCredentials
 }

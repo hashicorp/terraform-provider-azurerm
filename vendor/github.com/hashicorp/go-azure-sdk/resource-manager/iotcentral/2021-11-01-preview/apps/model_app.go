@@ -13,7 +13,7 @@ type App struct {
 	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
 	Location   string                   `json:"location"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *AppProperties           `json:"properties,omitempty"`
+	Properties *AppProperties           `json:"properties"`
 	Sku        AppSkuInfo               `json:"sku"`
 	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`

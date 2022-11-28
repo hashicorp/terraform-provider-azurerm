@@ -5,6 +5,6 @@ package videoanalyzers
 
 type StorageAccount struct {
 	Id       *string           `json:"id,omitempty"`
-	Identity *ResourceIdentity `json:"identity,omitempty"`
+	Identity *ResourceIdentity `json:"identity"`
 	Status   *string           `json:"status,omitempty"`
 }

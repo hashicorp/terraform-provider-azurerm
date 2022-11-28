@@ -10,7 +10,7 @@ import (
 type DiagnosticSettingsResource struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *DiagnosticSettings    `json:"properties,omitempty"`
+	Properties *DiagnosticSettings    `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

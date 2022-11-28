@@ -7,19 +7,19 @@ type ScalingSchedule struct {
 	DaysOfWeek                     *[]DaysOfWeek                      `json:"daysOfWeek,omitempty"`
 	Name                           *string                            `json:"name,omitempty"`
 	OffPeakLoadBalancingAlgorithm  *SessionHostLoadBalancingAlgorithm `json:"offPeakLoadBalancingAlgorithm,omitempty"`
-	OffPeakStartTime               *Time                              `json:"offPeakStartTime,omitempty"`
+	OffPeakStartTime               *Time                              `json:"offPeakStartTime"`
 	PeakLoadBalancingAlgorithm     *SessionHostLoadBalancingAlgorithm `json:"peakLoadBalancingAlgorithm,omitempty"`
-	PeakStartTime                  *Time                              `json:"peakStartTime,omitempty"`
+	PeakStartTime                  *Time                              `json:"peakStartTime"`
 	RampDownCapacityThresholdPct   *int64                             `json:"rampDownCapacityThresholdPct,omitempty"`
 	RampDownForceLogoffUsers       *bool                              `json:"rampDownForceLogoffUsers,omitempty"`
 	RampDownLoadBalancingAlgorithm *SessionHostLoadBalancingAlgorithm `json:"rampDownLoadBalancingAlgorithm,omitempty"`
 	RampDownMinimumHostsPct        *int64                             `json:"rampDownMinimumHostsPct,omitempty"`
 	RampDownNotificationMessage    *string                            `json:"rampDownNotificationMessage,omitempty"`
-	RampDownStartTime              *Time                              `json:"rampDownStartTime,omitempty"`
+	RampDownStartTime              *Time                              `json:"rampDownStartTime"`
 	RampDownStopHostsWhen          *StopHostsWhen                     `json:"rampDownStopHostsWhen,omitempty"`
 	RampDownWaitTimeMinutes        *int64                             `json:"rampDownWaitTimeMinutes,omitempty"`
 	RampUpCapacityThresholdPct     *int64                             `json:"rampUpCapacityThresholdPct,omitempty"`
 	RampUpLoadBalancingAlgorithm   *SessionHostLoadBalancingAlgorithm `json:"rampUpLoadBalancingAlgorithm,omitempty"`
 	RampUpMinimumHostsPct          *int64                             `json:"rampUpMinimumHostsPct,omitempty"`
-	RampUpStartTime                *Time                              `json:"rampUpStartTime,omitempty"`
+	RampUpStartTime                *Time                              `json:"rampUpStartTime"`
 }

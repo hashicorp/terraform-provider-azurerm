@@ -10,6 +10,6 @@ import (
 type FluidRelayServerUpdate struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                            `json:"location,omitempty"`
-	Properties *FluidRelayServerUpdateProperties  `json:"properties,omitempty"`
+	Properties *FluidRelayServerUpdateProperties  `json:"properties"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 }

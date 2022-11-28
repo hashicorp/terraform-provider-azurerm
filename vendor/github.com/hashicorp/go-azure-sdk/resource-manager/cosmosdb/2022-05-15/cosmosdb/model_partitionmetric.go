@@ -12,7 +12,7 @@ import (
 type PartitionMetric struct {
 	EndTime             *string        `json:"endTime,omitempty"`
 	MetricValues        *[]MetricValue `json:"metricValues,omitempty"`
-	Name                *MetricName    `json:"name,omitempty"`
+	Name                *MetricName    `json:"name"`
 	PartitionId         *string        `json:"partitionId,omitempty"`
 	PartitionKeyRangeId *string        `json:"partitionKeyRangeId,omitempty"`
 	StartTime           *string        `json:"startTime,omitempty"`

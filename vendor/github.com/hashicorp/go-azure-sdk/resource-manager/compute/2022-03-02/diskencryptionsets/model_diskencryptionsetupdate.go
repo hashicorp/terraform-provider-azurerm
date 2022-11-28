@@ -9,6 +9,6 @@ import (
 
 type DiskEncryptionSetUpdate struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
-	Properties *DiskEncryptionSetUpdateProperties `json:"properties,omitempty"`
+	Properties *DiskEncryptionSetUpdateProperties `json:"properties"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 }

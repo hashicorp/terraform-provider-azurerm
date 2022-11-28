@@ -4,5 +4,5 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ScheduledEventsProfile struct {
-	TerminateNotificationProfile *TerminateNotificationProfile `json:"terminateNotificationProfile,omitempty"`
+	TerminateNotificationProfile *TerminateNotificationProfile `json:"terminateNotificationProfile"`
 }

@@ -12,8 +12,8 @@ type SearchService struct {
 	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
 	Location   *string                  `json:"location,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *SearchServiceProperties `json:"properties,omitempty"`
-	Sku        *Sku                     `json:"sku,omitempty"`
+	Properties *SearchServiceProperties `json:"properties"`
+	Sku        *Sku                     `json:"sku"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 	Type       *string                  `json:"type,omitempty"`
 }

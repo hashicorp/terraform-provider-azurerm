@@ -5,5 +5,5 @@ package dnsforwardingrulesets
 
 type VirtualNetworkDnsForwardingRuleset struct {
 	Id         *string                                  `json:"id,omitempty"`
-	Properties *VirtualNetworkLinkSubResourceProperties `json:"properties,omitempty"`
+	Properties *VirtualNetworkLinkSubResourceProperties `json:"properties"`
 }

@@ -9,13 +9,13 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DatabaseAccountGetProperties struct {
-	AnalyticalStorageConfiguration     *AnalyticalStorageConfiguration `json:"analyticalStorageConfiguration,omitempty"`
-	ApiProperties                      *ApiProperties                  `json:"apiProperties,omitempty"`
+	AnalyticalStorageConfiguration     *AnalyticalStorageConfiguration `json:"analyticalStorageConfiguration"`
+	ApiProperties                      *ApiProperties                  `json:"apiProperties"`
 	BackupPolicy                       BackupPolicy                    `json:"backupPolicy"`
 	Capabilities                       *[]Capability                   `json:"capabilities,omitempty"`
-	Capacity                           *Capacity                       `json:"capacity,omitempty"`
+	Capacity                           *Capacity                       `json:"capacity"`
 	ConnectorOffer                     *ConnectorOffer                 `json:"connectorOffer,omitempty"`
-	ConsistencyPolicy                  *ConsistencyPolicy              `json:"consistencyPolicy,omitempty"`
+	ConsistencyPolicy                  *ConsistencyPolicy              `json:"consistencyPolicy"`
 	Cors                               *[]CorsPolicy                   `json:"cors,omitempty"`
 	CreateMode                         *CreateMode                     `json:"createMode,omitempty"`
 	DatabaseAccountOfferType           *DatabaseAccountOfferType       `json:"databaseAccountOfferType,omitempty"`
@@ -40,7 +40,7 @@ type DatabaseAccountGetProperties struct {
 	ProvisioningState                  *string                         `json:"provisioningState,omitempty"`
 	PublicNetworkAccess                *PublicNetworkAccess            `json:"publicNetworkAccess,omitempty"`
 	ReadLocations                      *[]Location                     `json:"readLocations,omitempty"`
-	RestoreParameters                  *RestoreParameters              `json:"restoreParameters,omitempty"`
+	RestoreParameters                  *RestoreParameters              `json:"restoreParameters"`
 	VirtualNetworkRules                *[]VirtualNetworkRule           `json:"virtualNetworkRules,omitempty"`
 	WriteLocations                     *[]Location                     `json:"writeLocations,omitempty"`
 }

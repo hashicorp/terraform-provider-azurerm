@@ -7,6 +7,6 @@ type SignalRServiceUsage struct {
 	CurrentValue *int64                   `json:"currentValue,omitempty"`
 	Id           *string                  `json:"id,omitempty"`
 	Limit        *int64                   `json:"limit,omitempty"`
-	Name         *SignalRServiceUsageName `json:"name,omitempty"`
+	Name         *SignalRServiceUsageName `json:"name"`
 	Unit         *string                  `json:"unit,omitempty"`
 }

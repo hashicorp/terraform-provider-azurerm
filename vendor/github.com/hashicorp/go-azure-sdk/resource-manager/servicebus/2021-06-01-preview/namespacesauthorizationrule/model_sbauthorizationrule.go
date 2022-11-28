@@ -10,7 +10,7 @@ import (
 type SBAuthorizationRule struct {
 	Id         *string                        `json:"id,omitempty"`
 	Name       *string                        `json:"name,omitempty"`
-	Properties *SBAuthorizationRuleProperties `json:"properties,omitempty"`
+	Properties *SBAuthorizationRuleProperties `json:"properties"`
 	SystemData *systemdata.SystemData         `json:"systemData,omitempty"`
 	Type       *string                        `json:"type,omitempty"`
 }

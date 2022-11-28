@@ -4,8 +4,8 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VirtualMachineInstallPatchesParameters struct {
-	LinuxParameters   *LinuxParameters          `json:"linuxParameters,omitempty"`
+	LinuxParameters   *LinuxParameters          `json:"linuxParameters"`
 	MaximumDuration   *string                   `json:"maximumDuration,omitempty"`
 	RebootSetting     VMGuestPatchRebootSetting `json:"rebootSetting"`
-	WindowsParameters *WindowsParameters        `json:"windowsParameters,omitempty"`
+	WindowsParameters *WindowsParameters        `json:"windowsParameters"`
 }

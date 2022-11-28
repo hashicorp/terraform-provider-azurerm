@@ -5,7 +5,7 @@ package clusters
 
 type ClusterProperties struct {
 	ClusterId          *string              `json:"clusterId,omitempty"`
-	KeyVaultProperties *KeyVaultProperties  `json:"keyVaultProperties,omitempty"`
+	KeyVaultProperties *KeyVaultProperties  `json:"keyVaultProperties"`
 	NextLink           *string              `json:"nextLink,omitempty"`
 	ProvisioningState  *ClusterEntityStatus `json:"provisioningState,omitempty"`
 }

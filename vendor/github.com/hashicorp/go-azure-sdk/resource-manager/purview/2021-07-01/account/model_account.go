@@ -13,8 +13,8 @@ type Account struct {
 	Identity   *identity.SystemOrUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                           `json:"location,omitempty"`
 	Name       *string                           `json:"name,omitempty"`
-	Properties *AccountProperties                `json:"properties,omitempty"`
-	Sku        *AccountSku                       `json:"sku,omitempty"`
+	Properties *AccountProperties                `json:"properties"`
+	Sku        *AccountSku                       `json:"sku"`
 	SystemData *systemdata.SystemData            `json:"systemData,omitempty"`
 	Tags       *map[string]string                `json:"tags,omitempty"`
 	Type       *string                           `json:"type,omitempty"`

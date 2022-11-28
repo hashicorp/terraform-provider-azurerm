@@ -5,5 +5,5 @@ package managementpolicies
 
 type ManagementPolicyDefinition struct {
 	Actions ManagementPolicyAction  `json:"actions"`
-	Filters *ManagementPolicyFilter `json:"filters,omitempty"`
+	Filters *ManagementPolicyFilter `json:"filters"`
 }

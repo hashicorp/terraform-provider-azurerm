@@ -9,6 +9,6 @@ import (
 
 type AccountUpdateParameters struct {
 	Identity   *identity.SystemOrUserAssignedMap `json:"identity,omitempty"`
-	Properties *AccountProperties                `json:"properties,omitempty"`
+	Properties *AccountProperties                `json:"properties"`
 	Tags       *map[string]string                `json:"tags,omitempty"`
 }

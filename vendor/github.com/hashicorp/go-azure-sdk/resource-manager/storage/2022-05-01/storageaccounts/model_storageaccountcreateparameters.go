@@ -13,7 +13,7 @@ type StorageAccountCreateParameters struct {
 	Identity         *identity.LegacySystemAndUserAssignedMap  `json:"identity,omitempty"`
 	Kind             Kind                                      `json:"kind"`
 	Location         string                                    `json:"location"`
-	Properties       *StorageAccountPropertiesCreateParameters `json:"properties,omitempty"`
+	Properties       *StorageAccountPropertiesCreateParameters `json:"properties"`
 	Sku              Sku                                       `json:"sku"`
 	Tags             *map[string]string                        `json:"tags,omitempty"`
 }

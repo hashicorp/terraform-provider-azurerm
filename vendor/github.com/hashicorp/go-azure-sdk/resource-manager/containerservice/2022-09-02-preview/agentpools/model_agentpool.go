@@ -6,6 +6,6 @@ package agentpools
 type AgentPool struct {
 	Id         *string                                   `json:"id,omitempty"`
 	Name       *string                                   `json:"name,omitempty"`
-	Properties *ManagedClusterAgentPoolProfileProperties `json:"properties,omitempty"`
+	Properties *ManagedClusterAgentPoolProfileProperties `json:"properties"`
 	Type       *string                                   `json:"type,omitempty"`
 }

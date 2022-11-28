@@ -9,8 +9,8 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Filters struct {
-	Crop        *Rectangle   `json:"crop,omitempty"`
-	Deinterlace *Deinterlace `json:"deinterlace,omitempty"`
+	Crop        *Rectangle   `json:"crop"`
+	Deinterlace *Deinterlace `json:"deinterlace"`
 	Overlays    *[]Overlay   `json:"overlays,omitempty"`
 	Rotation    *Rotation    `json:"rotation,omitempty"`
 }

@@ -4,5 +4,5 @@ package notificationhubs
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BaiduCredential struct {
-	Properties *BaiduCredentialProperties `json:"properties,omitempty"`
+	Properties *BaiduCredentialProperties `json:"properties"`
 }

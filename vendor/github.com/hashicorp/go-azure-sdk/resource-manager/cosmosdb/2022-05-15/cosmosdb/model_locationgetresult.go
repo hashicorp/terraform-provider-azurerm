@@ -6,6 +6,6 @@ package cosmosdb
 type LocationGetResult struct {
 	Id         *string             `json:"id,omitempty"`
 	Name       *string             `json:"name,omitempty"`
-	Properties *LocationProperties `json:"properties,omitempty"`
+	Properties *LocationProperties `json:"properties"`
 	Type       *string             `json:"type,omitempty"`
 }

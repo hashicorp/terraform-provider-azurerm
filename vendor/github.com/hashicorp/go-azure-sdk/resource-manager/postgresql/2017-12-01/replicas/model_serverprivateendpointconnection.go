@@ -5,5 +5,5 @@ package replicas
 
 type ServerPrivateEndpointConnection struct {
 	Id         *string                                    `json:"id,omitempty"`
-	Properties *ServerPrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	Properties *ServerPrivateEndpointConnectionProperties `json:"properties"`
 }

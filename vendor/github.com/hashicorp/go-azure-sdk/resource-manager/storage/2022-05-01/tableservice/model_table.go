@@ -6,6 +6,6 @@ package tableservice
 type Table struct {
 	Id         *string          `json:"id,omitempty"`
 	Name       *string          `json:"name,omitempty"`
-	Properties *TableProperties `json:"properties,omitempty"`
+	Properties *TableProperties `json:"properties"`
 	Type       *string          `json:"type,omitempty"`
 }

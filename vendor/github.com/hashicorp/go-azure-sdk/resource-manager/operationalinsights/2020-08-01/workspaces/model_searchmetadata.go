@@ -20,7 +20,7 @@ type SearchMetadata struct {
 	RequestId                *string               `json:"requestId,omitempty"`
 	RequestTime              *int64                `json:"requestTime,omitempty"`
 	ResultType               *string               `json:"resultType,omitempty"`
-	Schema                   *SearchMetadataSchema `json:"schema,omitempty"`
+	Schema                   *SearchMetadataSchema `json:"schema"`
 	Sort                     *[]SearchSort         `json:"sort,omitempty"`
 	StartTime                *string               `json:"startTime,omitempty"`
 	Status                   *string               `json:"status,omitempty"`

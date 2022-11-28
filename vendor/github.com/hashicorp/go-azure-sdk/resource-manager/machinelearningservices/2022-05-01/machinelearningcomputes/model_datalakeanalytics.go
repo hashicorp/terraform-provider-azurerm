@@ -14,7 +14,7 @@ import (
 var _ Compute = DataLakeAnalytics{}
 
 type DataLakeAnalytics struct {
-	Properties *DataLakeAnalyticsSchemaProperties `json:"properties,omitempty"`
+	Properties *DataLakeAnalyticsSchemaProperties `json:"properties"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

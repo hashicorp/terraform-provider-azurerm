@@ -4,7 +4,7 @@ package clusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzureResourceSku struct {
-	Capacity     *AzureCapacity `json:"capacity,omitempty"`
+	Capacity     *AzureCapacity `json:"capacity"`
 	ResourceType *string        `json:"resourceType,omitempty"`
-	Sku          *AzureSku      `json:"sku,omitempty"`
+	Sku          *AzureSku      `json:"sku"`
 }

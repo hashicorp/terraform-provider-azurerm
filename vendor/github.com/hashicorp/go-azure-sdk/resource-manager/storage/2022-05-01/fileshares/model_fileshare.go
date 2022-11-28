@@ -7,6 +7,6 @@ type FileShare struct {
 	Etag       *string              `json:"etag,omitempty"`
 	Id         *string              `json:"id,omitempty"`
 	Name       *string              `json:"name,omitempty"`
-	Properties *FileShareProperties `json:"properties,omitempty"`
+	Properties *FileShareProperties `json:"properties"`
 	Type       *string              `json:"type,omitempty"`
 }

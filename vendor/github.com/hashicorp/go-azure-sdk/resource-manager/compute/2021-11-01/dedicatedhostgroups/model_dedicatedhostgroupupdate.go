@@ -8,7 +8,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DedicatedHostGroupUpdate struct {
-	Properties *DedicatedHostGroupProperties `json:"properties,omitempty"`
+	Properties *DedicatedHostGroupProperties `json:"properties"`
 	Tags       *map[string]string            `json:"tags,omitempty"`
 	Zones      *zones.Schema                 `json:"zones,omitempty"`
 }

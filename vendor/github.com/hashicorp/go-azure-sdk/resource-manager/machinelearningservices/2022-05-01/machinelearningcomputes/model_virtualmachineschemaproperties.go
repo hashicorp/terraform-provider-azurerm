@@ -5,7 +5,7 @@ package machinelearningcomputes
 
 type VirtualMachineSchemaProperties struct {
 	Address                   *string                       `json:"address,omitempty"`
-	AdministratorAccount      *VirtualMachineSshCredentials `json:"administratorAccount,omitempty"`
+	AdministratorAccount      *VirtualMachineSshCredentials `json:"administratorAccount"`
 	IsNotebookInstanceCompute *bool                         `json:"isNotebookInstanceCompute,omitempty"`
 	NotebookServerPort        *int64                        `json:"notebookServerPort,omitempty"`
 	SshPort                   *int64                        `json:"sshPort,omitempty"`

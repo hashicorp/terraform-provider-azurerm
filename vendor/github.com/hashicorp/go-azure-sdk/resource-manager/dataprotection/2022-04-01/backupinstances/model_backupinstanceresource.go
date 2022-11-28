@@ -10,7 +10,7 @@ import (
 type BackupInstanceResource struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *BackupInstance        `json:"properties,omitempty"`
+	Properties *BackupInstance        `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

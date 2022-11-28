@@ -5,7 +5,7 @@ package streamingpoliciesandstreaminglocators
 
 type CommonEncryptionCenc struct {
 	ClearTracks      *[]TrackSelection           `json:"clearTracks,omitempty"`
-	ContentKeys      *StreamingPolicyContentKeys `json:"contentKeys,omitempty"`
-	Drm              *CencDrmConfiguration       `json:"drm,omitempty"`
-	EnabledProtocols *EnabledProtocols           `json:"enabledProtocols,omitempty"`
+	ContentKeys      *StreamingPolicyContentKeys `json:"contentKeys"`
+	Drm              *CencDrmConfiguration       `json:"drm"`
+	EnabledProtocols *EnabledProtocols           `json:"enabledProtocols"`
 }

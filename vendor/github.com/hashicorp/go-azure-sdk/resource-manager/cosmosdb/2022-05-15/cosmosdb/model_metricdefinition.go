@@ -5,7 +5,7 @@ package cosmosdb
 
 type MetricDefinition struct {
 	MetricAvailabilities   *[]MetricAvailability   `json:"metricAvailabilities,omitempty"`
-	Name                   *MetricName             `json:"name,omitempty"`
+	Name                   *MetricName             `json:"name"`
 	PrimaryAggregationType *PrimaryAggregationType `json:"primaryAggregationType,omitempty"`
 	ResourceUri            *string                 `json:"resourceUri,omitempty"`
 	Unit                   *UnitType               `json:"unit,omitempty"`

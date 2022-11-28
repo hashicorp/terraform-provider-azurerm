@@ -5,5 +5,5 @@ package managedclusters
 
 type RunCommandResult struct {
 	Id         *string                  `json:"id,omitempty"`
-	Properties *CommandResultProperties `json:"properties,omitempty"`
+	Properties *CommandResultProperties `json:"properties"`
 }

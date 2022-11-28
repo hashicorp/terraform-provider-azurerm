@@ -19,7 +19,7 @@ type ContentKeyPolicyPlayReadyLicense struct {
 	ExpirationDate         *string                                     `json:"expirationDate,omitempty"`
 	GracePeriod            *string                                     `json:"gracePeriod,omitempty"`
 	LicenseType            ContentKeyPolicyPlayReadyLicenseType        `json:"licenseType"`
-	PlayRight              *ContentKeyPolicyPlayReadyPlayRight         `json:"playRight,omitempty"`
+	PlayRight              *ContentKeyPolicyPlayReadyPlayRight         `json:"playRight"`
 	RelativeBeginDate      *string                                     `json:"relativeBeginDate,omitempty"`
 	RelativeExpirationDate *string                                     `json:"relativeExpirationDate,omitempty"`
 }

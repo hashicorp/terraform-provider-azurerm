@@ -4,11 +4,11 @@ package scheduledqueryrules
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ScheduledQueryRuleProperties struct {
-	Actions                               *Actions                    `json:"actions,omitempty"`
+	Actions                               *Actions                    `json:"actions"`
 	AutoMitigate                          *bool                       `json:"autoMitigate,omitempty"`
 	CheckWorkspaceAlertsStorageConfigured *bool                       `json:"checkWorkspaceAlertsStorageConfigured,omitempty"`
 	CreatedWithApiVersion                 *string                     `json:"createdWithApiVersion,omitempty"`
-	Criteria                              *ScheduledQueryRuleCriteria `json:"criteria,omitempty"`
+	Criteria                              *ScheduledQueryRuleCriteria `json:"criteria"`
 	Description                           *string                     `json:"description,omitempty"`
 	DisplayName                           *string                     `json:"displayName,omitempty"`
 	Enabled                               *bool                       `json:"enabled,omitempty"`

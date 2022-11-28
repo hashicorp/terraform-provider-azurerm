@@ -6,6 +6,6 @@ package serversecurityalertpolicies
 type ServerSecurityAlertPolicy struct {
 	Id         *string                        `json:"id,omitempty"`
 	Name       *string                        `json:"name,omitempty"`
-	Properties *SecurityAlertPolicyProperties `json:"properties,omitempty"`
+	Properties *SecurityAlertPolicyProperties `json:"properties"`
 	Type       *string                        `json:"type,omitempty"`
 }

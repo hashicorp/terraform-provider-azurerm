@@ -9,7 +9,7 @@ import (
 
 type WorkspaceUpdateParameters struct {
 	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
-	Properties *WorkspacePropertiesUpdateParameters     `json:"properties,omitempty"`
-	Sku        *Sku                                     `json:"sku,omitempty"`
+	Properties *WorkspacePropertiesUpdateParameters     `json:"properties"`
+	Sku        *Sku                                     `json:"sku"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 }

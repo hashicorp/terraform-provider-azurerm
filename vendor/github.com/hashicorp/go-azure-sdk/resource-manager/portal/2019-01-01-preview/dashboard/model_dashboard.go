@@ -7,7 +7,7 @@ type Dashboard struct {
 	Id         *string              `json:"id,omitempty"`
 	Location   string               `json:"location"`
 	Name       *string              `json:"name,omitempty"`
-	Properties *DashboardProperties `json:"properties,omitempty"`
+	Properties *DashboardProperties `json:"properties"`
 	Tags       *map[string]string   `json:"tags,omitempty"`
 	Type       *string              `json:"type,omitempty"`
 }

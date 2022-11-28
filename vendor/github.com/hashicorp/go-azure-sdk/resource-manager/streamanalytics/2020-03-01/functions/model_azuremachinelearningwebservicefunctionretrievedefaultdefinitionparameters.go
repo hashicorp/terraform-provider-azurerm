@@ -11,7 +11,7 @@ import (
 var _ FunctionRetrieveDefaultDefinitionParameters = AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters{}
 
 type AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters struct {
-	BindingRetrievalProperties *AzureMachineLearningWebServiceFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties,omitempty"`
+	BindingRetrievalProperties *AzureMachineLearningWebServiceFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties"`
 
 	// Fields inherited from FunctionRetrieveDefaultDefinitionParameters
 }

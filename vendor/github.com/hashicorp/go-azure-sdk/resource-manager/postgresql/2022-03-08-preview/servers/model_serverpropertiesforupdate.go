@@ -5,13 +5,13 @@ package servers
 
 type ServerPropertiesForUpdate struct {
 	AdministratorLoginPassword *string              `json:"administratorLoginPassword,omitempty"`
-	AuthConfig                 *AuthConfig          `json:"authConfig,omitempty"`
-	Backup                     *Backup              `json:"backup,omitempty"`
+	AuthConfig                 *AuthConfig          `json:"authConfig"`
+	Backup                     *Backup              `json:"backup"`
 	CreateMode                 *CreateModeForUpdate `json:"createMode,omitempty"`
-	DataEncryption             *DataEncryption      `json:"dataEncryption,omitempty"`
-	HighAvailability           *HighAvailability    `json:"highAvailability,omitempty"`
-	MaintenanceWindow          *MaintenanceWindow   `json:"maintenanceWindow,omitempty"`
+	DataEncryption             *DataEncryption      `json:"dataEncryption"`
+	HighAvailability           *HighAvailability    `json:"highAvailability"`
+	MaintenanceWindow          *MaintenanceWindow   `json:"maintenanceWindow"`
 	ReplicationRole            *ReplicationRole     `json:"replicationRole,omitempty"`
-	Storage                    *Storage             `json:"storage,omitempty"`
+	Storage                    *Storage             `json:"storage"`
 	Version                    *ServerVersion       `json:"version,omitempty"`
 }

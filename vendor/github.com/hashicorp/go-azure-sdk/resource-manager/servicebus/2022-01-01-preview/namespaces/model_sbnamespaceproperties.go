@@ -13,7 +13,7 @@ type SBNamespaceProperties struct {
 	AlternateName              *string                      `json:"alternateName,omitempty"`
 	CreatedAt                  *string                      `json:"createdAt,omitempty"`
 	DisableLocalAuth           *bool                        `json:"disableLocalAuth,omitempty"`
-	Encryption                 *Encryption                  `json:"encryption,omitempty"`
+	Encryption                 *Encryption                  `json:"encryption"`
 	MetricId                   *string                      `json:"metricId,omitempty"`
 	MinimumTlsVersion          *TlsVersion                  `json:"minimumTlsVersion,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`

@@ -5,9 +5,9 @@ package datacollectionrules
 
 type DataCollectionRule struct {
 	DataFlows         *[]DataFlow                               `json:"dataFlows,omitempty"`
-	DataSources       *DataSourcesSpec                          `json:"dataSources,omitempty"`
+	DataSources       *DataSourcesSpec                          `json:"dataSources"`
 	Description       *string                                   `json:"description,omitempty"`
-	Destinations      *DestinationsSpec                         `json:"destinations,omitempty"`
+	Destinations      *DestinationsSpec                         `json:"destinations"`
 	ImmutableId       *string                                   `json:"immutableId,omitempty"`
 	ProvisioningState *KnownDataCollectionRuleProvisioningState `json:"provisioningState,omitempty"`
 }

@@ -4,6 +4,6 @@ package backupinstances
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ProtectionStatusDetails struct {
-	ErrorDetails *UserFacingError `json:"errorDetails,omitempty"`
+	ErrorDetails *UserFacingError `json:"errorDetails"`
 	Status       *Status          `json:"status,omitempty"`
 }

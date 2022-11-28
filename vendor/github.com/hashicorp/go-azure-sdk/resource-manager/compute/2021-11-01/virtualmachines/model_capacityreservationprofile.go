@@ -4,5 +4,5 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CapacityReservationProfile struct {
-	CapacityReservationGroup *SubResource `json:"capacityReservationGroup,omitempty"`
+	CapacityReservationGroup *SubResource `json:"capacityReservationGroup"`
 }

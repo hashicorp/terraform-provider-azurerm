@@ -5,5 +5,5 @@ package workspaces
 
 type SharedPrivateLinkResource struct {
 	Name       *string                            `json:"name,omitempty"`
-	Properties *SharedPrivateLinkResourceProperty `json:"properties,omitempty"`
+	Properties *SharedPrivateLinkResourceProperty `json:"properties"`
 }

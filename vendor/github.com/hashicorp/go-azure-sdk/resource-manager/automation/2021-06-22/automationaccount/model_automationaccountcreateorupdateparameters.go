@@ -11,6 +11,6 @@ type AutomationAccountCreateOrUpdateParameters struct {
 	Identity   *identity.SystemAndUserAssignedMap         `json:"identity,omitempty"`
 	Location   *string                                    `json:"location,omitempty"`
 	Name       *string                                    `json:"name,omitempty"`
-	Properties *AutomationAccountCreateOrUpdateProperties `json:"properties,omitempty"`
+	Properties *AutomationAccountCreateOrUpdateProperties `json:"properties"`
 	Tags       *map[string]string                         `json:"tags,omitempty"`
 }

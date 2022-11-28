@@ -6,6 +6,6 @@ package tableserviceproperties
 type TableServiceProperties struct {
 	Id         *string                           `json:"id,omitempty"`
 	Name       *string                           `json:"name,omitempty"`
-	Properties *TableServicePropertiesProperties `json:"properties,omitempty"`
+	Properties *TableServicePropertiesProperties `json:"properties"`
 	Type       *string                           `json:"type,omitempty"`
 }

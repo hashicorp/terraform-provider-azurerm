@@ -14,7 +14,7 @@ import (
 var _ Compute = AKS{}
 
 type AKS struct {
-	Properties *AKSSchemaProperties `json:"properties,omitempty"`
+	Properties *AKSSchemaProperties `json:"properties"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

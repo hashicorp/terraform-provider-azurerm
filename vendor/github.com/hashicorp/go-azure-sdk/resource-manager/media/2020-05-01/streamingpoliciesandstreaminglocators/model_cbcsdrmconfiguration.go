@@ -4,7 +4,7 @@ package streamingpoliciesandstreaminglocators
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CbcsDrmConfiguration struct {
-	FairPlay  *StreamingPolicyFairPlayConfiguration  `json:"fairPlay,omitempty"`
-	PlayReady *StreamingPolicyPlayReadyConfiguration `json:"playReady,omitempty"`
-	Widevine  *StreamingPolicyWidevineConfiguration  `json:"widevine,omitempty"`
+	FairPlay  *StreamingPolicyFairPlayConfiguration  `json:"fairPlay"`
+	PlayReady *StreamingPolicyPlayReadyConfiguration `json:"playReady"`
+	Widevine  *StreamingPolicyWidevineConfiguration  `json:"widevine"`
 }

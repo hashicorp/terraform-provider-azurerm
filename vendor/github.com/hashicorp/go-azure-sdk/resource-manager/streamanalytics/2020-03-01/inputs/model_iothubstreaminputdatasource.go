@@ -11,7 +11,7 @@ import (
 var _ StreamInputDataSource = IoTHubStreamInputDataSource{}
 
 type IoTHubStreamInputDataSource struct {
-	Properties *IoTHubStreamInputDataSourceProperties `json:"properties,omitempty"`
+	Properties *IoTHubStreamInputDataSourceProperties `json:"properties"`
 
 	// Fields inherited from StreamInputDataSource
 }

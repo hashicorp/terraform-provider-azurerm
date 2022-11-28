@@ -7,6 +7,6 @@ type PrivateEndpoint struct {
 	Etag       *string                    `json:"etag,omitempty"`
 	Id         *string                    `json:"id,omitempty"`
 	Name       *string                    `json:"name,omitempty"`
-	Properties *PrivateEndpointProperties `json:"properties,omitempty"`
+	Properties *PrivateEndpointProperties `json:"properties"`
 	Type       *string                    `json:"type,omitempty"`
 }

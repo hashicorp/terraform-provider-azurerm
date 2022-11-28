@@ -8,7 +8,7 @@ type Zone struct {
 	Id         *string            `json:"id,omitempty"`
 	Location   string             `json:"location"`
 	Name       *string            `json:"name,omitempty"`
-	Properties *ZoneProperties    `json:"properties,omitempty"`
+	Properties *ZoneProperties    `json:"properties"`
 	Tags       *map[string]string `json:"tags,omitempty"`
 	Type       *string            `json:"type,omitempty"`
 }

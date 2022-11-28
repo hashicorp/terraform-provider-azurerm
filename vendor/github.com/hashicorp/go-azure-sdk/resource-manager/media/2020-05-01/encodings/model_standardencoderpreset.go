@@ -12,7 +12,7 @@ var _ Preset = StandardEncoderPreset{}
 
 type StandardEncoderPreset struct {
 	Codecs  []Codec  `json:"codecs"`
-	Filters *Filters `json:"filters,omitempty"`
+	Filters *Filters `json:"filters"`
 	Formats []Format `json:"formats"`
 
 	// Fields inherited from Preset

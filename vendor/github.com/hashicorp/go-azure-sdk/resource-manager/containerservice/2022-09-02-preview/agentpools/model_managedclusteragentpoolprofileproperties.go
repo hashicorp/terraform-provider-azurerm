@@ -11,7 +11,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	AvailabilityZones          *zones.Schema             `json:"availabilityZones,omitempty"`
 	CapacityReservationGroupID *string                   `json:"capacityReservationGroupID,omitempty"`
 	Count                      *int64                    `json:"count,omitempty"`
-	CreationData               *CreationData             `json:"creationData,omitempty"`
+	CreationData               *CreationData             `json:"creationData"`
 	CurrentOrchestratorVersion *string                   `json:"currentOrchestratorVersion,omitempty"`
 	EnableAutoScaling          *bool                     `json:"enableAutoScaling,omitempty"`
 	EnableCustomCATrust        *bool                     `json:"enableCustomCATrust,omitempty"`
@@ -21,15 +21,15 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	EnableUltraSSD             *bool                     `json:"enableUltraSSD,omitempty"`
 	GpuInstanceProfile         *GPUInstanceProfile       `json:"gpuInstanceProfile,omitempty"`
 	HostGroupID                *string                   `json:"hostGroupID,omitempty"`
-	KubeletConfig              *KubeletConfig            `json:"kubeletConfig,omitempty"`
+	KubeletConfig              *KubeletConfig            `json:"kubeletConfig"`
 	KubeletDiskType            *KubeletDiskType          `json:"kubeletDiskType,omitempty"`
-	LinuxOSConfig              *LinuxOSConfig            `json:"linuxOSConfig,omitempty"`
+	LinuxOSConfig              *LinuxOSConfig            `json:"linuxOSConfig"`
 	MaxCount                   *int64                    `json:"maxCount,omitempty"`
 	MaxPods                    *int64                    `json:"maxPods,omitempty"`
 	MessageOfTheDay            *string                   `json:"messageOfTheDay,omitempty"`
 	MinCount                   *int64                    `json:"minCount,omitempty"`
 	Mode                       *AgentPoolMode            `json:"mode,omitempty"`
-	NetworkProfile             *AgentPoolNetworkProfile  `json:"networkProfile,omitempty"`
+	NetworkProfile             *AgentPoolNetworkProfile  `json:"networkProfile"`
 	NodeImageVersion           *string                   `json:"nodeImageVersion,omitempty"`
 	NodeLabels                 *map[string]string        `json:"nodeLabels,omitempty"`
 	NodePublicIPPrefixID       *string                   `json:"nodePublicIPPrefixID,omitempty"`
@@ -40,7 +40,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	OsSKU                      *OSSKU                    `json:"osSKU,omitempty"`
 	OsType                     *OSType                   `json:"osType,omitempty"`
 	PodSubnetID                *string                   `json:"podSubnetID,omitempty"`
-	PowerState                 *PowerState               `json:"powerState,omitempty"`
+	PowerState                 *PowerState               `json:"powerState"`
 	ProvisioningState          *string                   `json:"provisioningState,omitempty"`
 	ProximityPlacementGroupID  *string                   `json:"proximityPlacementGroupID,omitempty"`
 	ScaleDownMode              *ScaleDownMode            `json:"scaleDownMode,omitempty"`
@@ -49,9 +49,9 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	SpotMaxPrice               *float64                  `json:"spotMaxPrice,omitempty"`
 	Tags                       *map[string]string        `json:"tags,omitempty"`
 	Type                       *AgentPoolType            `json:"type,omitempty"`
-	UpgradeSettings            *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
+	UpgradeSettings            *AgentPoolUpgradeSettings `json:"upgradeSettings"`
 	VmSize                     *string                   `json:"vmSize,omitempty"`
 	VnetSubnetID               *string                   `json:"vnetSubnetID,omitempty"`
-	WindowsProfile             *AgentPoolWindowsProfile  `json:"windowsProfile,omitempty"`
+	WindowsProfile             *AgentPoolWindowsProfile  `json:"windowsProfile"`
 	WorkloadRuntime            *WorkloadRuntime          `json:"workloadRuntime,omitempty"`
 }

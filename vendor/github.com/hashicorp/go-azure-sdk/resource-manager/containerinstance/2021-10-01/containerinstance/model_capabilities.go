@@ -4,7 +4,7 @@ package containerinstance
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Capabilities struct {
-	Capabilities  *CapabilitiesCapabilities `json:"capabilities,omitempty"`
+	Capabilities  *CapabilitiesCapabilities `json:"capabilities"`
 	Gpu           *string                   `json:"gpu,omitempty"`
 	IPAddressType *string                   `json:"ipAddressType,omitempty"`
 	Location      *string                   `json:"location,omitempty"`

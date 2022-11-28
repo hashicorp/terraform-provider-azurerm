@@ -10,7 +10,7 @@ import (
 type Desktop struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *DesktopProperties     `json:"properties,omitempty"`
+	Properties *DesktopProperties     `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

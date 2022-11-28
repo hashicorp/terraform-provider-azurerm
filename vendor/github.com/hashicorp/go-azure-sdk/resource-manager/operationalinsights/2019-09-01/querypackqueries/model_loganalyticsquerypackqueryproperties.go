@@ -16,7 +16,7 @@ type LogAnalyticsQueryPackQueryProperties struct {
 	DisplayName  string                                       `json:"displayName"`
 	Id           *string                                      `json:"id,omitempty"`
 	Properties   *interface{}                                 `json:"properties,omitempty"`
-	Related      *LogAnalyticsQueryPackQueryPropertiesRelated `json:"related,omitempty"`
+	Related      *LogAnalyticsQueryPackQueryPropertiesRelated `json:"related"`
 	Tags         *map[string][]string                         `json:"tags,omitempty"`
 	TimeCreated  *string                                      `json:"timeCreated,omitempty"`
 	TimeModified *string                                      `json:"timeModified,omitempty"`

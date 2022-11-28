@@ -4,6 +4,6 @@ package streamingpoliciesandstreaminglocators
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StreamingPolicyContentKeys struct {
-	DefaultKey         *DefaultKey                  `json:"defaultKey,omitempty"`
+	DefaultKey         *DefaultKey                  `json:"defaultKey"`
 	KeyToTrackMappings *[]StreamingPolicyContentKey `json:"keyToTrackMappings,omitempty"`
 }

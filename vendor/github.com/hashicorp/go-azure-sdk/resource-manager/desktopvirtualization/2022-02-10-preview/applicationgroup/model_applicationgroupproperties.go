@@ -9,7 +9,7 @@ type ApplicationGroupProperties struct {
 	Description          *string                     `json:"description,omitempty"`
 	FriendlyName         *string                     `json:"friendlyName,omitempty"`
 	HostPoolArmPath      string                      `json:"hostPoolArmPath"`
-	MigrationRequest     *MigrationRequestProperties `json:"migrationRequest,omitempty"`
+	MigrationRequest     *MigrationRequestProperties `json:"migrationRequest"`
 	ObjectId             *string                     `json:"objectId,omitempty"`
 	WorkspaceArmPath     *string                     `json:"workspaceArmPath,omitempty"`
 }

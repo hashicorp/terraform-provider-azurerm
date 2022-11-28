@@ -9,15 +9,15 @@ type WebPubSubProperties struct {
 	ExternalIP                 *string                      `json:"externalIP,omitempty"`
 	HostName                   *string                      `json:"hostName,omitempty"`
 	HostNamePrefix             *string                      `json:"hostNamePrefix,omitempty"`
-	LiveTraceConfiguration     *LiveTraceConfiguration      `json:"liveTraceConfiguration,omitempty"`
-	NetworkACLs                *WebPubSubNetworkACLs        `json:"networkACLs,omitempty"`
+	LiveTraceConfiguration     *LiveTraceConfiguration      `json:"liveTraceConfiguration"`
+	NetworkACLs                *WebPubSubNetworkACLs        `json:"networkACLs"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *ProvisioningState           `json:"provisioningState,omitempty"`
 	PublicNetworkAccess        *string                      `json:"publicNetworkAccess,omitempty"`
 	PublicPort                 *int64                       `json:"publicPort,omitempty"`
-	ResourceLogConfiguration   *ResourceLogConfiguration    `json:"resourceLogConfiguration,omitempty"`
+	ResourceLogConfiguration   *ResourceLogConfiguration    `json:"resourceLogConfiguration"`
 	ServerPort                 *int64                       `json:"serverPort,omitempty"`
 	SharedPrivateLinkResources *[]SharedPrivateLinkResource `json:"sharedPrivateLinkResources,omitempty"`
-	Tls                        *WebPubSubTlsSettings        `json:"tls,omitempty"`
+	Tls                        *WebPubSubTlsSettings        `json:"tls"`
 	Version                    *string                      `json:"version,omitempty"`
 }

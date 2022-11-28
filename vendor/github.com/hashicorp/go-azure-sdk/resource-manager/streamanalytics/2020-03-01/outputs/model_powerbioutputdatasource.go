@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = PowerBIOutputDataSource{}
 
 type PowerBIOutputDataSource struct {
-	Properties *PowerBIOutputDataSourceProperties `json:"properties,omitempty"`
+	Properties *PowerBIOutputDataSourceProperties `json:"properties"`
 
 	// Fields inherited from OutputDataSource
 }

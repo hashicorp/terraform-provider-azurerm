@@ -11,7 +11,7 @@ type SchemaGroup struct {
 	Id         *string                `json:"id,omitempty"`
 	Location   *string                `json:"location,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *SchemaGroupProperties `json:"properties,omitempty"`
+	Properties *SchemaGroupProperties `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

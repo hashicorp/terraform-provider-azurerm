@@ -15,38 +15,38 @@ type StorageAccountProperties struct {
 	AllowCrossTenantReplication           *bool                                  `json:"allowCrossTenantReplication,omitempty"`
 	AllowSharedKeyAccess                  *bool                                  `json:"allowSharedKeyAccess,omitempty"`
 	AllowedCopyScope                      *AllowedCopyScope                      `json:"allowedCopyScope,omitempty"`
-	AzureFilesIdentityBasedAuthentication *AzureFilesIdentityBasedAuthentication `json:"azureFilesIdentityBasedAuthentication,omitempty"`
-	BlobRestoreStatus                     *BlobRestoreStatus                     `json:"blobRestoreStatus,omitempty"`
+	AzureFilesIdentityBasedAuthentication *AzureFilesIdentityBasedAuthentication `json:"azureFilesIdentityBasedAuthentication"`
+	BlobRestoreStatus                     *BlobRestoreStatus                     `json:"blobRestoreStatus"`
 	CreationTime                          *string                                `json:"creationTime,omitempty"`
-	CustomDomain                          *CustomDomain                          `json:"customDomain,omitempty"`
+	CustomDomain                          *CustomDomain                          `json:"customDomain"`
 	DefaultToOAuthAuthentication          *bool                                  `json:"defaultToOAuthAuthentication,omitempty"`
 	DnsEndpointType                       *DnsEndpointType                       `json:"dnsEndpointType,omitempty"`
-	Encryption                            *Encryption                            `json:"encryption,omitempty"`
+	Encryption                            *Encryption                            `json:"encryption"`
 	FailoverInProgress                    *bool                                  `json:"failoverInProgress,omitempty"`
-	GeoReplicationStats                   *GeoReplicationStats                   `json:"geoReplicationStats,omitempty"`
-	ImmutableStorageWithVersioning        *ImmutableStorageAccount               `json:"immutableStorageWithVersioning,omitempty"`
+	GeoReplicationStats                   *GeoReplicationStats                   `json:"geoReplicationStats"`
+	ImmutableStorageWithVersioning        *ImmutableStorageAccount               `json:"immutableStorageWithVersioning"`
 	IsHnsEnabled                          *bool                                  `json:"isHnsEnabled,omitempty"`
 	IsLocalUserEnabled                    *bool                                  `json:"isLocalUserEnabled,omitempty"`
 	IsNfsV3Enabled                        *bool                                  `json:"isNfsV3Enabled,omitempty"`
 	IsSftpEnabled                         *bool                                  `json:"isSftpEnabled,omitempty"`
-	KeyCreationTime                       *KeyCreationTime                       `json:"keyCreationTime,omitempty"`
-	KeyPolicy                             *KeyPolicy                             `json:"keyPolicy,omitempty"`
+	KeyCreationTime                       *KeyCreationTime                       `json:"keyCreationTime"`
+	KeyPolicy                             *KeyPolicy                             `json:"keyPolicy"`
 	LargeFileSharesState                  *LargeFileSharesState                  `json:"largeFileSharesState,omitempty"`
 	LastGeoFailoverTime                   *string                                `json:"lastGeoFailoverTime,omitempty"`
 	MinimumTlsVersion                     *MinimumTlsVersion                     `json:"minimumTlsVersion,omitempty"`
-	NetworkAcls                           *NetworkRuleSet                        `json:"networkAcls,omitempty"`
-	PrimaryEndpoints                      *Endpoints                             `json:"primaryEndpoints,omitempty"`
+	NetworkAcls                           *NetworkRuleSet                        `json:"networkAcls"`
+	PrimaryEndpoints                      *Endpoints                             `json:"primaryEndpoints"`
 	PrimaryLocation                       *string                                `json:"primaryLocation,omitempty"`
 	PrivateEndpointConnections            *[]PrivateEndpointConnection           `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState                     *ProvisioningState                     `json:"provisioningState,omitempty"`
 	PublicNetworkAccess                   *PublicNetworkAccess                   `json:"publicNetworkAccess,omitempty"`
-	RoutingPreference                     *RoutingPreference                     `json:"routingPreference,omitempty"`
-	SasPolicy                             *SasPolicy                             `json:"sasPolicy,omitempty"`
-	SecondaryEndpoints                    *Endpoints                             `json:"secondaryEndpoints,omitempty"`
+	RoutingPreference                     *RoutingPreference                     `json:"routingPreference"`
+	SasPolicy                             *SasPolicy                             `json:"sasPolicy"`
+	SecondaryEndpoints                    *Endpoints                             `json:"secondaryEndpoints"`
 	SecondaryLocation                     *string                                `json:"secondaryLocation,omitempty"`
 	StatusOfPrimary                       *AccountStatus                         `json:"statusOfPrimary,omitempty"`
 	StatusOfSecondary                     *AccountStatus                         `json:"statusOfSecondary,omitempty"`
-	StorageAccountSkuConversionStatus     *StorageAccountSkuConversionStatus     `json:"storageAccountSkuConversionStatus,omitempty"`
+	StorageAccountSkuConversionStatus     *StorageAccountSkuConversionStatus     `json:"storageAccountSkuConversionStatus"`
 	SupportsHTTPSTrafficOnly              *bool                                  `json:"supportsHttpsTrafficOnly,omitempty"`
 }
 

@@ -5,7 +5,7 @@ package storageaccounts
 
 type BlobRestoreStatus struct {
 	FailureReason *string                    `json:"failureReason,omitempty"`
-	Parameters    *BlobRestoreParameters     `json:"parameters,omitempty"`
+	Parameters    *BlobRestoreParameters     `json:"parameters"`
 	RestoreId     *string                    `json:"restoreId,omitempty"`
 	Status        *BlobRestoreProgressStatus `json:"status,omitempty"`
 }

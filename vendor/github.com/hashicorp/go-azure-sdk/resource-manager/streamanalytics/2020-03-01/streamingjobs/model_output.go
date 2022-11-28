@@ -6,6 +6,6 @@ package streamingjobs
 type Output struct {
 	Id         *string           `json:"id,omitempty"`
 	Name       *string           `json:"name,omitempty"`
-	Properties *OutputProperties `json:"properties,omitempty"`
+	Properties *OutputProperties `json:"properties"`
 	Type       *string           `json:"type,omitempty"`
 }

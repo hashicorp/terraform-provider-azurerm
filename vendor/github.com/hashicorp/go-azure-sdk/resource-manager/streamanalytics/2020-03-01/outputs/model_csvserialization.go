@@ -11,7 +11,7 @@ import (
 var _ Serialization = CsvSerialization{}
 
 type CsvSerialization struct {
-	Properties *CsvSerializationProperties `json:"properties,omitempty"`
+	Properties *CsvSerializationProperties `json:"properties"`
 
 	// Fields inherited from Serialization
 }

@@ -9,6 +9,6 @@ import (
 
 type MediaServiceUpdate struct {
 	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
-	Properties *MediaServiceProperties  `json:"properties,omitempty"`
+	Properties *MediaServiceProperties  `json:"properties"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 }

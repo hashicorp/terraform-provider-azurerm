@@ -6,6 +6,6 @@ package liveoutputs
 type LiveOutput struct {
 	Id         *string               `json:"id,omitempty"`
 	Name       *string               `json:"name,omitempty"`
-	Properties *LiveOutputProperties `json:"properties,omitempty"`
+	Properties *LiveOutputProperties `json:"properties"`
 	Type       *string               `json:"type,omitempty"`
 }

@@ -16,7 +16,7 @@ type ClusterResourceProperties struct {
 	GossipCertificates            *[]Certificate                     `json:"gossipCertificates,omitempty"`
 	HoursBetweenBackups           *int64                             `json:"hoursBetweenBackups,omitempty"`
 	InitialCassandraAdminPassword *string                            `json:"initialCassandraAdminPassword,omitempty"`
-	PrometheusEndpoint            *SeedNode                          `json:"prometheusEndpoint,omitempty"`
+	PrometheusEndpoint            *SeedNode                          `json:"prometheusEndpoint"`
 	ProvisioningState             *ManagedCassandraProvisioningState `json:"provisioningState,omitempty"`
 	RepairEnabled                 *bool                              `json:"repairEnabled,omitempty"`
 	RestoreFromBackupId           *string                            `json:"restoreFromBackupId,omitempty"`

@@ -5,6 +5,6 @@ package containerinstance
 
 type ResourceLimits struct {
 	Cpu        *float64     `json:"cpu,omitempty"`
-	Gpu        *GpuResource `json:"gpu,omitempty"`
+	Gpu        *GpuResource `json:"gpu"`
 	MemoryInGB *float64     `json:"memoryInGB,omitempty"`
 }

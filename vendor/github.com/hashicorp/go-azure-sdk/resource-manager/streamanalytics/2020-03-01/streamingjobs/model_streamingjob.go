@@ -5,10 +5,10 @@ package streamingjobs
 
 type StreamingJob struct {
 	Id         *string                 `json:"id,omitempty"`
-	Identity   *Identity               `json:"identity,omitempty"`
+	Identity   *Identity               `json:"identity"`
 	Location   *string                 `json:"location,omitempty"`
 	Name       *string                 `json:"name,omitempty"`
-	Properties *StreamingJobProperties `json:"properties,omitempty"`
+	Properties *StreamingJobProperties `json:"properties"`
 	Tags       *map[string]string      `json:"tags,omitempty"`
 	Type       *string                 `json:"type,omitempty"`
 }

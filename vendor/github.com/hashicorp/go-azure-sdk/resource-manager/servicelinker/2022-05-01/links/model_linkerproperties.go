@@ -13,9 +13,9 @@ type LinkerProperties struct {
 	ClientType        *ClientType       `json:"clientType,omitempty"`
 	ProvisioningState *string           `json:"provisioningState,omitempty"`
 	Scope             *string           `json:"scope,omitempty"`
-	SecretStore       *SecretStore      `json:"secretStore,omitempty"`
+	SecretStore       *SecretStore      `json:"secretStore"`
 	TargetService     TargetServiceBase `json:"targetService"`
-	VNetSolution      *VNetSolution     `json:"vNetSolution,omitempty"`
+	VNetSolution      *VNetSolution     `json:"vNetSolution"`
 }
 
 var _ json.Unmarshaler = &LinkerProperties{}

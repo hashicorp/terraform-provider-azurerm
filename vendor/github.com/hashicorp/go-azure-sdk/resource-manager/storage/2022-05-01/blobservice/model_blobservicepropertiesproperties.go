@@ -5,12 +5,12 @@ package blobservice
 
 type BlobServicePropertiesProperties struct {
 	AutomaticSnapshotPolicyEnabled *bool                         `json:"automaticSnapshotPolicyEnabled,omitempty"`
-	ChangeFeed                     *ChangeFeed                   `json:"changeFeed,omitempty"`
-	ContainerDeleteRetentionPolicy *DeleteRetentionPolicy        `json:"containerDeleteRetentionPolicy,omitempty"`
-	Cors                           *CorsRules                    `json:"cors,omitempty"`
+	ChangeFeed                     *ChangeFeed                   `json:"changeFeed"`
+	ContainerDeleteRetentionPolicy *DeleteRetentionPolicy        `json:"containerDeleteRetentionPolicy"`
+	Cors                           *CorsRules                    `json:"cors"`
 	DefaultServiceVersion          *string                       `json:"defaultServiceVersion,omitempty"`
-	DeleteRetentionPolicy          *DeleteRetentionPolicy        `json:"deleteRetentionPolicy,omitempty"`
+	DeleteRetentionPolicy          *DeleteRetentionPolicy        `json:"deleteRetentionPolicy"`
 	IsVersioningEnabled            *bool                         `json:"isVersioningEnabled,omitempty"`
-	LastAccessTimeTrackingPolicy   *LastAccessTimeTrackingPolicy `json:"lastAccessTimeTrackingPolicy,omitempty"`
-	RestorePolicy                  *RestorePolicyProperties      `json:"restorePolicy,omitempty"`
+	LastAccessTimeTrackingPolicy   *LastAccessTimeTrackingPolicy `json:"lastAccessTimeTrackingPolicy"`
+	RestorePolicy                  *RestorePolicyProperties      `json:"restorePolicy"`
 }

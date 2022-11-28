@@ -4,7 +4,7 @@ package account
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PrivateEndpointConnectionProperties struct {
-	PrivateEndpoint                   *PrivateEndpoint                   `json:"privateEndpoint,omitempty"`
-	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	PrivateEndpoint                   *PrivateEndpoint                   `json:"privateEndpoint"`
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState"`
 	ProvisioningState                 *string                            `json:"provisioningState,omitempty"`
 }

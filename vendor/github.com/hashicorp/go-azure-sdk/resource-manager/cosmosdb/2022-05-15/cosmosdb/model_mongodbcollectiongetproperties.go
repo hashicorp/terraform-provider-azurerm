@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type MongoDBCollectionGetProperties struct {
-	Options  *OptionsResource                `json:"options,omitempty"`
-	Resource *MongoDBCollectionGetProperties `json:"resource,omitempty"`
+	Options  *OptionsResource                `json:"options"`
+	Resource *MongoDBCollectionGetProperties `json:"resource"`
 }

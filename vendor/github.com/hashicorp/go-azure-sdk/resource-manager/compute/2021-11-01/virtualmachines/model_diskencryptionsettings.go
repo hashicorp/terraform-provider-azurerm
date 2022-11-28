@@ -4,7 +4,7 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DiskEncryptionSettings struct {
-	DiskEncryptionKey *KeyVaultSecretReference `json:"diskEncryptionKey,omitempty"`
+	DiskEncryptionKey *KeyVaultSecretReference `json:"diskEncryptionKey"`
 	Enabled           *bool                    `json:"enabled,omitempty"`
-	KeyEncryptionKey  *KeyVaultKeyReference    `json:"keyEncryptionKey,omitempty"`
+	KeyEncryptionKey  *KeyVaultKeyReference    `json:"keyEncryptionKey"`
 }

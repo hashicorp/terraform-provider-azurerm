@@ -12,7 +12,7 @@ type MapsAccount struct {
 	Kind       *Kind                  `json:"kind,omitempty"`
 	Location   string                 `json:"location"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *MapsAccountProperties `json:"properties,omitempty"`
+	Properties *MapsAccountProperties `json:"properties"`
 	Sku        Sku                    `json:"sku"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Tags       *map[string]string     `json:"tags,omitempty"`
