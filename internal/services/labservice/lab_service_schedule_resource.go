@@ -8,8 +8,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/schedule"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -63,21 +66,22 @@ func (r LabServiceScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"stop_at": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
+			ValidateFunc:     validation.IsRFC3339Time,
 		},
 
 		"time_zone_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: azValidate.AzureTimeZoneString(),
 		},
 
 		"notes": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.ScheduleNotes,
 		},
 
 		"recurrence_pattern": {
@@ -87,37 +91,50 @@ func (r LabServiceScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiration_date": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						DiffSuppressFunc: suppress.RFC3339MinuteTime,
+						ValidateFunc:     validation.IsRFC3339Time,
 					},
 
 					"frequency": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
+						Default:  string(schedule.RecurrenceFrequencyDaily),
 						ValidateFunc: validation.StringInSlice([]string{
-							string(schedule.RecurrenceFrequencyWeekly),
 							string(schedule.RecurrenceFrequencyDaily),
+							string(schedule.RecurrenceFrequencyWeekly),
 						}, false),
 					},
 
 					"interval": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(1, 365),
 					},
 
 					"week_days": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(schedule.WeekDaySunday),
+							string(schedule.WeekDayMonday),
+							string(schedule.WeekDayTuesday),
+							string(schedule.WeekDayWednesday),
+							string(schedule.WeekDayThursday),
+							string(schedule.WeekDayFriday),
+							string(schedule.WeekDaySaturday),
+						}, false),
 					},
 				},
 			},
 		},
 
 		"start_at": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: suppress.RFC3339MinuteTime,
+			ValidateFunc:     validation.IsRFC3339Time,
 		},
 	}
 }
