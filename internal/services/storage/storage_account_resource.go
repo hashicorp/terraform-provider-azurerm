@@ -1581,7 +1581,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
-			return fmt.Errorf("updating Azure Storage Account sftp_enabled %q: %+v", id.Name, err)
+			return fmt.Errorf("updating `sftp_enabled` for %s: %+v", *id, err)
 		}
 	}
 
