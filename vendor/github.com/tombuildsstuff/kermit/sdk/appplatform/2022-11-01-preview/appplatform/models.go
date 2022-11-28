@@ -19,7 +19,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "home/runner/work/kermit/kermit/sdk/appplatform/2022-09-01-preview/appplatform"
+const fqdn = "home/runner/work/kermit/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
 
 // APIPortalCustomDomainProperties the properties of custom domain for API portal
 type APIPortalCustomDomainProperties struct {
@@ -635,6 +635,332 @@ func (future *APIPortalsDeleteFuture) result(client APIPortalsClient) (ar autore
 	return
 }
 
+// BasicAcceleratorAuthSetting auth setting payload.
+type BasicAcceleratorAuthSetting interface {
+	AsAcceleratorPublicSetting() (*AcceleratorPublicSetting, bool)
+	AsAcceleratorBasicAuthSetting() (*AcceleratorBasicAuthSetting, bool)
+	AsAcceleratorSSHSetting() (*AcceleratorSSHSetting, bool)
+	AsAcceleratorAuthSetting() (*AcceleratorAuthSetting, bool)
+}
+
+// AcceleratorAuthSetting auth setting payload.
+type AcceleratorAuthSetting struct {
+	// AuthType - Possible values include: 'AuthTypeAcceleratorAuthSetting', 'AuthTypePublic', 'AuthTypeBasicAuth', 'AuthTypeSSH'
+	AuthType AuthType `json:"authType,omitempty"`
+}
+
+func unmarshalBasicAcceleratorAuthSetting(body []byte) (BasicAcceleratorAuthSetting, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["authType"] {
+	case string(AuthTypePublic):
+		var aps AcceleratorPublicSetting
+		err := json.Unmarshal(body, &aps)
+		return aps, err
+	case string(AuthTypeBasicAuth):
+		var abas AcceleratorBasicAuthSetting
+		err := json.Unmarshal(body, &abas)
+		return abas, err
+	case string(AuthTypeSSH):
+		var ass AcceleratorSSHSetting
+		err := json.Unmarshal(body, &ass)
+		return ass, err
+	default:
+		var aas AcceleratorAuthSetting
+		err := json.Unmarshal(body, &aas)
+		return aas, err
+	}
+}
+func unmarshalBasicAcceleratorAuthSettingArray(body []byte) ([]BasicAcceleratorAuthSetting, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	aasArray := make([]BasicAcceleratorAuthSetting, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		aas, err := unmarshalBasicAcceleratorAuthSetting(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		aasArray[index] = aas
+	}
+	return aasArray, nil
+}
+
+// MarshalJSON is the custom marshaler for AcceleratorAuthSetting.
+func (aas AcceleratorAuthSetting) MarshalJSON() ([]byte, error) {
+	aas.AuthType = AuthTypeAcceleratorAuthSetting
+	objectMap := make(map[string]interface{})
+	if aas.AuthType != "" {
+		objectMap["authType"] = aas.AuthType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAcceleratorPublicSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorAuthSetting.
+func (aas AcceleratorAuthSetting) AsAcceleratorPublicSetting() (*AcceleratorPublicSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorBasicAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorAuthSetting.
+func (aas AcceleratorAuthSetting) AsAcceleratorBasicAuthSetting() (*AcceleratorBasicAuthSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorSSHSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorAuthSetting.
+func (aas AcceleratorAuthSetting) AsAcceleratorSSHSetting() (*AcceleratorSSHSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorAuthSetting.
+func (aas AcceleratorAuthSetting) AsAcceleratorAuthSetting() (*AcceleratorAuthSetting, bool) {
+	return &aas, true
+}
+
+// AsBasicAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorAuthSetting.
+func (aas AcceleratorAuthSetting) AsBasicAcceleratorAuthSetting() (BasicAcceleratorAuthSetting, bool) {
+	return &aas, true
+}
+
+// AcceleratorBasicAuthSetting auth setting for basic auth.
+type AcceleratorBasicAuthSetting struct {
+	// Username - Username of git repository basic auth.
+	Username *string `json:"username,omitempty"`
+	// Password - Password of git repository basic auth.
+	Password *string `json:"password,omitempty"`
+	// AuthType - Possible values include: 'AuthTypeAcceleratorAuthSetting', 'AuthTypePublic', 'AuthTypeBasicAuth', 'AuthTypeSSH'
+	AuthType AuthType `json:"authType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AcceleratorBasicAuthSetting.
+func (abas AcceleratorBasicAuthSetting) MarshalJSON() ([]byte, error) {
+	abas.AuthType = AuthTypeBasicAuth
+	objectMap := make(map[string]interface{})
+	if abas.Username != nil {
+		objectMap["username"] = abas.Username
+	}
+	if abas.Password != nil {
+		objectMap["password"] = abas.Password
+	}
+	if abas.AuthType != "" {
+		objectMap["authType"] = abas.AuthType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAcceleratorPublicSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorBasicAuthSetting.
+func (abas AcceleratorBasicAuthSetting) AsAcceleratorPublicSetting() (*AcceleratorPublicSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorBasicAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorBasicAuthSetting.
+func (abas AcceleratorBasicAuthSetting) AsAcceleratorBasicAuthSetting() (*AcceleratorBasicAuthSetting, bool) {
+	return &abas, true
+}
+
+// AsAcceleratorSSHSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorBasicAuthSetting.
+func (abas AcceleratorBasicAuthSetting) AsAcceleratorSSHSetting() (*AcceleratorSSHSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorBasicAuthSetting.
+func (abas AcceleratorBasicAuthSetting) AsAcceleratorAuthSetting() (*AcceleratorAuthSetting, bool) {
+	return nil, false
+}
+
+// AsBasicAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorBasicAuthSetting.
+func (abas AcceleratorBasicAuthSetting) AsBasicAcceleratorAuthSetting() (BasicAcceleratorAuthSetting, bool) {
+	return &abas, true
+}
+
+// AcceleratorGitRepository ...
+type AcceleratorGitRepository struct {
+	// URL - Git repository URL for the accelerator.
+	URL *string `json:"url,omitempty"`
+	// IntervalInSeconds - Interval for checking for updates to Git or image repository.
+	IntervalInSeconds *int32 `json:"intervalInSeconds,omitempty"`
+	// Branch - Git repository branch to be used.
+	Branch *string `json:"branch,omitempty"`
+	// Commit - Git repository commit to be used.
+	Commit *string `json:"commit,omitempty"`
+	// GitTag - Git repository tag to be used.
+	GitTag *string `json:"gitTag,omitempty"`
+	// AuthSetting - Properties of the auth setting payload.
+	AuthSetting BasicAcceleratorAuthSetting `json:"authSetting,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for AcceleratorGitRepository struct.
+func (agr *AcceleratorGitRepository) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "url":
+			if v != nil {
+				var URL string
+				err = json.Unmarshal(*v, &URL)
+				if err != nil {
+					return err
+				}
+				agr.URL = &URL
+			}
+		case "intervalInSeconds":
+			if v != nil {
+				var intervalInSeconds int32
+				err = json.Unmarshal(*v, &intervalInSeconds)
+				if err != nil {
+					return err
+				}
+				agr.IntervalInSeconds = &intervalInSeconds
+			}
+		case "branch":
+			if v != nil {
+				var branch string
+				err = json.Unmarshal(*v, &branch)
+				if err != nil {
+					return err
+				}
+				agr.Branch = &branch
+			}
+		case "commit":
+			if v != nil {
+				var commit string
+				err = json.Unmarshal(*v, &commit)
+				if err != nil {
+					return err
+				}
+				agr.Commit = &commit
+			}
+		case "gitTag":
+			if v != nil {
+				var gitTag string
+				err = json.Unmarshal(*v, &gitTag)
+				if err != nil {
+					return err
+				}
+				agr.GitTag = &gitTag
+			}
+		case "authSetting":
+			if v != nil {
+				authSetting, err := unmarshalBasicAcceleratorAuthSetting(*v)
+				if err != nil {
+					return err
+				}
+				agr.AuthSetting = authSetting
+			}
+		}
+	}
+
+	return nil
+}
+
+// AcceleratorPublicSetting auth setting for public url.
+type AcceleratorPublicSetting struct {
+	// AuthType - Possible values include: 'AuthTypeAcceleratorAuthSetting', 'AuthTypePublic', 'AuthTypeBasicAuth', 'AuthTypeSSH'
+	AuthType AuthType `json:"authType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AcceleratorPublicSetting.
+func (aps AcceleratorPublicSetting) MarshalJSON() ([]byte, error) {
+	aps.AuthType = AuthTypePublic
+	objectMap := make(map[string]interface{})
+	if aps.AuthType != "" {
+		objectMap["authType"] = aps.AuthType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAcceleratorPublicSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorPublicSetting.
+func (aps AcceleratorPublicSetting) AsAcceleratorPublicSetting() (*AcceleratorPublicSetting, bool) {
+	return &aps, true
+}
+
+// AsAcceleratorBasicAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorPublicSetting.
+func (aps AcceleratorPublicSetting) AsAcceleratorBasicAuthSetting() (*AcceleratorBasicAuthSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorSSHSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorPublicSetting.
+func (aps AcceleratorPublicSetting) AsAcceleratorSSHSetting() (*AcceleratorSSHSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorPublicSetting.
+func (aps AcceleratorPublicSetting) AsAcceleratorAuthSetting() (*AcceleratorAuthSetting, bool) {
+	return nil, false
+}
+
+// AsBasicAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorPublicSetting.
+func (aps AcceleratorPublicSetting) AsBasicAcceleratorAuthSetting() (BasicAcceleratorAuthSetting, bool) {
+	return &aps, true
+}
+
+// AcceleratorSSHSetting auth setting for SSH auth.
+type AcceleratorSSHSetting struct {
+	// HostKey - Public SSH Key of git repository.
+	HostKey *string `json:"hostKey,omitempty"`
+	// HostKeyAlgorithm - SSH Key algorithm of git repository.
+	HostKeyAlgorithm *string `json:"hostKeyAlgorithm,omitempty"`
+	// PrivateKey - Private SSH Key algorithm of git repository.
+	PrivateKey *string `json:"privateKey,omitempty"`
+	// AuthType - Possible values include: 'AuthTypeAcceleratorAuthSetting', 'AuthTypePublic', 'AuthTypeBasicAuth', 'AuthTypeSSH'
+	AuthType AuthType `json:"authType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AcceleratorSSHSetting.
+func (ass AcceleratorSSHSetting) MarshalJSON() ([]byte, error) {
+	ass.AuthType = AuthTypeSSH
+	objectMap := make(map[string]interface{})
+	if ass.HostKey != nil {
+		objectMap["hostKey"] = ass.HostKey
+	}
+	if ass.HostKeyAlgorithm != nil {
+		objectMap["hostKeyAlgorithm"] = ass.HostKeyAlgorithm
+	}
+	if ass.PrivateKey != nil {
+		objectMap["privateKey"] = ass.PrivateKey
+	}
+	if ass.AuthType != "" {
+		objectMap["authType"] = ass.AuthType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAcceleratorPublicSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorSSHSetting.
+func (ass AcceleratorSSHSetting) AsAcceleratorPublicSetting() (*AcceleratorPublicSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorBasicAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorSSHSetting.
+func (ass AcceleratorSSHSetting) AsAcceleratorBasicAuthSetting() (*AcceleratorBasicAuthSetting, bool) {
+	return nil, false
+}
+
+// AsAcceleratorSSHSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorSSHSetting.
+func (ass AcceleratorSSHSetting) AsAcceleratorSSHSetting() (*AcceleratorSSHSetting, bool) {
+	return &ass, true
+}
+
+// AsAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorSSHSetting.
+func (ass AcceleratorSSHSetting) AsAcceleratorAuthSetting() (*AcceleratorAuthSetting, bool) {
+	return nil, false
+}
+
+// AsBasicAcceleratorAuthSetting is the BasicAcceleratorAuthSetting implementation for AcceleratorSSHSetting.
+func (ass AcceleratorSSHSetting) AsBasicAcceleratorAuthSetting() (BasicAcceleratorAuthSetting, bool) {
+	return &ass, true
+}
+
 // ActiveDeploymentCollection object that includes an array of Deployment resource name and set them as
 // active.
 type ActiveDeploymentCollection struct {
@@ -921,6 +1247,340 @@ func (avna AppVNetAddons) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ApplicationAcceleratorComponent ...
+type ApplicationAcceleratorComponent struct {
+	// Name - READ-ONLY
+	Name             *string                                 `json:"name,omitempty"`
+	ResourceRequests *ApplicationAcceleratorResourceRequests `json:"resourceRequests,omitempty"`
+	// Instances - READ-ONLY
+	Instances *[]ApplicationAcceleratorInstance `json:"instances,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationAcceleratorComponent.
+func (aac ApplicationAcceleratorComponent) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aac.ResourceRequests != nil {
+		objectMap["resourceRequests"] = aac.ResourceRequests
+	}
+	return json.Marshal(objectMap)
+}
+
+// ApplicationAcceleratorInstance ...
+type ApplicationAcceleratorInstance struct {
+	// Name - READ-ONLY; Name of the Application Accelerator instance.
+	Name *string `json:"name,omitempty"`
+	// Status - READ-ONLY; Status of the Application Accelerator instance. It can be Pending, Running, Succeeded, Failed, Unknown.
+	Status *string `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationAcceleratorInstance.
+func (aai ApplicationAcceleratorInstance) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ApplicationAcceleratorProperties application accelerator properties payload
+type ApplicationAcceleratorProperties struct {
+	// ProvisioningState - READ-ONLY; State of the application accelerator. Possible values include: 'ApplicationAcceleratorProvisioningStateCreating', 'ApplicationAcceleratorProvisioningStateUpdating', 'ApplicationAcceleratorProvisioningStateSucceeded', 'ApplicationAcceleratorProvisioningStateFailed', 'ApplicationAcceleratorProvisioningStateDeleting'
+	ProvisioningState ApplicationAcceleratorProvisioningState `json:"provisioningState,omitempty"`
+	// Components - READ-ONLY; Collection of components belong to application accelerator.
+	Components *[]ApplicationAcceleratorComponent `json:"components,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationAcceleratorProperties.
+func (aap ApplicationAcceleratorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ApplicationAcceleratorResource application accelerator resource
+type ApplicationAcceleratorResource struct {
+	autorest.Response `json:"-"`
+	Properties        *ApplicationAcceleratorProperties `json:"properties,omitempty"`
+	// Sku - Sku of the application accelerator resource
+	Sku *Sku `json:"sku,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationAcceleratorResource.
+func (aar ApplicationAcceleratorResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aar.Properties != nil {
+		objectMap["properties"] = aar.Properties
+	}
+	if aar.Sku != nil {
+		objectMap["sku"] = aar.Sku
+	}
+	if aar.SystemData != nil {
+		objectMap["systemData"] = aar.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// ApplicationAcceleratorResourceCollection object that includes an array of application accelerator
+// resources and a possible link for next set
+type ApplicationAcceleratorResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of application accelerator resources
+	Value *[]ApplicationAcceleratorResource `json:"value,omitempty"`
+	// NextLink - URL client should use to fetch the next page (per server side paging).
+	// It's null for now, added for future use.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ApplicationAcceleratorResourceCollectionIterator provides access to a complete listing of
+// ApplicationAcceleratorResource values.
+type ApplicationAcceleratorResourceCollectionIterator struct {
+	i    int
+	page ApplicationAcceleratorResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ApplicationAcceleratorResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationAcceleratorResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ApplicationAcceleratorResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ApplicationAcceleratorResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ApplicationAcceleratorResourceCollectionIterator) Response() ApplicationAcceleratorResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ApplicationAcceleratorResourceCollectionIterator) Value() ApplicationAcceleratorResource {
+	if !iter.page.NotDone() {
+		return ApplicationAcceleratorResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ApplicationAcceleratorResourceCollectionIterator type.
+func NewApplicationAcceleratorResourceCollectionIterator(page ApplicationAcceleratorResourceCollectionPage) ApplicationAcceleratorResourceCollectionIterator {
+	return ApplicationAcceleratorResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (aarc ApplicationAcceleratorResourceCollection) IsEmpty() bool {
+	return aarc.Value == nil || len(*aarc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (aarc ApplicationAcceleratorResourceCollection) hasNextLink() bool {
+	return aarc.NextLink != nil && len(*aarc.NextLink) != 0
+}
+
+// applicationAcceleratorResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (aarc ApplicationAcceleratorResourceCollection) applicationAcceleratorResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !aarc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(aarc.NextLink)))
+}
+
+// ApplicationAcceleratorResourceCollectionPage contains a page of ApplicationAcceleratorResource values.
+type ApplicationAcceleratorResourceCollectionPage struct {
+	fn   func(context.Context, ApplicationAcceleratorResourceCollection) (ApplicationAcceleratorResourceCollection, error)
+	aarc ApplicationAcceleratorResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ApplicationAcceleratorResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationAcceleratorResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.aarc)
+		if err != nil {
+			return err
+		}
+		page.aarc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ApplicationAcceleratorResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ApplicationAcceleratorResourceCollectionPage) NotDone() bool {
+	return !page.aarc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ApplicationAcceleratorResourceCollectionPage) Response() ApplicationAcceleratorResourceCollection {
+	return page.aarc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ApplicationAcceleratorResourceCollectionPage) Values() []ApplicationAcceleratorResource {
+	if page.aarc.IsEmpty() {
+		return nil
+	}
+	return *page.aarc.Value
+}
+
+// Creates a new instance of the ApplicationAcceleratorResourceCollectionPage type.
+func NewApplicationAcceleratorResourceCollectionPage(cur ApplicationAcceleratorResourceCollection, getNextPage func(context.Context, ApplicationAcceleratorResourceCollection) (ApplicationAcceleratorResourceCollection, error)) ApplicationAcceleratorResourceCollectionPage {
+	return ApplicationAcceleratorResourceCollectionPage{
+		fn:   getNextPage,
+		aarc: cur,
+	}
+}
+
+// ApplicationAcceleratorResourceRequests ...
+type ApplicationAcceleratorResourceRequests struct {
+	// CPU - READ-ONLY; Cpu allocated to each application accelerator component. 1 core can be represented by 1 or 1000m
+	CPU *string `json:"cpu,omitempty"`
+	// Memory - READ-ONLY; Memory allocated to each application accelerator component. 1 GB can be represented by 1Gi or 1024Mi.
+	Memory *string `json:"memory,omitempty"`
+	// InstanceCount - READ-ONLY; Instance count of the application accelerator component.
+	InstanceCount *int32 `json:"instanceCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationAcceleratorResourceRequests.
+func (aarr ApplicationAcceleratorResourceRequests) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ApplicationAcceleratorsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type ApplicationAcceleratorsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ApplicationAcceleratorsClient) (ApplicationAcceleratorResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ApplicationAcceleratorsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ApplicationAcceleratorsCreateOrUpdateFuture.Result.
+func (future *ApplicationAcceleratorsCreateOrUpdateFuture) result(client ApplicationAcceleratorsClient) (aar ApplicationAcceleratorResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ApplicationAcceleratorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		aar.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.ApplicationAcceleratorsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if aar.Response.Response, err = future.GetResult(sender); err == nil && aar.Response.Response.StatusCode != http.StatusNoContent {
+		aar, err = client.CreateOrUpdateResponder(aar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ApplicationAcceleratorsCreateOrUpdateFuture", "Result", aar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ApplicationAcceleratorsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ApplicationAcceleratorsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ApplicationAcceleratorsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ApplicationAcceleratorsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ApplicationAcceleratorsDeleteFuture.Result.
+func (future *ApplicationAcceleratorsDeleteFuture) result(client ApplicationAcceleratorsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ApplicationAcceleratorsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.ApplicationAcceleratorsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ApplicationInsightsAgentVersions application Insights agent versions properties payload
 type ApplicationInsightsAgentVersions struct {
 	// Java - READ-ONLY; Indicates the version of application insight java agent
@@ -931,6 +1591,334 @@ type ApplicationInsightsAgentVersions struct {
 func (aiav ApplicationInsightsAgentVersions) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// ApplicationLiveViewComponent application Live View properties payload
+type ApplicationLiveViewComponent struct {
+	// Name - READ-ONLY; Name of the component.
+	Name interface{} `json:"name,omitempty"`
+	// ResourceRequests - READ-ONLY; The requested resource quantity for required CPU and Memory.
+	ResourceRequests *ApplicationLiveViewResourceRequests `json:"resourceRequests,omitempty"`
+	// Instances - READ-ONLY; Collection of instances belong to Application Live View.
+	Instances *[]ApplicationLiveViewInstance `json:"instances,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationLiveViewComponent.
+func (alvc ApplicationLiveViewComponent) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ApplicationLiveViewInstance collection of instances belong to the Application Live View
+type ApplicationLiveViewInstance struct {
+	// Name - READ-ONLY; Name of the Application Live View instance.
+	Name *string `json:"name,omitempty"`
+	// Status - READ-ONLY; Status of the Application Live View instance. It can be Pending, Running, Succeeded, Failed, Unknown.
+	Status *string `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationLiveViewInstance.
+func (alvi ApplicationLiveViewInstance) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ApplicationLiveViewProperties application Live View properties payload
+type ApplicationLiveViewProperties struct {
+	// ProvisioningState - READ-ONLY; State of the Application Live View. Possible values include: 'ApplicationLiveViewProvisioningStateCreating', 'ApplicationLiveViewProvisioningStateUpdating', 'ApplicationLiveViewProvisioningStateSucceeded', 'ApplicationLiveViewProvisioningStateFailed', 'ApplicationLiveViewProvisioningStateDeleting', 'ApplicationLiveViewProvisioningStateCanceled'
+	ProvisioningState ApplicationLiveViewProvisioningState `json:"provisioningState,omitempty"`
+	// Components - READ-ONLY; Component details of Application Live View
+	Components *[]ApplicationLiveViewComponent `json:"components,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationLiveViewProperties.
+func (alvp ApplicationLiveViewProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ApplicationLiveViewResource application Live View resource
+type ApplicationLiveViewResource struct {
+	autorest.Response `json:"-"`
+	Properties        *ApplicationLiveViewProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationLiveViewResource.
+func (alvr ApplicationLiveViewResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if alvr.Properties != nil {
+		objectMap["properties"] = alvr.Properties
+	}
+	if alvr.SystemData != nil {
+		objectMap["systemData"] = alvr.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// ApplicationLiveViewResourceCollection object that includes an array of Application Live View resources
+// and a possible link for next set
+type ApplicationLiveViewResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of Application Live View resources
+	Value *[]ApplicationLiveViewResource `json:"value,omitempty"`
+	// NextLink - URL client should use to fetch the next page (per server side paging).
+	// It's null for now, added for future use.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ApplicationLiveViewResourceCollectionIterator provides access to a complete listing of
+// ApplicationLiveViewResource values.
+type ApplicationLiveViewResourceCollectionIterator struct {
+	i    int
+	page ApplicationLiveViewResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ApplicationLiveViewResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationLiveViewResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ApplicationLiveViewResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ApplicationLiveViewResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ApplicationLiveViewResourceCollectionIterator) Response() ApplicationLiveViewResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ApplicationLiveViewResourceCollectionIterator) Value() ApplicationLiveViewResource {
+	if !iter.page.NotDone() {
+		return ApplicationLiveViewResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ApplicationLiveViewResourceCollectionIterator type.
+func NewApplicationLiveViewResourceCollectionIterator(page ApplicationLiveViewResourceCollectionPage) ApplicationLiveViewResourceCollectionIterator {
+	return ApplicationLiveViewResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (alvrc ApplicationLiveViewResourceCollection) IsEmpty() bool {
+	return alvrc.Value == nil || len(*alvrc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (alvrc ApplicationLiveViewResourceCollection) hasNextLink() bool {
+	return alvrc.NextLink != nil && len(*alvrc.NextLink) != 0
+}
+
+// applicationLiveViewResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (alvrc ApplicationLiveViewResourceCollection) applicationLiveViewResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !alvrc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(alvrc.NextLink)))
+}
+
+// ApplicationLiveViewResourceCollectionPage contains a page of ApplicationLiveViewResource values.
+type ApplicationLiveViewResourceCollectionPage struct {
+	fn    func(context.Context, ApplicationLiveViewResourceCollection) (ApplicationLiveViewResourceCollection, error)
+	alvrc ApplicationLiveViewResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ApplicationLiveViewResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationLiveViewResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.alvrc)
+		if err != nil {
+			return err
+		}
+		page.alvrc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ApplicationLiveViewResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ApplicationLiveViewResourceCollectionPage) NotDone() bool {
+	return !page.alvrc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ApplicationLiveViewResourceCollectionPage) Response() ApplicationLiveViewResourceCollection {
+	return page.alvrc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ApplicationLiveViewResourceCollectionPage) Values() []ApplicationLiveViewResource {
+	if page.alvrc.IsEmpty() {
+		return nil
+	}
+	return *page.alvrc.Value
+}
+
+// Creates a new instance of the ApplicationLiveViewResourceCollectionPage type.
+func NewApplicationLiveViewResourceCollectionPage(cur ApplicationLiveViewResourceCollection, getNextPage func(context.Context, ApplicationLiveViewResourceCollection) (ApplicationLiveViewResourceCollection, error)) ApplicationLiveViewResourceCollectionPage {
+	return ApplicationLiveViewResourceCollectionPage{
+		fn:    getNextPage,
+		alvrc: cur,
+	}
+}
+
+// ApplicationLiveViewResourceRequests the resource quantity for required CPU and Memory of Application
+// Live View component
+type ApplicationLiveViewResourceRequests struct {
+	// CPU - READ-ONLY; Cpu quantity allocated to each Application Live View component instance. 1 core can be represented by 1 or 1000m.
+	CPU *string `json:"cpu,omitempty"`
+	// Memory - READ-ONLY; Memory quantity allocated to each Application Live View component instance. 1 GB can be represented by 1Gi or 1024Mi.
+	Memory *string `json:"memory,omitempty"`
+	// InstanceCount - READ-ONLY; Desired instance count of Application Live View component instance.
+	InstanceCount *int32 `json:"instanceCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationLiveViewResourceRequests.
+func (alvrr ApplicationLiveViewResourceRequests) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ApplicationLiveViewsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ApplicationLiveViewsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ApplicationLiveViewsClient) (ApplicationLiveViewResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ApplicationLiveViewsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ApplicationLiveViewsCreateOrUpdateFuture.Result.
+func (future *ApplicationLiveViewsCreateOrUpdateFuture) result(client ApplicationLiveViewsClient) (alvr ApplicationLiveViewResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ApplicationLiveViewsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		alvr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.ApplicationLiveViewsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if alvr.Response.Response, err = future.GetResult(sender); err == nil && alvr.Response.Response.StatusCode != http.StatusNoContent {
+		alvr, err = client.CreateOrUpdateResponder(alvr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.ApplicationLiveViewsCreateOrUpdateFuture", "Result", alvr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ApplicationLiveViewsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ApplicationLiveViewsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ApplicationLiveViewsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ApplicationLiveViewsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ApplicationLiveViewsDeleteFuture.Result.
+func (future *ApplicationLiveViewsDeleteFuture) result(client ApplicationLiveViewsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.ApplicationLiveViewsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.ApplicationLiveViewsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // AppsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -2104,6 +3092,8 @@ type BuildResultProperties struct {
 	Name *string `json:"name,omitempty"`
 	// ProvisioningState - READ-ONLY; Provisioning state of the KPack build result. Possible values include: 'BuildResultProvisioningStateQueuing', 'BuildResultProvisioningStateBuilding', 'BuildResultProvisioningStateSucceeded', 'BuildResultProvisioningStateFailed', 'BuildResultProvisioningStateDeleting'
 	ProvisioningState BuildResultProvisioningState `json:"provisioningState,omitempty"`
+	// Error - Error when build is failed.
+	Error *Error `json:"error,omitempty"`
 	// BuildPodName - The build pod name which can be used to get the build log streaming.
 	BuildPodName *string `json:"buildPodName,omitempty"`
 	// BuildStages - READ-ONLY; All of the build stage (init-container and container) resources in build pod.
@@ -2115,6 +3105,9 @@ func (brp BuildResultProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if brp.Name != nil {
 		objectMap["name"] = brp.Name
+	}
+	if brp.Error != nil {
+		objectMap["error"] = brp.Error
 	}
 	if brp.BuildPodName != nil {
 		objectMap["buildPodName"] = brp.BuildPodName
@@ -2769,6 +3762,10 @@ type BuildStageProperties struct {
 	Name *string `json:"name,omitempty"`
 	// Status - READ-ONLY; The provisioning state of this build stage resource. Possible values include: 'KPackBuildStageProvisioningStateNotStarted', 'KPackBuildStageProvisioningStateRunning', 'KPackBuildStageProvisioningStateSucceeded', 'KPackBuildStageProvisioningStateFailed'
 	Status KPackBuildStageProvisioningState `json:"status,omitempty"`
+	// ExitCode - READ-ONLY; The exit code of this build init container.
+	ExitCode *string `json:"exitCode,omitempty"`
+	// Reason - READ-ONLY; The reason of this build init container.
+	Reason *string `json:"reason,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BuildStageProperties.
@@ -3088,7 +4085,7 @@ func (bblp BuildpackBindingLaunchProperties) MarshalJSON() ([]byte, error) {
 
 // BuildpackBindingProperties properties of a buildpack binding
 type BuildpackBindingProperties struct {
-	// BindingType - Buildpack Binding Type. Possible values include: 'BindingTypeApplicationInsights', 'BindingTypeApacheSkyWalking', 'BindingTypeAppDynamics', 'BindingTypeDynatrace', 'BindingTypeNewRelic', 'BindingTypeElasticAPM'
+	// BindingType - Buildpack Binding Type. Possible values include: 'BindingTypeApplicationInsights', 'BindingTypeApacheSkyWalking', 'BindingTypeAppDynamics', 'BindingTypeDynatrace', 'BindingTypeNewRelic', 'BindingTypeElasticAPM', 'BindingTypeCACertificates'
 	BindingType BindingType `json:"bindingType,omitempty"`
 	// ProvisioningState - READ-ONLY; State of the Buildpack Binding. Possible values include: 'BuildpackBindingProvisioningStateCreating', 'BuildpackBindingProvisioningStateUpdating', 'BuildpackBindingProvisioningStateSucceeded', 'BuildpackBindingProvisioningStateFailed', 'BuildpackBindingProvisioningStateDeleting'
 	ProvisioningState BuildpackBindingProvisioningState `json:"provisioningState,omitempty"`
@@ -5057,6 +6054,315 @@ func (cpdr *CustomPersistentDiskResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// CustomizedAcceleratorProperties customized accelerator properties payload
+type CustomizedAcceleratorProperties struct {
+	// ProvisioningState - READ-ONLY; State of the customized accelerator. Possible values include: 'CustomizedAcceleratorProvisioningStateCreating', 'CustomizedAcceleratorProvisioningStateUpdating', 'CustomizedAcceleratorProvisioningStateSucceeded', 'CustomizedAcceleratorProvisioningStateFailed', 'CustomizedAcceleratorProvisioningStateDeleting'
+	ProvisioningState CustomizedAcceleratorProvisioningState `json:"provisioningState,omitempty"`
+	DisplayName       *string                                `json:"displayName,omitempty"`
+	Description       *string                                `json:"description,omitempty"`
+	IconURL           *string                                `json:"iconUrl,omitempty"`
+	AcceleratorTags   *[]string                              `json:"acceleratorTags,omitempty"`
+	GitRepository     *AcceleratorGitRepository              `json:"gitRepository,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CustomizedAcceleratorProperties.
+func (capVar CustomizedAcceleratorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if capVar.DisplayName != nil {
+		objectMap["displayName"] = capVar.DisplayName
+	}
+	if capVar.Description != nil {
+		objectMap["description"] = capVar.Description
+	}
+	if capVar.IconURL != nil {
+		objectMap["iconUrl"] = capVar.IconURL
+	}
+	if capVar.AcceleratorTags != nil {
+		objectMap["acceleratorTags"] = capVar.AcceleratorTags
+	}
+	if capVar.GitRepository != nil {
+		objectMap["gitRepository"] = capVar.GitRepository
+	}
+	return json.Marshal(objectMap)
+}
+
+// CustomizedAcceleratorResource customized accelerator resource
+type CustomizedAcceleratorResource struct {
+	autorest.Response `json:"-"`
+	Properties        *CustomizedAcceleratorProperties `json:"properties,omitempty"`
+	// Sku - Sku of the customized accelerator resource
+	Sku *Sku `json:"sku,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CustomizedAcceleratorResource.
+func (car CustomizedAcceleratorResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if car.Properties != nil {
+		objectMap["properties"] = car.Properties
+	}
+	if car.Sku != nil {
+		objectMap["sku"] = car.Sku
+	}
+	if car.SystemData != nil {
+		objectMap["systemData"] = car.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// CustomizedAcceleratorResourceCollection ...
+type CustomizedAcceleratorResourceCollection struct {
+	autorest.Response `json:"-"`
+	Value             *[]CustomizedAcceleratorResource `json:"value,omitempty"`
+	NextLink          *string                          `json:"nextLink,omitempty"`
+}
+
+// CustomizedAcceleratorResourceCollectionIterator provides access to a complete listing of
+// CustomizedAcceleratorResource values.
+type CustomizedAcceleratorResourceCollectionIterator struct {
+	i    int
+	page CustomizedAcceleratorResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CustomizedAcceleratorResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomizedAcceleratorResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CustomizedAcceleratorResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CustomizedAcceleratorResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CustomizedAcceleratorResourceCollectionIterator) Response() CustomizedAcceleratorResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CustomizedAcceleratorResourceCollectionIterator) Value() CustomizedAcceleratorResource {
+	if !iter.page.NotDone() {
+		return CustomizedAcceleratorResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CustomizedAcceleratorResourceCollectionIterator type.
+func NewCustomizedAcceleratorResourceCollectionIterator(page CustomizedAcceleratorResourceCollectionPage) CustomizedAcceleratorResourceCollectionIterator {
+	return CustomizedAcceleratorResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (carc CustomizedAcceleratorResourceCollection) IsEmpty() bool {
+	return carc.Value == nil || len(*carc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (carc CustomizedAcceleratorResourceCollection) hasNextLink() bool {
+	return carc.NextLink != nil && len(*carc.NextLink) != 0
+}
+
+// customizedAcceleratorResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (carc CustomizedAcceleratorResourceCollection) customizedAcceleratorResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !carc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(carc.NextLink)))
+}
+
+// CustomizedAcceleratorResourceCollectionPage contains a page of CustomizedAcceleratorResource values.
+type CustomizedAcceleratorResourceCollectionPage struct {
+	fn   func(context.Context, CustomizedAcceleratorResourceCollection) (CustomizedAcceleratorResourceCollection, error)
+	carc CustomizedAcceleratorResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CustomizedAcceleratorResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomizedAcceleratorResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.carc)
+		if err != nil {
+			return err
+		}
+		page.carc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CustomizedAcceleratorResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CustomizedAcceleratorResourceCollectionPage) NotDone() bool {
+	return !page.carc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CustomizedAcceleratorResourceCollectionPage) Response() CustomizedAcceleratorResourceCollection {
+	return page.carc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CustomizedAcceleratorResourceCollectionPage) Values() []CustomizedAcceleratorResource {
+	if page.carc.IsEmpty() {
+		return nil
+	}
+	return *page.carc.Value
+}
+
+// Creates a new instance of the CustomizedAcceleratorResourceCollectionPage type.
+func NewCustomizedAcceleratorResourceCollectionPage(cur CustomizedAcceleratorResourceCollection, getNextPage func(context.Context, CustomizedAcceleratorResourceCollection) (CustomizedAcceleratorResourceCollection, error)) CustomizedAcceleratorResourceCollectionPage {
+	return CustomizedAcceleratorResourceCollectionPage{
+		fn:   getNextPage,
+		carc: cur,
+	}
+}
+
+// CustomizedAcceleratorValidateResult validation result for customized accelerator properties
+type CustomizedAcceleratorValidateResult struct {
+	autorest.Response `json:"-"`
+	// State - State of the customized accelerator validation result. Possible values include: 'CustomizedAcceleratorValidateResultStateValid', 'CustomizedAcceleratorValidateResultStateInvalid'
+	State CustomizedAcceleratorValidateResultState `json:"state,omitempty"`
+	// ErrorMessage - The detail validation results
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+}
+
+// CustomizedAcceleratorsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CustomizedAcceleratorsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomizedAcceleratorsClient) (CustomizedAcceleratorResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CustomizedAcceleratorsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CustomizedAcceleratorsCreateOrUpdateFuture.Result.
+func (future *CustomizedAcceleratorsCreateOrUpdateFuture) result(client CustomizedAcceleratorsClient) (car CustomizedAcceleratorResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.CustomizedAcceleratorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		car.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.CustomizedAcceleratorsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if car.Response.Response, err = future.GetResult(sender); err == nil && car.Response.Response.StatusCode != http.StatusNoContent {
+		car, err = client.CreateOrUpdateResponder(car.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.CustomizedAcceleratorsCreateOrUpdateFuture", "Result", car.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CustomizedAcceleratorsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CustomizedAcceleratorsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomizedAcceleratorsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CustomizedAcceleratorsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CustomizedAcceleratorsDeleteFuture.Result.
+func (future *CustomizedAcceleratorsDeleteFuture) result(client CustomizedAcceleratorsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.CustomizedAcceleratorsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.CustomizedAcceleratorsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // DeploymentInstance deployment instance payload
 type DeploymentInstance struct {
 	// Name - READ-ONLY; Name of the deployment instance
@@ -5855,6 +7161,376 @@ func (future *DeploymentsUpdateFuture) result(client DeploymentsClient) (dr Depl
 	return
 }
 
+// DevToolPortalFeatureDetail detail settings for Dev Tool Portal feature
+type DevToolPortalFeatureDetail struct {
+	// State - State of the plugin. Possible values include: 'DevToolPortalFeatureStateEnabled', 'DevToolPortalFeatureStateDisabled'
+	State DevToolPortalFeatureState `json:"state,omitempty"`
+	// Route - READ-ONLY; Route path to visit the plugin
+	Route *string `json:"route,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DevToolPortalFeatureDetail.
+func (dtpfd DevToolPortalFeatureDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dtpfd.State != "" {
+		objectMap["state"] = dtpfd.State
+	}
+	return json.Marshal(objectMap)
+}
+
+// DevToolPortalFeatureSettings settings for Dev Tool Portal
+type DevToolPortalFeatureSettings struct {
+	// ApplicationAccelerator - Detail of Accelerator plugin
+	ApplicationAccelerator *DevToolPortalFeatureDetail `json:"applicationAccelerator,omitempty"`
+	// ApplicationLiveView - Detail of App Live View plugin
+	ApplicationLiveView *DevToolPortalFeatureDetail `json:"applicationLiveView,omitempty"`
+}
+
+// DevToolPortalInstance collection of instances belong to the Dev Tool Portal.
+type DevToolPortalInstance struct {
+	// Name - READ-ONLY; Name of the Dev Tool Portal instance.
+	Name *string `json:"name,omitempty"`
+	// Status - READ-ONLY; Status of the Dev Tool Portal instance. It can be Pending, Running, Succeeded, Failed, Unknown.
+	Status *string `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DevToolPortalInstance.
+func (dtpi DevToolPortalInstance) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// DevToolPortalProperties dev Tool Portal properties payload
+type DevToolPortalProperties struct {
+	// ProvisioningState - READ-ONLY; State of the Dev Tool Portal. Possible values include: 'DevToolPortalProvisioningStateCreating', 'DevToolPortalProvisioningStateUpdating', 'DevToolPortalProvisioningStateSucceeded', 'DevToolPortalProvisioningStateFailed', 'DevToolPortalProvisioningStateDeleting', 'DevToolPortalProvisioningStateCanceled'
+	ProvisioningState DevToolPortalProvisioningState `json:"provisioningState,omitempty"`
+	// ResourceRequests - The requested resource quantity for required CPU and Memory.
+	ResourceRequests *DevToolPortalResourceRequests `json:"resourceRequests,omitempty"`
+	// Instances - READ-ONLY; Collection of instances belong to Dev Tool Portal.
+	Instances *[]DevToolPortalInstance `json:"instances,omitempty"`
+	// Public - Indicates whether the resource exposes public endpoint
+	Public *bool `json:"public,omitempty"`
+	// URL - READ-ONLY; URL of the resource, exposed when 'public' is true.
+	URL *string `json:"url,omitempty"`
+	// SsoProperties - Single sign-on related configuration
+	SsoProperties *DevToolPortalSsoProperties `json:"ssoProperties,omitempty"`
+	// Features - Settings for Dev Tool Portal
+	Features *DevToolPortalFeatureSettings `json:"features,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DevToolPortalProperties.
+func (dtpp DevToolPortalProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dtpp.ResourceRequests != nil {
+		objectMap["resourceRequests"] = dtpp.ResourceRequests
+	}
+	if dtpp.Public != nil {
+		objectMap["public"] = dtpp.Public
+	}
+	if dtpp.SsoProperties != nil {
+		objectMap["ssoProperties"] = dtpp.SsoProperties
+	}
+	if dtpp.Features != nil {
+		objectMap["features"] = dtpp.Features
+	}
+	return json.Marshal(objectMap)
+}
+
+// DevToolPortalResource dev Tool Portal resource
+type DevToolPortalResource struct {
+	autorest.Response `json:"-"`
+	Properties        *DevToolPortalProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DevToolPortalResource.
+func (dtpr DevToolPortalResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dtpr.Properties != nil {
+		objectMap["properties"] = dtpr.Properties
+	}
+	if dtpr.SystemData != nil {
+		objectMap["systemData"] = dtpr.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// DevToolPortalResourceCollection object that includes an array of Dev Tool Portal resources and a
+// possible link for next set
+type DevToolPortalResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of Dev Tool Portal resources
+	Value *[]DevToolPortalResource `json:"value,omitempty"`
+	// NextLink - URL client should use to fetch the next page (per server side paging).
+	// It's null for now, added for future use.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DevToolPortalResourceCollectionIterator provides access to a complete listing of DevToolPortalResource
+// values.
+type DevToolPortalResourceCollectionIterator struct {
+	i    int
+	page DevToolPortalResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DevToolPortalResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DevToolPortalResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DevToolPortalResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DevToolPortalResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DevToolPortalResourceCollectionIterator) Response() DevToolPortalResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DevToolPortalResourceCollectionIterator) Value() DevToolPortalResource {
+	if !iter.page.NotDone() {
+		return DevToolPortalResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DevToolPortalResourceCollectionIterator type.
+func NewDevToolPortalResourceCollectionIterator(page DevToolPortalResourceCollectionPage) DevToolPortalResourceCollectionIterator {
+	return DevToolPortalResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dtprc DevToolPortalResourceCollection) IsEmpty() bool {
+	return dtprc.Value == nil || len(*dtprc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (dtprc DevToolPortalResourceCollection) hasNextLink() bool {
+	return dtprc.NextLink != nil && len(*dtprc.NextLink) != 0
+}
+
+// devToolPortalResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dtprc DevToolPortalResourceCollection) devToolPortalResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !dtprc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dtprc.NextLink)))
+}
+
+// DevToolPortalResourceCollectionPage contains a page of DevToolPortalResource values.
+type DevToolPortalResourceCollectionPage struct {
+	fn    func(context.Context, DevToolPortalResourceCollection) (DevToolPortalResourceCollection, error)
+	dtprc DevToolPortalResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DevToolPortalResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DevToolPortalResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.dtprc)
+		if err != nil {
+			return err
+		}
+		page.dtprc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DevToolPortalResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DevToolPortalResourceCollectionPage) NotDone() bool {
+	return !page.dtprc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DevToolPortalResourceCollectionPage) Response() DevToolPortalResourceCollection {
+	return page.dtprc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DevToolPortalResourceCollectionPage) Values() []DevToolPortalResource {
+	if page.dtprc.IsEmpty() {
+		return nil
+	}
+	return *page.dtprc.Value
+}
+
+// Creates a new instance of the DevToolPortalResourceCollectionPage type.
+func NewDevToolPortalResourceCollectionPage(cur DevToolPortalResourceCollection, getNextPage func(context.Context, DevToolPortalResourceCollection) (DevToolPortalResourceCollection, error)) DevToolPortalResourceCollectionPage {
+	return DevToolPortalResourceCollectionPage{
+		fn:    getNextPage,
+		dtprc: cur,
+	}
+}
+
+// DevToolPortalResourceRequests the resource quantity for required CPU and Memory of Dev Tool Portal
+type DevToolPortalResourceRequests struct {
+	// CPU - READ-ONLY; Cpu quantity allocated to each Dev Tool Portal instance. 1 core can be represented by 1 or 1000m
+	CPU *string `json:"cpu,omitempty"`
+	// Memory - READ-ONLY; Memory quantity allocated to each Dev Tool Portal instance. 1 GB can be represented by 1Gi or 1024Mi.
+	Memory *string `json:"memory,omitempty"`
+	// InstanceCount - READ-ONLY; Desired instance count of Dev Tool Portal.
+	InstanceCount *int32 `json:"instanceCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DevToolPortalResourceRequests.
+func (dtprr DevToolPortalResourceRequests) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// DevToolPortalSsoProperties single sign-on related configuration
+type DevToolPortalSsoProperties struct {
+	// Scopes - It defines the specific actions applications can be allowed to do on a user's behalf
+	Scopes *[]string `json:"scopes,omitempty"`
+	// ClientID - The public identifier for the application
+	ClientID *string `json:"clientId,omitempty"`
+	// ClientSecret - The secret known only to the application and the authorization server
+	ClientSecret *string `json:"clientSecret,omitempty"`
+	// MetadataURL - The URI of a JSON file with generic OIDC provider configuration.
+	MetadataURL *string `json:"metadataUrl,omitempty"`
+}
+
+// DevToolPortalsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DevToolPortalsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DevToolPortalsClient) (DevToolPortalResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DevToolPortalsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DevToolPortalsCreateOrUpdateFuture.Result.
+func (future *DevToolPortalsCreateOrUpdateFuture) result(client DevToolPortalsClient) (dtpr DevToolPortalResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DevToolPortalsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		dtpr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.DevToolPortalsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if dtpr.Response.Response, err = future.GetResult(sender); err == nil && dtpr.Response.Response.StatusCode != http.StatusNoContent {
+		dtpr, err = client.CreateOrUpdateResponder(dtpr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.DevToolPortalsCreateOrUpdateFuture", "Result", dtpr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DevToolPortalsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DevToolPortalsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DevToolPortalsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DevToolPortalsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DevToolPortalsDeleteFuture.Result.
+func (future *DevToolPortalsDeleteFuture) result(client DevToolPortalsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.DevToolPortalsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.DevToolPortalsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // DiagnosticParameters diagnostic parameters of diagnostic operations
 type DiagnosticParameters struct {
 	// AppInstance - App instance name
@@ -6304,6 +7980,10 @@ type GatewayProperties struct {
 	SsoProperties         *SsoProperties                `json:"ssoProperties,omitempty"`
 	APIMetadataProperties *GatewayAPIMetadataProperties `json:"apiMetadataProperties,omitempty"`
 	CorsProperties        *GatewayCorsProperties        `json:"corsProperties,omitempty"`
+	// ApmTypes - Collection of APM type used in Spring Cloud Gateway
+	ApmTypes *[]ApmType `json:"apmTypes,omitempty"`
+	// EnvironmentVariables - Environment variables of Spring Cloud Gateway
+	EnvironmentVariables *GatewayPropertiesEnvironmentVariables `json:"environmentVariables,omitempty"`
 	// ResourceRequests - The requested resource quantity for required CPU and Memory.
 	ResourceRequests *GatewayResourceRequests `json:"resourceRequests,omitempty"`
 	// Instances - READ-ONLY; Collection of instances belong to Spring Cloud Gateway.
@@ -6330,8 +8010,34 @@ func (gp GatewayProperties) MarshalJSON() ([]byte, error) {
 	if gp.CorsProperties != nil {
 		objectMap["corsProperties"] = gp.CorsProperties
 	}
+	if gp.ApmTypes != nil {
+		objectMap["apmTypes"] = gp.ApmTypes
+	}
+	if gp.EnvironmentVariables != nil {
+		objectMap["environmentVariables"] = gp.EnvironmentVariables
+	}
 	if gp.ResourceRequests != nil {
 		objectMap["resourceRequests"] = gp.ResourceRequests
+	}
+	return json.Marshal(objectMap)
+}
+
+// GatewayPropertiesEnvironmentVariables environment variables of Spring Cloud Gateway
+type GatewayPropertiesEnvironmentVariables struct {
+	// Properties - Non-sensitive properties
+	Properties map[string]*string `json:"properties"`
+	// Secrets - Sensitive properties
+	Secrets map[string]*string `json:"secrets"`
+}
+
+// MarshalJSON is the custom marshaler for GatewayPropertiesEnvironmentVariables.
+func (gpV GatewayPropertiesEnvironmentVariables) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gpV.Properties != nil {
+		objectMap["properties"] = gpV.Properties
+	}
+	if gpV.Secrets != nil {
+		objectMap["secrets"] = gpV.Secrets
 	}
 	return json.Marshal(objectMap)
 }
@@ -6552,6 +8258,12 @@ type GatewayRouteConfigProperties struct {
 	Protocol GatewayRouteConfigProtocol `json:"protocol,omitempty"`
 	// Routes - Array of API routes, each route contains properties such as `title`, `uri`, `ssoEnabled`, `predicates`, `filters`.
 	Routes *[]GatewayAPIRoute `json:"routes,omitempty"`
+	// SsoEnabled - Enable Single Sign-On in app level.
+	SsoEnabled *bool `json:"ssoEnabled,omitempty"`
+	// Predicates - A number of conditions to evaluate a route for each request in app level. Each predicate may be evaluated against request headers and parameter values. All of the predicates associated with a route must evaluate to true for the route to be matched to the request.
+	Predicates *[]string `json:"predicates,omitempty"`
+	// Filters - To modify the request before sending it to the target endpoint, or the received response in app level.
+	Filters *[]string `json:"filters,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for GatewayRouteConfigProperties.
@@ -6568,6 +8280,15 @@ func (grcp GatewayRouteConfigProperties) MarshalJSON() ([]byte, error) {
 	}
 	if grcp.Routes != nil {
 		objectMap["routes"] = grcp.Routes
+	}
+	if grcp.SsoEnabled != nil {
+		objectMap["ssoEnabled"] = grcp.SsoEnabled
+	}
+	if grcp.Predicates != nil {
+		objectMap["predicates"] = grcp.Predicates
+	}
+	if grcp.Filters != nil {
+		objectMap["filters"] = grcp.Filters
 	}
 	return json.Marshal(objectMap)
 }
@@ -7674,6 +9395,293 @@ func (pd PersistentDisk) MarshalJSON() ([]byte, error) {
 		objectMap["mountPath"] = pd.MountPath
 	}
 	return json.Marshal(objectMap)
+}
+
+// PredefinedAcceleratorProperties predefined accelerator properties payload
+type PredefinedAcceleratorProperties struct {
+	// ProvisioningState - READ-ONLY; Provisioning state of the predefined accelerator. Possible values include: 'PredefinedAcceleratorProvisioningStateCreating', 'PredefinedAcceleratorProvisioningStateUpdating', 'PredefinedAcceleratorProvisioningStateSucceeded', 'PredefinedAcceleratorProvisioningStateFailed'
+	ProvisioningState PredefinedAcceleratorProvisioningState `json:"provisioningState,omitempty"`
+	// DisplayName - READ-ONLY
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - READ-ONLY
+	Description *string `json:"description,omitempty"`
+	// IconURL - READ-ONLY
+	IconURL *string `json:"iconUrl,omitempty"`
+	// AcceleratorTags - READ-ONLY
+	AcceleratorTags *[]string `json:"acceleratorTags,omitempty"`
+	// State - State of the predefined accelerator. Possible values include: 'PredefinedAcceleratorStateEnabled', 'PredefinedAcceleratorStateDisabled'
+	State PredefinedAcceleratorState `json:"state,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PredefinedAcceleratorProperties.
+func (pap PredefinedAcceleratorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pap.State != "" {
+		objectMap["state"] = pap.State
+	}
+	return json.Marshal(objectMap)
+}
+
+// PredefinedAcceleratorResource predefined accelerator resource
+type PredefinedAcceleratorResource struct {
+	autorest.Response `json:"-"`
+	Properties        *PredefinedAcceleratorProperties `json:"properties,omitempty"`
+	// Sku - Sku of the predefined accelerator resource
+	Sku *Sku `json:"sku,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PredefinedAcceleratorResource.
+func (par PredefinedAcceleratorResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if par.Properties != nil {
+		objectMap["properties"] = par.Properties
+	}
+	if par.Sku != nil {
+		objectMap["sku"] = par.Sku
+	}
+	if par.SystemData != nil {
+		objectMap["systemData"] = par.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// PredefinedAcceleratorResourceCollection ...
+type PredefinedAcceleratorResourceCollection struct {
+	autorest.Response `json:"-"`
+	Value             *[]PredefinedAcceleratorResource `json:"value,omitempty"`
+	NextLink          *string                          `json:"nextLink,omitempty"`
+}
+
+// PredefinedAcceleratorResourceCollectionIterator provides access to a complete listing of
+// PredefinedAcceleratorResource values.
+type PredefinedAcceleratorResourceCollectionIterator struct {
+	i    int
+	page PredefinedAcceleratorResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PredefinedAcceleratorResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PredefinedAcceleratorResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PredefinedAcceleratorResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PredefinedAcceleratorResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PredefinedAcceleratorResourceCollectionIterator) Response() PredefinedAcceleratorResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PredefinedAcceleratorResourceCollectionIterator) Value() PredefinedAcceleratorResource {
+	if !iter.page.NotDone() {
+		return PredefinedAcceleratorResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PredefinedAcceleratorResourceCollectionIterator type.
+func NewPredefinedAcceleratorResourceCollectionIterator(page PredefinedAcceleratorResourceCollectionPage) PredefinedAcceleratorResourceCollectionIterator {
+	return PredefinedAcceleratorResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (parc PredefinedAcceleratorResourceCollection) IsEmpty() bool {
+	return parc.Value == nil || len(*parc.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (parc PredefinedAcceleratorResourceCollection) hasNextLink() bool {
+	return parc.NextLink != nil && len(*parc.NextLink) != 0
+}
+
+// predefinedAcceleratorResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (parc PredefinedAcceleratorResourceCollection) predefinedAcceleratorResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !parc.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(parc.NextLink)))
+}
+
+// PredefinedAcceleratorResourceCollectionPage contains a page of PredefinedAcceleratorResource values.
+type PredefinedAcceleratorResourceCollectionPage struct {
+	fn   func(context.Context, PredefinedAcceleratorResourceCollection) (PredefinedAcceleratorResourceCollection, error)
+	parc PredefinedAcceleratorResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PredefinedAcceleratorResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PredefinedAcceleratorResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.parc)
+		if err != nil {
+			return err
+		}
+		page.parc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PredefinedAcceleratorResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PredefinedAcceleratorResourceCollectionPage) NotDone() bool {
+	return !page.parc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PredefinedAcceleratorResourceCollectionPage) Response() PredefinedAcceleratorResourceCollection {
+	return page.parc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PredefinedAcceleratorResourceCollectionPage) Values() []PredefinedAcceleratorResource {
+	if page.parc.IsEmpty() {
+		return nil
+	}
+	return *page.parc.Value
+}
+
+// Creates a new instance of the PredefinedAcceleratorResourceCollectionPage type.
+func NewPredefinedAcceleratorResourceCollectionPage(cur PredefinedAcceleratorResourceCollection, getNextPage func(context.Context, PredefinedAcceleratorResourceCollection) (PredefinedAcceleratorResourceCollection, error)) PredefinedAcceleratorResourceCollectionPage {
+	return PredefinedAcceleratorResourceCollectionPage{
+		fn:   getNextPage,
+		parc: cur,
+	}
+}
+
+// PredefinedAcceleratorsDisableFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PredefinedAcceleratorsDisableFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PredefinedAcceleratorsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *PredefinedAcceleratorsDisableFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for PredefinedAcceleratorsDisableFuture.Result.
+func (future *PredefinedAcceleratorsDisableFuture) result(client PredefinedAcceleratorsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.PredefinedAcceleratorsDisableFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.PredefinedAcceleratorsDisableFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// PredefinedAcceleratorsEnableFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PredefinedAcceleratorsEnableFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PredefinedAcceleratorsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *PredefinedAcceleratorsEnableFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for PredefinedAcceleratorsEnableFuture.Result.
+func (future *PredefinedAcceleratorsEnableFuture) result(client PredefinedAcceleratorsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appplatform.PredefinedAcceleratorsEnableFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("appplatform.PredefinedAcceleratorsEnableFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // Probe probe describes a health check to be performed against an App Instance to determine whether it is
@@ -8919,6 +10927,21 @@ func (future *ServicesUpdateFuture) result(client ServicesClient) (sr ServiceRes
 		}
 	}
 	return
+}
+
+// SetString ...
+type SetString struct {
+	autorest.Response `json:"-"`
+	Value             map[string]*string `json:"value"`
+}
+
+// MarshalJSON is the custom marshaler for SetString.
+func (ss SetString) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ss.Value != nil {
+		objectMap["value"] = ss.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // Sku sku of Azure Spring Apps
