@@ -7,6 +7,6 @@ type VerificationCodeResponse struct {
 	Etag       *string                             `json:"etag,omitempty"`
 	Id         *string                             `json:"id,omitempty"`
 	Name       *string                             `json:"name,omitempty"`
-	Properties *VerificationCodeResponseProperties `json:"properties,omitempty"`
+	Properties *VerificationCodeResponseProperties `json:"properties"`
 	Type       *string                             `json:"type,omitempty"`
 }

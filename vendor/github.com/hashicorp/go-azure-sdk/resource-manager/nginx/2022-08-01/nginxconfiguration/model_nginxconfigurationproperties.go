@@ -5,7 +5,7 @@ package nginxconfiguration
 
 type NginxConfigurationProperties struct {
 	Files             *[]NginxConfigurationFile  `json:"files,omitempty"`
-	Package           *NginxConfigurationPackage `json:"package,omitempty"`
+	Package           *NginxConfigurationPackage `json:"package"`
 	ProtectedFiles    *[]NginxConfigurationFile  `json:"protectedFiles,omitempty"`
 	ProvisioningState *ProvisioningState         `json:"provisioningState,omitempty"`
 	RootFile          *string                    `json:"rootFile,omitempty"`

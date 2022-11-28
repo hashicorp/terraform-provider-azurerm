@@ -10,7 +10,7 @@ import (
 type MonitoringTagRules struct {
 	Id         *string                       `json:"id,omitempty"`
 	Name       *string                       `json:"name,omitempty"`
-	Properties *MonitoringTagRulesProperties `json:"properties,omitempty"`
+	Properties *MonitoringTagRulesProperties `json:"properties"`
 	SystemData *systemdata.SystemData        `json:"systemData,omitempty"`
 	Type       *string                       `json:"type,omitempty"`
 }

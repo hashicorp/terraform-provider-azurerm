@@ -13,7 +13,7 @@ var _ RestoreTargetInfoBase = ItemLevelRestoreTargetInfo{}
 type ItemLevelRestoreTargetInfo struct {
 	DatasourceAuthCredentials AuthCredentials            `json:"datasourceAuthCredentials"`
 	DatasourceInfo            Datasource                 `json:"datasourceInfo"`
-	DatasourceSetInfo         *DatasourceSet             `json:"datasourceSetInfo,omitempty"`
+	DatasourceSetInfo         *DatasourceSet             `json:"datasourceSetInfo"`
 	RestoreCriteria           []ItemLevelRestoreCriteria `json:"restoreCriteria"`
 
 	// Fields inherited from RestoreTargetInfoBase

@@ -7,20 +7,20 @@ type ComputeInstanceProperties struct {
 	ApplicationSharingPolicy         *ApplicationSharingPolicy             `json:"applicationSharingPolicy,omitempty"`
 	Applications                     *[]ComputeInstanceApplication         `json:"applications,omitempty"`
 	ComputeInstanceAuthorizationType *ComputeInstanceAuthorizationType     `json:"computeInstanceAuthorizationType,omitempty"`
-	ConnectivityEndpoints            *ComputeInstanceConnectivityEndpoints `json:"connectivityEndpoints,omitempty"`
+	ConnectivityEndpoints            *ComputeInstanceConnectivityEndpoints `json:"connectivityEndpoints"`
 	Containers                       *[]ComputeInstanceContainer           `json:"containers,omitempty"`
-	CreatedBy                        *ComputeInstanceCreatedBy             `json:"createdBy,omitempty"`
+	CreatedBy                        *ComputeInstanceCreatedBy             `json:"createdBy"`
 	DataDisks                        *[]ComputeInstanceDataDisk            `json:"dataDisks,omitempty"`
 	DataMounts                       *[]ComputeInstanceDataMount           `json:"dataMounts,omitempty"`
 	EnableNodePublicIP               *bool                                 `json:"enableNodePublicIp,omitempty"`
 	Errors                           *[]ErrorResponse                      `json:"errors,omitempty"`
-	LastOperation                    *ComputeInstanceLastOperation         `json:"lastOperation,omitempty"`
-	PersonalComputeInstanceSettings  *PersonalComputeInstanceSettings      `json:"personalComputeInstanceSettings,omitempty"`
-	Schedules                        *ComputeSchedules                     `json:"schedules,omitempty"`
-	SetupScripts                     *SetupScripts                         `json:"setupScripts,omitempty"`
-	SshSettings                      *ComputeInstanceSshSettings           `json:"sshSettings,omitempty"`
+	LastOperation                    *ComputeInstanceLastOperation         `json:"lastOperation"`
+	PersonalComputeInstanceSettings  *PersonalComputeInstanceSettings      `json:"personalComputeInstanceSettings"`
+	Schedules                        *ComputeSchedules                     `json:"schedules"`
+	SetupScripts                     *SetupScripts                         `json:"setupScripts"`
+	SshSettings                      *ComputeInstanceSshSettings           `json:"sshSettings"`
 	State                            *ComputeInstanceState                 `json:"state,omitempty"`
-	Subnet                           *ResourceId                           `json:"subnet,omitempty"`
-	Versions                         *ComputeInstanceVersion               `json:"versions,omitempty"`
+	Subnet                           *ResourceId                           `json:"subnet"`
+	Versions                         *ComputeInstanceVersion               `json:"versions"`
 	VmSize                           *string                               `json:"vmSize,omitempty"`
 }

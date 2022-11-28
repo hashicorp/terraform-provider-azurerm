@@ -14,7 +14,7 @@ type LiveOutputProperties struct {
 	AssetName           string                   `json:"assetName"`
 	Created             *string                  `json:"created,omitempty"`
 	Description         *string                  `json:"description,omitempty"`
-	Hls                 *Hls                     `json:"hls,omitempty"`
+	Hls                 *Hls                     `json:"hls"`
 	LastModified        *string                  `json:"lastModified,omitempty"`
 	ManifestName        *string                  `json:"manifestName,omitempty"`
 	OutputSnapTime      *int64                   `json:"outputSnapTime,omitempty"`

@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type MongoIndex struct {
-	Key     *MongoIndexKeys    `json:"key,omitempty"`
-	Options *MongoIndexOptions `json:"options,omitempty"`
+	Key     *MongoIndexKeys    `json:"key"`
+	Options *MongoIndexOptions `json:"options"`
 }

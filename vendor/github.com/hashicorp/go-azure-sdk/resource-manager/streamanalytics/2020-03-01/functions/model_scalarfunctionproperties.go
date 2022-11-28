@@ -14,7 +14,7 @@ type ScalarFunctionProperties struct {
 
 	// Fields inherited from FunctionProperties
 	Etag       *string                `json:"etag,omitempty"`
-	Properties *FunctionConfiguration `json:"properties,omitempty"`
+	Properties *FunctionConfiguration `json:"properties"`
 }
 
 var _ json.Marshaler = ScalarFunctionProperties{}

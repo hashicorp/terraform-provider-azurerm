@@ -4,5 +4,5 @@ package dns
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DnsResourceReferenceRequest struct {
-	Properties *DnsResourceReferenceRequestProperties `json:"properties,omitempty"`
+	Properties *DnsResourceReferenceRequestProperties `json:"properties"`
 }

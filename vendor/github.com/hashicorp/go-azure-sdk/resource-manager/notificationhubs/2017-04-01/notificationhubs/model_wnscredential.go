@@ -4,5 +4,5 @@ package notificationhubs
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WnsCredential struct {
-	Properties *WnsCredentialProperties `json:"properties,omitempty"`
+	Properties *WnsCredentialProperties `json:"properties"`
 }

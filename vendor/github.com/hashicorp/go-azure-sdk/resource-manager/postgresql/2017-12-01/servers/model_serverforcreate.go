@@ -14,7 +14,7 @@ type ServerForCreate struct {
 	Identity   *identity.SystemAssigned  `json:"identity,omitempty"`
 	Location   string                    `json:"location"`
 	Properties ServerPropertiesForCreate `json:"properties"`
-	Sku        *Sku                      `json:"sku,omitempty"`
+	Sku        *Sku                      `json:"sku"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 }
 

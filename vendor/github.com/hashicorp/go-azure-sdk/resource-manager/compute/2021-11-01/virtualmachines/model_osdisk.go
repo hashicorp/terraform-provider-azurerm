@@ -7,13 +7,13 @@ type OSDisk struct {
 	Caching                 *CachingTypes           `json:"caching,omitempty"`
 	CreateOption            DiskCreateOptionTypes   `json:"createOption"`
 	DeleteOption            *DiskDeleteOptionTypes  `json:"deleteOption,omitempty"`
-	DiffDiskSettings        *DiffDiskSettings       `json:"diffDiskSettings,omitempty"`
+	DiffDiskSettings        *DiffDiskSettings       `json:"diffDiskSettings"`
 	DiskSizeGB              *int64                  `json:"diskSizeGB,omitempty"`
-	EncryptionSettings      *DiskEncryptionSettings `json:"encryptionSettings,omitempty"`
-	Image                   *VirtualHardDisk        `json:"image,omitempty"`
-	ManagedDisk             *ManagedDiskParameters  `json:"managedDisk,omitempty"`
+	EncryptionSettings      *DiskEncryptionSettings `json:"encryptionSettings"`
+	Image                   *VirtualHardDisk        `json:"image"`
+	ManagedDisk             *ManagedDiskParameters  `json:"managedDisk"`
 	Name                    *string                 `json:"name,omitempty"`
 	OsType                  *OperatingSystemTypes   `json:"osType,omitempty"`
-	Vhd                     *VirtualHardDisk        `json:"vhd,omitempty"`
+	Vhd                     *VirtualHardDisk        `json:"vhd"`
 	WriteAcceleratorEnabled *bool                   `json:"writeAcceleratorEnabled,omitempty"`
 }

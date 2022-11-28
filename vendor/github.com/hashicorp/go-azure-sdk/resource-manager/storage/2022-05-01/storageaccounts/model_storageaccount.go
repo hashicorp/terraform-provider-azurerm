@@ -15,8 +15,8 @@ type StorageAccount struct {
 	Kind             *Kind                                    `json:"kind,omitempty"`
 	Location         string                                   `json:"location"`
 	Name             *string                                  `json:"name,omitempty"`
-	Properties       *StorageAccountProperties                `json:"properties,omitempty"`
-	Sku              *Sku                                     `json:"sku,omitempty"`
+	Properties       *StorageAccountProperties                `json:"properties"`
+	Sku              *Sku                                     `json:"sku"`
 	Tags             *map[string]string                       `json:"tags,omitempty"`
 	Type             *string                                  `json:"type,omitempty"`
 }

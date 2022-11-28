@@ -4,5 +4,5 @@ package nginxdeployment
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NginxLogging struct {
-	StorageAccount *NginxStorageAccount `json:"storageAccount,omitempty"`
+	StorageAccount *NginxStorageAccount `json:"storageAccount"`
 }

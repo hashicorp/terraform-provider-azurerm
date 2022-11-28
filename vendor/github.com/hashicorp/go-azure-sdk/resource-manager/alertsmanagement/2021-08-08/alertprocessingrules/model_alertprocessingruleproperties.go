@@ -13,7 +13,7 @@ type AlertProcessingRuleProperties struct {
 	Conditions  *[]Condition `json:"conditions,omitempty"`
 	Description *string      `json:"description,omitempty"`
 	Enabled     *bool        `json:"enabled,omitempty"`
-	Schedule    *Schedule    `json:"schedule,omitempty"`
+	Schedule    *Schedule    `json:"schedule"`
 	Scopes      []string     `json:"scopes"`
 }
 

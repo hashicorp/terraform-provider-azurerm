@@ -4,5 +4,5 @@ package containerinstance
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ContainerGroupDiagnostics struct {
-	LogAnalytics *LogAnalytics `json:"logAnalytics,omitempty"`
+	LogAnalytics *LogAnalytics `json:"logAnalytics"`
 }

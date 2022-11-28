@@ -4,7 +4,7 @@ package connections
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ConnectionStatusDefinition struct {
-	Error  *ConnectionError `json:"error,omitempty"`
+	Error  *ConnectionError `json:"error"`
 	Status *string          `json:"status,omitempty"`
 	Target *string          `json:"target,omitempty"`
 }

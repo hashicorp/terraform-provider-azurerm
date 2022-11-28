@@ -6,6 +6,6 @@ package redisenterprise
 type Database struct {
 	Id         *string             `json:"id,omitempty"`
 	Name       *string             `json:"name,omitempty"`
-	Properties *DatabaseProperties `json:"properties,omitempty"`
+	Properties *DatabaseProperties `json:"properties"`
 	Type       *string             `json:"type,omitempty"`
 }

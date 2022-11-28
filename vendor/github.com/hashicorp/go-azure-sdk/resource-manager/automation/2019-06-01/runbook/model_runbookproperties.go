@@ -12,7 +12,7 @@ import (
 type RunbookProperties struct {
 	CreationTime       *string                      `json:"creationTime,omitempty"`
 	Description        *string                      `json:"description,omitempty"`
-	Draft              *RunbookDraft                `json:"draft,omitempty"`
+	Draft              *RunbookDraft                `json:"draft"`
 	JobCount           *int64                       `json:"jobCount,omitempty"`
 	LastModifiedBy     *string                      `json:"lastModifiedBy,omitempty"`
 	LastModifiedTime   *string                      `json:"lastModifiedTime,omitempty"`
@@ -22,7 +22,7 @@ type RunbookProperties struct {
 	OutputTypes        *[]string                    `json:"outputTypes,omitempty"`
 	Parameters         *map[string]RunbookParameter `json:"parameters,omitempty"`
 	ProvisioningState  *RunbookProvisioningState    `json:"provisioningState,omitempty"`
-	PublishContentLink *ContentLink                 `json:"publishContentLink,omitempty"`
+	PublishContentLink *ContentLink                 `json:"publishContentLink"`
 	RunbookType        *RunbookTypeEnum             `json:"runbookType,omitempty"`
 	State              *RunbookState                `json:"state,omitempty"`
 }

@@ -4,7 +4,7 @@ package managedclustersnapshots
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterSnapshotProperties struct {
-	CreationData                     *CreationData                        `json:"creationData,omitempty"`
-	ManagedClusterPropertiesReadOnly *ManagedClusterPropertiesForSnapshot `json:"managedClusterPropertiesReadOnly,omitempty"`
+	CreationData                     *CreationData                        `json:"creationData"`
+	ManagedClusterPropertiesReadOnly *ManagedClusterPropertiesForSnapshot `json:"managedClusterPropertiesReadOnly"`
 	SnapshotType                     *SnapshotType                        `json:"snapshotType,omitempty"`
 }

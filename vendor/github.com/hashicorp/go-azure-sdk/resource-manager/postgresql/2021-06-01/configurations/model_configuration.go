@@ -10,7 +10,7 @@ import (
 type Configuration struct {
 	Id         *string                  `json:"id,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *ConfigurationProperties `json:"properties,omitempty"`
+	Properties *ConfigurationProperties `json:"properties"`
 	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
 	Type       *string                  `json:"type,omitempty"`
 }

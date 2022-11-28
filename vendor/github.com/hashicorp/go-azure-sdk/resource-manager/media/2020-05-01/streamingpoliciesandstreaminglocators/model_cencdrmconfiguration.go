@@ -4,6 +4,6 @@ package streamingpoliciesandstreaminglocators
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CencDrmConfiguration struct {
-	PlayReady *StreamingPolicyPlayReadyConfiguration `json:"playReady,omitempty"`
-	Widevine  *StreamingPolicyWidevineConfiguration  `json:"widevine,omitempty"`
+	PlayReady *StreamingPolicyPlayReadyConfiguration `json:"playReady"`
+	Widevine  *StreamingPolicyWidevineConfiguration  `json:"widevine"`
 }

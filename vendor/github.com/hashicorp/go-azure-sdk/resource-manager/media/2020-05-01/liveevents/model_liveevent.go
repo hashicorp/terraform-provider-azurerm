@@ -11,7 +11,7 @@ type LiveEvent struct {
 	Id         *string                `json:"id,omitempty"`
 	Location   string                 `json:"location"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *LiveEventProperties   `json:"properties,omitempty"`
+	Properties *LiveEventProperties   `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Tags       *map[string]string     `json:"tags,omitempty"`
 	Type       *string                `json:"type,omitempty"`

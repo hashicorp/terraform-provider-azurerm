@@ -5,6 +5,6 @@ package machinelearningcomputes
 
 type HDInsightProperties struct {
 	Address              *string                       `json:"address,omitempty"`
-	AdministratorAccount *VirtualMachineSshCredentials `json:"administratorAccount,omitempty"`
+	AdministratorAccount *VirtualMachineSshCredentials `json:"administratorAccount"`
 	SshPort              *int64                        `json:"sshPort,omitempty"`
 }

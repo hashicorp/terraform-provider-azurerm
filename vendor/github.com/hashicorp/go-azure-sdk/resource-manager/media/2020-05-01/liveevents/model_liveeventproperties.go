@@ -11,13 +11,13 @@ import (
 
 type LiveEventProperties struct {
 	Created                 *string                   `json:"created,omitempty"`
-	CrossSiteAccessPolicies *CrossSiteAccessPolicies  `json:"crossSiteAccessPolicies,omitempty"`
+	CrossSiteAccessPolicies *CrossSiteAccessPolicies  `json:"crossSiteAccessPolicies"`
 	Description             *string                   `json:"description,omitempty"`
-	Encoding                *LiveEventEncoding        `json:"encoding,omitempty"`
+	Encoding                *LiveEventEncoding        `json:"encoding"`
 	HostnamePrefix          *string                   `json:"hostnamePrefix,omitempty"`
 	Input                   LiveEventInput            `json:"input"`
 	LastModified            *string                   `json:"lastModified,omitempty"`
-	Preview                 *LiveEventPreview         `json:"preview,omitempty"`
+	Preview                 *LiveEventPreview         `json:"preview"`
 	ProvisioningState       *string                   `json:"provisioningState,omitempty"`
 	ResourceState           *LiveEventResourceState   `json:"resourceState,omitempty"`
 	StreamOptions           *[]StreamOptionsFlag      `json:"streamOptions,omitempty"`

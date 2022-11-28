@@ -4,7 +4,7 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VirtualMachinePatchStatus struct {
-	AvailablePatchSummary        *AvailablePatchSummary        `json:"availablePatchSummary,omitempty"`
+	AvailablePatchSummary        *AvailablePatchSummary        `json:"availablePatchSummary"`
 	ConfigurationStatuses        *[]InstanceViewStatus         `json:"configurationStatuses,omitempty"`
-	LastPatchInstallationSummary *LastPatchInstallationSummary `json:"lastPatchInstallationSummary,omitempty"`
+	LastPatchInstallationSummary *LastPatchInstallationSummary `json:"lastPatchInstallationSummary"`
 }

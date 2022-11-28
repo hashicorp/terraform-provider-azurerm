@@ -4,6 +4,6 @@ package tableservice
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TableSignedIdentifier struct {
-	AccessPolicy *TableAccessPolicy `json:"accessPolicy,omitempty"`
+	AccessPolicy *TableAccessPolicy `json:"accessPolicy"`
 	Id           string             `json:"id"`
 }

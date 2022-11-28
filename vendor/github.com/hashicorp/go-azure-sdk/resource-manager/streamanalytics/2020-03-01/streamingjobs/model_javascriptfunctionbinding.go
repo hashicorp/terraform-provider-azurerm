@@ -11,7 +11,7 @@ import (
 var _ FunctionBinding = JavaScriptFunctionBinding{}
 
 type JavaScriptFunctionBinding struct {
-	Properties *JavaScriptFunctionBindingProperties `json:"properties,omitempty"`
+	Properties *JavaScriptFunctionBindingProperties `json:"properties"`
 
 	// Fields inherited from FunctionBinding
 }

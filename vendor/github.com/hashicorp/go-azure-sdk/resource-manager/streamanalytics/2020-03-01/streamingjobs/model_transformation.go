@@ -6,6 +6,6 @@ package streamingjobs
 type Transformation struct {
 	Id         *string                   `json:"id,omitempty"`
 	Name       *string                   `json:"name,omitempty"`
-	Properties *TransformationProperties `json:"properties,omitempty"`
+	Properties *TransformationProperties `json:"properties"`
 	Type       *string                   `json:"type,omitempty"`
 }

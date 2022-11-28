@@ -14,7 +14,7 @@ type DatabaseAccountGetResults struct {
 	Kind       *DatabaseAccountKind                     `json:"kind,omitempty"`
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
-	Properties *DatabaseAccountGetProperties            `json:"properties,omitempty"`
+	Properties *DatabaseAccountGetProperties            `json:"properties"`
 	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`

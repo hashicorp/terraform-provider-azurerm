@@ -12,7 +12,7 @@ type AccessConnector struct {
 	Identity   *identity.SystemAssigned   `json:"identity,omitempty"`
 	Location   string                     `json:"location"`
 	Name       *string                    `json:"name,omitempty"`
-	Properties *AccessConnectorProperties `json:"properties,omitempty"`
+	Properties *AccessConnectorProperties `json:"properties"`
 	Tags       *map[string]string         `json:"tags,omitempty"`
 	Type       *string                    `json:"type,omitempty"`
 }

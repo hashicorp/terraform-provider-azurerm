@@ -7,7 +7,7 @@ type SshPublicKeyResource struct {
 	Id         *string                         `json:"id,omitempty"`
 	Location   string                          `json:"location"`
 	Name       *string                         `json:"name,omitempty"`
-	Properties *SshPublicKeyResourceProperties `json:"properties,omitempty"`
+	Properties *SshPublicKeyResourceProperties `json:"properties"`
 	Tags       *map[string]string              `json:"tags,omitempty"`
 	Type       *string                         `json:"type,omitempty"`
 }

@@ -11,5 +11,5 @@ type ApiResourceMetadata struct {
 	Source           *string            `json:"source,omitempty"`
 	Tags             *map[string]string `json:"tags,omitempty"`
 	WsdlImportMethod *WsdlImportMethod  `json:"wsdlImportMethod,omitempty"`
-	WsdlService      *WsdlService       `json:"wsdlService,omitempty"`
+	WsdlService      *WsdlService       `json:"wsdlService"`
 }

@@ -10,7 +10,7 @@ import (
 type AssetFilter struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *MediaFilterProperties `json:"properties,omitempty"`
+	Properties *MediaFilterProperties `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

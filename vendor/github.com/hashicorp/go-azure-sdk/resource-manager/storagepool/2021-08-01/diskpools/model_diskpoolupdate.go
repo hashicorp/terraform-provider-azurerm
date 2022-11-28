@@ -7,6 +7,6 @@ type DiskPoolUpdate struct {
 	ManagedBy         *string                  `json:"managedBy,omitempty"`
 	ManagedByExtended *[]string                `json:"managedByExtended,omitempty"`
 	Properties        DiskPoolUpdateProperties `json:"properties"`
-	Sku               *Sku                     `json:"sku,omitempty"`
+	Sku               *Sku                     `json:"sku"`
 	Tags              *map[string]string       `json:"tags,omitempty"`
 }

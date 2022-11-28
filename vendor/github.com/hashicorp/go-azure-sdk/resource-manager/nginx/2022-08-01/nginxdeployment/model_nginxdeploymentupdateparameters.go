@@ -10,7 +10,7 @@ import (
 type NginxDeploymentUpdateParameters struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                            `json:"location,omitempty"`
-	Properties *NginxDeploymentUpdateProperties   `json:"properties,omitempty"`
-	Sku        *ResourceSku                       `json:"sku,omitempty"`
+	Properties *NginxDeploymentUpdateProperties   `json:"properties"`
+	Sku        *ResourceSku                       `json:"sku"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 }

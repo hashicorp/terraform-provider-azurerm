@@ -5,7 +5,7 @@ package deviceupdates
 
 type InstanceProperties struct {
 	AccountName                 *string                      `json:"accountName,omitempty"`
-	DiagnosticStorageProperties *DiagnosticStorageProperties `json:"diagnosticStorageProperties,omitempty"`
+	DiagnosticStorageProperties *DiagnosticStorageProperties `json:"diagnosticStorageProperties"`
 	EnableDiagnostics           *bool                        `json:"enableDiagnostics,omitempty"`
 	IotHubs                     *[]IotHubSettings            `json:"iotHubs,omitempty"`
 	ProvisioningState           *ProvisioningState           `json:"provisioningState,omitempty"`

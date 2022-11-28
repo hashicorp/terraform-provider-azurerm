@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = DocumentDbOutputDataSource{}
 
 type DocumentDbOutputDataSource struct {
-	Properties *DocumentDbOutputDataSourceProperties `json:"properties,omitempty"`
+	Properties *DocumentDbOutputDataSourceProperties `json:"properties"`
 
 	// Fields inherited from OutputDataSource
 }

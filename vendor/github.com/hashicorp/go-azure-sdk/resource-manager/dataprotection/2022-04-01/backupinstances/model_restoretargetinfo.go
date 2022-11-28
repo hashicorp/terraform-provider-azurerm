@@ -13,7 +13,7 @@ var _ RestoreTargetInfoBase = RestoreTargetInfo{}
 type RestoreTargetInfo struct {
 	DatasourceAuthCredentials AuthCredentials `json:"datasourceAuthCredentials"`
 	DatasourceInfo            Datasource      `json:"datasourceInfo"`
-	DatasourceSetInfo         *DatasourceSet  `json:"datasourceSetInfo,omitempty"`
+	DatasourceSetInfo         *DatasourceSet  `json:"datasourceSetInfo"`
 
 	// Fields inherited from RestoreTargetInfoBase
 	RecoveryOption  RecoveryOption `json:"recoveryOption"`

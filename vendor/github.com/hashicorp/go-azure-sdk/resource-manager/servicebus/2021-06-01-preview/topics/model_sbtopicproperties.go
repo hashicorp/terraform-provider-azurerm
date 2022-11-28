@@ -12,7 +12,7 @@ import (
 type SBTopicProperties struct {
 	AccessedAt                          *string              `json:"accessedAt,omitempty"`
 	AutoDeleteOnIdle                    *string              `json:"autoDeleteOnIdle,omitempty"`
-	CountDetails                        *MessageCountDetails `json:"countDetails,omitempty"`
+	CountDetails                        *MessageCountDetails `json:"countDetails"`
 	CreatedAt                           *string              `json:"createdAt,omitempty"`
 	DefaultMessageTimeToLive            *string              `json:"defaultMessageTimeToLive,omitempty"`
 	DuplicateDetectionHistoryTimeWindow *string              `json:"duplicateDetectionHistoryTimeWindow,omitempty"`

@@ -4,8 +4,8 @@ package containerinstance
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type InitContainerPropertiesDefinitionInstanceView struct {
-	CurrentState  *ContainerState `json:"currentState,omitempty"`
+	CurrentState  *ContainerState `json:"currentState"`
 	Events        *[]Event        `json:"events,omitempty"`
-	PreviousState *ContainerState `json:"previousState,omitempty"`
+	PreviousState *ContainerState `json:"previousState"`
 	RestartCount  *int64          `json:"restartCount,omitempty"`
 }

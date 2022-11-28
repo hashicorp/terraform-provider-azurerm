@@ -4,9 +4,9 @@ package sqlvirtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ServerConfigurationsManagementSettings struct {
-	AdditionalFeaturesServerConfigurations *AdditionalFeaturesServerConfigurations `json:"additionalFeaturesServerConfigurations,omitempty"`
-	SqlConnectivityUpdateSettings          *SqlConnectivityUpdateSettings          `json:"sqlConnectivityUpdateSettings,omitempty"`
-	SqlInstanceSettings                    *SQLInstanceSettings                    `json:"sqlInstanceSettings,omitempty"`
-	SqlStorageUpdateSettings               *SqlStorageUpdateSettings               `json:"sqlStorageUpdateSettings,omitempty"`
-	SqlWorkloadTypeUpdateSettings          *SqlWorkloadTypeUpdateSettings          `json:"sqlWorkloadTypeUpdateSettings,omitempty"`
+	AdditionalFeaturesServerConfigurations *AdditionalFeaturesServerConfigurations `json:"additionalFeaturesServerConfigurations"`
+	SqlConnectivityUpdateSettings          *SqlConnectivityUpdateSettings          `json:"sqlConnectivityUpdateSettings"`
+	SqlInstanceSettings                    *SQLInstanceSettings                    `json:"sqlInstanceSettings"`
+	SqlStorageUpdateSettings               *SqlStorageUpdateSettings               `json:"sqlStorageUpdateSettings"`
+	SqlWorkloadTypeUpdateSettings          *SqlWorkloadTypeUpdateSettings          `json:"sqlWorkloadTypeUpdateSettings"`
 }

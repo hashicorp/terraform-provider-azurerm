@@ -12,7 +12,7 @@ type NetAppAccount struct {
 	Id         *string                `json:"id,omitempty"`
 	Location   string                 `json:"location"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *AccountProperties     `json:"properties,omitempty"`
+	Properties *AccountProperties     `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Tags       *map[string]string     `json:"tags,omitempty"`
 	Type       *string                `json:"type,omitempty"`

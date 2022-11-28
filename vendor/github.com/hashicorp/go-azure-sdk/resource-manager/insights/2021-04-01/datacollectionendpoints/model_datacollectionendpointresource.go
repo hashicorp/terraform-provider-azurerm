@@ -13,7 +13,7 @@ type DataCollectionEndpointResource struct {
 	Kind       *KnownDataCollectionEndpointResourceKind `json:"kind,omitempty"`
 	Location   string                                   `json:"location"`
 	Name       *string                                  `json:"name,omitempty"`
-	Properties *DataCollectionEndpoint                  `json:"properties,omitempty"`
+	Properties *DataCollectionEndpoint                  `json:"properties"`
 	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`

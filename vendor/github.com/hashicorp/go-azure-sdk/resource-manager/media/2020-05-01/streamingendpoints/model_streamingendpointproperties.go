@@ -10,13 +10,13 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StreamingEndpointProperties struct {
-	AccessControl           *StreamingEndpointAccessControl `json:"accessControl,omitempty"`
+	AccessControl           *StreamingEndpointAccessControl `json:"accessControl"`
 	AvailabilitySetName     *string                         `json:"availabilitySetName,omitempty"`
 	CdnEnabled              *bool                           `json:"cdnEnabled,omitempty"`
 	CdnProfile              *string                         `json:"cdnProfile,omitempty"`
 	CdnProvider             *string                         `json:"cdnProvider,omitempty"`
 	Created                 *string                         `json:"created,omitempty"`
-	CrossSiteAccessPolicies *CrossSiteAccessPolicies        `json:"crossSiteAccessPolicies,omitempty"`
+	CrossSiteAccessPolicies *CrossSiteAccessPolicies        `json:"crossSiteAccessPolicies"`
 	CustomHostNames         *[]string                       `json:"customHostNames,omitempty"`
 	Description             *string                         `json:"description,omitempty"`
 	FreeTrialEndTime        *string                         `json:"freeTrialEndTime,omitempty"`

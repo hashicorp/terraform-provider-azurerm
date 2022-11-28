@@ -10,7 +10,7 @@ import (
 type Rule struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *Ruleproperties        `json:"properties,omitempty"`
+	Properties *Ruleproperties        `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

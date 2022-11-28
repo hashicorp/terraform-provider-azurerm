@@ -4,9 +4,9 @@ package containerinstance
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ContainerProbe struct {
-	Exec                *ContainerExec    `json:"exec,omitempty"`
+	Exec                *ContainerExec    `json:"exec"`
 	FailureThreshold    *int64            `json:"failureThreshold,omitempty"`
-	HTTPGet             *ContainerHTTPGet `json:"httpGet,omitempty"`
+	HTTPGet             *ContainerHTTPGet `json:"httpGet"`
 	InitialDelaySeconds *int64            `json:"initialDelaySeconds,omitempty"`
 	PeriodSeconds       *int64            `json:"periodSeconds,omitempty"`
 	SuccessThreshold    *int64            `json:"successThreshold,omitempty"`

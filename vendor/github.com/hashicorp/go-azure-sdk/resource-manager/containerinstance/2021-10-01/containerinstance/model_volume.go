@@ -4,9 +4,9 @@ package containerinstance
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Volume struct {
-	AzureFile *AzureFileVolume   `json:"azureFile,omitempty"`
+	AzureFile *AzureFileVolume   `json:"azureFile"`
 	EmptyDir  *interface{}       `json:"emptyDir,omitempty"`
-	GitRepo   *GitRepoVolume     `json:"gitRepo,omitempty"`
+	GitRepo   *GitRepoVolume     `json:"gitRepo"`
 	Name      string             `json:"name"`
 	Secret    *map[string]string `json:"secret,omitempty"`
 }

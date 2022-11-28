@@ -5,7 +5,7 @@ package grafanaresource
 
 type PrivateEndpointConnectionProperties struct {
 	GroupIds                          *[]string                                   `json:"groupIds,omitempty"`
-	PrivateEndpoint                   *PrivateEndpoint                            `json:"privateEndpoint,omitempty"`
+	PrivateEndpoint                   *PrivateEndpoint                            `json:"privateEndpoint"`
 	PrivateLinkServiceConnectionState PrivateLinkServiceConnectionState           `json:"privateLinkServiceConnectionState"`
 	ProvisioningState                 *PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
 }

@@ -9,6 +9,6 @@ type ServerUpdateParametersProperties struct {
 	PublicNetworkAccess        *PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	ReplicationRole            *string                  `json:"replicationRole,omitempty"`
 	SslEnforcement             *SslEnforcementEnum      `json:"sslEnforcement,omitempty"`
-	StorageProfile             *StorageProfile          `json:"storageProfile,omitempty"`
+	StorageProfile             *StorageProfile          `json:"storageProfile"`
 	Version                    *ServerVersion           `json:"version,omitempty"`
 }

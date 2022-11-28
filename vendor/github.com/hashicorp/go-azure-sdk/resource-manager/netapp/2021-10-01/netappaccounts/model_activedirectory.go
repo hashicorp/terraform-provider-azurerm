@@ -15,7 +15,7 @@ type ActiveDirectory struct {
 	EncryptDCConnections       *bool                  `json:"encryptDCConnections,omitempty"`
 	KdcIP                      *string                `json:"kdcIP,omitempty"`
 	LdapOverTLS                *bool                  `json:"ldapOverTLS,omitempty"`
-	LdapSearchScope            *LdapSearchScopeOpt    `json:"ldapSearchScope,omitempty"`
+	LdapSearchScope            *LdapSearchScopeOpt    `json:"ldapSearchScope"`
 	LdapSigning                *bool                  `json:"ldapSigning,omitempty"`
 	OrganizationalUnit         *string                `json:"organizationalUnit,omitempty"`
 	Password                   *string                `json:"password,omitempty"`

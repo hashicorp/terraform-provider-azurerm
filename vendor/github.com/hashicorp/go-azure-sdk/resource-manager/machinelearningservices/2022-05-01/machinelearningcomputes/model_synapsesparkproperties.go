@@ -4,8 +4,8 @@ package machinelearningcomputes
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SynapseSparkProperties struct {
-	AutoPauseProperties *AutoPauseProperties `json:"autoPauseProperties,omitempty"`
-	AutoScaleProperties *AutoScaleProperties `json:"autoScaleProperties,omitempty"`
+	AutoPauseProperties *AutoPauseProperties `json:"autoPauseProperties"`
+	AutoScaleProperties *AutoScaleProperties `json:"autoScaleProperties"`
 	NodeCount           *int64               `json:"nodeCount,omitempty"`
 	NodeSize            *string              `json:"nodeSize,omitempty"`
 	NodeSizeFamily      *string              `json:"nodeSizeFamily,omitempty"`

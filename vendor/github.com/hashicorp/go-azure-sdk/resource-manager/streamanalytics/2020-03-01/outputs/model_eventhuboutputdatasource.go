@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = EventHubOutputDataSource{}
 
 type EventHubOutputDataSource struct {
-	Properties *EventHubOutputDataSourceProperties `json:"properties,omitempty"`
+	Properties *EventHubOutputDataSourceProperties `json:"properties"`
 
 	// Fields inherited from OutputDataSource
 }

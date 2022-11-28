@@ -13,7 +13,7 @@ type DataCollectionRuleResource struct {
 	Kind       *KnownDataCollectionRuleResourceKind `json:"kind,omitempty"`
 	Location   string                               `json:"location"`
 	Name       *string                              `json:"name,omitempty"`
-	Properties *DataCollectionRule                  `json:"properties,omitempty"`
+	Properties *DataCollectionRule                  `json:"properties"`
 	SystemData *systemdata.SystemData               `json:"systemData,omitempty"`
 	Tags       *map[string]string                   `json:"tags,omitempty"`
 	Type       *string                              `json:"type,omitempty"`

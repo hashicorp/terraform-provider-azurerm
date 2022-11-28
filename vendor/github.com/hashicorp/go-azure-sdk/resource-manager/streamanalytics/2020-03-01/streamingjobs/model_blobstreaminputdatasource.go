@@ -11,7 +11,7 @@ import (
 var _ StreamInputDataSource = BlobStreamInputDataSource{}
 
 type BlobStreamInputDataSource struct {
-	Properties *BlobStreamInputDataSourceProperties `json:"properties,omitempty"`
+	Properties *BlobStreamInputDataSourceProperties `json:"properties"`
 
 	// Fields inherited from StreamInputDataSource
 }

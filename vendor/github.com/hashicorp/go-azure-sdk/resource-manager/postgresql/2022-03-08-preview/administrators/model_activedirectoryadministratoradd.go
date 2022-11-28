@@ -4,5 +4,5 @@ package administrators
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ActiveDirectoryAdministratorAdd struct {
-	Properties *AdministratorPropertiesForAdd `json:"properties,omitempty"`
+	Properties *AdministratorPropertiesForAdd `json:"properties"`
 }

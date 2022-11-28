@@ -12,7 +12,7 @@ import (
 type DedicatedHostProperties struct {
 	AutoReplaceOnFailure *bool                      `json:"autoReplaceOnFailure,omitempty"`
 	HostId               *string                    `json:"hostId,omitempty"`
-	InstanceView         *DedicatedHostInstanceView `json:"instanceView,omitempty"`
+	InstanceView         *DedicatedHostInstanceView `json:"instanceView"`
 	LicenseType          *DedicatedHostLicenseTypes `json:"licenseType,omitempty"`
 	PlatformFaultDomain  *int64                     `json:"platformFaultDomain,omitempty"`
 	ProvisioningState    *string                    `json:"provisioningState,omitempty"`

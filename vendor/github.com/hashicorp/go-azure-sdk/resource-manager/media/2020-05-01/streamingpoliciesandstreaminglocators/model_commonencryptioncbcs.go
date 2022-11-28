@@ -5,7 +5,7 @@ package streamingpoliciesandstreaminglocators
 
 type CommonEncryptionCbcs struct {
 	ClearTracks      *[]TrackSelection           `json:"clearTracks,omitempty"`
-	ContentKeys      *StreamingPolicyContentKeys `json:"contentKeys,omitempty"`
-	Drm              *CbcsDrmConfiguration       `json:"drm,omitempty"`
-	EnabledProtocols *EnabledProtocols           `json:"enabledProtocols,omitempty"`
+	ContentKeys      *StreamingPolicyContentKeys `json:"contentKeys"`
+	Drm              *CbcsDrmConfiguration       `json:"drm"`
+	EnabledProtocols *EnabledProtocols           `json:"enabledProtocols"`
 }

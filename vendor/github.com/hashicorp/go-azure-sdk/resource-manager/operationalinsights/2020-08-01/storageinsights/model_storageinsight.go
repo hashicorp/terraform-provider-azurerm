@@ -7,7 +7,7 @@ type StorageInsight struct {
 	ETag       *string                   `json:"eTag,omitempty"`
 	Id         *string                   `json:"id,omitempty"`
 	Name       *string                   `json:"name,omitempty"`
-	Properties *StorageInsightProperties `json:"properties,omitempty"`
+	Properties *StorageInsightProperties `json:"properties"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 	Type       *string                   `json:"type,omitempty"`
 }

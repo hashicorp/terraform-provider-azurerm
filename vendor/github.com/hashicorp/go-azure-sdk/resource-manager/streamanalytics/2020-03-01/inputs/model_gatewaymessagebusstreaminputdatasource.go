@@ -11,7 +11,7 @@ import (
 var _ StreamInputDataSource = GatewayMessageBusStreamInputDataSource{}
 
 type GatewayMessageBusStreamInputDataSource struct {
-	Properties *GatewayMessageBusSourceProperties `json:"properties,omitempty"`
+	Properties *GatewayMessageBusSourceProperties `json:"properties"`
 
 	// Fields inherited from StreamInputDataSource
 }

@@ -4,7 +4,7 @@ package diskencryptionsets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DiskEncryptionSetUpdateProperties struct {
-	ActiveKey                         *KeyForDiskEncryptionSet `json:"activeKey,omitempty"`
+	ActiveKey                         *KeyForDiskEncryptionSet `json:"activeKey"`
 	EncryptionType                    *DiskEncryptionSetType   `json:"encryptionType,omitempty"`
 	FederatedClientId                 *string                  `json:"federatedClientId,omitempty"`
 	RotationToLatestKeyVersionEnabled *bool                    `json:"rotationToLatestKeyVersionEnabled,omitempty"`

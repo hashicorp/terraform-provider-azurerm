@@ -7,6 +7,6 @@ type ManagedClusterWindowsProfile struct {
 	AdminPassword  *string             `json:"adminPassword,omitempty"`
 	AdminUsername  string              `json:"adminUsername"`
 	EnableCSIProxy *bool               `json:"enableCSIProxy,omitempty"`
-	GmsaProfile    *WindowsGmsaProfile `json:"gmsaProfile,omitempty"`
+	GmsaProfile    *WindowsGmsaProfile `json:"gmsaProfile"`
 	LicenseType    *LicenseType        `json:"licenseType,omitempty"`
 }

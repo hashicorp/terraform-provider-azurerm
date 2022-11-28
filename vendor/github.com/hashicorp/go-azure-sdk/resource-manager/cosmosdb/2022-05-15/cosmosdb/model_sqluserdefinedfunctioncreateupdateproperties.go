@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SqlUserDefinedFunctionCreateUpdateProperties struct {
-	Options  *CreateUpdateOptions           `json:"options,omitempty"`
+	Options  *CreateUpdateOptions           `json:"options"`
 	Resource SqlUserDefinedFunctionResource `json:"resource"`
 }

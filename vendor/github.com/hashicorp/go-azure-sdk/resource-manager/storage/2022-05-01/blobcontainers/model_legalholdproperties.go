@@ -5,6 +5,6 @@ package blobcontainers
 
 type LegalHoldProperties struct {
 	HasLegalHold                 *bool                         `json:"hasLegalHold,omitempty"`
-	ProtectedAppendWritesHistory *ProtectedAppendWritesHistory `json:"protectedAppendWritesHistory,omitempty"`
+	ProtectedAppendWritesHistory *ProtectedAppendWritesHistory `json:"protectedAppendWritesHistory"`
 	Tags                         *[]TagProperty                `json:"tags,omitempty"`
 }

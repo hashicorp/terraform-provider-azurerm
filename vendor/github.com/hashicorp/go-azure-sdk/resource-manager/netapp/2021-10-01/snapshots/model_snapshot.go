@@ -7,6 +7,6 @@ type Snapshot struct {
 	Id         *string             `json:"id,omitempty"`
 	Location   string              `json:"location"`
 	Name       *string             `json:"name,omitempty"`
-	Properties *SnapshotProperties `json:"properties,omitempty"`
+	Properties *SnapshotProperties `json:"properties"`
 	Type       *string             `json:"type,omitempty"`
 }

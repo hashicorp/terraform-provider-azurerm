@@ -7,7 +7,7 @@ type CustomRPManifest struct {
 	Id         *string                     `json:"id,omitempty"`
 	Location   string                      `json:"location"`
 	Name       *string                     `json:"name,omitempty"`
-	Properties *CustomRPManifestProperties `json:"properties,omitempty"`
+	Properties *CustomRPManifestProperties `json:"properties"`
 	Tags       *map[string]string          `json:"tags,omitempty"`
 	Type       *string                     `json:"type,omitempty"`
 }

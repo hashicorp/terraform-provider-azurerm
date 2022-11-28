@@ -5,5 +5,5 @@ package nginxdeployment
 
 type NginxDeploymentUpdateProperties struct {
 	EnableDiagnosticsSupport *bool         `json:"enableDiagnosticsSupport,omitempty"`
-	Logging                  *NginxLogging `json:"logging,omitempty"`
+	Logging                  *NginxLogging `json:"logging"`
 }

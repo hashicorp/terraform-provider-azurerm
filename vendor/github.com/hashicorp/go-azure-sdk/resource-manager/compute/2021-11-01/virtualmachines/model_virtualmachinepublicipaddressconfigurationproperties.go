@@ -5,10 +5,10 @@ package virtualmachines
 
 type VirtualMachinePublicIPAddressConfigurationProperties struct {
 	DeleteOption             *DeleteOptions                                         `json:"deleteOption,omitempty"`
-	DnsSettings              *VirtualMachinePublicIPAddressDnsSettingsConfiguration `json:"dnsSettings,omitempty"`
+	DnsSettings              *VirtualMachinePublicIPAddressDnsSettingsConfiguration `json:"dnsSettings"`
 	IPTags                   *[]VirtualMachineIPTag                                 `json:"ipTags,omitempty"`
 	IdleTimeoutInMinutes     *int64                                                 `json:"idleTimeoutInMinutes,omitempty"`
 	PublicIPAddressVersion   *IPVersions                                            `json:"publicIPAddressVersion,omitempty"`
 	PublicIPAllocationMethod *PublicIPAllocationMethod                              `json:"publicIPAllocationMethod,omitempty"`
-	PublicIPPrefix           *SubResource                                           `json:"publicIPPrefix,omitempty"`
+	PublicIPPrefix           *SubResource                                           `json:"publicIPPrefix"`
 }

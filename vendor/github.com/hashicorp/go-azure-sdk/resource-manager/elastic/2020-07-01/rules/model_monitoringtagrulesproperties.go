@@ -4,6 +4,6 @@ package rules
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type MonitoringTagRulesProperties struct {
-	LogRules          *LogRules          `json:"logRules,omitempty"`
+	LogRules          *LogRules          `json:"logRules"`
 	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
 }

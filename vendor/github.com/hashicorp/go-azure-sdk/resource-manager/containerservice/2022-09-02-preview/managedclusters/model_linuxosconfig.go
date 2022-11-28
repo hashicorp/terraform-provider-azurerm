@@ -5,7 +5,7 @@ package managedclusters
 
 type LinuxOSConfig struct {
 	SwapFileSizeMB             *int64        `json:"swapFileSizeMB,omitempty"`
-	Sysctls                    *SysctlConfig `json:"sysctls,omitempty"`
+	Sysctls                    *SysctlConfig `json:"sysctls"`
 	TransparentHugePageDefrag  *string       `json:"transparentHugePageDefrag,omitempty"`
 	TransparentHugePageEnabled *string       `json:"transparentHugePageEnabled,omitempty"`
 }

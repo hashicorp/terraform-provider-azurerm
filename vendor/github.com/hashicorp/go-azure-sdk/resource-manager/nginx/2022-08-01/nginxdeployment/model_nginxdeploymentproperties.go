@@ -6,9 +6,9 @@ package nginxdeployment
 type NginxDeploymentProperties struct {
 	EnableDiagnosticsSupport *bool                `json:"enableDiagnosticsSupport,omitempty"`
 	IPAddress                *string              `json:"ipAddress,omitempty"`
-	Logging                  *NginxLogging        `json:"logging,omitempty"`
+	Logging                  *NginxLogging        `json:"logging"`
 	ManagedResourceGroup     *string              `json:"managedResourceGroup,omitempty"`
-	NetworkProfile           *NginxNetworkProfile `json:"networkProfile,omitempty"`
+	NetworkProfile           *NginxNetworkProfile `json:"networkProfile"`
 	NginxVersion             *string              `json:"nginxVersion,omitempty"`
 	ProvisioningState        *ProvisioningState   `json:"provisioningState,omitempty"`
 }

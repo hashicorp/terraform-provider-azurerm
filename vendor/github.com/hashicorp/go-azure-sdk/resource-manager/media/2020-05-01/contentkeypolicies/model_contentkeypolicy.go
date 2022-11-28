@@ -10,7 +10,7 @@ import (
 type ContentKeyPolicy struct {
 	Id         *string                     `json:"id,omitempty"`
 	Name       *string                     `json:"name,omitempty"`
-	Properties *ContentKeyPolicyProperties `json:"properties,omitempty"`
+	Properties *ContentKeyPolicyProperties `json:"properties"`
 	SystemData *systemdata.SystemData      `json:"systemData,omitempty"`
 	Type       *string                     `json:"type,omitempty"`
 }

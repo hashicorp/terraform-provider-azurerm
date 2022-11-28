@@ -5,10 +5,10 @@ package profiles
 
 type ProfileProperties struct {
 	AllowedEndpointRecordTypes  *[]AllowedEndpointRecordType `json:"allowedEndpointRecordTypes,omitempty"`
-	DnsConfig                   *DnsConfig                   `json:"dnsConfig,omitempty"`
+	DnsConfig                   *DnsConfig                   `json:"dnsConfig"`
 	Endpoints                   *[]Endpoint                  `json:"endpoints,omitempty"`
 	MaxReturn                   *int64                       `json:"maxReturn,omitempty"`
-	MonitorConfig               *MonitorConfig               `json:"monitorConfig,omitempty"`
+	MonitorConfig               *MonitorConfig               `json:"monitorConfig"`
 	ProfileStatus               *ProfileStatus               `json:"profileStatus,omitempty"`
 	TrafficRoutingMethod        *TrafficRoutingMethod        `json:"trafficRoutingMethod,omitempty"`
 	TrafficViewEnrollmentStatus *TrafficViewEnrollmentStatus `json:"trafficViewEnrollmentStatus,omitempty"`

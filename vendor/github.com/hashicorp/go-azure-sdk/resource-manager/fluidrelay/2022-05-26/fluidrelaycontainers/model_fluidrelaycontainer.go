@@ -10,7 +10,7 @@ import (
 type FluidRelayContainer struct {
 	Id         *string                        `json:"id,omitempty"`
 	Name       *string                        `json:"name,omitempty"`
-	Properties *FluidRelayContainerProperties `json:"properties,omitempty"`
+	Properties *FluidRelayContainerProperties `json:"properties"`
 	SystemData *systemdata.SystemData         `json:"systemData,omitempty"`
 	Type       *string                        `json:"type,omitempty"`
 }

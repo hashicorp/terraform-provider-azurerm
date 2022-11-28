@@ -14,8 +14,8 @@ type ReferenceInputProperties struct {
 	Datasource ReferenceInputDataSource `json:"datasource"`
 
 	// Fields inherited from InputProperties
-	Compression   *Compression  `json:"compression,omitempty"`
-	Diagnostics   *Diagnostics  `json:"diagnostics,omitempty"`
+	Compression   *Compression  `json:"compression"`
+	Diagnostics   *Diagnostics  `json:"diagnostics"`
 	Etag          *string       `json:"etag,omitempty"`
 	PartitionKey  *string       `json:"partitionKey,omitempty"`
 	Serialization Serialization `json:"serialization"`

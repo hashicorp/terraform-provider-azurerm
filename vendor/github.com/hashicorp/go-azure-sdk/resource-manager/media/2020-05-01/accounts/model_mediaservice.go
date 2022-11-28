@@ -13,7 +13,7 @@ type MediaService struct {
 	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
 	Location   string                   `json:"location"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *MediaServiceProperties  `json:"properties,omitempty"`
+	Properties *MediaServiceProperties  `json:"properties"`
 	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 	Type       *string                  `json:"type,omitempty"`

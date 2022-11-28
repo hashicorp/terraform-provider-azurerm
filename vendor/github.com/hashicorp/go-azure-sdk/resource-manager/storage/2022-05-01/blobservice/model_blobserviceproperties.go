@@ -6,7 +6,7 @@ package blobservice
 type BlobServiceProperties struct {
 	Id         *string                          `json:"id,omitempty"`
 	Name       *string                          `json:"name,omitempty"`
-	Properties *BlobServicePropertiesProperties `json:"properties,omitempty"`
-	Sku        *Sku                             `json:"sku,omitempty"`
+	Properties *BlobServicePropertiesProperties `json:"properties"`
+	Sku        *Sku                             `json:"sku"`
 	Type       *string                          `json:"type,omitempty"`
 }

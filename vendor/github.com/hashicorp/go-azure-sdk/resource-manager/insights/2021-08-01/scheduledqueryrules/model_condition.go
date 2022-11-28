@@ -5,7 +5,7 @@ package scheduledqueryrules
 
 type Condition struct {
 	Dimensions          *[]Dimension             `json:"dimensions,omitempty"`
-	FailingPeriods      *ConditionFailingPeriods `json:"failingPeriods,omitempty"`
+	FailingPeriods      *ConditionFailingPeriods `json:"failingPeriods"`
 	MetricMeasureColumn *string                  `json:"metricMeasureColumn,omitempty"`
 	MetricName          *string                  `json:"metricName,omitempty"`
 	Operator            *ConditionOperator       `json:"operator,omitempty"`

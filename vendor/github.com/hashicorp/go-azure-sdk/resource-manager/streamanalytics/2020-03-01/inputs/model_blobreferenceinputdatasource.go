@@ -11,7 +11,7 @@ import (
 var _ ReferenceInputDataSource = BlobReferenceInputDataSource{}
 
 type BlobReferenceInputDataSource struct {
-	Properties *BlobDataSourceProperties `json:"properties,omitempty"`
+	Properties *BlobDataSourceProperties `json:"properties"`
 
 	// Fields inherited from ReferenceInputDataSource
 }
