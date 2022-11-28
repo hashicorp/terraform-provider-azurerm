@@ -812,6 +812,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"sftp_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"large_file_share_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1072,6 +1078,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 	publicNetworkAccess := storage.PublicNetworkAccessDisabled
+	isSftpEnabled := d.Get("sftp_enabled").(bool)
 	if d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = storage.PublicNetworkAccessEnabled
 	}
@@ -1098,6 +1105,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
 			AllowCrossTenantReplication:  &crossTenantReplication,
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
+			IsSftpEnabled:                &isSftpEnabled,
 		},
 	}
 
@@ -1561,6 +1569,20 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("updating %s Customer Managed Key: %+v", *id, err)
 		}
 
+	}
+
+	if d.HasChange("sftp_enabled") {
+		sftpEnabled := d.Get("sftp_enabled").(bool)
+
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				IsSftpEnabled: &sftpEnabled,
+			},
+		}
+
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating `sftp_enabled` for %s: %+v", *id, err)
+		}
 	}
 
 	if d.HasChange("enable_https_traffic_only") {
@@ -2061,6 +2083,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("sas_policy", flattenStorageAccountSASPolicy(props.SasPolicy)); err != nil {
 			return fmt.Errorf("setting `sas_policy`: %+v", err)
 		}
+
+		d.Set("sftp_enabled", props.IsSftpEnabled)
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
