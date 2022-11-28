@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * media: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
+* `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
 
 ## 3.33.0 (November 24, 2022)
 
