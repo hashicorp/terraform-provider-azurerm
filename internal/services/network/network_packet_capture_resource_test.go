@@ -197,6 +197,10 @@ resource "azurerm_virtual_machine" "test" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_extension" "test" {
@@ -399,6 +403,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       primary   = true
       subnet_id = azurerm_subnet.test.id
     }
+  }
+
+  lifecycle {
+    ignore_changes = [identity, tags]
   }
 }
 

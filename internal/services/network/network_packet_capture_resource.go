@@ -3,7 +3,6 @@ package network
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -296,7 +295,11 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `filter`: %+v", err)
 		}
 
-		if err := d.Set("scope", flattenNetworkPacketCaptureScope(props.Scope)); err != nil {
+		scope, err := flattenNetworkPacketCaptureScope(props.Scope)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("scope", scope); err != nil {
 			return fmt.Errorf(`setting "scope": %+v`, err)
 		}
 	}
@@ -449,31 +452,45 @@ func expandNetworkPacketCaptureScope(input []interface{}) *network.PacketCapture
 	return output
 }
 
-func flattenNetworkPacketCaptureScope(input *network.PacketCaptureMachineScope) []interface{} {
+func flattenNetworkPacketCaptureScope(input *network.PacketCaptureMachineScope) ([]interface{}, error) {
+	outputs := make([]interface{}, 0)
 	if input == nil || (input.Exclude == nil && input.Include == nil) || (len(*input.Exclude) == 0 && len(*input.Include) == 0) {
-		return []interface{}{}
+		return outputs, nil
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"exclude": flattenNetworkPacketCaptureScopeInstanceIds(input.Exclude),
-			"include": flattenNetworkPacketCaptureScopeInstanceIds(input.Include),
-		},
+	output := make(map[string]interface{}, 0)
+
+	excludedInstanceIds, err := flattenNetworkPacketCaptureScopeInstanceIds(input.Exclude)
+	if err != nil {
+		return nil, err
 	}
+	output["exclude"] = excludedInstanceIds
+
+	includedInstanceIds, err := flattenNetworkPacketCaptureScopeInstanceIds(input.Include)
+	if err != nil {
+		return nil, err
+	}
+	output["include"] = includedInstanceIds
+
+	outputs = append(outputs, output)
+
+	return outputs, nil
 }
 
-func flattenNetworkPacketCaptureScopeInstanceIds(input *[]string) []string {
+func flattenNetworkPacketCaptureScopeInstanceIds(input *[]string) ([]string, error) {
 	instances := make([]string, 0)
 	if input == nil {
-		return instances
+		return instances, nil
 	}
 
 	for _, instance := range *input {
-		instanceSegments := strings.Split(instance, "/")
-		instanceLastSegment := instanceSegments[len(instanceSegments)-1]
+		instance, err := parse.VMSSInstanceID(instance)
+		if err != nil {
+			return nil, err
+		}
 
-		instances = append(instances, instanceLastSegment)
+		instances = append(instances, instance.VirtualMachineName)
 	}
 
-	return instances
+	return instances, nil
 }
