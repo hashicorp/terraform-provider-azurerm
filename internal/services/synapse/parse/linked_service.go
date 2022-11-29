@@ -74,6 +74,12 @@ func LinkedServiceID(input string) (*LinkedServiceId, error) {
 	return &resourceId, nil
 }
 
+// LinkedServiceIDInsensitively parses an LinkedService ID into an LinkedServiceId struct, insensitively
+// This should only be used to parse an ID for rewriting, the LinkedServiceID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
 func LinkedServiceIDInsensitively(input string) (*LinkedServiceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
@@ -105,7 +111,7 @@ func LinkedServiceIDInsensitively(input string) (*LinkedServiceId, error) {
 		return nil, err
 	}
 
-	// find the correct casing for the 'endpoints' segment
+	// find the correct casing for the 'linkedServices' segment
 	linkedServicesKey := "linkedServices"
 	for key := range id.Path {
 		if strings.EqualFold(key, linkedServicesKey) {
