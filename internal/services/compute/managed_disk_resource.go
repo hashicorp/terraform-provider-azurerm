@@ -159,6 +159,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"upload_size_bytes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
@@ -962,6 +963,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("source_resource_id", creationData.SourceResourceId)
 			d.Set("source_uri", creationData.SourceUri)
 			d.Set("storage_account_id", creationData.StorageAccountId)
+			d.Set("upload_size_bytes", creationData.UploadSizeBytes)
 
 			d.Set("disk_size_gb", props.DiskSizeGB)
 			d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
