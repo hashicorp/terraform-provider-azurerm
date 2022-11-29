@@ -15,6 +15,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_configuration_key` - prevent crash when retrieving the key value [GH-19464]
+* `azurerm_data_factory_linked_service_azure_file_storage` - send `host` and and `user_id` in the payload only when it's been set [GH-19468]
 * `azurerm_windows_web_app` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
 * `azurerm_windows_web_app_slot` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
 
