@@ -147,8 +147,6 @@ func (r AutoManageConfigurationProfileResource) Update() sdk.ResourceFunc {
 				resp.Properties.Configuration = &configurationValue
 			}
 
-			resp.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				resp.Tags = tags.FromTypedObject(model.Tags)
 			}
