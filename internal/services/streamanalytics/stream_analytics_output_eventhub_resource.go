@@ -65,14 +65,14 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 
 			"shared_access_policy_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -138,19 +138,27 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
+	eventHubOutputDataSourceProps := &outputs.EventHubOutputDataSourceProperties{
+		PartitionKey:        utils.String(partitionKey),
+		PropertyColumns:     utils.ExpandStringSlice(propertyColumns),
+		EventHubName:        utils.String(eventHubName),
+		ServiceBusNamespace: utils.String(serviceBusNamespace),
+		AuthenticationMode:  utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	}
+
+	if sharedAccessPolicyKey != "" {
+		eventHubOutputDataSourceProps.SharedAccessPolicyKey = &sharedAccessPolicyKey
+	}
+
+	if sharedAccessPolicyName != "" {
+		eventHubOutputDataSourceProps.SharedAccessPolicyName = &sharedAccessPolicyName
+	}
+
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.EventHubOutputDataSource{
-				Properties: &outputs.EventHubOutputDataSourceProperties{
-					EventHubName:           utils.String(eventHubName),
-					ServiceBusNamespace:    utils.String(serviceBusNamespace),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-					PropertyColumns:        utils.ExpandStringSlice(propertyColumns),
-					PartitionKey:           utils.String(partitionKey),
-					AuthenticationMode:     utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-				},
+				Properties: eventHubOutputDataSourceProps,
 			},
 			Serialization: serialization,
 		},

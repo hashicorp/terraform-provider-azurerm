@@ -165,7 +165,7 @@ func TestAccStreamAnalyticsOutputEventHub_authenticationMode(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("shared_access_policy_key"),
+		data.ImportStep(),
 	})
 }
 
@@ -394,8 +394,6 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   eventhub_name             = azurerm_eventhub.test.name
   servicebus_namespace      = azurerm_eventhub_namespace.test.name
-  shared_access_policy_key  = azurerm_eventhub_namespace.test.name
-  shared_access_policy_name = "RootManageSharedAccessKey"
   authentication_mode       = "Msi"
 
   serialization {
