@@ -12,7 +12,7 @@ var _ ReverseReplicationProviderSpecificInput = InMageReprotectInput{}
 
 type InMageReprotectInput struct {
 	DatastoreName      *string                   `json:"datastoreName,omitempty"`
-	DiskExclusionInput *InMageDiskExclusionInput `json:"diskExclusionInput,omitempty"`
+	DiskExclusionInput *InMageDiskExclusionInput `json:"diskExclusionInput"`
 	DisksToInclude     *[]string                 `json:"disksToInclude,omitempty"`
 	MasterTargetId     string                    `json:"masterTargetId"`
 	ProcessServerId    string                    `json:"processServerId"`

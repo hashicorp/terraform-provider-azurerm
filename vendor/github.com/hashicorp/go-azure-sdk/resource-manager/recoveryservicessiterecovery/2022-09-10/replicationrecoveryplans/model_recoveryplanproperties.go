@@ -13,7 +13,7 @@ import (
 
 type RecoveryPlanProperties struct {
 	AllowedOperations                *[]string                              `json:"allowedOperations,omitempty"`
-	CurrentScenario                  *CurrentScenarioDetails                `json:"currentScenario,omitempty"`
+	CurrentScenario                  *CurrentScenarioDetails                `json:"currentScenario"`
 	CurrentScenarioStatus            *string                                `json:"currentScenarioStatus,omitempty"`
 	CurrentScenarioStatusDescription *string                                `json:"currentScenarioStatusDescription,omitempty"`
 	FailoverDeploymentModel          *string                                `json:"failoverDeploymentModel,omitempty"`

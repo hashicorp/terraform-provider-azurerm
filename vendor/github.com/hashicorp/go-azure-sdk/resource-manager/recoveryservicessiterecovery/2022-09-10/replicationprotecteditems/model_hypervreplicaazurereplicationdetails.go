@@ -14,12 +14,12 @@ type HyperVReplicaAzureReplicationDetails struct {
 	AzureVmDiskDetails               *[]AzureVmDiskDetails                   `json:"azureVmDiskDetails,omitempty"`
 	EnableRdpOnTargetOption          *string                                 `json:"enableRdpOnTargetOption,omitempty"`
 	Encryption                       *string                                 `json:"encryption,omitempty"`
-	InitialReplicationDetails        *InitialReplicationDetails              `json:"initialReplicationDetails,omitempty"`
+	InitialReplicationDetails        *InitialReplicationDetails              `json:"initialReplicationDetails"`
 	LastRecoveryPointReceived        *string                                 `json:"lastRecoveryPointReceived,omitempty"`
 	LastReplicatedTime               *string                                 `json:"lastReplicatedTime,omitempty"`
 	LastRpoCalculatedTime            *string                                 `json:"lastRpoCalculatedTime,omitempty"`
 	LicenseType                      *string                                 `json:"licenseType,omitempty"`
-	OSDetails                        *OSDetails                              `json:"oSDetails,omitempty"`
+	OSDetails                        *OSDetails                              `json:"oSDetails"`
 	ProtectedManagedDisks            *[]HyperVReplicaAzureManagedDiskDetails `json:"protectedManagedDisks,omitempty"`
 	RecoveryAvailabilitySetId        *string                                 `json:"recoveryAvailabilitySetId,omitempty"`
 	RecoveryAzureLogStorageAccountId *string                                 `json:"recoveryAzureLogStorageAccountId,omitempty"`

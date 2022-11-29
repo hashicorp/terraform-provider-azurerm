@@ -11,7 +11,7 @@ import (
 var _ UpdateReplicationProtectedItemProviderInput = A2AUpdateReplicationProtectedItemInput{}
 
 type A2AUpdateReplicationProtectedItemInput struct {
-	DiskEncryptionInfo                 *DiskEncryptionInfo              `json:"diskEncryptionInfo,omitempty"`
+	DiskEncryptionInfo                 *DiskEncryptionInfo              `json:"diskEncryptionInfo"`
 	ManagedDiskUpdateDetails           *[]A2AVmManagedDiskUpdateDetails `json:"managedDiskUpdateDetails,omitempty"`
 	RecoveryBootDiagStorageAccountId   *string                          `json:"recoveryBootDiagStorageAccountId,omitempty"`
 	RecoveryCapacityReservationGroupId *string                          `json:"recoveryCapacityReservationGroupId,omitempty"`

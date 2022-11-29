@@ -12,7 +12,7 @@ import (
 type ProcessServer struct {
 	AgentExpiryDate                    *string                  `json:"agentExpiryDate,omitempty"`
 	AgentVersion                       *string                  `json:"agentVersion,omitempty"`
-	AgentVersionDetails                *VersionDetails          `json:"agentVersionDetails,omitempty"`
+	AgentVersionDetails                *VersionDetails          `json:"agentVersionDetails"`
 	AvailableMemoryInBytes             *int64                   `json:"availableMemoryInBytes,omitempty"`
 	AvailableSpaceInBytes              *int64                   `json:"availableSpaceInBytes,omitempty"`
 	CpuLoad                            *string                  `json:"cpuLoad,omitempty"`

@@ -7,6 +7,6 @@ type Policy struct {
 	Id         *string           `json:"id,omitempty"`
 	Location   *string           `json:"location,omitempty"`
 	Name       *string           `json:"name,omitempty"`
-	Properties *PolicyProperties `json:"properties,omitempty"`
+	Properties *PolicyProperties `json:"properties"`
 	Type       *string           `json:"type,omitempty"`
 }

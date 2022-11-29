@@ -16,11 +16,11 @@ type InMageRcmFailbackProtectedDiskDetails struct {
 	DiskId                        *string                       `json:"diskId,omitempty"`
 	DiskName                      *string                       `json:"diskName,omitempty"`
 	DiskUuid                      *string                       `json:"diskUuid,omitempty"`
-	IrDetails                     *InMageRcmFailbackSyncDetails `json:"irDetails,omitempty"`
+	IrDetails                     *InMageRcmFailbackSyncDetails `json:"irDetails"`
 	IsInitialReplicationComplete  *string                       `json:"isInitialReplicationComplete,omitempty"`
 	IsOSDisk                      *string                       `json:"isOSDisk,omitempty"`
 	LastSyncTime                  *string                       `json:"lastSyncTime,omitempty"`
-	ResyncDetails                 *InMageRcmFailbackSyncDetails `json:"resyncDetails,omitempty"`
+	ResyncDetails                 *InMageRcmFailbackSyncDetails `json:"resyncDetails"`
 }
 
 func (o *InMageRcmFailbackProtectedDiskDetails) GetLastSyncTimeAsTime() (*time.Time, error) {

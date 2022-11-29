@@ -4,5 +4,5 @@ package replicationprotecteditems
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateReplicationProtectedItemInput struct {
-	Properties *UpdateReplicationProtectedItemInputProperties `json:"properties,omitempty"`
+	Properties *UpdateReplicationProtectedItemInputProperties `json:"properties"`
 }

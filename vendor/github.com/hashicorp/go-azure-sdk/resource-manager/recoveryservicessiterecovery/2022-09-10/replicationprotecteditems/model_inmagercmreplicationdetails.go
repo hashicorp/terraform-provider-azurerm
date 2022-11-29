@@ -16,7 +16,7 @@ type InMageRcmReplicationDetails struct {
 	AgentUpgradeJobId                          *string                                      `json:"agentUpgradeJobId,omitempty"`
 	AgentUpgradeState                          *MobilityAgentUpgradeState                   `json:"agentUpgradeState,omitempty"`
 	AllocatedMemoryInMB                        *float64                                     `json:"allocatedMemoryInMB,omitempty"`
-	DiscoveredVmDetails                        *InMageRcmDiscoveredProtectedVmDetails       `json:"discoveredVmDetails,omitempty"`
+	DiscoveredVmDetails                        *InMageRcmDiscoveredProtectedVmDetails       `json:"discoveredVmDetails"`
 	DiscoveryType                              *string                                      `json:"discoveryType,omitempty"`
 	FabricDiscoveryMachineId                   *string                                      `json:"fabricDiscoveryMachineId,omitempty"`
 	FailoverRecoveryPointId                    *string                                      `json:"failoverRecoveryPointId,omitempty"`
@@ -35,7 +35,7 @@ type InMageRcmReplicationDetails struct {
 	LastRpoCalculatedTime                      *string                                      `json:"lastRpoCalculatedTime,omitempty"`
 	LastRpoInSeconds                           *int64                                       `json:"lastRpoInSeconds,omitempty"`
 	LicenseType                                *string                                      `json:"licenseType,omitempty"`
-	MobilityAgentDetails                       *InMageRcmMobilityAgentDetails               `json:"mobilityAgentDetails,omitempty"`
+	MobilityAgentDetails                       *InMageRcmMobilityAgentDetails               `json:"mobilityAgentDetails"`
 	MultiVmGroupName                           *string                                      `json:"multiVmGroupName,omitempty"`
 	OsType                                     *string                                      `json:"osType,omitempty"`
 	PrimaryNicIPAddress                        *string                                      `json:"primaryNicIpAddress,omitempty"`

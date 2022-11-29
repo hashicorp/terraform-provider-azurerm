@@ -11,7 +11,7 @@ import (
 var _ EnableProtectionProviderSpecificInput = InMageRcmEnableProtectionInput{}
 
 type InMageRcmEnableProtectionInput struct {
-	DisksDefault                          *InMageRcmDisksDefaultInput `json:"disksDefault,omitempty"`
+	DisksDefault                          *InMageRcmDisksDefaultInput `json:"disksDefault"`
 	DisksToInclude                        *[]InMageRcmDiskInput       `json:"disksToInclude,omitempty"`
 	FabricDiscoveryMachineId              string                      `json:"fabricDiscoveryMachineId"`
 	LicenseType                           *LicenseType                `json:"licenseType,omitempty"`

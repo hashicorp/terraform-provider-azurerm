@@ -4,5 +4,5 @@ package replicationprotecteditems
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateMobilityServiceRequest struct {
-	Properties *UpdateMobilityServiceRequestProperties `json:"properties,omitempty"`
+	Properties *UpdateMobilityServiceRequestProperties `json:"properties"`
 }

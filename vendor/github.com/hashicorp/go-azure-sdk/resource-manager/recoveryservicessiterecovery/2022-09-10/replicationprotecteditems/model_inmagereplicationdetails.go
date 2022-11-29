@@ -12,7 +12,7 @@ var _ ReplicationProviderSpecificSettings = InMageReplicationDetails{}
 
 type InMageReplicationDetails struct {
 	ActiveSiteType               *string                       `json:"activeSiteType,omitempty"`
-	AgentDetails                 *InMageAgentDetails           `json:"agentDetails,omitempty"`
+	AgentDetails                 *InMageAgentDetails           `json:"agentDetails"`
 	AzureStorageAccountId        *string                       `json:"azureStorageAccountId,omitempty"`
 	CompressedDataRateInMB       *float64                      `json:"compressedDataRateInMB,omitempty"`
 	ConsistencyPoints            *map[string]string            `json:"consistencyPoints,omitempty"`
@@ -29,14 +29,14 @@ type InMageReplicationDetails struct {
 	MultiVmGroupId               *string                       `json:"multiVmGroupId,omitempty"`
 	MultiVmGroupName             *string                       `json:"multiVmGroupName,omitempty"`
 	MultiVmSyncStatus            *string                       `json:"multiVmSyncStatus,omitempty"`
-	OsDetails                    *OSDiskDetails                `json:"osDetails,omitempty"`
+	OsDetails                    *OSDiskDetails                `json:"osDetails"`
 	OsVersion                    *string                       `json:"osVersion,omitempty"`
 	ProcessServerId              *string                       `json:"processServerId,omitempty"`
 	ProtectedDisks               *[]InMageProtectedDiskDetails `json:"protectedDisks,omitempty"`
 	ProtectionStage              *string                       `json:"protectionStage,omitempty"`
 	RebootAfterUpdateStatus      *string                       `json:"rebootAfterUpdateStatus,omitempty"`
 	ReplicaId                    *string                       `json:"replicaId,omitempty"`
-	ResyncDetails                *InitialReplicationDetails    `json:"resyncDetails,omitempty"`
+	ResyncDetails                *InitialReplicationDetails    `json:"resyncDetails"`
 	RetentionWindowEnd           *string                       `json:"retentionWindowEnd,omitempty"`
 	RetentionWindowStart         *string                       `json:"retentionWindowStart,omitempty"`
 	RpoInSeconds                 *int64                        `json:"rpoInSeconds,omitempty"`

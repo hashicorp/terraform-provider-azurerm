@@ -4,5 +4,5 @@ package replicationprotectioncontainermappings
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RemoveProtectionContainerMappingInputProperties struct {
-	ProviderSpecificInput *ReplicationProviderContainerUnmappingInput `json:"providerSpecificInput,omitempty"`
+	ProviderSpecificInput *ReplicationProviderContainerUnmappingInput `json:"providerSpecificInput"`
 }
