@@ -26,6 +26,7 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
 				check.That(data.ResourceName).Key("log.#").HasValue("2"),
+				check.That(data.ResourceName).Key("disabled_log.#").HasValue("1"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -153,13 +154,44 @@ func TestAccMonitorDiagnosticSetting_activityLog(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDiagnosticSetting_enabledAndDisabledLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enabledAndDisabledLogs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
+				check.That(data.ResourceName).Key("disabled_log.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enabledAndDisabledLogsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("1"),
+				check.That(data.ResourceName).Key("disabled_log.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enabledAndDisabledLogs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
+				check.That(data.ResourceName).Key("disabled_log.#").HasValue("0"),
+			),
+		},
+	})
+}
+
 func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitor.ParseMonitorDiagnosticId(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	// actualResourceId := id.ResourceUri
-	// targetResourceId := strings.TrimPrefix(actualResourceId, "/")
 
 	resp, err := clients.Monitor.DiagnosticSettingsClient.Get(ctx, *id)
 	if err != nil {
@@ -226,16 +258,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AzurePolicyEvaluationDetails"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
       enabled = false
     }
   }
@@ -764,6 +786,161 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "ServiceHealth"
     enabled  = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) enabledAndDisabledLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "example"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+  enabled_log {
+    category = "AuditEvent"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  enabled_log {
+    category = "AzurePolicyEvaluationDetails"
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+      days    = 7
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) enabledAndDisabledLogsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "example"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+  enabled_log {
+    category = "AuditEvent"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+      days    = 7
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
