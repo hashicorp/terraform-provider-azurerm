@@ -5,6 +5,6 @@ package dedicatedhosts
 
 type DedicatedHostInstanceView struct {
 	AssetId           *string                         `json:"assetId,omitempty"`
-	AvailableCapacity *DedicatedHostAvailableCapacity `json:"availableCapacity"`
+	AvailableCapacity *DedicatedHostAvailableCapacity `json:"availableCapacity,omitempty"`
 	Statuses          *[]InstanceViewStatus           `json:"statuses,omitempty"`
 }

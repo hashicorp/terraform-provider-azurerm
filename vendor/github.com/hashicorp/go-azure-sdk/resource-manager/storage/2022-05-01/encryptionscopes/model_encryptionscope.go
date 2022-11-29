@@ -6,6 +6,6 @@ package encryptionscopes
 type EncryptionScope struct {
 	Id         *string                    `json:"id,omitempty"`
 	Name       *string                    `json:"name,omitempty"`
-	Properties *EncryptionScopeProperties `json:"properties"`
+	Properties *EncryptionScopeProperties `json:"properties,omitempty"`
 	Type       *string                    `json:"type,omitempty"`
 }

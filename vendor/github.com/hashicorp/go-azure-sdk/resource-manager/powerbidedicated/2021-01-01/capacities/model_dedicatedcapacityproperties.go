@@ -4,7 +4,7 @@ package capacities
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DedicatedCapacityProperties struct {
-	Administration    *DedicatedCapacityAdministrators `json:"administration"`
+	Administration    *DedicatedCapacityAdministrators `json:"administration,omitempty"`
 	FriendlyName      *string                          `json:"friendlyName,omitempty"`
 	Mode              *Mode                            `json:"mode,omitempty"`
 	ProvisioningState *CapacityProvisioningState       `json:"provisioningState,omitempty"`

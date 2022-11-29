@@ -14,7 +14,7 @@ import (
 var _ Compute = SynapseSpark{}
 
 type SynapseSpark struct {
-	Properties *SynapseSparkProperties `json:"properties"`
+	Properties *SynapseSparkProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

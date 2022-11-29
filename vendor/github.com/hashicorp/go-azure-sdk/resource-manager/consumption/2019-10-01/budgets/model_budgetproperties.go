@@ -6,9 +6,9 @@ package budgets
 type BudgetProperties struct {
 	Amount        float64                  `json:"amount"`
 	Category      CategoryType             `json:"category"`
-	CurrentSpend  *CurrentSpend            `json:"currentSpend"`
-	Filter        *BudgetFilter            `json:"filter"`
-	ForecastSpend *ForecastSpend           `json:"forecastSpend"`
+	CurrentSpend  *CurrentSpend            `json:"currentSpend,omitempty"`
+	Filter        *BudgetFilter            `json:"filter,omitempty"`
+	ForecastSpend *ForecastSpend           `json:"forecastSpend,omitempty"`
 	Notifications *map[string]Notification `json:"notifications,omitempty"`
 	TimeGrain     TimeGrainType            `json:"timeGrain"`
 	TimePeriod    BudgetTimePeriod         `json:"timePeriod"`

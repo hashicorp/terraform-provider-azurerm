@@ -5,10 +5,10 @@ package cosmosdb
 
 type SqlContainerResource struct {
 	AnalyticalStorageTtl     *int64                    `json:"analyticalStorageTtl,omitempty"`
-	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy"`
+	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy,omitempty"`
 	DefaultTtl               *int64                    `json:"defaultTtl,omitempty"`
 	Id                       string                    `json:"id"`
-	IndexingPolicy           *IndexingPolicy           `json:"indexingPolicy"`
-	PartitionKey             *ContainerPartitionKey    `json:"partitionKey"`
-	UniqueKeyPolicy          *UniqueKeyPolicy          `json:"uniqueKeyPolicy"`
+	IndexingPolicy           *IndexingPolicy           `json:"indexingPolicy,omitempty"`
+	PartitionKey             *ContainerPartitionKey    `json:"partitionKey,omitempty"`
+	UniqueKeyPolicy          *UniqueKeyPolicy          `json:"uniqueKeyPolicy,omitempty"`
 }

@@ -12,7 +12,7 @@ import (
 type RemediationDeployment struct {
 	CreatedOn            *string          `json:"createdOn,omitempty"`
 	DeploymentId         *string          `json:"deploymentId,omitempty"`
-	Error                *ErrorDefinition `json:"error"`
+	Error                *ErrorDefinition `json:"error,omitempty"`
 	LastUpdatedOn        *string          `json:"lastUpdatedOn,omitempty"`
 	RemediatedResourceId *string          `json:"remediatedResourceId,omitempty"`
 	ResourceLocation     *string          `json:"resourceLocation,omitempty"`

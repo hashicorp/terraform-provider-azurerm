@@ -10,7 +10,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StreamingJobProperties struct {
-	Cluster                            *ClusterInfo            `json:"cluster"`
+	Cluster                            *ClusterInfo            `json:"cluster,omitempty"`
 	CompatibilityLevel                 *CompatibilityLevel     `json:"compatibilityLevel,omitempty"`
 	ContentStoragePolicy               *ContentStoragePolicy   `json:"contentStoragePolicy,omitempty"`
 	CreatedDate                        *string                 `json:"createdDate,omitempty"`
@@ -23,7 +23,7 @@ type StreamingJobProperties struct {
 	Inputs                             *[]Input                `json:"inputs,omitempty"`
 	JobId                              *string                 `json:"jobId,omitempty"`
 	JobState                           *string                 `json:"jobState,omitempty"`
-	JobStorageAccount                  *JobStorageAccount      `json:"jobStorageAccount"`
+	JobStorageAccount                  *JobStorageAccount      `json:"jobStorageAccount,omitempty"`
 	JobType                            *JobType                `json:"jobType,omitempty"`
 	LastOutputEventTime                *string                 `json:"lastOutputEventTime,omitempty"`
 	OutputErrorPolicy                  *OutputErrorPolicy      `json:"outputErrorPolicy,omitempty"`
@@ -31,8 +31,8 @@ type StreamingJobProperties struct {
 	OutputStartTime                    *string                 `json:"outputStartTime,omitempty"`
 	Outputs                            *[]Output               `json:"outputs,omitempty"`
 	ProvisioningState                  *string                 `json:"provisioningState,omitempty"`
-	Sku                                *Sku                    `json:"sku"`
-	Transformation                     *Transformation         `json:"transformation"`
+	Sku                                *Sku                    `json:"sku,omitempty"`
+	Transformation                     *Transformation         `json:"transformation,omitempty"`
 }
 
 func (o *StreamingJobProperties) GetCreatedDateAsTime() (*time.Time, error) {

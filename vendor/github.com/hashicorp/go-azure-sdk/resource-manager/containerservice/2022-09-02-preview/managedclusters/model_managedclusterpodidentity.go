@@ -8,6 +8,6 @@ type ManagedClusterPodIdentity struct {
 	Identity          UserAssignedIdentity                        `json:"identity"`
 	Name              string                                      `json:"name"`
 	Namespace         string                                      `json:"namespace"`
-	ProvisioningInfo  *ManagedClusterPodIdentityProvisioningInfo  `json:"provisioningInfo"`
+	ProvisioningInfo  *ManagedClusterPodIdentityProvisioningInfo  `json:"provisioningInfo,omitempty"`
 	ProvisioningState *ManagedClusterPodIdentityProvisioningState `json:"provisioningState,omitempty"`
 }

@@ -13,7 +13,7 @@ type ConfigurationStore struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   string                             `json:"location"`
 	Name       *string                            `json:"name,omitempty"`
-	Properties *ConfigurationStoreProperties      `json:"properties"`
+	Properties *ConfigurationStoreProperties      `json:"properties,omitempty"`
 	Sku        Sku                                `json:"sku"`
 	SystemData *systemdata.SystemData             `json:"systemData,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`

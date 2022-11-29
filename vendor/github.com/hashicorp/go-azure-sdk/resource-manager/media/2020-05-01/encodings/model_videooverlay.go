@@ -11,9 +11,9 @@ import (
 var _ Overlay = VideoOverlay{}
 
 type VideoOverlay struct {
-	CropRectangle *Rectangle `json:"cropRectangle"`
+	CropRectangle *Rectangle `json:"cropRectangle,omitempty"`
 	Opacity       *float64   `json:"opacity,omitempty"`
-	Position      *Rectangle `json:"position"`
+	Position      *Rectangle `json:"position,omitempty"`
 
 	// Fields inherited from Overlay
 	AudioGainLevel  *float64 `json:"audioGainLevel,omitempty"`

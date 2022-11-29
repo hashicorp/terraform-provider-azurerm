@@ -6,6 +6,6 @@ package pricings
 type Pricing struct {
 	Id         *string            `json:"id,omitempty"`
 	Name       *string            `json:"name,omitempty"`
-	Properties *PricingProperties `json:"properties"`
+	Properties *PricingProperties `json:"properties,omitempty"`
 	Type       *string            `json:"type,omitempty"`
 }

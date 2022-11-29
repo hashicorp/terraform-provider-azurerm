@@ -14,7 +14,7 @@ import (
 var _ Compute = VirtualMachine{}
 
 type VirtualMachine struct {
-	Properties *VirtualMachineSchemaProperties `json:"properties"`
+	Properties *VirtualMachineSchemaProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

@@ -4,6 +4,6 @@ package snapshots
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionSettingsElement struct {
-	DiskEncryptionKey *KeyVaultAndSecretReference `json:"diskEncryptionKey"`
-	KeyEncryptionKey  *KeyVaultAndKeyReference    `json:"keyEncryptionKey"`
+	DiskEncryptionKey *KeyVaultAndSecretReference `json:"diskEncryptionKey,omitempty"`
+	KeyEncryptionKey  *KeyVaultAndKeyReference    `json:"keyEncryptionKey,omitempty"`
 }

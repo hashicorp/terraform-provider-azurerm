@@ -14,7 +14,7 @@ type ConfigurationStoreProperties struct {
 	CreationDate               *string                               `json:"creationDate,omitempty"`
 	DisableLocalAuth           *bool                                 `json:"disableLocalAuth,omitempty"`
 	EnablePurgeProtection      *bool                                 `json:"enablePurgeProtection,omitempty"`
-	Encryption                 *EncryptionProperties                 `json:"encryption"`
+	Encryption                 *EncryptionProperties                 `json:"encryption,omitempty"`
 	Endpoint                   *string                               `json:"endpoint,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnectionReference `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *ProvisioningState                    `json:"provisioningState,omitempty"`

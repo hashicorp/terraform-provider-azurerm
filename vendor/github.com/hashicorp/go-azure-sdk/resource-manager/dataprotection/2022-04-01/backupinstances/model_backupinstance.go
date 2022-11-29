@@ -11,13 +11,13 @@ import (
 type BackupInstance struct {
 	CurrentProtectionState    *CurrentProtectionState  `json:"currentProtectionState,omitempty"`
 	DataSourceInfo            Datasource               `json:"dataSourceInfo"`
-	DataSourceSetInfo         *DatasourceSet           `json:"dataSourceSetInfo"`
+	DataSourceSetInfo         *DatasourceSet           `json:"dataSourceSetInfo,omitempty"`
 	DatasourceAuthCredentials AuthCredentials          `json:"datasourceAuthCredentials"`
 	FriendlyName              *string                  `json:"friendlyName,omitempty"`
 	ObjectType                string                   `json:"objectType"`
 	PolicyInfo                PolicyInfo               `json:"policyInfo"`
-	ProtectionErrorDetails    *UserFacingError         `json:"protectionErrorDetails"`
-	ProtectionStatus          *ProtectionStatusDetails `json:"protectionStatus"`
+	ProtectionErrorDetails    *UserFacingError         `json:"protectionErrorDetails,omitempty"`
+	ProtectionStatus          *ProtectionStatusDetails `json:"protectionStatus,omitempty"`
 	ProvisioningState         *string                  `json:"provisioningState,omitempty"`
 	ValidationType            *ValidationType          `json:"validationType,omitempty"`
 }

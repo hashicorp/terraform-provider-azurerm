@@ -8,5 +8,5 @@ type FollowerDatabaseDefinition struct {
 	ClusterResourceId                 string                       `json:"clusterResourceId"`
 	DatabaseName                      *string                      `json:"databaseName,omitempty"`
 	DatabaseShareOrigin               *DatabaseShareOrigin         `json:"databaseShareOrigin,omitempty"`
-	TableLevelSharingProperties       *TableLevelSharingProperties `json:"tableLevelSharingProperties"`
+	TableLevelSharingProperties       *TableLevelSharingProperties `json:"tableLevelSharingProperties,omitempty"`
 }

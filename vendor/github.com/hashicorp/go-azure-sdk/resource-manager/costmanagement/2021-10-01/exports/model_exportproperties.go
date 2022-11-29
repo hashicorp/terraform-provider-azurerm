@@ -15,8 +15,8 @@ type ExportProperties struct {
 	Format              *FormatType                `json:"format,omitempty"`
 	NextRunTimeEstimate *string                    `json:"nextRunTimeEstimate,omitempty"`
 	PartitionData       *bool                      `json:"partitionData,omitempty"`
-	RunHistory          *ExportExecutionListResult `json:"runHistory"`
-	Schedule            *ExportSchedule            `json:"schedule"`
+	RunHistory          *ExportExecutionListResult `json:"runHistory,omitempty"`
+	Schedule            *ExportSchedule            `json:"schedule,omitempty"`
 }
 
 func (o *ExportProperties) GetNextRunTimeEstimateAsTime() (*time.Time, error) {

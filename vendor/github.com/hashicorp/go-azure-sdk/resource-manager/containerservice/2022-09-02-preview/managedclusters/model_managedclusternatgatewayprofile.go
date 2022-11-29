@@ -6,5 +6,5 @@ package managedclusters
 type ManagedClusterNATGatewayProfile struct {
 	EffectiveOutboundIPs     *[]ResourceReference                    `json:"effectiveOutboundIPs,omitempty"`
 	IdleTimeoutInMinutes     *int64                                  `json:"idleTimeoutInMinutes,omitempty"`
-	ManagedOutboundIPProfile *ManagedClusterManagedOutboundIPProfile `json:"managedOutboundIPProfile"`
+	ManagedOutboundIPProfile *ManagedClusterManagedOutboundIPProfile `json:"managedOutboundIPProfile,omitempty"`
 }

@@ -10,12 +10,12 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StreamingPolicyProperties struct {
-	CommonEncryptionCbcs        *CommonEncryptionCbcs `json:"commonEncryptionCbcs"`
-	CommonEncryptionCenc        *CommonEncryptionCenc `json:"commonEncryptionCenc"`
+	CommonEncryptionCbcs        *CommonEncryptionCbcs `json:"commonEncryptionCbcs,omitempty"`
+	CommonEncryptionCenc        *CommonEncryptionCenc `json:"commonEncryptionCenc,omitempty"`
 	Created                     *string               `json:"created,omitempty"`
 	DefaultContentKeyPolicyName *string               `json:"defaultContentKeyPolicyName,omitempty"`
-	EnvelopeEncryption          *EnvelopeEncryption   `json:"envelopeEncryption"`
-	NoEncryption                *NoEncryption         `json:"noEncryption"`
+	EnvelopeEncryption          *EnvelopeEncryption   `json:"envelopeEncryption,omitempty"`
+	NoEncryption                *NoEncryption         `json:"noEncryption,omitempty"`
 }
 
 func (o *StreamingPolicyProperties) GetCreatedAsTime() (*time.Time, error) {

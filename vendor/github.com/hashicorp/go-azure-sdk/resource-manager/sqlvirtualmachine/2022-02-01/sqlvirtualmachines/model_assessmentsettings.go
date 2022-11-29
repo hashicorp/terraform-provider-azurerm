@@ -6,5 +6,5 @@ package sqlvirtualmachines
 type AssessmentSettings struct {
 	Enable         *bool     `json:"enable,omitempty"`
 	RunImmediately *bool     `json:"runImmediately,omitempty"`
-	Schedule       *Schedule `json:"schedule"`
+	Schedule       *Schedule `json:"schedule,omitempty"`
 }

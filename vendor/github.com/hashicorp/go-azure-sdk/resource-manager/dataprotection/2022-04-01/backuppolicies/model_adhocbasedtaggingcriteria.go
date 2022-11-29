@@ -4,5 +4,5 @@ package backuppolicies
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AdhocBasedTaggingCriteria struct {
-	TagInfo *RetentionTag `json:"tagInfo"`
+	TagInfo *RetentionTag `json:"tagInfo,omitempty"`
 }

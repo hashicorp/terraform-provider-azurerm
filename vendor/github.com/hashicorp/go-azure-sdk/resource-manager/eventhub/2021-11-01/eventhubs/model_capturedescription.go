@@ -4,7 +4,7 @@ package eventhubs
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CaptureDescription struct {
-	Destination       *Destination                `json:"destination"`
+	Destination       *Destination                `json:"destination,omitempty"`
 	Enabled           *bool                       `json:"enabled,omitempty"`
 	Encoding          *EncodingCaptureDescription `json:"encoding,omitempty"`
 	IntervalInSeconds *int64                      `json:"intervalInSeconds,omitempty"`

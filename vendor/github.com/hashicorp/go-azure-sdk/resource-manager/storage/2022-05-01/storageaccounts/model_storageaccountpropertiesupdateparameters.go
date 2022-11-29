@@ -9,20 +9,20 @@ type StorageAccountPropertiesUpdateParameters struct {
 	AllowCrossTenantReplication           *bool                                  `json:"allowCrossTenantReplication,omitempty"`
 	AllowSharedKeyAccess                  *bool                                  `json:"allowSharedKeyAccess,omitempty"`
 	AllowedCopyScope                      *AllowedCopyScope                      `json:"allowedCopyScope,omitempty"`
-	AzureFilesIdentityBasedAuthentication *AzureFilesIdentityBasedAuthentication `json:"azureFilesIdentityBasedAuthentication"`
-	CustomDomain                          *CustomDomain                          `json:"customDomain"`
+	AzureFilesIdentityBasedAuthentication *AzureFilesIdentityBasedAuthentication `json:"azureFilesIdentityBasedAuthentication,omitempty"`
+	CustomDomain                          *CustomDomain                          `json:"customDomain,omitempty"`
 	DefaultToOAuthAuthentication          *bool                                  `json:"defaultToOAuthAuthentication,omitempty"`
 	DnsEndpointType                       *DnsEndpointType                       `json:"dnsEndpointType,omitempty"`
-	Encryption                            *Encryption                            `json:"encryption"`
-	ImmutableStorageWithVersioning        *ImmutableStorageAccount               `json:"immutableStorageWithVersioning"`
+	Encryption                            *Encryption                            `json:"encryption,omitempty"`
+	ImmutableStorageWithVersioning        *ImmutableStorageAccount               `json:"immutableStorageWithVersioning,omitempty"`
 	IsLocalUserEnabled                    *bool                                  `json:"isLocalUserEnabled,omitempty"`
 	IsSftpEnabled                         *bool                                  `json:"isSftpEnabled,omitempty"`
-	KeyPolicy                             *KeyPolicy                             `json:"keyPolicy"`
+	KeyPolicy                             *KeyPolicy                             `json:"keyPolicy,omitempty"`
 	LargeFileSharesState                  *LargeFileSharesState                  `json:"largeFileSharesState,omitempty"`
 	MinimumTlsVersion                     *MinimumTlsVersion                     `json:"minimumTlsVersion,omitempty"`
-	NetworkAcls                           *NetworkRuleSet                        `json:"networkAcls"`
+	NetworkAcls                           *NetworkRuleSet                        `json:"networkAcls,omitempty"`
 	PublicNetworkAccess                   *PublicNetworkAccess                   `json:"publicNetworkAccess,omitempty"`
-	RoutingPreference                     *RoutingPreference                     `json:"routingPreference"`
-	SasPolicy                             *SasPolicy                             `json:"sasPolicy"`
+	RoutingPreference                     *RoutingPreference                     `json:"routingPreference,omitempty"`
+	SasPolicy                             *SasPolicy                             `json:"sasPolicy,omitempty"`
 	SupportsHTTPSTrafficOnly              *bool                                  `json:"supportsHttpsTrafficOnly,omitempty"`
 }

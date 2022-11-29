@@ -11,7 +11,7 @@ import (
 type FunctionConfiguration struct {
 	Binding FunctionBinding  `json:"binding"`
 	Inputs  *[]FunctionInput `json:"inputs,omitempty"`
-	Output  *FunctionOutput  `json:"output"`
+	Output  *FunctionOutput  `json:"output,omitempty"`
 }
 
 var _ json.Unmarshaler = &FunctionConfiguration{}

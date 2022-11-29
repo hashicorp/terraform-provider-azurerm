@@ -7,6 +7,6 @@ type AzureMachineLearningWebServiceFunctionBindingProperties struct {
 	ApiKey    *string                                       `json:"apiKey,omitempty"`
 	BatchSize *int64                                        `json:"batchSize,omitempty"`
 	Endpoint  *string                                       `json:"endpoint,omitempty"`
-	Inputs    *AzureMachineLearningWebServiceInputs         `json:"inputs"`
+	Inputs    *AzureMachineLearningWebServiceInputs         `json:"inputs,omitempty"`
 	Outputs   *[]AzureMachineLearningWebServiceOutputColumn `json:"outputs,omitempty"`
 }

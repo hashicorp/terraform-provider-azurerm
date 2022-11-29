@@ -8,11 +8,11 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NodeTypeProperties struct {
-	ApplicationPorts        *EndpointRangeDescription         `json:"applicationPorts"`
+	ApplicationPorts        *EndpointRangeDescription         `json:"applicationPorts,omitempty"`
 	Capacities              *map[string]string                `json:"capacities,omitempty"`
 	DataDiskSizeGB          int64                             `json:"dataDiskSizeGB"`
 	DataDiskType            *DiskType                         `json:"dataDiskType,omitempty"`
-	EphemeralPorts          *EndpointRangeDescription         `json:"ephemeralPorts"`
+	EphemeralPorts          *EndpointRangeDescription         `json:"ephemeralPorts,omitempty"`
 	IsPrimary               bool                              `json:"isPrimary"`
 	IsStateless             *bool                             `json:"isStateless,omitempty"`
 	MultiplePlacementGroups *bool                             `json:"multiplePlacementGroups,omitempty"`

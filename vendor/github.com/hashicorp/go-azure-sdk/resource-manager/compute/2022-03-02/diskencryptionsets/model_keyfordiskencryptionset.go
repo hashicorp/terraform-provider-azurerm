@@ -5,5 +5,5 @@ package diskencryptionsets
 
 type KeyForDiskEncryptionSet struct {
 	KeyUrl      string       `json:"keyUrl"`
-	SourceVault *SourceVault `json:"sourceVault"`
+	SourceVault *SourceVault `json:"sourceVault,omitempty"`
 }

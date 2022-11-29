@@ -9,7 +9,7 @@ import (
 
 type ServerUpdateParameters struct {
 	Identity   *identity.SystemAssigned          `json:"identity,omitempty"`
-	Properties *ServerUpdateParametersProperties `json:"properties"`
-	Sku        *Sku                              `json:"sku"`
+	Properties *ServerUpdateParametersProperties `json:"properties,omitempty"`
+	Sku        *Sku                              `json:"sku,omitempty"`
 	Tags       *map[string]string                `json:"tags,omitempty"`
 }

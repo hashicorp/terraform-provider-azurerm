@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SqlDatabaseGetProperties struct {
-	Options  *OptionsResource                  `json:"options"`
-	Resource *SqlDatabaseGetPropertiesResource `json:"resource"`
+	Options  *OptionsResource                  `json:"options,omitempty"`
+	Resource *SqlDatabaseGetPropertiesResource `json:"resource,omitempty"`
 }

@@ -11,7 +11,7 @@ import (
 var _ ComputeSecrets = VirtualMachineSecrets{}
 
 type VirtualMachineSecrets struct {
-	AdministratorAccount *VirtualMachineSshCredentials `json:"administratorAccount"`
+	AdministratorAccount *VirtualMachineSshCredentials `json:"administratorAccount,omitempty"`
 
 	// Fields inherited from ComputeSecrets
 }

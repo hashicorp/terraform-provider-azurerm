@@ -4,10 +4,10 @@ package notificationhubs
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PnsCredentialsProperties struct {
-	AdmCredential   *AdmCredential   `json:"admCredential"`
-	ApnsCredential  *ApnsCredential  `json:"apnsCredential"`
-	BaiduCredential *BaiduCredential `json:"baiduCredential"`
-	GcmCredential   *GcmCredential   `json:"gcmCredential"`
-	MpnsCredential  *MpnsCredential  `json:"mpnsCredential"`
-	WnsCredential   *WnsCredential   `json:"wnsCredential"`
+	AdmCredential   *AdmCredential   `json:"admCredential,omitempty"`
+	ApnsCredential  *ApnsCredential  `json:"apnsCredential,omitempty"`
+	BaiduCredential *BaiduCredential `json:"baiduCredential,omitempty"`
+	GcmCredential   *GcmCredential   `json:"gcmCredential,omitempty"`
+	MpnsCredential  *MpnsCredential  `json:"mpnsCredential,omitempty"`
+	WnsCredential   *WnsCredential   `json:"wnsCredential,omitempty"`
 }

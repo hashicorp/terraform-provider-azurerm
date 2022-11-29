@@ -11,8 +11,8 @@ type PrivateEndpointConnectionProxy struct {
 	ETag                  *string                                   `json:"eTag,omitempty"`
 	Id                    *string                                   `json:"id,omitempty"`
 	Name                  *string                                   `json:"name,omitempty"`
-	Properties            *PrivateEndpointConnectionProxyProperties `json:"properties"`
-	RemotePrivateEndpoint *RemotePrivateEndpoint                    `json:"remotePrivateEndpoint"`
+	Properties            *PrivateEndpointConnectionProxyProperties `json:"properties,omitempty"`
+	RemotePrivateEndpoint *RemotePrivateEndpoint                    `json:"remotePrivateEndpoint,omitempty"`
 	Status                *string                                   `json:"status,omitempty"`
 	SystemData            *systemdata.SystemData                    `json:"systemData,omitempty"`
 	Type                  *string                                   `json:"type,omitempty"`

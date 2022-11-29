@@ -7,7 +7,7 @@ type VirtualMachineExtensionProperties struct {
 	AutoUpgradeMinorVersion       *bool                                `json:"autoUpgradeMinorVersion,omitempty"`
 	EnableAutomaticUpgrade        *bool                                `json:"enableAutomaticUpgrade,omitempty"`
 	ForceUpdateTag                *string                              `json:"forceUpdateTag,omitempty"`
-	InstanceView                  *VirtualMachineExtensionInstanceView `json:"instanceView"`
+	InstanceView                  *VirtualMachineExtensionInstanceView `json:"instanceView,omitempty"`
 	ProtectedSettings             *interface{}                         `json:"protectedSettings,omitempty"`
 	ProtectedSettingsFromKeyVault *interface{}                         `json:"protectedSettingsFromKeyVault,omitempty"`
 	ProvisioningState             *string                              `json:"provisioningState,omitempty"`

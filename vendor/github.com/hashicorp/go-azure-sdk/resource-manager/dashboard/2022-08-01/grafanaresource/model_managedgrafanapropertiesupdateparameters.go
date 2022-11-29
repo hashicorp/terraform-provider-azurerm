@@ -6,7 +6,7 @@ package grafanaresource
 type ManagedGrafanaPropertiesUpdateParameters struct {
 	ApiKey                  *ApiKey                  `json:"apiKey,omitempty"`
 	DeterministicOutboundIP *DeterministicOutboundIP `json:"deterministicOutboundIP,omitempty"`
-	GrafanaIntegrations     *GrafanaIntegrations     `json:"grafanaIntegrations"`
+	GrafanaIntegrations     *GrafanaIntegrations     `json:"grafanaIntegrations,omitempty"`
 	PublicNetworkAccess     *PublicNetworkAccess     `json:"publicNetworkAccess,omitempty"`
 	ZoneRedundancy          *ZoneRedundancy          `json:"zoneRedundancy,omitempty"`
 }

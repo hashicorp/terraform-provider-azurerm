@@ -4,5 +4,5 @@ package liveevents
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LiveEventPreviewAccessControl struct {
-	IP *IPAccessControl `json:"ip"`
+	IP *IPAccessControl `json:"ip,omitempty"`
 }

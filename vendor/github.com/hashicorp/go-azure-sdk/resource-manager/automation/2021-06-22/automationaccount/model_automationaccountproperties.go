@@ -14,12 +14,12 @@ type AutomationAccountProperties struct {
 	CreationTime               *string                      `json:"creationTime,omitempty"`
 	Description                *string                      `json:"description,omitempty"`
 	DisableLocalAuth           *bool                        `json:"disableLocalAuth,omitempty"`
-	Encryption                 *EncryptionProperties        `json:"encryption"`
+	Encryption                 *EncryptionProperties        `json:"encryption,omitempty"`
 	LastModifiedBy             *string                      `json:"lastModifiedBy,omitempty"`
 	LastModifiedTime           *string                      `json:"lastModifiedTime,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	PublicNetworkAccess        *bool                        `json:"publicNetworkAccess,omitempty"`
-	Sku                        *Sku                         `json:"sku"`
+	Sku                        *Sku                         `json:"sku,omitempty"`
 	State                      *AutomationAccountState      `json:"state,omitempty"`
 }
 

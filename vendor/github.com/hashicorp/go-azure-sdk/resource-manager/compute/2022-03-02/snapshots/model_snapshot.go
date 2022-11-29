@@ -13,8 +13,8 @@ type Snapshot struct {
 	Location         string              `json:"location"`
 	ManagedBy        *string             `json:"managedBy,omitempty"`
 	Name             *string             `json:"name,omitempty"`
-	Properties       *SnapshotProperties `json:"properties"`
-	Sku              *SnapshotSku        `json:"sku"`
+	Properties       *SnapshotProperties `json:"properties,omitempty"`
+	Sku              *SnapshotSku        `json:"sku,omitempty"`
 	Tags             *map[string]string  `json:"tags,omitempty"`
 	Type             *string             `json:"type,omitempty"`
 }

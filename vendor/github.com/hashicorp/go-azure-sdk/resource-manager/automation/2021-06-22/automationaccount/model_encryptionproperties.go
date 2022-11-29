@@ -4,7 +4,7 @@ package automationaccount
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionProperties struct {
-	Identity           *EncryptionPropertiesIdentity `json:"identity"`
+	Identity           *EncryptionPropertiesIdentity `json:"identity,omitempty"`
 	KeySource          *EncryptionKeySourceType      `json:"keySource,omitempty"`
-	KeyVaultProperties *KeyVaultProperties           `json:"keyVaultProperties"`
+	KeyVaultProperties *KeyVaultProperties           `json:"keyVaultProperties,omitempty"`
 }

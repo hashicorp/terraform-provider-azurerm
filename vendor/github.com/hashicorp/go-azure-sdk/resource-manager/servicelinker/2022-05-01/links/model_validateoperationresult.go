@@ -4,7 +4,7 @@ package links
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ValidateOperationResult struct {
-	Properties *ValidateResult `json:"properties"`
+	Properties *ValidateResult `json:"properties,omitempty"`
 	ResourceId *string         `json:"resourceId,omitempty"`
 	Status     *string         `json:"status,omitempty"`
 }

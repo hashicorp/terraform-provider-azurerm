@@ -5,5 +5,5 @@ package virtualmachines
 
 type NetworkInterfaceReference struct {
 	Id         *string                              `json:"id,omitempty"`
-	Properties *NetworkInterfaceReferenceProperties `json:"properties"`
+	Properties *NetworkInterfaceReferenceProperties `json:"properties,omitempty"`
 }
