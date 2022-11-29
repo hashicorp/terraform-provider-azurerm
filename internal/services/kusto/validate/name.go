@@ -63,7 +63,7 @@ func DatabaseName(v interface{}, k string) (warnings []string, errors []error) {
 	}
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9\s._-]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes, understores and dots: %q", k, name))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes, underscores and dots: %q", k, name))
 	}
 
 	if len(name) > 260 {
