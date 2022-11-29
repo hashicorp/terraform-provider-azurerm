@@ -248,24 +248,17 @@ resource "azurerm_subnet" "test1" {
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "net-%[1]d"
+  name                = "net2-%[1]d"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
-resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%[1]d_1"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.0/27"]
-}
-
-resource "azurerm_subnet" "test2_2" {
-  name                 = "snet-%[1]d_2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.32/27"]
+resource "azurerm_subnet" "test2" {
+  name                 = "snet2-%[1]d"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["192.168.2.0/24"]
 }
 
 resource "azurerm_site_recovery_network_mapping" "test" {
@@ -663,20 +656,6 @@ resource "azurerm_virtual_network" "test2" {
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
-resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%[1]d-2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.0/27"]
-}
-
-resource "azurerm_subnet" "test2_2" {
-  name                 = "snet-%[1]d-3"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.32/27"]
-}
-
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.test2.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
@@ -888,20 +867,6 @@ resource "azurerm_virtual_network" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
-}
-
-resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%[1]d_1"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.0/27"]
-}
-
-resource "azurerm_subnet" "test2_2" {
-  name                 = "snet-%[1]d_2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.32/27"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -1417,22 +1382,13 @@ func (r SiteRecoveryReplicatedVmResource) withVMSS(data acceptance.TestData) str
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestOVMSS-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
 
   sku_name                    = "Standard_B1s"
   instances                   = 2
   platform_fault_domain_count = 2
 
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[2]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      disable_password_authentication = false
-    }
-  }
   network_interface {
     name    = "TestNetworkProfile-%[2]d"
     primary = true
@@ -1440,7 +1396,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       primary   = true
-      subnet_id = azurerm_subnet.test2_1.id
+      subnet_id = azurerm_subnet.test2.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
     }
   }
 
@@ -1455,6 +1417,17 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix = "testvm-%[2]d"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
+    }
+  }
+
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
@@ -1490,6 +1463,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
+
 
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
