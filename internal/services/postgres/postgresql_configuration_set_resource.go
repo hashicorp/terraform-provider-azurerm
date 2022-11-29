@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -71,7 +72,8 @@ func resourcePostgreSQLConfigurationSetRead(d *pluginsdk.ResourceData, meta inte
 
 	defer cancel()
 
-	id, err := configurations.ParseServerID(d.Id())
+	serverID := strings.TrimSuffix(d.Id(), "/configurationSet/set")
+	id, err := configurations.ParseServerID(serverID)
 	if err != nil {
 		return err
 	}

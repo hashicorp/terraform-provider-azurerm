@@ -6,6 +6,7 @@ package mysql
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -67,13 +68,15 @@ func resourceMySQLConfigurationSetRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationID(d.Id())
+	// id, err := parse.ConfigurationID(serverID)
+	serverID := strings.TrimSuffix(d.Id(), "/configurationSet/set")
+	id, err := parse.ServerID(serverID)
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	serverName := id.ServerName
+	serverName := id.Name
 	resp, err := client.ListByServer(ctx, resourceGroup, serverName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -92,7 +95,7 @@ func resourceMySQLConfigurationSetRead(d *pluginsdk.ResourceData, meta interface
 		configMap[*key] = *value
 	}
 
-	d.Set("server_name", id.ServerName)
+	d.Set("server_name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("config_map", configMap)
 
