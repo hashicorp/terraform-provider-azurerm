@@ -16,9 +16,9 @@ type HostPool struct {
 	Location   *string                  `json:"location,omitempty"`
 	ManagedBy  *string                  `json:"managedBy,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
-	Plan       *Plan                    `json:"plan"`
+	Plan       *Plan                    `json:"plan,omitempty"`
 	Properties HostPoolProperties       `json:"properties"`
-	Sku        *Sku                     `json:"sku"`
+	Sku        *Sku                     `json:"sku,omitempty"`
 	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 	Type       *string                  `json:"type,omitempty"`

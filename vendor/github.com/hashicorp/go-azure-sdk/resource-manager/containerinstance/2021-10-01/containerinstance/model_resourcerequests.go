@@ -5,6 +5,6 @@ package containerinstance
 
 type ResourceRequests struct {
 	Cpu        float64      `json:"cpu"`
-	Gpu        *GpuResource `json:"gpu"`
+	Gpu        *GpuResource `json:"gpu,omitempty"`
 	MemoryInGB float64      `json:"memoryInGB"`
 }

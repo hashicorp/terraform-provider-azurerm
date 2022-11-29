@@ -5,6 +5,6 @@ package blobcontainers
 
 type ImmutabilityPolicyProperties struct {
 	Etag          *string                     `json:"etag,omitempty"`
-	Properties    *ImmutabilityPolicyProperty `json:"properties"`
+	Properties    *ImmutabilityPolicyProperty `json:"properties,omitempty"`
 	UpdateHistory *[]UpdateHistoryProperty    `json:"updateHistory,omitempty"`
 }

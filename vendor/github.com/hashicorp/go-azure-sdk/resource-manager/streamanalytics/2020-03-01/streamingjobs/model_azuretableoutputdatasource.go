@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = AzureTableOutputDataSource{}
 
 type AzureTableOutputDataSource struct {
-	Properties *AzureTableOutputDataSourceProperties `json:"properties"`
+	Properties *AzureTableOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
 }

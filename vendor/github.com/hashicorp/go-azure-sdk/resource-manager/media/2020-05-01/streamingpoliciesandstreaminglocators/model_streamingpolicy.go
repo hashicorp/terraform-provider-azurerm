@@ -10,7 +10,7 @@ import (
 type StreamingPolicy struct {
 	Id         *string                    `json:"id,omitempty"`
 	Name       *string                    `json:"name,omitempty"`
-	Properties *StreamingPolicyProperties `json:"properties"`
+	Properties *StreamingPolicyProperties `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData     `json:"systemData,omitempty"`
 	Type       *string                    `json:"type,omitempty"`
 }

@@ -12,7 +12,7 @@ type DiskEncryptionSet struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   string                             `json:"location"`
 	Name       *string                            `json:"name,omitempty"`
-	Properties *EncryptionSetProperties           `json:"properties"`
+	Properties *EncryptionSetProperties           `json:"properties,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 	Type       *string                            `json:"type,omitempty"`
 }

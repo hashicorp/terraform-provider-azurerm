@@ -5,8 +5,8 @@ package disks
 
 type CreationData struct {
 	CreateOption          DiskCreateOption    `json:"createOption"`
-	GalleryImageReference *ImageDiskReference `json:"galleryImageReference"`
-	ImageReference        *ImageDiskReference `json:"imageReference"`
+	GalleryImageReference *ImageDiskReference `json:"galleryImageReference,omitempty"`
+	ImageReference        *ImageDiskReference `json:"imageReference,omitempty"`
 	LogicalSectorSize     *int64              `json:"logicalSectorSize,omitempty"`
 	SecurityDataUri       *string             `json:"securityDataUri,omitempty"`
 	SourceResourceId      *string             `json:"sourceResourceId,omitempty"`

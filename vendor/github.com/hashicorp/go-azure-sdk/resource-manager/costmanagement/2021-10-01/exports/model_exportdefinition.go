@@ -4,8 +4,8 @@ package exports
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ExportDefinition struct {
-	DataSet    *ExportDataset    `json:"dataSet"`
-	TimePeriod *ExportTimePeriod `json:"timePeriod"`
+	DataSet    *ExportDataset    `json:"dataSet,omitempty"`
+	TimePeriod *ExportTimePeriod `json:"timePeriod,omitempty"`
 	Timeframe  TimeframeType     `json:"timeframe"`
 	Type       ExportType        `json:"type"`
 }

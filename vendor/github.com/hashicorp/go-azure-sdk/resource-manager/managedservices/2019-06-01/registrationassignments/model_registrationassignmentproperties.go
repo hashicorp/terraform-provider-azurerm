@@ -5,6 +5,6 @@ package registrationassignments
 
 type RegistrationAssignmentProperties struct {
 	ProvisioningState        *ProvisioningState                                      `json:"provisioningState,omitempty"`
-	RegistrationDefinition   *RegistrationAssignmentPropertiesRegistrationDefinition `json:"registrationDefinition"`
+	RegistrationDefinition   *RegistrationAssignmentPropertiesRegistrationDefinition `json:"registrationDefinition,omitempty"`
 	RegistrationDefinitionId string                                                  `json:"registrationDefinitionId"`
 }

@@ -5,7 +5,7 @@ package machinelearningcomputes
 
 type ComputeInstanceContainer struct {
 	Autosave    *Autosave                       `json:"autosave,omitempty"`
-	Environment *ComputeInstanceEnvironmentInfo `json:"environment"`
+	Environment *ComputeInstanceEnvironmentInfo `json:"environment,omitempty"`
 	Gpu         *string                         `json:"gpu,omitempty"`
 	Name        *string                         `json:"name,omitempty"`
 	Network     *Network                        `json:"network,omitempty"`

@@ -8,10 +8,10 @@ type ContainerServiceNetworkProfile struct {
 	DockerBridgeCidr    *string                                        `json:"dockerBridgeCidr,omitempty"`
 	EbpfDataplane       *EbpfDataplane                                 `json:"ebpfDataplane,omitempty"`
 	IPFamilies          *[]IPFamily                                    `json:"ipFamilies,omitempty"`
-	KubeProxyConfig     *ContainerServiceNetworkProfileKubeProxyConfig `json:"kubeProxyConfig"`
-	LoadBalancerProfile *ManagedClusterLoadBalancerProfile             `json:"loadBalancerProfile"`
+	KubeProxyConfig     *ContainerServiceNetworkProfileKubeProxyConfig `json:"kubeProxyConfig,omitempty"`
+	LoadBalancerProfile *ManagedClusterLoadBalancerProfile             `json:"loadBalancerProfile,omitempty"`
 	LoadBalancerSku     *LoadBalancerSku                               `json:"loadBalancerSku,omitempty"`
-	NatGatewayProfile   *ManagedClusterNATGatewayProfile               `json:"natGatewayProfile"`
+	NatGatewayProfile   *ManagedClusterNATGatewayProfile               `json:"natGatewayProfile,omitempty"`
 	NetworkMode         *NetworkMode                                   `json:"networkMode,omitempty"`
 	NetworkPlugin       *NetworkPlugin                                 `json:"networkPlugin,omitempty"`
 	NetworkPluginMode   *NetworkPluginMode                             `json:"networkPluginMode,omitempty"`

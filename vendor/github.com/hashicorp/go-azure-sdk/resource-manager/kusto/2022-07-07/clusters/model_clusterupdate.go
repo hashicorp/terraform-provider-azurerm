@@ -12,8 +12,8 @@ type ClusterUpdate struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                            `json:"location,omitempty"`
 	Name       *string                            `json:"name,omitempty"`
-	Properties *ClusterProperties                 `json:"properties"`
-	Sku        *AzureSku                          `json:"sku"`
+	Properties *ClusterProperties                 `json:"properties,omitempty"`
+	Sku        *AzureSku                          `json:"sku,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 	Type       *string                            `json:"type,omitempty"`
 }

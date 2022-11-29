@@ -4,5 +4,5 @@ package resourceguards
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PatchBackupVaultInput struct {
-	MonitoringSettings *MonitoringSettings `json:"monitoringSettings"`
+	MonitoringSettings *MonitoringSettings `json:"monitoringSettings,omitempty"`
 }

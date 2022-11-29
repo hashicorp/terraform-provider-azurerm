@@ -4,6 +4,6 @@ package datacollectionrules
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DestinationsSpec struct {
-	AzureMonitorMetrics *AzureMonitorMetricsDestination `json:"azureMonitorMetrics"`
+	AzureMonitorMetrics *AzureMonitorMetricsDestination `json:"azureMonitorMetrics,omitempty"`
 	LogAnalytics        *[]LogAnalyticsDestination      `json:"logAnalytics,omitempty"`
 }

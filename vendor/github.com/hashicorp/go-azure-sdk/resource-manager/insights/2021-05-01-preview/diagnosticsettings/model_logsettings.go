@@ -7,5 +7,5 @@ type LogSettings struct {
 	Category        *string          `json:"category,omitempty"`
 	CategoryGroup   *string          `json:"categoryGroup,omitempty"`
 	Enabled         bool             `json:"enabled"`
-	RetentionPolicy *RetentionPolicy `json:"retentionPolicy"`
+	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
 }

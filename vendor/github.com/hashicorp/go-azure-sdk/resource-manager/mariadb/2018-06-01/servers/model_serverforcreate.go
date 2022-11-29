@@ -11,7 +11,7 @@ import (
 type ServerForCreate struct {
 	Location   string                    `json:"location"`
 	Properties ServerPropertiesForCreate `json:"properties"`
-	Sku        *Sku                      `json:"sku"`
+	Sku        *Sku                      `json:"sku,omitempty"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 }
 

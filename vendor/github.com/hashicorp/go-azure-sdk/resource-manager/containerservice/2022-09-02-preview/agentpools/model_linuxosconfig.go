@@ -5,7 +5,7 @@ package agentpools
 
 type LinuxOSConfig struct {
 	SwapFileSizeMB             *int64        `json:"swapFileSizeMB,omitempty"`
-	Sysctls                    *SysctlConfig `json:"sysctls"`
+	Sysctls                    *SysctlConfig `json:"sysctls,omitempty"`
 	TransparentHugePageDefrag  *string       `json:"transparentHugePageDefrag,omitempty"`
 	TransparentHugePageEnabled *string       `json:"transparentHugePageEnabled,omitempty"`
 }

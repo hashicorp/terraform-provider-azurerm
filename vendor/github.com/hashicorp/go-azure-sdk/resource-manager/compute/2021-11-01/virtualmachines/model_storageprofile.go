@@ -5,6 +5,6 @@ package virtualmachines
 
 type StorageProfile struct {
 	DataDisks      *[]DataDisk     `json:"dataDisks,omitempty"`
-	ImageReference *ImageReference `json:"imageReference"`
-	OsDisk         *OSDisk         `json:"osDisk"`
+	ImageReference *ImageReference `json:"imageReference,omitempty"`
+	OsDisk         *OSDisk         `json:"osDisk,omitempty"`
 }

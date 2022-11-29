@@ -4,6 +4,6 @@ package clusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ClusterPatch struct {
-	Properties *ClusterPatchProperties `json:"properties"`
+	Properties *ClusterPatchProperties `json:"properties,omitempty"`
 	Tags       *map[string]string      `json:"tags,omitempty"`
 }

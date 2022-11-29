@@ -4,6 +4,6 @@ package budgets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BudgetFilterProperties struct {
-	Dimensions *BudgetComparisonExpression `json:"dimensions"`
-	Tags       *BudgetComparisonExpression `json:"tags"`
+	Dimensions *BudgetComparisonExpression `json:"dimensions,omitempty"`
+	Tags       *BudgetComparisonExpression `json:"tags,omitempty"`
 }

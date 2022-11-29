@@ -4,6 +4,6 @@ package desktop
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DesktopPatch struct {
-	Properties *DesktopPatchProperties `json:"properties"`
+	Properties *DesktopPatchProperties `json:"properties,omitempty"`
 	Tags       *map[string]string      `json:"tags,omitempty"`
 }

@@ -7,5 +7,5 @@ type CassandraClusterPublicStatus struct {
 	ConnectionErrors *[]ConnectionError                                `json:"connectionErrors,omitempty"`
 	DataCenters      *[]CassandraClusterPublicStatusDataCentersInlined `json:"dataCenters,omitempty"`
 	ETag             *string                                           `json:"eTag,omitempty"`
-	ReaperStatus     *ManagedCassandraReaperStatus                     `json:"reaperStatus"`
+	ReaperStatus     *ManagedCassandraReaperStatus                     `json:"reaperStatus,omitempty"`
 }

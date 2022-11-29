@@ -8,7 +8,7 @@ type CheckAvailabilityParameters struct {
 	IsAvailiable *bool              `json:"isAvailiable,omitempty"`
 	Location     *string            `json:"location,omitempty"`
 	Name         string             `json:"name"`
-	Sku          *Sku               `json:"sku"`
+	Sku          *Sku               `json:"sku,omitempty"`
 	Tags         *map[string]string `json:"tags,omitempty"`
 	Type         *string            `json:"type,omitempty"`
 }

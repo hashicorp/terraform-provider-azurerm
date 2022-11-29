@@ -10,7 +10,7 @@ import (
 type StorageAccountUpdateParameters struct {
 	Identity   *identity.LegacySystemAndUserAssignedMap  `json:"identity,omitempty"`
 	Kind       *Kind                                     `json:"kind,omitempty"`
-	Properties *StorageAccountPropertiesUpdateParameters `json:"properties"`
-	Sku        *Sku                                      `json:"sku"`
+	Properties *StorageAccountPropertiesUpdateParameters `json:"properties,omitempty"`
+	Sku        *Sku                                      `json:"sku,omitempty"`
 	Tags       *map[string]string                        `json:"tags,omitempty"`
 }

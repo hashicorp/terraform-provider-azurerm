@@ -12,7 +12,7 @@ import (
 type AvailablePatchSummary struct {
 	AssessmentActivityId          *string               `json:"assessmentActivityId,omitempty"`
 	CriticalAndSecurityPatchCount *int64                `json:"criticalAndSecurityPatchCount,omitempty"`
-	Error                         *ApiError             `json:"error"`
+	Error                         *ApiError             `json:"error,omitempty"`
 	LastModifiedTime              *string               `json:"lastModifiedTime,omitempty"`
 	OtherPatchCount               *int64                `json:"otherPatchCount,omitempty"`
 	RebootPending                 *bool                 `json:"rebootPending,omitempty"`

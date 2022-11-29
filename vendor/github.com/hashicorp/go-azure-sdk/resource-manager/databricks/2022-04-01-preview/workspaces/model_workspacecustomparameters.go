@@ -4,20 +4,20 @@ package workspaces
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkspaceCustomParameters struct {
-	AmlWorkspaceId                  *WorkspaceCustomStringParameter  `json:"amlWorkspaceId"`
-	CustomPrivateSubnetName         *WorkspaceCustomStringParameter  `json:"customPrivateSubnetName"`
-	CustomPublicSubnetName          *WorkspaceCustomStringParameter  `json:"customPublicSubnetName"`
-	CustomVirtualNetworkId          *WorkspaceCustomStringParameter  `json:"customVirtualNetworkId"`
-	EnableNoPublicIP                *WorkspaceCustomBooleanParameter `json:"enableNoPublicIp"`
-	Encryption                      *WorkspaceEncryptionParameter    `json:"encryption"`
-	LoadBalancerBackendPoolName     *WorkspaceCustomStringParameter  `json:"loadBalancerBackendPoolName"`
-	LoadBalancerId                  *WorkspaceCustomStringParameter  `json:"loadBalancerId"`
-	NatGatewayName                  *WorkspaceCustomStringParameter  `json:"natGatewayName"`
-	PrepareEncryption               *WorkspaceCustomBooleanParameter `json:"prepareEncryption"`
-	PublicIPName                    *WorkspaceCustomStringParameter  `json:"publicIpName"`
-	RequireInfrastructureEncryption *WorkspaceCustomBooleanParameter `json:"requireInfrastructureEncryption"`
-	ResourceTags                    *WorkspaceCustomObjectParameter  `json:"resourceTags"`
-	StorageAccountName              *WorkspaceCustomStringParameter  `json:"storageAccountName"`
-	StorageAccountSkuName           *WorkspaceCustomStringParameter  `json:"storageAccountSkuName"`
-	VnetAddressPrefix               *WorkspaceCustomStringParameter  `json:"vnetAddressPrefix"`
+	AmlWorkspaceId                  *WorkspaceCustomStringParameter  `json:"amlWorkspaceId,omitempty"`
+	CustomPrivateSubnetName         *WorkspaceCustomStringParameter  `json:"customPrivateSubnetName,omitempty"`
+	CustomPublicSubnetName          *WorkspaceCustomStringParameter  `json:"customPublicSubnetName,omitempty"`
+	CustomVirtualNetworkId          *WorkspaceCustomStringParameter  `json:"customVirtualNetworkId,omitempty"`
+	EnableNoPublicIP                *WorkspaceCustomBooleanParameter `json:"enableNoPublicIp,omitempty"`
+	Encryption                      *WorkspaceEncryptionParameter    `json:"encryption,omitempty"`
+	LoadBalancerBackendPoolName     *WorkspaceCustomStringParameter  `json:"loadBalancerBackendPoolName,omitempty"`
+	LoadBalancerId                  *WorkspaceCustomStringParameter  `json:"loadBalancerId,omitempty"`
+	NatGatewayName                  *WorkspaceCustomStringParameter  `json:"natGatewayName,omitempty"`
+	PrepareEncryption               *WorkspaceCustomBooleanParameter `json:"prepareEncryption,omitempty"`
+	PublicIPName                    *WorkspaceCustomStringParameter  `json:"publicIpName,omitempty"`
+	RequireInfrastructureEncryption *WorkspaceCustomBooleanParameter `json:"requireInfrastructureEncryption,omitempty"`
+	ResourceTags                    *WorkspaceCustomObjectParameter  `json:"resourceTags,omitempty"`
+	StorageAccountName              *WorkspaceCustomStringParameter  `json:"storageAccountName,omitempty"`
+	StorageAccountSkuName           *WorkspaceCustomStringParameter  `json:"storageAccountSkuName,omitempty"`
+	VnetAddressPrefix               *WorkspaceCustomStringParameter  `json:"vnetAddressPrefix,omitempty"`
 }

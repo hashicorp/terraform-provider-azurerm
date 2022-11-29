@@ -16,15 +16,15 @@ type AmlComputeProperties struct {
 	EnableNodePublicIP            *bool                        `json:"enableNodePublicIp,omitempty"`
 	Errors                        *[]ErrorResponse             `json:"errors,omitempty"`
 	IsolatedNetwork               *bool                        `json:"isolatedNetwork,omitempty"`
-	NodeStateCounts               *NodeStateCounts             `json:"nodeStateCounts"`
+	NodeStateCounts               *NodeStateCounts             `json:"nodeStateCounts,omitempty"`
 	OsType                        *OsType                      `json:"osType,omitempty"`
 	PropertyBag                   *interface{}                 `json:"propertyBag,omitempty"`
 	RemoteLoginPortPublicAccess   *RemoteLoginPortPublicAccess `json:"remoteLoginPortPublicAccess,omitempty"`
-	ScaleSettings                 *ScaleSettings               `json:"scaleSettings"`
-	Subnet                        *ResourceId                  `json:"subnet"`
+	ScaleSettings                 *ScaleSettings               `json:"scaleSettings,omitempty"`
+	Subnet                        *ResourceId                  `json:"subnet,omitempty"`
 	TargetNodeCount               *int64                       `json:"targetNodeCount,omitempty"`
-	UserAccountCredentials        *UserAccountCredentials      `json:"userAccountCredentials"`
-	VirtualMachineImage           *VirtualMachineImage         `json:"virtualMachineImage"`
+	UserAccountCredentials        *UserAccountCredentials      `json:"userAccountCredentials,omitempty"`
+	VirtualMachineImage           *VirtualMachineImage         `json:"virtualMachineImage,omitempty"`
 	VmPriority                    *VmPriority                  `json:"vmPriority,omitempty"`
 	VmSize                        *string                      `json:"vmSize,omitempty"`
 }

@@ -6,5 +6,5 @@ package liveevents
 type LiveEventTranscription struct {
 	InputTrackSelection      *[]LiveEventInputTrackSelection    `json:"inputTrackSelection,omitempty"`
 	Language                 *string                            `json:"language,omitempty"`
-	OutputTranscriptionTrack *LiveEventOutputTranscriptionTrack `json:"outputTranscriptionTrack"`
+	OutputTranscriptionTrack *LiveEventOutputTranscriptionTrack `json:"outputTranscriptionTrack,omitempty"`
 }

@@ -6,6 +6,6 @@ package schema
 type GlobalSchemaContract struct {
 	Id         *string                         `json:"id,omitempty"`
 	Name       *string                         `json:"name,omitempty"`
-	Properties *GlobalSchemaContractProperties `json:"properties"`
+	Properties *GlobalSchemaContractProperties `json:"properties,omitempty"`
 	Type       *string                         `json:"type,omitempty"`
 }

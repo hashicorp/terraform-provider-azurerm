@@ -12,15 +12,15 @@ type DiskUpdateProperties struct {
 	DiskMBpsReadOnly             *int64                        `json:"diskMBpsReadOnly,omitempty"`
 	DiskMBpsReadWrite            *int64                        `json:"diskMBpsReadWrite,omitempty"`
 	DiskSizeGB                   *int64                        `json:"diskSizeGB,omitempty"`
-	Encryption                   *Encryption                   `json:"encryption"`
-	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection"`
+	Encryption                   *Encryption                   `json:"encryption,omitempty"`
+	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	MaxShares                    *int64                        `json:"maxShares,omitempty"`
 	NetworkAccessPolicy          *NetworkAccessPolicy          `json:"networkAccessPolicy,omitempty"`
 	OsType                       *OperatingSystemTypes         `json:"osType,omitempty"`
-	PropertyUpdatesInProgress    *PropertyUpdatesInProgress    `json:"propertyUpdatesInProgress"`
+	PropertyUpdatesInProgress    *PropertyUpdatesInProgress    `json:"propertyUpdatesInProgress,omitempty"`
 	PublicNetworkAccess          *PublicNetworkAccess          `json:"publicNetworkAccess,omitempty"`
-	PurchasePlan                 *PurchasePlan                 `json:"purchasePlan"`
-	SupportedCapabilities        *SupportedCapabilities        `json:"supportedCapabilities"`
+	PurchasePlan                 *PurchasePlan                 `json:"purchasePlan,omitempty"`
+	SupportedCapabilities        *SupportedCapabilities        `json:"supportedCapabilities,omitempty"`
 	SupportsHibernation          *bool                         `json:"supportsHibernation,omitempty"`
 	Tier                         *string                       `json:"tier,omitempty"`
 }

@@ -11,7 +11,7 @@ import (
 var _ ReferenceInputDataSource = FileReferenceInputDataSource{}
 
 type FileReferenceInputDataSource struct {
-	Properties *FileReferenceInputDataSourceProperties `json:"properties"`
+	Properties *FileReferenceInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from ReferenceInputDataSource
 }

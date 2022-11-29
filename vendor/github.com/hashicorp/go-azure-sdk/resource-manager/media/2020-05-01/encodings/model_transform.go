@@ -10,7 +10,7 @@ import (
 type Transform struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *TransformProperties   `json:"properties"`
+	Properties *TransformProperties   `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

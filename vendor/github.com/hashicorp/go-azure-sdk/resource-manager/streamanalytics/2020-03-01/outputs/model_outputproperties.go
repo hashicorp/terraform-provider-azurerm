@@ -10,7 +10,7 @@ import (
 
 type OutputProperties struct {
 	Datasource    OutputDataSource `json:"datasource"`
-	Diagnostics   *Diagnostics     `json:"diagnostics"`
+	Diagnostics   *Diagnostics     `json:"diagnostics,omitempty"`
 	Etag          *string          `json:"etag,omitempty"`
 	Serialization Serialization    `json:"serialization"`
 	SizeWindow    *float64         `json:"sizeWindow,omitempty"`

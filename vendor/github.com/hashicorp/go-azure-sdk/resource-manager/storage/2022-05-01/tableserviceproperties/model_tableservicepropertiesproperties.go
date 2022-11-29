@@ -4,5 +4,5 @@ package tableserviceproperties
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TableServicePropertiesProperties struct {
-	Cors *CorsRules `json:"cors"`
+	Cors *CorsRules `json:"cors,omitempty"`
 }

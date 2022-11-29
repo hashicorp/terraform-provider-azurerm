@@ -6,6 +6,6 @@ package managementpolicies
 type ManagementPolicy struct {
 	Id         *string                     `json:"id,omitempty"`
 	Name       *string                     `json:"name,omitempty"`
-	Properties *ManagementPolicyProperties `json:"properties"`
+	Properties *ManagementPolicyProperties `json:"properties,omitempty"`
 	Type       *string                     `json:"type,omitempty"`
 }

@@ -6,6 +6,6 @@ package diagnosticsettings
 type MetricSettings struct {
 	Category        *string          `json:"category,omitempty"`
 	Enabled         bool             `json:"enabled"`
-	RetentionPolicy *RetentionPolicy `json:"retentionPolicy"`
+	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
 	TimeGrain       *string          `json:"timeGrain,omitempty"`
 }

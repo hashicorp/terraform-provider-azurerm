@@ -4,5 +4,5 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterIngressProfile struct {
-	WebAppRouting *ManagedClusterIngressProfileWebAppRouting `json:"webAppRouting"`
+	WebAppRouting *ManagedClusterIngressProfileWebAppRouting `json:"webAppRouting,omitempty"`
 }

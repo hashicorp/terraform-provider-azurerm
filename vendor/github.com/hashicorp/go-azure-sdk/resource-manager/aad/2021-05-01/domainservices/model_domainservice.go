@@ -12,7 +12,7 @@ type DomainService struct {
 	Id         *string                  `json:"id,omitempty"`
 	Location   *string                  `json:"location,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *DomainServiceProperties `json:"properties"`
+	Properties *DomainServiceProperties `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 	Type       *string                  `json:"type,omitempty"`

@@ -4,6 +4,6 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VaultSecretGroup struct {
-	SourceVault       *SubResource        `json:"sourceVault"`
+	SourceVault       *SubResource        `json:"sourceVault,omitempty"`
 	VaultCertificates *[]VaultCertificate `json:"vaultCertificates,omitempty"`
 }

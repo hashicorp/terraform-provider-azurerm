@@ -10,7 +10,7 @@ type ContentKeyPolicyPlayReadyPlayRight struct {
 	CompressedDigitalAudioOpl                          *int64                                                        `json:"compressedDigitalAudioOpl,omitempty"`
 	CompressedDigitalVideoOpl                          *int64                                                        `json:"compressedDigitalVideoOpl,omitempty"`
 	DigitalVideoOnlyContentRestriction                 bool                                                          `json:"digitalVideoOnlyContentRestriction"`
-	ExplicitAnalogTelevisionOutputRestriction          *ContentKeyPolicyPlayReadyExplicitAnalogTelevisionRestriction `json:"explicitAnalogTelevisionOutputRestriction"`
+	ExplicitAnalogTelevisionOutputRestriction          *ContentKeyPolicyPlayReadyExplicitAnalogTelevisionRestriction `json:"explicitAnalogTelevisionOutputRestriction,omitempty"`
 	FirstPlayExpiration                                *string                                                       `json:"firstPlayExpiration,omitempty"`
 	ImageConstraintForAnalogComponentVideoRestriction  bool                                                          `json:"imageConstraintForAnalogComponentVideoRestriction"`
 	ImageConstraintForAnalogComputerMonitorRestriction bool                                                          `json:"imageConstraintForAnalogComputerMonitorRestriction"`

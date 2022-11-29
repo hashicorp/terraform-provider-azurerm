@@ -14,7 +14,7 @@ type ContentKeyPolicyFairPlayConfiguration struct {
 	Ask                        string                                              `json:"ask"`
 	FairPlayPfx                string                                              `json:"fairPlayPfx"`
 	FairPlayPfxPassword        string                                              `json:"fairPlayPfxPassword"`
-	OfflineRentalConfiguration *ContentKeyPolicyFairPlayOfflineRentalConfiguration `json:"offlineRentalConfiguration"`
+	OfflineRentalConfiguration *ContentKeyPolicyFairPlayOfflineRentalConfiguration `json:"offlineRentalConfiguration,omitempty"`
 	RentalAndLeaseKeyType      ContentKeyPolicyFairPlayRentalAndLeaseKeyType       `json:"rentalAndLeaseKeyType"`
 	RentalDuration             int64                                               `json:"rentalDuration"`
 

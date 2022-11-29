@@ -6,6 +6,6 @@ package dataexport
 type DataExport struct {
 	Id         *string               `json:"id,omitempty"`
 	Name       *string               `json:"name,omitempty"`
-	Properties *DataExportProperties `json:"properties"`
+	Properties *DataExportProperties `json:"properties,omitempty"`
 	Type       *string               `json:"type,omitempty"`
 }

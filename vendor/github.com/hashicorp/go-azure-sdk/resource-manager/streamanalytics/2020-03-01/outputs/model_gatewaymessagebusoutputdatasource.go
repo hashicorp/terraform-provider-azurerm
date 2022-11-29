@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = GatewayMessageBusOutputDataSource{}
 
 type GatewayMessageBusOutputDataSource struct {
-	Properties *GatewayMessageBusSourceProperties `json:"properties"`
+	Properties *GatewayMessageBusSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
 }

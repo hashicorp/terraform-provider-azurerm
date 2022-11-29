@@ -14,7 +14,7 @@ import (
 var _ Compute = AmlCompute{}
 
 type AmlCompute struct {
-	Properties *AmlComputeProperties `json:"properties"`
+	Properties *AmlComputeProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

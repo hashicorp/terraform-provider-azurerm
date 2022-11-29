@@ -6,6 +6,6 @@ package transformations
 type Transformation struct {
 	Id         *string                   `json:"id,omitempty"`
 	Name       *string                   `json:"name,omitempty"`
-	Properties *TransformationProperties `json:"properties"`
+	Properties *TransformationProperties `json:"properties,omitempty"`
 	Type       *string                   `json:"type,omitempty"`
 }

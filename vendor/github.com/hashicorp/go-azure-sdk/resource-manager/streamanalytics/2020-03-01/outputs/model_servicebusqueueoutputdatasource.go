@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = ServiceBusQueueOutputDataSource{}
 
 type ServiceBusQueueOutputDataSource struct {
-	Properties *ServiceBusQueueOutputDataSourceProperties `json:"properties"`
+	Properties *ServiceBusQueueOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
 }

@@ -6,6 +6,6 @@ package virtualnetworklinks
 type VirtualNetworkLinkProperties struct {
 	ProvisioningState       *ProvisioningState       `json:"provisioningState,omitempty"`
 	RegistrationEnabled     *bool                    `json:"registrationEnabled,omitempty"`
-	VirtualNetwork          *SubResource             `json:"virtualNetwork"`
+	VirtualNetwork          *SubResource             `json:"virtualNetwork,omitempty"`
 	VirtualNetworkLinkState *VirtualNetworkLinkState `json:"virtualNetworkLinkState,omitempty"`
 }

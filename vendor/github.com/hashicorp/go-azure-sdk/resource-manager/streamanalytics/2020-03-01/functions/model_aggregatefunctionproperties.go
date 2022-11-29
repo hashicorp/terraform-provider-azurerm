@@ -14,7 +14,7 @@ type AggregateFunctionProperties struct {
 
 	// Fields inherited from FunctionProperties
 	Etag       *string                `json:"etag,omitempty"`
-	Properties *FunctionConfiguration `json:"properties"`
+	Properties *FunctionConfiguration `json:"properties,omitempty"`
 }
 
 var _ json.Marshaler = AggregateFunctionProperties{}

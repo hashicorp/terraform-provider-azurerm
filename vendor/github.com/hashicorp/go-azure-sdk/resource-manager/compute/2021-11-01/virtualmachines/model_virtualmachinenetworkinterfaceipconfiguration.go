@@ -5,5 +5,5 @@ package virtualmachines
 
 type VirtualMachineNetworkInterfaceIPConfiguration struct {
 	Name       string                                                   `json:"name"`
-	Properties *VirtualMachineNetworkInterfaceIPConfigurationProperties `json:"properties"`
+	Properties *VirtualMachineNetworkInterfaceIPConfigurationProperties `json:"properties,omitempty"`
 }

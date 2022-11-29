@@ -4,7 +4,7 @@ package redisenterprise
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ClusterUpdate struct {
-	Properties *ClusterProperties `json:"properties"`
-	Sku        *Sku               `json:"sku"`
+	Properties *ClusterProperties `json:"properties,omitempty"`
+	Sku        *Sku               `json:"sku,omitempty"`
 	Tags       *map[string]string `json:"tags,omitempty"`
 }

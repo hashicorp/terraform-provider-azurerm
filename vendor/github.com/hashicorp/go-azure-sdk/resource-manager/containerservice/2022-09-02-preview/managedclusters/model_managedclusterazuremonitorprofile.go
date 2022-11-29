@@ -4,5 +4,5 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterAzureMonitorProfile struct {
-	Metrics *ManagedClusterAzureMonitorProfileMetrics `json:"metrics"`
+	Metrics *ManagedClusterAzureMonitorProfileMetrics `json:"metrics,omitempty"`
 }

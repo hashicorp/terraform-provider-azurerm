@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = AzureSynapseOutputDataSource{}
 
 type AzureSynapseOutputDataSource struct {
-	Properties *AzureSynapseDataSourceProperties `json:"properties"`
+	Properties *AzureSynapseDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
 }

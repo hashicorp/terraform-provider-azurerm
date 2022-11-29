@@ -4,6 +4,6 @@ package iotdpsresource
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PrivateEndpointConnectionProperties struct {
-	PrivateEndpoint                   *PrivateEndpoint                  `json:"privateEndpoint"`
+	PrivateEndpoint                   *PrivateEndpoint                  `json:"privateEndpoint,omitempty"`
 	PrivateLinkServiceConnectionState PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState"`
 }

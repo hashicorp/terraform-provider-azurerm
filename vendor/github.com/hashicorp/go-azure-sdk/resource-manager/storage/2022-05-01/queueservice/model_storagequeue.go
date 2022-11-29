@@ -6,6 +6,6 @@ package queueservice
 type StorageQueue struct {
 	Id         *string          `json:"id,omitempty"`
 	Name       *string          `json:"name,omitempty"`
-	Properties *QueueProperties `json:"properties"`
+	Properties *QueueProperties `json:"properties,omitempty"`
 	Type       *string          `json:"type,omitempty"`
 }

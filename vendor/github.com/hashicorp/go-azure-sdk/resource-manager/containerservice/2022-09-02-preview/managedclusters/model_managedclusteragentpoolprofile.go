@@ -11,7 +11,7 @@ type ManagedClusterAgentPoolProfile struct {
 	AvailabilityZones          *zones.Schema             `json:"availabilityZones,omitempty"`
 	CapacityReservationGroupID *string                   `json:"capacityReservationGroupID,omitempty"`
 	Count                      *int64                    `json:"count,omitempty"`
-	CreationData               *CreationData             `json:"creationData"`
+	CreationData               *CreationData             `json:"creationData,omitempty"`
 	CurrentOrchestratorVersion *string                   `json:"currentOrchestratorVersion,omitempty"`
 	EnableAutoScaling          *bool                     `json:"enableAutoScaling,omitempty"`
 	EnableCustomCATrust        *bool                     `json:"enableCustomCATrust,omitempty"`
@@ -21,16 +21,16 @@ type ManagedClusterAgentPoolProfile struct {
 	EnableUltraSSD             *bool                     `json:"enableUltraSSD,omitempty"`
 	GpuInstanceProfile         *GPUInstanceProfile       `json:"gpuInstanceProfile,omitempty"`
 	HostGroupID                *string                   `json:"hostGroupID,omitempty"`
-	KubeletConfig              *KubeletConfig            `json:"kubeletConfig"`
+	KubeletConfig              *KubeletConfig            `json:"kubeletConfig,omitempty"`
 	KubeletDiskType            *KubeletDiskType          `json:"kubeletDiskType,omitempty"`
-	LinuxOSConfig              *LinuxOSConfig            `json:"linuxOSConfig"`
+	LinuxOSConfig              *LinuxOSConfig            `json:"linuxOSConfig,omitempty"`
 	MaxCount                   *int64                    `json:"maxCount,omitempty"`
 	MaxPods                    *int64                    `json:"maxPods,omitempty"`
 	MessageOfTheDay            *string                   `json:"messageOfTheDay,omitempty"`
 	MinCount                   *int64                    `json:"minCount,omitempty"`
 	Mode                       *AgentPoolMode            `json:"mode,omitempty"`
 	Name                       string                    `json:"name"`
-	NetworkProfile             *AgentPoolNetworkProfile  `json:"networkProfile"`
+	NetworkProfile             *AgentPoolNetworkProfile  `json:"networkProfile,omitempty"`
 	NodeImageVersion           *string                   `json:"nodeImageVersion,omitempty"`
 	NodeLabels                 *map[string]string        `json:"nodeLabels,omitempty"`
 	NodePublicIPPrefixID       *string                   `json:"nodePublicIPPrefixID,omitempty"`
@@ -41,7 +41,7 @@ type ManagedClusterAgentPoolProfile struct {
 	OsSKU                      *OSSKU                    `json:"osSKU,omitempty"`
 	OsType                     *OSType                   `json:"osType,omitempty"`
 	PodSubnetID                *string                   `json:"podSubnetID,omitempty"`
-	PowerState                 *PowerState               `json:"powerState"`
+	PowerState                 *PowerState               `json:"powerState,omitempty"`
 	ProvisioningState          *string                   `json:"provisioningState,omitempty"`
 	ProximityPlacementGroupID  *string                   `json:"proximityPlacementGroupID,omitempty"`
 	ScaleDownMode              *ScaleDownMode            `json:"scaleDownMode,omitempty"`
@@ -50,9 +50,9 @@ type ManagedClusterAgentPoolProfile struct {
 	SpotMaxPrice               *float64                  `json:"spotMaxPrice,omitempty"`
 	Tags                       *map[string]string        `json:"tags,omitempty"`
 	Type                       *AgentPoolType            `json:"type,omitempty"`
-	UpgradeSettings            *AgentPoolUpgradeSettings `json:"upgradeSettings"`
+	UpgradeSettings            *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	VmSize                     *string                   `json:"vmSize,omitempty"`
 	VnetSubnetID               *string                   `json:"vnetSubnetID,omitempty"`
-	WindowsProfile             *AgentPoolWindowsProfile  `json:"windowsProfile"`
+	WindowsProfile             *AgentPoolWindowsProfile  `json:"windowsProfile,omitempty"`
 	WorkloadRuntime            *WorkloadRuntime          `json:"workloadRuntime,omitempty"`
 }

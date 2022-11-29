@@ -6,6 +6,6 @@ package accounts
 type EdgeUsageDataCollectionPolicy struct {
 	DataCollectionFrequency           *string                `json:"dataCollectionFrequency,omitempty"`
 	DataReportingFrequency            *string                `json:"dataReportingFrequency,omitempty"`
-	EventHubDetails                   *EdgeUsageDataEventHub `json:"eventHubDetails"`
+	EventHubDetails                   *EdgeUsageDataEventHub `json:"eventHubDetails,omitempty"`
 	MaxAllowedUnreportedUsageDuration *string                `json:"maxAllowedUnreportedUsageDuration,omitempty"`
 }

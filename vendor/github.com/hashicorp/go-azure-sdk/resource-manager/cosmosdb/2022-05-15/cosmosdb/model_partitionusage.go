@@ -6,7 +6,7 @@ package cosmosdb
 type PartitionUsage struct {
 	CurrentValue        *int64      `json:"currentValue,omitempty"`
 	Limit               *int64      `json:"limit,omitempty"`
-	Name                *MetricName `json:"name"`
+	Name                *MetricName `json:"name,omitempty"`
 	PartitionId         *string     `json:"partitionId,omitempty"`
 	PartitionKeyRangeId *string     `json:"partitionKeyRangeId,omitempty"`
 	QuotaPeriod         *string     `json:"quotaPeriod,omitempty"`

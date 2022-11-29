@@ -15,8 +15,8 @@ type ManagedCluster struct {
 	Identity         *identity.SystemOrUserAssignedMap `json:"identity,omitempty"`
 	Location         string                            `json:"location"`
 	Name             *string                           `json:"name,omitempty"`
-	Properties       *ManagedClusterProperties         `json:"properties"`
-	Sku              *ManagedClusterSKU                `json:"sku"`
+	Properties       *ManagedClusterProperties         `json:"properties,omitempty"`
+	Sku              *ManagedClusterSKU                `json:"sku,omitempty"`
 	SystemData       *systemdata.SystemData            `json:"systemData,omitempty"`
 	Tags             *map[string]string                `json:"tags,omitempty"`
 	Type             *string                           `json:"type,omitempty"`

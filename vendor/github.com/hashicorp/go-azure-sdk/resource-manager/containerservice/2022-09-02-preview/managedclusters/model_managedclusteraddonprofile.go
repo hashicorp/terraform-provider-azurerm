@@ -6,5 +6,5 @@ package managedclusters
 type ManagedClusterAddonProfile struct {
 	Config   *map[string]string    `json:"config,omitempty"`
 	Enabled  bool                  `json:"enabled"`
-	Identity *UserAssignedIdentity `json:"identity"`
+	Identity *UserAssignedIdentity `json:"identity,omitempty"`
 }

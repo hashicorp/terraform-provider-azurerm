@@ -5,7 +5,7 @@ package streamingpoliciesandstreaminglocators
 
 type EnvelopeEncryption struct {
 	ClearTracks                     *[]TrackSelection           `json:"clearTracks,omitempty"`
-	ContentKeys                     *StreamingPolicyContentKeys `json:"contentKeys"`
+	ContentKeys                     *StreamingPolicyContentKeys `json:"contentKeys,omitempty"`
 	CustomKeyAcquisitionUrlTemplate *string                     `json:"customKeyAcquisitionUrlTemplate,omitempty"`
-	EnabledProtocols                *EnabledProtocols           `json:"enabledProtocols"`
+	EnabledProtocols                *EnabledProtocols           `json:"enabledProtocols,omitempty"`
 }

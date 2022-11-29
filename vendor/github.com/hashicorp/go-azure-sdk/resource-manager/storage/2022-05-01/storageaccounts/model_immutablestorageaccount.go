@@ -5,5 +5,5 @@ package storageaccounts
 
 type ImmutableStorageAccount struct {
 	Enabled            *bool                                `json:"enabled,omitempty"`
-	ImmutabilityPolicy *AccountImmutabilityPolicyProperties `json:"immutabilityPolicy"`
+	ImmutabilityPolicy *AccountImmutabilityPolicyProperties `json:"immutabilityPolicy,omitempty"`
 }

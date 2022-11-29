@@ -5,6 +5,6 @@ package workspaces
 
 type NotebookResourceInfo struct {
 	Fqdn                     *string                   `json:"fqdn,omitempty"`
-	NotebookPreparationError *NotebookPreparationError `json:"notebookPreparationError"`
+	NotebookPreparationError *NotebookPreparationError `json:"notebookPreparationError,omitempty"`
 	ResourceId               *string                   `json:"resourceId,omitempty"`
 }

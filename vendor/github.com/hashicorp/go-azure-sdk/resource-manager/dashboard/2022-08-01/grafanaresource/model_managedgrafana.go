@@ -13,8 +13,8 @@ type ManagedGrafana struct {
 	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
-	Properties *ManagedGrafanaProperties                `json:"properties"`
-	Sku        *ResourceSku                             `json:"sku"`
+	Properties *ManagedGrafanaProperties                `json:"properties,omitempty"`
+	Sku        *ResourceSku                             `json:"sku,omitempty"`
 	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`

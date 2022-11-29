@@ -4,9 +4,9 @@ package storageaccounts
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Encryption struct {
-	Identity                        *EncryptionIdentity `json:"identity"`
+	Identity                        *EncryptionIdentity `json:"identity,omitempty"`
 	KeySource                       *KeySource          `json:"keySource,omitempty"`
-	Keyvaultproperties              *KeyVaultProperties `json:"keyvaultproperties"`
+	Keyvaultproperties              *KeyVaultProperties `json:"keyvaultproperties,omitempty"`
 	RequireInfrastructureEncryption *bool               `json:"requireInfrastructureEncryption,omitempty"`
-	Services                        *EncryptionServices `json:"services"`
+	Services                        *EncryptionServices `json:"services,omitempty"`
 }

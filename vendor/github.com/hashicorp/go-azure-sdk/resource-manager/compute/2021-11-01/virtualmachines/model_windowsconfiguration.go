@@ -6,8 +6,8 @@ package virtualmachines
 type WindowsConfiguration struct {
 	AdditionalUnattendContent *[]AdditionalUnattendContent `json:"additionalUnattendContent,omitempty"`
 	EnableAutomaticUpdates    *bool                        `json:"enableAutomaticUpdates,omitempty"`
-	PatchSettings             *PatchSettings               `json:"patchSettings"`
+	PatchSettings             *PatchSettings               `json:"patchSettings,omitempty"`
 	ProvisionVMAgent          *bool                        `json:"provisionVMAgent,omitempty"`
 	TimeZone                  *string                      `json:"timeZone,omitempty"`
-	WinRM                     *WinRMConfiguration          `json:"winRM"`
+	WinRM                     *WinRMConfiguration          `json:"winRM,omitempty"`
 }

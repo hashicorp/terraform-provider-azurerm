@@ -6,7 +6,7 @@ package apps
 type AppProperties struct {
 	ApplicationId              *string                      `json:"applicationId,omitempty"`
 	DisplayName                *string                      `json:"displayName,omitempty"`
-	NetworkRuleSets            *NetworkRuleSets             `json:"networkRuleSets"`
+	NetworkRuleSets            *NetworkRuleSets             `json:"networkRuleSets,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *ProvisioningState           `json:"provisioningState,omitempty"`
 	PublicNetworkAccess        *PublicNetworkAccess         `json:"publicNetworkAccess,omitempty"`

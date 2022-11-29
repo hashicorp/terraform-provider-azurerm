@@ -6,6 +6,6 @@ package queueservice
 type ListQueue struct {
 	Id         *string              `json:"id,omitempty"`
 	Name       *string              `json:"name,omitempty"`
-	Properties *ListQueueProperties `json:"properties"`
+	Properties *ListQueueProperties `json:"properties,omitempty"`
 	Type       *string              `json:"type,omitempty"`
 }

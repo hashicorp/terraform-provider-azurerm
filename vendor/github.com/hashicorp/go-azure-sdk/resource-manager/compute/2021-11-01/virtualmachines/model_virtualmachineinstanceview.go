@@ -5,19 +5,19 @@ package virtualmachines
 
 type VirtualMachineInstanceView struct {
 	AssignedHost              *string                                `json:"assignedHost,omitempty"`
-	BootDiagnostics           *BootDiagnosticsInstanceView           `json:"bootDiagnostics"`
+	BootDiagnostics           *BootDiagnosticsInstanceView           `json:"bootDiagnostics,omitempty"`
 	ComputerName              *string                                `json:"computerName,omitempty"`
 	Disks                     *[]DiskInstanceView                    `json:"disks,omitempty"`
 	Extensions                *[]VirtualMachineExtensionInstanceView `json:"extensions,omitempty"`
 	HyperVGeneration          *HyperVGenerationType                  `json:"hyperVGeneration,omitempty"`
-	MaintenanceRedeployStatus *MaintenanceRedeployStatus             `json:"maintenanceRedeployStatus"`
+	MaintenanceRedeployStatus *MaintenanceRedeployStatus             `json:"maintenanceRedeployStatus,omitempty"`
 	OsName                    *string                                `json:"osName,omitempty"`
 	OsVersion                 *string                                `json:"osVersion,omitempty"`
-	PatchStatus               *VirtualMachinePatchStatus             `json:"patchStatus"`
+	PatchStatus               *VirtualMachinePatchStatus             `json:"patchStatus,omitempty"`
 	PlatformFaultDomain       *int64                                 `json:"platformFaultDomain,omitempty"`
 	PlatformUpdateDomain      *int64                                 `json:"platformUpdateDomain,omitempty"`
 	RdpThumbPrint             *string                                `json:"rdpThumbPrint,omitempty"`
 	Statuses                  *[]InstanceViewStatus                  `json:"statuses,omitempty"`
-	VmAgent                   *VirtualMachineAgentInstanceView       `json:"vmAgent"`
-	VmHealth                  *VirtualMachineHealthStatus            `json:"vmHealth"`
+	VmAgent                   *VirtualMachineAgentInstanceView       `json:"vmAgent,omitempty"`
+	VmHealth                  *VirtualMachineHealthStatus            `json:"vmHealth,omitempty"`
 }

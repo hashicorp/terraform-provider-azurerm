@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = BlobOutputDataSource{}
 
 type BlobOutputDataSource struct {
-	Properties *BlobOutputDataSourceProperties `json:"properties"`
+	Properties *BlobOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
 }

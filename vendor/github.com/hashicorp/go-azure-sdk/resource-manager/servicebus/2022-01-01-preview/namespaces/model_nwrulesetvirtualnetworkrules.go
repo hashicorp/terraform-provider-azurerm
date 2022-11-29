@@ -5,5 +5,5 @@ package namespaces
 
 type NWRuleSetVirtualNetworkRules struct {
 	IgnoreMissingVnetServiceEndpoint *bool   `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
-	Subnet                           *Subnet `json:"subnet"`
+	Subnet                           *Subnet `json:"subnet,omitempty"`
 }

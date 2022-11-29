@@ -9,7 +9,7 @@ import (
 
 type AppPatch struct {
 	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
-	Properties *AppProperties           `json:"properties"`
-	Sku        *AppSkuInfo              `json:"sku"`
+	Properties *AppProperties           `json:"properties,omitempty"`
+	Sku        *AppSkuInfo              `json:"sku,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 }

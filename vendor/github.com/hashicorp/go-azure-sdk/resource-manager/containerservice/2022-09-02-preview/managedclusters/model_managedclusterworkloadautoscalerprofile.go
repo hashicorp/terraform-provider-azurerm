@@ -4,6 +4,6 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterWorkloadAutoScalerProfile struct {
-	Keda                  *ManagedClusterWorkloadAutoScalerProfileKeda                  `json:"keda"`
-	VerticalPodAutoscaler *ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler `json:"verticalPodAutoscaler"`
+	Keda                  *ManagedClusterWorkloadAutoScalerProfileKeda                  `json:"keda,omitempty"`
+	VerticalPodAutoscaler *ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler `json:"verticalPodAutoscaler,omitempty"`
 }

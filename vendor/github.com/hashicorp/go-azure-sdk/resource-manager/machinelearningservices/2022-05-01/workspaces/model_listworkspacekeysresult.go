@@ -5,8 +5,8 @@ package workspaces
 
 type ListWorkspaceKeysResult struct {
 	AppInsightsInstrumentationKey *string                        `json:"appInsightsInstrumentationKey,omitempty"`
-	ContainerRegistryCredentials  *RegistryListCredentialsResult `json:"containerRegistryCredentials"`
-	NotebookAccessKeys            *ListNotebookKeysResult        `json:"notebookAccessKeys"`
+	ContainerRegistryCredentials  *RegistryListCredentialsResult `json:"containerRegistryCredentials,omitempty"`
+	NotebookAccessKeys            *ListNotebookKeysResult        `json:"notebookAccessKeys,omitempty"`
 	UserStorageKey                *string                        `json:"userStorageKey,omitempty"`
 	UserStorageResourceId         *string                        `json:"userStorageResourceId,omitempty"`
 }

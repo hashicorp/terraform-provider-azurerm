@@ -6,7 +6,7 @@ package fileservice
 type FileServiceProperties struct {
 	Id         *string                          `json:"id,omitempty"`
 	Name       *string                          `json:"name,omitempty"`
-	Properties *FileServicePropertiesProperties `json:"properties"`
-	Sku        *Sku                             `json:"sku"`
+	Properties *FileServicePropertiesProperties `json:"properties,omitempty"`
+	Sku        *Sku                             `json:"sku,omitempty"`
 	Type       *string                          `json:"type,omitempty"`
 }

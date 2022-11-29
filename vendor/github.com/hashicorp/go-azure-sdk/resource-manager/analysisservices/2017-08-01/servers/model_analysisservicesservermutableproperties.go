@@ -4,10 +4,10 @@ package servers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AnalysisServicesServerMutableProperties struct {
-	AsAdministrators        *ServerAdministrators `json:"asAdministrators"`
+	AsAdministrators        *ServerAdministrators `json:"asAdministrators,omitempty"`
 	BackupBlobContainerUri  *string               `json:"backupBlobContainerUri,omitempty"`
-	GatewayDetails          *GatewayDetails       `json:"gatewayDetails"`
-	IPV4FirewallSettings    *IPv4FirewallSettings `json:"ipV4FirewallSettings"`
+	GatewayDetails          *GatewayDetails       `json:"gatewayDetails,omitempty"`
+	IPV4FirewallSettings    *IPv4FirewallSettings `json:"ipV4FirewallSettings,omitempty"`
 	ManagedMode             *ManagedMode          `json:"managedMode,omitempty"`
 	QuerypoolConnectionMode *ConnectionMode       `json:"querypoolConnectionMode,omitempty"`
 	ServerMonitorMode       *ServerMonitorMode    `json:"serverMonitorMode,omitempty"`

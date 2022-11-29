@@ -10,7 +10,7 @@ import (
 type LocalUser struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *LocalUserProperties   `json:"properties"`
+	Properties *LocalUserProperties   `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

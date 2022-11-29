@@ -8,9 +8,9 @@ type ManagedCluster struct {
 	Id         *string                   `json:"id,omitempty"`
 	Location   string                    `json:"location"`
 	Name       *string                   `json:"name,omitempty"`
-	Properties *ManagedClusterProperties `json:"properties"`
-	Sku        *Sku                      `json:"sku"`
-	SystemData *SystemData               `json:"systemData"`
+	Properties *ManagedClusterProperties `json:"properties,omitempty"`
+	Sku        *Sku                      `json:"sku,omitempty"`
+	SystemData *SystemData               `json:"systemData,omitempty"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 	Type       *string                   `json:"type,omitempty"`
 }

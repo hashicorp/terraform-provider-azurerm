@@ -11,7 +11,7 @@ import (
 var _ FunctionBinding = AzureMachineLearningWebServiceFunctionBinding{}
 
 type AzureMachineLearningWebServiceFunctionBinding struct {
-	Properties *AzureMachineLearningWebServiceFunctionBindingProperties `json:"properties"`
+	Properties *AzureMachineLearningWebServiceFunctionBindingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from FunctionBinding
 }

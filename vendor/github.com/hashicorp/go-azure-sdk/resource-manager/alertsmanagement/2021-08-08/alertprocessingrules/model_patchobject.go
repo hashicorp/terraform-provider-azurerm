@@ -4,6 +4,6 @@ package alertprocessingrules
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PatchObject struct {
-	Properties *PatchProperties   `json:"properties"`
+	Properties *PatchProperties   `json:"properties,omitempty"`
 	Tags       *map[string]string `json:"tags,omitempty"`
 }

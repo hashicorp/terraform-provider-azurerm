@@ -4,5 +4,5 @@ package fluidrelayservers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FluidRelayServerUpdateProperties struct {
-	Encryption *EncryptionProperties `json:"encryption"`
+	Encryption *EncryptionProperties `json:"encryption,omitempty"`
 }

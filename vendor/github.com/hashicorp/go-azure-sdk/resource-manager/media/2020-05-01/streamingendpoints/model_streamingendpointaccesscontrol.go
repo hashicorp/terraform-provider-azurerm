@@ -4,6 +4,6 @@ package streamingendpoints
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StreamingEndpointAccessControl struct {
-	Akamai *AkamaiAccessControl `json:"akamai"`
-	IP     *IPAccessControl     `json:"ip"`
+	Akamai *AkamaiAccessControl `json:"akamai,omitempty"`
+	IP     *IPAccessControl     `json:"ip,omitempty"`
 }

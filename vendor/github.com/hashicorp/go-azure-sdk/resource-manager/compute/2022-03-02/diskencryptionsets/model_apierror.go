@@ -6,7 +6,7 @@ package diskencryptionsets
 type ApiError struct {
 	Code       *string         `json:"code,omitempty"`
 	Details    *[]ApiErrorBase `json:"details,omitempty"`
-	Innererror *InnerError     `json:"innererror"`
+	Innererror *InnerError     `json:"innererror,omitempty"`
 	Message    *string         `json:"message,omitempty"`
 	Target     *string         `json:"target,omitempty"`
 }

@@ -18,7 +18,7 @@ type JobOutputAsset struct {
 
 	// Fields inherited from JobOutput
 	EndTime   *string   `json:"endTime,omitempty"`
-	Error     *JobError `json:"error"`
+	Error     *JobError `json:"error,omitempty"`
 	Label     *string   `json:"label,omitempty"`
 	Progress  *int64    `json:"progress,omitempty"`
 	StartTime *string   `json:"startTime,omitempty"`

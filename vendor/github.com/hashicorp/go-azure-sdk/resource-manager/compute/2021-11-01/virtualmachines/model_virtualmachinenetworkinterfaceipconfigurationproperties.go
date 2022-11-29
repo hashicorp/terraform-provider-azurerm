@@ -9,6 +9,6 @@ type VirtualMachineNetworkInterfaceIPConfigurationProperties struct {
 	LoadBalancerBackendAddressPools       *[]SubResource                              `json:"loadBalancerBackendAddressPools,omitempty"`
 	Primary                               *bool                                       `json:"primary,omitempty"`
 	PrivateIPAddressVersion               *IPVersions                                 `json:"privateIPAddressVersion,omitempty"`
-	PublicIPAddressConfiguration          *VirtualMachinePublicIPAddressConfiguration `json:"publicIPAddressConfiguration"`
-	Subnet                                *SubResource                                `json:"subnet"`
+	PublicIPAddressConfiguration          *VirtualMachinePublicIPAddressConfiguration `json:"publicIPAddressConfiguration,omitempty"`
+	Subnet                                *SubResource                                `json:"subnet,omitempty"`
 }
