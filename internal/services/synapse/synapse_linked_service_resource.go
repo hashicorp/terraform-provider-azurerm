@@ -3,6 +3,7 @@ package synapse
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"log"
 	"time"
 
@@ -27,6 +28,11 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SynapseLinkedServiceV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
