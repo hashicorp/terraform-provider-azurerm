@@ -1334,7 +1334,7 @@ resource "azurerm_capacity_reservation" "test" {
 
   sku {
     name     = "Standard_B1s"
-    capacity = 2
+    capacity = 1
   }
 }
 
@@ -1521,7 +1521,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
 
-  target_subnet_name                      = "acctestsubnet%[2]d"
+  target_subnet_name                      = "snet2-%[2]d"
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id

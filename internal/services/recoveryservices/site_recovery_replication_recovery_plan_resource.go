@@ -37,14 +37,14 @@ type RecoveryGroupModel struct {
 }
 
 type ActionModel struct {
-	ActionDetailType        string                                                       `tfschema:"action_detail_type"`
-	FabricLocation          replicationrecoveryplans.RecoveryPlanActionLocation          `tfschema:"fabric_location"`
-	FailOverDirections      []replicationrecoveryplans.PossibleOperationsDirections      `tfschema:"fail_over_directions"`
-	FailOverTypes           []replicationrecoveryplans.ReplicationProtectedItemOperation `tfschema:"fail_over_types"`
-	ManualActionInstruction string                                                       `tfschema:"manual_action_instruction"`
-	Name                    string                                                       `tfschema:"name"`
-	RunbookId               string                                                       `tfschema:"runbook_id"`
-	ScriptPath              string                                                       `tfschema:"script_path"`
+	ActionDetailType        string                                              `tfschema:"action_detail_type"`
+	FabricLocation          replicationrecoveryplans.RecoveryPlanActionLocation `tfschema:"fabric_location"`
+	FailOverDirections      []string                                            `tfschema:"fail_over_directions"`
+	FailOverTypes           []string                                            `tfschema:"fail_over_types"`
+	ManualActionInstruction string                                              `tfschema:"manual_action_instruction"`
+	Name                    string                                              `tfschema:"name"`
+	RunbookId               string                                              `tfschema:"runbook_id"`
+	ScriptPath              string                                              `tfschema:"script_path"`
 }
 
 type SiteRecoveryReplicationRecoveryPlanResource struct{}
@@ -97,7 +97,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		"recovery_group": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: true,
+			Computed: true, //set to computed because the service will create one empty recovery group for every type.
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_type": {
@@ -111,7 +111,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 					},
 					"replicated_protected_items": {
 						Type:     pluginsdk.TypeList,
-						Required: true,
+						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: azure.ValidateResourceID,
@@ -282,7 +282,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 			}
 
 			state := SiteRecoveryReplicationRecoveryPlanModel{
-				Name:              id.ResourceName,
+				Name:              id.RecoveryPlanName,
 				ResourceGroupName: id.ResourceGroupName,
 				RecoveryVaultName: id.ResourceName,
 			}
@@ -299,7 +299,8 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 					state.RecoveryGroup = flattenRecoveryGroups(*group)
 				}
 			}
-			return nil
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -358,30 +359,63 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 }
 
 func expandRecoverGroup(input []RecoveryGroupModel) []replicationrecoveryplans.RecoveryPlanGroup {
-	var output []replicationrecoveryplans.RecoveryPlanGroup
+	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
 	for _, group := range input {
 
-		var protectedItems []replicationrecoveryplans.RecoveryPlanProtectedItem
+		protectedItems := make([]replicationrecoveryplans.RecoveryPlanProtectedItem, 0)
 		for _, protectedItem := range group.ReplicatedProtectedItems {
 			protectedItems = append(protectedItems, replicationrecoveryplans.RecoveryPlanProtectedItem{
 				Id: utils.String(protectedItem),
 			})
 		}
 
-		var preActions []replicationrecoveryplans.RecoveryPlanAction
+		preActions := make([]replicationrecoveryplans.RecoveryPlanAction, 0)
 		for _, preActionInput := range group.PreAction {
+
+			failoverDirections := make([]replicationrecoveryplans.PossibleOperationsDirections, 0)
+			for _, direction := range preActionInput.FailOverDirections {
+				failoverDirections = append(failoverDirections, replicationrecoveryplans.PossibleOperationsDirections(direction))
+			}
+
+			failoverTypes := make([]replicationrecoveryplans.ReplicationProtectedItemOperation, 0)
+			for _, failoveType := range preActionInput.FailOverTypes {
+				failoverTypes = append(failoverTypes, replicationrecoveryplans.ReplicationProtectedItemOperation(failoveType))
+			}
 
 			preActions = append(preActions, replicationrecoveryplans.RecoveryPlanAction{
 				ActionName:         preActionInput.Name,
-				FailoverDirections: preActionInput.FailOverDirections,
-				FailoverTypes:      preActionInput.FailOverTypes,
+				FailoverDirections: failoverDirections,
+				FailoverTypes:      failoverTypes,
 				CustomDetails:      expandActionDetail(preActionInput),
+			})
+		}
+
+		postActions := make([]replicationrecoveryplans.RecoveryPlanAction, 0)
+		for _, postActionInput := range group.PostAction {
+
+			failoverDirections := make([]replicationrecoveryplans.PossibleOperationsDirections, 0)
+			for _, direction := range postActionInput.FailOverDirections {
+				failoverDirections = append(failoverDirections, replicationrecoveryplans.PossibleOperationsDirections(direction))
+			}
+
+			failoverTypes := make([]replicationrecoveryplans.ReplicationProtectedItemOperation, 0)
+			for _, failoveType := range postActionInput.FailOverTypes {
+				failoverTypes = append(failoverTypes, replicationrecoveryplans.ReplicationProtectedItemOperation(failoveType))
+			}
+
+			postActions = append(postActions, replicationrecoveryplans.RecoveryPlanAction{
+				ActionName:         postActionInput.Name,
+				FailoverDirections: failoverDirections,
+				FailoverTypes:      failoverTypes,
+				CustomDetails:      expandActionDetail(postActionInput),
 			})
 		}
 
 		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
 			GroupType:                 group.GroupType,
 			ReplicationProtectedItems: &protectedItems,
+			StartGroupActions:         &preActions,
+			EndGroupActions:           &postActions,
 		})
 
 	}
@@ -400,7 +434,7 @@ func flattenRecoveryGroups(input []replicationrecoveryplans.RecoveryPlanGroup) [
 			recoveryGroupOutput.PreAction = flattenRecoveryPlanActions(groupItem.StartGroupActions)
 		}
 		if groupItem.EndGroupActions != nil {
-			recoveryGroupOutput.PostAction = flattenRecoveryPlanActions(groupItem.StartGroupActions)
+			recoveryGroupOutput.PostAction = flattenRecoveryPlanActions(groupItem.EndGroupActions)
 		}
 		output = append(output, recoveryGroupOutput)
 	}
@@ -458,8 +492,18 @@ func flattenRecoveryPlanActions(input *[]replicationrecoveryplans.RecoveryPlanAc
 			actionOutput.ScriptPath = detail.Path
 			actionOutput.FabricLocation = detail.FabricLocation
 		}
-		actionOutput.FailOverDirections = action.FailoverDirections
-		actionOutput.FailOverTypes = action.FailoverTypes
+
+		failoverDirections := make([]string, 0)
+		for _, failoverDirection := range action.FailoverDirections {
+			failoverDirections = append(failoverDirections, string(failoverDirection))
+		}
+
+		failoverTypes := make([]string, 0)
+		for _, failoverType := range action.FailoverTypes {
+			failoverTypes = append(failoverTypes, string(failoverType))
+		}
+		actionOutput.FailOverDirections = failoverDirections
+		actionOutput.FailOverTypes = failoverTypes
 		actionOutputs = append(actionOutputs, actionOutput)
 	}
 	return actionOutputs
