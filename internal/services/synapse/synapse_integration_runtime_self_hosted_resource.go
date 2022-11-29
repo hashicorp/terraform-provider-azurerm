@@ -2,6 +2,7 @@ package synapse
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"regexp"
 	"time"
 
@@ -26,6 +27,11 @@ func resourceSynapseIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IntegrationRuntimeID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SynapseIntegrationRuntimeSelfHostedV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
