@@ -3,12 +3,12 @@ package synapse
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/sdk/2021-06-01-preview/artifacts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
