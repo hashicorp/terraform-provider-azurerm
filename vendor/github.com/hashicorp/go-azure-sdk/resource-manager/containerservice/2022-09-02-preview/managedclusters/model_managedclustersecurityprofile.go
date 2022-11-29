@@ -4,10 +4,10 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterSecurityProfile struct {
-	AzureKeyVaultKms          *AzureKeyVaultKms                              `json:"azureKeyVaultKms,omitempty"`
+	AzureKeyVaultKms          *AzureKeyVaultKms                              `json:"azureKeyVaultKms"`
 	CustomCATrustCertificates *[]string                                      `json:"customCATrustCertificates,omitempty"`
-	Defender                  *ManagedClusterSecurityProfileDefender         `json:"defender,omitempty"`
-	ImageCleaner              *ManagedClusterSecurityProfileImageCleaner     `json:"imageCleaner,omitempty"`
-	NodeRestriction           *ManagedClusterSecurityProfileNodeRestriction  `json:"nodeRestriction,omitempty"`
-	WorkloadIdentity          *ManagedClusterSecurityProfileWorkloadIdentity `json:"workloadIdentity,omitempty"`
+	Defender                  *ManagedClusterSecurityProfileDefender         `json:"defender"`
+	ImageCleaner              *ManagedClusterSecurityProfileImageCleaner     `json:"imageCleaner"`
+	NodeRestriction           *ManagedClusterSecurityProfileNodeRestriction  `json:"nodeRestriction"`
+	WorkloadIdentity          *ManagedClusterSecurityProfileWorkloadIdentity `json:"workloadIdentity"`
 }

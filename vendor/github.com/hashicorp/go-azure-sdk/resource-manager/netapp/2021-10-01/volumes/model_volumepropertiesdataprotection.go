@@ -4,7 +4,7 @@ package volumes
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VolumePropertiesDataProtection struct {
-	Backup      *VolumeBackupProperties   `json:"backup,omitempty"`
-	Replication *ReplicationObject        `json:"replication,omitempty"`
-	Snapshot    *VolumeSnapshotProperties `json:"snapshot,omitempty"`
+	Backup      *VolumeBackupProperties   `json:"backup"`
+	Replication *ReplicationObject        `json:"replication"`
+	Snapshot    *VolumeSnapshotProperties `json:"snapshot"`
 }

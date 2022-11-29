@@ -7,6 +7,6 @@ type ListContainerItem struct {
 	Etag       *string              `json:"etag,omitempty"`
 	Id         *string              `json:"id,omitempty"`
 	Name       *string              `json:"name,omitempty"`
-	Properties *ContainerProperties `json:"properties,omitempty"`
+	Properties *ContainerProperties `json:"properties"`
 	Type       *string              `json:"type,omitempty"`
 }

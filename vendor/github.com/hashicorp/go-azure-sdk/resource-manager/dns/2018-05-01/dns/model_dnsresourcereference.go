@@ -5,5 +5,5 @@ package dns
 
 type DnsResourceReference struct {
 	DnsResources   *[]SubResource `json:"dnsResources,omitempty"`
-	TargetResource *SubResource   `json:"targetResource,omitempty"`
+	TargetResource *SubResource   `json:"targetResource"`
 }

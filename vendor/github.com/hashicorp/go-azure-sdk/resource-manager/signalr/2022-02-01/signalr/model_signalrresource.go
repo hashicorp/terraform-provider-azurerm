@@ -14,8 +14,8 @@ type SignalRResource struct {
 	Kind       *ServiceKind                      `json:"kind,omitempty"`
 	Location   *string                           `json:"location,omitempty"`
 	Name       *string                           `json:"name,omitempty"`
-	Properties *SignalRProperties                `json:"properties,omitempty"`
-	Sku        *ResourceSku                      `json:"sku,omitempty"`
+	Properties *SignalRProperties                `json:"properties"`
+	Sku        *ResourceSku                      `json:"sku"`
 	SystemData *systemdata.SystemData            `json:"systemData,omitempty"`
 	Tags       *map[string]string                `json:"tags,omitempty"`
 	Type       *string                           `json:"type,omitempty"`

@@ -15,8 +15,8 @@ type VirtualMachine struct {
 	Identity         *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location         string                             `json:"location"`
 	Name             *string                            `json:"name,omitempty"`
-	Plan             *Plan                              `json:"plan,omitempty"`
-	Properties       *VirtualMachineProperties          `json:"properties,omitempty"`
+	Plan             *Plan                              `json:"plan"`
+	Properties       *VirtualMachineProperties          `json:"properties"`
 	Resources        *[]VirtualMachineExtension         `json:"resources,omitempty"`
 	Tags             *map[string]string                 `json:"tags,omitempty"`
 	Type             *string                            `json:"type,omitempty"`

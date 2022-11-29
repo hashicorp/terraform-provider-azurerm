@@ -7,5 +7,5 @@ type ClusterPatchProperties struct {
 	AadClientId             *string                   `json:"aadClientId,omitempty"`
 	AadTenantId             *string                   `json:"aadTenantId,omitempty"`
 	CloudManagementEndpoint *string                   `json:"cloudManagementEndpoint,omitempty"`
-	DesiredProperties       *ClusterDesiredProperties `json:"desiredProperties,omitempty"`
+	DesiredProperties       *ClusterDesiredProperties `json:"desiredProperties"`
 }

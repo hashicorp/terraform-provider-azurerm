@@ -4,7 +4,7 @@ package sessionhost
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SessionHostHealthCheckReport struct {
-	AdditionalFailureDetails *SessionHostHealthCheckFailureDetails `json:"additionalFailureDetails,omitempty"`
+	AdditionalFailureDetails *SessionHostHealthCheckFailureDetails `json:"additionalFailureDetails"`
 	HealthCheckName          *HealthCheckName                      `json:"healthCheckName,omitempty"`
 	HealthCheckResult        *HealthCheckResult                    `json:"healthCheckResult,omitempty"`
 }

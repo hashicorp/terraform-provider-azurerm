@@ -17,14 +17,14 @@ type ClusterProperties struct {
 	BillingModel                *string                      `json:"billingModel,omitempty"`
 	CloudId                     *string                      `json:"cloudId,omitempty"`
 	CloudManagementEndpoint     *string                      `json:"cloudManagementEndpoint,omitempty"`
-	DesiredProperties           *ClusterDesiredProperties    `json:"desiredProperties,omitempty"`
+	DesiredProperties           *ClusterDesiredProperties    `json:"desiredProperties"`
 	LastBillingTimestamp        *string                      `json:"lastBillingTimestamp,omitempty"`
 	LastSyncTimestamp           *string                      `json:"lastSyncTimestamp,omitempty"`
 	ProvisioningState           *ProvisioningState           `json:"provisioningState,omitempty"`
 	RegistrationTimestamp       *string                      `json:"registrationTimestamp,omitempty"`
-	ReportedProperties          *ClusterReportedProperties   `json:"reportedProperties,omitempty"`
+	ReportedProperties          *ClusterReportedProperties   `json:"reportedProperties"`
 	ServiceEndpoint             *string                      `json:"serviceEndpoint,omitempty"`
-	SoftwareAssuranceProperties *SoftwareAssuranceProperties `json:"softwareAssuranceProperties,omitempty"`
+	SoftwareAssuranceProperties *SoftwareAssuranceProperties `json:"softwareAssuranceProperties"`
 	Status                      *Status                      `json:"status,omitempty"`
 	TrialDaysRemaining          *float64                     `json:"trialDaysRemaining,omitempty"`
 }

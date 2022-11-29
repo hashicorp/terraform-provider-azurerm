@@ -16,9 +16,9 @@ type ApplicationGroup struct {
 	Location   *string                    `json:"location,omitempty"`
 	ManagedBy  *string                    `json:"managedBy,omitempty"`
 	Name       *string                    `json:"name,omitempty"`
-	Plan       *Plan                      `json:"plan,omitempty"`
+	Plan       *Plan                      `json:"plan"`
 	Properties ApplicationGroupProperties `json:"properties"`
-	Sku        *Sku                       `json:"sku,omitempty"`
+	Sku        *Sku                       `json:"sku"`
 	SystemData *systemdata.SystemData     `json:"systemData,omitempty"`
 	Tags       *map[string]string         `json:"tags,omitempty"`
 	Type       *string                    `json:"type,omitempty"`

@@ -14,7 +14,7 @@ type EHNamespaceProperties struct {
 	ClusterArmId               *string                      `json:"clusterArmId,omitempty"`
 	CreatedAt                  *string                      `json:"createdAt,omitempty"`
 	DisableLocalAuth           *bool                        `json:"disableLocalAuth,omitempty"`
-	Encryption                 *Encryption                  `json:"encryption,omitempty"`
+	Encryption                 *Encryption                  `json:"encryption"`
 	IsAutoInflateEnabled       *bool                        `json:"isAutoInflateEnabled,omitempty"`
 	KafkaEnabled               *bool                        `json:"kafkaEnabled,omitempty"`
 	MaximumThroughputUnits     *int64                       `json:"maximumThroughputUnits,omitempty"`

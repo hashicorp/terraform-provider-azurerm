@@ -5,6 +5,6 @@ package exports
 
 type ExportSchedule struct {
 	Recurrence       *RecurrenceType         `json:"recurrence,omitempty"`
-	RecurrencePeriod *ExportRecurrencePeriod `json:"recurrencePeriod,omitempty"`
+	RecurrencePeriod *ExportRecurrencePeriod `json:"recurrencePeriod"`
 	Status           *StatusType             `json:"status,omitempty"`
 }

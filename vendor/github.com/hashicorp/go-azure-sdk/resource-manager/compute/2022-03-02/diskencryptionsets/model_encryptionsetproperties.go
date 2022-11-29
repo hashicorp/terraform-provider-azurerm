@@ -10,8 +10,8 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionSetProperties struct {
-	ActiveKey                         *KeyForDiskEncryptionSet   `json:"activeKey,omitempty"`
-	AutoKeyRotationError              *ApiError                  `json:"autoKeyRotationError,omitempty"`
+	ActiveKey                         *KeyForDiskEncryptionSet   `json:"activeKey"`
+	AutoKeyRotationError              *ApiError                  `json:"autoKeyRotationError"`
 	EncryptionType                    *DiskEncryptionSetType     `json:"encryptionType,omitempty"`
 	FederatedClientId                 *string                    `json:"federatedClientId,omitempty"`
 	LastKeyRotationTimestamp          *string                    `json:"lastKeyRotationTimestamp,omitempty"`

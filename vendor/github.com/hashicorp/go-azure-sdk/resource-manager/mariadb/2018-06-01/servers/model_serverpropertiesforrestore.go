@@ -18,7 +18,7 @@ type ServerPropertiesForRestore struct {
 	MinimalTlsVersion   *MinimalTlsVersionEnum   `json:"minimalTlsVersion,omitempty"`
 	PublicNetworkAccess *PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	SslEnforcement      *SslEnforcementEnum      `json:"sslEnforcement,omitempty"`
-	StorageProfile      *StorageProfile          `json:"storageProfile,omitempty"`
+	StorageProfile      *StorageProfile          `json:"storageProfile"`
 	Version             *ServerVersion           `json:"version,omitempty"`
 }
 

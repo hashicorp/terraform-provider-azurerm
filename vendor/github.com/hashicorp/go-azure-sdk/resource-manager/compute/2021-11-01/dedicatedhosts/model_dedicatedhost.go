@@ -7,7 +7,7 @@ type DedicatedHost struct {
 	Id         *string                  `json:"id,omitempty"`
 	Location   string                   `json:"location"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *DedicatedHostProperties `json:"properties,omitempty"`
+	Properties *DedicatedHostProperties `json:"properties"`
 	Sku        Sku                      `json:"sku"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 	Type       *string                  `json:"type,omitempty"`

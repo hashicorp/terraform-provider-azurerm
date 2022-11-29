@@ -7,10 +7,10 @@ type ContainerProperties struct {
 	Command              *[]string                        `json:"command,omitempty"`
 	EnvironmentVariables *[]EnvironmentVariable           `json:"environmentVariables,omitempty"`
 	Image                string                           `json:"image"`
-	InstanceView         *ContainerPropertiesInstanceView `json:"instanceView,omitempty"`
-	LivenessProbe        *ContainerProbe                  `json:"livenessProbe,omitempty"`
+	InstanceView         *ContainerPropertiesInstanceView `json:"instanceView"`
+	LivenessProbe        *ContainerProbe                  `json:"livenessProbe"`
 	Ports                *[]ContainerPort                 `json:"ports,omitempty"`
-	ReadinessProbe       *ContainerProbe                  `json:"readinessProbe,omitempty"`
+	ReadinessProbe       *ContainerProbe                  `json:"readinessProbe"`
 	Resources            ResourceRequirements             `json:"resources"`
 	VolumeMounts         *[]VolumeMount                   `json:"volumeMounts,omitempty"`
 }

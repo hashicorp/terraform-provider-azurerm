@@ -5,6 +5,6 @@ package contact
 
 type AvailableContacts struct {
 	GroundStationName *string                    `json:"groundStationName,omitempty"`
-	Properties        *ContactInstanceProperties `json:"properties,omitempty"`
-	Spacecraft        *ResourceReference         `json:"spacecraft,omitempty"`
+	Properties        *ContactInstanceProperties `json:"properties"`
+	Spacecraft        *ResourceReference         `json:"spacecraft"`
 }

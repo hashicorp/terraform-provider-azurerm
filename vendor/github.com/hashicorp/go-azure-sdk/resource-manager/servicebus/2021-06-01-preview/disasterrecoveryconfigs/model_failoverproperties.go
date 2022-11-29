@@ -4,5 +4,5 @@ package disasterrecoveryconfigs
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FailoverProperties struct {
-	Properties *FailoverPropertiesProperties `json:"properties,omitempty"`
+	Properties *FailoverPropertiesProperties `json:"properties"`
 }

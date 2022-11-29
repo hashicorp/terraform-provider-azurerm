@@ -4,6 +4,6 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VMDiskSecurityProfile struct {
-	DiskEncryptionSet      *SubResource             `json:"diskEncryptionSet,omitempty"`
+	DiskEncryptionSet      *SubResource             `json:"diskEncryptionSet"`
 	SecurityEncryptionType *SecurityEncryptionTypes `json:"securityEncryptionType,omitempty"`
 }

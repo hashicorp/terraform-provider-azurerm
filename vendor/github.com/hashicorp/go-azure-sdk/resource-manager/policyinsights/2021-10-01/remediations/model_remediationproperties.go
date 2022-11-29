@@ -12,9 +12,9 @@ import (
 type RemediationProperties struct {
 	CorrelationId               *string                                `json:"correlationId,omitempty"`
 	CreatedOn                   *string                                `json:"createdOn,omitempty"`
-	DeploymentStatus            *RemediationDeploymentSummary          `json:"deploymentStatus,omitempty"`
-	FailureThreshold            *RemediationPropertiesFailureThreshold `json:"failureThreshold,omitempty"`
-	Filters                     *RemediationFilters                    `json:"filters,omitempty"`
+	DeploymentStatus            *RemediationDeploymentSummary          `json:"deploymentStatus"`
+	FailureThreshold            *RemediationPropertiesFailureThreshold `json:"failureThreshold"`
+	Filters                     *RemediationFilters                    `json:"filters"`
 	LastUpdatedOn               *string                                `json:"lastUpdatedOn,omitempty"`
 	ParallelDeployments         *int64                                 `json:"parallelDeployments,omitempty"`
 	PolicyAssignmentId          *string                                `json:"policyAssignmentId,omitempty"`

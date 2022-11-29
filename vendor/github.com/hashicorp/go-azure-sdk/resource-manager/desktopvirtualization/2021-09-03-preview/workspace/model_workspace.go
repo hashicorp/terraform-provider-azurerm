@@ -16,9 +16,9 @@ type Workspace struct {
 	Location   *string                  `json:"location,omitempty"`
 	ManagedBy  *string                  `json:"managedBy,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
-	Plan       *Plan                    `json:"plan,omitempty"`
-	Properties *WorkspaceProperties     `json:"properties,omitempty"`
-	Sku        *Sku                     `json:"sku,omitempty"`
+	Plan       *Plan                    `json:"plan"`
+	Properties *WorkspaceProperties     `json:"properties"`
+	Sku        *Sku                     `json:"sku"`
 	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 	Type       *string                  `json:"type,omitempty"`

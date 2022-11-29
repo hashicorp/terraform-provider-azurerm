@@ -14,6 +14,6 @@ type WorkspaceProperties struct {
 	PublicNetworkAccessForIngestion *PublicNetworkAccessType     `json:"publicNetworkAccessForIngestion,omitempty"`
 	PublicNetworkAccessForQuery     *PublicNetworkAccessType     `json:"publicNetworkAccessForQuery,omitempty"`
 	RetentionInDays                 *int64                       `json:"retentionInDays,omitempty"`
-	Sku                             *WorkspaceSku                `json:"sku,omitempty"`
-	WorkspaceCapping                *WorkspaceCapping            `json:"workspaceCapping,omitempty"`
+	Sku                             *WorkspaceSku                `json:"sku"`
+	WorkspaceCapping                *WorkspaceCapping            `json:"workspaceCapping"`
 }

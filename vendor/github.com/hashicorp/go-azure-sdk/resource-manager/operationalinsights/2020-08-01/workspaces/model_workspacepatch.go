@@ -7,7 +7,7 @@ type WorkspacePatch struct {
 	Etag       *string              `json:"etag,omitempty"`
 	Id         *string              `json:"id,omitempty"`
 	Name       *string              `json:"name,omitempty"`
-	Properties *WorkspaceProperties `json:"properties,omitempty"`
+	Properties *WorkspaceProperties `json:"properties"`
 	Tags       *map[string]string   `json:"tags,omitempty"`
 	Type       *string              `json:"type,omitempty"`
 }

@@ -5,6 +5,6 @@ package virtualmachines
 
 type VirtualMachinePublicIPAddressConfiguration struct {
 	Name       string                                                `json:"name"`
-	Properties *VirtualMachinePublicIPAddressConfigurationProperties `json:"properties,omitempty"`
-	Sku        *PublicIPAddressSku                                   `json:"sku,omitempty"`
+	Properties *VirtualMachinePublicIPAddressConfigurationProperties `json:"properties"`
+	Sku        *PublicIPAddressSku                                   `json:"sku"`
 }

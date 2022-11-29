@@ -5,7 +5,7 @@ package proximityplacementgroups
 
 type ProximityPlacementGroupProperties struct {
 	AvailabilitySets            *[]SubResourceWithColocationStatus `json:"availabilitySets,omitempty"`
-	ColocationStatus            *InstanceViewStatus                `json:"colocationStatus,omitempty"`
+	ColocationStatus            *InstanceViewStatus                `json:"colocationStatus"`
 	ProximityPlacementGroupType *ProximityPlacementGroupType       `json:"proximityPlacementGroupType,omitempty"`
 	VirtualMachineScaleSets     *[]SubResourceWithColocationStatus `json:"virtualMachineScaleSets,omitempty"`
 	VirtualMachines             *[]SubResourceWithColocationStatus `json:"virtualMachines,omitempty"`

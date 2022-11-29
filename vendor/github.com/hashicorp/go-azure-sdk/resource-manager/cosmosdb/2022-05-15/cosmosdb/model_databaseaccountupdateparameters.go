@@ -10,6 +10,6 @@ import (
 type DatabaseAccountUpdateParameters struct {
 	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                                  `json:"location,omitempty"`
-	Properties *DatabaseAccountUpdateProperties         `json:"properties,omitempty"`
+	Properties *DatabaseAccountUpdateProperties         `json:"properties"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 }

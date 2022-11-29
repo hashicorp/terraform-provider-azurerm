@@ -5,7 +5,7 @@ package dedicatedhostgroups
 
 type DedicatedHostGroupProperties struct {
 	Hosts                     *[]SubResourceReadOnly          `json:"hosts,omitempty"`
-	InstanceView              *DedicatedHostGroupInstanceView `json:"instanceView,omitempty"`
+	InstanceView              *DedicatedHostGroupInstanceView `json:"instanceView"`
 	PlatformFaultDomainCount  int64                           `json:"platformFaultDomainCount"`
 	SupportAutomaticPlacement *bool                           `json:"supportAutomaticPlacement,omitempty"`
 }

@@ -4,5 +4,5 @@ package sqldedicatedgateway
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ServiceResourceCreateUpdateParameters struct {
-	Properties *ServiceResourceCreateUpdateProperties `json:"properties,omitempty"`
+	Properties *ServiceResourceCreateUpdateProperties `json:"properties"`
 }

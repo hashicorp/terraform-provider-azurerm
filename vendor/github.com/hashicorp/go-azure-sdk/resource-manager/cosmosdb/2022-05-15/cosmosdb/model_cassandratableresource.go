@@ -7,5 +7,5 @@ type CassandraTableResource struct {
 	AnalyticalStorageTtl *int64           `json:"analyticalStorageTtl,omitempty"`
 	DefaultTtl           *int64           `json:"defaultTtl,omitempty"`
 	Id                   string           `json:"id"`
-	Schema               *CassandraSchema `json:"schema,omitempty"`
+	Schema               *CassandraSchema `json:"schema"`
 }

@@ -4,5 +4,5 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ThroughputSettingsGetProperties struct {
-	Resource *ThroughputSettingsGetProperties `json:"resource,omitempty"`
+	Resource *ThroughputSettingsGetProperties `json:"resource"`
 }

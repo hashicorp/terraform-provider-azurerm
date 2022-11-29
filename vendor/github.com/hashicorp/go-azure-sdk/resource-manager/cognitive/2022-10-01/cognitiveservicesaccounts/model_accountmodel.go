@@ -8,10 +8,10 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AccountModel struct {
-	BaseModel     *DeploymentModel       `json:"baseModel,omitempty"`
-	CallRateLimit *CallRateLimit         `json:"callRateLimit,omitempty"`
+	BaseModel     *DeploymentModel       `json:"baseModel"`
+	CallRateLimit *CallRateLimit         `json:"callRateLimit"`
 	Capabilities  *map[string]string     `json:"capabilities,omitempty"`
-	Deprecation   *ModelDeprecationInfo  `json:"deprecation,omitempty"`
+	Deprecation   *ModelDeprecationInfo  `json:"deprecation"`
 	Format        *string                `json:"format,omitempty"`
 	MaxCapacity   *int64                 `json:"maxCapacity,omitempty"`
 	Name          *string                `json:"name,omitempty"`

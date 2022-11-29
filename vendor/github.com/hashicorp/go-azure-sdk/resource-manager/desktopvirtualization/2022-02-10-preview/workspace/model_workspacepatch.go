@@ -4,6 +4,6 @@ package workspace
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkspacePatch struct {
-	Properties *WorkspacePatchProperties `json:"properties,omitempty"`
+	Properties *WorkspacePatchProperties `json:"properties"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 }

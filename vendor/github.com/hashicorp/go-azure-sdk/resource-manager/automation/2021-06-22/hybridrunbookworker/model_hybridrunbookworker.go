@@ -10,7 +10,7 @@ import (
 type HybridRunbookWorker struct {
 	Id         *string                        `json:"id,omitempty"`
 	Name       *string                        `json:"name,omitempty"`
-	Properties *HybridRunbookWorkerProperties `json:"properties,omitempty"`
+	Properties *HybridRunbookWorkerProperties `json:"properties"`
 	SystemData *systemdata.SystemData         `json:"systemData,omitempty"`
 	Type       *string                        `json:"type,omitempty"`
 }

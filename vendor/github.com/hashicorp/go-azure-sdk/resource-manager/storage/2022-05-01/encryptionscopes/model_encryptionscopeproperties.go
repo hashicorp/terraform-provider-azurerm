@@ -11,7 +11,7 @@ import (
 
 type EncryptionScopeProperties struct {
 	CreationTime                    *string                            `json:"creationTime,omitempty"`
-	KeyVaultProperties              *EncryptionScopeKeyVaultProperties `json:"keyVaultProperties,omitempty"`
+	KeyVaultProperties              *EncryptionScopeKeyVaultProperties `json:"keyVaultProperties"`
 	LastModifiedTime                *string                            `json:"lastModifiedTime,omitempty"`
 	RequireInfrastructureEncryption *bool                              `json:"requireInfrastructureEncryption,omitempty"`
 	Source                          *EncryptionScopeSource             `json:"source,omitempty"`

@@ -5,14 +5,14 @@ package managedapis
 
 type ApiResourceProperties struct {
 	ApiDefinitionUrl     *string                         `json:"apiDefinitionUrl,omitempty"`
-	ApiDefinitions       *ApiResourceDefinitions         `json:"apiDefinitions,omitempty"`
-	BackendService       *ApiResourceBackendService      `json:"backendService,omitempty"`
+	ApiDefinitions       *ApiResourceDefinitions         `json:"apiDefinitions"`
+	BackendService       *ApiResourceBackendService      `json:"backendService"`
 	Capabilities         *[]string                       `json:"capabilities,omitempty"`
 	ConnectionParameters *map[string]ConnectionParameter `json:"connectionParameters,omitempty"`
-	GeneralInformation   *ApiResourceGeneralInformation  `json:"generalInformation,omitempty"`
-	Metadata             *ApiResourceMetadata            `json:"metadata,omitempty"`
+	GeneralInformation   *ApiResourceGeneralInformation  `json:"generalInformation"`
+	Metadata             *ApiResourceMetadata            `json:"metadata"`
 	Name                 *string                         `json:"name,omitempty"`
-	Policies             *ApiResourcePolicies            `json:"policies,omitempty"`
+	Policies             *ApiResourcePolicies            `json:"policies"`
 	RuntimeUrls          *[]string                       `json:"runtimeUrls,omitempty"`
 	Swagger              *interface{}                    `json:"swagger,omitempty"`
 }

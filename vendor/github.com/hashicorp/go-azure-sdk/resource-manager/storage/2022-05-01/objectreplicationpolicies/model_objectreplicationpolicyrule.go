@@ -5,7 +5,7 @@ package objectreplicationpolicies
 
 type ObjectReplicationPolicyRule struct {
 	DestinationContainer string                         `json:"destinationContainer"`
-	Filters              *ObjectReplicationPolicyFilter `json:"filters,omitempty"`
+	Filters              *ObjectReplicationPolicyFilter `json:"filters"`
 	RuleId               *string                        `json:"ruleId,omitempty"`
 	SourceContainer      string                         `json:"sourceContainer"`
 }

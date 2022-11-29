@@ -15,7 +15,7 @@ type Workbook struct {
 	Kind       *WorkbookSharedTypeKind                  `json:"kind,omitempty"`
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
-	Properties *WorkbookProperties                      `json:"properties,omitempty"`
+	Properties *WorkbookProperties                      `json:"properties"`
 	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`

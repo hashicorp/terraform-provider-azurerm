@@ -4,5 +4,5 @@ package configurationstores
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionProperties struct {
-	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties"`
 }

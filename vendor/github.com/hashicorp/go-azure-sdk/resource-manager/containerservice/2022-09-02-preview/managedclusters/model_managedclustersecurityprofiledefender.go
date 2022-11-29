@@ -5,5 +5,5 @@ package managedclusters
 
 type ManagedClusterSecurityProfileDefender struct {
 	LogAnalyticsWorkspaceResourceId *string                                                  `json:"logAnalyticsWorkspaceResourceId,omitempty"`
-	SecurityMonitoring              *ManagedClusterSecurityProfileDefenderSecurityMonitoring `json:"securityMonitoring,omitempty"`
+	SecurityMonitoring              *ManagedClusterSecurityProfileDefenderSecurityMonitoring `json:"securityMonitoring"`
 }

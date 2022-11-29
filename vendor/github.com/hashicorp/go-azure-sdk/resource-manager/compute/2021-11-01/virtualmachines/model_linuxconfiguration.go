@@ -5,7 +5,7 @@ package virtualmachines
 
 type LinuxConfiguration struct {
 	DisablePasswordAuthentication *bool               `json:"disablePasswordAuthentication,omitempty"`
-	PatchSettings                 *LinuxPatchSettings `json:"patchSettings,omitempty"`
+	PatchSettings                 *LinuxPatchSettings `json:"patchSettings"`
 	ProvisionVMAgent              *bool               `json:"provisionVMAgent,omitempty"`
-	Ssh                           *SshConfiguration   `json:"ssh,omitempty"`
+	Ssh                           *SshConfiguration   `json:"ssh"`
 }

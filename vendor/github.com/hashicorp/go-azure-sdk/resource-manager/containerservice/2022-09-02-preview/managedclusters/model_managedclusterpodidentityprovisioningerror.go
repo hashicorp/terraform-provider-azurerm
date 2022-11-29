@@ -4,5 +4,5 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterPodIdentityProvisioningError struct {
-	Error *ManagedClusterPodIdentityProvisioningErrorBody `json:"error,omitempty"`
+	Error *ManagedClusterPodIdentityProvisioningErrorBody `json:"error"`
 }

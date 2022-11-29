@@ -12,7 +12,7 @@ type HostPoolPatchProperties struct {
 	PersonalDesktopAssignmentType *PersonalDesktopAssignmentType `json:"personalDesktopAssignmentType,omitempty"`
 	PreferredAppGroupType         *PreferredAppGroupType         `json:"preferredAppGroupType,omitempty"`
 	PublicNetworkAccess           *PublicNetworkAccess           `json:"publicNetworkAccess,omitempty"`
-	RegistrationInfo              *RegistrationInfoPatch         `json:"registrationInfo,omitempty"`
+	RegistrationInfo              *RegistrationInfoPatch         `json:"registrationInfo"`
 	Ring                          *int64                         `json:"ring,omitempty"`
 	SsoClientId                   *string                        `json:"ssoClientId,omitempty"`
 	SsoClientSecretKeyVaultPath   *string                        `json:"ssoClientSecretKeyVaultPath,omitempty"`

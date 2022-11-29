@@ -10,7 +10,7 @@ import (
 type LogAnalyticsQueryPackQuery struct {
 	Id         *string                               `json:"id,omitempty"`
 	Name       *string                               `json:"name,omitempty"`
-	Properties *LogAnalyticsQueryPackQueryProperties `json:"properties,omitempty"`
+	Properties *LogAnalyticsQueryPackQueryProperties `json:"properties"`
 	SystemData *systemdata.SystemData                `json:"systemData,omitempty"`
 	Type       *string                               `json:"type,omitempty"`
 }

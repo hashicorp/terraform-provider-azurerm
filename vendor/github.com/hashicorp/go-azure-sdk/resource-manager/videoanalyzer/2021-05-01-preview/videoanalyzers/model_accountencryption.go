@@ -4,8 +4,8 @@ package videoanalyzers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AccountEncryption struct {
-	Identity           *ResourceIdentity        `json:"identity,omitempty"`
-	KeyVaultProperties *KeyVaultProperties      `json:"keyVaultProperties,omitempty"`
+	Identity           *ResourceIdentity        `json:"identity"`
+	KeyVaultProperties *KeyVaultProperties      `json:"keyVaultProperties"`
 	Status             *string                  `json:"status,omitempty"`
 	Type               AccountEncryptionKeyType `json:"type"`
 }

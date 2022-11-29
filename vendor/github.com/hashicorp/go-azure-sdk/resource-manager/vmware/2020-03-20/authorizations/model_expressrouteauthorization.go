@@ -6,6 +6,6 @@ package authorizations
 type ExpressRouteAuthorization struct {
 	Id         *string                              `json:"id,omitempty"`
 	Name       *string                              `json:"name,omitempty"`
-	Properties *ExpressRouteAuthorizationProperties `json:"properties,omitempty"`
+	Properties *ExpressRouteAuthorizationProperties `json:"properties"`
 	Type       *string                              `json:"type,omitempty"`
 }

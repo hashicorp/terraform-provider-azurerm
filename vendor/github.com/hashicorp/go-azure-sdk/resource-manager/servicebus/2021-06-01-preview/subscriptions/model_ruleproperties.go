@@ -4,8 +4,8 @@ package subscriptions
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Ruleproperties struct {
-	Action            *Action            `json:"action,omitempty"`
-	CorrelationFilter *CorrelationFilter `json:"correlationFilter,omitempty"`
+	Action            *Action            `json:"action"`
+	CorrelationFilter *CorrelationFilter `json:"correlationFilter"`
 	FilterType        *FilterType        `json:"filterType,omitempty"`
-	SqlFilter         *SqlFilter         `json:"sqlFilter,omitempty"`
+	SqlFilter         *SqlFilter         `json:"sqlFilter"`
 }

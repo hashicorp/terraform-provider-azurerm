@@ -6,7 +6,7 @@ package publicmaintenanceconfigurations
 type MaintenanceConfigurationProperties struct {
 	ExtensionProperties *map[string]string `json:"extensionProperties,omitempty"`
 	MaintenanceScope    *MaintenanceScope  `json:"maintenanceScope,omitempty"`
-	MaintenanceWindow   *MaintenanceWindow `json:"maintenanceWindow,omitempty"`
+	MaintenanceWindow   *MaintenanceWindow `json:"maintenanceWindow"`
 	Namespace           *string            `json:"namespace,omitempty"`
 	Visibility          *Visibility        `json:"visibility,omitempty"`
 }

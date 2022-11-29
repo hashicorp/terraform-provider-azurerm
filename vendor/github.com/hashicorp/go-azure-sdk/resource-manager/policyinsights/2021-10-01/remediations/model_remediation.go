@@ -10,7 +10,7 @@ import (
 type Remediation struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *RemediationProperties `json:"properties,omitempty"`
+	Properties *RemediationProperties `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

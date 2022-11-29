@@ -4,7 +4,7 @@ package backupvaults
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PatchResourceRequestInput struct {
-	Identity   *DppIdentityDetails    `json:"identity,omitempty"`
-	Properties *PatchBackupVaultInput `json:"properties,omitempty"`
+	Identity   *DppIdentityDetails    `json:"identity"`
+	Properties *PatchBackupVaultInput `json:"properties"`
 	Tags       *map[string]string     `json:"tags,omitempty"`
 }

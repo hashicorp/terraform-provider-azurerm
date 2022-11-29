@@ -6,6 +6,6 @@ package sessionhost
 type SessionHostPatch struct {
 	Id         *string                     `json:"id,omitempty"`
 	Name       *string                     `json:"name,omitempty"`
-	Properties *SessionHostPatchProperties `json:"properties,omitempty"`
+	Properties *SessionHostPatchProperties `json:"properties"`
 	Type       *string                     `json:"type,omitempty"`
 }

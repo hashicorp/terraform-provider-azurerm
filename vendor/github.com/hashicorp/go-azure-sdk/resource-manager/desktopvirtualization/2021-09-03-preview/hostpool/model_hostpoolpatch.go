@@ -6,7 +6,7 @@ package hostpool
 type HostPoolPatch struct {
 	Id         *string                  `json:"id,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *HostPoolPatchProperties `json:"properties,omitempty"`
+	Properties *HostPoolPatchProperties `json:"properties"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 	Type       *string                  `json:"type,omitempty"`
 }

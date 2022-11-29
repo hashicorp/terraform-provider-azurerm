@@ -7,5 +7,5 @@ type ComputeStartStopSchedule struct {
 	Action             *ComputePowerAction `json:"action,omitempty"`
 	Id                 *string             `json:"id,omitempty"`
 	ProvisioningStatus *ProvisioningStatus `json:"provisioningStatus,omitempty"`
-	Schedule           *ScheduleBase       `json:"schedule,omitempty"`
+	Schedule           *ScheduleBase       `json:"schedule"`
 }

@@ -10,7 +10,7 @@ import (
 type ArmDisasterRecovery struct {
 	Id         *string                        `json:"id,omitempty"`
 	Name       *string                        `json:"name,omitempty"`
-	Properties *ArmDisasterRecoveryProperties `json:"properties,omitempty"`
+	Properties *ArmDisasterRecoveryProperties `json:"properties"`
 	SystemData *systemdata.SystemData         `json:"systemData,omitempty"`
 	Type       *string                        `json:"type,omitempty"`
 }

@@ -5,13 +5,13 @@ package containerinstance
 
 type ContainerGroupPropertiesProperties struct {
 	Containers               []Container                                     `json:"containers"`
-	Diagnostics              *ContainerGroupDiagnostics                      `json:"diagnostics,omitempty"`
-	DnsConfig                *DnsConfiguration                               `json:"dnsConfig,omitempty"`
-	EncryptionProperties     *EncryptionProperties                           `json:"encryptionProperties,omitempty"`
-	IPAddress                *IPAddress                                      `json:"ipAddress,omitempty"`
+	Diagnostics              *ContainerGroupDiagnostics                      `json:"diagnostics"`
+	DnsConfig                *DnsConfiguration                               `json:"dnsConfig"`
+	EncryptionProperties     *EncryptionProperties                           `json:"encryptionProperties"`
+	IPAddress                *IPAddress                                      `json:"ipAddress"`
 	ImageRegistryCredentials *[]ImageRegistryCredential                      `json:"imageRegistryCredentials,omitempty"`
 	InitContainers           *[]InitContainerDefinition                      `json:"initContainers,omitempty"`
-	InstanceView             *ContainerGroupPropertiesPropertiesInstanceView `json:"instanceView,omitempty"`
+	InstanceView             *ContainerGroupPropertiesPropertiesInstanceView `json:"instanceView"`
 	OsType                   OperatingSystemTypes                            `json:"osType"`
 	ProvisioningState        *string                                         `json:"provisioningState,omitempty"`
 	RestartPolicy            *ContainerGroupRestartPolicy                    `json:"restartPolicy,omitempty"`

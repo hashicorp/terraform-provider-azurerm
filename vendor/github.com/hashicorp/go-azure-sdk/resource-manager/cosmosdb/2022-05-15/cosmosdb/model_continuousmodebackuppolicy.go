@@ -13,7 +13,7 @@ var _ BackupPolicy = ContinuousModeBackupPolicy{}
 type ContinuousModeBackupPolicy struct {
 
 	// Fields inherited from BackupPolicy
-	MigrationState *BackupPolicyMigrationState `json:"migrationState,omitempty"`
+	MigrationState *BackupPolicyMigrationState `json:"migrationState"`
 }
 
 var _ json.Marshaler = ContinuousModeBackupPolicy{}

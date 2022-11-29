@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CreateUpdateOptions struct {
-	AutoScaleSettings *AutoScaleSettings `json:"autoscaleSettings,omitempty"`
+	AutoScaleSettings *AutoScaleSettings `json:"autoscaleSettings"`
 	Throughput        *int64             `json:"throughput,omitempty"`
 }

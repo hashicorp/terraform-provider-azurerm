@@ -4,7 +4,7 @@ package monitorsresource
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UserInfo struct {
-	CompanyInfo  *CompanyInfo `json:"companyInfo,omitempty"`
+	CompanyInfo  *CompanyInfo `json:"companyInfo"`
 	CompanyName  *string      `json:"companyName,omitempty"`
 	EmailAddress *string      `json:"emailAddress,omitempty"`
 	FirstName    *string      `json:"firstName,omitempty"`

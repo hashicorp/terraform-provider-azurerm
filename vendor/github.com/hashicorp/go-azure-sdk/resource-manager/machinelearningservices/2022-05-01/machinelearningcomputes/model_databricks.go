@@ -14,7 +14,7 @@ import (
 var _ Compute = Databricks{}
 
 type Databricks struct {
-	Properties *DatabricksProperties `json:"properties,omitempty"`
+	Properties *DatabricksProperties `json:"properties"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

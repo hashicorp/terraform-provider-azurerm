@@ -6,7 +6,7 @@ package backupinstances
 type UserFacingError struct {
 	Code              *string            `json:"code,omitempty"`
 	Details           *[]UserFacingError `json:"details,omitempty"`
-	InnerError        *InnerError        `json:"innerError,omitempty"`
+	InnerError        *InnerError        `json:"innerError"`
 	IsRetryable       *bool              `json:"isRetryable,omitempty"`
 	IsUserError       *bool              `json:"isUserError,omitempty"`
 	Message           *string            `json:"message,omitempty"`

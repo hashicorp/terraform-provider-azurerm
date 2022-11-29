@@ -22,19 +22,19 @@ type DiskProperties struct {
 	DiskSizeBytes                *int64                        `json:"diskSizeBytes,omitempty"`
 	DiskSizeGB                   *int64                        `json:"diskSizeGB,omitempty"`
 	DiskState                    *DiskState                    `json:"diskState,omitempty"`
-	Encryption                   *Encryption                   `json:"encryption,omitempty"`
-	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
+	Encryption                   *Encryption                   `json:"encryption"`
+	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection"`
 	HyperVGeneration             *HyperVGeneration             `json:"hyperVGeneration,omitempty"`
 	MaxShares                    *int64                        `json:"maxShares,omitempty"`
 	NetworkAccessPolicy          *NetworkAccessPolicy          `json:"networkAccessPolicy,omitempty"`
 	OsType                       *OperatingSystemTypes         `json:"osType,omitempty"`
-	PropertyUpdatesInProgress    *PropertyUpdatesInProgress    `json:"propertyUpdatesInProgress,omitempty"`
+	PropertyUpdatesInProgress    *PropertyUpdatesInProgress    `json:"propertyUpdatesInProgress"`
 	ProvisioningState            *string                       `json:"provisioningState,omitempty"`
 	PublicNetworkAccess          *PublicNetworkAccess          `json:"publicNetworkAccess,omitempty"`
-	PurchasePlan                 *PurchasePlan                 `json:"purchasePlan,omitempty"`
-	SecurityProfile              *DiskSecurityProfile          `json:"securityProfile,omitempty"`
+	PurchasePlan                 *PurchasePlan                 `json:"purchasePlan"`
+	SecurityProfile              *DiskSecurityProfile          `json:"securityProfile"`
 	ShareInfo                    *[]ShareInfoElement           `json:"shareInfo,omitempty"`
-	SupportedCapabilities        *SupportedCapabilities        `json:"supportedCapabilities,omitempty"`
+	SupportedCapabilities        *SupportedCapabilities        `json:"supportedCapabilities"`
 	SupportsHibernation          *bool                         `json:"supportsHibernation,omitempty"`
 	Tier                         *string                       `json:"tier,omitempty"`
 	TimeCreated                  *string                       `json:"timeCreated,omitempty"`

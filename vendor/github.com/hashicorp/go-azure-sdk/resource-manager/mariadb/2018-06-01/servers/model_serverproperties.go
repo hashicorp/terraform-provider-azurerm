@@ -20,7 +20,7 @@ type ServerProperties struct {
 	ReplicaCapacity            *int64                             `json:"replicaCapacity,omitempty"`
 	ReplicationRole            *string                            `json:"replicationRole,omitempty"`
 	SslEnforcement             *SslEnforcementEnum                `json:"sslEnforcement,omitempty"`
-	StorageProfile             *StorageProfile                    `json:"storageProfile,omitempty"`
+	StorageProfile             *StorageProfile                    `json:"storageProfile"`
 	UserVisibleState           *ServerState                       `json:"userVisibleState,omitempty"`
 	Version                    *ServerVersion                     `json:"version,omitempty"`
 }

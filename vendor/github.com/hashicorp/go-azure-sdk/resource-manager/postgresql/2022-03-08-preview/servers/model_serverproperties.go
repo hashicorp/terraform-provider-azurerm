@@ -12,22 +12,22 @@ import (
 type ServerProperties struct {
 	AdministratorLogin         *string            `json:"administratorLogin,omitempty"`
 	AdministratorLoginPassword *string            `json:"administratorLoginPassword,omitempty"`
-	AuthConfig                 *AuthConfig        `json:"authConfig,omitempty"`
+	AuthConfig                 *AuthConfig        `json:"authConfig"`
 	AvailabilityZone           *string            `json:"availabilityZone,omitempty"`
-	Backup                     *Backup            `json:"backup,omitempty"`
+	Backup                     *Backup            `json:"backup"`
 	CreateMode                 *CreateMode        `json:"createMode,omitempty"`
-	DataEncryption             *DataEncryption    `json:"dataEncryption,omitempty"`
+	DataEncryption             *DataEncryption    `json:"dataEncryption"`
 	FullyQualifiedDomainName   *string            `json:"fullyQualifiedDomainName,omitempty"`
-	HighAvailability           *HighAvailability  `json:"highAvailability,omitempty"`
-	MaintenanceWindow          *MaintenanceWindow `json:"maintenanceWindow,omitempty"`
+	HighAvailability           *HighAvailability  `json:"highAvailability"`
+	MaintenanceWindow          *MaintenanceWindow `json:"maintenanceWindow"`
 	MinorVersion               *string            `json:"minorVersion,omitempty"`
-	Network                    *Network           `json:"network,omitempty"`
+	Network                    *Network           `json:"network"`
 	PointInTimeUTC             *string            `json:"pointInTimeUTC,omitempty"`
 	ReplicaCapacity            *int64             `json:"replicaCapacity,omitempty"`
 	ReplicationRole            *ReplicationRole   `json:"replicationRole,omitempty"`
 	SourceServerResourceId     *string            `json:"sourceServerResourceId,omitempty"`
 	State                      *ServerState       `json:"state,omitempty"`
-	Storage                    *Storage           `json:"storage,omitempty"`
+	Storage                    *Storage           `json:"storage"`
 	Version                    *ServerVersion     `json:"version,omitempty"`
 }
 

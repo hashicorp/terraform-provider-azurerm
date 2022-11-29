@@ -14,7 +14,7 @@ import (
 var _ Compute = HDInsight{}
 
 type HDInsight struct {
-	Properties *HDInsightProperties `json:"properties,omitempty"`
+	Properties *HDInsightProperties `json:"properties"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

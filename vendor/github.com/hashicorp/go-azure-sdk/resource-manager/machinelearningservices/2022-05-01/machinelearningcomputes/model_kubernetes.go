@@ -14,7 +14,7 @@ import (
 var _ Compute = Kubernetes{}
 
 type Kubernetes struct {
-	Properties *KubernetesProperties `json:"properties,omitempty"`
+	Properties *KubernetesProperties `json:"properties"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

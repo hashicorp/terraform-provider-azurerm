@@ -12,7 +12,7 @@ import (
 type PercentileMetric struct {
 	EndTime      *string                  `json:"endTime,omitempty"`
 	MetricValues *[]PercentileMetricValue `json:"metricValues,omitempty"`
-	Name         *MetricName              `json:"name,omitempty"`
+	Name         *MetricName              `json:"name"`
 	StartTime    *string                  `json:"startTime,omitempty"`
 	TimeGrain    *string                  `json:"timeGrain,omitempty"`
 	Unit         *UnitType                `json:"unit,omitempty"`

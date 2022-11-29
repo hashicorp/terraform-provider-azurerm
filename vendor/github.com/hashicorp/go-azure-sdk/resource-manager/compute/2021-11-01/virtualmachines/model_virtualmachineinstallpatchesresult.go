@@ -10,7 +10,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VirtualMachineInstallPatchesResult struct {
-	Error                     *ApiError                  `json:"error,omitempty"`
+	Error                     *ApiError                  `json:"error"`
 	ExcludedPatchCount        *int64                     `json:"excludedPatchCount,omitempty"`
 	FailedPatchCount          *int64                     `json:"failedPatchCount,omitempty"`
 	InstallationActivityId    *string                    `json:"installationActivityId,omitempty"`

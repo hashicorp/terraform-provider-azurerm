@@ -4,7 +4,7 @@ package dataexport
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Destination struct {
-	MetaData   *DestinationMetaData `json:"metaData,omitempty"`
+	MetaData   *DestinationMetaData `json:"metaData"`
 	ResourceId string               `json:"resourceId"`
 	Type       *Type                `json:"type,omitempty"`
 }

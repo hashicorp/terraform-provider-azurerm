@@ -9,7 +9,7 @@ type ManagedClusterLoadBalancerProfile struct {
 	EffectiveOutboundIPs                *[]ResourceReference                                 `json:"effectiveOutboundIPs,omitempty"`
 	EnableMultipleStandardLoadBalancers *bool                                                `json:"enableMultipleStandardLoadBalancers,omitempty"`
 	IdleTimeoutInMinutes                *int64                                               `json:"idleTimeoutInMinutes,omitempty"`
-	ManagedOutboundIPs                  *ManagedClusterLoadBalancerProfileManagedOutboundIPs `json:"managedOutboundIPs,omitempty"`
-	OutboundIPPrefixes                  *ManagedClusterLoadBalancerProfileOutboundIPPrefixes `json:"outboundIPPrefixes,omitempty"`
-	OutboundIPs                         *ManagedClusterLoadBalancerProfileOutboundIPs        `json:"outboundIPs,omitempty"`
+	ManagedOutboundIPs                  *ManagedClusterLoadBalancerProfileManagedOutboundIPs `json:"managedOutboundIPs"`
+	OutboundIPPrefixes                  *ManagedClusterLoadBalancerProfileOutboundIPPrefixes `json:"outboundIPPrefixes"`
+	OutboundIPs                         *ManagedClusterLoadBalancerProfileOutboundIPs        `json:"outboundIPs"`
 }
