@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,10 +24,16 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsReferenceInputMsSqlRead,
 		Update: resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate,
 		Delete: resourceStreamAnalyticsReferenceInputMsSqlDelete,
+
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := inputs.ParseInputID(id)
 			return err
 		}, importStreamAnalyticsReferenceInput("Microsoft.Sql/Server/Database")),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsReferenceInputMsSqlV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
