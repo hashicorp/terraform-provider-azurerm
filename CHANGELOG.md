@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_synapse_linked_service` - a state migration to work around the previously incorrect id casing  [GH-19477]
 * `azurerm_windows_web_app` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
 * `azurerm_windows_web_app_slot` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
+* `azurerm_windows_virtual_machine_scale_set` Fix crash when upgrading `automatic_os_upgrade_policy` [GH-19465]
 
 ## 3.33.0 (November 24, 2022)
 
