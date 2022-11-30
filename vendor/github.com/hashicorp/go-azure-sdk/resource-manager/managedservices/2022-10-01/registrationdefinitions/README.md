@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationdefinitions` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions` Documentation
 
-The `registrationdefinitions` SDK allows for interaction with the Azure Resource Manager Service `managedservices` (API Version `2019-06-01`).
+The `registrationdefinitions` SDK allows for interaction with the Azure Resource Manager Service `managedservices` (API Version `2022-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationdefinitions"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 ```
 
 
@@ -75,8 +75,8 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := registrationdefinitions.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
-// alternatively `client.List(ctx, id)` can be used to do batched pagination
-items, err := client.ListComplete(ctx, id)
+// alternatively `client.List(ctx, id, registrationdefinitions.DefaultListOperationOptions())` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id, registrationdefinitions.DefaultListOperationOptions())
 if err != nil {
 	// handle the error
 }
