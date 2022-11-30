@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_api_management` - support for `tenant_access` property [GH-19422]
 * `azurerm_kusto_database` - supports underscores in the name [GH-19466]
 * `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
+* `azurerm_spring_cloud_gateway_route_config` - support for `protocol` property [GH-19382]
 * `azurerm_storage_account` - support for `sftp_enabled` [GH-19428]
 * `azurerm_storage_management_policy` - `tier_to_cool_after_days_since_creation_greater_than` - support for the `tier_to_cool_after_days_since_creation_greater_than`, `tier_to_archive_after_days_since_creation_greater_than`, `delete_after_days_since_creation_greater_than` properties [GH-19446]
 
