@@ -400,15 +400,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+}
 
-  extension {
-    name                       = "network-watcher"
-    publisher                  = "Microsoft.Azure.NetworkWatcher"
-    type                       = "NetworkWatcherAgentLinux"
-    type_handler_version       = "1.4"
-    auto_upgrade_minor_version = true
-    automatic_upgrade_enabled  = true
-  }
+resource "azurerm_virtual_machine_scale_set_extension" "test" {
+  name                         = "network-watcher"
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
+  publisher                    = "Microsoft.Azure.NetworkWatcher"
+  type                         = "NetworkWatcherAgentLinux"
+  type_handler_version         = "1.4"
+  auto_upgrade_minor_version   = true
+  automatic_upgrade_enabled    = true
 }
 
 resource "azurerm_network_packet_capture" "test" {
@@ -427,6 +428,8 @@ resource "azurerm_network_packet_capture" "test" {
     include_instance_ids = ["0", "1"]
     exclude_instance_ids = ["2", "3"]
   }
+
+  depends_on = [azurerm_virtual_machine_scale_set_extension.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
