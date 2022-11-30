@@ -56,7 +56,7 @@ func dataSourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) || wasBadRequestWithNotExist(resp.HttpResponse, err) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on site recovery replication policy %s : %+v", id.String(), err)

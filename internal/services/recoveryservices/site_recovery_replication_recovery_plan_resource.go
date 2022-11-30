@@ -292,7 +292,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 					state.SourceRecoveryFabricId = handleAzureSdkForGoBug2824(*prop.PrimaryFabricId)
 				}
 				if prop.RecoveryFabricId != nil {
-					state.TargetRecoveryFabricId = handleAzureSdkForGoBug2824(*prop.PrimaryFabricId)
+					state.TargetRecoveryFabricId = handleAzureSdkForGoBug2824(*prop.RecoveryFabricId)
 				}
 
 				if group := prop.Groups; group != nil {
