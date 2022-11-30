@@ -21,6 +21,7 @@ import (
 func resourceMySQLConfigurationSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMySQLConfigurationSetCreate,
+		Update: resourceMySQLConfigurationSetCreate,
 		Read:   resourceMySQLConfigurationSetRead,
 		Delete: resourceMySQLConfigurationSetDelete,
 
