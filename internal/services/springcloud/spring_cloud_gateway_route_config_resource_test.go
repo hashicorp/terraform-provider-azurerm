@@ -167,9 +167,9 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
-  filters                = ["StripPrefix=7", "RateLimit=2,1s"]
-  predicates             = ["Path=/defaults/customer/**"]
-  sso_validation_enabled = true
+  filters                 = ["StripPrefix=7", "RateLimit=2,1s"]
+  predicates              = ["Path=/defaults/customer/**"]
+  sso_validation_enabled  = true
   route {
     description            = "test description"
     filters                = ["StripPrefix=2", "RateLimit=1,1s"]
