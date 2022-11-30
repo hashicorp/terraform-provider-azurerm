@@ -22,6 +22,7 @@ BUG FIXES:
 * `azurerm_app_configuration_key` - prevent crash when retrieving the key value [GH-19464]
 * `azurerm_data_factory_linked_service_azure_file_storage` - send `host` and and `user_id` in the payload only when it's been set [GH-19468]
 * `azurerm_iot_security_solution` - a  state migration to work around the previously incorrect id casing [GH-19489]
+* `azurerm_monitor_autoscale_setting` - a  state migration to work around the previously incorrect id casing [GH-19492]
 * `azurerm_sentinel_automation_rule` - a  state migration to work around the previously incorrect id casing [GH-19487]
 * `azurerm_sql_active_directory_administrator` - a  state migration to work around the previously incorrect id casing [GH-19486]
 * `azurerm_stream_analytics_output_eventhub` - `shared_access_policy_key` and `shared_access_policy_name` are now optional  [GH-19447]
