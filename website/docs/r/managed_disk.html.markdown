@@ -88,7 +88,7 @@ The following arguments are supported:
 * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
 * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
 * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
-* `Upload` - Upload a VHD disk with the help of SAS URL (to be used with with `upload_size_bytes`).
+* `Upload` - Upload a VHD disk with the help of SAS URL (to be used with `upload_size_bytes`).
 
 ---
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `disk_mbps_read_only` - (Optional) The bandwidth allowed across all VMs mounting the shared disk as read-only; only settable for UltraSSD disks and PremiumV2 disks with shared disk enabled. MBps means millions of bytes per second.
 
-* `upload_size_bytes` - (Optional, Required when create_option is `Upload`) Specifies the size of the managed disk to create in bytes. If `create_option` is `Upload`, the value of the disk must be equal to the source disk to be copied in bytes. Source disk size could be calculated with `ls -l` or `wc -c`. More information can be found at [Copy a managed disk](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/disks-upload-vhd-to-managed-disk-cli#copy-a-managed-disk). Changing this forces a new resource to be created.
+* `upload_size_bytes` - (Optional) Specifies the size of the managed disk to create in bytes. Required when `create_option` is `Upload`. The value must be equal to the source disk to be copied in bytes. Source disk size could be calculated with `ls -l` or `wc -c`. More information can be found at [Copy a managed disk](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/disks-upload-vhd-to-managed-disk-cli#copy-a-managed-disk). Changing this forces a new resource to be created.
 
 * `disk_size_gb` - (Optional, Required for a new managed disk) Specifies the size of the managed disk to create in gigabytes. If `create_option` is `Copy` or `FromImage`, then the value must be equal to or greater than the source's size. The size can only be increased.
 
