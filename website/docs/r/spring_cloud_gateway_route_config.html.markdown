@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `protocol` - (Optional) Specifies the protocol of routed Spring Cloud App. Allowed values are `HTTP` and `HTTPS`. Defaults to `HTTP`. 
 
-~> **Note:** `protocol`'s default value `HTTP` is insecure.
+~> **Note:** You likely want to use `HTTPS` in a production environment, since `HTTP` offers no encryption.
 
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 
