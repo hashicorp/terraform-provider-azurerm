@@ -75,7 +75,9 @@ The following arguments are supported:
 
 * `log` - (Optional) One or more `log` blocks as defined below.
 
--> **NOTE:** At least one `log` or `metric` block must be specified.
+* `enabled_log` - (Optional) One or more `enabled_log` blocks as defined below.
+
+-> **NOTE:** At least one `log`, `enabled_log` or `metric` block must be specified.
 
 * `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent.
 
@@ -112,6 +114,20 @@ A `log` block supports the following:
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
+
+---
+
+An `enabled_log` block supports the following:
+
+* `category` - (Optional) The name of a Diagnostic Log Category for this Resource.
+
+-> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) or [list of service specific schemas](https://docs.microsoft.com/azure/azure-monitor/platform/resource-logs-schema#service-specific-schemas) to identify which categories are available for a given Resource.
+
+* `category_group` - (Optional) The name of a Diagnostic Log Category Group for this Resource.
+
+-> **NOTE:** Not all resources have category groups available.****
+
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 ---
 

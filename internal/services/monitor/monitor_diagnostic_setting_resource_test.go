@@ -154,34 +154,31 @@ func TestAccMonitorDiagnosticSetting_activityLog(t *testing.T) {
 	})
 }
 
-func TestAccMonitorDiagnosticSetting_enabledAndDisabledLogs(t *testing.T) {
+func TestAccMonitorDiagnosticSetting_enabledLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.enabledAndDisabledLogs(data),
+			Config: r.enabledLogs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
-				check.That(data.ResourceName).Key("disabled_log.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.enabledAndDisabledLogsUpdated(data),
+			Config: r.enabledLogsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled_log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("disabled_log.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.enabledAndDisabledLogs(data),
+			Config: r.enabledLogs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
-				check.That(data.ResourceName).Key("disabled_log.#").HasValue("0"),
 			),
 		},
 	})
@@ -791,7 +788,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func (MonitorDiagnosticSettingResource) enabledAndDisabledLogs(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) enabledLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -873,7 +870,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func (MonitorDiagnosticSettingResource) enabledAndDisabledLogsUpdated(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) enabledLogsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

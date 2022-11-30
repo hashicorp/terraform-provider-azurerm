@@ -103,10 +103,11 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"log": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "`log` will be removed in favour of the properties `enabled_log` and `disabled_log` in version 4.0 of the AzureRM Provider.",
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				Computed:     true,
+				AtLeastOneOf: []string{"enabled_log", "log", "metric"},
+				Deprecated:   "`log` will be removed in favour of the properties `enabled_log` in version 4.0 of the AzureRM Provider.",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -154,6 +155,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"log"},
+				AtLeastOneOf:  []string{"enabled_log", "log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -190,46 +192,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Set: resourceMonitorDiagnosticLogSettingHash,
 			},
 
-			"disabled_log": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"category": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"category_group": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-
-									"days": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-				Set: resourceMonitorDiagnosticLogSettingHash,
-			},
-
 			"metric": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"enabled_log", "log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -307,22 +273,15 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 				break
 			}
 		}
-	} else if len(enabledLogs) == 0 {
-		hasEnabledLogs = false
 	}
 
 	if len(enabledLogs) > 0 {
 		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
 	}
 
-	// if no blocks are specified  the API "creates" but 404's on Read
-	if !hasEnabledLogs && len(metrics) == 0 {
-		return fmt.Errorf("at least one `log` or `metric` block must be specified")
-	}
-
 	// also if there's none enabled
 	valid := false
-	if !valid {
+	if !hasEnabledLogs {
 		for _, v := range metrics {
 			if v.Enabled {
 				valid = true
@@ -614,13 +573,11 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 			d.Set("log_analytics_destination_type", resp.Model.Properties.LogAnalyticsDestinationType)
 
-			enabledLogs, disabledLogs := flattenMonitorDiagnosticEnabledAndDisabledLogs(resp.Model.Properties.Logs)
+			enabledLogs := flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)
 			if err = d.Set("enabled_log", enabledLogs); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
-			if err = d.Set("disabled_log", disabledLogs); err != nil {
-				return fmt.Errorf("setting `disabled_log`: %+v", err)
-			}
+
 			if err = d.Set("log", flattenMonitorDiagnosticLogs(resp.Model.Properties.Logs)); err != nil {
 				return fmt.Errorf("setting `log`: %+v", err)
 			}
@@ -795,15 +752,18 @@ func flattenMonitorDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []int
 	return results
 }
 
-func flattenMonitorDiagnosticEnabledAndDisabledLogs(input *[]diagnosticsettings.LogSettings) ([]interface{}, []interface{}) {
+func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
 	enabledLogs := make([]interface{}, 0)
-	disabledLogs := make([]interface{}, 0)
 	if input == nil {
-		return enabledLogs, disabledLogs
+		return enabledLogs
 	}
 
 	for _, v := range *input {
 		output := make(map[string]interface{})
+
+		if !v.Enabled {
+			continue
+		}
 
 		category := ""
 		if v.Category != nil {
@@ -824,21 +784,16 @@ func flattenMonitorDiagnosticEnabledAndDisabledLogs(input *[]diagnosticsettings.
 
 			outputPolicy["days"] = int(inputPolicy.Days)
 
-			outputPolicy["enabled"] = inputPolicy.Enabled
+			outputPolicy["enabled"] = true
 
 			policies = append(policies, outputPolicy)
 		}
 
 		output["retention_policy"] = policies
 
-		if v.Enabled == true {
-			enabledLogs = append(enabledLogs, output)
-		} else {
-			disabledLogs = append(disabledLogs, output)
-		}
+		enabledLogs = append(enabledLogs, output)
 	}
-
-	return enabledLogs, disabledLogs
+	return enabledLogs
 }
 
 func expandMonitorDiagnosticsSettingsMetrics(input []interface{}) []diagnosticsettings.MetricSettings {
@@ -911,7 +866,7 @@ func flattenMonitorDiagnosticMetrics(input *[]diagnosticsettings.MetricSettings)
 func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagnosticSettingId, error) {
 	v := strings.Split(monitorId, "|")
 	if len(v) != 2 {
-		return nil, fmt.Errorf("Expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
+		return nil, fmt.Errorf("expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
 	}
 
 	identifier := diagnosticsettings.ScopedDiagnosticSettingId{
