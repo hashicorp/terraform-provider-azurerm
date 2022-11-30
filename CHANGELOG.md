@@ -3,7 +3,7 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20221129.1151133` of `github.com/hashicorp/go-azure-sdk` [GH-19479]
+* dependencies: updating to `v0.20221129.1175354` of `github.com/hashicorp/go-azure-sdk` [GH-19483]
 * `media`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
 * `springcloud`: updating to use API Version `2022-11-01-preview` [GH-19445]
 * `streamanalytics`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19395]
