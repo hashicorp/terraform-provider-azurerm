@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * `media`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
 * `springcloud`: updating to use API Version `2022-11-01-preview` [GH-19445]
 * `streamanalytics`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19395]
+* `synapse`: refactoring to use `github.com/tombuildstuff/kermit` rather than the embedded sdk [GH-19484]
 * Data Source: `azurerm_api_management` - support for `tenant_access` property [GH-19422]
 * `azurerm_kusto_database` - supports underscores in the name [GH-19466]
 * `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
