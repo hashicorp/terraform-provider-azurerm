@@ -62,7 +62,7 @@ resource "azurerm_web_pubsub_hub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Web Pubsub hub service. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Web Pubsub hub service. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `web_pubsub_id` - (Required) Specify the id of the Web Pubsub. Changing this forces a new resource to be created.
 

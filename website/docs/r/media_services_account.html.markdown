@@ -64,7 +64,7 @@ A `storage_account` block supports the following:
 
 * `id` - (Required) Specifies the ID of the Storage Account that will be associated with the Media Services instance.
 
-* `is_primary` - (Required) Specifies whether the storage account should be the primary account or not. Defaults to `false`.
+* `is_primary` - (Optional) Specifies whether the storage account should be the primary account or not. Defaults to `false`.
 
 ~> **NOTE:** Whilst multiple `storage_account` blocks can be specified - one of them must be set to the primary
 

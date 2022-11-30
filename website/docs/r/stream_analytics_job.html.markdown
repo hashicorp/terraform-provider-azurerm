@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `transformation_query` - (Required) Specifies the query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
 
-* `tags` - A mapping of tags assigned to the resource.
+* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 

@@ -98,7 +98,7 @@ The following supported arguments are specific to Azure Kusto Linked Service:
 
 * `service_principal_key` - (Optional) The service principal key in which to authenticate against the Kusto Database.
 
-* `tenant` - (Required) The service principal tenant id or name in which to authenticate against the Kusto Database.
+* `tenant` - (Optional) The service principal tenant id or name in which to authenticate against the Kusto Database.
 
 ~> **NOTE** If `service_principal_id` is used, `service_principal_key` and `tenant` is also required.
 

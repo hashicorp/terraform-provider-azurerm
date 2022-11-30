@@ -114,16 +114,16 @@ resource "azurerm_virtual_network_peering" "peering" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual network peering. Changing this
+* `name` - (Required) The name of the virtual network peering. Changing this Changing this forces a new resource to be created.
     forces a new resource to be created.
 
-* `virtual_network_name` - (Required) The name of the virtual network. Changing
+* `virtual_network_name` - (Required) The name of the virtual network. Changing Changing this forces a new resource to be created.
     this forces a new resource to be created.
 
-* `remote_virtual_network_id` - (Required) The full Azure resource ID of the
+* `remote_virtual_network_id` - (Required) The full Azure resource ID of the Changing this forces a new resource to be created.
     remote virtual network.  Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the virtual network peering. Changing this forces a new resource to be
     created.
 

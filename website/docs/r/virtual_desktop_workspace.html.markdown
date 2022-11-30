@@ -36,10 +36,10 @@ resource "azurerm_virtual_desktop_workspace" "workspace" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Desktop Workspace. Changing the name
+* `name` - (Required) The name of the Virtual Desktop Workspace. Changing the name Changing this forces a new resource to be created.
     forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the Virtual Desktop Workspace. Changing the resource group name forces
     a new resource to be created.
 

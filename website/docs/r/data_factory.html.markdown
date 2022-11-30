@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 

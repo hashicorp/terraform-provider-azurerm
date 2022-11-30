@@ -44,9 +44,9 @@ The following arguments are supported:
 * `name` - (Required) The name of the Redis instance. Changing this forces a
     new resource to be created.
 
-* `location` - (Required) The location of the resource group.
+* `location` - (Required) The location of the resource group. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the Redis instance.
 
 * `capacity` - (Required) The size of the Redis cache to deploy. Valid values for a SKU `family` of C (Basic/Standard) are `0, 1, 2, 3, 4, 5, 6`, and for P (Premium) `family` are `1, 2, 3, 4, 5`.

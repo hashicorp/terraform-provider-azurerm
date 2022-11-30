@@ -128,7 +128,7 @@ SETTINGS
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual machine extension peering. Changing
+* `name` - (Required) The name of the virtual machine extension peering. Changing Changing this forces a new resource to be created.
     this forces a new resource to be created.
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created

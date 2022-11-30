@@ -109,7 +109,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Rules engine configuration. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Rules engine configuration. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `frontdoor_name` - (Required) The name of the Front Door instance. Changing this forces a new resource to be created.
 
@@ -121,7 +121,7 @@ The following arguments are supported:
 
 The `rule` block supports the following:
 
-* `name` - (Required) The name of the rule.
+* `name` - (Required) The name of the rule. Changing this forces a new resource to be created.
 
 * `priority` - (Required) Priority of the rule, must be unique per rules engine definition.
 

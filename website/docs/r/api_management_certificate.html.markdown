@@ -140,9 +140,9 @@ The following arguments are supported:
 
 -> **NOTE:** Either `data` or `key_vault_secret_id` must be specified - but not both.
 
-* `data` - (Optional) The base-64 encoded certificate data, which must be a PFX file. Changing this forces a new resource to be created.
+* `data` - (Optional) The base-64 encoded certificate data, which must be a PFX file. 
 
-* `password` - (Optional) The password used for this certificate. Changing this forces a new resource to be created.
+* `password` - (Optional) The password used for this certificate. 
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.
 

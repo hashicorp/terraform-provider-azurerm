@@ -31,13 +31,13 @@ resource "azurerm_local_network_gateway" "home" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the local network gateway. Changing this
+* `name` - (Required) The name of the local network gateway. Changing this Changing this forces a new resource to be created.
     forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the local network gateway.
 
-* `location` - (Required) The location/region where the local network gateway is
+* `location` - (Required) The location/region where the local network gateway is Changing this forces a new resource to be created.
     created. Changing this forces a new resource to be created.
 
 * `address_space` - (Optional) The list of string CIDRs representing the

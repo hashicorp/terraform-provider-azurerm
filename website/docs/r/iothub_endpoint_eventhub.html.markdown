@@ -74,7 +74,7 @@ resource "azurerm_iothub_endpoint_eventhub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
+* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group under which the Event Hub has been created. Changing this forces a new resource to be created.
 
@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
 
-* `iothub_id` - (Required) The IoTHub ID for the endpoint.
+* `iothub_id` - (Required) The IoTHub ID for the endpoint. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

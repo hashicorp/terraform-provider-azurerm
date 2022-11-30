@@ -46,10 +46,10 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Web PubSub service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Web PubSub service. Changing
+* `resource_group_name` - (Required) The name of the resource group in which to create the Web PubSub service. Changing Changing this forces a new resource to be created.
   this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this
+* `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this Changing this forces a new resource to be created.
   forces a new resource to be created.
 
 * `sku` - (Required) Specifies which SKU to use. Possible values are `Free_F1` and `Standard_S1`.
