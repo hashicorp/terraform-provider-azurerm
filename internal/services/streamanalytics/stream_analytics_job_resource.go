@@ -542,14 +542,19 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 }
 
 func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []interface{} {
-	if input == nil || input.AccountName == nil {
+	if input == nil {
 		return []interface{}{}
+	}
+
+	accountName := ""
+	if v := input.AccountName; v != nil {
+		accountName = *v
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"authentication_mode": string(*input.AuthenticationMode),
-			"account_name":        *input.AccountName,
+			"account_name":        accountName,
 			"account_key":         d.Get("job_storage_account.0.account_key").(string),
 		},
 	}
