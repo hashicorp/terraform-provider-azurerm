@@ -276,11 +276,23 @@ func TestAccLogAnalyticsWorkspace_cmkForQueryForced(t *testing.T) {
 	})
 }
 
-func TestAccLogAnalyticsWorkspace_withUseOnlyResourcePermission(t *testing.T) {
+func TestAccLogAnalyticsWorkspace_ToggleAllowOnlyResourcePermission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUseResourceOnlyPermission(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withUseResourceOnlyPermission(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		{
 			Config: r.withUseResourceOnlyPermission(data, false),
 			Check: acceptance.ComposeTestCheckFunc(

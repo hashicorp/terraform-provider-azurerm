@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,7 +66,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"allow_resource_only_permissions": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"cmk_for_query_forced": {
@@ -235,10 +236,11 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		sku.Name = workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight
 	}
 
-	// convert features to interface{} to use 2020-08-01 version API, the 2022-10-01 version API has strict limitation on `reservation_capacity_in_gb_per_day` which will cause breaking change.
+	// convert features to interface{} to use 2020-08-01 version API, the 2022-10-01 version API will limit `reservation_capacity_in_gb_per_day` to 100,200,300,400,500,1000,2000,5000, which will cause a breaking change .
 	var featuresInterface interface{}
+	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
 	features := &featureWorkspaces.WorkspaceFeatures{
-		EnableLogAccessUsingOnlyResourcePermissions: utils.Bool(d.Get("allow_resource_only_permissions").(bool)),
+		EnableLogAccessUsingOnlyResourcePermissions: utils.Bool(allowResourceOnlyPermission),
 	}
 	featuresInterface = features
 
@@ -291,6 +293,33 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return err
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{strconv.FormatBool(!allowResourceOnlyPermission)},
+		Target:     []string{strconv.FormatBool(allowResourceOnlyPermission)},
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				return resp, "error", fmt.Errorf("retiring Log Analytics Workspace %q: %+v", id, err)
+			}
+
+			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Features != nil {
+				features := resp.Model.Properties.Features
+				v, ok := (*features).(map[string]interface{})["enableLogAccessUsingOnlyResourcePermissions"]
+				if ok {
+					return resp, strconv.FormatBool(v.(bool)), nil
+				}
+			}
+
+			return resp, "false", fmt.Errorf("retiring Log Analytics Workspace %q: feature is nil", id)
+		},
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for on update for Log Analytics Workspace %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -377,12 +406,14 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("daily_quota_gb", utils.Float(-1))
 			}
 
+			allowResourceOnlyPermissions := false
 			if features := props.Features; features != nil {
-				v, ok := (*features).(map[string]interface{})["allow_resource_only_permissions"]
+				v, ok := (*features).(map[string]interface{})["enableLogAccessUsingOnlyResourcePermissions"]
 				if ok {
-					d.Set("allow_resource_only_permissions", v)
+					allowResourceOnlyPermissions = v.(bool)
 				}
 			}
+			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 
 			sharedKeysResp, err := client.SharedKeysGetSharedKeys(ctx, *id)
 			if err != nil {
