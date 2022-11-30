@@ -148,11 +148,10 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 					Schema: map[string]*schema.Schema{
 						"authentication_mode": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(streamingjobs.AuthenticationModeConnectionString),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(streamingjobs.AuthenticationModeConnectionString),
-								string(streamingjobs.AuthenticationModeMsi),
-								string(streamingjobs.AuthenticationModeUserToken),
 							}, false),
 						},
 
@@ -543,7 +542,7 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 }
 
 func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []interface{} {
-	if input == nil {
+	if input == nil || input.AccountName == nil {
 		return []interface{}{}
 	}
 
