@@ -286,7 +286,6 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
 		d.Set("target_resource_id", props.Target)
-		d.Set("target_type", props.TargetType)
 		d.Set("maximum_bytes_per_packet", int(*props.BytesToCapturePerPacket))
 		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
 		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
