@@ -279,7 +279,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
 	}
 
-	// also if there's none enabled
+	// if no logs/metrics are not enabled the API "creates" but 404's on Read
 	valid := false
 	if !hasEnabledLogs {
 		for _, v := range metrics {
@@ -386,14 +386,9 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
 	}
 
-	// if no blocks are specified  the API "creates" but 404's on Read
-	if !hasEnabledLogs && len(metrics) == 0 {
-		return fmt.Errorf("at least one `log`, `enabled_log` or `metric` block must be specified")
-	}
-
-	// also if there's none enabled
+	// if no logs/metrics are not enabled the API "creates" but 404's on Read
 	valid := false
-	if !valid {
+	if !hasEnabledLogs {
 		for _, v := range metrics {
 			if v.Enabled {
 				valid = true
@@ -417,7 +412,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 				newLogMap := newLog.(map[string]interface{})
 
 				// check if an enabled_log has been removed from config and if so, set to disabled
-				if strings.EqualFold(oldLogMap["category"].(string), newLogMap["category"].(string)) || (oldLogMap["category_group"].(string) != "" && strings.EqualFold(oldLogMap["category_group"].(string), newLogMap["category_group"].(string))) {
+				if (oldLogMap["category"].(string) != "" && strings.EqualFold(oldLogMap["category"].(string), newLogMap["category"].(string))) || (oldLogMap["category_group"].(string) != "" && strings.EqualFold(oldLogMap["category_group"].(string), newLogMap["category_group"].(string))) {
 					logRemoved = false
 					break
 				}
