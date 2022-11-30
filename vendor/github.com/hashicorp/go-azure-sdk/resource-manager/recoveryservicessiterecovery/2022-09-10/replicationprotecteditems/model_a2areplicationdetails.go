@@ -65,7 +65,7 @@ type A2AReplicationDetails struct {
 	VmNics                                      *[]VMNicDetails                    `json:"vmNics,omitempty"`
 	VmProtectionState                           *string                            `json:"vmProtectionState,omitempty"`
 	VmProtectionStateDescription                *string                            `json:"vmProtectionStateDescription,omitempty"`
-	VmSyncedConfigDetails                       *AzureToAzureVmSyncedConfigDetails `json:"vmSyncedConfigDetails"`
+	VmSyncedConfigDetails                       *AzureToAzureVmSyncedConfigDetails `json:"vmSyncedConfigDetails,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }

@@ -11,7 +11,7 @@ import (
 var _ SwitchProtectionProviderSpecificInput = A2ASwitchProtectionInput{}
 
 type A2ASwitchProtectionInput struct {
-	DiskEncryptionInfo                 *DiskEncryptionInfo             `json:"diskEncryptionInfo"`
+	DiskEncryptionInfo                 *DiskEncryptionInfo             `json:"diskEncryptionInfo,omitempty"`
 	PolicyId                           *string                         `json:"policyId,omitempty"`
 	RecoveryAvailabilitySetId          *string                         `json:"recoveryAvailabilitySetId,omitempty"`
 	RecoveryAvailabilityZone           *string                         `json:"recoveryAvailabilityZone,omitempty"`

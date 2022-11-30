@@ -13,7 +13,7 @@ import (
 var _ EnableProtectionProviderSpecificInput = A2AEnableProtectionInput{}
 
 type A2AEnableProtectionInput struct {
-	DiskEncryptionInfo                 *DiskEncryptionInfo             `json:"diskEncryptionInfo"`
+	DiskEncryptionInfo                 *DiskEncryptionInfo             `json:"diskEncryptionInfo,omitempty"`
 	FabricObjectId                     string                          `json:"fabricObjectId"`
 	MultiVmGroupId                     *string                         `json:"multiVmGroupId,omitempty"`
 	MultiVmGroupName                   *string                         `json:"multiVmGroupName,omitempty"`

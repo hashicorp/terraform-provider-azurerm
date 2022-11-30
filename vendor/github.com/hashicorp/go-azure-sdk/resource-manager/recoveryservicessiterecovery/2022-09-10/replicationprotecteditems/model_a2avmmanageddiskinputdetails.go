@@ -4,7 +4,7 @@ package replicationprotecteditems
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type A2AVmManagedDiskInputDetails struct {
-	DiskEncryptionInfo                  *DiskEncryptionInfo `json:"diskEncryptionInfo"`
+	DiskEncryptionInfo                  *DiskEncryptionInfo `json:"diskEncryptionInfo,omitempty"`
 	DiskId                              string              `json:"diskId"`
 	PrimaryStagingAzureStorageAccountId string              `json:"primaryStagingAzureStorageAccountId"`
 	RecoveryDiskEncryptionSetId         *string             `json:"recoveryDiskEncryptionSetId,omitempty"`

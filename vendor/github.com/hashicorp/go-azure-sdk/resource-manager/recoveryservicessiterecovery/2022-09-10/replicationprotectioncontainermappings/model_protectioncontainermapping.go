@@ -7,6 +7,6 @@ type ProtectionContainerMapping struct {
 	Id         *string                               `json:"id,omitempty"`
 	Location   *string                               `json:"location,omitempty"`
 	Name       *string                               `json:"name,omitempty"`
-	Properties *ProtectionContainerMappingProperties `json:"properties"`
+	Properties *ProtectionContainerMappingProperties `json:"properties,omitempty"`
 	Type       *string                               `json:"type,omitempty"`
 }

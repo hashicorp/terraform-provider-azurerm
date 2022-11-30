@@ -12,7 +12,7 @@ var _ ReplicationProviderSpecificSettings = InMageRcmFailbackReplicationDetails{
 
 type InMageRcmFailbackReplicationDetails struct {
 	AzureVirtualMachineId                      *string                                        `json:"azureVirtualMachineId,omitempty"`
-	DiscoveredVmDetails                        *InMageRcmFailbackDiscoveredProtectedVmDetails `json:"discoveredVmDetails"`
+	DiscoveredVmDetails                        *InMageRcmFailbackDiscoveredProtectedVmDetails `json:"discoveredVmDetails,omitempty"`
 	InitialReplicationProcessedBytes           *int64                                         `json:"initialReplicationProcessedBytes,omitempty"`
 	InitialReplicationProgressHealth           *VmReplicationProgressHealth                   `json:"initialReplicationProgressHealth,omitempty"`
 	InitialReplicationProgressPercentage       *int64                                         `json:"initialReplicationProgressPercentage,omitempty"`
@@ -24,7 +24,7 @@ type InMageRcmFailbackReplicationDetails struct {
 	LastUsedPolicyFriendlyName                 *string                                        `json:"lastUsedPolicyFriendlyName,omitempty"`
 	LastUsedPolicyId                           *string                                        `json:"lastUsedPolicyId,omitempty"`
 	LogStorageAccountId                        *string                                        `json:"logStorageAccountId,omitempty"`
-	MobilityAgentDetails                       *InMageRcmFailbackMobilityAgentDetails         `json:"mobilityAgentDetails"`
+	MobilityAgentDetails                       *InMageRcmFailbackMobilityAgentDetails         `json:"mobilityAgentDetails,omitempty"`
 	MultiVmGroupName                           *string                                        `json:"multiVmGroupName,omitempty"`
 	OsType                                     *string                                        `json:"osType,omitempty"`
 	ProtectedDisks                             *[]InMageRcmFailbackProtectedDiskDetails       `json:"protectedDisks,omitempty"`

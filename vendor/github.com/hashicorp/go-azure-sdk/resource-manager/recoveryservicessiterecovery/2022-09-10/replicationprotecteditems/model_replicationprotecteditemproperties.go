@@ -14,7 +14,7 @@ import (
 type ReplicationProtectedItemProperties struct {
 	ActiveLocation                          *string                             `json:"activeLocation,omitempty"`
 	AllowedOperations                       *[]string                           `json:"allowedOperations,omitempty"`
-	CurrentScenario                         *CurrentScenarioDetails             `json:"currentScenario"`
+	CurrentScenario                         *CurrentScenarioDetails             `json:"currentScenario,omitempty"`
 	EventCorrelationId                      *string                             `json:"eventCorrelationId,omitempty"`
 	FailoverHealth                          *string                             `json:"failoverHealth,omitempty"`
 	FailoverRecoveryPointId                 *string                             `json:"failoverRecoveryPointId,omitempty"`

@@ -11,7 +11,7 @@ import (
 var _ ReplicationProviderSpecificSettings = HyperVReplicaReplicationDetails{}
 
 type HyperVReplicaReplicationDetails struct {
-	InitialReplicationDetails    *InitialReplicationDetails `json:"initialReplicationDetails"`
+	InitialReplicationDetails    *InitialReplicationDetails `json:"initialReplicationDetails,omitempty"`
 	LastReplicatedTime           *string                    `json:"lastReplicatedTime,omitempty"`
 	VMDiskDetails                *[]DiskDetails             `json:"vMDiskDetails,omitempty"`
 	VmId                         *string                    `json:"vmId,omitempty"`

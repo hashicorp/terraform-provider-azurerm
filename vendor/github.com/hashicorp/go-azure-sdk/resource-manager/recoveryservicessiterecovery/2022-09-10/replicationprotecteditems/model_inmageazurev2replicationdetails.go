@@ -60,7 +60,7 @@ type InMageAzureV2ReplicationDetails struct {
 	SourceVmRamSizeInMB                *int64                                             `json:"sourceVmRamSizeInMB,omitempty"`
 	SqlServerLicenseType               *string                                            `json:"sqlServerLicenseType,omitempty"`
 	SwitchProviderBlockingErrorDetails *[]InMageAzureV2SwitchProviderBlockingErrorDetails `json:"switchProviderBlockingErrorDetails,omitempty"`
-	SwitchProviderDetails              *InMageAzureV2SwitchProviderDetails                `json:"switchProviderDetails"`
+	SwitchProviderDetails              *InMageAzureV2SwitchProviderDetails                `json:"switchProviderDetails,omitempty"`
 	TargetAvailabilityZone             *string                                            `json:"targetAvailabilityZone,omitempty"`
 	TargetManagedDiskTags              *map[string]string                                 `json:"targetManagedDiskTags,omitempty"`
 	TargetNicTags                      *map[string]string                                 `json:"targetNicTags,omitempty"`

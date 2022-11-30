@@ -11,12 +11,12 @@ import (
 type FabricProperties struct {
 	BcdrState                 *string               `json:"bcdrState,omitempty"`
 	CustomDetails             FabricSpecificDetails `json:"customDetails"`
-	EncryptionDetails         *EncryptionDetails    `json:"encryptionDetails"`
+	EncryptionDetails         *EncryptionDetails    `json:"encryptionDetails,omitempty"`
 	FriendlyName              *string               `json:"friendlyName,omitempty"`
 	Health                    *string               `json:"health,omitempty"`
 	HealthErrorDetails        *[]HealthError        `json:"healthErrorDetails,omitempty"`
 	InternalIdentifier        *string               `json:"internalIdentifier,omitempty"`
-	RolloverEncryptionDetails *EncryptionDetails    `json:"rolloverEncryptionDetails"`
+	RolloverEncryptionDetails *EncryptionDetails    `json:"rolloverEncryptionDetails,omitempty"`
 }
 
 var _ json.Unmarshaler = &FabricProperties{}

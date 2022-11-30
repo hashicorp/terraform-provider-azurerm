@@ -12,7 +12,7 @@ var _ EnableProtectionProviderSpecificInput = InMageEnableProtectionInput{}
 
 type InMageEnableProtectionInput struct {
 	DatastoreName      *string                   `json:"datastoreName,omitempty"`
-	DiskExclusionInput *InMageDiskExclusionInput `json:"diskExclusionInput"`
+	DiskExclusionInput *InMageDiskExclusionInput `json:"diskExclusionInput,omitempty"`
 	DisksToInclude     *[]string                 `json:"disksToInclude,omitempty"`
 	MasterTargetId     string                    `json:"masterTargetId"`
 	MultiVmGroupId     string                    `json:"multiVmGroupId"`

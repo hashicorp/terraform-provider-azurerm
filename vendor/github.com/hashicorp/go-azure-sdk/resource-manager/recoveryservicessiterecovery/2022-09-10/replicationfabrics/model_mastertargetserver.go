@@ -12,7 +12,7 @@ import (
 type MasterTargetServer struct {
 	AgentExpiryDate         *string            `json:"agentExpiryDate,omitempty"`
 	AgentVersion            *string            `json:"agentVersion,omitempty"`
-	AgentVersionDetails     *VersionDetails    `json:"agentVersionDetails"`
+	AgentVersionDetails     *VersionDetails    `json:"agentVersionDetails,omitempty"`
 	DataStores              *[]DataStore       `json:"dataStores,omitempty"`
 	DiskCount               *int64             `json:"diskCount,omitempty"`
 	HealthErrors            *[]HealthError     `json:"healthErrors,omitempty"`
@@ -21,7 +21,7 @@ type MasterTargetServer struct {
 	LastHeartbeat           *string            `json:"lastHeartbeat,omitempty"`
 	MarsAgentExpiryDate     *string            `json:"marsAgentExpiryDate,omitempty"`
 	MarsAgentVersion        *string            `json:"marsAgentVersion,omitempty"`
-	MarsAgentVersionDetails *VersionDetails    `json:"marsAgentVersionDetails"`
+	MarsAgentVersionDetails *VersionDetails    `json:"marsAgentVersionDetails,omitempty"`
 	Name                    *string            `json:"name,omitempty"`
 	OsType                  *string            `json:"osType,omitempty"`
 	OsVersion               *string            `json:"osVersion,omitempty"`

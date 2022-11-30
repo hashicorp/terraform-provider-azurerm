@@ -4,5 +4,5 @@ package replicationprotecteditems
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EnableProtectionInput struct {
-	Properties *EnableProtectionInputProperties `json:"properties"`
+	Properties *EnableProtectionInputProperties `json:"properties,omitempty"`
 }

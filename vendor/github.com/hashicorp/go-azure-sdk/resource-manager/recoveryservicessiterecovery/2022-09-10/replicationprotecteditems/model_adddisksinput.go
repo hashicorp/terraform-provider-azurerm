@@ -4,5 +4,5 @@ package replicationprotecteditems
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AddDisksInput struct {
-	Properties *AddDisksInputProperties `json:"properties"`
+	Properties *AddDisksInputProperties `json:"properties,omitempty"`
 }

@@ -4,6 +4,6 @@ package replicationprotectioncontainers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DiskEncryptionInfo struct {
-	DiskEncryptionKeyInfo *DiskEncryptionKeyInfo `json:"diskEncryptionKeyInfo"`
-	KeyEncryptionKeyInfo  *KeyEncryptionKeyInfo  `json:"keyEncryptionKeyInfo"`
+	DiskEncryptionKeyInfo *DiskEncryptionKeyInfo `json:"diskEncryptionKeyInfo,omitempty"`
+	KeyEncryptionKeyInfo  *KeyEncryptionKeyInfo  `json:"keyEncryptionKeyInfo,omitempty"`
 }

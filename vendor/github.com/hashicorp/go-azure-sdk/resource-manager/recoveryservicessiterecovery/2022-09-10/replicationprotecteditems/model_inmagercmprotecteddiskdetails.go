@@ -11,11 +11,11 @@ type InMageRcmProtectedDiskDetails struct {
 	DiskId                        *string               `json:"diskId,omitempty"`
 	DiskName                      *string               `json:"diskName,omitempty"`
 	DiskType                      *DiskAccountType      `json:"diskType,omitempty"`
-	IrDetails                     *InMageRcmSyncDetails `json:"irDetails"`
+	IrDetails                     *InMageRcmSyncDetails `json:"irDetails,omitempty"`
 	IsInitialReplicationComplete  *string               `json:"isInitialReplicationComplete,omitempty"`
 	IsOSDisk                      *string               `json:"isOSDisk,omitempty"`
 	LogStorageAccountId           *string               `json:"logStorageAccountId,omitempty"`
-	ResyncDetails                 *InMageRcmSyncDetails `json:"resyncDetails"`
+	ResyncDetails                 *InMageRcmSyncDetails `json:"resyncDetails,omitempty"`
 	SeedBlobUri                   *string               `json:"seedBlobUri,omitempty"`
 	SeedManagedDiskId             *string               `json:"seedManagedDiskId,omitempty"`
 	TargetManagedDiskId           *string               `json:"targetManagedDiskId,omitempty"`

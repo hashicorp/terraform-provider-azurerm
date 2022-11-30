@@ -25,7 +25,7 @@ type InMageRcmFabricSpecificDetails struct {
 	ServiceContainerId         *string                    `json:"serviceContainerId,omitempty"`
 	ServiceEndpoint            *string                    `json:"serviceEndpoint,omitempty"`
 	ServiceResourceId          *string                    `json:"serviceResourceId,omitempty"`
-	SourceAgentIdentityDetails *IdentityProviderDetails   `json:"sourceAgentIdentityDetails"`
+	SourceAgentIdentityDetails *IdentityProviderDetails   `json:"sourceAgentIdentityDetails,omitempty"`
 	VmwareSiteId               *string                    `json:"vmwareSiteId,omitempty"`
 
 	// Fields inherited from FabricSpecificDetails

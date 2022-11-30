@@ -5,7 +5,7 @@ package replicationprotectioncontainers
 
 type ProtectionContainerProperties struct {
 	FabricFriendlyName    *string                                   `json:"fabricFriendlyName,omitempty"`
-	FabricSpecificDetails *ProtectionContainerFabricSpecificDetails `json:"fabricSpecificDetails"`
+	FabricSpecificDetails *ProtectionContainerFabricSpecificDetails `json:"fabricSpecificDetails,omitempty"`
 	FabricType            *string                                   `json:"fabricType,omitempty"`
 	FriendlyName          *string                                   `json:"friendlyName,omitempty"`
 	PairingStatus         *string                                   `json:"pairingStatus,omitempty"`

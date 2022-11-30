@@ -4,5 +4,5 @@ package replicationprotectioncontainers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CreateProtectionContainerInput struct {
-	Properties *CreateProtectionContainerInputProperties `json:"properties"`
+	Properties *CreateProtectionContainerInputProperties `json:"properties,omitempty"`
 }
