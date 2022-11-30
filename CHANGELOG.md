@@ -3,16 +3,22 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20221128.1124937` of `github.com/hashicorp/go-azure-sdk` [GH-19453]
+* dependencies: updating to `v0.20221129.1175354` of `github.com/hashicorp/go-azure-sdk` [GH-19483]
 * `media`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
 * `springcloud`: updating to use API Version `2022-11-01-preview` [GH-19445]
 * `streamanalytics`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19395]
+* Data Source: `azurerm_api_management` - support for `tenant_access` property [GH-19422]
+* `azurerm_kusto_database` - supports underscores in the name [GH-19466]
 * `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
 * `azurerm_storage_account` - support for `sftp_enabled` [GH-19428]
-* `tier_to_cool_after_days_since_creation_greater_than` - support for the `tier_to_cool_after_days_since_creation_greater_than`, `tier_to_archive_after_days_since_creation_greater_than`, `delete_after_days_since_creation_greater_than` properties [GH-19446]
+* `azurerm_storage_management_policy` - `tier_to_cool_after_days_since_creation_greater_than` - support for the `tier_to_cool_after_days_since_creation_greater_than`, `tier_to_archive_after_days_since_creation_greater_than`, `delete_after_days_since_creation_greater_than` properties [GH-19446]
 
 BUG FIXES:
 
+* `azurerm_app_configuration_key` - prevent crash when retrieving the key value [GH-19464]
+* `azurerm_data_factory_linked_service_azure_file_storage` - send `host` and and `user_id` in the payload only when it's been set [GH-19468]
+* `azurerm_stream_analytics_output_eventhub` - `shared_access_policy_key` and `shared_access_policy_name` are now optional  [GH-19447]
+* `azurerm_synapse_linked_service` - a state migration to work around the previously incorrect id casing  [GH-19477]
 * `azurerm_windows_web_app` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
 * `azurerm_windows_web_app_slot` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
 

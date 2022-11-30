@@ -69,6 +69,8 @@ output "api_management_id" {
 
 * `sku` - A `sku` block as documented below.
 
+* `tenant_access` - A `tenant_access` block as defined below.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ---
@@ -174,6 +176,18 @@ A `sku` block exports the following:
 * `name` - Specifies the plan's pricing tier.
 
 * `capacity` - Specifies the number of units associated with this API Management service.
+
+---
+
+A `tenant_access` block exports the following:
+
+* `enabled` - Is access to the Management API enabled (presumably "for this Tenant")?
+
+* `tenant_id` - The ID of the Tenant which has access to this API Management instance.
+
+* `primary_key` - Primary access key for the tenant access information contract.
+
+* `secondary_key` - Secondary access key for the tenant access information contract.
 
 ---
 
