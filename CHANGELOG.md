@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `synapse`: refactoring to use `github.com/tombuildstuff/kermit` rather than the embedded sdk [GH-19484]
 * Data Source: `azurerm_api_management` - support for `tenant_access` property [GH-19422]
 * `azurerm_kusto_database` - supports underscores in the name [GH-19466]
+* `azurerm_managed_disk` - support for `upload_size_bytes` property [GH-19458]
 * `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
 * `azurerm_spring_cloud_gateway_route_config` - support for `protocol` property [GH-19382]
 * `azurerm_storage_account` - support for `sftp_enabled` [GH-19428]
