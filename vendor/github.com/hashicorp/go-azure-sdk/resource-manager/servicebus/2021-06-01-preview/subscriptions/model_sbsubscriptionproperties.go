@@ -12,8 +12,8 @@ import (
 type SBSubscriptionProperties struct {
 	AccessedAt                                *string                   `json:"accessedAt,omitempty"`
 	AutoDeleteOnIdle                          *string                   `json:"autoDeleteOnIdle,omitempty"`
-	ClientAffineProperties                    *SBClientAffineProperties `json:"clientAffineProperties"`
-	CountDetails                              *MessageCountDetails      `json:"countDetails"`
+	ClientAffineProperties                    *SBClientAffineProperties `json:"clientAffineProperties,omitempty"`
+	CountDetails                              *MessageCountDetails      `json:"countDetails,omitempty"`
 	CreatedAt                                 *string                   `json:"createdAt,omitempty"`
 	DeadLetteringOnFilterEvaluationExceptions *bool                     `json:"deadLetteringOnFilterEvaluationExceptions,omitempty"`
 	DeadLetteringOnMessageExpiration          *bool                     `json:"deadLetteringOnMessageExpiration,omitempty"`

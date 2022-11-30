@@ -11,10 +11,10 @@ import (
 var _ BackupPolicy = PeriodicModeBackupPolicy{}
 
 type PeriodicModeBackupPolicy struct {
-	PeriodicModeProperties *PeriodicModeProperties `json:"periodicModeProperties"`
+	PeriodicModeProperties *PeriodicModeProperties `json:"periodicModeProperties,omitempty"`
 
 	// Fields inherited from BackupPolicy
-	MigrationState *BackupPolicyMigrationState `json:"migrationState"`
+	MigrationState *BackupPolicyMigrationState `json:"migrationState,omitempty"`
 }
 
 var _ json.Marshaler = PeriodicModeBackupPolicy{}

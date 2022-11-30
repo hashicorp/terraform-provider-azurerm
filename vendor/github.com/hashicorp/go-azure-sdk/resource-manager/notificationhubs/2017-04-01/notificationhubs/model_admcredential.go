@@ -4,5 +4,5 @@ package notificationhubs
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AdmCredential struct {
-	Properties *AdmCredentialProperties `json:"properties"`
+	Properties *AdmCredentialProperties `json:"properties,omitempty"`
 }

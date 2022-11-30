@@ -10,7 +10,7 @@ import (
 type BlobInventoryPolicy struct {
 	Id         *string                        `json:"id,omitempty"`
 	Name       *string                        `json:"name,omitempty"`
-	Properties *BlobInventoryPolicyProperties `json:"properties"`
+	Properties *BlobInventoryPolicyProperties `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData         `json:"systemData,omitempty"`
 	Type       *string                        `json:"type,omitempty"`
 }

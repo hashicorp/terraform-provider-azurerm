@@ -6,7 +6,7 @@ package cosmosdb
 type Usage struct {
 	CurrentValue *int64      `json:"currentValue,omitempty"`
 	Limit        *int64      `json:"limit,omitempty"`
-	Name         *MetricName `json:"name"`
+	Name         *MetricName `json:"name,omitempty"`
 	QuotaPeriod  *string     `json:"quotaPeriod,omitempty"`
 	Unit         *UnitType   `json:"unit,omitempty"`
 }

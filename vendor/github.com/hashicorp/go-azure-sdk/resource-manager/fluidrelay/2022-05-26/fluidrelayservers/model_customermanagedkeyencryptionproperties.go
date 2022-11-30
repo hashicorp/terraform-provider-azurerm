@@ -4,6 +4,6 @@ package fluidrelayservers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CustomerManagedKeyEncryptionProperties struct {
-	KeyEncryptionKeyIdentity *CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity `json:"keyEncryptionKeyIdentity"`
+	KeyEncryptionKeyIdentity *CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity `json:"keyEncryptionKeyIdentity,omitempty"`
 	KeyEncryptionKeyUrl      *string                                                         `json:"keyEncryptionKeyUrl,omitempty"`
 }

@@ -5,7 +5,7 @@ package clusters
 
 type PrivateEndpointConnectionProperties struct {
 	GroupId                           *string                                   `json:"groupId,omitempty"`
-	PrivateEndpoint                   *PrivateEndpointProperty                  `json:"privateEndpoint"`
+	PrivateEndpoint                   *PrivateEndpointProperty                  `json:"privateEndpoint,omitempty"`
 	PrivateLinkServiceConnectionState PrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState"`
 	ProvisioningState                 *string                                   `json:"provisioningState,omitempty"`
 }

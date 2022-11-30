@@ -4,6 +4,6 @@ package inputs
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ResourceTestStatus struct {
-	Error  *ErrorResponse `json:"error"`
+	Error  *ErrorResponse `json:"error,omitempty"`
 	Status *string        `json:"status,omitempty"`
 }

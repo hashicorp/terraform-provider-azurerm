@@ -4,5 +4,5 @@ package geographichierarchies
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GeographicHierarchyProperties struct {
-	GeographicHierarchy *Region `json:"geographicHierarchy"`
+	GeographicHierarchy *Region `json:"geographicHierarchy,omitempty"`
 }

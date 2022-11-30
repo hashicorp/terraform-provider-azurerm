@@ -5,5 +5,5 @@ package managedclusters
 
 type ManagedClusterAzureMonitorProfileMetrics struct {
 	Enabled          bool                                               `json:"enabled"`
-	KubeStateMetrics *ManagedClusterAzureMonitorProfileKubeStateMetrics `json:"kubeStateMetrics"`
+	KubeStateMetrics *ManagedClusterAzureMonitorProfileKubeStateMetrics `json:"kubeStateMetrics,omitempty"`
 }

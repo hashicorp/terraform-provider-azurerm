@@ -12,12 +12,12 @@ type HostPoolProperties struct {
 	HostPoolType                  HostPoolType                   `json:"hostPoolType"`
 	LoadBalancerType              LoadBalancerType               `json:"loadBalancerType"`
 	MaxSessionLimit               *int64                         `json:"maxSessionLimit,omitempty"`
-	MigrationRequest              *MigrationRequestProperties    `json:"migrationRequest"`
+	MigrationRequest              *MigrationRequestProperties    `json:"migrationRequest,omitempty"`
 	ObjectId                      *string                        `json:"objectId,omitempty"`
 	PersonalDesktopAssignmentType *PersonalDesktopAssignmentType `json:"personalDesktopAssignmentType,omitempty"`
 	PreferredAppGroupType         PreferredAppGroupType          `json:"preferredAppGroupType"`
 	PublicNetworkAccess           *PublicNetworkAccess           `json:"publicNetworkAccess,omitempty"`
-	RegistrationInfo              *RegistrationInfo              `json:"registrationInfo"`
+	RegistrationInfo              *RegistrationInfo              `json:"registrationInfo,omitempty"`
 	Ring                          *int64                         `json:"ring,omitempty"`
 	SsoClientId                   *string                        `json:"ssoClientId,omitempty"`
 	SsoClientSecretKeyVaultPath   *string                        `json:"ssoClientSecretKeyVaultPath,omitempty"`

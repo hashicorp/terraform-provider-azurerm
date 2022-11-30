@@ -5,7 +5,7 @@ package cosmosdb
 
 type PrivateEndpointConnectionProperties struct {
 	GroupId                           *string                                    `json:"groupId,omitempty"`
-	PrivateEndpoint                   *PrivateEndpointProperty                   `json:"privateEndpoint"`
-	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState"`
+	PrivateEndpoint                   *PrivateEndpointProperty                   `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState,omitempty"`
 	ProvisioningState                 *string                                    `json:"provisioningState,omitempty"`
 }

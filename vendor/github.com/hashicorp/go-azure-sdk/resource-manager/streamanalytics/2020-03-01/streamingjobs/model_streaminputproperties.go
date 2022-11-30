@@ -14,8 +14,8 @@ type StreamInputProperties struct {
 	Datasource StreamInputDataSource `json:"datasource"`
 
 	// Fields inherited from InputProperties
-	Compression   *Compression  `json:"compression"`
-	Diagnostics   *Diagnostics  `json:"diagnostics"`
+	Compression   *Compression  `json:"compression,omitempty"`
+	Diagnostics   *Diagnostics  `json:"diagnostics,omitempty"`
 	Etag          *string       `json:"etag,omitempty"`
 	PartitionKey  *string       `json:"partitionKey,omitempty"`
 	Serialization Serialization `json:"serialization"`

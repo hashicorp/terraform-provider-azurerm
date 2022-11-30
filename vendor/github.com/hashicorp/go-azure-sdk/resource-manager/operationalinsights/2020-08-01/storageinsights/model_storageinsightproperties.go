@@ -5,7 +5,7 @@ package storageinsights
 
 type StorageInsightProperties struct {
 	Containers     *[]string             `json:"containers,omitempty"`
-	Status         *StorageInsightStatus `json:"status"`
+	Status         *StorageInsightStatus `json:"status,omitempty"`
 	StorageAccount StorageAccount        `json:"storageAccount"`
 	Tables         *[]string             `json:"tables,omitempty"`
 }

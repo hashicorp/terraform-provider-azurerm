@@ -4,6 +4,6 @@ package scheduledqueryrules
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ScheduledQueryRuleResourcePatch struct {
-	Properties *ScheduledQueryRuleProperties `json:"properties"`
+	Properties *ScheduledQueryRuleProperties `json:"properties,omitempty"`
 	Tags       *map[string]string            `json:"tags,omitempty"`
 }

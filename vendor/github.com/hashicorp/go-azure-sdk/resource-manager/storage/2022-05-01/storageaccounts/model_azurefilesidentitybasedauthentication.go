@@ -4,7 +4,7 @@ package storageaccounts
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzureFilesIdentityBasedAuthentication struct {
-	ActiveDirectoryProperties *ActiveDirectoryProperties `json:"activeDirectoryProperties"`
+	ActiveDirectoryProperties *ActiveDirectoryProperties `json:"activeDirectoryProperties,omitempty"`
 	DefaultSharePermission    *DefaultSharePermission    `json:"defaultSharePermission,omitempty"`
 	DirectoryServiceOptions   DirectoryServiceOptions    `json:"directoryServiceOptions"`
 }

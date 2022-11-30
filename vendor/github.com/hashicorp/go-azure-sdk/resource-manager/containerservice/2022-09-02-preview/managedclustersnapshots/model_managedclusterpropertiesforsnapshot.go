@@ -6,6 +6,6 @@ package managedclustersnapshots
 type ManagedClusterPropertiesForSnapshot struct {
 	EnableRbac        *bool                      `json:"enableRbac,omitempty"`
 	KubernetesVersion *string                    `json:"kubernetesVersion,omitempty"`
-	NetworkProfile    *NetworkProfileForSnapshot `json:"networkProfile"`
-	Sku               *ManagedClusterSKU         `json:"sku"`
+	NetworkProfile    *NetworkProfileForSnapshot `json:"networkProfile,omitempty"`
+	Sku               *ManagedClusterSKU         `json:"sku,omitempty"`
 }

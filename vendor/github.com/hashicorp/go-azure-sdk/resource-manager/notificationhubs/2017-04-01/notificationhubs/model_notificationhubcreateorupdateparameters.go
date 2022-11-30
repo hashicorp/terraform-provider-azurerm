@@ -8,7 +8,7 @@ type NotificationHubCreateOrUpdateParameters struct {
 	Location   *string                   `json:"location,omitempty"`
 	Name       *string                   `json:"name,omitempty"`
 	Properties NotificationHubProperties `json:"properties"`
-	Sku        *Sku                      `json:"sku"`
+	Sku        *Sku                      `json:"sku,omitempty"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 	Type       *string                   `json:"type,omitempty"`
 }

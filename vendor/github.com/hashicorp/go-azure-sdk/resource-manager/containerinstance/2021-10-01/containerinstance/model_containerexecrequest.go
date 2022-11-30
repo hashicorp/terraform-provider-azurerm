@@ -5,5 +5,5 @@ package containerinstance
 
 type ContainerExecRequest struct {
 	Command      *string                           `json:"command,omitempty"`
-	TerminalSize *ContainerExecRequestTerminalSize `json:"terminalSize"`
+	TerminalSize *ContainerExecRequestTerminalSize `json:"terminalSize,omitempty"`
 }

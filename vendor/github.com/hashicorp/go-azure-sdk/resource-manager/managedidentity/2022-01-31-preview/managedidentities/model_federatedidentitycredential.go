@@ -6,6 +6,6 @@ package managedidentities
 type FederatedIdentityCredential struct {
 	Id         *string                                `json:"id,omitempty"`
 	Name       *string                                `json:"name,omitempty"`
-	Properties *FederatedIdentityCredentialProperties `json:"properties"`
+	Properties *FederatedIdentityCredentialProperties `json:"properties,omitempty"`
 	Type       *string                                `json:"type,omitempty"`
 }

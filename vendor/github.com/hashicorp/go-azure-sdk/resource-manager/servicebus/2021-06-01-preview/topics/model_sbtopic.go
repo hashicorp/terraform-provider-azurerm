@@ -10,7 +10,7 @@ import (
 type SBTopic struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *SBTopicProperties     `json:"properties"`
+	Properties *SBTopicProperties     `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

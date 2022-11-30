@@ -13,8 +13,8 @@ type PrivateEndpointConnection struct {
 	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
-	Properties *PrivateEndpointConnectionProperties     `json:"properties"`
-	Sku        *Sku                                     `json:"sku"`
+	Properties *PrivateEndpointConnectionProperties     `json:"properties,omitempty"`
+	Sku        *Sku                                     `json:"sku,omitempty"`
 	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`

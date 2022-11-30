@@ -5,5 +5,5 @@ package dedicatedhsms
 
 type NetworkProfile struct {
 	NetworkInterfaces *[]NetworkInterface `json:"networkInterfaces,omitempty"`
-	Subnet            *ApiEntityReference `json:"subnet"`
+	Subnet            *ApiEntityReference `json:"subnet,omitempty"`
 }

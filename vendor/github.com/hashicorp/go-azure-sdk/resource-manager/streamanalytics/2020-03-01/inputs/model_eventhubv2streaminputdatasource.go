@@ -11,7 +11,7 @@ import (
 var _ StreamInputDataSource = EventHubV2StreamInputDataSource{}
 
 type EventHubV2StreamInputDataSource struct {
-	Properties *EventHubStreamInputDataSourceProperties `json:"properties"`
+	Properties *EventHubStreamInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from StreamInputDataSource
 }

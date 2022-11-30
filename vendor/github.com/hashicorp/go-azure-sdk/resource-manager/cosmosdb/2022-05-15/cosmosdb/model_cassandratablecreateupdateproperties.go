@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CassandraTableCreateUpdateProperties struct {
-	Options  *CreateUpdateOptions   `json:"options"`
+	Options  *CreateUpdateOptions   `json:"options,omitempty"`
 	Resource CassandraTableResource `json:"resource"`
 }

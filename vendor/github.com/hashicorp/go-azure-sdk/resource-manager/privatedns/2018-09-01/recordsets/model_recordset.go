@@ -7,6 +7,6 @@ type RecordSet struct {
 	Etag       *string              `json:"etag,omitempty"`
 	Id         *string              `json:"id,omitempty"`
 	Name       *string              `json:"name,omitempty"`
-	Properties *RecordSetProperties `json:"properties"`
+	Properties *RecordSetProperties `json:"properties,omitempty"`
 	Type       *string              `json:"type,omitempty"`
 }

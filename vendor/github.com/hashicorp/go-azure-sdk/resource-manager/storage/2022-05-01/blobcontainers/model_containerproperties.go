@@ -18,13 +18,13 @@ type ContainerProperties struct {
 	EnableNfsV3RootSquash          *bool                           `json:"enableNfsV3RootSquash,omitempty"`
 	HasImmutabilityPolicy          *bool                           `json:"hasImmutabilityPolicy,omitempty"`
 	HasLegalHold                   *bool                           `json:"hasLegalHold,omitempty"`
-	ImmutabilityPolicy             *ImmutabilityPolicyProperties   `json:"immutabilityPolicy"`
-	ImmutableStorageWithVersioning *ImmutableStorageWithVersioning `json:"immutableStorageWithVersioning"`
+	ImmutabilityPolicy             *ImmutabilityPolicyProperties   `json:"immutabilityPolicy,omitempty"`
+	ImmutableStorageWithVersioning *ImmutableStorageWithVersioning `json:"immutableStorageWithVersioning,omitempty"`
 	LastModifiedTime               *string                         `json:"lastModifiedTime,omitempty"`
 	LeaseDuration                  *LeaseDuration                  `json:"leaseDuration,omitempty"`
 	LeaseState                     *LeaseState                     `json:"leaseState,omitempty"`
 	LeaseStatus                    *LeaseStatus                    `json:"leaseStatus,omitempty"`
-	LegalHold                      *LegalHoldProperties            `json:"legalHold"`
+	LegalHold                      *LegalHoldProperties            `json:"legalHold,omitempty"`
 	Metadata                       *map[string]string              `json:"metadata,omitempty"`
 	PublicAccess                   *PublicAccess                   `json:"publicAccess,omitempty"`
 	RemainingRetentionDays         *int64                          `json:"remainingRetentionDays,omitempty"`

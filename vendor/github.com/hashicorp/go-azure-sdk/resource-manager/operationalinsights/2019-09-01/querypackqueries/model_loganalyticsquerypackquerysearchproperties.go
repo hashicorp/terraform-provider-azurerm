@@ -4,6 +4,6 @@ package querypackqueries
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LogAnalyticsQueryPackQuerySearchProperties struct {
-	Related *LogAnalyticsQueryPackQuerySearchPropertiesRelated `json:"related"`
+	Related *LogAnalyticsQueryPackQuerySearchPropertiesRelated `json:"related,omitempty"`
 	Tags    *map[string][]string                               `json:"tags,omitempty"`
 }

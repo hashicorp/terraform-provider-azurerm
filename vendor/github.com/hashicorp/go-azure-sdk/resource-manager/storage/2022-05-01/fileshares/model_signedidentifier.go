@@ -4,6 +4,6 @@ package fileshares
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SignedIdentifier struct {
-	AccessPolicy *AccessPolicy `json:"accessPolicy"`
+	AccessPolicy *AccessPolicy `json:"accessPolicy,omitempty"`
 	Id           *string       `json:"id,omitempty"`
 }

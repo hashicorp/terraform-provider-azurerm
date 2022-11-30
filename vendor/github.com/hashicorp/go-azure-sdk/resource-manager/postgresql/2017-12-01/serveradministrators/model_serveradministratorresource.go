@@ -6,6 +6,6 @@ package serveradministrators
 type ServerAdministratorResource struct {
 	Id         *string                        `json:"id,omitempty"`
 	Name       *string                        `json:"name,omitempty"`
-	Properties *ServerAdministratorProperties `json:"properties"`
+	Properties *ServerAdministratorProperties `json:"properties,omitempty"`
 	Type       *string                        `json:"type,omitempty"`
 }

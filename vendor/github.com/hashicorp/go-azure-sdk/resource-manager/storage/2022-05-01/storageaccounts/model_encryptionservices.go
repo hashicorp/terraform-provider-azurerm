@@ -4,8 +4,8 @@ package storageaccounts
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionServices struct {
-	Blob  *EncryptionService `json:"blob"`
-	File  *EncryptionService `json:"file"`
-	Queue *EncryptionService `json:"queue"`
-	Table *EncryptionService `json:"table"`
+	Blob  *EncryptionService `json:"blob,omitempty"`
+	File  *EncryptionService `json:"file,omitempty"`
+	Queue *EncryptionService `json:"queue,omitempty"`
+	Table *EncryptionService `json:"table,omitempty"`
 }

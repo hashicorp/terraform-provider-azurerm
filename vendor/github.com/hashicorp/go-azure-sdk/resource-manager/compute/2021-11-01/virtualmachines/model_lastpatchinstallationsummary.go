@@ -10,7 +10,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LastPatchInstallationSummary struct {
-	Error                     *ApiError             `json:"error"`
+	Error                     *ApiError             `json:"error,omitempty"`
 	ExcludedPatchCount        *int64                `json:"excludedPatchCount,omitempty"`
 	FailedPatchCount          *int64                `json:"failedPatchCount,omitempty"`
 	InstallationActivityId    *string               `json:"installationActivityId,omitempty"`

@@ -4,6 +4,6 @@ package fleets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FleetProperties struct {
-	HubProfile        *FleetHubProfile        `json:"hubProfile"`
+	HubProfile        *FleetHubProfile        `json:"hubProfile,omitempty"`
 	ProvisioningState *FleetProvisioningState `json:"provisioningState,omitempty"`
 }

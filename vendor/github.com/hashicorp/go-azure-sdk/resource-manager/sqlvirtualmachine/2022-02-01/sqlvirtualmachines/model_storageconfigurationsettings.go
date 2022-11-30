@@ -5,9 +5,9 @@ package sqlvirtualmachines
 
 type StorageConfigurationSettings struct {
 	DiskConfigurationType *DiskConfigurationType `json:"diskConfigurationType,omitempty"`
-	SqlDataSettings       *SQLStorageSettings    `json:"sqlDataSettings"`
-	SqlLogSettings        *SQLStorageSettings    `json:"sqlLogSettings"`
+	SqlDataSettings       *SQLStorageSettings    `json:"sqlDataSettings,omitempty"`
+	SqlLogSettings        *SQLStorageSettings    `json:"sqlLogSettings,omitempty"`
 	SqlSystemDbOnDataDisk *bool                  `json:"sqlSystemDbOnDataDisk,omitempty"`
-	SqlTempDbSettings     *SQLTempDbSettings     `json:"sqlTempDbSettings"`
+	SqlTempDbSettings     *SQLTempDbSettings     `json:"sqlTempDbSettings,omitempty"`
 	StorageWorkloadType   *StorageWorkloadType   `json:"storageWorkloadType,omitempty"`
 }

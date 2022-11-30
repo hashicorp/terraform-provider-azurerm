@@ -5,7 +5,7 @@ package services
 
 type SearchServiceProperties struct {
 	HostingMode                *HostingMode                 `json:"hostingMode,omitempty"`
-	NetworkRuleSet             *NetworkRuleSet              `json:"networkRuleSet"`
+	NetworkRuleSet             *NetworkRuleSet              `json:"networkRuleSet,omitempty"`
 	PartitionCount             *int64                       `json:"partitionCount,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *ProvisioningState           `json:"provisioningState,omitempty"`

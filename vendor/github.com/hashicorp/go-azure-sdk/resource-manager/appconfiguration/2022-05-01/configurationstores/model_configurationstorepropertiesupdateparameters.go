@@ -6,6 +6,6 @@ package configurationstores
 type ConfigurationStorePropertiesUpdateParameters struct {
 	DisableLocalAuth      *bool                 `json:"disableLocalAuth,omitempty"`
 	EnablePurgeProtection *bool                 `json:"enablePurgeProtection,omitempty"`
-	Encryption            *EncryptionProperties `json:"encryption"`
+	Encryption            *EncryptionProperties `json:"encryption,omitempty"`
 	PublicNetworkAccess   *PublicNetworkAccess  `json:"publicNetworkAccess,omitempty"`
 }

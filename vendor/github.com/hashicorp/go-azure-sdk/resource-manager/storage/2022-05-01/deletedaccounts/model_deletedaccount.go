@@ -6,6 +6,6 @@ package deletedaccounts
 type DeletedAccount struct {
 	Id         *string                   `json:"id,omitempty"`
 	Name       *string                   `json:"name,omitempty"`
-	Properties *DeletedAccountProperties `json:"properties"`
+	Properties *DeletedAccountProperties `json:"properties,omitempty"`
 	Type       *string                   `json:"type,omitempty"`
 }

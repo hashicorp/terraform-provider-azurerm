@@ -7,6 +7,6 @@ type ServerKey struct {
 	Id         *string              `json:"id,omitempty"`
 	Kind       *string              `json:"kind,omitempty"`
 	Name       *string              `json:"name,omitempty"`
-	Properties *ServerKeyProperties `json:"properties"`
+	Properties *ServerKeyProperties `json:"properties,omitempty"`
 	Type       *string              `json:"type,omitempty"`
 }

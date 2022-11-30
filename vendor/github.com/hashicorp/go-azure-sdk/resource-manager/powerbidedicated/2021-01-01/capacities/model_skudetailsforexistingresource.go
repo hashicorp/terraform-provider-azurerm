@@ -5,5 +5,5 @@ package capacities
 
 type SkuDetailsForExistingResource struct {
 	ResourceType *string      `json:"resourceType,omitempty"`
-	Sku          *CapacitySku `json:"sku"`
+	Sku          *CapacitySku `json:"sku,omitempty"`
 }

@@ -4,5 +4,5 @@ package accounts
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type KeyDelivery struct {
-	AccessControl *AccessControl `json:"accessControl"`
+	AccessControl *AccessControl `json:"accessControl,omitempty"`
 }

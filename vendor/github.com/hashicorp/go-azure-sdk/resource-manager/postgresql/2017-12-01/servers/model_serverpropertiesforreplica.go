@@ -18,7 +18,7 @@ type ServerPropertiesForReplica struct {
 	MinimalTlsVersion        *MinimalTlsVersionEnum    `json:"minimalTlsVersion,omitempty"`
 	PublicNetworkAccess      *PublicNetworkAccessEnum  `json:"publicNetworkAccess,omitempty"`
 	SslEnforcement           *SslEnforcementEnum       `json:"sslEnforcement,omitempty"`
-	StorageProfile           *StorageProfile           `json:"storageProfile"`
+	StorageProfile           *StorageProfile           `json:"storageProfile,omitempty"`
 	Version                  *ServerVersion            `json:"version,omitempty"`
 }
 

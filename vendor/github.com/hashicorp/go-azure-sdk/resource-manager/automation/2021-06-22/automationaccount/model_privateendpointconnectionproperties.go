@@ -5,6 +5,6 @@ package automationaccount
 
 type PrivateEndpointConnectionProperties struct {
 	GroupIds                          *[]string                                  `json:"groupIds,omitempty"`
-	PrivateEndpoint                   *PrivateEndpointProperty                   `json:"privateEndpoint"`
-	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState"`
+	PrivateEndpoint                   *PrivateEndpointProperty                   `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState,omitempty"`
 }

@@ -6,5 +6,5 @@ package virtualmachines
 type BootDiagnosticsInstanceView struct {
 	ConsoleScreenshotBlobUri *string             `json:"consoleScreenshotBlobUri,omitempty"`
 	SerialConsoleLogBlobUri  *string             `json:"serialConsoleLogBlobUri,omitempty"`
-	Status                   *InstanceViewStatus `json:"status"`
+	Status                   *InstanceViewStatus `json:"status,omitempty"`
 }

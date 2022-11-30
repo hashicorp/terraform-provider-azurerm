@@ -6,7 +6,7 @@ package dataexport
 type DataExportProperties struct {
 	CreatedDate      *string      `json:"createdDate,omitempty"`
 	DataExportId     *string      `json:"dataExportId,omitempty"`
-	Destination      *Destination `json:"destination"`
+	Destination      *Destination `json:"destination,omitempty"`
 	Enable           *bool        `json:"enable,omitempty"`
 	LastModifiedDate *string      `json:"lastModifiedDate,omitempty"`
 	TableNames       []string     `json:"tableNames"`

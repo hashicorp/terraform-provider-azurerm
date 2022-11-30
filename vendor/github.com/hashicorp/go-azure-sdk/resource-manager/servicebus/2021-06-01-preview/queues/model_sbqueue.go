@@ -10,7 +10,7 @@ import (
 type SBQueue struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *SBQueueProperties     `json:"properties"`
+	Properties *SBQueueProperties     `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

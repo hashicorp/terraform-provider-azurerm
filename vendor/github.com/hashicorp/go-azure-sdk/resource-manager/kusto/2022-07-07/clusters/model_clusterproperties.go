@@ -14,9 +14,9 @@ type ClusterProperties struct {
 	EnablePurge                        *bool                        `json:"enablePurge,omitempty"`
 	EnableStreamingIngest              *bool                        `json:"enableStreamingIngest,omitempty"`
 	EngineType                         *EngineType                  `json:"engineType,omitempty"`
-	KeyVaultProperties                 *KeyVaultProperties          `json:"keyVaultProperties"`
-	LanguageExtensions                 *LanguageExtensionsList      `json:"languageExtensions"`
-	OptimizedAutoscale                 *OptimizedAutoscale          `json:"optimizedAutoscale"`
+	KeyVaultProperties                 *KeyVaultProperties          `json:"keyVaultProperties,omitempty"`
+	LanguageExtensions                 *LanguageExtensionsList      `json:"languageExtensions,omitempty"`
+	OptimizedAutoscale                 *OptimizedAutoscale          `json:"optimizedAutoscale,omitempty"`
 	PrivateEndpointConnections         *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState                  *ProvisioningState           `json:"provisioningState,omitempty"`
 	PublicIPType                       *PublicIPType                `json:"publicIPType,omitempty"`
@@ -27,5 +27,5 @@ type ClusterProperties struct {
 	TrustedExternalTenants             *[]TrustedExternalTenant     `json:"trustedExternalTenants,omitempty"`
 	Uri                                *string                      `json:"uri,omitempty"`
 	VirtualClusterGraduationProperties *string                      `json:"virtualClusterGraduationProperties,omitempty"`
-	VirtualNetworkConfiguration        *VirtualNetworkConfiguration `json:"virtualNetworkConfiguration"`
+	VirtualNetworkConfiguration        *VirtualNetworkConfiguration `json:"virtualNetworkConfiguration,omitempty"`
 }

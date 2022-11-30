@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GremlinGraphGetProperties struct {
-	Options  *OptionsResource           `json:"options"`
-	Resource *GremlinGraphGetProperties `json:"resource"`
+	Options  *OptionsResource           `json:"options,omitempty"`
+	Resource *GremlinGraphGetProperties `json:"resource,omitempty"`
 }

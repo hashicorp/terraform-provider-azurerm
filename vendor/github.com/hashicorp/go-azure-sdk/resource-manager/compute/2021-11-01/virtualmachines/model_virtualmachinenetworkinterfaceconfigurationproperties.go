@@ -5,12 +5,12 @@ package virtualmachines
 
 type VirtualMachineNetworkInterfaceConfigurationProperties struct {
 	DeleteOption                *DeleteOptions                                          `json:"deleteOption,omitempty"`
-	DnsSettings                 *VirtualMachineNetworkInterfaceDnsSettingsConfiguration `json:"dnsSettings"`
-	DscpConfiguration           *SubResource                                            `json:"dscpConfiguration"`
+	DnsSettings                 *VirtualMachineNetworkInterfaceDnsSettingsConfiguration `json:"dnsSettings,omitempty"`
+	DscpConfiguration           *SubResource                                            `json:"dscpConfiguration,omitempty"`
 	EnableAcceleratedNetworking *bool                                                   `json:"enableAcceleratedNetworking,omitempty"`
 	EnableFpga                  *bool                                                   `json:"enableFpga,omitempty"`
 	EnableIPForwarding          *bool                                                   `json:"enableIPForwarding,omitempty"`
 	IPConfigurations            []VirtualMachineNetworkInterfaceIPConfiguration         `json:"ipConfigurations"`
-	NetworkSecurityGroup        *SubResource                                            `json:"networkSecurityGroup"`
+	NetworkSecurityGroup        *SubResource                                            `json:"networkSecurityGroup,omitempty"`
 	Primary                     *bool                                                   `json:"primary,omitempty"`
 }

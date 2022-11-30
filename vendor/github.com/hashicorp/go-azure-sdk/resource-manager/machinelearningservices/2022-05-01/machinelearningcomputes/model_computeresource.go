@@ -17,7 +17,7 @@ type ComputeResource struct {
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
 	Properties Compute                                  `json:"properties"`
-	Sku        *Sku                                     `json:"sku"`
+	Sku        *Sku                                     `json:"sku,omitempty"`
 	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`

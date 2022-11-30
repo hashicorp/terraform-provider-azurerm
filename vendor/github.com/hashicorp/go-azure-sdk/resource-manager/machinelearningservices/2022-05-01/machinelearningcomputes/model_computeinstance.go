@@ -14,7 +14,7 @@ import (
 var _ Compute = ComputeInstance{}
 
 type ComputeInstance struct {
-	Properties *ComputeInstanceProperties `json:"properties"`
+	Properties *ComputeInstanceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Compute
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`

@@ -5,6 +5,6 @@ package managedclusters
 
 type ContainerServiceNetworkProfileKubeProxyConfig struct {
 	Enabled    *bool                                                    `json:"enabled,omitempty"`
-	IPvsConfig *ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig `json:"ipvsConfig"`
+	IPvsConfig *ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig `json:"ipvsConfig,omitempty"`
 	Mode       *Mode                                                    `json:"mode,omitempty"`
 }

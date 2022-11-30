@@ -4,7 +4,7 @@ package managementpolicies
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagementPolicyAction struct {
-	BaseBlob *ManagementPolicyBaseBlob `json:"baseBlob"`
-	Snapshot *ManagementPolicySnapShot `json:"snapshot"`
-	Version  *ManagementPolicyVersion  `json:"version"`
+	BaseBlob *ManagementPolicyBaseBlob `json:"baseBlob,omitempty"`
+	Snapshot *ManagementPolicySnapShot `json:"snapshot,omitempty"`
+	Version  *ManagementPolicyVersion  `json:"version,omitempty"`
 }

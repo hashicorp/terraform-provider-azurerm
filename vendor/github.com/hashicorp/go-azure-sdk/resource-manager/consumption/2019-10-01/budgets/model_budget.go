@@ -7,6 +7,6 @@ type Budget struct {
 	ETag       *string           `json:"eTag,omitempty"`
 	Id         *string           `json:"id,omitempty"`
 	Name       *string           `json:"name,omitempty"`
-	Properties *BudgetProperties `json:"properties"`
+	Properties *BudgetProperties `json:"properties,omitempty"`
 	Type       *string           `json:"type,omitempty"`
 }

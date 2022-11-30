@@ -11,7 +11,7 @@ import (
 var _ Serialization = JsonSerialization{}
 
 type JsonSerialization struct {
-	Properties *JsonSerializationProperties `json:"properties"`
+	Properties *JsonSerializationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Serialization
 }

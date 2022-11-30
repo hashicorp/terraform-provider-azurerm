@@ -4,6 +4,6 @@ package dashboard
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PatchableDashboard struct {
-	Properties *DashboardProperties `json:"properties"`
+	Properties *DashboardProperties `json:"properties,omitempty"`
 	Tags       *map[string]string   `json:"tags,omitempty"`
 }

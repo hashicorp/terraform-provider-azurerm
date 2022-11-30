@@ -12,7 +12,7 @@ import (
 type Metric struct {
 	EndTime      *string        `json:"endTime,omitempty"`
 	MetricValues *[]MetricValue `json:"metricValues,omitempty"`
-	Name         *MetricName    `json:"name"`
+	Name         *MetricName    `json:"name,omitempty"`
 	StartTime    *string        `json:"startTime,omitempty"`
 	TimeGrain    *string        `json:"timeGrain,omitempty"`
 	Unit         *UnitType      `json:"unit,omitempty"`

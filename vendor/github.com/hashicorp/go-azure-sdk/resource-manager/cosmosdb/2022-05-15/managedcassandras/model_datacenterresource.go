@@ -6,6 +6,6 @@ package managedcassandras
 type DataCenterResource struct {
 	Id         *string                       `json:"id,omitempty"`
 	Name       *string                       `json:"name,omitempty"`
-	Properties *DataCenterResourceProperties `json:"properties"`
+	Properties *DataCenterResourceProperties `json:"properties,omitempty"`
 	Type       *string                       `json:"type,omitempty"`
 }

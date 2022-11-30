@@ -6,7 +6,7 @@ package registrationdefinitions
 type RegistrationDefinition struct {
 	Id         *string                           `json:"id,omitempty"`
 	Name       *string                           `json:"name,omitempty"`
-	Plan       *Plan                             `json:"plan"`
-	Properties *RegistrationDefinitionProperties `json:"properties"`
+	Plan       *Plan                             `json:"plan,omitempty"`
+	Properties *RegistrationDefinitionProperties `json:"properties,omitempty"`
 	Type       *string                           `json:"type,omitempty"`
 }

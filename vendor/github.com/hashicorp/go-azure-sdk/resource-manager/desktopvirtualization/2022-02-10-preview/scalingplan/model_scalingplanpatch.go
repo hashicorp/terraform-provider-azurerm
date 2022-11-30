@@ -4,6 +4,6 @@ package scalingplan
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ScalingPlanPatch struct {
-	Properties *ScalingPlanPatchProperties `json:"properties"`
+	Properties *ScalingPlanPatchProperties `json:"properties,omitempty"`
 	Tags       *map[string]string          `json:"tags,omitempty"`
 }

@@ -4,6 +4,6 @@ package dedicatedhosts
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DedicatedHostUpdate struct {
-	Properties *DedicatedHostProperties `json:"properties"`
+	Properties *DedicatedHostProperties `json:"properties,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 }

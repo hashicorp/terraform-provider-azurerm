@@ -18,7 +18,6 @@ import (
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -47,7 +46,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := cognitiveservicesaccounts.ParseAccountID(id)
 			return err
 		}),
 
@@ -56,7 +55,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CognitiveServicesAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"location": commonschema.Location(),

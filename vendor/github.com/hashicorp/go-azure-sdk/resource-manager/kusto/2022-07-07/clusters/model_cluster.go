@@ -15,7 +15,7 @@ type Cluster struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
 	Location   string                             `json:"location"`
 	Name       *string                            `json:"name,omitempty"`
-	Properties *ClusterProperties                 `json:"properties"`
+	Properties *ClusterProperties                 `json:"properties,omitempty"`
 	Sku        AzureSku                           `json:"sku"`
 	SystemData *systemdata.SystemData             `json:"systemData,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`

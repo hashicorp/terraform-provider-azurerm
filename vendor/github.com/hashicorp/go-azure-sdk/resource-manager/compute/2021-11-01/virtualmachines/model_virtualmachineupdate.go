@@ -10,8 +10,8 @@ import (
 
 type VirtualMachineUpdate struct {
 	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
-	Plan       *Plan                              `json:"plan"`
-	Properties *VirtualMachineProperties          `json:"properties"`
+	Plan       *Plan                              `json:"plan,omitempty"`
+	Properties *VirtualMachineProperties          `json:"properties,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 	Zones      *zones.Schema                      `json:"zones,omitempty"`
 }

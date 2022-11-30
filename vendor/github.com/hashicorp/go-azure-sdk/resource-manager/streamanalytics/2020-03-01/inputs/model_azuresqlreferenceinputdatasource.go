@@ -11,7 +11,7 @@ import (
 var _ ReferenceInputDataSource = AzureSqlReferenceInputDataSource{}
 
 type AzureSqlReferenceInputDataSource struct {
-	Properties *AzureSqlReferenceInputDataSourceProperties `json:"properties"`
+	Properties *AzureSqlReferenceInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from ReferenceInputDataSource
 }

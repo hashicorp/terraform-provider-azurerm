@@ -11,11 +11,11 @@ type DataDisk struct {
 	DiskIOPSReadWrite       *int64                 `json:"diskIOPSReadWrite,omitempty"`
 	DiskMBpsReadWrite       *int64                 `json:"diskMBpsReadWrite,omitempty"`
 	DiskSizeGB              *int64                 `json:"diskSizeGB,omitempty"`
-	Image                   *VirtualHardDisk       `json:"image"`
+	Image                   *VirtualHardDisk       `json:"image,omitempty"`
 	Lun                     int64                  `json:"lun"`
-	ManagedDisk             *ManagedDiskParameters `json:"managedDisk"`
+	ManagedDisk             *ManagedDiskParameters `json:"managedDisk,omitempty"`
 	Name                    *string                `json:"name,omitempty"`
 	ToBeDetached            *bool                  `json:"toBeDetached,omitempty"`
-	Vhd                     *VirtualHardDisk       `json:"vhd"`
+	Vhd                     *VirtualHardDisk       `json:"vhd,omitempty"`
 	WriteAcceleratorEnabled *bool                  `json:"writeAcceleratorEnabled,omitempty"`
 }

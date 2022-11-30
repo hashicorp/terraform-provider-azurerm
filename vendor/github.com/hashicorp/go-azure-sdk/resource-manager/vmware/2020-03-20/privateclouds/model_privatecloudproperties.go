@@ -4,8 +4,8 @@ package privateclouds
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PrivateCloudProperties struct {
-	Circuit                      *Circuit                       `json:"circuit"`
-	Endpoints                    *Endpoints                     `json:"endpoints"`
+	Circuit                      *Circuit                       `json:"circuit,omitempty"`
+	Endpoints                    *Endpoints                     `json:"endpoints,omitempty"`
 	IdentitySources              *[]IdentitySource              `json:"identitySources,omitempty"`
 	Internet                     *InternetEnum                  `json:"internet,omitempty"`
 	ManagementCluster            ManagementCluster              `json:"managementCluster"`

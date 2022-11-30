@@ -11,7 +11,7 @@ import (
 var _ OutputDataSource = AzureDataLakeStoreOutputDataSource{}
 
 type AzureDataLakeStoreOutputDataSource struct {
-	Properties *AzureDataLakeStoreOutputDataSourceProperties `json:"properties"`
+	Properties *AzureDataLakeStoreOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
 }

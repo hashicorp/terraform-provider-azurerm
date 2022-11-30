@@ -4,5 +4,5 @@ package virtualnetworklinks
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VirtualNetworkLinkPatch struct {
-	Properties *VirtualNetworkLinkPatchProperties `json:"properties"`
+	Properties *VirtualNetworkLinkPatchProperties `json:"properties,omitempty"`
 }

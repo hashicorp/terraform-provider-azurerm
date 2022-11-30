@@ -6,6 +6,6 @@ package runbook
 type RunbookUpdateParameters struct {
 	Location   *string                  `json:"location,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
-	Properties *RunbookUpdateProperties `json:"properties"`
+	Properties *RunbookUpdateProperties `json:"properties,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 }

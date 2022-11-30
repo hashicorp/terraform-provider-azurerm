@@ -9,8 +9,8 @@ type OSProfile struct {
 	AllowExtensionOperations    *bool                 `json:"allowExtensionOperations,omitempty"`
 	ComputerName                *string               `json:"computerName,omitempty"`
 	CustomData                  *string               `json:"customData,omitempty"`
-	LinuxConfiguration          *LinuxConfiguration   `json:"linuxConfiguration"`
+	LinuxConfiguration          *LinuxConfiguration   `json:"linuxConfiguration,omitempty"`
 	RequireGuestProvisionSignal *bool                 `json:"requireGuestProvisionSignal,omitempty"`
 	Secrets                     *[]VaultSecretGroup   `json:"secrets,omitempty"`
-	WindowsConfiguration        *WindowsConfiguration `json:"windowsConfiguration"`
+	WindowsConfiguration        *WindowsConfiguration `json:"windowsConfiguration,omitempty"`
 }

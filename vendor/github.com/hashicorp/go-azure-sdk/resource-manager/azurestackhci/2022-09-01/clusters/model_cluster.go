@@ -11,7 +11,7 @@ type Cluster struct {
 	Id         *string                `json:"id,omitempty"`
 	Location   string                 `json:"location"`
 	Name       *string                `json:"name,omitempty"`
-	Properties *ClusterProperties     `json:"properties"`
+	Properties *ClusterProperties     `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Tags       *map[string]string     `json:"tags,omitempty"`
 	Type       *string                `json:"type,omitempty"`

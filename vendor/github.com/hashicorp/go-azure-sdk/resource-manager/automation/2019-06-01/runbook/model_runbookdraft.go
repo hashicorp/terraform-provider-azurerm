@@ -11,7 +11,7 @@ import (
 
 type RunbookDraft struct {
 	CreationTime     *string                      `json:"creationTime,omitempty"`
-	DraftContentLink *ContentLink                 `json:"draftContentLink"`
+	DraftContentLink *ContentLink                 `json:"draftContentLink,omitempty"`
 	InEdit           *bool                        `json:"inEdit,omitempty"`
 	LastModifiedTime *string                      `json:"lastModifiedTime,omitempty"`
 	OutputTypes      *[]string                    `json:"outputTypes,omitempty"`

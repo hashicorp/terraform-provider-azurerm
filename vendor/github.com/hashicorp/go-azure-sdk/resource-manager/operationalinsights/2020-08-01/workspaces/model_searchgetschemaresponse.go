@@ -4,6 +4,6 @@ package workspaces
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SearchGetSchemaResponse struct {
-	Metadata *SearchMetadata      `json:"metadata"`
+	Metadata *SearchMetadata      `json:"metadata,omitempty"`
 	Value    *[]SearchSchemaValue `json:"value,omitempty"`
 }

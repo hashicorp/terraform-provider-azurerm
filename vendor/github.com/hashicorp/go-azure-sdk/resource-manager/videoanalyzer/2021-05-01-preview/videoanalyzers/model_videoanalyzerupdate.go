@@ -4,7 +4,7 @@ package videoanalyzers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VideoAnalyzerUpdate struct {
-	Identity   *VideoAnalyzerIdentity         `json:"identity"`
-	Properties *VideoAnalyzerPropertiesUpdate `json:"properties"`
+	Identity   *VideoAnalyzerIdentity         `json:"identity,omitempty"`
+	Properties *VideoAnalyzerPropertiesUpdate `json:"properties,omitempty"`
 	Tags       *map[string]string             `json:"tags,omitempty"`
 }

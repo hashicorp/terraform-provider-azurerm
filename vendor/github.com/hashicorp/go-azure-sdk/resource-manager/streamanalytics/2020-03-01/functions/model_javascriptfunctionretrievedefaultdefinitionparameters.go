@@ -11,7 +11,7 @@ import (
 var _ FunctionRetrieveDefaultDefinitionParameters = JavaScriptFunctionRetrieveDefaultDefinitionParameters{}
 
 type JavaScriptFunctionRetrieveDefaultDefinitionParameters struct {
-	BindingRetrievalProperties *JavaScriptFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties"`
+	BindingRetrievalProperties *JavaScriptFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties,omitempty"`
 
 	// Fields inherited from FunctionRetrieveDefaultDefinitionParameters
 }

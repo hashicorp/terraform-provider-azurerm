@@ -15,8 +15,8 @@ type Disk struct {
 	ManagedBy         *string            `json:"managedBy,omitempty"`
 	ManagedByExtended *[]string          `json:"managedByExtended,omitempty"`
 	Name              *string            `json:"name,omitempty"`
-	Properties        *DiskProperties    `json:"properties"`
-	Sku               *DiskSku           `json:"sku"`
+	Properties        *DiskProperties    `json:"properties,omitempty"`
+	Sku               *DiskSku           `json:"sku,omitempty"`
 	Tags              *map[string]string `json:"tags,omitempty"`
 	Type              *string            `json:"type,omitempty"`
 	Zones             *zones.Schema      `json:"zones,omitempty"`
