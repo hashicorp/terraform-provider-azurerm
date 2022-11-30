@@ -83,7 +83,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
+			if !response.WasNotFound(existing.HttpResponse) && !wasBadRequestWithNotExist(existing.HttpResponse, err) {
 				return fmt.Errorf("checking for presence of existing site recovery replication policy %s: %+v", name, err)
 			}
 		}
