@@ -2,6 +2,7 @@ package springcloud
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -66,8 +67,14 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 
 			"protocol": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(appplatform.GatewayRouteConfigProtocolHTTP),
+				Optional: !features.FourPointOh(),
+				Required: features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOh() {
+						return string(appplatform.GatewayRouteConfigProtocolHTTP)
+					}
+					return nil
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(appplatform.GatewayRouteConfigProtocolHTTP),
 					string(appplatform.GatewayRouteConfigProtocolHTTPS),

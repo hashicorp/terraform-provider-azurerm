@@ -75,7 +75,9 @@ The following arguments are supported:
 
 * `open_api` - (Optional) One or more `open_api` blocks as defined below.
 
-* `protocol` - (Optional) Specifies the protocol of routed Spring Cloud App. Allowed values are `HTTP` and `HTTPS`.
+* `protocol` - (Optional) Specifies the protocol of routed Spring Cloud App. Allowed values are `HTTP` and `HTTPS`. Defaults to `HTTP`. 
+
+~> **Note:** `protocol`'s default value `HTTP` is insecure.
 
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 
