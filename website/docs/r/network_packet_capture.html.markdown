@@ -114,7 +114,7 @@ resource "azurerm_network_packet_capture" "example" {
 }
 ```
 
-~> **NOTE:** This Resource requires that [the Network Watcher Virtual Machine Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_extension` resource](virtual_machine_extension.html).
+~> **NOTE:** This Resource requires that [the Network Watcher Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine or Virtual Machine Scale Set before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_extension` resource](virtual_machine_extension.html) or [the `azurerm_virtual_machine_scale_set_extension` resource](virtual_machine_scale_set_extension.html).
 
 ## Argument Reference
 
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the Resource to capture packets from. Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently only Virtual Machines IDs are supported.
+~> **NOTE:** Currently only Virtual Machines IDs and Virtual Machine Scale Set IDs are supported.
 
 * `maximum_bytes_per_packet` - (Optional) The number of bytes captured per packet. The remaining bytes are truncated. Defaults to `0` (Entire Packet Captured). Changing this forces a new resource to be created.
 
@@ -142,7 +142,7 @@ The following arguments are supported:
 
 * `target_type` - (Optional) The target type of the resource provided. Possible values are `AzureVM` and `AzureVMSS`. Defaults to `AzureVM`. Changing this forces a new resource to be created.
 
-* `scope` - (Optional) A `scope` block as defined below. Changing this forces a new resource to be created.
+* `machine_scope` - (Optional) A `machine_scope` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -168,11 +168,11 @@ A `filter` block contains:
 
 ---
 
-A `scope` block contains:
+A `machine_scope` block contains:
 
-* `exclude` - (Optional) A list of Azure VMSS instance IDs which has to be excluded from Azure VMSS from running Packet Capture. Changing this forces a new resource to be created.
+* `exclude_instance_ids` - (Optional) A list of Virtual Machine Scale Set instance IDs which should be excluded from running Packet Capture, e.g. `["0", "2"]`. Changing this forces a new resource to be created.
 
-* `include` - (Optional) A list of Azure VMSS instance IDs to run Packet Capture on. Changing this forces a new resource to be created.
+* `include_instance_ids` - (Optional) A list of Virtual Machine Scale Set instance IDs which should be included for Packet Capture, e.g. `["1", "3"]`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

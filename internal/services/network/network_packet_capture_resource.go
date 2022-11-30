@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -58,6 +60,10 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.Any(
+					computeValidate.VirtualMachineID,
+					computeValidate.VirtualMachineScaleSetID,
+				),
 			},
 
 			"target_type": {
@@ -158,14 +164,14 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 				},
 			},
 
-			"scope": {
+			"machine_scope": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"exclude": {
+						"exclude_instance_ids": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							ForceNew: true,
@@ -175,7 +181,7 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 							},
 						},
 
-						"include": {
+						"include_instance_ids": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							ForceNew: true,
@@ -235,8 +241,8 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 		properties.PacketCaptureParameters.TargetType = network.PacketCaptureTargetType(v.(string))
 	}
 
-	if v, ok := d.GetOk("scope"); ok {
-		properties.PacketCaptureParameters.Scope = expandNetworkPacketCaptureScope(v.([]interface{}))
+	if v, ok := d.GetOk("machine_scope"); ok {
+		properties.PacketCaptureParameters.Scope = expandNetworkPacketCaptureMachineScope(v.([]interface{}))
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name, properties)
@@ -295,13 +301,19 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `filter`: %+v", err)
 		}
 
-		scope, err := flattenNetworkPacketCaptureScope(props.Scope)
+		scope, err := flattenNetworkPacketCaptureMachineScope(props.Scope)
 		if err != nil {
 			return err
 		}
-		if err := d.Set("scope", scope); err != nil {
-			return fmt.Errorf(`setting "scope": %+v`, err)
+		if err := d.Set("machine_scope", scope); err != nil {
+			return fmt.Errorf(`setting "machine_scope": %+v`, err)
 		}
+
+		targetType := network.PacketCaptureTargetTypeAzureVM
+		if props.TargetType != "" {
+			targetType = props.TargetType
+		}
+		d.Set("target_type", targetType)
 	}
 
 	return nil
@@ -433,7 +445,7 @@ func flattenNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []
 	return filters
 }
 
-func expandNetworkPacketCaptureScope(input []interface{}) *network.PacketCaptureMachineScope {
+func expandNetworkPacketCaptureMachineScope(input []interface{}) *network.PacketCaptureMachineScope {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -441,18 +453,18 @@ func expandNetworkPacketCaptureScope(input []interface{}) *network.PacketCapture
 	raw := input[0].(map[string]interface{})
 	output := &network.PacketCaptureMachineScope{}
 
-	if exclude := raw["exclude"].([]interface{}); len(exclude) > 0 {
+	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
 		output.Exclude = utils.ExpandStringSlice(exclude)
 	}
 
-	if include := raw["include"].([]interface{}); len(include) > 0 {
+	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
 		output.Include = utils.ExpandStringSlice(include)
 	}
 
 	return output
 }
 
-func flattenNetworkPacketCaptureScope(input *network.PacketCaptureMachineScope) ([]interface{}, error) {
+func flattenNetworkPacketCaptureMachineScope(input *network.PacketCaptureMachineScope) ([]interface{}, error) {
 	outputs := make([]interface{}, 0)
 	if input == nil || (input.Exclude == nil && input.Include == nil) || (len(*input.Exclude) == 0 && len(*input.Include) == 0) {
 		return outputs, nil
@@ -464,13 +476,13 @@ func flattenNetworkPacketCaptureScope(input *network.PacketCaptureMachineScope) 
 	if err != nil {
 		return nil, err
 	}
-	output["exclude"] = excludedInstanceIds
+	output["exclude_instance_ids"] = excludedInstanceIds
 
 	includedInstanceIds, err := flattenNetworkPacketCaptureScopeInstanceIds(input.Include)
 	if err != nil {
 		return nil, err
 	}
-	output["include"] = includedInstanceIds
+	output["include_instance_ids"] = includedInstanceIds
 
 	outputs = append(outputs, output)
 
@@ -484,7 +496,7 @@ func flattenNetworkPacketCaptureScopeInstanceIds(input *[]string) ([]string, err
 	}
 
 	for _, instance := range *input {
-		instance, err := parse.VMSSInstanceID(instance)
+		instance, err := computeParse.VMSSInstanceID(instance)
 		if err != nil {
 			return nil, err
 		}

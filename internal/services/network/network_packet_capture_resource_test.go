@@ -93,13 +93,13 @@ func testAccNetworkPacketCapture_withFilters(t *testing.T) {
 	})
 }
 
-func testAccNetworkPacketCapture_scope(t *testing.T) {
+func testAccNetworkPacketCapture_machineScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scope(data),
+			Config: r.machineScope(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -196,10 +196,6 @@ resource "azurerm_virtual_machine" "test" {
 
   os_profile_linux_config {
     disable_password_authentication = false
-  }
-
-  lifecycle {
-    ignore_changes = [tags]
   }
 }
 
@@ -338,7 +334,7 @@ resource "azurerm_network_packet_capture" "test" {
 `, r.base(data), data.RandomString, data.RandomInteger)
 }
 
-func (NetworkPacketCaptureResource) scope(data acceptance.TestData) string {
+func (NetworkPacketCaptureResource) machineScope(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -405,19 +401,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [identity, tags]
+  extension {
+    name                       = "network-watcher"
+    publisher                  = "Microsoft.Azure.NetworkWatcher"
+    type                       = "NetworkWatcherAgentLinux"
+    type_handler_version       = "1.4"
+    auto_upgrade_minor_version = true
+    automatic_upgrade_enabled  = true
   }
-}
-
-resource "azurerm_virtual_machine_scale_set_extension" "test" {
-  name                         = "network-watcher"
-  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
-  publisher                    = "Microsoft.Azure.NetworkWatcher"
-  type                         = "NetworkWatcherAgentLinux"
-  type_handler_version         = "1.4"
-  auto_upgrade_minor_version   = true
-  automatic_upgrade_enabled    = true
 }
 
 resource "azurerm_network_packet_capture" "test" {
@@ -432,12 +423,10 @@ resource "azurerm_network_packet_capture" "test" {
 
   target_type = "AzureVMSS"
 
-  scope {
-    include = ["0", "1"]
-    exclude = ["2", "3"]
+  machine_scope {
+    include_instance_ids = ["0", "1"]
+    exclude_instance_ids = ["2", "3"]
   }
-
-  depends_on = [azurerm_virtual_machine_scale_set_extension.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

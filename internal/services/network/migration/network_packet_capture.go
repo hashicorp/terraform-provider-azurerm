@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 var _ pluginsdk.StateUpgrade = NetworkPacketCaptureV0ToV1{}
@@ -37,13 +36,6 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-		},
-
-		"target_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(network.PacketCaptureTargetTypeAzureVM),
 		},
 
 		"maximum_bytes_per_packet": {
@@ -127,34 +119,6 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
-					},
-				},
-			},
-		},
-
-		"scope": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"exclude": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"include": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
 					},
 				},
 			},
