@@ -148,11 +148,10 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 					Schema: map[string]*schema.Schema{
 						"authentication_mode": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(streamingjobs.AuthenticationModeConnectionString),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(streamingjobs.AuthenticationModeConnectionString),
-								string(streamingjobs.AuthenticationModeMsi),
-								string(streamingjobs.AuthenticationModeUserToken),
 							}, false),
 						},
 
@@ -547,10 +546,15 @@ func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.Jo
 		return []interface{}{}
 	}
 
+	accountName := ""
+	if v := input.AccountName; v != nil {
+		accountName = *v
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"authentication_mode": string(*input.AuthenticationMode),
-			"account_name":        *input.AccountName,
+			"account_name":        accountName,
 			"account_key":         d.Get("job_storage_account.0.account_key").(string),
 		},
 	}
