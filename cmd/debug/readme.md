@@ -38,8 +38,7 @@ Attach vs code to the debug session.
 
 # Terminal 2
 
-export the CLI config with:
-
+create a file `terraformrc` with the following content:
 ```
 provider_installation {
   dev_overrides {               
@@ -47,8 +46,6 @@ provider_installation {
   }
 }
 ```
-
-TODO: this is not still working!!!!
 
 
 ```sh

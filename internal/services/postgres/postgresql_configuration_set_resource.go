@@ -21,6 +21,7 @@ import (
 func resourcePostgreSQLConfigurationSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePostgreSQLConfigurationSetCreateUpdate,
+		Update: resourcePostgreSQLConfigurationSetCreateUpdate,
 		Read:   resourcePostgreSQLConfigurationSetRead,
 		Delete: resourcePostgreSQLConfigurationSetDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
