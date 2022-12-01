@@ -142,7 +142,7 @@ resource "azurerm_mobile_network_slice" "import" {
   name              = azurerm_mobile_network_slice.test.name
   mobile_network_id = azurerm_mobile_network_slice.test.mobile_network_id
 
-  location          = "%s"
+  location = "%s"
   single_network_slice_selection_assistance_information {
     slice_service_type = 1
   }

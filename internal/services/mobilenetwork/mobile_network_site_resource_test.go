@@ -30,6 +30,20 @@ func TestAccMobileNetworkSite_basic(t *testing.T) {
 	})
 }
 
+func TestAccMobileNetworkSite_withNetworkFunctionIds(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mobile_network_site", "test")
+	r := MobileNetworkSiteResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withNetworkFunctionIds(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMobileNetworkSite_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_site", "test")
 	r := MobileNetworkSiteResource{}
@@ -126,6 +140,57 @@ resource "azurerm_mobile_network_site" "test" {
   name              = "acctest-mns-%d"
   mobile_network_id = azurerm_mobile_network.test.id
   location          = "%s"
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MobileNetworkSiteResource) withNetworkFunctionIds(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_mobile_network_packet_core_control_plane" "test" {
+  name                = "acctest-mnpccp-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[2]s"
+  sku                 = "EvaluationPackage"
+  mobile_network_id   = azurerm_mobile_network.test.id
+
+  control_plane_access_interface {
+    name         = "default-interface"
+    ipv4_address = "192.168.1.199"
+    ipv4_gateway = "192.168.1.1"
+    ipv4_subnet  = "192.168.1.0/25"
+  }
+
+  platform {
+    type = "BaseVM"
+  }
+}
+
+resource "azurerm_mobile_network_packet_core_data_plane" "test" {
+  name                                        = "acctest-mnpcdp-%d"
+  mobile_network_packet_core_control_plane_id = azurerm_mobile_network_packet_core_control_plane.test.id
+  location                                    = "%s"
+
+  user_plane_access_interface {
+    name         = "default-interface"
+    ipv4_address = "192.168.1.199"
+    ipv4_gateway = "192.168.1.1"
+    ipv4_subnet  = "192.168.1.0/25"
+  }
+
+}
+
+resource "azurerm_mobile_network_site" "test" {
+  name              = "acctest-mns-%d"
+  mobile_network_id = azurerm_mobile_network.test.id
+  location          = "%s"
+
+  network_function_ids = [
+    azurerm_mobile_network_packet_core_control_plane.id,
+    azurerm_mobile_network_packet_core_data_plane.id
+  ]
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
