@@ -79,8 +79,8 @@ type BestPractice struct {
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; The name of the best practice. For example, azureBestPracticesProduction
 	Name *string `json:"name,omitempty"`
-	// ConfigurationProfileProperties - Properties of the best practice.
-	*ConfigurationProfileProperties `json:"properties,omitempty"`
+	// Properties - Properties of the best practice.
+	Properties *ConfigurationProfileProperties `json:"properties,omitempty"`
 	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
 	SystemData *SystemData `json:"systemData,omitempty"`
 }
@@ -88,70 +88,10 @@ type BestPractice struct {
 // MarshalJSON is the custom marshaler for BestPractice.
 func (bp BestPractice) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if bp.ConfigurationProfileProperties != nil {
-		objectMap["properties"] = bp.ConfigurationProfileProperties
+	if bp.Properties != nil {
+		objectMap["properties"] = bp.Properties
 	}
 	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for BestPractice struct.
-func (bp *BestPractice) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				bp.ID = &ID
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				bp.Type = &typeVar
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				bp.Name = &name
-			}
-		case "properties":
-			if v != nil {
-				var configurationProfileProperties ConfigurationProfileProperties
-				err = json.Unmarshal(*v, &configurationProfileProperties)
-				if err != nil {
-					return err
-				}
-				bp.ConfigurationProfileProperties = &configurationProfileProperties
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				bp.SystemData = &systemData
-			}
-		}
-	}
-
-	return nil
 }
 
 // BestPracticeList the response of the list best practice operation.
@@ -399,8 +339,8 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 // Report definition of the report.
 type Report struct {
 	autorest.Response `json:"-"`
-	// AssignmentReportProperties - The properties for the report.
-	*AssignmentReportProperties `json:"properties,omitempty"`
+	// Properties - The properties for the report.
+	Properties *AssignmentReportProperties `json:"properties,omitempty"`
 	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
 	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -414,70 +354,10 @@ type Report struct {
 // MarshalJSON is the custom marshaler for Report.
 func (r Report) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.AssignmentReportProperties != nil {
-		objectMap["properties"] = r.AssignmentReportProperties
+	if r.Properties != nil {
+		objectMap["properties"] = r.Properties
 	}
 	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for Report struct.
-func (r *Report) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var assignmentReportProperties AssignmentReportProperties
-				err = json.Unmarshal(*v, &assignmentReportProperties)
-				if err != nil {
-					return err
-				}
-				r.AssignmentReportProperties = &assignmentReportProperties
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				r.SystemData = &systemData
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				r.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				r.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				r.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
 }
 
 // ReportList the response of the list report operation.
@@ -526,8 +406,8 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 // ServicePrincipal the Service Principal Id for the subscription.
 type ServicePrincipal struct {
 	autorest.Response `json:"-"`
-	// ServicePrincipalProperties - The Service Principal properties for the subscription
-	*ServicePrincipalProperties `json:"properties,omitempty"`
+	// Properties - The Service Principal properties for the subscription
+	Properties *ServicePrincipalProperties `json:"properties,omitempty"`
 	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
 	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -541,70 +421,10 @@ type ServicePrincipal struct {
 // MarshalJSON is the custom marshaler for ServicePrincipal.
 func (sp ServicePrincipal) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if sp.ServicePrincipalProperties != nil {
-		objectMap["properties"] = sp.ServicePrincipalProperties
+	if sp.Properties != nil {
+		objectMap["properties"] = sp.Properties
 	}
 	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ServicePrincipal struct.
-func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var servicePrincipalProperties ServicePrincipalProperties
-				err = json.Unmarshal(*v, &servicePrincipalProperties)
-				if err != nil {
-					return err
-				}
-				sp.ServicePrincipalProperties = &servicePrincipalProperties
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				sp.SystemData = &systemData
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				sp.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				sp.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				sp.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
 }
 
 // ServicePrincipalListResult the list of ServicePrincipals.
