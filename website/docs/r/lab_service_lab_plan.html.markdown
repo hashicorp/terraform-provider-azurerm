@@ -38,21 +38,21 @@ The following arguments are supported:
 
 * `allowed_regions` - (Required) The allowed regions for the lab creator to use when creating labs using this Lab Service Lab Plan. The allowed region's count must be between `1` and `28`.
 
-* `default_auto_shutdown_profile` - (Optional) A `default_auto_shutdown_profile` block as defined below.
+* `default_auto_shutdown` - (Optional) A `default_auto_shutdown` block as defined below.
 
-* `default_connection_profile` - (Optional) A `default_connection_profile` block as defined below.
+* `default_connection` - (Optional) A `default_connection` block as defined below.
 
-* `default_network_profile` - (Optional) A `default_network_profile` block as defined below.
+* `default_network` - (Optional) A `default_network` block as defined below.
 
 * `shared_gallery_id` - (Optional) The resource ID of the Shared Image Gallery attached to this Lab Service Lab Plan. When saving a lab template virtual machine image it will be persisted in this gallery. The shared images from the gallery can be made available to use when creating new labs.
 
-* `support_info` - (Optional) A `support_info` block as defined below.
+* `support` - (Optional) A `support` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Lab Service Lab Plan.
 
 ---
 
-A `default_auto_shutdown_profile` block supports the following:
+A `default_auto_shutdown` block supports the following:
 
 * `disconnect_delay` - (Required) The amount of time a VM will stay running after a user disconnects if this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
@@ -62,13 +62,13 @@ A `default_auto_shutdown_profile` block supports the following:
 
 * `shutdown_on_disconnect_enabled` - (Required) Is shutdown on disconnect enabled? Possible values are `true` and `false`.
 
-* `shutdown_on_idle` - (Required) Will a VM get shutdown when it has idled for a period of time? Possible values are `UserAbsence`, `LowUsage` and `None`.
+* `shutdown_when_not_connected_enabled` - (Required) Will a VM get shutdown when it hasn't been connected to after a period of time? Possible values are `true` and `false`.
 
-* `shutdown_enabled_when_not_connected` - (Required) Will a VM get shutdown when it hasn't been connected to after a period of time? Possible values are `true` and `false`.
+* `shutdown_on_idle` - (Required) Will a VM get shutdown when it has idled for a period of time? Possible values are `UserAbsence`, `LowUsage` and `None`.
 
 ---
 
-A `default_connection_profile` block supports the following:
+A `default_connection` block supports the following:
 
 * `client_rdp_access` - (Required) The enabled access level for Client Access over RDP. Possible values are `None`, `Private` and `Public`.
 
@@ -80,13 +80,13 @@ A `default_connection_profile` block supports the following:
 
 ---
 
-A `default_network_profile` block supports the following:
+A `default_network` block supports the following:
 
 * `subnet_id` - (Optional) The resource ID of the Subnet for the Lab Service Lab Plan network profile.
 
 ---
 
-A `support_info` block supports the following:
+A `support` block supports the following:
 
 * `email` - (Optional) The email address for the support contact.
 

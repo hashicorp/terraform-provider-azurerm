@@ -80,13 +80,6 @@ func TestAccLabServiceLabPlan_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -182,27 +175,27 @@ resource "azurerm_lab_service_lab_plan" "test" {
   location            = azurerm_resource_group.test.location
   allowed_regions     = [azurerm_resource_group.test.location]
 
-  default_auto_shutdown_profile {
+  default_auto_shutdown {
     disconnect_delay                    = "PT15M"
     idle_delay                          = "PT15M"
     no_connect_delay                    = "PT15M"
     shutdown_on_disconnect_enabled      = false
     shutdown_on_idle                    = "LowUsage"
-    shutdown_enabled_when_not_connected = false
+    shutdown_when_not_connected_enabled = false
   }
 
-  default_network_profile {
+  default_network {
     subnet_id = azurerm_subnet.test.id
   }
 
-  default_connection_profile {
+  default_connection {
     client_rdp_access = "None"
     client_ssh_access = "Public"
     web_rdp_access    = "None"
     web_ssh_access    = "Public"
   }
 
-  support_info {
+  support {
     email        = "company@terraform.io"
     instructions = "Contact support for help"
     phone        = "+1-555-555-5555"
@@ -271,27 +264,27 @@ resource "azurerm_lab_service_lab_plan" "test" {
   location            = azurerm_resource_group.test.location
   allowed_regions     = [azurerm_resource_group.test.location, "%s"]
 
-  default_auto_shutdown_profile {
+  default_auto_shutdown {
     disconnect_delay                    = "PT16M"
     idle_delay                          = "PT16M"
     no_connect_delay                    = "PT16M"
     shutdown_on_disconnect_enabled      = true
     shutdown_on_idle                    = "UserAbsence"
-    shutdown_enabled_when_not_connected = true
+    shutdown_when_not_connected_enabled = true
   }
 
-  default_network_profile {
+  default_network {
     subnet_id = azurerm_subnet.test2.id
   }
 
-  default_connection_profile {
+  default_connection {
     client_rdp_access = "Public"
     client_ssh_access = "None"
     web_rdp_access    = "Public"
     web_ssh_access    = "None"
   }
 
-  support_info {
+  support {
     email        = "company2@terraform.io"
     instructions = "Contacting support for help"
     phone        = "+1-555-555-6666"
