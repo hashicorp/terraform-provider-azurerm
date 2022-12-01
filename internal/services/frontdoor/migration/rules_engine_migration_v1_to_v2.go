@@ -2,15 +2,16 @@ package migration
 
 import (
 	"context"
+	"log"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// RulesEngineV0ToV1 doesn't do anything functionally, it lets us upgrade to SchemaVersion 2 without any errors from Terraform.
-// This resource started at SchemaVersion: 1 and we must have a state migration from 0 to 1 if we want to bump to SchemaVersion: 2.
-type RulesEngineV0ToV1 struct{}
+type RulesEngineV1ToV2 struct{}
 
-func (s RulesEngineV0ToV1) Schema() map[string]*pluginsdk.Schema {
+func (s RulesEngineV1ToV2) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -158,8 +159,17 @@ func (s RulesEngineV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (s RulesEngineV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (s RulesEngineV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
+		newId, err := parse.RulesEngineIDInsensitively(oldId)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+
+		rawState["id"] = newId.ID()
 		return rawState, nil
 	}
 }
