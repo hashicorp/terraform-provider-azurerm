@@ -21,6 +21,7 @@ BUG FIXES:
 * `data.azurerm_sentinel_alert_rule_template` - a  state migration to work around the previously incorrect id casing [GH-19487]
 * `azurerm_app_configuration_key` - prevent crash when retrieving the key value [GH-19464]
 * `azurerm_data_factory_linked_service_azure_file_storage` - send `host` and and `user_id` in the payload only when it's been set [GH-19468]
+* `azurerm_eventgrid_topic` - fix setting of fields in `input_mapping_fields` during read [GH-19494] 
 * `azurerm_iot_security_solution` - a  state migration to work around the previously incorrect id casing [GH-19489]
 * `azurerm_monitor_autoscale_setting` - a  state migration to work around the previously incorrect id casing [GH-19492]
 * `azurerm_sentinel_automation_rule` - a  state migration to work around the previously incorrect id casing [GH-19487]
