@@ -90,10 +90,15 @@ func TestAccEventGridTopic_mapping(t *testing.T) {
 			Config: r.mapping(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("input_mapping_fields.0.topic").HasValue("test"),
-				check.That(data.ResourceName).Key("input_mapping_fields.0.topic").HasValue("test"),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.data_version").HasValue("data"),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.event_time").HasValue("time"),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.event_type").HasValue("event"),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.subject").HasValue("subject"),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.id").HasValue("id"),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.topic").HasValue("topic"),
 				check.That(data.ResourceName).Key("input_mapping_default_values.0.data_version").HasValue("1.0"),
 				check.That(data.ResourceName).Key("input_mapping_default_values.0.subject").HasValue("DefaultSubject"),
+				check.That(data.ResourceName).Key("input_mapping_default_values.0.event_type").HasValue("DefaultType"),
 			),
 		},
 		data.ImportStep(),
@@ -263,11 +268,16 @@ resource "azurerm_eventgrid_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
   input_schema        = "CustomEventSchema"
   input_mapping_fields {
-    topic      = "test"
-    event_type = "test"
+    data_version = "data"
+    event_time   = "time"
+    event_type   = "event"
+    id           = "id"
+    subject      = "subject"
+    topic        = "topic"
   }
   input_mapping_default_values {
     data_version = "1.0"
+    event_type   = "DefaultType"
     subject      = "DefaultSubject"
   }
 }
