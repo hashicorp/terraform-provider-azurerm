@@ -57,6 +57,12 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
     group_type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
+  recovery_groups {
+    group_type                 = "Failover"
+  }
+  recovery_groups {
+    group_type                 = "Shutdown"
+  }
 
 }
 ```
@@ -75,7 +81,7 @@ The following arguments are supported:
 
 * `target_recovery_fabric_id` - (Required) ID of target fabric to recover. Changing this forces a new Replication Plan to be created.
 
-* `recovery_groups` - (Required) One or more `recovery_groups` block. 
+* `recovery_group` - (Required) Three or more `recovery_group` block. At least one `recovery_group` for every `group_type` needed.
 
 ---
 

@@ -97,7 +97,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		"recovery_group": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: true, //set to computed because the service will create one empty recovery group for every type.
+			MinItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_type": {
@@ -118,12 +118,12 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 						},
 					},
 					"pre_action": {
-						Type:     pluginsdk.TypeList,
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Elem:     schemaAction(),
 					},
 					"post_action": {
-						Type:     pluginsdk.TypeList,
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						Elem:     schemaAction(),
 					},
@@ -235,13 +235,17 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 
 			// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
 			deploymentModel := replicationrecoveryplans.FailoverDeploymentModelResourceManager
+			groupValue, err := expandRecoverGroup(model.RecoveryGroup)
+			if err != nil {
+				return fmt.Errorf("when expanding recovery group: %s", err)
+			}
 
 			parameters := replicationrecoveryplans.CreateRecoveryPlanInput{
 				Properties: replicationrecoveryplans.CreateRecoveryPlanInputProperties{
 					PrimaryFabricId:         model.SourceRecoveryFabricId,
 					RecoveryFabricId:        model.TargetRecoveryFabricId,
 					FailoverDeploymentModel: &deploymentModel,
-					Groups:                  expandRecoverGroup(model.RecoveryGroup),
+					Groups:                  groupValue,
 				},
 			}
 
@@ -320,7 +324,11 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parse Site reocvery replication plan id: %+v", err)
 			}
 
-			recoveryPlanGroup := expandRecoverGroup(model.RecoveryGroup)
+			recoveryPlanGroup, err := expandRecoverGroup(model.RecoveryGroup)
+			if err != nil {
+				return fmt.Errorf("when expanding recovery group: %s", err)
+			}
+
 			parameters := replicationrecoveryplans.UpdateRecoveryPlanInput{
 				Properties: &replicationrecoveryplans.UpdateRecoveryPlanInputProperties{
 					Groups: &recoveryPlanGroup,
@@ -358,8 +366,12 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRecoverGroup(input []RecoveryGroupModel) []replicationrecoveryplans.RecoveryPlanGroup {
+func expandRecoverGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
 	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
+	if pass, err := validateRecoverGroup(input); !pass {
+		return output, err
+	}
+
 	for _, group := range input {
 
 		protectedItems := make([]replicationrecoveryplans.RecoveryPlanProtectedItem, 0)
@@ -419,7 +431,28 @@ func expandRecoverGroup(input []RecoveryGroupModel) []replicationrecoveryplans.R
 		})
 
 	}
-	return output
+	return output, nil
+}
+
+func validateRecoverGroup(input []RecoveryGroupModel) (bool, error) {
+	bootCount := 0
+	shutdownCount := 0
+	failoverCount := 0
+	for _, group := range input {
+		if group.GroupType == replicationrecoveryplans.RecoveryPlanGroupTypeBoot {
+			bootCount += 1
+		}
+		if group.GroupType == replicationrecoveryplans.RecoveryPlanGroupTypeFailover {
+			failoverCount += 1
+		}
+		if group.GroupType == replicationrecoveryplans.RecoveryPlanGroupTypeShutdown {
+			shutdownCount += 1
+		}
+	}
+	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {
+		return false, fmt.Errorf("every group type needs at least one recovery group")
+	}
+	return true, nil
 }
 
 func flattenRecoveryGroups(input []replicationrecoveryplans.RecoveryPlanGroup) []RecoveryGroupModel {
@@ -464,7 +497,7 @@ func expandActionDetail(input ActionModel) (output replicationrecoveryplans.Reco
 func flattenRecoveryPlanProtectedItems(input *[]replicationrecoveryplans.RecoveryPlanProtectedItem) []string {
 	protectedItemOutputs := make([]string, 0)
 	for _, protectedItem := range *input {
-		protectedItemOutputs = append(protectedItemOutputs, *protectedItem.Id)
+		protectedItemOutputs = append(protectedItemOutputs, handleAzureSdkForGoBug2824(*protectedItem.Id))
 	}
 	return protectedItemOutputs
 }

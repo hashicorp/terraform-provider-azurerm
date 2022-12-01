@@ -3,6 +3,7 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-09-10/replicationrecoveryplans"
@@ -61,9 +62,22 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withPostActions(t *testing.T) {
 }
 
 func (SiteRecoveryReplicationRecoveryPlan) template(data acceptance.TestData) string {
+	tags := ""
+	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
+		tags = `
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
+`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -223,6 +237,8 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
   network_interface_ids = [azurerm_network_interface.test.id]
+
+ %[5]s
 }
 
 resource "azurerm_storage_account" "test" {
@@ -265,7 +281,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, tags)
 }
 
 func (r SiteRecoveryReplicationRecoveryPlan) basic(data acceptance.TestData) string {
@@ -282,6 +298,14 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   recovery_group {
     group_type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+  }
+
+  recovery_group {
+    group_type = "Failover"
+  }
+
+  recovery_group {
+    group_type = "Shutdown"
   }
 
 }
@@ -311,6 +335,13 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
     }
   }
 
+  recovery_group {
+    group_type = "Failover"
+  }
+
+  recovery_group {
+    group_type = "Shutdown"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -336,6 +367,14 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
       fail_over_types           = ["TestFailover"]
       manual_action_instruction = "test instruction"
     }
+  }
+
+  recovery_group {
+    group_type = "Failover"
+  }
+
+  recovery_group {
+    group_type = "Shutdown"
   }
 
 }
