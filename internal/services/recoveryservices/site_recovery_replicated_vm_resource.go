@@ -125,12 +125,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"target_zone": commonschema.ZoneSingleOptionalForceNew(),
 
-			"target_subnet_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
@@ -406,7 +400,6 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryAvailabilitySetId:          targetAvailabilitySetID,
 				RecoveryAvailabilityZone:           targetAvailabilityZone,
 				MultiVmGroupName:                   utils.String(d.Get("multi_vm_group_name").(string)),
-				RecoverySubnetName:                 utils.String(d.Get("target_subnet_name").(string)),
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
 				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
 				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
@@ -585,6 +578,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("target_recovery_fabric_id", prop.RecoveryFabricId)
 		d.Set("recovery_replication_policy_id", prop.PolicyId)
 		d.Set("target_recovery_protection_container_id", prop.RecoveryContainerId)
+
 		if a2aDetails, isA2a := prop.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
 			d.Set("source_vm_id", a2aDetails.FabricObjectId)
 			d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupId)
