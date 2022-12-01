@@ -151,6 +151,7 @@ func TestAccSiteRecoveryReplicatedVm_targetDiskEncryption(t *testing.T) {
 	})
 }
 
+// TODO: remove the resource group features in this file before ready to review
 func (SiteRecoveryReplicatedVmResource) template(data acceptance.TestData) string {
 	tags := ""
 	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
@@ -164,6 +165,9 @@ func (SiteRecoveryReplicatedVmResource) template(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -398,6 +402,9 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }
@@ -787,7 +794,11 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 func (SiteRecoveryReplicatedVmResource) zone2zone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -968,6 +979,9 @@ provider "azurerm" {
       purge_soft_delete_on_destroy          = false
       purge_soft_deleted_keys_on_destroy    = false
       purge_soft_deleted_secrets_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }
