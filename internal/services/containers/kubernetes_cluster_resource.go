@@ -718,6 +718,24 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 
+						"ebpf_data_plane": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.EbpfDataplaneCilium),
+							}, false),
+						},
+
+						"network_plugin_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"overlay",
+							}, false),
+						},
+
 						"pod_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -2439,6 +2457,13 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		IPFamilies:      ipVersions,
 	}
 
+	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
+		networkProfile.EbpfDataplane = utils.ToPtr(managedclusters.EbpfDataplane(ebpfDataPlane))
+	}
+	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
+		networkProfile.NetworkPluginMode = utils.ToPtr(managedclusters.NetworkPluginMode(networkPluginMode))
+	}
+
 	if len(loadBalancerProfileRaw) > 0 {
 		if !strings.EqualFold(loadBalancerSku, "standard") {
 			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
@@ -2725,15 +2750,25 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 	}
 
+	networkPluginMode := ""
+	if profile.NetworkPluginMode != nil {
+		networkPluginMode = string(*profile.NetworkPluginMode)
+	}
+	ebpfDataPlane := ""
+	if profile.EbpfDataplane != nil {
+		ebpfDataPlane = string(*profile.EbpfDataplane)
+	}
 	return []interface{}{
 		map[string]interface{}{
 			"dns_service_ip":        dnsServiceIP,
 			"docker_bridge_cidr":    dockerBridgeCidr,
+			"ebpf_data_plane":       ebpfDataPlane,
 			"load_balancer_sku":     string(*sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
 			"ip_versions":           ipVersions,
 			"network_plugin":        networkPlugin,
+			"network_plugin_mode":   networkPluginMode,
 			"network_mode":          networkMode,
 			"network_policy":        networkPolicy,
 			"pod_cidr":              podCidr,
