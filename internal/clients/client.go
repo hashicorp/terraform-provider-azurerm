@@ -160,9 +160,8 @@ type Client struct {
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
 
-	Account  *ResourceManagerAccount
-	Features features.UserFeatures
-
+	Account                           *ResourceManagerAccount
+	Features                          features.UserFeatures
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
 	AnalysisServices                  *analysisservices_v2017_08_01.Client
@@ -449,9 +448,13 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
+<<<<<<< HEAD
 	if client.ExtendedLocation, err = extendedlocation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ExtendedLocation: %+v", err)
 	}
+=======
+	client.ExtendedLocation = extendedlocation.NewClient(o)
+>>>>>>> d9fd896b83 (temp)
 	if client.FluidRelay, err = fluidrelay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for FluidRelay: %+v", err)
 	}
