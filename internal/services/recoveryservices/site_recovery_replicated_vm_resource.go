@@ -479,7 +479,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 					RecoverySubnetName:        &targetSubnetName,
 					RecoveryStaticIPAddress:   &targetStaticIp,
 					RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
-					IsPrimary:                 utils.Bool(true), //we only support one ip configured for now.
+					IsPrimary:                 utils.Bool(true), // we only support one ip configured for now.
 				},
 			},
 		})
@@ -686,7 +686,7 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 	disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
 			DisableProtectionReason: &disableProtectionReason,
-			//It's a workaround for https://github.com/hashicorp/pandora/issues/1864
+			// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
 			ReplicationProviderInput: &siterecovery.DisableProtectionProviderSpecificInput{
 				InstanceType: siterecovery.InstanceTypeDisableProtectionProviderSpecificInput,
 			},
