@@ -113,5 +113,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 IoTHub Enrichment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_enrichment.enrichment1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Enrichments/enrichment1
+terraform import azurerm_iothub_enrichment.enrichment1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/enrichments/enrichment1
 ```
