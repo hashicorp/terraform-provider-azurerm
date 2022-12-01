@@ -62,9 +62,9 @@ A `default_auto_shutdown` block supports the following:
 
 * `shutdown_on_disconnect_enabled` - (Required) Is shutdown on disconnect enabled? Possible values are `true` and `false`.
 
-* `shutdown_when_not_connected_enabled` - (Required) Will a VM get shutdown when it hasn't been connected to after a period of time? Possible values are `true` and `false`.
-
 * `shutdown_on_idle` - (Required) Will a VM get shutdown when it has idled for a period of time? Possible values are `UserAbsence`, `LowUsage` and `None`.
+
+* `shutdown_when_not_connected_enabled` - (Required) Will a VM get shutdown when it hasn't been connected to after a period of time? Possible values are `true` and `false`.
 
 ---
 
