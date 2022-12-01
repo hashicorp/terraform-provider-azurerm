@@ -18,7 +18,7 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
-type AutoManageConfigurationProfileModel struct {
+type AutoManageConfigurationModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Configuration     string            `tfschema:"configuration_json"`
@@ -26,23 +26,23 @@ type AutoManageConfigurationProfileModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type AutoManageConfigurationProfileResource struct{}
+type AutoManageConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = AutoManageConfigurationProfileResource{}
+var _ sdk.ResourceWithUpdate = AutoManageConfigurationResource{}
 
-func (r AutoManageConfigurationProfileResource) ResourceType() string {
-	return "azurerm_automanage_configuration_profile"
+func (r AutoManageConfigurationResource) ResourceType() string {
+	return "azurerm_automanage_configuration"
 }
 
-func (r AutoManageConfigurationProfileResource) ModelObject() interface{} {
-	return &AutoManageConfigurationProfileModel{}
+func (r AutoManageConfigurationResource) ModelObject() interface{} {
+	return &AutoManageConfigurationModel{}
 }
 
-func (r AutoManageConfigurationProfileResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AutomanageConfigurationProfileID
+func (r AutoManageConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.AutomanageConfigurationID
 }
 
-func (r AutoManageConfigurationProfileResource) Arguments() map[string]*pluginsdk.Schema {
+func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -66,22 +66,22 @@ func (r AutoManageConfigurationProfileResource) Arguments() map[string]*pluginsd
 	}
 }
 
-func (r AutoManageConfigurationProfileResource) Attributes() map[string]*pluginsdk.Schema {
+func (r AutoManageConfigurationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AutoManageConfigurationProfileResource) Create() sdk.ResourceFunc {
+func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model AutoManageConfigurationProfileModel
+			var model AutoManageConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Automanage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := parse.NewAutomanageConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := parse.NewAutomanageConfigurationID(subscriptionId, model.ResourceGroupName, model.Name)
 			existing, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -116,18 +116,18 @@ func (r AutoManageConfigurationProfileResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AutoManageConfigurationProfileResource) Update() sdk.ResourceFunc {
+func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationClient
 
-			id, err := parse.AutomanageConfigurationProfileID(metadata.ResourceData.Id())
+			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model AutoManageConfigurationProfileModel
+			var model AutoManageConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -162,13 +162,13 @@ func (r AutoManageConfigurationProfileResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AutoManageConfigurationProfileResource) Read() sdk.ResourceFunc {
+func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationClient
 
-			id, err := parse.AutomanageConfigurationProfileID(metadata.ResourceData.Id())
+			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -182,7 +182,7 @@ func (r AutoManageConfigurationProfileResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := AutoManageConfigurationProfileModel{
+			state := AutoManageConfigurationModel{
 				Name:              id.ConfigurationProfileName,
 				ResourceGroupName: id.ResourceGroup,
 				Location:          location.NormalizeNilable(resp.Location),
@@ -207,13 +207,13 @@ func (r AutoManageConfigurationProfileResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AutoManageConfigurationProfileResource) Delete() sdk.ResourceFunc {
+func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationProfileClient
+			client := metadata.Client.Automanage.ConfigurationClient
 
-			id, err := parse.AutomanageConfigurationProfileID(metadata.ResourceData.Id())
+			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

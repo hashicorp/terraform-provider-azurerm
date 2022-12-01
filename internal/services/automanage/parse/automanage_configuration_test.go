@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = AutomanageConfigurationProfileId{}
+var _ resourceids.Id = AutomanageConfigurationId{}
 
-func TestAutomanageConfigurationProfileIDFormatter(t *testing.T) {
-	actual := NewAutomanageConfigurationProfileID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "configurationProfile1").ID()
+func TestAutomanageConfigurationIDFormatter(t *testing.T) {
+	actual := NewAutomanageConfigurationID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "configurationProfile1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestAutomanageConfigurationProfileID(t *testing.T) {
+func TestAutomanageConfigurationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AutomanageConfigurationProfileId
+		Expected *AutomanageConfigurationId
 	}{
 
 		{
@@ -70,7 +70,7 @@ func TestAutomanageConfigurationProfileID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1",
-			Expected: &AutomanageConfigurationProfileId{
+			Expected: &AutomanageConfigurationId{
 				SubscriptionId:           "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:            "resourceGroup1",
 				ConfigurationProfileName: "configurationProfile1",
@@ -87,7 +87,7 @@ func TestAutomanageConfigurationProfileID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := AutomanageConfigurationProfileID(v.Input)
+		actual, err := AutomanageConfigurationID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

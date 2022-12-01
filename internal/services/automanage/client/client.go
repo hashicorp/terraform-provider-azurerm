@@ -6,7 +6,7 @@ import (
 )
 
 type Client struct {
-	ConfigurationProfileClient *automanage.ConfigurationProfilesClient
+	ConfigurationClient *automanage.ConfigurationProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -14,6 +14,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&configurationProfileClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ConfigurationProfileClient: &configurationProfileClient,
+		ConfigurationClient: &configurationProfileClient,
 	}
 }

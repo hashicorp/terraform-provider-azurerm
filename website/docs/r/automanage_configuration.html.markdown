@@ -1,12 +1,12 @@
 ---
 subcategory: "Automanage"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automanage_configuration_profile"
+page_title: "Azure Resource Manager: azurerm_automanage_configuration"
 description: |-
   Manages a automanage ConfigurationProfile.
 ---
 
-# azurerm_automanage_configuration_profile
+# azurerm_automanage_configuration
 
 Manages a automanage ConfigurationProfile.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_automanage_configuration_profile" "example" {
+resource "azurerm_automanage_configuration" "example" {
   name                = "example-configurationprofile"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -74,5 +74,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 automanage ConfigurationProfiles can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automanage_configuration_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1
+terraform import azurerm_automanage_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1
 ```

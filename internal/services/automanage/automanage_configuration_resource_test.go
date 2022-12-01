@@ -17,7 +17,7 @@ import (
 type AutoManageConfigurationProfileResource struct{}
 
 func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
 	r := AutoManageConfigurationProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
 }
 
 func TestAccAutoManageConfigurationProfile_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
 	r := AutoManageConfigurationProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccAutoManageConfigurationProfile_requiresImport(t *testing.T) {
 }
 
 func TestAccAutoManageConfigurationProfile_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
 	r := AutoManageConfigurationProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccAutoManageConfigurationProfile_complete(t *testing.T) {
 }
 
 func TestAccAutoManageConfigurationProfile_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
 	r := AutoManageConfigurationProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,12 +80,12 @@ func TestAccAutoManageConfigurationProfile_update(t *testing.T) {
 }
 
 func (r AutoManageConfigurationProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AutomanageConfigurationProfileID(state.ID)
+	id, err := parse.AutomanageConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Automanage.ConfigurationProfileClient
+	client := clients.Automanage.ConfigurationClient
 	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
@@ -114,7 +114,7 @@ func (r AutoManageConfigurationProfileResource) basic(data acceptance.TestData) 
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_automanage_configuration_profile" "test" {
+resource "azurerm_automanage_configuration" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
@@ -138,8 +138,8 @@ func (r AutoManageConfigurationProfileResource) requiresImport(data acceptance.T
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_automanage_configuration_profile" "import" {
-  name                = azurerm_automanage_configuration_profile.test.name
+resource "azurerm_automanage_configuration" "import" {
+  name                = azurerm_automanage_configuration.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   configuration_json = jsonencode({
@@ -162,7 +162,7 @@ func (r AutoManageConfigurationProfileResource) complete(data acceptance.TestDat
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_automanage_configuration_profile" "test" {
+resource "azurerm_automanage_configuration" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
@@ -190,7 +190,7 @@ func (r AutoManageConfigurationProfileResource) update(data acceptance.TestData)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_automanage_configuration_profile" "test" {
+resource "azurerm_automanage_configuration" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"

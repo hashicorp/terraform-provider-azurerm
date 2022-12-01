@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestAutomanageConfigurationProfileID(t *testing.T) {
+func TestAutomanageConfigurationID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -66,7 +66,7 @@ func TestAutomanageConfigurationProfileID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := AutomanageConfigurationProfileID(tc.Input, "test")
+		_, errors := AutomanageConfigurationID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
