@@ -88,7 +88,7 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"allowed_regions": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
 			MaxItems: 28,
