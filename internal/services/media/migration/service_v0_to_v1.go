@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01/accounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
