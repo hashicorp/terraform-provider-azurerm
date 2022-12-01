@@ -140,8 +140,6 @@ The following arguments are supported:
 
 * `filter` - (Optional) One or more `filter` blocks as defined below. Changing this forces a new resource to be created.
 
-* `target_type` - (Optional) The target type of the resource provided. Possible values are `AzureVM` and `AzureVMSS`. Defaults to `AzureVM`. Changing this forces a new resource to be created.
-
 * `machine_scope` - (Optional) A `machine_scope` block as defined below. Changing this forces a new resource to be created.
 
 ---

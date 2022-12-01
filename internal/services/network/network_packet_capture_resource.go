@@ -66,17 +66,6 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 				),
 			},
 
-			"target_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(network.PacketCaptureTargetTypeAzureVM),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.PacketCaptureTargetTypeAzureVM),
-					string(network.PacketCaptureTargetTypeAzureVMSS),
-				}, false),
-			},
-
 			"maximum_bytes_per_packet": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -229,16 +218,13 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 	properties := network.PacketCapture{
 		PacketCaptureParameters: &network.PacketCaptureParameters{
 			Target:                  utils.String(targetResourceId),
+			TargetType:              getNetworkPacketCaptureTargetType(targetResourceId),
 			StorageLocation:         storageLocation,
 			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
 			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
 			Filters:                 expandNetworkPacketCaptureFilters(d),
 		},
-	}
-
-	if v, ok := d.GetOk("target_type"); ok {
-		properties.PacketCaptureParameters.TargetType = network.PacketCaptureTargetType(v.(string))
 	}
 
 	if v, ok := d.GetOk("machine_scope"); ok {
@@ -307,12 +293,6 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("machine_scope", scope); err != nil {
 			return fmt.Errorf(`setting "machine_scope": %+v`, err)
 		}
-
-		targetType := network.PacketCaptureTargetTypeAzureVM
-		if props.TargetType != "" {
-			targetType = props.TargetType
-		}
-		d.Set("target_type", targetType)
 	}
 
 	return nil
@@ -504,4 +484,16 @@ func flattenNetworkPacketCaptureScopeInstanceIds(input *[]string) ([]string, err
 	}
 
 	return instances, nil
+}
+
+func getNetworkPacketCaptureTargetType(targetResourceId string) network.PacketCaptureTargetType {
+	var targetType network.PacketCaptureTargetType
+
+	if _, err := computeParse.VirtualMachineID(targetResourceId); err == nil {
+		targetType = network.PacketCaptureTargetTypeAzureVM
+	} else if _, err := computeParse.VirtualMachineScaleSetID(targetResourceId); err == nil {
+		targetType = network.PacketCaptureTargetTypeAzureVMSS
+	}
+
+	return targetType
 }

@@ -422,8 +422,6 @@ resource "azurerm_network_packet_capture" "test" {
     file_path = "/var/captures/packet.cap"
   }
 
-  target_type = "AzureVMSS"
-
   machine_scope {
     include_instance_ids = ["0", "1"]
     exclude_instance_ids = ["2", "3"]
