@@ -91,7 +91,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** Cluster Auto-Upgrade only updates to GA versions of Kubernetes and will not update to Preview versions.
 
-* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to allow for incoming traffic to the server nodes.
+* `api_server_authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
