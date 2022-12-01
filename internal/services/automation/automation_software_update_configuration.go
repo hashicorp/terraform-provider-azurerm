@@ -49,10 +49,11 @@ func (a *AzureQuery) LoadSDKTags(tags map[string][]string) {
 	}
 }
 func (a *AzureQuery) ToSDKTags() map[string][]string {
-	if len(a.Tags) == 0 {
-		return nil
-	}
 	m := map[string][]string{}
+	if len(a.Tags) == 0 {
+		// return an empty map instead of nil until issue fixed: https://github.com/Azure/azure-rest-api-specs/issues/21719
+		return m
+	}
 	for _, tag := range a.Tags {
 		m[tag.Tag] = tag.Values
 	}
@@ -355,7 +356,11 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 			}
 			tag := automation.TagSettingsProperties{}
 			tag.Tags = az.ToSDKTags()
-			tag.FilterOperator = automation.TagOperators(az.TagFilter)
+			// always set filterOperator until issue fixed: https://github.com/Azure/azure-rest-api-specs/issues/21719
+			tag.FilterOperator = automation.TagOperatorsAll
+			if az.TagFilter != "" {
+				tag.FilterOperator = automation.TagOperators(az.TagFilter)
+			}
 			q.TagSettings = &tag
 			azureQueries = append(azureQueries, q)
 		}
