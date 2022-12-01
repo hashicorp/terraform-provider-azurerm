@@ -27,7 +27,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			//This resource was merged starting at SchemaVersion:1
 			0: migration.RulesEngineV0ToV1{},
 			1: migration.RulesEngineV1ToV2{},
 		}),
