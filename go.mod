@@ -2,7 +2,7 @@ module github.com/hashicorp/terraform-provider-azurerm
 
 require (
 	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.11.27
+	github.com/Azure/go-autorest/autorest v0.11.28
 	github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
@@ -15,6 +15,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-azure-helpers v0.47.0
 	github.com/hashicorp/go-azure-sdk v0.20221129.1151133
+	github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork v0.0.0-00010101000000-000000000000
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
@@ -26,7 +27,7 @@ require (
 	github.com/sergi/go-diff v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
 	github.com/tombuildsstuff/kermit v0.20221125.1100802
-	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
+	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -89,3 +90,5 @@ require (
 )
 
 go 1.19
+
+replace github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork => /Users/tengzh/repo/pandora_sdk/resource-manager/mobilenetwork

@@ -1,0 +1,817 @@
+package mobilenetwork
+
+import (
+	"context"
+	"fmt"
+	"regexp"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/mobilenetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+type ServiceModel struct {
+	Name                         string                      `tfschema:"name"`
+	MobileNetworkMobileNetworkId string                      `tfschema:"mobile_network_id"`
+	Location                     string                      `tfschema:"location"`
+	PccRules                     []PccRuleConfigurationModel `tfschema:"pcc_rules"`
+	ServicePrecedence            int64                       `tfschema:"service_precedence"`
+	ServiceQosPolicy             []QosPolicyModel            `tfschema:"service_qos_policy"`
+	Tags                         map[string]string           `tfschema:"tags"`
+}
+
+type PccRuleConfigurationModel struct {
+	RuleName                 string                         `tfschema:"rule_name"`
+	RulePrecedence           int64                          `tfschema:"rule_precedence"`
+	RuleQosPolicy            []PccRuleQosPolicyModel        `tfschema:"rule_qos_policy"`
+	ServiceDataFlowTemplates []ServiceDataFlowTemplateModel `tfschema:"service_data_flow_templates"`
+	TrafficControlEnabled    bool                           `tfschema:"traffic_control_enabled"`
+}
+
+type PccRuleQosPolicyModel struct {
+	AllocationAndRetentionPriorityLevel int64                           `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64                           `tfschema:"qos_indicator"`
+	GuaranteedBitRate                   []maxBitRateModel               `tfschema:"guaranteed_bit_rate"`
+	MaximumBitRate                      []maxBitRateModel               `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                service.PreemptionCapability    `tfschema:"preemption_capability"`
+	PreemptionVulnerability             service.PreemptionVulnerability `tfschema:"preemption_vulnerability"`
+}
+
+type maxBitRateModel struct {
+	Downlink string `tfschema:"downlink"`
+	Uplink   string `tfschema:"uplink"`
+}
+
+type ServiceDataFlowTemplateModel struct {
+	Direction    service.SdfDirection `tfschema:"direction"`
+	Ports        []string             `tfschema:"ports"`
+	Protocol     []string             `tfschema:"protocol"`
+	RemoteIPList []string             `tfschema:"remote_ip_list"`
+	TemplateName string               `tfschema:"template_name"`
+}
+
+type QosPolicyModel struct {
+	AllocationAndRetentionPriorityLevel int64                           `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64                           `tfschema:"qos_indicator"`
+	MaximumBitRate                      []maxBitRateModel               `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                service.PreemptionCapability    `tfschema:"preemption_capability"`
+	PreemptionVulnerability             service.PreemptionVulnerability `tfschema:"preemption_vulnerability"`
+}
+
+type MobileNetworkServiceResource struct{}
+
+var _ sdk.ResourceWithUpdate = MobileNetworkServiceResource{}
+
+func (r MobileNetworkServiceResource) ResourceType() string {
+	return "azurerm_mobile_network_service"
+}
+
+func (r MobileNetworkServiceResource) ModelObject() interface{} {
+	return &ServiceModel{}
+}
+
+func (r MobileNetworkServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return service.ValidateServiceID
+}
+
+func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"mobile_network_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: mobilenetwork.ValidateMobileNetworkID,
+		},
+
+		"location": commonschema.Location(),
+
+		"pcc_rules": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"rule_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringLenBetween(1, 64),
+					},
+
+					"rule_precedence": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(0, 255),
+					},
+
+					"rule_qos_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"allocation_and_retention_priority_level": {
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+								},
+
+								"qos_indicator": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntAtLeast(1),
+								},
+
+								"guaranteed_bit_rate": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"downlink": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringMatch(
+													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
+													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
+												)},
+
+											"uplink": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringMatch(
+													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
+													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
+												)},
+										},
+									},
+								},
+
+								"maximum_bit_rate": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"downlink": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringMatch(
+													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
+													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
+												)},
+
+											"uplink": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringMatch(
+													regexp.MustCompile(`^([1-9]\d*|0)(\.\d+)?\s(Kbps|Mbps|Gbps|Tbps)$`),
+													"The value must be a number followed by Kbps, Mbps, Gbps or Tbps.",
+												)},
+										},
+									},
+								},
+
+								"preemption_capability": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(service.PreemptionCapabilityNotPreempt),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(service.PreemptionCapabilityNotPreempt),
+										string(service.PreemptionCapabilityMayPreempt),
+									}, false),
+								},
+
+								"preemption_vulnerability": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(service.PreemptionVulnerabilityPreemptable),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(service.PreemptionVulnerabilityNotPreemptable),
+										string(service.PreemptionVulnerabilityPreemptable),
+									}, false),
+								},
+							},
+						},
+					},
+
+					"service_data_flow_templates": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"direction": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(service.SdfDirectionUplink),
+										string(service.SdfDirectionDownlink),
+										string(service.SdfDirectionBidirectional),
+									}, false),
+								},
+
+								"ports": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								"protocol": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								"remote_ip_list": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								"template_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+
+					"traffic_control_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+
+		"service_precedence": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(0, 255),
+		},
+
+		"service_qos_policy": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"allocation_and_retention_priority_level": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      9,
+						ValidateFunc: validation.IntBetween(1, 127),
+					},
+
+					"qos_indicator": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"maximum_bit_rate": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"downlink": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^\d+(\\.\\d+)?\s(bps|Kbps|Mbps|Gbps|Tbps)$`),
+										"The value must be a number followed by bps, Kbps, Mbps, Gbps or Tbps.",
+									)},
+
+								"uplink": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^\d+(\\.\\d+)?\s(bps|Kbps|Mbps|Gbps|Tbps)$`),
+										"The value must be a number followed by bps, Kbps, Mbps, Gbps or Tbps.",
+									)},
+							},
+						},
+					},
+
+					"preemption_capability": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(service.PreemptionCapabilityNotPreempt),
+							string(service.PreemptionCapabilityMayPreempt),
+						}, false),
+					},
+
+					"preemption_vulnerability": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(service.PreemptionVulnerabilityNotPreemptable),
+							string(service.PreemptionVulnerabilityPreemptable),
+						}, false),
+					},
+				},
+			},
+		},
+
+		"tags": commonschema.Tags(),
+	}
+}
+
+func (r MobileNetworkServiceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model ServiceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			client := metadata.Client.MobileNetwork.ServiceClient
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkMobileNetworkId)
+			if err != nil {
+				return err
+			}
+
+			id := service.NewServiceID(mobileNetworkId.SubscriptionId, mobileNetworkId.ResourceGroupName, mobileNetworkId.MobileNetworkName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			properties := &service.Service{
+				Location: location.Normalize(model.Location),
+				Properties: service.ServicePropertiesFormat{
+					ServicePrecedence: model.ServicePrecedence,
+				},
+				Tags: &model.Tags,
+			}
+
+			pccRulesValue, err := expandPccRuleConfigurationModel(model.PccRules)
+			if err != nil {
+				return err
+			}
+
+			if pccRulesValue != nil {
+				properties.Properties.PccRules = *pccRulesValue
+			}
+
+			serviceQosPolicyValue, err := expandQosPolicyModel(model.ServiceQosPolicy)
+			if err != nil {
+				return err
+			}
+
+			properties.Properties.ServiceQosPolicy = serviceQosPolicyValue
+
+			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MobileNetwork.ServiceClient
+
+			id, err := service.ParseServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model ServiceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			properties := resp.Model
+			if properties == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", id)
+			}
+
+			if metadata.ResourceData.HasChange("pcc_rules") {
+				pccRulesValue, err := expandPccRuleConfigurationModel(model.PccRules)
+				if err != nil {
+					return err
+				}
+
+				if pccRulesValue != nil {
+					properties.Properties.PccRules = *pccRulesValue
+				}
+			}
+
+			if metadata.ResourceData.HasChange("service_precedence") {
+				properties.Properties.ServicePrecedence = model.ServicePrecedence
+			}
+
+			if metadata.ResourceData.HasChange("service_qos_policy") {
+				serviceQosPolicyValue, err := expandQosPolicyModel(model.ServiceQosPolicy)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.ServiceQosPolicy = serviceQosPolicyValue
+			}
+
+			properties.SystemData = nil
+
+			if metadata.ResourceData.HasChange("tags") {
+				properties.Tags = &model.Tags
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MobileNetwork.ServiceClient
+
+			id, err := service.ParseServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			model := resp.Model
+			if model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
+			}
+
+			state := ServiceModel{
+				Name:                         id.ServiceName,
+				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Location:                     location.Normalize(model.Location),
+			}
+
+			properties := &model.Properties
+			pccRulesValue, err := flattenPccRuleConfigurationModel(&properties.PccRules)
+			if err != nil {
+				return err
+			}
+
+			state.PccRules = pccRulesValue
+
+			state.ServicePrecedence = properties.ServicePrecedence
+
+			serviceQosPolicyValue, err := flattenQosPolicyModel(properties.ServiceQosPolicy)
+			if err != nil {
+				return err
+			}
+
+			state.ServiceQosPolicy = serviceQosPolicyValue
+			if model.Tags != nil {
+				state.Tags = *model.Tags
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r MobileNetworkServiceResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MobileNetwork.ServiceClient
+
+			id, err := service.ParseServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandPccRuleConfigurationModel(inputList []PccRuleConfigurationModel) (*[]service.PccRuleConfiguration, error) {
+	var outputList []service.PccRuleConfiguration
+	for _, v := range inputList {
+		input := v
+		output := service.PccRuleConfiguration{
+			RuleName:       input.RuleName,
+			RulePrecedence: input.RulePrecedence,
+		}
+
+		trafficControlValue := service.TrafficControlPermissionBlocked
+		if input.TrafficControlEnabled {
+			trafficControlValue = service.TrafficControlPermissionEnabled
+		}
+		output.TrafficControl = &trafficControlValue
+
+		ruleQosPolicyValue, err := expandPccRuleQosPolicyModel(input.RuleQosPolicy)
+		if err != nil {
+			return nil, err
+		}
+
+		output.RuleQosPolicy = ruleQosPolicyValue
+
+		serviceDataFlowTemplatesValue, err := expandServiceDataFlowTemplateModel(input.ServiceDataFlowTemplates)
+		if err != nil {
+			return nil, err
+		}
+
+		if serviceDataFlowTemplatesValue != nil {
+			output.ServiceDataFlowTemplates = serviceDataFlowTemplatesValue
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return &outputList, nil
+}
+
+func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) (*service.PccRuleQosPolicy, error) {
+	if len(inputList) == 0 {
+		return nil, nil
+	}
+
+	input := &inputList[0]
+	output := service.PccRuleQosPolicy{
+		AllocationAndRetentionPriorityLevel: &input.AllocationAndRetentionPriorityLevel,
+		Fiveqi:                              &input.QosIdentifier,
+		PreemptionCapability:                &input.PreemptionCapability,
+		PreemptionVulnerability:             &input.PreemptionVulnerability,
+	}
+
+	guaranteedBitRateValue, err := expandMaxBitRateModel(input.GuaranteedBitRate)
+	if err != nil {
+		return nil, err
+	}
+
+	output.GuaranteedBitRate = guaranteedBitRateValue
+
+	maximumBitRateValue, err := expandMaxBitRateModel(input.MaximumBitRate)
+	if err != nil {
+		return nil, err
+	}
+
+	if maximumBitRateValue != nil {
+		output.MaximumBitRate = *maximumBitRateValue
+	}
+
+	return &output, nil
+}
+
+func expandServiceDataFlowTemplateModel(inputList []ServiceDataFlowTemplateModel) ([]service.ServiceDataFlowTemplate, error) {
+	outputList := make([]service.ServiceDataFlowTemplate, 0)
+	for _, v := range inputList {
+		input := v
+		output := service.ServiceDataFlowTemplate{
+			Direction:    input.Direction,
+			Ports:        &input.Ports,
+			Protocol:     input.Protocol,
+			RemoteIPList: input.RemoteIPList,
+			TemplateName: input.TemplateName,
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList, nil
+}
+
+func expandQosPolicyModel(inputList []QosPolicyModel) (*service.QosPolicy, error) {
+	if len(inputList) == 0 {
+		return nil, nil
+	}
+
+	input := &inputList[0]
+	output := service.QosPolicy{
+		AllocationAndRetentionPriorityLevel: &input.AllocationAndRetentionPriorityLevel,
+		Fiveqi:                              &input.QosIdentifier,
+		PreemptionCapability:                &input.PreemptionCapability,
+		PreemptionVulnerability:             &input.PreemptionVulnerability,
+	}
+
+	maximumBitRateValue, err := expandMaxBitRateModel(input.MaximumBitRate)
+	if err != nil {
+		return nil, err
+	}
+
+	if maximumBitRateValue != nil {
+		output.MaximumBitRate = *maximumBitRateValue
+	}
+
+	return &output, nil
+}
+
+func flattenPccRuleConfigurationModel(inputList *[]service.PccRuleConfiguration) ([]PccRuleConfigurationModel, error) {
+	var outputList []PccRuleConfigurationModel
+	if inputList == nil {
+		return outputList, nil
+	}
+
+	for _, input := range *inputList {
+		output := PccRuleConfigurationModel{
+			RuleName:       input.RuleName,
+			RulePrecedence: input.RulePrecedence,
+		}
+
+		ruleQosPolicyValue, err := flattenPccRuleQosPolicyModel(input.RuleQosPolicy)
+		if err != nil {
+			return nil, err
+		}
+
+		output.RuleQosPolicy = ruleQosPolicyValue
+
+		serviceDataFlowTemplatesValue, err := flattenServiceDataFlowTemplateModel(&input.ServiceDataFlowTemplates)
+		if err != nil {
+			return nil, err
+		}
+
+		output.ServiceDataFlowTemplates = serviceDataFlowTemplatesValue
+
+		if input.TrafficControl != nil {
+			output.TrafficControlEnabled = *input.TrafficControl == service.TrafficControlPermissionEnabled
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList, nil
+}
+
+func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) ([]PccRuleQosPolicyModel, error) {
+	var outputList []PccRuleQosPolicyModel
+	if input == nil {
+		return outputList, nil
+	}
+
+	output := PccRuleQosPolicyModel{}
+
+	if input.AllocationAndRetentionPriorityLevel != nil {
+		output.AllocationAndRetentionPriorityLevel = *input.AllocationAndRetentionPriorityLevel
+	}
+
+	if input.Fiveqi != nil {
+		output.QosIdentifier = *input.Fiveqi
+	}
+
+	guaranteedBitRateValue, err := flattenMaxBitRateModel(input.GuaranteedBitRate)
+	if err != nil {
+		return nil, err
+	}
+
+	output.GuaranteedBitRate = guaranteedBitRateValue
+
+	maximumBitRateValue, err := flattenMaxBitRateModel(&input.MaximumBitRate)
+	if err != nil {
+		return nil, err
+	}
+
+	output.MaximumBitRate = maximumBitRateValue
+
+	if input.PreemptionCapability != nil {
+		output.PreemptionCapability = *input.PreemptionCapability
+	}
+
+	if input.PreemptionVulnerability != nil {
+		output.PreemptionVulnerability = *input.PreemptionVulnerability
+	}
+
+	return append(outputList, output), nil
+}
+
+func flattenServiceDataFlowTemplateModel(inputList *[]service.ServiceDataFlowTemplate) ([]ServiceDataFlowTemplateModel, error) {
+	var outputList []ServiceDataFlowTemplateModel
+	if inputList == nil {
+		return outputList, nil
+	}
+
+	for _, input := range *inputList {
+		output := ServiceDataFlowTemplateModel{
+			Direction:    input.Direction,
+			Protocol:     input.Protocol,
+			RemoteIPList: input.RemoteIPList,
+			TemplateName: input.TemplateName,
+		}
+
+		if input.Ports != nil {
+			output.Ports = *input.Ports
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList, nil
+}
+
+func flattenQosPolicyModel(input *service.QosPolicy) ([]QosPolicyModel, error) {
+	var outputList []QosPolicyModel
+	if input == nil {
+		return outputList, nil
+	}
+
+	output := QosPolicyModel{}
+
+	if input.AllocationAndRetentionPriorityLevel != nil {
+		output.AllocationAndRetentionPriorityLevel = *input.AllocationAndRetentionPriorityLevel
+	}
+
+	if input.Fiveqi != nil {
+		output.QosIdentifier = *input.Fiveqi
+	}
+
+	maximumBitRateValue, err := flattenMaxBitRateModel(&input.MaximumBitRate)
+	if err != nil {
+		return nil, err
+	}
+
+	output.MaximumBitRate = maximumBitRateValue
+
+	if input.PreemptionCapability != nil {
+		output.PreemptionCapability = *input.PreemptionCapability
+	}
+
+	if input.PreemptionVulnerability != nil {
+		output.PreemptionVulnerability = *input.PreemptionVulnerability
+	}
+
+	return append(outputList, output), nil
+}
+
+func expandMaxBitRateModel(inputList []maxBitRateModel) (*service.Ambr, error) {
+	if len(inputList) == 0 {
+		return nil, nil
+	}
+
+	input := &inputList[0]
+	output := service.Ambr{
+		Downlink: input.Downlink,
+		Uplink:   input.Uplink,
+	}
+
+	return &output, nil
+}
+
+func flattenMaxBitRateModel(input *service.Ambr) ([]maxBitRateModel, error) {
+	var outputList []maxBitRateModel
+	if input == nil {
+		return outputList, nil
+	}
+
+	output := maxBitRateModel{
+		Downlink: input.Downlink,
+		Uplink:   input.Uplink,
+	}
+
+	return append(outputList, output), nil
+}
