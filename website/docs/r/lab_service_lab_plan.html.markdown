@@ -10,6 +10,8 @@ description: |-
 
 Manages a Lab Service Lab Plan.
 
+-> **Note:** Before using this resource, it's required to submit the request of registering the provider with Azure CLI `az provider register --namespace Microsoft.LabServices`.
+
 ## Example Usage
 
 ```hcl
@@ -45,6 +47,8 @@ The following arguments are supported:
 * `default_network` - (Optional) A `default_network` block as defined below.
 
 * `shared_gallery_id` - (Optional) The resource ID of the Shared Image Gallery attached to this Lab Service Lab Plan. When saving a lab template virtual machine image it will be persisted in this gallery. The shared images from the gallery can be made available to use when creating new labs.
+
+~> **NOTE:** The built-in `Azure Lab Services` Service Principal needs to be assigned to the Shared Image Gallery while using this property.
 
 * `support` - (Optional) A `support` block as defined below.
 
