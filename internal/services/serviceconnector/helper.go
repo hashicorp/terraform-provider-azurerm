@@ -122,7 +122,6 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 			SecretInfo: servicelinker.ValueSecretInfo{
 				Value: utils.String(secret),
 			},
-			//SecretInfo: servicelinker.SecretInfoBase(secret),
 		}, nil
 
 	case servicelinker.AuthTypeSystemAssignedIdentity:
