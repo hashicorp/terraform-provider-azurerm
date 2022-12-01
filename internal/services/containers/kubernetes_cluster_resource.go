@@ -30,6 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -61,6 +62,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return old != "" && new == ""
 			}),
 			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.root_domain", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
+			pluginsdk.ForceNewIfChange("vnet_integration_subnet_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
 		),
@@ -1006,6 +1010,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
+			"vnet_integration_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
+
 			"windows_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1179,6 +1189,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
 		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 		DisableRunCommand:              utils.Bool(!d.Get("run_command_enabled").(bool)),
+	}
+
+	if subnetId := d.Get("vnet_integration_subnet_id").(string); subnetId != "" {
+		apiAccessProfile.EnableVnetIntegration = utils.Bool(true)
+		apiAccessProfile.SubnetId = utils.String(subnetId)
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -1490,6 +1505,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("private_cluster_public_fqdn_enabled") {
 		updateCluster = true
 		existing.Model.Properties.ApiServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
+	}
+
+	if d.HasChange("vnet_integration_subnet_id") {
+		updateCluster = true
+		if existing.Model.Properties.ApiServerAccessProfile == nil {
+			existing.Model.Properties.ApiServerAccessProfile = &managedclusters.ManagedClusterAPIServerAccessProfile{}
+		}
+		existing.Model.Properties.ApiServerAccessProfile.EnableVnetIntegration = utils.Bool(true)
+		existing.Model.Properties.ApiServerAccessProfile.SubnetId = utils.String(d.Get("vnet_integration_subnet_id").(string))
 	}
 
 	if d.HasChange("run_command_enabled") {
@@ -1936,6 +1960,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			if accessProfile.DisableRunCommand != nil {
 				runCommandEnabled = !*accessProfile.DisableRunCommand
+			}
+			if accessProfile.SubnetId != nil && len(*accessProfile.SubnetId) != 0 {
+				d.Set("vnet_integration_subnet_id", *accessProfile.SubnetId)
 			}
 			switch {
 			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
