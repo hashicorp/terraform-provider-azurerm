@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Logic App Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Logic App Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Logic App. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -141,7 +141,7 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data) Changing this forces a new resource to be created.
+* `storage_account_name` - (Required) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data). Changing this forces a new resource to be created.
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Logic App
 
