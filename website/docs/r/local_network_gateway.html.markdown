@@ -31,8 +31,7 @@ resource "azurerm_local_network_gateway" "home" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the local network gateway. Changing this Changing this forces a new resource to be created.
-    forces a new resource to be created.
+* `name` - (Required) The name of the local network gateway. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the local network gateway.
