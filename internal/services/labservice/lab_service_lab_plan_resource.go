@@ -3,6 +3,7 @@ package labservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -19,16 +20,16 @@ import (
 )
 
 type LabServiceLabPlanModel struct {
-	Name                string                `tfschema:"name"`
-	ResourceGroupName   string                `tfschema:"resource_group_name"`
-	Location            string                `tfschema:"location"`
-	AllowedRegions      []string              `tfschema:"allowed_regions"`
-	DefaultAutoShutdown []DefaultAutoShutdown `tfschema:"default_auto_shutdown"`
-	DefaultConnection   []DefaultConnection   `tfschema:"default_connection"`
-	DefaultNetwork      []DefaultNetwork      `tfschema:"default_network"`
-	SharedGalleryId     string                `tfschema:"shared_gallery_id"`
-	Support             []Support             `tfschema:"support"`
-	Tags                map[string]string     `tfschema:"tags"`
+	Name                   string                `tfschema:"name"`
+	ResourceGroupName      string                `tfschema:"resource_group_name"`
+	Location               string                `tfschema:"location"`
+	AllowedRegions         []string              `tfschema:"allowed_regions"`
+	DefaultAutoShutdown    []DefaultAutoShutdown `tfschema:"default_auto_shutdown"`
+	DefaultConnection      []DefaultConnection   `tfschema:"default_connection"`
+	DefaultNetworkSubnetId string                `tfschema:"default_network_subnet_id"`
+	SharedGalleryId        string                `tfschema:"shared_gallery_id"`
+	Support                []Support             `tfschema:"support"`
+	Tags                   map[string]string     `tfschema:"tags"`
 }
 
 type DefaultAutoShutdown struct {
@@ -45,10 +46,6 @@ type DefaultConnection struct {
 	ClientSshAccess labplan.ConnectionType `tfschema:"client_ssh_access"`
 	WebRdpAccess    labplan.ConnectionType `tfschema:"web_rdp_access"`
 	WebSshAccess    labplan.ConnectionType `tfschema:"web_ssh_access"`
-}
-
-type DefaultNetwork struct {
-	SubnetId string `tfschema:"subnet_id"`
 }
 
 type Support struct {
@@ -129,19 +126,18 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 						Required: true,
 					},
 
-					"shutdown_on_idle": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(labplan.ShutdownOnIdleModeUserAbsence),
-							string(labplan.ShutdownOnIdleModeLowUsage),
-							string(labplan.ShutdownOnIdleModeNone),
-						}, false),
-					},
-
 					"shutdown_when_not_connected_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
+					},
+
+					"shutdown_on_idle": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(labplan.ShutdownOnIdleModeUserAbsence),
+							string(labplan.ShutdownOnIdleModeLowUsage),
+						}, false),
 					},
 				},
 			},
@@ -155,9 +151,8 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"client_rdp_access": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(labplan.ConnectionTypeNone),
 							string(labplan.ConnectionTypePrivate),
 							string(labplan.ConnectionTypePublic),
 						}, false),
@@ -165,9 +160,8 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"client_ssh_access": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(labplan.ConnectionTypeNone),
 							string(labplan.ConnectionTypePrivate),
 							string(labplan.ConnectionTypePublic),
 						}, false),
@@ -175,9 +169,8 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"web_rdp_access": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(labplan.ConnectionTypeNone),
 							string(labplan.ConnectionTypePrivate),
 							string(labplan.ConnectionTypePublic),
 						}, false),
@@ -185,9 +178,8 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"web_ssh_access": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(labplan.ConnectionTypeNone),
 							string(labplan.ConnectionTypePrivate),
 							string(labplan.ConnectionTypePublic),
 						}, false),
@@ -196,19 +188,10 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"default_network": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: networkValidate.SubnetID,
-					},
-				},
-			},
+		"default_network_subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
 		},
 
 		"shared_gallery_id": {
@@ -283,35 +266,14 @@ func (r LabServiceLabPlanResource) Create() sdk.ResourceFunc {
 			props := &labplan.LabPlan{
 				Location: location.Normalize(model.Location),
 				Properties: labplan.LabPlanProperties{
-					AllowedRegions: normalizeAllowedRegions(model.AllowedRegions),
+					AllowedRegions:             normalizeAllowedRegions(model.AllowedRegions),
+					DefaultAutoShutdownProfile: expandDefaultAutoShutdown(model.DefaultAutoShutdown),
+					DefaultConnectionProfile:   expandDefaultConnection(model.DefaultConnection),
+					DefaultNetworkProfile:      expandDefaultNetwork(model.DefaultNetworkSubnetId),
+					SupportInfo:                expandSupportInfo(model.Support),
 				},
 				Tags: &model.Tags,
 			}
-
-			defaultAutoShutdownProfile, err := expandDefaultAutoShutdown(model.DefaultAutoShutdown)
-			if err != nil {
-				return err
-			}
-
-			props.Properties.DefaultAutoShutdownProfile = defaultAutoShutdownProfile
-
-			defaultConnectionProfile, err := expandDefaultConnection(model.DefaultConnection)
-			if err != nil {
-				return err
-			}
-			props.Properties.DefaultConnectionProfile = defaultConnectionProfile
-
-			defaultNetworkProfile, err := expandDefaultNetwork(model.DefaultNetwork)
-			if err != nil {
-				return err
-			}
-			props.Properties.DefaultNetworkProfile = defaultNetworkProfile
-
-			supportInfo, err := expandSupportInfo(model.Support)
-			if err != nil {
-				return err
-			}
-			props.Properties.SupportInfo = supportInfo
 
 			if model.SharedGalleryId != "" {
 				props.Properties.SharedGalleryId = &model.SharedGalleryId
@@ -358,35 +320,19 @@ func (r LabServiceLabPlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("default_auto_shutdown") {
-				defaultAutoShutdownProfile, err := expandDefaultAutoShutdown(model.DefaultAutoShutdown)
-				if err != nil {
-					return err
-				}
-				properties.Properties.DefaultAutoShutdownProfile = defaultAutoShutdownProfile
+				properties.Properties.DefaultAutoShutdownProfile = expandDefaultAutoShutdown(model.DefaultAutoShutdown)
 			}
 
 			if metadata.ResourceData.HasChange("default_connection") {
-				defaultConnectionProfile, err := expandDefaultConnection(model.DefaultConnection)
-				if err != nil {
-					return err
-				}
-				properties.Properties.DefaultConnectionProfile = defaultConnectionProfile
+				properties.Properties.DefaultConnectionProfile = expandDefaultConnection(model.DefaultConnection)
 			}
 
-			if metadata.ResourceData.HasChange("default_network") {
-				defaultNetworkProfile, err := expandDefaultNetwork(model.DefaultNetwork)
-				if err != nil {
-					return err
-				}
-				properties.Properties.DefaultNetworkProfile = defaultNetworkProfile
+			if metadata.ResourceData.HasChange("default_network_subnet_id") {
+				properties.Properties.DefaultNetworkProfile = expandDefaultNetwork(model.DefaultNetworkSubnetId)
 			}
 
 			if metadata.ResourceData.HasChange("support") {
-				supportInfo, err := expandSupportInfo(model.Support)
-				if err != nil {
-					return err
-				}
-				properties.Properties.SupportInfo = supportInfo
+				properties.Properties.SupportInfo = expandSupportInfo(model.Support)
 			}
 
 			if metadata.ResourceData.HasChange("shared_gallery_id") {
@@ -442,33 +388,14 @@ func (r LabServiceLabPlanResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
+			state.DefaultNetworkSubnetId = flattenDefaultNetwork(properties.DefaultNetworkProfile)
+			state.DefaultAutoShutdown = flattenDefaultAutoShutdown(properties.DefaultAutoShutdownProfile)
+			state.DefaultConnection = flattenDefaultConnection(properties.DefaultConnectionProfile)
+			state.Support = flattenSupportInfo(properties.SupportInfo)
+
 			if properties.AllowedRegions != nil {
 				state.AllowedRegions = *normalizeAllowedRegions(*properties.AllowedRegions)
 			}
-
-			defaultAutoShutdown, err := flattenDefaultAutoShutdown(properties.DefaultAutoShutdownProfile)
-			if err != nil {
-				return err
-			}
-			state.DefaultAutoShutdown = defaultAutoShutdown
-
-			defaultConnection, err := flattenDefaultConnection(properties.DefaultConnectionProfile)
-			if err != nil {
-				return err
-			}
-			state.DefaultConnection = defaultConnection
-
-			defaultNetworkProfile, err := flattenDefaultNetwork(properties.DefaultNetworkProfile)
-			if err != nil {
-				return err
-			}
-			state.DefaultNetwork = defaultNetworkProfile
-
-			supportInfo, err := flattenSupportInfo(properties.SupportInfo)
-			if err != nil {
-				return err
-			}
-			state.Support = supportInfo
 
 			if properties.SharedGalleryId != nil {
 				state.SharedGalleryId = *properties.SharedGalleryId
@@ -503,9 +430,9 @@ func (r LabServiceLabPlanResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandDefaultAutoShutdown(input []DefaultAutoShutdown) (*labplan.AutoShutdownProfile, error) {
+func expandDefaultAutoShutdown(input []DefaultAutoShutdown) *labplan.AutoShutdownProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	defaultAutoShutdownProfile := &input[0]
@@ -529,9 +456,11 @@ func expandDefaultAutoShutdown(input []DefaultAutoShutdown) (*labplan.AutoShutdo
 	}
 	result.ShutdownOnDisconnect = &shutdownOnDisconnectEnabled
 
+	shutdownOnIdle := labplan.ShutdownOnIdleModeNone
 	if defaultAutoShutdownProfile.ShutdownOnIdle != "" {
-		result.ShutdownOnIdle = &defaultAutoShutdownProfile.ShutdownOnIdle
+		shutdownOnIdle = defaultAutoShutdownProfile.ShutdownOnIdle
 	}
+	result.ShutdownOnIdle = &shutdownOnIdle
 
 	shutdownWhenNotConnectedEnabled := labplan.EnableStateEnabled
 	if !defaultAutoShutdownProfile.ShutdownWhenNotConnectedEnabled {
@@ -539,13 +468,13 @@ func expandDefaultAutoShutdown(input []DefaultAutoShutdown) (*labplan.AutoShutdo
 	}
 	result.ShutdownWhenNotConnected = &shutdownWhenNotConnectedEnabled
 
-	return &result, nil
+	return &result
 }
 
-func flattenDefaultAutoShutdown(input *labplan.AutoShutdownProfile) ([]DefaultAutoShutdown, error) {
+func flattenDefaultAutoShutdown(input *labplan.AutoShutdownProfile) []DefaultAutoShutdown {
 	var defaultAutoShutdownProfiles []DefaultAutoShutdown
 	if input == nil {
-		return defaultAutoShutdownProfiles, nil
+		return defaultAutoShutdownProfiles
 	}
 
 	defaultAutoShutdownProfile := DefaultAutoShutdown{}
@@ -566,104 +495,107 @@ func flattenDefaultAutoShutdown(input *labplan.AutoShutdownProfile) ([]DefaultAu
 		defaultAutoShutdownProfile.ShutdownOnDisconnectEnabled = *input.ShutdownOnDisconnect == labplan.EnableStateEnabled
 	}
 
-	if input.ShutdownOnIdle != nil {
-		defaultAutoShutdownProfile.ShutdownOnIdle = *input.ShutdownOnIdle
+	if shutdownOnIdle := input.ShutdownOnIdle; shutdownOnIdle != nil && *shutdownOnIdle != labplan.ShutdownOnIdleModeNone {
+		defaultAutoShutdownProfile.ShutdownOnIdle = *shutdownOnIdle
 	}
 
 	if input.ShutdownWhenNotConnected != nil {
 		defaultAutoShutdownProfile.ShutdownWhenNotConnectedEnabled = *input.ShutdownWhenNotConnected == labplan.EnableStateEnabled
 	}
 
-	return append(defaultAutoShutdownProfiles, defaultAutoShutdownProfile), nil
+	return append(defaultAutoShutdownProfiles, defaultAutoShutdownProfile)
 }
 
-func expandDefaultConnection(input []DefaultConnection) (*labplan.ConnectionProfile, error) {
+func expandDefaultConnection(input []DefaultConnection) *labplan.ConnectionProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	defaultConnectionProfile := &input[0]
 	result := labplan.ConnectionProfile{}
 
+	clientRdpAccess := labplan.ConnectionTypeNone
 	if defaultConnectionProfile.ClientRdpAccess != "" {
-		result.ClientRdpAccess = &defaultConnectionProfile.ClientRdpAccess
+		clientRdpAccess = defaultConnectionProfile.ClientRdpAccess
 	}
+	result.ClientRdpAccess = &clientRdpAccess
 
+	clientSshAccess := labplan.ConnectionTypeNone
 	if defaultConnectionProfile.ClientSshAccess != "" {
-		result.ClientSshAccess = &defaultConnectionProfile.ClientSshAccess
+		clientSshAccess = defaultConnectionProfile.ClientSshAccess
 	}
+	result.ClientSshAccess = &clientSshAccess
 
+	webRdpAccess := labplan.ConnectionTypeNone
 	if defaultConnectionProfile.WebRdpAccess != "" {
-		result.WebRdpAccess = &defaultConnectionProfile.WebRdpAccess
+		webRdpAccess = defaultConnectionProfile.WebRdpAccess
 	}
+	result.WebRdpAccess = &webRdpAccess
 
+	webSshAccess := labplan.ConnectionTypeNone
 	if defaultConnectionProfile.WebSshAccess != "" {
-		result.WebSshAccess = &defaultConnectionProfile.WebSshAccess
+		webSshAccess = defaultConnectionProfile.WebSshAccess
 	}
+	result.WebSshAccess = &webSshAccess
 
-	return &result, nil
+	return &result
 }
 
-func flattenDefaultConnection(input *labplan.ConnectionProfile) ([]DefaultConnection, error) {
+func flattenDefaultConnection(input *labplan.ConnectionProfile) []DefaultConnection {
 	var defaultConnectionProfiles []DefaultConnection
 	if input == nil {
-		return defaultConnectionProfiles, nil
+		return defaultConnectionProfiles
 	}
 
 	defaultConnectionProfile := DefaultConnection{}
 
-	if input.ClientRdpAccess != nil {
-		defaultConnectionProfile.ClientRdpAccess = *input.ClientRdpAccess
+	if clientRdpAccess := input.ClientRdpAccess; clientRdpAccess != nil && *clientRdpAccess != labplan.ConnectionTypeNone {
+		defaultConnectionProfile.ClientRdpAccess = *clientRdpAccess
 	}
 
-	if input.ClientSshAccess != nil {
-		defaultConnectionProfile.ClientSshAccess = *input.ClientSshAccess
+	if clientSshAccess := input.ClientSshAccess; clientSshAccess != nil && *clientSshAccess != labplan.ConnectionTypeNone {
+		defaultConnectionProfile.ClientSshAccess = *clientSshAccess
 	}
 
-	if input.WebRdpAccess != nil {
-		defaultConnectionProfile.WebRdpAccess = *input.WebRdpAccess
+	if webRdpAccess := input.WebRdpAccess; webRdpAccess != nil && *webRdpAccess != labplan.ConnectionTypeNone {
+		defaultConnectionProfile.WebRdpAccess = *webRdpAccess
 	}
 
-	if input.WebSshAccess != nil {
-		defaultConnectionProfile.WebSshAccess = *input.WebSshAccess
+	if webSshAccess := input.WebSshAccess; webSshAccess != nil && *webSshAccess != labplan.ConnectionTypeNone {
+		defaultConnectionProfile.WebSshAccess = *webSshAccess
 	}
 
-	return append(defaultConnectionProfiles, defaultConnectionProfile), nil
+	return append(defaultConnectionProfiles, defaultConnectionProfile)
 }
 
-func expandDefaultNetwork(input []DefaultNetwork) (*labplan.LabPlanNetworkProfile, error) {
-	if len(input) == 0 {
-		return nil, nil
+func expandDefaultNetwork(input string) *labplan.LabPlanNetworkProfile {
+	if input == "" {
+		return nil
 	}
 
-	defaultNetworkProfile := &input[0]
-	result := labplan.LabPlanNetworkProfile{}
-
-	if defaultNetworkProfile.SubnetId != "" {
-		result.SubnetId = &defaultNetworkProfile.SubnetId
+	result := labplan.LabPlanNetworkProfile{
+		SubnetId: utils.String(input),
 	}
 
-	return &result, nil
+	return &result
 }
 
-func flattenDefaultNetwork(input *labplan.LabPlanNetworkProfile) ([]DefaultNetwork, error) {
-	var defaultNetworkProfiles []DefaultNetwork
+func flattenDefaultNetwork(input *labplan.LabPlanNetworkProfile) string {
+	var defaultNetworkSubnetId string
 	if input == nil {
-		return defaultNetworkProfiles, nil
+		return defaultNetworkSubnetId
 	}
-
-	defaultNetworkProfile := DefaultNetwork{}
 
 	if input.SubnetId != nil {
-		defaultNetworkProfile.SubnetId = *input.SubnetId
+		defaultNetworkSubnetId = *input.SubnetId
 	}
 
-	return append(defaultNetworkProfiles, defaultNetworkProfile), nil
+	return defaultNetworkSubnetId
 }
 
-func expandSupportInfo(input []Support) (*labplan.SupportInfo, error) {
+func expandSupportInfo(input []Support) *labplan.SupportInfo {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	supportInfo := &input[0]
@@ -685,13 +617,13 @@ func expandSupportInfo(input []Support) (*labplan.SupportInfo, error) {
 		result.Url = &supportInfo.Url
 	}
 
-	return &result, nil
+	return &result
 }
 
-func flattenSupportInfo(input *labplan.SupportInfo) ([]Support, error) {
+func flattenSupportInfo(input *labplan.SupportInfo) []Support {
 	var supportInfos []Support
 	if input == nil {
-		return supportInfos, nil
+		return supportInfos
 	}
 
 	supportInfo := Support{}
@@ -712,7 +644,7 @@ func flattenSupportInfo(input *labplan.SupportInfo) ([]Support, error) {
 		supportInfo.Url = *input.Url
 	}
 
-	return append(supportInfos, supportInfo), nil
+	return append(supportInfos, supportInfo)
 }
 
 func normalizeAllowedRegions(input []string) *[]string {

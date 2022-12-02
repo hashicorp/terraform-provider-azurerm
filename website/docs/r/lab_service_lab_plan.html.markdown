@@ -44,11 +44,11 @@ The following arguments are supported:
 
 * `default_connection` - (Optional) A `default_connection` block as defined below.
 
-* `default_network` - (Optional) A `default_network` block as defined below.
+* `default_network_subnet_id` - (Optional) The resource ID of the Subnet for the Lab Service Lab Plan network profile.
 
 * `shared_gallery_id` - (Optional) The resource ID of the Shared Image Gallery attached to this Lab Service Lab Plan. When saving a lab template virtual machine image it will be persisted in this gallery. The shared images from the gallery can be made available to use when creating new labs.
 
-~> **NOTE:** The built-in `Azure Lab Services` Service Principal needs to be assigned to the Shared Image Gallery while using this property.
+~> **NOTE:** The built-in `Azure Lab Services` Service Principal with role needs to be assigned to the Shared Image Gallery while using this property.
 
 * `support` - (Optional) A `support` block as defined below.
 
@@ -66,27 +66,31 @@ A `default_auto_shutdown` block supports the following:
 
 * `shutdown_on_disconnect_enabled` - (Required) Is shutdown on disconnect enabled? Possible values are `true` and `false`.
 
-* `shutdown_on_idle` - (Required) Will a VM get shutdown when it has idled for a period of time? Possible values are `UserAbsence`, `LowUsage` and `None`.
-
 * `shutdown_when_not_connected_enabled` - (Required) Will a VM get shutdown when it hasn't been connected to after a period of time? Possible values are `true` and `false`.
+
+* `shutdown_on_idle` - (Optional) Will a VM get shutdown when it has idled for a period of time? Possible values are `LowUsage` and `UserAbsence`.
+
+~> **NOTE:** This property is `None` when it isn't specified.
 
 ---
 
 A `default_connection` block supports the following:
 
-* `client_rdp_access` - (Required) The enabled access level for Client Access over RDP. Possible values are `None`, `Private` and `Public`.
+* `client_rdp_access` - (Optional) The enabled access level for Client Access over RDP. Possible values are `Private` and `Public`.
 
-* `client_ssh_access` - (Required) The enabled access level for Client Access over SSH. Possible values are `None`, `Private` and `Public`.
+~> **NOTE:** This property is `None` when it isn't specified.
 
-* `web_rdp_access` - (Required) The enabled access level for Web Access over RDP. Possible values are `None`, `Private` and `Public`.
+* `client_ssh_access` - (Optional) The enabled access level for Client Access over SSH. Possible values are `Private` and `Public`.
 
-* `web_ssh_access` - (Required) The enabled access level for Web Access over SSH. Possible values are `None`, `Private` and `Public`.
+~> **NOTE:** This property is `None` when it isn't specified.
 
----
+* `web_rdp_access` - (Optional) The enabled access level for Web Access over RDP. Possible values are `Private` and `Public`.
 
-A `default_network` block supports the following:
+~> **NOTE:** This property is `None` when it isn't specified.
 
-* `subnet_id` - (Optional) The resource ID of the Subnet for the Lab Service Lab Plan network profile.
+* `web_ssh_access` - (Optional) The enabled access level for Web Access over SSH. Possible values are `Private` and `Public`.
+
+~> **NOTE:** This property is `None` when it isn't specified.
 
 ---
 

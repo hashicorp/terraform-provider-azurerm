@@ -170,10 +170,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_lab_service_lab_plan" "test" {
-  name                = "acctest-lslp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allowed_regions     = [azurerm_resource_group.test.location]
+  name                      = "acctest-lslp-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  allowed_regions           = [azurerm_resource_group.test.location]
+  default_network_subnet_id = azurerm_subnet.test.id
 
   default_auto_shutdown {
     disconnect_delay                    = "PT15M"
@@ -184,14 +185,8 @@ resource "azurerm_lab_service_lab_plan" "test" {
     shutdown_when_not_connected_enabled = false
   }
 
-  default_network {
-    subnet_id = azurerm_subnet.test.id
-  }
-
   default_connection {
-    client_rdp_access = "None"
     client_ssh_access = "Public"
-    web_rdp_access    = "None"
     web_ssh_access    = "Public"
   }
 
@@ -259,10 +254,11 @@ resource "azurerm_subnet" "test2" {
 }
 
 resource "azurerm_lab_service_lab_plan" "test" {
-  name                = "acctest-lslp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allowed_regions     = [azurerm_resource_group.test.location, "%s"]
+  name                      = "acctest-lslp-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  allowed_regions           = [azurerm_resource_group.test.location, "%s"]
+  default_network_subnet_id = azurerm_subnet.test2.id
 
   default_auto_shutdown {
     disconnect_delay                    = "PT16M"
@@ -273,15 +269,9 @@ resource "azurerm_lab_service_lab_plan" "test" {
     shutdown_when_not_connected_enabled = true
   }
 
-  default_network {
-    subnet_id = azurerm_subnet.test2.id
-  }
-
   default_connection {
     client_rdp_access = "Public"
-    client_ssh_access = "None"
     web_rdp_access    = "Public"
-    web_ssh_access    = "None"
   }
 
   support {
