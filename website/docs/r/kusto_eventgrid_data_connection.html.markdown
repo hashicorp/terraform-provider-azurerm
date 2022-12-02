@@ -115,7 +115,6 @@ The following arguments are supported:
 * `storage_account_id` - (Required) Specifies the resource id of the Storage Account this data connection will use for ingestion. Changing this forces a new resource to be created.
 
 * `eventhub_id` - (Required) Specifies the resource id of the Event Hub this data connection will use for ingestion. Changing this forces a new resource to be created.
-  Changing this forces a new resource to be created.
 
 * `eventhub_consumer_group_name` - (Required) Specifies the Event Hub consumer group this data connection will use for Changing this forces a new resource to be created.
   ingestion. Changing this forces a new resource to be created.
