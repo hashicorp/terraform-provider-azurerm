@@ -62,7 +62,7 @@ The following arguments are supported:
 
 A `storage` block supports the following:
 
-* `name` - (Required) Name of storage account for Azure IoT Time Series Insights Gen2 Environment Changing this forces a new resource to be created.
+* `name` - (Required) Name of storage account for Azure IoT Time Series Insights Gen2 Environment. Changing this forces a new resource to be created.
 
 * `key` - (Required) Access key of storage account for Azure IoT Time Series Insights Gen2 Environment
 
