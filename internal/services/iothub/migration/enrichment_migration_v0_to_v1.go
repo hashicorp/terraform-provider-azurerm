@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,7 +19,11 @@ func (s IoTHubEnrichmentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"iothub_name": {
 			Type:     pluginsdk.TypeString,

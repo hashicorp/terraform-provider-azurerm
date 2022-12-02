@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,9 +20,17 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"location": commonschema.Location(),
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"sku": {
 			Type:     pluginsdk.TypeList,
@@ -429,9 +437,42 @@ func (s IoTHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"identity_ids": {
+						Type:     schema.TypeSet,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+					"principal_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 
-		"tags": tags.Schema(),
+		"tags": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 	}
 }
 

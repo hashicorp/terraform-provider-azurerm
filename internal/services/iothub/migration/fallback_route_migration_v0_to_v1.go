@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -13,7 +13,11 @@ type IoTHubFallbackRouteV0ToV1 struct{}
 
 func (s IoTHubFallbackRouteV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"iothub_name": {
 			Type:     pluginsdk.TypeString,
@@ -27,8 +31,6 @@ func (s IoTHubFallbackRouteV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"condition": {
-			// The condition is a string value representing device-to-cloud message routes query expression
-			// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "true",
@@ -37,7 +39,6 @@ func (s IoTHubFallbackRouteV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"endpoint_names": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			// Currently only one endpoint is allowed. With that comment from Microsoft, we'll leave this open to enhancement when they add multiple endpoint support.
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
