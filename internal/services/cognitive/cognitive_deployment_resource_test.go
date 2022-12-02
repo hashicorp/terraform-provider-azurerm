@@ -17,11 +17,23 @@ import (
 
 type CognitiveDeploymentTestResource struct{}
 
-func TestAccCognitiveDeployment_basic(t *testing.T) {
+func TestAccCognitiveDeploymentSequential(t *testing.T) {
+	// Only two OpenAI resources could be created per region, so run the tests sequentially.
+	// Refer to : https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quotas-limits
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"deployment": {
+			"basic":          testAccCognitiveDeployment_basic,
+			"requiresImport": testAccCognitiveDeployment_requiresImport,
+			"complete":       testAccCognitiveDeployment_complete,
+		},
+	})
+}
+
+func testAccCognitiveDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 	r := CognitiveDeploymentTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -32,11 +44,11 @@ func TestAccCognitiveDeployment_basic(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveDeployment_requiresImport(t *testing.T) {
+func testAccCognitiveDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 
 	r := CognitiveDeploymentTestResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,10 +59,10 @@ func TestAccCognitiveDeployment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveDeployment_complete(t *testing.T) {
+func testAccCognitiveDeployment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 	r := CognitiveDeploymentTestResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(

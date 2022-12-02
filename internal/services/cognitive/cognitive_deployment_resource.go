@@ -33,7 +33,7 @@ type DeploymentScaleSettingsModel struct {
 
 type CognitiveDeploymentResource struct{}
 
-var _ sdk.ResourceWithUpdate = CognitiveDeploymentResource{}
+var _ sdk.Resource = CognitiveDeploymentResource{}
 
 func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
@@ -66,12 +66,14 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"model": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"format": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"OpenAI",
 						}, false),
@@ -87,9 +89,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"version": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"1",
-						}, false),
 					},
 				},
 			},
@@ -98,6 +97,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"scale_settings": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -155,74 +155,19 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 				Properties: &deployments.DeploymentProperties{},
 			}
 
-			modelValue, err := expandDeploymentModelModel(model.Model)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.Model = modelValue
+			properties.Properties.Model = expandDeploymentModelModel(model.Model)
 
 			if model.RaiPolicyName != "" {
 				properties.Properties.RaiPolicyName = &model.RaiPolicyName
 			}
 
-			scaleSettingsValue, err := expandDeploymentScaleSettingsModel(model.ScaleSettings)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.ScaleSettings = scaleSettingsValue
+			properties.Properties.ScaleSettings = expandDeploymentScaleSettingsModel(model.ScaleSettings)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cognitive.DeploymentsClient
-
-			id, err := deployments.ParseDeploymentID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var model cognitiveDeploymentModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("format") {
-				properties.Properties.Model.Format = &model.Model[0].Format
-			}
-
-			if metadata.ResourceData.HasChange("model.0.version") {
-				properties.Properties.Model.Version = &model.Model[0].Version
-			}
-
-			properties.SystemData = nil
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
 			return nil
 		},
 	}
@@ -259,19 +204,10 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := model.Properties; properties != nil {
-				modelValue, err := flattenDeploymentModelModel(properties.Model)
-				if err != nil {
-					return err
-				}
 
-				state.Model = modelValue
+				state.Model = flattenDeploymentModelModel(properties.Model)
 
-				scaleSettingsValue, err := flattenDeploymentScaleSettingsModel(properties.ScaleSettings)
-				if err != nil {
-					return err
-				}
-
-				state.ScaleSettings = scaleSettingsValue
+				state.ScaleSettings = flattenDeploymentScaleSettingsModel(properties.ScaleSettings)
 
 				if v := properties.RaiPolicyName; v != nil {
 					state.RaiPolicyName = *v
@@ -303,9 +239,9 @@ func (r CognitiveDeploymentResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandDeploymentModelModel(inputList []DeploymentModelModel) (*deployments.DeploymentModel, error) {
+func expandDeploymentModelModel(inputList []DeploymentModelModel) *deployments.DeploymentModel {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -323,12 +259,12 @@ func expandDeploymentModelModel(inputList []DeploymentModelModel) (*deployments.
 		output.Version = &input.Version
 	}
 
-	return &output, nil
+	return &output
 }
 
-func expandDeploymentScaleSettingsModel(inputList []DeploymentScaleSettingsModel) (*deployments.DeploymentScaleSettings, error) {
+func expandDeploymentScaleSettingsModel(inputList []DeploymentScaleSettingsModel) *deployments.DeploymentScaleSettings {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -336,13 +272,13 @@ func expandDeploymentScaleSettingsModel(inputList []DeploymentScaleSettingsModel
 		ScaleType: &input.ScaleType,
 	}
 
-	return &output, nil
+	return &output
 }
 
-func flattenDeploymentModelModel(input *deployments.DeploymentModel) ([]DeploymentModelModel, error) {
+func flattenDeploymentModelModel(input *deployments.DeploymentModel) []DeploymentModelModel {
 	var outputList []DeploymentModelModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := DeploymentModelModel{}
@@ -364,13 +300,13 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) ([]Deployme
 	}
 	output.Version = version
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenDeploymentScaleSettingsModel(input *deployments.DeploymentScaleSettings) ([]DeploymentScaleSettingsModel, error) {
+func flattenDeploymentScaleSettingsModel(input *deployments.DeploymentScaleSettings) []DeploymentScaleSettingsModel {
 	var outputList []DeploymentScaleSettingsModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := DeploymentScaleSettingsModel{}
@@ -379,5 +315,5 @@ func flattenDeploymentScaleSettingsModel(input *deployments.DeploymentScaleSetti
 		output.ScaleType = *input.ScaleType
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

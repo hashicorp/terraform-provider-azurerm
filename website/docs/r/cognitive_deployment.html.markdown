@@ -60,17 +60,17 @@ The following arguments are supported:
 
 A `model` block supports the following:
 
-* `format` - (Required) The format of the Cognitive Services Account Deployment model. Possible value is `OpenAI`.
+* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created. Possible value is `OpenAI`.
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version of Cognitive Services Account Deployment model. Possible value is `1`.
+* `version` - (Required) The version of Cognitive Services Account Deployment model.
 
 ---
 
 A `scale_settings` block supports the following:
 
-* `scale_type` - (Required) Deployment scale type. Possible value is `Standard`.
+* `scale_type` - (Required) Deployment scale type. Possible value is `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
