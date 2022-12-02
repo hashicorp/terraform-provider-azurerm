@@ -1,38 +1,38 @@
-## 3.34.0 (Unreleased)
+## 3.34.0 (December 01, 2022)
 
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20221129.1175354` of `github.com/hashicorp/go-azure-sdk` [GH-19483]
-* `media`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19285]
-* `springcloud`: updating to use API Version `2022-11-01-preview` [GH-19445]
-* `streamanalytics`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19395]
-* `synapse`: refactoring to use `github.com/tombuildstuff/kermit` rather than the embedded sdk [GH-19484]
-* Data Source: `azurerm_api_management` - support for `tenant_access` property [GH-19422]
-* `azurerm_kusto_database` - supports underscores in the name [GH-19466]
-* `azurerm_managed_disk` - support for `upload_size_bytes` property [GH-19458]
-* `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set [GH-19425]
-* `azurerm_spring_cloud_gateway_route_config` - support for `protocol` property [GH-19382]
-* `azurerm_storage_account` - support for `sftp_enabled` [GH-19428]
-* `azurerm_storage_management_policy` - `tier_to_cool_after_days_since_creation_greater_than` - support for the `tier_to_cool_after_days_since_creation_greater_than`, `tier_to_archive_after_days_since_creation_greater_than`, `delete_after_days_since_creation_greater_than` properties [GH-19446]
+* dependencies: updating to `v0.20221129.1175354` of `github.com/hashicorp/go-azure-sdk` ([#19483](https://github.com/hashicorp/terraform-provider-azurerm/issues/19483))
+* `media`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#19285](https://github.com/hashicorp/terraform-provider-azurerm/issues/19285))
+* `springcloud`: updating to use API Version `2022-11-01-preview` ([#19445](https://github.com/hashicorp/terraform-provider-azurerm/issues/19445))
+* `streamanalytics`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#19395](https://github.com/hashicorp/terraform-provider-azurerm/issues/19395))
+* `synapse`: refactoring to use `github.com/tombuildstuff/kermit` rather than the embedded sdk ([#19484](https://github.com/hashicorp/terraform-provider-azurerm/issues/19484))
+* Data Source: `azurerm_api_management` - support for `tenant_access` property ([#19422](https://github.com/hashicorp/terraform-provider-azurerm/issues/19422))
+* `azurerm_kusto_database` - supports underscores in the name ([#19466](https://github.com/hashicorp/terraform-provider-azurerm/issues/19466))
+* `azurerm_managed_disk` - support for `upload_size_bytes` property ([#19458](https://github.com/hashicorp/terraform-provider-azurerm/issues/19458))
+* `azurerm_monitor_activity_log_alert` - `action` is now supplied as a list instead of a set ([#19425](https://github.com/hashicorp/terraform-provider-azurerm/issues/19425))
+* `azurerm_spring_cloud_gateway_route_config` - support for `protocol` property ([#19382](https://github.com/hashicorp/terraform-provider-azurerm/issues/19382))
+* `azurerm_storage_account` - support for `sftp_enabled` ([#19428](https://github.com/hashicorp/terraform-provider-azurerm/issues/19428))
+* `azurerm_storage_management_policy` - `tier_to_cool_after_days_since_creation_greater_than` - support for the `tier_to_cool_after_days_since_creation_greater_than`, `tier_to_archive_after_days_since_creation_greater_than`, `delete_after_days_since_creation_greater_than` properties ([#19446](https://github.com/hashicorp/terraform-provider-azurerm/issues/19446))
 
 BUG FIXES:
 
-* `data.azurerm_sentinel_alert_rule_template` - a  state migration to work around the previously incorrect id casing [GH-19487]
-* `azurerm_app_configuration_key` - prevent crash when retrieving the key value [GH-19464]
-* `azurerm_data_factory_linked_service_azure_file_storage` - send `host` and and `user_id` in the payload only when it's been set [GH-19468]
-* `azurerm_eventgrid_topic` - fix setting of fields in `input_mapping_fields` during read [GH-19494] 
-* `azurerm_iot_security_solution` - a  state migration to work around the previously incorrect id casing [GH-19489]
-* `azurerm_monitor_autoscale_setting` - a  state migration to work around the previously incorrect id casing [GH-19492]
-* `azurerm_sentinel_automation_rule` - a  state migration to work around the previously incorrect id casing [GH-19487]
-* `azurerm_sql_active_directory_administrator` - a  state migration to work around the previously incorrect id casing [GH-19486]
-* `azurerm_stream_analytics_output_eventhub` - `shared_access_policy_key` and `shared_access_policy_name` are now optional  [GH-19447]
-* `azurerm_synapse_integration_runtime_azure` - a state migration to work around the previously incorrect id casing [GH-19485]
-* `azurerm_synapse_integration_runtime_self_hosted` - a state migration to work around the previously incorrect id casing [GH-19485]
-* `azurerm_synapse_linked_service` - a state migration to work around the previously incorrect id casing  [GH-19477]
-* `azurerm_windows_web_app` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
-* `azurerm_windows_web_app_slot` - Fix currentStack is being reset when other `site_config` values are changed. [GH-18568]
-* `azurerm_windows_virtual_machine_scale_set` Fix crash when upgrading `automatic_os_upgrade_policy` [GH-19465]
+* `data.azurerm_sentinel_alert_rule_template` - a  state migration to work around the previously incorrect id casing ([#19487](https://github.com/hashicorp/terraform-provider-azurerm/issues/19487))
+* `azurerm_app_configuration_key` - prevent crash when retrieving the key value ([#19464](https://github.com/hashicorp/terraform-provider-azurerm/issues/19464))
+* `azurerm_data_factory_linked_service_azure_file_storage` - send `host` and and `user_id` in the payload only when it's been set ([#19468](https://github.com/hashicorp/terraform-provider-azurerm/issues/19468))
+* `azurerm_eventgrid_topic` - fix setting of fields in `input_mapping_fields` during read ([#19494](https://github.com/hashicorp/terraform-provider-azurerm/issues/19494)) 
+* `azurerm_iot_security_solution` - a  state migration to work around the previously incorrect id casing ([#19489](https://github.com/hashicorp/terraform-provider-azurerm/issues/19489))
+* `azurerm_monitor_autoscale_setting` - a  state migration to work around the previously incorrect id casing ([#19492](https://github.com/hashicorp/terraform-provider-azurerm/issues/19492))
+* `azurerm_sentinel_automation_rule` - a  state migration to work around the previously incorrect id casing ([#19487](https://github.com/hashicorp/terraform-provider-azurerm/issues/19487))
+* `azurerm_sql_active_directory_administrator` - a  state migration to work around the previously incorrect id casing ([#19486](https://github.com/hashicorp/terraform-provider-azurerm/issues/19486))
+* `azurerm_stream_analytics_output_eventhub` - `shared_access_policy_key` and `shared_access_policy_name` are now optional  ([#19447](https://github.com/hashicorp/terraform-provider-azurerm/issues/19447))
+* `azurerm_synapse_integration_runtime_azure` - a state migration to work around the previously incorrect id casing ([#19485](https://github.com/hashicorp/terraform-provider-azurerm/issues/19485))
+* `azurerm_synapse_integration_runtime_self_hosted` - a state migration to work around the previously incorrect id casing ([#19485](https://github.com/hashicorp/terraform-provider-azurerm/issues/19485))
+* `azurerm_synapse_linked_service` - a state migration to work around the previously incorrect id casing  ([#19477](https://github.com/hashicorp/terraform-provider-azurerm/issues/19477))
+* `azurerm_windows_web_app` - Fix currentStack is being reset when other `site_config` values are changed. ([#18568](https://github.com/hashicorp/terraform-provider-azurerm/issues/18568))
+* `azurerm_windows_web_app_slot` - Fix currentStack is being reset when other `site_config` values are changed. ([#18568](https://github.com/hashicorp/terraform-provider-azurerm/issues/18568))
+* `azurerm_windows_virtual_machine_scale_set` Fix crash when upgrading `automatic_os_upgrade_policy` ([#19465](https://github.com/hashicorp/terraform-provider-azurerm/issues/19465))
 
 ## 3.33.0 (November 24, 2022)
 
