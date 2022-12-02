@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -17,7 +18,10 @@ import (
 type OutputFunctionResource struct {
 }
 
-var _ sdk.ResourceWithCustomImporter = OutputFunctionResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = OutputFunctionResource{}
+	_ sdk.ResourceWithStateMigration = OutputFunctionResource{}
+)
 
 type OutputFunctionResourceModel struct {
 	Name               string `tfschema:"name"`
@@ -295,5 +299,14 @@ func (r OutputFunctionResource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("specified output is not of type")
 		}
 		return nil
+	}
+}
+
+func (r OutputFunctionResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsOutputFunctionV0ToV1{},
+		},
 	}
 }

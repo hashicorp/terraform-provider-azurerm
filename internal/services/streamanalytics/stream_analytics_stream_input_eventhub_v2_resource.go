@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -17,7 +18,10 @@ import (
 
 type StreamInputEventHubV2Resource struct{}
 
-var _ sdk.ResourceWithCustomImporter = StreamInputEventHubV2Resource{}
+var (
+	_ sdk.ResourceWithCustomImporter = StreamInputEventHubV2Resource{}
+	_ sdk.ResourceWithStateMigration = StreamInputEventHubV2Resource{}
+)
 
 type StreamInputEventHubV2ResourceModel struct {
 	Name                      string `tfschema:"name"`
@@ -389,5 +393,14 @@ func (r StreamInputEventHubV2Resource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		return nil
+	}
+}
+
+func (r StreamInputEventHubV2Resource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsStreamInputEventHubV2V0ToV1{},
+		},
 	}
 }

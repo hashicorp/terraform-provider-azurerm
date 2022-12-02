@@ -170,6 +170,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   filters                 = ["StripPrefix=7", "RateLimit=2,1s"]
   predicates              = ["Path=/defaults/customer/**"]
   sso_validation_enabled  = true
+  protocol                = "HTTP"
   route {
     description            = "test description"
     filters                = ["StripPrefix=2", "RateLimit=1,1s"]
