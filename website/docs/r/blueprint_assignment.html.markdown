@@ -106,7 +106,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Blueprint Assignment Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Blueprint Assignment. Changing this forces a new resource to be created.
 
 * `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to. Changing this forces a new resource to be created.
 
