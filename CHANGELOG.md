@@ -13,6 +13,7 @@ BUG FIXES:
 * `azurerm_frontdoor_rules_engine` - a state migration to work around the previously incorrect id casing [GH-19512]
 * `azurerm_healthcare_*` - a  state migration to work around the previously incorrect id casing [GH-19511]
 * `azurerm_kusto_*` - a  state migration to work around the previously incorrect id casing [GH-19525]
+* `azurerm_monitor_smart_detector_alert_rule` - a  state migration to work around the previously incorrect id casing [GH-19513]
 
 ## 3.34.0 (December 01, 2022)
 
