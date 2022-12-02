@@ -100,6 +100,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.CapacityReservationGroupID,
 			},
 
+			"custom_ca_trust_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"enable_auto_scaling": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -398,6 +403,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 utils.ToPtr(agentpools.OSType(osType)),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableCustomCATrust:    utils.Bool(d.Get("custom_ca_trust_enabled").(bool)),
 		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
 		EnableEncryptionAtHost: utils.Bool(d.Get("enable_host_encryption").(bool)),
 		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
@@ -615,6 +621,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.EnableEncryptionAtHost = utils.Bool(d.Get("enable_host_encryption").(bool))
 	}
 
+	if d.HasChange("custom_ca_trust_enabled") {
+		props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
+	}
+
 	if d.HasChange("enable_node_public_ip") {
 		props.EnableNodePublicIP = utils.Bool(d.Get("enable_node_public_ip").(bool))
 	}
@@ -769,6 +779,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+		d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
 

@@ -72,6 +72,10 @@ The following arguments are supported:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
 
+* `custom_ca_trust_enabled` - (Optional) Should enable the Custom CA Trust feature? Defaults to false.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
+
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler). Defaults to `false`.
 
 * `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to `false`.
