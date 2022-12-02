@@ -36,7 +36,7 @@ func (id RouteId) String() string {
 }
 
 func (id RouteId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Devices/IotHubs/%s/Routes/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Devices/iotHubs/%s/routes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.IotHubName, id.Name)
 }
 
@@ -60,10 +60,66 @@ func RouteID(input string) (*RouteId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.IotHubName, err = id.PopSegment("IotHubs"); err != nil {
+	if resourceId.IotHubName, err = id.PopSegment("iotHubs"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("Routes"); err != nil {
+	if resourceId.Name, err = id.PopSegment("routes"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// RouteIDInsensitively parses an Route ID into an RouteId struct, insensitively
+// This should only be used to parse an ID for rewriting, the RouteID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func RouteIDInsensitively(input string) (*RouteId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := RouteId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'iotHubs' segment
+	iotHubsKey := "iotHubs"
+	for key := range id.Path {
+		if strings.EqualFold(key, iotHubsKey) {
+			iotHubsKey = key
+			break
+		}
+	}
+	if resourceId.IotHubName, err = id.PopSegment(iotHubsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'routes' segment
+	routesKey := "routes"
+	for key := range id.Path {
+		if strings.EqualFold(key, routesKey) {
+			routesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(routesKey); err != nil {
 		return nil, err
 	}
 
