@@ -51,8 +51,7 @@ resource "azurerm_key_vault_access_policy" "example" {
 
 The following arguments are supported:
 
-* `key_vault_id` - (Required) Specifies the id of the Key Vault resource. Changing this Changing this forces a new resource to be created.
-    forces a new resource to be created.
+* `key_vault_id` - (Required) Specifies the id of the Key Vault resource. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used Changing this forces a new resource to be created.
     for authenticating requests to the key vault. Changing this forces a new resource
