@@ -113,7 +113,7 @@ A `notification_settings` - (Required)  - block supports the following:
 
 * `time_in_minutes` - (Optional) Time in minutes between 15 and 120 before a shutdown event at which a notification will be sent. Defaults to `30`.
 
-* `webhook_url` - The webhook URL to which the notification will be sent. Optional if `enabled` is `true`. Optional otherwise.
+* `webhook_url` - (Optional) The webhook URL to which the notification will be sent.
 
 ## Attributes Reference
 
