@@ -140,7 +140,7 @@ func resourceSubnet() *pluginsdk.Resource {
 									},
 
 									"actions": {
-										Type:       pluginsdk.TypeList,
+										Type:       pluginsdk.TypeSet,
 										Optional:   true,
 										ConfigMode: pluginsdk.SchemaConfigModeAttr,
 										Elem: &pluginsdk.Schema{
@@ -668,7 +668,7 @@ func expandSubnetDelegation(input []interface{}) *[]network.Delegation {
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
 		srvName := srvDelegation["name"].(string)
-		srvActions := srvDelegation["actions"].([]interface{})
+		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
 
 		retSrvActions := make([]string, 0)
 		for _, srvAction := range srvActions {
