@@ -249,9 +249,7 @@ The following arguments are supported:
 
 * `connection_mode` - (Optional) Connection mode to use. Possible values are `Default`, `InitiatorOnly` and `ResponderOnly`. Defaults to `Default`. Changing this value will force a resource to be created.
 
-* `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`. Changing this forces a new resource to be created.
-    values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
-    Changing this value will force a resource to be created.
+* `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`, values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. Changing this forces a new resource to be created.
 -> **Note:** Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`.
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
