@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,9 +19,17 @@ func (s KustoDatabaseDataConnectionEventHubV0ToV1) Schema() map[string]*pluginsd
 			ForceNew: true,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-		"location": commonschema.Location(),
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"cluster_name": {
 			Type:     pluginsdk.TypeString,
