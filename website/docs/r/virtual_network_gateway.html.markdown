@@ -167,8 +167,7 @@ The following arguments are supported:
 
 The `ip_configuration` block supports:
 
-* `name` - (Optional) A user-defined name of the IP configuration. Defaults to Changing this forces a new resource to be created.
-    `vnetGatewayConfig`.
+* `name` - (Optional) A user-defined name of the IP configuration. Defaults to `vnetGatewayConfig`. Changing this forces a new resource to be created.
 
 * `private_ip_address_allocation` - (Optional) Defines how the private IP address
     of the gateways virtual interface is assigned. Valid options are `Static` or
