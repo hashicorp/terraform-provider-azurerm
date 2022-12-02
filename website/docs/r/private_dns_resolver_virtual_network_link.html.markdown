@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `dns_forwarding_ruleset_id` - (Required) Specifies the ID of the Private DNS Resolver DNS Forwarding Ruleset. Changing this forces a new Private DNS Resolver Virtual Network Link to be created.
 
-* `virtual_network_id` - (Required) The ID of the Virtual Network that is linked to the Private DNS Resolver Virtual Network Link.
+* `virtual_network_id` - (Required) The ID of the Virtual Network that is linked to the Private DNS Resolver Virtual Network Link. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) Metadata attached to the Private DNS Resolver Virtual Network Link.
 

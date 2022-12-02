@@ -68,13 +68,13 @@ resource "azurerm_sql_database" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the database.
+* `name` - (Required) The name of the database. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the database.  This must be the same as Database Server resource group currently.
+* `resource_group_name` - (Required) The name of the resource group in which to create the database.  This must be the same as Database Server resource group currently. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `server_name` - (Required) The name of the SQL Server on which to create the database.
+* `server_name` - (Required) The name of the SQL Server on which to create the database. Changing this forces a new resource to be created.
 
 * `create_mode` - (Optional) Specifies how to create the database. Valid values are: `Default`, `Copy`, `OnlineSecondary`, `NonReadableSecondary`,  `PointInTimeRestore`, `Recovery`, `Restore` or `RestoreLongTermRetentionBackup`. Must be `Default` to create a new database. Defaults to `Default`. Please see [Azure SQL Database REST API](https://docs.microsoft.com/rest/api/sql/databases/createorupdate#createmode)
 

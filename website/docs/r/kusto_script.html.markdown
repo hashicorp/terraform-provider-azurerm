@@ -104,9 +104,9 @@ The following arguments are supported:
 
 * `force_an_update_when_value_changed` - (Optional) A unique string. If changed the script will be applied again.
 
-* `script_content` - (Optional) The script content. This property should be used when the script is provide inline and not through file in a SA. Must not be used together with `url` and `sas_token` properties.
+* `script_content` - (Optional) The script content. This property should be used when the script is provide inline and not through file in a SA. Must not be used together with `url` and `sas_token` properties. Changing this forces a new resource to be created.
 
-* `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property.
+* `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property. Changing this forces a new resource to be created.
 
 * `url` - (Optional) The url to the KQL script blob file.  Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
 

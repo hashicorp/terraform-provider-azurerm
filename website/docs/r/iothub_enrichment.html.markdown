@@ -87,7 +87,7 @@ resource "azurerm_iothub_enrichment" "example" {
 
 The following arguments are supported:
 
-* `key` - (Required) The key of the enrichment.
+* `key` - (Required) The key of the enrichment. Changing this forces a new resource to be created.
 
 * `value` - (Required) The value of the enrichment. Value can be any static string, the name of the IoT hub sending the message (use `$iothubname`) or information from the device twin (ex: `$twin.tags.latitude`)
 
