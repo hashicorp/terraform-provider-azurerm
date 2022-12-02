@@ -324,7 +324,7 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 120 minutes) Used when creating the Site Recovery Replicated VM.
+* `create` - (Defaults to 180 minutes) Used when creating the Site Recovery Replicated VM.
 * `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.
