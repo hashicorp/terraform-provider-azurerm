@@ -3,7 +3,6 @@ package labservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -17,6 +16,7 @@ import (
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LabServiceLabPlanModel struct {
