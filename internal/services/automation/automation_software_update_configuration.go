@@ -671,6 +671,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"tag_filter": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
+									Computed: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(automation.TagOperatorsAny),
 										string(automation.TagOperatorsAll),
