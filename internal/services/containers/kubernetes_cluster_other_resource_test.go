@@ -705,6 +705,21 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_azureMonitorProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureMonitorProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) basicAvailabilitySetConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2253,4 +2268,44 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) azureMonitorProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_monitor_profile {
+    metrics {
+      enabled = true
+      kube_state_metrics {
+        metric_annotations_allow_list = "pods=[k8s-annotation-1,k8s-annotation-n]"
+        metric_labels_allow_list      = "namespaces=[k8s-label-1,k8s-label-n]"
+      }
+    }
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
 }

@@ -97,6 +97,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `azure_active_directory_role_based_access_control` - (Optional) - A `azure_active_directory_role_based_access_control` block as defined below.
 
+* `azure_monitor_profile` - (Optional) Specifies prometheus addon profile for the container service cluster. A `azure_monitor_profile` block as defined below.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-PrometheusAddonPreview` is enabled, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/prometheus-metrics-enable?tabs=azure-portal) for more information.
+
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
@@ -313,6 +317,28 @@ When `managed` is set to `false` the following properties can be specified:
 * `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
 
 * `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
+
+---
+
+An `azure_monitor_profile` block supports the following:
+
+* `metrics` - (Optional) Specifies Metrics profile for the prometheus service addon. A `metrics` block as defined below.
+
+---
+
+An `metrics` block supports the following:
+
+* `enabled` - (Required) Should enable the Prometheus collector?
+
+* `kube_state_metrics` - (Optional) Specifies the Kube State Metrics for prometheus addon profile for the container service cluster. A `kube_state_metrics` block as defined below.
+
+---
+
+An `kube_state_metrics` block supports the following:
+
+* `metric_annotations_allow_list` - (Optional) Specifies a comma-separated list of Kubernetes annotations keys that will be used in the resource's labels metric.
+
+* `metric_annotations_allow_list` - (Optional) Specifies a Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.
 
 ---
 
