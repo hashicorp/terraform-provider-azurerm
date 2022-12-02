@@ -236,7 +236,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedHSMsOnDestroy
 	if shouldPurge && resp.Properties != nil && utils.NormaliseNilableBool(resp.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge %s because purge protection is enabled", id)
-		return nil
+		shouldPurge = false
 	}
 
 	purgeFuture, err := client.PurgeDeleted(ctx, id.Name, *resp.Location)
