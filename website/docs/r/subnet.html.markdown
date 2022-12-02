@@ -51,11 +51,11 @@ resource "azurerm_subnet" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the subnet. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the subnet. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created.
 
-* `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
 
 * `address_prefixes` - (Required) The address prefixes to use for the subnet.
 
