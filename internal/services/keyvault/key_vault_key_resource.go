@@ -297,7 +297,14 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	d.SetId(*read.Key.Kid)
+	if read.Key == nil || read.Key.Kid == nil {
+		return fmt.Errorf("cannot read KeyVault Key '%s' (in key vault '%s')", name, *keyVaultBaseUri)
+	}
+	keyId, err := parse.ParseNestedItemID(*read.Key.Kid)
+	if err != nil {
+		return err
+	}
+	d.SetId(keyId.ID())
 
 	return resourceKeyVaultKeyRead(d, meta)
 }

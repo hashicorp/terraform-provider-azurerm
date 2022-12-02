@@ -510,7 +510,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("error: Certificate %q in Vault %q get nil ID from server", name, *keyVaultBaseUrl)
+		return fmt.Errorf("cannot read KeyVault Certificate '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
 	}
 
 	certificateId, err := parse.ParseNestedItemID(*resp.ID)

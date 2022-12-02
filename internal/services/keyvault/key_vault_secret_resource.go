@@ -199,10 +199,15 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
+		return fmt.Errorf("cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
 	}
 
-	d.SetId(*read.ID)
+	secretId, err := parse.ParseNestedItemID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(secretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
@@ -290,12 +295,13 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
-	if _, err = parse.ParseNestedItemID(*read.ID); err != nil {
+	secretId, err := parse.ParseNestedItemID(*read.ID)
+	if err != nil {
 		return err
 	}
 
 	// the ID is suffixed with the secret version
-	d.SetId(*read.ID)
+	d.SetId(secretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
