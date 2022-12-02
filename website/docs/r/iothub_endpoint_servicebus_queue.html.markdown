@@ -107,7 +107,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 ## Import
 
 IoTHub ServiceBus Queue Endpoint can be imported using the `resource id`, e.g.
-
+g
 ```shell
-terraform import azurerm_iothub_endpoint_servicebus_queue.servicebus_queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/servicebusqueue_endpoint1
+terraform import azurerm_iothub_endpoint_servicebus_queue.servicebus_queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/endpoints/servicebusqueue_endpoint1
 ```
