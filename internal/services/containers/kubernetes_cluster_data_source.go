@@ -1030,7 +1030,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			nodeTaints = *profile.NodeTaints
 		}
 
-		vmSize := profile.VmSize
+		vmSize := profile.VMSize
 
 		out := map[string]interface{}{
 			"count":                    count,
