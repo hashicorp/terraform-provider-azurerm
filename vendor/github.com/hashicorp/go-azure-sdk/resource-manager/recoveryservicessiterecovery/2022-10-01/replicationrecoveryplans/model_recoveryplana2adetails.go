@@ -3,6 +3,8 @@ package replicationrecoveryplans
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -11,8 +13,10 @@ import (
 var _ RecoveryPlanProviderSpecificDetails = RecoveryPlanA2ADetails{}
 
 type RecoveryPlanA2ADetails struct {
-	PrimaryZone  *string `json:"primaryZone,omitempty"`
-	RecoveryZone *string `json:"recoveryZone,omitempty"`
+	PrimaryExtendedLocation  *edgezones.Model `json:"primaryExtendedLocation,omitempty"`
+	PrimaryZone              *string          `json:"primaryZone,omitempty"`
+	RecoveryExtendedLocation *edgezones.Model `json:"recoveryExtendedLocation,omitempty"`
+	RecoveryZone             *string          `json:"recoveryZone,omitempty"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificDetails
 }

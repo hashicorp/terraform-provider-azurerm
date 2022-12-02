@@ -11,9 +11,10 @@ import (
 var _ FabricSpecificDetails = AzureFabricSpecificDetails{}
 
 type AzureFabricSpecificDetails struct {
-	ContainerIds *[]string         `json:"containerIds,omitempty"`
-	Location     *string           `json:"location,omitempty"`
-	Zones        *[]A2AZoneDetails `json:"zones,omitempty"`
+	ContainerIds      *[]string                     `json:"containerIds,omitempty"`
+	ExtendedLocations *[]A2AExtendedLocationDetails `json:"extendedLocations,omitempty"`
+	Location          *string                       `json:"location,omitempty"`
+	Zones             *[]A2AZoneDetails             `json:"zones,omitempty"`
 
 	// Fields inherited from FabricSpecificDetails
 }
