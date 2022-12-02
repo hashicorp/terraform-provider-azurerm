@@ -1,5 +1,10 @@
-## 3.34.0 (December 01, 2022)
+## 3.35.0 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_automation_software_update_configuration` - fix issue where omitting `tags`and `tag_filter` result in an error [GH-19516]
+
+## 3.34.0 (December 01, 2022)
 
 ENHANCEMENTS:
 
