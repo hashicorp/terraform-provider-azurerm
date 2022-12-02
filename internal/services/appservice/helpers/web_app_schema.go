@@ -3572,7 +3572,7 @@ func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 	return true
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindows {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int, corsUserSetting bool) []SiteConfigWindows {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3662,12 +3662,16 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
 		siteConfig.Cors = []CorsSetting{cors}
+
+		if !*corsSettings.SupportCredentials && len(*corsSettings.AllowedOrigins) == 0 && !corsUserSetting {
+			siteConfig.Cors = nil
+		}
 	}
 
 	return []SiteConfigWindows{siteConfig}
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, corsUserSetting bool) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3732,6 +3736,10 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
 		siteConfig.Cors = []CorsSetting{cors}
+
+		if !*corsSettings.SupportCredentials && len(*corsSettings.AllowedOrigins) == 0 && !corsUserSetting {
+			siteConfig.Cors = nil
+		}
 	}
 
 	return []SiteConfigLinux{siteConfig}

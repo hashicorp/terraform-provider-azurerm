@@ -719,7 +719,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinuxWebAppSlot {
+func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int, corsUserSetting bool) []SiteConfigLinuxWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -785,6 +785,9 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
 		siteConfig.Cors = []CorsSetting{cors}
+		if !*corsSettings.SupportCredentials && len(*corsSettings.AllowedOrigins) == 0 && !corsUserSetting {
+			siteConfig.Cors = nil
+		}
 	}
 
 	return []SiteConfigLinuxWebAppSlot{siteConfig}

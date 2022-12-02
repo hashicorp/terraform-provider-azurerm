@@ -863,7 +863,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, corsUserSetting bool) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -926,6 +926,10 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
 		result.Cors = []CorsSetting{cors}
+
+		if !*corsSettings.SupportCredentials && len(*corsSettings.AllowedOrigins) == 0 && !corsUserSetting {
+			result.Cors = nil
+		}
 	}
 
 	var appStack []ApplicationStackWindowsFunctionApp
@@ -1201,7 +1205,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigLinuxFunctionAppSlot, error) {
+func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig, corsUserSetting bool) (*SiteConfigLinuxFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -1266,6 +1270,9 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
 		result.Cors = []CorsSetting{cors}
+		if !*corsSettings.SupportCredentials && len(*corsSettings.AllowedOrigins) == 0 && !corsUserSetting {
+			result.Cors = nil
+		}
 	}
 
 	var appStack []ApplicationStackLinuxFunctionApp

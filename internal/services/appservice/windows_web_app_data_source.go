@@ -312,7 +312,9 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+
+			corsUserSetting := true
+			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount, corsUserSetting)
 
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 
