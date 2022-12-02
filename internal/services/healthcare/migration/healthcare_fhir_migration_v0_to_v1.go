@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,7 +19,11 @@ func (s HealthCareFhirV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"workspace_id": {
 			Type:     pluginsdk.TypeString,
@@ -27,7 +31,11 @@ func (s HealthCareFhirV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"location": commonschema.Location(),
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"kind": {
 			Type:     pluginsdk.TypeString,
@@ -67,7 +75,27 @@ func (s HealthCareFhirV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"identity": commonschema.SystemAssignedIdentityOptional(),
+		"identity": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"principal_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 
 		// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
 		"container_registry_login_server_url": {
@@ -158,7 +186,13 @@ func (s HealthCareFhirV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 	}
 }
 

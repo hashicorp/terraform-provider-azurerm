@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -25,9 +25,33 @@ func (s HealthCareIoTConnectorV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"location": commonschema.Location(),
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-		"identity": commonschema.SystemAssignedIdentityOptional(),
+		"identity": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"principal_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 
 		"eventhub_namespace_name": {
 			Type:     pluginsdk.TypeString,
@@ -49,7 +73,13 @@ func (s HealthCareIoTConnectorV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 	}
 }
 
