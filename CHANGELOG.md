@@ -10,6 +10,7 @@ BUG FIXES:
 * `azurerm_automation_source_control` - a state migration to work around the previously incorrect id casing [GH-19506]
 * `azurerm_automation_webhook` - a state migration to work around the previously incorrect id casing [GH-19506]
 * `azurerm_container_registry_webhook` - a  state migration to work around the previously incorrect id casing [GH-19507]
+* `azurerm_frontdoor_rules_engine` - a state migration to work around the previously incorrect id casing [GH-19512]
 * `azurerm_healthcare_*` - a  state migration to work around the previously incorrect id casing [GH-19511]
 * `azurerm_kusto_*` - a  state migration to work around the previously incorrect id casing [GH-19525]
 
