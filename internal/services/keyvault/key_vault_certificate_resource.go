@@ -509,8 +509,15 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+	if resp.ID == nil {
+		return fmt.Errorf("error: Certificate %q in Vault %q get nil ID from server", name, *keyVaultBaseUrl)
+	}
 
-	d.SetId(*resp.ID)
+	certificateId, err := parse.ParseNestedItemID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(certificateId.ID())
 
 	return resourceKeyVaultCertificateRead(d, meta)
 }
@@ -564,7 +571,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 				return err
 			}
 			if resp.ID != nil {
-				d.SetId(*resp.ID)
+				d.SetId(id.ID())
 			}
 		}
 	}
