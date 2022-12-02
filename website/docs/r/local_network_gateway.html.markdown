@@ -35,8 +35,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the local network gateway. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the local network gateway is Changing this forces a new resource to be created.
-    created. Changing this forces a new resource to be created.
+* `location` - (Required) The location/region where the local network gateway is created. Changing this forces a new resource to be created.
 
 * `address_space` - (Optional) The list of string CIDRs representing the
     address spaces the gateway exposes.
