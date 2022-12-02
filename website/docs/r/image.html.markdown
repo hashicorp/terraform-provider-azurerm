@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the image. Changing this forces a
     new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create. Changing this forces a new resource to be created.
     the image. Changing this forces a new resource to be created.
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
     Changing this forces a new resource to be created.
