@@ -2,9 +2,9 @@ package migration
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -23,9 +23,16 @@ func (s RulesEngineV1ToV2) Schema() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-		"location": commonschema.LocationComputed(),
+		"location": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
