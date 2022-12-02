@@ -109,15 +109,11 @@ The following arguments are supported:
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
-* `location` - (Required) The location/region where the Virtual Network Gateway is Changing this forces a new resource to be created.
-  located. Changing the location/region forces a new resource to be created.
+* `location` - (Required) The location/region where the Virtual Network Gateway is located. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Virtual Network Gateway. Changing the name Changing this forces a new resource to be created.
-  forces a new resource to be created.
+* `name` - (Required) The name of the Virtual Network Gateway. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
-  create the Virtual Network Gateway. Changing the resource group name forces
-  a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Virtual Network Gateway. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
   gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
