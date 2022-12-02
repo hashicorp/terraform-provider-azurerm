@@ -1,5 +1,9 @@
 ## 3.35.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `lighthouse`: updating to API version `2022-10-01` [GH-19499]
+
 BUG FIXES:
 
 * `azurerm_automation_software_update_configuration` - fix issue where omitting `tags`and `tag_filter` result in an error [GH-19516]
