@@ -12,6 +12,7 @@ BUG FIXES:
 * `azurerm_container_registry_webhook` - a  state migration to work around the previously incorrect id casing [GH-19507]
 * `azurerm_frontdoor_rules_engine` - a state migration to work around the previously incorrect id casing [GH-19512]
 * `azurerm_healthcare_*` - a  state migration to work around the previously incorrect id casing [GH-19511]
+* `azurerm_iothub_x` - a  state migration to work around the previously incorrect id casing [GH-19524]
 * `azurerm_kusto_*` - a  state migration to work around the previously incorrect id casing [GH-19525]
 * `azurerm_monitor_smart_detector_alert_rule` - a  state migration to work around the previously incorrect id casing [GH-19513]
 
