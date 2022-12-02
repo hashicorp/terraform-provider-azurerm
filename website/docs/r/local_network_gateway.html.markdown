@@ -33,8 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the local network gateway. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
-    create the local network gateway.
+* `resource_group_name` - (Required) The name of the resource group in which to create the local network gateway. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location/region where the local network gateway is Changing this forces a new resource to be created.
     created. Changing this forces a new resource to be created.
