@@ -303,6 +303,13 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			if *currentStack == helpers.CurrentStackNode {
+				if webApp.AppSettings == nil {
+					webApp.AppSettings = make(map[string]string, 0)
+				}
+				webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = webApp.SiteConfig[0].ApplicationStack[0].NodeVersion
+			}
+
 			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -563,6 +570,14 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+
+			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
+				if state.SiteConfig[0].ApplicationStack == nil {
+					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
+				}
+				state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
+				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION") // TODO - Allow this to be set directly in app_settings?
+			}
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {

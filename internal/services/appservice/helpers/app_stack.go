@@ -7,18 +7,38 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+const (
+	JavaContainerEmbeddedServer        string = "JAVA"
+	JavaContainerTomcat                string = "TOMCAT"
+	JavaContainerEmbeddedServerVersion string = "SE"
+	PhpVersionSevenPointOne            string = "7.1"
+	PhpVersionSevenPointFour           string = "7.4"
+	PhpVersionOff                      string = "Off"
+
+	CurrentStackDotNet     string = "dotnet"
+	CurrentStackDotNetCore string = "dotnetcore"
+	CurrentStackJava       string = "java"
+	CurrentStackNode       string = "node"
+	CurrentStackPhp        string = "php"
+	CurrentStackPython     string = "python"
+)
+
 type ApplicationStackWindows struct {
-	NetFrameworkVersion     string `tfschema:"dotnet_version"`
-	PhpVersion              string `tfschema:"php_version"`
-	JavaVersion             string `tfschema:"java_version"`
-	PythonVersion           string `tfschema:"python_version"`
-	NodeVersion             string `tfschema:"node_version"`
-	JavaContainer           string `tfschema:"java_container"`
-	JavaContainerVersion    string `tfschema:"java_container_version"`
+	CurrentStack            string `tfschema:"current_stack"`
 	DockerContainerName     string `tfschema:"docker_container_name"`
 	DockerContainerRegistry string `tfschema:"docker_container_registry"`
 	DockerContainerTag      string `tfschema:"docker_container_tag"`
-	CurrentStack            string `tfschema:"current_stack"`
+	JavaContainer           string `tfschema:"java_container"`
+	JavaContainerVersion    string `tfschema:"java_container_version"`
+	JavaEmbeddedServer      bool   `tfschema:"java_embedded_server_enabled"`
+	JavaVersion             string `tfschema:"java_version"`
+	NetFrameworkVersion     string `tfschema:"dotnet_version"`
+	NetCoreVersion          string `tfschema:"dotnet_core_version"`
+	NodeVersion             string `tfschema:"node_version"`
+	PhpVersion              string `tfschema:"php_version"`
+	PythonVersion           string `tfschema:"python_version"`
+	Python                  bool   `tfschema:"python"`
+	TomcatVersion           string `tfschema:"tomcat_version"`
 }
 
 func windowsApplicationStackSchema() *pluginsdk.Schema {
@@ -30,30 +50,43 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-					},
-				},
-
-				"dotnet_core_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+						"v2.0",
+						"v3.0",
+						"core3.1",
+						"v4.0",
+						"v5.0",
+						"v6.0",
+						"v7.0"}, false),
+					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python",
+						"site_config.0.application_stack.0.python_version",
+					},
+				},
+
+				"dotnet_core_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+						"v4.0",
+					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_container_name",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python",
 						"site_config.0.application_stack.0.python_version",
 					},
 					Description: fmt.Sprintf(`The version of DotNet to use.`),
@@ -64,17 +97,19 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"7.4", // Deprecated
-						"Off", // Really?!?! Should be `AutoUpdate` or `Latest` ?
+						PhpVersionSevenPointOne,  // Deprecated
+						PhpVersionSevenPointFour, // Deprecated
+						PhpVersionOff,            // Portal displays `Off` for `""` meaning use latest available
 					}, false),
-					ExactlyOneOf: []string{
+					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.dotnet_core_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
 						"site_config.0.application_stack.0.python",
+						"site_config.0.application_stack.0.python_version",
 					},
 				},
 
@@ -83,12 +118,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Optional:   true,
 					Computed:   true,
 					Deprecated: "This property is deprecated. Values set are not used by the service.",
-					ExactlyOneOf: []string{
+					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.dotnet_core_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python",
 						"site_config.0.application_stack.0.python_version",
 					},
 					ConflictsWith: []string{
@@ -97,13 +134,13 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"python": {
-					Type:       pluginsdk.TypeBool,
-					Optional:   true,
-					Default:    false,
-					Deprecated: "This property is deprecated. Values set are not used by the service.",
-					ExactlyOneOf: []string{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.dotnet_core_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -116,22 +153,24 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"node_version": {
-					// Not used directly - Set via app_settings.0.WEBSITE_NODE_DEFAULT_VERSION
-					// deprecate? how?
-					Type:       pluginsdk.TypeString,
-					Optional:   true,
-					Computed:   true,
-					Deprecated: "This property is no longer configurable, please set `WEBSITE_NODE_DEFAULT_VERSION` in `app_settings`.",
-					ExactlyOneOf: []string{
+					// Not used directly - Sets app_settings.0.WEBSITE_NODE_DEFAULT_VERSION - Breaking change
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"~12", // TODO - Remove in 4.0 due to service Deprecation.
+						"~14",
+						"~16",
+						"~18",
+					}, false),
+					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.dotnet_core_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
-					},
-					ConflictsWith: []string{
-						"site_config.0.application_stack.0.node",
+						"site_config.0.application_stack.0.python",
 					},
 				},
 
@@ -139,20 +178,22 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
+					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.dotnet_core_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.python",
 					},
 				},
 
 				"java_embedded_server_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Default:  true,
+					Computed: true,
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.tomcat_version",
 					},
@@ -186,6 +227,9 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_container_version",
 					},
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.tomcat_version",
+					},
 				},
 
 				"java_container_version": {
@@ -201,13 +245,15 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
+					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.dotnet_core_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.python",
 					},
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_container_tag",
@@ -230,10 +276,9 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"current_stack": {
-					Type:       pluginsdk.TypeString,
-					Optional:   true,
-					Computed:   true,
-					Deprecated: "This value has been deprecated. Values set here are ignored and are configured automatically based on the choice of application software.",
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true, // This will be set to the configured type from above if not explicitly set
 					ValidateFunc: validation.StringInSlice([]string{
 						"dotnet",
 						"dotnetcore",

@@ -618,13 +618,13 @@ func TestAccWindowsWebAppSlot_withPython(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withNode12LTS(t *testing.T) {
+func TestAccWindowsWebAppSlot_withNode12(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "12-LTS"),
+			Config: r.node(data, "~12"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -633,13 +633,13 @@ func TestAccWindowsWebAppSlot_withNode12LTS(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withNode14LTS(t *testing.T) {
+func TestAccWindowsWebAppSlot_withNode14(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "14-LTS"),
+			Config: r.node(data, "~14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -648,13 +648,34 @@ func TestAccWindowsWebAppSlot_withNode14LTS(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withNode16LTS(t *testing.T) {
+func TestAccWindowsWebAppSlot_withNode18(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "18-LTS"),
+			Config: r.node(data, "~18"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func TestAccWindowsWebAppSlot_withNodeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "~16"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.node(data, "~18"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

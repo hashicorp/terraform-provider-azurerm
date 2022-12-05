@@ -767,13 +767,14 @@ func TestAccWindowsWebApp_basicDockerContainer(t *testing.T) {
 
 // TODO: More Java matrix tests...
 
-func TestAccWindowsWebApp_withNode12lts(t *testing.T) {
+func TestAccWindowsWebApp_withNode12(t *testing.T) {
+	// TODO Deprecated - remove in 4.0
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "12-LTS"),
+			Config: r.node(data, "~12"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -782,13 +783,28 @@ func TestAccWindowsWebApp_withNode12lts(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebApp_withNode14lts(t *testing.T) {
+func TestAccWindowsWebApp_withNode14(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "14-LTS"),
+			Config: r.node(data, "~14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_withNode18(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "~18"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -806,6 +822,7 @@ func TestAccWindowsWebApp_withMultiStack(t *testing.T) {
 			Config: r.multiStack(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.current_stack").HasValue("python"),
 			),
 		},
 		data.ImportStep(),
@@ -2303,6 +2320,8 @@ resource "azurerm_windows_web_app" "test" {
       java_version           = "%s"
       java_container         = "%s"
       java_container_version = "%s"
+
+      current_stack = "python"
     }
   }
 }

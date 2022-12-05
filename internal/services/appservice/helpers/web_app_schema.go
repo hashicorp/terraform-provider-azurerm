@@ -13,7 +13,6 @@ import (
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigWindows struct {
@@ -2359,44 +2358,87 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 			}
 		}
 	}
-	expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
+	expanded.AlwaysOn = pointer.To(winSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: utils.String(winSiteConfig.ApiManagementConfigId),
+			ID: pointer.To(winSiteConfig.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
 		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: utils.String(winSiteConfig.ApiDefinition),
+			URL: pointer.To(winSiteConfig.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = utils.String(winSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = pointer.To(winSiteConfig.AppCommandLine)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(winSiteConfig.ApplicationStack) == 1 {
 			winAppStack := winSiteConfig.ApplicationStack[0]
 			// TODO - only one of these should be non-nil?
-			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
-			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
-			expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
-			expanded.JavaVersion = utils.String(winAppStack.JavaVersion)
-			expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
-			expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
-			if winAppStack.DockerContainerName != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				} else {
-					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			if winAppStack.NetFrameworkVersion != "" {
+				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+				if currentStack == "" {
+					currentStack = CurrentStackDotNet
 				}
 			}
-			currentStack = winAppStack.CurrentStack
+			if winAppStack.NetCoreVersion != "" {
+				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+				if currentStack == "" {
+					currentStack = CurrentStackDotNetCore
+				}
+			}
+			if winAppStack.NodeVersion != "" {
+				// Note: node version is now exclusively controlled via app_setting.WEBSITE_NODE_DEFAULT_VERSION
+				if currentStack == "" {
+					currentStack = CurrentStackNode
+				}
+			}
+			if winAppStack.PhpVersion != "" {
+				if winAppStack.PhpVersion != PhpVersionOff {
+					expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
+				} else {
+					expanded.PhpVersion = pointer.To("")
+				}
+				if currentStack == "" {
+					currentStack = CurrentStackPhp
+				}
+			}
+			if winAppStack.PythonVersion != "" || winAppStack.Python {
+				expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
+				if currentStack == "" {
+					currentStack = CurrentStackPython
+				}
+			}
+			if winAppStack.JavaVersion != "" {
+				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
+				if winAppStack.JavaEmbeddedServer {
+					expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
+					expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
+				} else if winAppStack.TomcatVersion != "" {
+					expanded.JavaContainer = pointer.To(JavaContainerTomcat)
+					expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
+				} else if winAppStack.JavaContainer != "" {
+					expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
+					expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
+				}
+				if currentStack == "" {
+					currentStack = CurrentStackJava
+				}
+			}
+			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
+				if winAppStack.DockerContainerRegistry != "" {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				} else {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				}
+			}
 		} else {
-			expanded.WindowsFxVersion = utils.String("")
+			expanded.WindowsFxVersion = pointer.To("")
 		}
 	}
 
@@ -2406,17 +2448,17 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
 	}
 
-	expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
+	expanded.AcrUseManagedIdentityCreds = pointer.To(winSiteConfig.UseManagedIdentityACR)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
-		expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryUserMSI)
+		expanded.AcrUserManagedIdentityID = pointer.To(winSiteConfig.ContainerRegistryUserMSI)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
 		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
+	expanded.HTTP20Enabled = pointer.To(winSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
@@ -2426,7 +2468,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(winSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
@@ -2436,7 +2478,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
+	expanded.LocalMySQLEnabled = pointer.To(winSiteConfig.LocalMysql)
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(winSiteConfig.LoadBalancing)
@@ -2446,26 +2488,26 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
 	}
 
-	expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
+	expanded.RemoteDebuggingEnabled = pointer.To(winSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = utils.String(winSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = pointer.To(winSiteConfig.RemoteDebuggingVersion)
 	}
 
-	expanded.Use32BitWorkerProcess = utils.Bool(winSiteConfig.Use32BitWorker)
+	expanded.Use32BitWorkerProcess = pointer.To(winSiteConfig.Use32BitWorker)
 
-	expanded.WebSocketsEnabled = utils.Bool(winSiteConfig.WebSockets)
+	expanded.WebSocketsEnabled = pointer.To(winSiteConfig.WebSockets)
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		expanded.FtpsState = web.FtpsState(winSiteConfig.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = utils.String(winSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = pointer.To(winSiteConfig.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = utils.Int32(int32(winSiteConfig.WorkerCount))
+		expanded.NumberOfWorkers = pointer.To(int32(winSiteConfig.WorkerCount))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
@@ -2487,7 +2529,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
-		expanded.AutoHealEnabled = utils.Bool(winSiteConfig.AutoHeal)
+		expanded.AutoHealEnabled = pointer.To(winSiteConfig.AutoHeal)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
@@ -2495,7 +2537,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = utils.Bool(winSiteConfig.VnetRouteAllEnabled)
+		expanded.VnetRouteAllEnabled = pointer.To(winSiteConfig.VnetRouteAllEnabled)
 	}
 
 	return expanded, &currentStack, nil
@@ -2522,29 +2564,29 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 			}
 		}
 	}
-	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
+	expanded.AlwaysOn = pointer.To(linuxSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: utils.String(linuxSiteConfig.ApiManagementConfigId),
+			ID: pointer.To(linuxSiteConfig.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
 		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: utils.String(linuxSiteConfig.ApiDefinition),
+			URL: pointer.To(linuxSiteConfig.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = utils.String(linuxSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = pointer.To(linuxSiteConfig.AppCommandLine)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(linuxSiteConfig.ApplicationStack) == 1 {
 			linuxAppStack := linuxSiteConfig.ApplicationStack[0]
 			if linuxAppStack.NetFrameworkVersion != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 			}
 
 			if linuxAppStack.GoVersion != "" {
@@ -2552,48 +2594,48 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 			}
 
 			if linuxAppStack.PhpVersion != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
 			}
 
 			if linuxAppStack.NodeVersion != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 			}
 
 			if linuxAppStack.RubyVersion != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
 			}
 
 			if linuxAppStack.PythonVersion != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 			}
 
 			if linuxAppStack.JavaServer != "" {
 				if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
-					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
+					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
 				} else {
-					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
 				}
 			}
 
 			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
 			}
 		} else {
-			expanded.LinuxFxVersion = utils.String("")
+			expanded.LinuxFxVersion = pointer.To("")
 		}
 	}
 
-	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSiteConfig.UseManagedIdentityACR)
+	expanded.AcrUseManagedIdentityCreds = pointer.To(linuxSiteConfig.UseManagedIdentityACR)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
-		expanded.AcrUserManagedIdentityID = utils.String(linuxSiteConfig.ContainerRegistryMSI)
+		expanded.AcrUserManagedIdentityID = pointer.To(linuxSiteConfig.ContainerRegistryMSI)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
 		expanded.DefaultDocuments = &linuxSiteConfig.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
+	expanded.HTTP20Enabled = pointer.To(linuxSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
@@ -2603,7 +2645,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(linuxSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.ScmIpRestriction)
@@ -2613,7 +2655,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
+	expanded.LocalMySQLEnabled = pointer.To(linuxSiteConfig.LocalMysql)
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSiteConfig.LoadBalancing)
@@ -2623,26 +2665,26 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
 	}
 
-	expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
+	expanded.RemoteDebuggingEnabled = pointer.To(linuxSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = utils.String(linuxSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = pointer.To(linuxSiteConfig.RemoteDebuggingVersion)
 	}
 
-	expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
+	expanded.Use32BitWorkerProcess = pointer.To(linuxSiteConfig.Use32BitWorker)
 
-	expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
+	expanded.WebSocketsEnabled = pointer.To(linuxSiteConfig.WebSockets)
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		expanded.FtpsState = web.FtpsState(linuxSiteConfig.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = utils.String(linuxSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = pointer.To(linuxSiteConfig.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = utils.Int32(int32(linuxSiteConfig.NumberOfWorkers))
+		expanded.NumberOfWorkers = pointer.To(int32(linuxSiteConfig.NumberOfWorkers))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
@@ -2663,14 +2705,14 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.Cors = cors
 	}
 
-	expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
+	expanded.AutoHealEnabled = pointer.To(linuxSiteConfig.AutoHeal)
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(linuxSiteConfig.AutoHealSettings)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = utils.Bool(linuxSiteConfig.VnetRouteAllEnabled)
+		expanded.VnetRouteAllEnabled = pointer.To(linuxSiteConfig.VnetRouteAllEnabled)
 	}
 
 	return expanded, nil
@@ -2697,8 +2739,8 @@ func ExpandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 			appLogsBlobs := appLogs.AzureBlobStorage[0]
 			result.SiteLogsConfigProperties.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
 				Level:           web.LogLevel(appLogsBlobs.Level),
-				SasURL:          utils.String(appLogsBlobs.SasUrl),
-				RetentionInDays: utils.Int32(int32(appLogsBlobs.RetentionInDays)),
+				SasURL:          pointer.To(appLogsBlobs.SasUrl),
+				RetentionInDays: pointer.To(int32(appLogsBlobs.RetentionInDays)),
 			}
 		}
 	}
@@ -2710,28 +2752,28 @@ func ExpandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 		if len(httpLogs.FileSystems) == 1 {
 			httpLogFileSystem := httpLogs.FileSystems[0]
 			result.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
-				Enabled:         utils.Bool(true),
-				RetentionInMb:   utils.Int32(int32(httpLogFileSystem.RetentionMB)),
-				RetentionInDays: utils.Int32(int32(httpLogFileSystem.RetentionDays)),
+				Enabled:         pointer.To(true),
+				RetentionInMb:   pointer.To(int32(httpLogFileSystem.RetentionMB)),
+				RetentionInDays: pointer.To(int32(httpLogFileSystem.RetentionDays)),
 			}
 		}
 
 		if len(httpLogs.AzureBlobStorage) == 1 {
 			httpLogsBlobStorage := httpLogs.AzureBlobStorage[0]
 			result.HTTPLogs.AzureBlobStorage = &web.AzureBlobStorageHTTPLogsConfig{
-				Enabled:         utils.Bool(httpLogsBlobStorage.SasUrl != ""),
-				SasURL:          utils.String(httpLogsBlobStorage.SasUrl),
-				RetentionInDays: utils.Int32(int32(httpLogsBlobStorage.RetentionInDays)),
+				Enabled:         pointer.To(httpLogsBlobStorage.SasUrl != ""),
+				SasURL:          pointer.To(httpLogsBlobStorage.SasUrl),
+				RetentionInDays: pointer.To(int32(httpLogsBlobStorage.RetentionInDays)),
 			}
 		}
 	}
 
 	result.DetailedErrorMessages = &web.EnabledConfig{
-		Enabled: utils.Bool(logsConfig.DetailedErrorMessages),
+		Enabled: pointer.To(logsConfig.DetailedErrorMessages),
 	}
 
 	result.FailedRequestsTracing = &web.EnabledConfig{
-		Enabled: utils.Bool(logsConfig.FailedRequestTracing),
+		Enabled: pointer.To(logsConfig.FailedRequestTracing),
 	}
 
 	return result
@@ -2746,14 +2788,14 @@ func ExpandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
 	backupConfig := backupConfigs[0]
 	backupSchedule := backupConfig.Schedule[0]
 	result.BackupRequestProperties = &web.BackupRequestProperties{
-		Enabled:           utils.Bool(backupConfig.Enabled),
-		BackupName:        utils.String(backupConfig.Name),
-		StorageAccountURL: utils.String(backupConfig.StorageAccountUrl),
+		Enabled:           pointer.To(backupConfig.Enabled),
+		BackupName:        pointer.To(backupConfig.Name),
+		StorageAccountURL: pointer.To(backupConfig.StorageAccountUrl),
 		BackupSchedule: &web.BackupSchedule{
-			FrequencyInterval:     utils.Int32(int32(backupSchedule.FrequencyInterval)),
+			FrequencyInterval:     pointer.To(int32(backupSchedule.FrequencyInterval)),
 			FrequencyUnit:         web.FrequencyUnit(backupSchedule.FrequencyUnit),
-			KeepAtLeastOneBackup:  utils.Bool(backupSchedule.KeepAtLeastOneBackup),
-			RetentionPeriodInDays: utils.Int32(int32(backupSchedule.RetentionPeriodDays)),
+			KeepAtLeastOneBackup:  pointer.To(backupSchedule.KeepAtLeastOneBackup),
+			RetentionPeriodInDays: pointer.To(int32(backupSchedule.RetentionPeriodDays)),
 		},
 	}
 
@@ -2776,10 +2818,10 @@ func ExpandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePrope
 	for _, v := range storageConfigs {
 		storageAccounts[v.Name] = &web.AzureStorageInfoValue{
 			Type:        web.AzureStorageType(v.Type),
-			AccountName: utils.String(v.AccountName),
-			ShareName:   utils.String(v.ShareName),
-			AccessKey:   utils.String(v.AccessKey),
-			MountPath:   utils.String(v.MountPath),
+			AccountName: pointer.To(v.AccountName),
+			ShareName:   pointer.To(v.ShareName),
+			AccessKey:   pointer.To(v.AccessKey),
+			MountPath:   pointer.To(v.MountPath),
 		}
 	}
 
@@ -2797,7 +2839,7 @@ func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *web.Co
 	connectionStrings := make(map[string]*web.ConnStringValueTypePair)
 	for _, v := range connectionStringsConfig {
 		connectionStrings[v.Name] = &web.ConnStringValueTypePair{
-			Value: utils.String(v.Value),
+			Value: pointer.To(v.Value),
 			Type:  web.ConnectionStringType(v.Type),
 		}
 	}
@@ -2815,16 +2857,16 @@ func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[
 
 	for _, v := range virtualApplicationConfig {
 		virtualApp := web.VirtualApplication{
-			VirtualPath:    utils.String(v.VirtualPath),
-			PhysicalPath:   utils.String(v.PhysicalPath),
-			PreloadEnabled: utils.Bool(v.Preload),
+			VirtualPath:    pointer.To(v.VirtualPath),
+			PhysicalPath:   pointer.To(v.PhysicalPath),
+			PreloadEnabled: pointer.To(v.Preload),
 		}
 		if len(v.VirtualDirectories) > 0 {
 			virtualDirs := make([]web.VirtualDirectory, 0)
 			for _, d := range v.VirtualDirectories {
 				virtualDirs = append(virtualDirs, web.VirtualDirectory{
-					VirtualPath:  utils.String(d.VirtualPath),
-					PhysicalPath: utils.String(d.PhysicalPath),
+					VirtualPath:  pointer.To(d.VirtualPath),
+					PhysicalPath: pointer.To(d.PhysicalPath),
 				})
 			}
 			virtualApp.VirtualDirectories = &virtualDirs
@@ -2840,9 +2882,9 @@ func expandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplic
 		// to remove this block from the config we need to give the service the original default back, sending an empty struct leaves the previous config in place
 		return &[]web.VirtualApplication{
 			{
-				VirtualPath:    utils.String("/"),
-				PhysicalPath:   utils.String("site\\wwwroot"),
-				PreloadEnabled: utils.Bool(true),
+				VirtualPath:    pointer.To("/"),
+				PhysicalPath:   pointer.To("site\\wwwroot"),
+				PreloadEnabled: pointer.To(true),
 			},
 		}
 	}
@@ -2851,16 +2893,16 @@ func expandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplic
 
 	for _, v := range virtualApplicationConfig {
 		virtualApp := web.VirtualApplication{
-			VirtualPath:    utils.String(v.VirtualPath),
-			PhysicalPath:   utils.String(v.PhysicalPath),
-			PreloadEnabled: utils.Bool(v.Preload),
+			VirtualPath:    pointer.To(v.VirtualPath),
+			PhysicalPath:   pointer.To(v.PhysicalPath),
+			PreloadEnabled: pointer.To(v.Preload),
 		}
 		if len(v.VirtualDirectories) > 0 {
 			virtualDirs := make([]web.VirtualDirectory, 0)
 			for _, d := range v.VirtualDirectories {
 				virtualDirs = append(virtualDirs, web.VirtualDirectory{
-					VirtualPath:  utils.String(d.VirtualPath),
-					PhysicalPath: utils.String(d.PhysicalPath),
+					VirtualPath:  pointer.To(d.VirtualPath),
+					PhysicalPath: pointer.To(d.PhysicalPath),
 				})
 			}
 			virtualApp.VirtualDirectories = &virtualDirs
@@ -2941,9 +2983,9 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 					Level: string(appLogs.AzureBlobStorage.Level),
 				}
 
-				blobStorage.SasUrl = utils.NormalizeNilableString(appLogs.AzureBlobStorage.SasURL)
+				blobStorage.SasUrl = pointer.From(appLogs.AzureBlobStorage.SasURL)
 
-				blobStorage.RetentionInDays = int(utils.NormaliseNilableInt32(appLogs.AzureBlobStorage.RetentionInDays))
+				blobStorage.RetentionInDays = int(pointer.From(appLogs.AzureBlobStorage.RetentionInDays))
 
 				applicationLog.AzureBlobStorage = []AzureBlobStorage{blobStorage}
 			}
@@ -3032,33 +3074,33 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	siteConfig := SiteConfigWindows{
-		AlwaysOn:                 utils.NormaliseNilableBool(appSiteConfig.AlwaysOn),
-		AppCommandLine:           utils.NormalizeNilableString(appSiteConfig.AppCommandLine),
-		AutoHeal:                 utils.NormaliseNilableBool(appSiteConfig.AutoHealEnabled),
+		AlwaysOn:                 pointer.From(appSiteConfig.AlwaysOn),
+		AppCommandLine:           pointer.From(appSiteConfig.AppCommandLine),
+		AutoHeal:                 pointer.From(appSiteConfig.AutoHealEnabled),
 		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
-		ContainerRegistryUserMSI: utils.NormalizeNilableString(appSiteConfig.AcrUserManagedIdentityID),
-		DetailedErrorLogging:     utils.NormaliseNilableBool(appSiteConfig.DetailedErrorLoggingEnabled),
+		ContainerRegistryUserMSI: pointer.From(appSiteConfig.AcrUserManagedIdentityID),
+		DetailedErrorLogging:     pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
 		FtpsState:                string(appSiteConfig.FtpsState),
-		HealthCheckPath:          utils.NormalizeNilableString(appSiteConfig.HealthCheckPath),
-		HealthCheckEvictionTime:  utils.NormaliseNilableInt(healthCheckCount),
-		Http2Enabled:             utils.NormaliseNilableBool(appSiteConfig.HTTP20Enabled),
+		HealthCheckPath:          pointer.From(appSiteConfig.HealthCheckPath),
+		HealthCheckEvictionTime:  pointer.From(healthCheckCount),
+		Http2Enabled:             pointer.From(appSiteConfig.HTTP20Enabled),
 		IpRestriction:            FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
 		LoadBalancing:            string(appSiteConfig.LoadBalancing),
-		LocalMysql:               utils.NormaliseNilableBool(appSiteConfig.LocalMySQLEnabled),
+		LocalMysql:               pointer.From(appSiteConfig.LocalMySQLEnabled),
 		ManagedPipelineMode:      string(appSiteConfig.ManagedPipelineMode),
 		MinTlsVersion:            string(appSiteConfig.MinTLSVersion),
-		WorkerCount:              int(utils.NormaliseNilableInt32(appSiteConfig.NumberOfWorkers)),
-		RemoteDebugging:          utils.NormaliseNilableBool(appSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:   strings.ToUpper(utils.NormalizeNilableString(appSiteConfig.RemoteDebuggingVersion)),
+		WorkerCount:              int(pointer.From(appSiteConfig.NumberOfWorkers)),
+		RemoteDebugging:          pointer.From(appSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:   strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion)),
 		ScmIpRestriction:         FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
 		ScmMinTlsVersion:         string(appSiteConfig.ScmMinTLSVersion),
 		ScmType:                  string(appSiteConfig.ScmType),
-		ScmUseMainIpRestriction:  utils.NormaliseNilableBool(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:           utils.NormaliseNilableBool(appSiteConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:    utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
+		ScmUseMainIpRestriction:  pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:           pointer.From(appSiteConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:    pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
 		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
-		WebSockets:               utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:      utils.NormaliseNilableBool(appSiteConfig.VnetRouteAllEnabled),
+		WebSockets:               pointer.From(appSiteConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:      pointer.From(appSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -3078,15 +3120,24 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	var winAppStack ApplicationStackWindows
-	winAppStack.NetFrameworkVersion = utils.NormalizeNilableString(appSiteConfig.NetFrameworkVersion)
-	winAppStack.PhpVersion = utils.NormalizeNilableString(appSiteConfig.PhpVersion)
-	winAppStack.NodeVersion = utils.NormalizeNilableString(appSiteConfig.NodeVersion)
-	winAppStack.PythonVersion = utils.NormalizeNilableString(appSiteConfig.PythonVersion)
-	winAppStack.JavaVersion = utils.NormalizeNilableString(appSiteConfig.JavaVersion)
-	winAppStack.JavaContainer = utils.NormalizeNilableString(appSiteConfig.JavaContainer)
-	winAppStack.JavaContainerVersion = utils.NormalizeNilableString(appSiteConfig.JavaContainerVersion)
+	winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+	if currentStack == CurrentStackDotNetCore {
+		winAppStack.NetCoreVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+	}
+	winAppStack.PhpVersion = pointer.From(appSiteConfig.PhpVersion)
+	if winAppStack.PhpVersion == "" {
+		winAppStack.PhpVersion = PhpVersionOff
+	}
+	winAppStack.NodeVersion = pointer.From(appSiteConfig.NodeVersion)     // TODO - Get from app_settings
+	winAppStack.PythonVersion = pointer.From(appSiteConfig.PythonVersion) // This _should_ always be `""`
+	winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
+	winAppStack.JavaContainer = pointer.From(appSiteConfig.JavaContainer)
+	winAppStack.JavaContainerVersion = pointer.From(appSiteConfig.JavaContainerVersion)
+	if strings.EqualFold(winAppStack.JavaContainer, JavaContainerEmbeddedServer) {
+		winAppStack.JavaEmbeddedServer = true
+	}
 
-	siteConfig.WindowsFxVersion = utils.NormalizeNilableString(appSiteConfig.WindowsFxVersion)
+	siteConfig.WindowsFxVersion = pointer.From(appSiteConfig.WindowsFxVersion)
 	if siteConfig.WindowsFxVersion != "" {
 		// Decode the string to docker values
 		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
@@ -3127,32 +3178,32 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 	}
 
 	siteConfig := SiteConfigLinux{
-		AlwaysOn:                utils.NormaliseNilableBool(appSiteConfig.AlwaysOn),
-		AppCommandLine:          utils.NormalizeNilableString(appSiteConfig.AppCommandLine),
-		AutoHeal:                utils.NormaliseNilableBool(appSiteConfig.AutoHealEnabled),
+		AlwaysOn:                pointer.From(appSiteConfig.AlwaysOn),
+		AppCommandLine:          pointer.From(appSiteConfig.AppCommandLine),
+		AutoHeal:                pointer.From(appSiteConfig.AutoHealEnabled),
 		AutoHealSettings:        flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules),
-		ContainerRegistryMSI:    utils.NormalizeNilableString(appSiteConfig.AcrUserManagedIdentityID),
-		DetailedErrorLogging:    utils.NormaliseNilableBool(appSiteConfig.DetailedErrorLoggingEnabled),
-		Http2Enabled:            utils.NormaliseNilableBool(appSiteConfig.HTTP20Enabled),
+		ContainerRegistryMSI:    pointer.From(appSiteConfig.AcrUserManagedIdentityID),
+		DetailedErrorLogging:    pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
+		Http2Enabled:            pointer.From(appSiteConfig.HTTP20Enabled),
 		IpRestriction:           FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
 		ManagedPipelineMode:     string(appSiteConfig.ManagedPipelineMode),
 		ScmType:                 string(appSiteConfig.ScmType),
 		FtpsState:               string(appSiteConfig.FtpsState),
-		HealthCheckPath:         utils.NormalizeNilableString(appSiteConfig.HealthCheckPath),
-		HealthCheckEvictionTime: utils.NormaliseNilableInt(healthCheckCount),
+		HealthCheckPath:         pointer.From(appSiteConfig.HealthCheckPath),
+		HealthCheckEvictionTime: pointer.From(healthCheckCount),
 		LoadBalancing:           string(appSiteConfig.LoadBalancing),
-		LocalMysql:              utils.NormaliseNilableBool(appSiteConfig.LocalMySQLEnabled),
+		LocalMysql:              pointer.From(appSiteConfig.LocalMySQLEnabled),
 		MinTlsVersion:           string(appSiteConfig.MinTLSVersion),
-		NumberOfWorkers:         int(utils.NormaliseNilableInt32(appSiteConfig.NumberOfWorkers)),
-		RemoteDebugging:         utils.NormaliseNilableBool(appSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(appSiteConfig.RemoteDebuggingVersion)),
+		NumberOfWorkers:         int(pointer.From(appSiteConfig.NumberOfWorkers)),
+		RemoteDebugging:         pointer.From(appSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion)),
 		ScmIpRestriction:        FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
 		ScmMinTlsVersion:        string(appSiteConfig.ScmMinTLSVersion),
-		ScmUseMainIpRestriction: utils.NormaliseNilableBool(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:          utils.NormaliseNilableBool(appSiteConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:   utils.NormaliseNilableBool(appSiteConfig.AcrUseManagedIdentityCreds),
-		WebSockets:              utils.NormaliseNilableBool(appSiteConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:     utils.NormaliseNilableBool(appSiteConfig.VnetRouteAllEnabled),
+		ScmUseMainIpRestriction: pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:          pointer.From(appSiteConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:   pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
+		WebSockets:              pointer.From(appSiteConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:     pointer.From(appSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -3245,7 +3296,7 @@ func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionar
 func ExpandAppSettingsForUpdate(settings map[string]string) *web.StringDictionary {
 	appSettings := make(map[string]*string)
 	for k, v := range settings {
-		appSettings[k] = utils.String(v)
+		appSettings[k] = pointer.To(v)
 	}
 
 	return &web.StringDictionary{
@@ -3258,8 +3309,8 @@ func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair
 		result := make([]web.NameValuePair, 0)
 		for k, v := range settings {
 			result = append(result, web.NameValuePair{
-				Name:  utils.String(k),
-				Value: utils.String(v),
+				Name:  pointer.To(k),
+				Value: pointer.To(v),
 			})
 		}
 		return &result
@@ -3268,7 +3319,7 @@ func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair
 }
 
 func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
-	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURE"
+	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURES"
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
@@ -3304,8 +3355,8 @@ func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication
 	var virtualApplications []VirtualApplication
 	for _, v := range *appVirtualApplications {
 		virtualApp := VirtualApplication{
-			VirtualPath:  utils.NormalizeNilableString(v.VirtualPath),
-			PhysicalPath: utils.NormalizeNilableString(v.PhysicalPath),
+			VirtualPath:  pointer.From(v.VirtualPath),
+			PhysicalPath: pointer.From(v.PhysicalPath),
 		}
 		if preload := v.PreloadEnabled; preload != nil {
 			virtualApp.Preload = *preload
@@ -3314,8 +3365,8 @@ func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication
 			virtualDirs := make([]VirtualDirectory, 0)
 			for _, d := range *v.VirtualDirectories {
 				virtualDir := VirtualDirectory{
-					VirtualPath:  utils.NormalizeNilableString(d.VirtualPath),
-					PhysicalPath: utils.NormalizeNilableString(d.PhysicalPath),
+					VirtualPath:  pointer.From(d.VirtualPath),
+					PhysicalPath: pointer.From(d.PhysicalPath),
 				}
 				virtualDirs = append(virtualDirs, virtualDir)
 			}
@@ -3356,24 +3407,24 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
 		result.Triggers.Requests = &web.RequestsBasedTrigger{
-			Count:        utils.Int32(int32(triggers.Requests[0].Count)),
-			TimeInterval: utils.String(triggers.Requests[0].Interval),
+			Count:        pointer.To(int32(triggers.Requests[0].Count)),
+			TimeInterval: pointer.To(triggers.Requests[0].Interval),
 		}
 	}
 
 	if len(triggers.SlowRequests) == 1 {
 		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
-			TimeTaken:    utils.String(triggers.SlowRequests[0].TimeTaken),
-			TimeInterval: utils.String(triggers.SlowRequests[0].Interval),
-			Count:        utils.Int32(int32(triggers.SlowRequests[0].Count)),
+			TimeTaken:    pointer.To(triggers.SlowRequests[0].TimeTaken),
+			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
+			Count:        pointer.To(int32(triggers.SlowRequests[0].Count)),
 		}
 		if triggers.SlowRequests[0].Path != "" {
-			result.Triggers.SlowRequests.Path = utils.String(triggers.SlowRequests[0].Path)
+			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
 		}
 	}
 
 	if triggers.PrivateMemoryKB != 0 {
-		result.Triggers.PrivateBytesInKB = utils.Int32(int32(triggers.PrivateMemoryKB))
+		result.Triggers.PrivateBytesInKB = pointer.To(int32(triggers.PrivateMemoryKB))
 	}
 
 	if len(triggers.StatusCodes) > 0 {
@@ -3384,22 +3435,22 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 			statusCodeRangeTrigger := web.StatusCodesRangeBasedTrigger{}
 			parts := strings.Split(s.StatusCodeRange, "-")
 			if len(parts) == 2 {
-				statusCodeRangeTrigger.StatusCodes = utils.String(s.StatusCodeRange)
-				statusCodeRangeTrigger.Count = utils.Int32(int32(s.Count))
-				statusCodeRangeTrigger.TimeInterval = utils.String(s.Interval)
+				statusCodeRangeTrigger.StatusCodes = pointer.To(s.StatusCodeRange)
+				statusCodeRangeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeRangeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
-					statusCodeRangeTrigger.Path = utils.String(s.Path)
+					statusCodeRangeTrigger.Path = pointer.To(s.Path)
 				}
 				statusCodeRangeTriggers = append(statusCodeRangeTriggers, statusCodeRangeTrigger)
 			} else {
 				statusCode, err := strconv.Atoi(s.StatusCodeRange)
 				if err == nil {
-					statusCodeTrigger.Status = utils.Int32(int32(statusCode))
+					statusCodeTrigger.Status = pointer.To(int32(statusCode))
 				}
-				statusCodeTrigger.Count = utils.Int32(int32(s.Count))
-				statusCodeTrigger.TimeInterval = utils.String(s.Interval)
+				statusCodeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
-					statusCodeTrigger.Path = utils.String(s.Path)
+					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
@@ -3410,12 +3461,12 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	action := autoHeal.Actions[0]
 	result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
-	result.Actions.MinProcessExecutionTime = utils.String(action.MinimumProcessTime)
+	result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 	if len(action.CustomAction) != 0 {
 		customAction := action.CustomAction[0]
 		result.Actions.CustomAction = &web.AutoHealCustomAction{
-			Exe:        utils.String(customAction.Executable),
-			Parameters: utils.String(customAction.Parameters),
+			Exe:        pointer.To(customAction.Executable),
+			Parameters: pointer.To(customAction.Parameters),
 		}
 	}
 
@@ -3439,7 +3490,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 			}
 			resultTrigger.Requests = []AutoHealRequestTrigger{{
 				Count:    count,
-				Interval: utils.NormalizeNilableString(triggers.Requests.TimeInterval),
+				Interval: pointer.From(triggers.Requests.TimeInterval),
 			}}
 		}
 
@@ -3451,8 +3502,8 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		if triggers.StatusCodes != nil {
 			for _, s := range *triggers.StatusCodes {
 				t := AutoHealStatusCodeTrigger{
-					Interval: utils.NormalizeNilableString(s.TimeInterval),
-					Path:     utils.NormalizeNilableString(s.Path),
+					Interval: pointer.From(s.TimeInterval),
+					Path:     pointer.From(s.Path),
 				}
 
 				if s.Status != nil {
@@ -3472,8 +3523,8 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		if triggers.StatusCodesRange != nil {
 			for _, s := range *triggers.StatusCodesRange {
 				t := AutoHealStatusCodeTrigger{
-					Interval: utils.NormalizeNilableString(s.TimeInterval),
-					Path:     utils.NormalizeNilableString(s.Path),
+					Interval: pointer.From(s.TimeInterval),
+					Path:     pointer.From(s.Path),
 				}
 				if s.Count != nil {
 					t.Count = int(*s.Count)
@@ -3490,10 +3541,10 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		slowRequestTriggers := make([]AutoHealSlowRequest, 0)
 		if triggers.SlowRequests != nil {
 			slowRequestTriggers = append(slowRequestTriggers, AutoHealSlowRequest{
-				TimeTaken: utils.NormalizeNilableString(triggers.SlowRequests.TimeTaken),
-				Interval:  utils.NormalizeNilableString(triggers.SlowRequests.TimeInterval),
-				Count:     int(utils.NormaliseNilableInt32(triggers.SlowRequests.Count)),
-				Path:      utils.NormalizeNilableString(triggers.SlowRequests.Path),
+				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
+				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
+				Count:     int(pointer.From(triggers.SlowRequests.Count)),
+				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
 		resultTrigger.SlowRequests = slowRequestTriggers
@@ -3506,15 +3557,15 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		customActions := make([]AutoHealCustomAction, 0)
 		if actions.CustomAction != nil {
 			customActions = append(customActions, AutoHealCustomAction{
-				Executable: utils.NormalizeNilableString(actions.CustomAction.Exe),
-				Parameters: utils.NormalizeNilableString(actions.CustomAction.Parameters),
+				Executable: pointer.From(actions.CustomAction.Exe),
+				Parameters: pointer.From(actions.CustomAction.Parameters),
 			})
 		}
 
 		resultActions := AutoHealActionWindows{
 			ActionType:         string(actions.ActionType),
 			CustomAction:       customActions,
-			MinimumProcessTime: utils.NormalizeNilableString(actions.MinProcessExecutionTime),
+			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}
 		result.Actions = []AutoHealActionWindows{resultActions}
 	}
@@ -3541,19 +3592,19 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
 		result.Triggers.Requests = &web.RequestsBasedTrigger{
-			Count:        utils.Int32(int32(triggers.Requests[0].Count)),
-			TimeInterval: utils.String(triggers.Requests[0].Interval),
+			Count:        pointer.To(int32(triggers.Requests[0].Count)),
+			TimeInterval: pointer.To(triggers.Requests[0].Interval),
 		}
 	}
 
 	if len(triggers.SlowRequests) == 1 {
 		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
-			TimeTaken:    utils.String(triggers.SlowRequests[0].TimeTaken),
-			TimeInterval: utils.String(triggers.SlowRequests[0].Interval),
-			Count:        utils.Int32(int32(triggers.SlowRequests[0].Count)),
+			TimeTaken:    pointer.To(triggers.SlowRequests[0].TimeTaken),
+			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
+			Count:        pointer.To(int32(triggers.SlowRequests[0].Count)),
 		}
 		if triggers.SlowRequests[0].Path != "" {
-			result.Triggers.SlowRequests.Path = utils.String(triggers.SlowRequests[0].Path)
+			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
 		}
 	}
 
@@ -3565,22 +3616,22 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 			statusCodeRangeTrigger := web.StatusCodesRangeBasedTrigger{}
 			parts := strings.Split(s.StatusCodeRange, "-")
 			if len(parts) == 2 {
-				statusCodeRangeTrigger.StatusCodes = utils.String(s.StatusCodeRange)
-				statusCodeRangeTrigger.Count = utils.Int32(int32(s.Count))
-				statusCodeRangeTrigger.TimeInterval = utils.String(s.Interval)
+				statusCodeRangeTrigger.StatusCodes = pointer.To(s.StatusCodeRange)
+				statusCodeRangeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeRangeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
-					statusCodeRangeTrigger.Path = utils.String(s.Path)
+					statusCodeRangeTrigger.Path = pointer.To(s.Path)
 				}
 				statusCodeRangeTriggers = append(statusCodeRangeTriggers, statusCodeRangeTrigger)
 			} else {
 				statusCode, err := strconv.Atoi(s.StatusCodeRange)
 				if err == nil {
-					statusCodeTrigger.Status = utils.Int32(int32(statusCode))
+					statusCodeTrigger.Status = pointer.To(int32(statusCode))
 				}
-				statusCodeTrigger.Count = utils.Int32(int32(s.Count))
-				statusCodeTrigger.TimeInterval = utils.String(s.Interval)
+				statusCodeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
-					statusCodeTrigger.Path = utils.String(s.Path)
+					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
@@ -3591,7 +3642,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 
 	action := autoHeal.Actions[0]
 	result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
-	result.Actions.MinProcessExecutionTime = utils.String(action.MinimumProcessTime)
+	result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 
 	return result
 }
@@ -3614,7 +3665,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 			}
 			resultTrigger.Requests = []AutoHealRequestTrigger{{
 				Count:    count,
-				Interval: utils.NormalizeNilableString(triggers.Requests.TimeInterval),
+				Interval: pointer.From(triggers.Requests.TimeInterval),
 			}}
 		}
 
@@ -3622,8 +3673,8 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 		if triggers.StatusCodes != nil {
 			for _, s := range *triggers.StatusCodes {
 				t := AutoHealStatusCodeTrigger{
-					Interval: utils.NormalizeNilableString(s.TimeInterval),
-					Path:     utils.NormalizeNilableString(s.Path),
+					Interval: pointer.From(s.TimeInterval),
+					Path:     pointer.From(s.Path),
 				}
 
 				if s.Status != nil {
@@ -3643,8 +3694,8 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 		if triggers.StatusCodesRange != nil {
 			for _, s := range *triggers.StatusCodesRange {
 				t := AutoHealStatusCodeTrigger{
-					Interval: utils.NormalizeNilableString(s.TimeInterval),
-					Path:     utils.NormalizeNilableString(s.Path),
+					Interval: pointer.From(s.TimeInterval),
+					Path:     pointer.From(s.Path),
 				}
 				if s.Count != nil {
 					t.Count = int(*s.Count)
@@ -3661,10 +3712,10 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 		slowRequestTriggers := make([]AutoHealSlowRequest, 0)
 		if triggers.SlowRequests != nil {
 			slowRequestTriggers = append(slowRequestTriggers, AutoHealSlowRequest{
-				TimeTaken: utils.NormalizeNilableString(triggers.SlowRequests.TimeTaken),
-				Interval:  utils.NormalizeNilableString(triggers.SlowRequests.TimeInterval),
-				Count:     int(utils.NormaliseNilableInt32(triggers.SlowRequests.Count)),
-				Path:      utils.NormalizeNilableString(triggers.SlowRequests.Path),
+				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
+				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
+				Count:     int(pointer.From(triggers.SlowRequests.Count)),
+				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
 		resultTrigger.SlowRequests = slowRequestTriggers
@@ -3677,7 +3728,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 
 		result.Actions = []AutoHealActionLinux{{
 			ActionType:         string(actions.ActionType),
-			MinimumProcessTime: utils.NormalizeNilableString(actions.MinProcessExecutionTime),
+			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}}
 	}
 
@@ -3692,10 +3743,10 @@ func DisabledLogsConfig() *web.SiteLogsConfig {
 	return &web.SiteLogsConfig{
 		SiteLogsConfigProperties: &web.SiteLogsConfigProperties{
 			DetailedErrorMessages: &web.EnabledConfig{
-				Enabled: utils.Bool(false),
+				Enabled: pointer.To(false),
 			},
 			FailedRequestsTracing: &web.EnabledConfig{
-				Enabled: utils.Bool(false),
+				Enabled: pointer.To(false),
 			},
 			ApplicationLogs: &web.ApplicationLogsConfig{
 				FileSystem: &web.FileSystemApplicationLogsConfig{
@@ -3707,10 +3758,10 @@ func DisabledLogsConfig() *web.SiteLogsConfig {
 			},
 			HTTPLogs: &web.HTTPLogsConfig{
 				FileSystem: &web.FileSystemHTTPLogsConfig{
-					Enabled: utils.Bool(false),
+					Enabled: pointer.To(false),
 				},
 				AzureBlobStorage: &web.AzureBlobStorageHTTPLogsConfig{
-					Enabled: utils.Bool(false),
+					Enabled: pointer.To(false),
 				},
 			},
 		},
