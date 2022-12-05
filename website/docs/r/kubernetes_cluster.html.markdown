@@ -18,7 +18,7 @@ Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Servi
 
 This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes).
 
-An example on how to attach a specific Container Registry to a Managed Kubernetes Cluster can be found in the docs for [azurerm_container_registry](container_registry.html).
+An example of how to attach a specific Container Registry to a Managed Kubernetes Cluster can be found in the docs for [azurerm_container_registry](container_registry.html).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -143,7 +143,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
--> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
+-> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
 
 * `oidc_issuer_enabled` - (Required) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/azure/aks/cluster-configuration#oidc-issuer-preview)
 
@@ -153,13 +153,13 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `private_cluster_enabled` - (Optional) Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning. Changing this forces a new resource to be created.
+* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise, the cluster will have issues after provisioning. Changing this forces a new resource to be created.
 
 * `private_cluster_public_fqdn_enabled` - (Optional) Specifies whether a Public FQDN for this Private Cluster should be added. Defaults to `false`.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnablePrivateClusterPublicFQDN` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/private-clusters#create-a-private-aks-cluster-with-a-public-dns-address) for more information.
 
--> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
+-> **Note:** If you use BYO DNS Zone, the AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - the cluster should depend on the role assignment, like in this example:
 
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
 
@@ -223,6 +223,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
 
+* `storage_profile` - (Optional) A `storage_profile` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
@@ -231,7 +233,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ---
 
-A `aci_connector_linux` block supports the following:
+An `aci_connector_linux` block supports the following:
 
 * `subnet_name` - (Required) The subnet name for the virtual nodes to run.
 
@@ -272,9 +274,9 @@ An `auto_scaler_profile` block supports the following:
 
 * `new_pod_scale_up_delay` - For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. Defaults to `10s`.
 
-* `scale_down_delay_after_add` - How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
+* `scale_down_delay_after_add` - How long after the scale-up of AKS nodes the scale-down evaluation resumes. Defaults to `10m`.
 
-* `scale_down_delay_after_delete` - How long after node deletion that scale down evaluation resumes. Defaults to the value used for `scan_interval`.
+* `scale_down_delay_after_delete` - How long after node deletion that scale-down evaluation resumes. Defaults to the value used for `scan_interval`.
 
 * `scale_down_delay_after_failure` - How long after scale down failure that scale down evaluation resumes. Defaults to `3m`.
 
@@ -464,7 +466,7 @@ The `kubelet_identity` block supports the following:
 
 A `linux_os_config` block supports the following:
 
-* `swap_file_size_mb` - (Optional) Specifies the size of swap file on each node in MB. Changing this forces a new resource to be created.
+* `swap_file_size_mb` - (Optional) Specifies the size of the swap file on each node in MB. Changing this forces a new resource to be created.
 
 * `sysctl_config` - (Optional) A `sysctl_config` block as defined below. Changing this forces a new resource to be created.
 
@@ -484,7 +486,7 @@ A `linux_profile` block supports the following:
 
 A `maintenance_window` block supports the following:
 
-* `allowed` - (Optional) One or more `allowed` block as defined below.
+* `allowed` - (Optional) One or more `allowed` blocks as defined below.
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
@@ -623,6 +625,20 @@ A `service_principal` block supports the following:
 A `ssh_key` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+
+---
+
+A `storage_profile` block supports the following:
+
+* `blob_driver_enabled` - (Optional) Is the Blob CSI driver enabled? Defaults to `false`.
+
+* `disk_driver_enabled` - (Optional) Is the Disk CSI driver enabled? Defaults to `true`.
+
+* `disk_driver_version` - (Optional) Disck CSI Driver version to be used. Possible values are `v1` and `v2`. Defaults to `v1`.
+
+* `file_driver_enabled` - (Optional) Is the File CSI driver enabled? Defaults to `true`.
+
+* `snapshot_controller_enabled` - (Optional) Is the Snapshot Controller enabled? Defaults to `true`.
 
 ---
 
