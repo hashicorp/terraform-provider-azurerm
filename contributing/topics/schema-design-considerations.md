@@ -1,6 +1,6 @@
 # Schema Design Considerations
 
-Whilst it is acceptable in certain cases to map the schema of a new resource, or feature when extending an existing resource, one-to-one from the Azure API, in the majority of cases more consideration needs to be given on how to expose the Azure API in Terraform so that the provider presents a consistent and intuitive experience to the end user.
+Whilst it is acceptable in certain cases to map the schema of a new resource or feature when extending an existing resource, one-to-one from the Azure API, in the majority of cases more consideration needs to be given how to expose the Azure API in Terraform so that the provider presents a consistent and intuitive experience to the end user.
 
 Below are a list of common patterns found in the Azure API and how these typically get mapped within Terraform.
 
@@ -24,7 +24,7 @@ type ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler struct {
 }
 ```
 
-Although there are still examples within the provider where this property is exposed in the Terraform schema, the provider is moving away from this and instead translates this behaviour in one of two ways.
+Although there are still resources within the provider where this property is exposed in the Terraform schema, the provider is moving away from this and instead translates this behaviour in one of two ways.
 
 In cases where `Enabled` is the only field required to turn a feature on and off we opt to flatten the block into a single top level property (or higher level property if already nested inside a block). So in the case of Example A, this would become:
 
@@ -36,7 +36,7 @@ In cases where `Enabled` is the only field required to turn a feature on and off
 },
 ```
 
-For features that can accept or require configuration, i.e. the object contains additional properties other than `Enabled` like in Example B, the behaviour should be such that when the block is present the feature is enabled, and when it is absent it is disabled.
+For features that can accept or require configuration, i.e. the object contains additional properties other than `Enabled` like in Example B, the behaviour should be such that when the block is present the feature is enabled, and when it is absent it is disabled. The corresponding Terraform schema would be as follows:
 
 ```go
 "vertical_pod_autoscaler": {
@@ -78,7 +78,7 @@ type ManagedClusterStorageProfileDiskCSIDriver struct {
 }
 ```
 
-In cases like these we can choose to either flatten the block into two top level properties.
+In cases like these one option is to flatten the block into two top level properties.
 
 ```go
 "storage_disk_driver_enabled": {
@@ -98,7 +98,7 @@ In cases like these we can choose to either flatten the block into two top level
 },
 ```
 
-Depending on the behaviour of the Azure API and the default set by it, it's often worthwhile turning the optional properties into required ones in the Terraform schema, to avoid having to set empty blocks to enable features.
+Depending on the behaviour of the Azure API and the default set by it, a worthwhile alternative is to set the property as required in the Terraform schema, to avoid having to set empty blocks to enable features.
 
 ```go
 "storage_disk_driver": {
@@ -135,7 +135,8 @@ Many Azure APIs and services will accept the value `None` and expose it as an en
 ```
 
 Whilst it isn't uncommon to stumble across older resources in the provider that accept this as a valid value, the provider is moving away from the pattern of exposing `None`, since Terraform has its own null type i.e. by omitting the field this.
-This ultimately means that the end user doesn't need to bloat their configuration with superfluous information.
+
+This ultimately means that the end user doesn't need to bloat their configuration with superfluous information that is implied through the omission of information.
 
 The resulting schema in Terraform would look as follows and also requires a conversion between the Terraform null value and `None` within the Create and Read functions.
 
