@@ -18,7 +18,7 @@ type ListSkusForCapacityOperationResponse struct {
 }
 
 // ListSkusForCapacity ...
-func (c CapacitiesClient) ListSkusForCapacity(ctx context.Context, id CapacitiesId) (result ListSkusForCapacityOperationResponse, err error) {
+func (c CapacitiesClient) ListSkusForCapacity(ctx context.Context, id CapacityId) (result ListSkusForCapacityOperationResponse, err error) {
 	req, err := c.preparerForListSkusForCapacity(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "capacities.CapacitiesClient", "ListSkusForCapacity", nil, "Failure preparing request")
@@ -41,7 +41,7 @@ func (c CapacitiesClient) ListSkusForCapacity(ctx context.Context, id Capacities
 }
 
 // preparerForListSkusForCapacity prepares the ListSkusForCapacity request.
-func (c CapacitiesClient) preparerForListSkusForCapacity(ctx context.Context, id CapacitiesId) (*http.Request, error) {
+func (c CapacitiesClient) preparerForListSkusForCapacity(ctx context.Context, id CapacityId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

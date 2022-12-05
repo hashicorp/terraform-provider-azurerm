@@ -86,7 +86,7 @@ resource "azurerm_storage_management_policy" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the id of the storage account to apply the management policy to.
+* `storage_account_id` - (Required) Specifies the id of the storage account to apply the management policy to. Changing this forces a new resource to be created.
 
 * `rule` - (Optional) A `rule` block as documented below.
 
@@ -107,7 +107,8 @@ The following arguments are supported:
 * `prefix_match` - (Optional) An array of strings for prefixes to be matched.
 * `match_blob_index_tag` - (Optional) A `match_blob_index_tag` block as defined below. The block defines the blob index tag based filtering for blob objects.
 
-~> **NOTE:** The `match_blob_index_tag` property requires enabling the `blobIndex` feature with [PSH or CLI commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/). 
+~> **NOTE:** The `match_blob_index_tag` property requires enabling the `blobIndex` feature with [PSH or CLI commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/).
+
 ---
 
 `actions` supports the following:
@@ -122,18 +123,23 @@ The following arguments are supported:
 
 * `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between 0 and 99999.
 * `tier_to_cool_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between `0` and `99999`.
+* `tier_to_cool_after_days_since_creation_greater_than` - The age in days after creation to cool storage. Supports blob currently at Hot tier. Must be between `0` and `99999`.
 
-~> **Note:** The `tier_to_cool_after_days_since_modification_greater_than` and `tier_to_cool_after_days_since_last_access_time_greater_than` can not be set at the same time.
+~> **Note:** The `tier_to_cool_after_days_since_modification_greater_than`, `tier_to_cool_after_days_since_last_access_time_greater_than` and `tier_to_cool_after_days_since_creation_greater_than` can not be set at the same time.
 
 * `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between 0 and 99999.
-* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0 and `99999`.
+* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0` and`99999`.
+* `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0` and`99999`.
 
-~> **Note:** The `tier_to_archive_after_days_since_modification_greater_than` and `tier_to_archive_after_days_since_last_access_time_greater_than` can not be set at the same time.
+~> **Note:** The `tier_to_archive_after_days_since_modification_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than` and `tier_to_archive_after_days_since_creation_greater_than` can not be set at the same time.
+
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
 
 * `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be between 0 and 99999.
 * `delete_after_days_since_last_access_time_greater_than` - The age in days after last access time to delete the blob. Must be between `0` and `99999`.
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob. Must be between `0` and `99999`.
 
-~> **Note:** The `delete_after_days_since_modification_greater_than` and `delete_after_days_since_last_access_time_greater_than` can not be set at the same time.
+~> **Note:** The `delete_after_days_since_modification_greater_than`, `delete_after_days_since_last_access_time_greater_than` and `delete_after_days_since_creation_greater_than` can not be set at the same time.
 
 ~> **Note:** The [`last_access_time_enabled`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account#last_access_time_enabled) must be set to `true` in the `azurerm_storage_account` in order to use `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than` and `delete_after_days_since_last_access_time_greater_than`.
 
@@ -142,6 +148,7 @@ The following arguments are supported:
 `snapshot` supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob snapshot to archive storage. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
 * `change_tier_to_cool_after_days_since_creation` - The age in days after creation to tier blob snapshot to cool storage. Must be between 0 and 99999.
 * `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot. Must be between 0 and 99999.
 
@@ -150,6 +157,7 @@ The following arguments are supported:
 `version` supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
 * `change_tier_to_cool_after_days_since_creation` - The age in days creation create to  tier blob version to cool storage. Must be between 0 and 99999.
 * `delete_after_days_since_creation` - The age in days after creation to delete the blob version. Must be between 0 and 99999.
 

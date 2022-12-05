@@ -784,8 +784,8 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigLinuxWebAppSlot{siteConfig}
@@ -801,9 +801,14 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 		expanded = existing
 	}
 
+	winSlotSiteConfig := siteConfig[0]
+
 	currentStack := ""
 
-	winSlotSiteConfig := siteConfig[0]
+	if len(winSlotSiteConfig.ApplicationStack) == 1 {
+		winAppStack := winSlotSiteConfig.ApplicationStack[0]
+		currentStack = winAppStack.CurrentStack
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.always_on") {
 		expanded.AlwaysOn = utils.Bool(winSlotSiteConfig.AlwaysOn)
@@ -1076,8 +1081,8 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigWindowsWebAppSlot{siteConfig}

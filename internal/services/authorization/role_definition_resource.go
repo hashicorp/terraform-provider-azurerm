@@ -340,7 +340,7 @@ func resourceArmRoleDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id.ResourceID),
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 6,
+		ContinuousTargetOccurence: 10,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 

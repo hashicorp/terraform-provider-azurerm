@@ -6,16 +6,18 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	synapseValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -56,7 +58,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"synapse_spark_pool_id": {
 				Type:         pluginsdk.TypeString,
@@ -80,7 +82,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": commonschema.TagsForceNew(),
 		},
 	}
 }
@@ -91,17 +93,17 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceID, _ := parse.WorkspaceID(d.Get("machine_learning_workspace_id").(string))
-	id := parse.NewComputeID(subscriptionId, workspaceID.ResourceGroup, workspaceID.Name, d.Get("name").(string))
+	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
+	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing Machine Learning Compute (%q): %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_machine_learning_synapse_spark", id.ID())
 		}
 	}
@@ -111,12 +113,12 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	parameters := machinelearningservices.ComputeResource{
-		Properties: &machinelearningservices.SynapseSpark{
+	parameters := machinelearningcomputes.ComputeResource{
+		Properties: &machinelearningcomputes.SynapseSpark{
 			Properties:       nil,
 			ComputeLocation:  utils.String(d.Get("location").(string)),
 			Description:      utils.String(d.Get("description").(string)),
-			ResourceID:       utils.String(d.Get("synapse_spark_pool_id").(string)),
+			ResourceId:       utils.String(d.Get("synapse_spark_pool_id").(string)),
 			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Identity: identity,
@@ -124,11 +126,11 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
+	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err := future.Poller.PollUntilDone(); err != nil {
 		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
 	}
 
@@ -143,14 +145,14 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ComputeID(d.Id())
+	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Machine Learning Compute %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -158,15 +160,15 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving Machine Learning Compute (%q): %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	workspaceId := parse.NewWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName)
+	d.Set("name", id.ComputeName)
+	workspaceId := parse.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	if location := resp.Location; location != nil {
+	if location := resp.Model.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := flattenIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Model.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
@@ -174,34 +176,33 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	if props, ok := resp.Properties.AsSynapseSpark(); ok && props != nil {
-		if props.DisableLocalAuth != nil {
-			d.Set("local_auth_enabled", !*props.DisableLocalAuth)
-		}
-		d.Set("description", props.Description)
-		d.Set("synapse_spark_pool_id", props.ResourceID)
-	} else {
-		return fmt.Errorf("compute resource %s is not a SynapseSpark Compute", id)
+	props := resp.Model.Properties.(machinelearningcomputes.SynapseSpark)
+	if props.DisableLocalAuth != nil {
+		d.Set("local_auth_enabled", !*props.DisableLocalAuth)
 	}
+	d.Set("description", props.Description)
+	d.Set("synapse_spark_pool_id", props.ResourceId)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
 func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.ComputeID(d.Id())
+	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, machinelearningservices.UnderlyingResourceActionDetach)
+	future, err := client.ComputeDelete(ctx, *id, machinelearningcomputes.ComputeDeleteOperationOptions{
+		UnderlyingResourceAction: utils.ToPtr(machinelearningcomputes.UnderlyingResourceActionDetach),
+	})
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err := future.Poller.PollUntilDone(); err != nil {
 		return fmt.Errorf("waiting for deletion of the Machine Learning Compute (%q): %+v", id, err)
 	}
 	return nil

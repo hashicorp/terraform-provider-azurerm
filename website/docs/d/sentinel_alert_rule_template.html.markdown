@@ -35,17 +35,31 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The display name of this Sentinel Alert Rule Template. Either `display_name` or `name` have to be specified.
 
-~> **NOTE** As `display_name` is not unique, errors may occur when there are multiple Sentinel Alert Rule Template with same `display_name`. 
+~> **NOTE** As `display_name` is not unique, errors may occur when there are multiple Sentinel Alert Rule Template with same `display_name`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Sentinel.
+
+* `nrt_template` - A `nrt_template` block as defined below. This only applies to Sentinel NRT Alert Rule Template.
 
 * `security_incident_template` - A `security_incident_template` block as defined below. This only applies to Sentinel MS Security Incident Alert Rule Template.
 
 * `scheduled_template` - A `scheduled_template` block as defined below. This only applies to Sentinel Scheduled Alert Rule Template.
+
+---
+
+A `nrt_template` block exports the following:
+
+* `description` - The description of this Sentinel NRT Alert Rule Template.
+
+* `query` - The query of this Sentinel NRT Alert Rule Template.
+
+* `severity` - The alert severity of this Sentinel NRT Alert Rule Template.
+
+* `tactics` - A list of categories of attacks by which to classify the rule.
 
 ---
 

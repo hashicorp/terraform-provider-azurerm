@@ -69,9 +69,9 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The Secondary Connection String for the ServiceBus Namespace authorization Rule.
 
-* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired. 
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired.
 
-* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace
 
 ## Timeouts
 
@@ -87,5 +87,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 ServiceBus Namespace authorization rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_namespace_authorization_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ServiceBus/namespaces/namespace1/AuthorizationRules/rule1
+terraform import azurerm_servicebus_namespace_authorization_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ServiceBus/namespaces/namespace1/authorizationRules/rule1
 ```

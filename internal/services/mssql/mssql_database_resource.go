@@ -9,8 +9,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -251,6 +253,16 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
 	}
 
+	// we should not specify the value of `maintenance_configuration_name` when `elastic_pool_id` is set since its value depends on the elastic pool's `maintenance_configuration_name` value.
+	if _, ok := d.GetOk("elastic_pool_id"); !ok {
+		// set default value here because `elastic_pool_id` is not specified, API returns default value `SQL_Default` for `maintenance_configuration_name`
+		maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, "SQL_Default")
+		if v, ok := d.GetOk("maintenance_configuration_name"); ok {
+			maintenanceConfigId = publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, v.(string))
+		}
+		params.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
+	}
+
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
@@ -375,6 +387,18 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}); err != nil {
 			return nil
+		}
+	}
+
+	if _, ok := d.GetOk("import"); ok {
+		importParameters := expandMsSqlServerImport(d)
+		importFuture, err := client.Import(ctx, id.ResourceGroup, id.ServerName, id.Name, importParameters)
+		if err != nil {
+			return fmt.Errorf("while import bacpac into the new database %s (Resource Group %s): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("while import bacpac into the new database %s (Resource Group %s): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -504,7 +528,12 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
 		d.Set("elastic_pool_id", props.ElasticPoolID)
-		d.Set("license_type", props.LicenseType)
+		if props.LicenseType != "" {
+			d.Set("license_type", props.LicenseType)
+		} else {
+			// value not returned, try to set from existing state/config
+			d.Set("license_type", d.Get("license_type").(string))
+		}
 		if props.MaxSizeBytes != nil {
 			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
@@ -524,6 +553,17 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props.IsLedgerOn != nil {
 			ledgerEnabled = *props.IsLedgerOn
 		}
+
+		configurationName := ""
+		if v := props.MaintenanceConfigurationID; v != nil {
+			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*v)
+			if err != nil {
+				return err
+			}
+			configurationName = maintenanceConfigId.ResourceName
+		}
+		d.Set("maintenance_configuration_name", configurationName)
+
 		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
@@ -715,6 +755,39 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 	return policy
 }
 
+func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out sql.ImportExistingDatabaseDefinition) {
+	v := d.Get("import")
+	dbImportRefs := v.([]interface{})
+	dbImportRef := dbImportRefs[0].(map[string]interface{})
+	out = sql.ImportExistingDatabaseDefinition{
+		StorageKeyType:             sql.StorageKeyType(dbImportRef["storage_key_type"].(string)),
+		StorageKey:                 utils.String(dbImportRef["storage_key"].(string)),
+		StorageURI:                 utils.String(dbImportRef["storage_uri"].(string)),
+		AdministratorLogin:         utils.String(dbImportRef["administrator_login"].(string)),
+		AdministratorLoginPassword: utils.String(dbImportRef["administrator_login_password"].(string)),
+		AuthenticationType:         utils.String(dbImportRef["authentication_type"].(string)),
+	}
+
+	if storageAccountId, ok := d.GetOk("storage_account_id"); ok {
+		out.NetworkIsolation = &sql.NetworkIsolationSettings{
+			StorageAccountResourceID: utils.String(storageAccountId.(string)),
+			SQLServerResourceID:      utils.String(d.Get("server_id").(string)),
+		}
+	}
+	return
+}
+
+func resourceMsSqlDatabaseMaintenanceNames() []string {
+	return []string{"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
+		"SQL_UKSouth_DB_1", "SQL_WestEurope_DB_1", "SQL_EastUS_DB_2", "SQL_EastUS2_DB_2", "SQL_WestUS2_DB_2", "SQL_SoutheastAsia_DB_2", "SQL_AustraliaEast_DB_2", "SQL_NorthEurope_DB_2", "SQL_SouthCentralUS_DB_2",
+		"SQL_UKSouth_DB_2", "SQL_WestEurope_DB_2", "SQL_AustraliaSoutheast_DB_1", "SQL_BrazilSouth_DB_1", "SQL_CanadaCentral_DB_1", "SQL_CanadaEast_DB_1", "SQL_CentralUS_DB_1", "SQL_EastAsia_DB_1",
+		"SQL_FranceCentral_DB_1", "SQL_GermanyWestCentral_DB_1", "SQL_CentralIndia_DB_1", "SQL_SouthIndia_DB_1", "SQL_JapanEast_DB_1", "SQL_JapanWest_DB_1", "SQL_NorthCentralUS_DB_1", "SQL_UKWest_DB_1",
+		"SQL_WestUS_DB_1", "SQL_AustraliaSoutheast_DB_2", "SQL_BrazilSouth_DB_2", "SQL_CanadaCentral_DB_2", "SQL_CanadaEast_DB_2", "SQL_CentralUS_DB_2", "SQL_EastAsia_DB_2", "SQL_FranceCentral_DB_2",
+		"SQL_GermanyWestCentral_DB_2", "SQL_CentralIndia_DB_2", "SQL_SouthIndia_DB_2", "SQL_JapanEast_DB_2", "SQL_JapanWest_DB_2", "SQL_NorthCentralUS_DB_2", "SQL_UKWest_DB_2", "SQL_WestUS_DB_2",
+		"SQL_WestCentralUS_DB_1", "SQL_FranceSouth_DB_1", "SQL_WestCentralUS_DB_2", "SQL_FranceSouth_DB_2", "SQL_SwitzerlandNorth_DB_1", "SQL_SwitzerlandNorth_DB_2", "SQL_BrazilSoutheast_DB_1",
+		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2"}
+}
+
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -755,6 +828,56 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				string(sql.CreateModeRestoreLongTermRetentionBackup),
 				string(sql.CreateModeSecondary),
 			}, false),
+			ConflictsWith: []string{"import"},
+		},
+		"import": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"storage_uri": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"storage_key": {
+						Type:      pluginsdk.TypeString,
+						Required:  true,
+						Sensitive: true,
+					},
+					"storage_key_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(sql.StorageKeyTypeSharedAccessKey),
+							string(sql.StorageKeyTypeStorageAccessKey),
+						}, false),
+					},
+					"administrator_login": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"administrator_login_password": {
+						Type:      pluginsdk.TypeString,
+						Required:  true,
+						Sensitive: true,
+					},
+					"authentication_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"ADPassword",
+							"Sql",
+						}, false),
+					},
+					"storage_account_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+				},
+			},
+			ConflictsWith: []string{"create_mode"}, // it needs `create_mode` to be `Default` to work, so make them conflict.
 		},
 
 		"collation": {
@@ -774,6 +897,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.DatabaseLicenseTypeBasePrice),
 				string(sql.DatabaseLicenseTypeLicenseIncluded),
@@ -949,6 +1073,14 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"maintenance_configuration_name": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"elastic_pool_id"},
+			ValidateFunc:  validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 		},
 
 		"ledger_enabled": {

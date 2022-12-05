@@ -9,6 +9,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,6 +25,57 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
+	ins := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"uri": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.Any(
+						validation.IsURLWithScheme([]string{"http", "https"}),
+						validation.StringIsEmpty,
+					),
+				},
+
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"hash": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"algorithm": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"value": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	if !isDraft {
+		ins.AtLeastOneOf = []string{"content", "publish_content_link", "draft"}
+	}
+	return ins
+}
 
 func resourceAutomationRunbook() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -56,21 +111,23 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validate.AutomationAccount(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"runbook_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(automation.RunbookTypeEnumGraph),
-					string(automation.RunbookTypeEnumGraphPowerShell),
-					string(automation.RunbookTypeEnumGraphPowerShellWorkflow),
-					string(automation.RunbookTypeEnumPowerShell),
-					string(automation.RunbookTypeEnumPowerShellWorkflow),
-					string(automation.RunbookTypeEnumScript),
+					string(runbook.RunbookTypeEnumGraph),
+					string(runbook.RunbookTypeEnumGraphPowerShell),
+					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
+					string(runbook.RunbookTypeEnumPowerShell),
+					string(runbook.RunbookTypeEnumPythonTwo),
+					string(runbook.RunbookTypeEnumPythonThree),
+					string(runbook.RunbookTypeEnumPowerShellWorkflow),
+					string(runbook.RunbookTypeEnumScript),
 				}, false),
 			},
 
@@ -93,42 +150,79 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				AtLeastOneOf: []string{"content", "publish_content_link"},
+				AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"job_schedule": helper.JobScheduleSchema(),
 
-			"publish_content_link": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				MaxItems:     1,
-				AtLeastOneOf: []string{"content", "publish_content_link"},
+			"publish_content_link": contentLinkSchema(false),
+
+			"draft": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"uri": {
+					Schema: map[string]*schema.Schema{
+						"creation_time": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Computed: true,
 						},
 
-						"version": {
-							Type:     pluginsdk.TypeString,
+						"content_link": contentLinkSchema(true),
+
+						"edit_mode_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
-						"hash": {
+						"last_modified_time": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"output_types": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
 							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"algorithm": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"value": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+
+									"type": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"mandatory": {
+										Type:     pluginsdk.TypeBool,
+										Default:  false,
+										Optional: true,
+									},
+
+									"position": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+
+									"default_value": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -137,30 +231,38 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				},
 			},
 
+			"log_activity_trace_level": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.RunbookClient
-	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
+	autoCli := meta.(*clients.Client).Automation
+	client := autoCli.RunbookClient
+	jsClient := autoCli.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
-	id := parse.NewRunbookID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+	id := runbook.NewRunbookID(subscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
 		}
 	}
@@ -168,40 +270,47 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	runbookType := automation.RunbookTypeEnum(d.Get("runbook_type").(string))
+	runbookType := runbook.RunbookTypeEnum(d.Get("runbook_type").(string))
 	logProgress := d.Get("log_progress").(bool)
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 
-	parameters := automation.RunbookCreateOrUpdateParameters{
-		RunbookCreateOrUpdateProperties: &automation.RunbookCreateOrUpdateProperties{
-			LogVerbose:  &logVerbose,
-			LogProgress: &logProgress,
-			RunbookType: runbookType,
-			Description: &description,
+	parameters := runbook.RunbookCreateOrUpdateParameters{
+		Properties: runbook.RunbookCreateOrUpdateProperties{
+			LogVerbose:       &logVerbose,
+			LogProgress:      &logProgress,
+			RunbookType:      runbookType,
+			Description:      &description,
+			LogActivityTrace: utils.Int64(int64(d.Get("log_activity_trace_level").(int))),
 		},
 
 		Location: &location,
-		Tags:     tags.Expand(t),
+	}
+	if tagsVal := expandTags(t); tagsVal != nil {
+		parameters.Tags = &tagsVal
 	}
 
 	contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
 	if contentLink != nil {
-		parameters.RunbookCreateOrUpdateProperties.PublishContentLink = contentLink
+		parameters.Properties.PublishContentLink = contentLink
 	} else {
-		parameters.RunbookCreateOrUpdateProperties.Draft = &automation.RunbookDraft{}
+		parameters.Properties.Draft = &runbook.RunbookDraft{}
+		if draft := expandDraft(d.Get("draft").([]interface{})); draft != nil {
+			parameters.Properties.Draft = draft
+		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
 		reader := io.NopCloser(bytes.NewBufferString(content))
-		draftClient := meta.(*clients.Client).Automation.RunbookDraftClient
 
-		_, err := draftClient.ReplaceContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, reader)
+		// need to use preview version DraftClient
+		// move to stable RunbookDraftClient once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
+		_, err := autoCli.RunbookDraftClient.ReplaceContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName, reader)
 		if err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
@@ -210,23 +319,23 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)
 		// }
 
-		f2, err := client.Publish(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		f2, err := client.Publish(ctx, id)
 		if err != nil {
 			return fmt.Errorf("publishing the updated %s: %+v", id, err)
 		}
-		if err := f2.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err := f2.Poller.PollUntilDone(); err != nil {
 			return fmt.Errorf("waiting for publish the updated %s: %+v", id, err)
 		}
 	}
 
 	d.SetId(id.ID())
 
-	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroup, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroupName, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
 			return fmt.Errorf("loading %s Job Schedule List: %+v", id, err)
 		}
 		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if props.Runbook.Name != nil && *props.Runbook.Name == id.Name {
+			if props.Runbook.Name != nil && *props.Runbook.Name == id.RunbookName {
 				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by %s Job Schedule List: %+v", id, err)
 				}
@@ -234,7 +343,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 				if err != nil {
 					return fmt.Errorf("parsing job schedule Id listed by %s Job Schedule List:%v", id, err)
 				}
-				if resp, err := jsClient.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, jsId); err != nil {
+				if resp, err := jsClient.Delete(ctx, id.ResourceGroupName, id.AutomationAccountName, jsId); err != nil {
 					if !utils.ResponseWasNotFound(resp) {
 						return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
 					}
@@ -244,12 +353,12 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if v, ok := d.GetOk("job_schedule"); ok {
-		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*pluginsdk.Set).List(), id.Name)
+		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*pluginsdk.Set).List(), id.RunbookName)
 		if err != nil {
 			return err
 		}
 		for jsuuid, js := range *jsMap {
-			if _, err := jsClient.Create(ctx, id.ResourceGroup, id.AutomationAccountName, jsuuid, js); err != nil {
+			if _, err := jsClient.Create(ctx, id.ResourceGroupName, id.AutomationAccountName, jsuuid, js); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 		}
@@ -259,67 +368,70 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 }
 
 func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.RunbookClient
-	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
+	autoCli := meta.(*clients.Client).Automation
+	client := autoCli.RunbookClient
+	jsClient := autoCli.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RunbookID(d.Id())
+	id, err := runbook.ParseRunbookID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", id.RunbookName, id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
+	d.Set("name", id.RunbookName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	model := resp.Model
+	if location := model.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("automation_account_name", id.AutomationAccountName)
-	if props := resp.RunbookProperties; props != nil {
+	if props := model.Properties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)
 		d.Set("log_progress", props.LogProgress)
 		d.Set("runbook_type", props.RunbookType)
 		d.Set("description", props.Description)
+		d.Set("log_activity_trace_level", props.LogActivityTrace)
 	}
 
-	response, err := client.GetContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	// GetContent need to use preview version client RunbookClientHack
+	// move to stable RunbookClient once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
+	contentResp, err := autoCli.RunbookClientHack.GetContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
 	if err != nil {
-		if utils.ResponseWasNotFound(response.Response) {
+		if utils.ResponseWasNotFound(contentResp.Response) {
 			d.Set("content", "")
 		} else {
-			return fmt.Errorf("retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
 
-	if v := response.Value; v != nil {
-		if contentBytes := *response.Value; contentBytes != nil {
-			buf := new(bytes.Buffer)
-			if _, err := buf.ReadFrom(contentBytes); err != nil {
-				return fmt.Errorf("reading from Automation Runbook buffer %q: %+v", id.Name, err)
-			}
-			content := buf.String()
-			d.Set("content", content)
+	if v := contentResp.Value; v != nil && *v != nil {
+		buf := new(bytes.Buffer)
+		if _, err := buf.ReadFrom(*v); err != nil {
+			return fmt.Errorf("reading from Automation Runbook buffer %q: %+v", id.RunbookName, err)
 		}
+		content := buf.String()
+		d.Set("content", content)
 	}
 
 	jsMap := make(map[uuid.UUID]automation.JobScheduleProperties)
-	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroup, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroupName, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
 			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 		}
 		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if props.Runbook.Name != nil && *props.Runbook.Name == id.Name {
+			if props.Runbook.Name != nil && *props.Runbook.Name == id.RunbookName {
 				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 				}
@@ -337,8 +449,8 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("setting `job_schedule`: %+v", err)
 	}
 
-	if t := resp.Tags; t != nil {
-		return tags.FlattenAndSet(d, t)
+	if t := model.Tags; t != nil {
+		return flattenAndSetTags(d, *t)
 	}
 
 	return nil
@@ -349,24 +461,24 @@ func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RunbookID(d.Id())
+	id, err := runbook.ParseRunbookID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("issuing AzureRM delete request for Automation Runbook '%s': %+v", id.Name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Runbook '%s': %+v", id.RunbookName, err)
 	}
 
 	return nil
 }
 
-func expandContentLink(inputs []interface{}) *automation.ContentLink {
+func expandContentLink(inputs []interface{}) *runbook.ContentLink {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
@@ -381,18 +493,54 @@ func expandContentLink(inputs []interface{}) *automation.ContentLink {
 		hashValue := hash["value"].(string)
 		hashAlgorithm := hash["algorithm"].(string)
 
-		return &automation.ContentLink{
-			URI:     &uri,
+		return &runbook.ContentLink{
+			Uri:     &uri,
 			Version: &version,
-			ContentHash: &automation.ContentHash{
-				Algorithm: &hashAlgorithm,
-				Value:     &hashValue,
+			ContentHash: &runbook.ContentHash{
+				Algorithm: hashAlgorithm,
+				Value:     hashValue,
 			},
 		}
 	}
 
-	return &automation.ContentLink{
-		URI:     &uri,
+	return &runbook.ContentLink{
+		Uri:     &uri,
 		Version: &version,
 	}
+}
+
+func expandDraft(inputs []interface{}) *runbook.RunbookDraft {
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
+
+	input := inputs[0].(map[string]interface{})
+	var res runbook.RunbookDraft
+
+	res.DraftContentLink = expandContentLink(input["content_link"].([]interface{}))
+	res.InEdit = utils.Bool(input["edit_mode_enabled"].(bool))
+	parameter := map[string]runbook.RunbookParameter{}
+
+	for _, iparam := range input["parameters"].([]interface{}) {
+		param := iparam.(map[string]interface{})
+		key := param["key"].(string)
+		parameter[key] = runbook.RunbookParameter{
+			Type:         utils.String(param["type"].(string)),
+			IsMandatory:  utils.Bool(param["mandatory"].(bool)),
+			Position:     utils.Int64(int64(param["position"].(int))),
+			DefaultValue: utils.String(param["default_value"].(string)),
+		}
+	}
+	res.Parameters = &parameter
+
+	var types []string
+	for _, v := range input["output_types"].([]interface{}) {
+		types = append(types, v.(string))
+	}
+
+	if len(types) > 0 {
+		res.OutputTypes = &types
+	}
+
+	return &res
 }

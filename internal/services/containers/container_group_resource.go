@@ -2,20 +2,20 @@ package containers
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,14 +72,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"network_profile_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ValidateFunc:  networkValidate.NetworkProfileID,
-				ConflictsWith: []string{"dns_name_label"},
-			},
-
 			"os_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -103,16 +95,24 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+							Description:  "The User Assigned Identity to use for Container Registry access.",
+						},
+
 						"username": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"password": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -122,6 +122,28 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"network_profile_id": {
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_ids' field instead",
+			},
+
+			"subnet_ids": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: networkValidate.SubnetID,
+				},
+				Set:           pluginsdk.HashString,
+				ConflictsWith: []string{"dns_name_label"},
+			},
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": commonschema.Tags(),
 
@@ -141,6 +163,19 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"dns_name_label_reuse_policy": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(containerinstance.DnsNameLabelReusePolicyUnsecure),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerinstance.DnsNameLabelReusePolicyNoreuse),
+					string(containerinstance.DnsNameLabelReusePolicyResourceGroupReuse),
+					string(containerinstance.DnsNameLabelReusePolicySubscriptionReuse),
+					string(containerinstance.DnsNameLabelReusePolicyTenantReuse),
+					string(containerinstance.DnsNameLabelReusePolicyUnsecure),
+				}, false),
 			},
 
 			"exposed_port": {
@@ -635,10 +670,17 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 	dnsConfig := d.Get("dns_config").([]interface{})
 	addedEmptyDirs := map[string]bool{}
+	subnets, err := expandContainerGroupSubnets(d.Get("subnet_ids").(*pluginsdk.Set).List())
+	if err != nil {
+		return err
+	}
+
+	zones := zones.ExpandUntyped(d.Get("zones").(*pluginsdk.Set).List())
 	initContainers, initContainerVolumes, err := expandContainerGroupInitContainers(d, addedEmptyDirs)
 	if err != nil {
 		return err
 	}
+
 	containers, containerGroupPorts, containerVolumes, err := expandContainerGroupContainers(d, addedEmptyDirs)
 	if err != nil {
 		return err
@@ -655,7 +697,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Name:     pointer.FromString(id.ContainerGroupName),
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-		Properties: containerinstance.ContainerGroupProperties{
+		Properties: containerinstance.ContainerGroupPropertiesProperties{
 			InitContainers:           initContainers,
 			Containers:               containers,
 			Diagnostics:              diagnostics,
@@ -664,7 +706,9 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Volumes:                  &containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 			DnsConfig:                expandContainerGroupDnsConfig(dnsConfig),
+			SubnetIds:                subnets,
 		},
+		Zones: &zones,
 	}
 
 	// Container Groups with OS Type Windows do not support managed identities but the API also does not accept Identity Type: None
@@ -686,23 +730,8 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
 			containerGroup.Properties.IPAddress.DnsNameLabel = &dnsNameLabel
 		}
-	}
-
-	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
-	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations
-	if networkProfileID := d.Get("network_profile_id").(string); networkProfileID != "" {
-		id, _ := networkParse.NetworkProfileID(networkProfileID)
-		networkProfileIDNorm := id.ID()
-		// Avoid parallel provisioning if "network_profile_id" is given.
-		// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
-		locks.ByID(networkProfileIDNorm)
-		defer locks.UnlockByID(networkProfileIDNorm)
-
-		if strings.ToLower(OSType) != "linux" {
-			return fmt.Errorf("Currently only Linux containers can be deployed to virtual networks")
-		}
-		containerGroup.Properties.NetworkProfile = &containerinstance.ContainerGroupNetworkProfile{
-			Id: networkProfileIDNorm,
+		if dnsNameLabelReusePolicy := d.Get("dns_name_label_reuse_policy").(string); dnsNameLabelReusePolicy != "" {
+			containerGroup.Properties.IPAddress.AutoGeneratedDomainNameLabelScope = (*containerinstance.DnsNameLabelReusePolicy)(&dnsNameLabelReusePolicy)
 		}
 	}
 
@@ -715,6 +744,19 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			VaultBaseUrl: keyId.KeyVaultBaseUrl,
 			KeyName:      keyId.Name,
 			KeyVersion:   keyId.Version,
+		}
+	}
+
+	// Avoid parallel provisioning if "subnet_ids" are given.
+	if subnets != nil && len(*subnets) != 0 {
+		for _, item := range *subnets {
+			subnet, err := networkParse.SubnetID(item.Id)
+			if err != nil {
+				return fmt.Errorf(`parsing subnet id %q: %v`, item.Id, err)
+			}
+
+			locks.ByID(subnet.ID())
+			defer locks.UnlockByID(subnet.ID())
 		}
 	}
 
@@ -786,6 +828,8 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
+
 		props := model.Properties
 		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
@@ -810,6 +854,14 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("exposed_port", flattenPorts(exposedPorts))
 			d.Set("dns_name_label", address.DnsNameLabel)
 			d.Set("fqdn", address.Fqdn)
+
+			if address.AutoGeneratedDomainNameLabelScope != nil {
+				d.Set("dns_name_label_reuse_policy", string(*address.AutoGeneratedDomainNameLabelScope))
+			} else {
+				d.Set("dns_name_label_reuse_policy", containerinstance.DnsNameLabelReusePolicyUnsecure)
+			}
+		} else {
+			d.Set("dns_name_label_reuse_policy", pointer.FromString(string(containerinstance.DnsNameLabelReusePolicyUnsecure)))
 		}
 
 		restartPolicy := ""
@@ -823,6 +875,14 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
 			return fmt.Errorf("setting `diagnostics`: %+v", err)
+		}
+
+		subnets, err := flattenContainerGroupSubnets(props.SubnetIds)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("subnet_ids", subnets); err != nil {
+			return fmt.Errorf("setting `subnet_ids`: %+v", err)
 		}
 
 		if kvProps := props.EncryptionProperties; kvProps != nil {
@@ -887,7 +947,6 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	networkProfileId := ""
 	existing, err := client.ContainerGroupsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -900,17 +959,17 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := existing.Model; model != nil {
 		props := model.Properties
-		if profile := props.NetworkProfile; profile != nil {
-			id, err := networkParse.NetworkProfileID(profile.Id)
-			if err != nil {
-				return err
-			}
-			networkProfileId = id.ID()
+		if subnetIDs := props.SubnetIds; subnetIDs != nil && len(*subnetIDs) != 0 {
+			// Avoid parallel deletion if "subnet_ids" are given.
+			for _, item := range *subnetIDs {
+				subnet, err := networkParse.SubnetID(item.Id)
+				if err != nil {
+					return fmt.Errorf(`parsing subnet id %q: %v`, item.Id, err)
+				}
 
-			// Avoid parallel deletion if "network_profile_id" is given. (not sure whether this is necessary)
-			// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/15025
-			locks.ByID(networkProfileId)
-			defer locks.UnlockByID(networkProfileId)
+				locks.ByID(subnet.ID())
+				defer locks.UnlockByID(subnet.ID())
+			}
 		}
 	}
 
@@ -918,77 +977,7 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
-	if networkProfileId != "" {
-		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
-		networkProfileId, err := networkParse.NetworkProfileID(networkProfileId)
-		if err != nil {
-			return err
-		}
-
-		// TODO: remove when https://github.com/Azure/azure-sdk-for-go/issues/5082 has been fixed
-		log.Printf("[DEBUG] Waiting for %q to be finish deleting", id)
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:                   []string{"Attached"},
-			Target:                    []string{"Detached"},
-			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileId.ResourceGroup, networkProfileId.Name, id.ResourceGroupName, id.ContainerGroupName),
-			MinTimeout:                15 * time.Second,
-			ContinuousTargetOccurence: 5,
-			Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-			NotFoundChecks:            40,
-		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for %q to finish deleting: %s", id, err)
-		}
-	}
-
 	return nil
-}
-
-func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Context,
-	client *network.ProfilesClient,
-	networkProfileResourceGroup, networkProfileName,
-	containerResourceGroupName, containerName string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		profile, err := client.Get(ctx, networkProfileResourceGroup, networkProfileName, "")
-		if err != nil {
-			return nil, "Error", fmt.Errorf("retrieving Network Profile %q (Resource Group %q): %s", networkProfileName, networkProfileResourceGroup, err)
-		}
-
-		exists := false
-		if props := profile.ProfilePropertiesFormat; props != nil {
-			if nics := props.ContainerNetworkInterfaces; nics != nil {
-				for _, nic := range *nics {
-					nicProps := nic.ContainerNetworkInterfacePropertiesFormat
-					if nicProps == nil || nicProps.Container == nil || nicProps.Container.ID == nil {
-						continue
-					}
-
-					parsedId, err := containerinstance.ParseContainerGroupID(*nicProps.Container.ID)
-					if err != nil {
-						return nil, "", err
-					}
-
-					if parsedId.ResourceGroupName != containerResourceGroupName {
-						continue
-					}
-
-					if parsedId.ContainerGroupName == "" || parsedId.ContainerGroupName != containerName {
-						continue
-					}
-
-					exists = true
-					break
-				}
-			}
-		}
-
-		if exists {
-			return nil, "Attached", nil
-		}
-
-		return profile, "Detached", nil
-	}
 }
 
 func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDirs map[string]bool) (*[]containerinstance.InitContainerDefinition, []containerinstance.Volume, error) {
@@ -1306,11 +1295,21 @@ func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]conta
 	for _, c := range credsRaw {
 		credConfig := c.(map[string]interface{})
 
-		output = append(output, containerinstance.ImageRegistryCredential{
-			Server:   credConfig["server"].(string),
-			Password: pointer.FromString(credConfig["password"].(string)),
-			Username: credConfig["username"].(string),
-		})
+		imageRegistryCredential := containerinstance.ImageRegistryCredential{}
+		if v := credConfig["server"]; v != nil && v != "" {
+			imageRegistryCredential.Server = v.(string)
+		}
+		if v := credConfig["username"]; v != nil && v != "" {
+			imageRegistryCredential.Username = pointer.FromString(v.(string))
+		}
+		if v := credConfig["password"]; v != nil && v != "" {
+			imageRegistryCredential.Password = pointer.FromString(v.(string))
+		}
+		if v := credConfig["user_assigned_identity_id"]; v != nil && v != "" {
+			imageRegistryCredential.Identity = pointer.FromString(v.(string))
+		}
+
+		output = append(output, imageRegistryCredential)
 	}
 
 	return &output
@@ -1372,7 +1371,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 			cv.Secret = &secret
 		default:
 			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
-				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+				return nil, nil, fmt.Errorf("exactly one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) must be specified")
 			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
 				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
 			}
@@ -1475,11 +1474,11 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				scheme := x["scheme"].(string)
 
 				httpGetScheme := containerinstance.Scheme(scheme)
-				probe.HttpGet = &containerinstance.ContainerHttpGet{
+				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.FromString(path),
 					Port:        int64(port),
 					Scheme:      &httpGetScheme,
-					HttpHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
+					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
 				}
 			}
 		}
@@ -1487,14 +1486,14 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containerinstance.HttpHeader {
+func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containerinstance.HTTPHeader {
 	if len(input) == 0 {
 		return nil
 	}
 
-	headers := []containerinstance.HttpHeader{}
+	headers := []containerinstance.HTTPHeader{}
 	for k, v := range input {
-		header := containerinstance.HttpHeader{
+		header := containerinstance.HTTPHeader{
 			Name:  pointer.FromString(k),
 			Value: pointer.FromString(v.(string)),
 		}
@@ -1503,7 +1502,7 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 	return &headers
 }
 
-func flattenContainerProbeHttpHeaders(input *[]containerinstance.HttpHeader) map[string]interface{} {
+func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map[string]interface{} {
 	if input == nil {
 		return nil
 	}
@@ -1534,6 +1533,7 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 		credConfig := make(map[string]interface{})
 		credConfig["server"] = cred.Server
 		credConfig["username"] = cred.Username
+		credConfig["user_assigned_identity_id"] = cred.Identity
 
 		if len(configsOld) > i {
 			data := configsOld[i].(map[string]interface{})
@@ -1815,14 +1815,14 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 	}
 
 	httpGets := make([]interface{}, 0)
-	if get := input.HttpGet; get != nil {
+	if get := input.HTTPGet; get != nil {
 		httpGet := make(map[string]interface{})
 		if v := get.Path; v != nil {
 			httpGet["path"] = *v
 		}
 		httpGet["port"] = get.Port
 		httpGet["scheme"] = get.Scheme
-		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HttpHeaders)
+		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HTTPHeaders)
 		httpGets = append(httpGets, httpGet)
 	}
 	output["http_get"] = httpGets
@@ -1996,4 +1996,45 @@ func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DnsConf
 	}
 
 	return nil
+}
+
+func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubnetId) ([]interface{}, error) {
+	subnetIDs := make([]interface{}, 0)
+	if input == nil {
+		return subnetIDs, nil
+	}
+
+	for _, resourceRef := range *input {
+		if resourceRef.Id == "" {
+			continue
+		}
+
+		id, err := networkParse.SubnetID(resourceRef.Id)
+		if err != nil {
+			return nil, fmt.Errorf(`parsing subnet id %q: %v`, resourceRef.Id, err)
+		}
+
+		subnetIDs = append(subnetIDs, id.ID())
+	}
+
+	return subnetIDs, nil
+}
+
+func expandContainerGroupSubnets(input []interface{}) (*[]containerinstance.ContainerGroupSubnetId, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	results := make([]containerinstance.ContainerGroupSubnetId, 0)
+	for _, item := range input {
+		id, err := networkParse.SubnetID(item.(string))
+		if err != nil {
+			return nil, fmt.Errorf(`parsing subnet id %q: %v`, item, err)
+		}
+
+		results = append(results, containerinstance.ContainerGroupSubnetId{
+			Id: id.ID(),
+		})
+	}
+	return &results, nil
 }

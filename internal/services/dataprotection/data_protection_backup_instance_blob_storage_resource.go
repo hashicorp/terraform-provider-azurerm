@@ -66,7 +66,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupPoliciesID,
+				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
 		},
 	}
@@ -96,7 +96,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 
 	storageAccountId, _ := storageParse.StorageAccountID(d.Get("storage_account_id").(string))
 	location := location.Normalize(d.Get("location").(string))
-	policyId, _ := backuppolicies.ParseBackupPoliciesID(d.Get("backup_policy_id").(string))
+	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{

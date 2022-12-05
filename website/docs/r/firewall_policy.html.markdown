@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `private_ip_ranges` - (Optional) A list of private IP ranges to which traffic will not be SNAT.
 
-* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium`. Changing this forces a new Firewall Policy to be created.
+* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Changing this forces a new Firewall Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
 
@@ -85,7 +85,7 @@ An `insights` block supports the following:
 
 * `default_log_analytics_workspace_id` - (Required) The ID of the default Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to, when there is no location matches in the `log_analytics_workspace`.
 
-* `retention_in_days` - (Optional) The log retention period in days. 
+* `retention_in_days` - (Optional) The log retention period in days.
 
 * `log_analytics_workspace` - (Optional) A list of `log_analytics_workspace` block as defined below.
 

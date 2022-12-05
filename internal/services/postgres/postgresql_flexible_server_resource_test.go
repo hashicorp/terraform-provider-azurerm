@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -232,6 +232,34 @@ func TestAccPostgresqlFlexibleServer_geoRedundantBackupEnabled(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.geoRedundantBackupEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authConfig(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.authConfig(data, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.authConfig(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -606,4 +634,36 @@ resource "azurerm_postgresql_flexible_server" "test" {
   geo_redundant_backup_enabled = true
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) authConfig(data acceptance.TestData, aadEnabled bool, pwdEnabled bool) string {
+	tenantIdBlock := ""
+	if aadEnabled {
+		tenantIdBlock = "tenant_id = data.azurerm_client_config.current.tenant_id"
+	}
+
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+
+  authentication {
+    active_directory_auth_enabled = %[3]t
+    password_auth_enabled         = %[4]t
+   %[5]s
+  }
+}
+`, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }

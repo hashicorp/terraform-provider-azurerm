@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
@@ -59,7 +60,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: networkValidate.NetworkWatcherID,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"endpoint": {
 			Type:     pluginsdk.TypeSet,
@@ -167,7 +168,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Computed: true,
 						ValidateFunc: validation.Any(
 							computeValidate.VirtualMachineID,
-							logAnalyticsValidate.LogAnalyticsWorkspaceID,
+							workspaces.ValidateWorkspaceID,
 							networkValidate.SubnetID,
 							networkValidate.VirtualNetworkID,
 						),
@@ -422,7 +423,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 		},
 

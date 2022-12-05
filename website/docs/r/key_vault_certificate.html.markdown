@@ -15,6 +15,8 @@ Manages a Key Vault Certificate.
 
 ~> **Note:** this example assumed the PFX file is located in the same directory at `certificate-to-import.pfx`.
 
+~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information.
+
 ```hcl
 data "azurerm_client_config" "current" {}
 
@@ -217,14 +219,13 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Certificate. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault where the Certificate should be created.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Certificate should be created. Changing this forces a new resource to be created.
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 
@@ -238,8 +239,8 @@ The following arguments are supported:
 
 `certificate` supports the following:
 
-* `contents` - (Required) The base64-encoded certificate contents. Changing this forces a new resource to be created.
-* `password` - (Optional) The password associated with the certificate. Changing this forces a new resource to be created.
+* `contents` - (Required) The base64-encoded certificate contents.
+* `password` - (Optional) The password associated with the certificate.
 
 `certificate_policy` supports the following:
 
@@ -293,7 +294,6 @@ The following arguments are supported:
 * `emails` - (Optional) A list of email addresses identified by this Certificate. Changing this forces a new resource to be created.
 * `upns` - (Optional) A list of User Principal Names identified by the Certificate. Changing this forces a new resource to be created.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -320,8 +320,6 @@ A `certificate_attribute` block exports the following:
 * `updated` - The recent update time of the Key Vault Certificate.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

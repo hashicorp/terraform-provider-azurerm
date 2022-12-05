@@ -2,10 +2,15 @@ package clients
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
+	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
+	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
+	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
+	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -65,7 +70,6 @@ import (
 	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
-	loadtest "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtest/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
 	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
@@ -78,17 +82,19 @@ import (
 	media "github.com/hashicorp/terraform-provider-azurerm/internal/services/media/client"
 	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
-	msi "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
+	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
+	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
 	powerBI "github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/client"
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
+	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
@@ -99,6 +105,7 @@ import (
 	securityCenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
+	serviceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
 	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
@@ -115,15 +122,17 @@ import (
 )
 
 type Client struct {
+	autoClient
+
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
 
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
-	AadB2c                *aadb2c.Client
+	AadB2c                *aadb2c_v2021_04_01_preview.Client
 	Advisor               *advisor.Client
-	AnalysisServices      *analysisServices.Client
+	AnalysisServices      *analysisservices_v2017_08_01.Client
 	ApiManagement         *apiManagement.Client
 	AppConfiguration      *appConfiguration.Client
 	AppInsights           *applicationInsights.Client
@@ -165,7 +174,7 @@ type Client struct {
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
-	FluidRelay            *fluidrelay.Client
+	FluidRelay            *fluidrelay_2022_05_26.Client
 	Frontdoor             *frontdoor.Client
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
@@ -179,7 +188,6 @@ type Client struct {
 	Legacy                *legacy.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
-	LoadTest              *loadtest.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
 	Logz                  *logz.Client
@@ -192,17 +200,19 @@ type Client struct {
 	Media                 *media.Client
 	MixedReality          *mixedreality.Client
 	Monitor               *monitor.Client
-	MSI                   *msi.Client
 	MSSQL                 *mssql.Client
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
 	Network               *network.Client
+	Nginx                 *nginx2.Client
 	NotificationHubs      *notificationhub.Client
+	Orbital               *orbital.Client
 	Policy                *policy.Client
 	Portal                *portal.Client
 	Postgres              *postgres.Client
 	PowerBI               *powerBI.Client
 	PrivateDns            *privatedns.Client
+	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
 	Redis                 *redis.Client
@@ -213,6 +223,7 @@ type Client struct {
 	SecurityCenter        *securityCenter.Client
 	Sentinel              *sentinel.Client
 	ServiceBus            *serviceBus.Client
+	ServiceConnector      *serviceConnector.Client
 	ServiceFabric         *serviceFabric.Client
 	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
@@ -233,6 +244,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	autorest.Count429AsRetry = false
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
+
+	if err := buildAutoClients(&client.autoClient, o); err != nil {
+		return fmt.Errorf("building auto-sdk clients: %+v", err)
+	}
 
 	client.Features = o.Features
 	client.StopContext = ctx
@@ -259,7 +274,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ConfidentialLedger = confidentialledger.NewClient(o)
 	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
-	client.Containers = containerServices.NewClient(o)
+	client.Containers = containerServices.NewContainersClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
@@ -296,7 +311,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
-	client.LoadTest = loadtest.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.Logz = logz.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
@@ -308,17 +322,19 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Media = media.NewClient(o)
 	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
-	client.MSI = msi.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
+	client.Nginx = nginx.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
+	client.Orbital = orbital.NewClient(o)
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
+	client.PrivateDnsResolver = dnsresolver.NewClient(o)
 	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)
@@ -329,6 +345,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
+	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
 	client.SignalR = signalr.NewClient(o)

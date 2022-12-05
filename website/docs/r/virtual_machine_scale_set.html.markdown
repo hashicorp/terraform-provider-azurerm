@@ -263,7 +263,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the virtual machine scale set resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the virtual machine scale set resource. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual machine scale set. Changing this forces a new resource to be created.
 
@@ -293,7 +293,7 @@ The following arguments are supported:
 
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
 
-* `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`.
+* `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
 -> **NOTE:** `eviction_policy` can only be set when `priority` is set to `Low`.
 
@@ -307,7 +307,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) A plan block as documented below.
 
-* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Defaults to `Regular`. Possible values are `Low` and `Regular`.
+* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Defaults to `Regular`. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is only applicable when the `upgrade_policy_mode` is `Rolling`.
 
@@ -319,7 +319,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
+* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over. Changing this forces a new resource to be created.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
@@ -327,7 +327,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `name` - (Required) Specifies the size of virtual machines in a scale set.
+* `name` - (Required) Specifies the size of virtual machines in a scale set. Changing this forces a new resource to be created.
 * `tier` - (Optional) Specifies the tier of virtual machines in a scale set. Possible values, `standard` or `basic`.
 * `capacity` - (Required) Specifies the number of virtual machines in the scale set.
 
@@ -336,7 +336,7 @@ The following arguments are supported:
 * `max_batch_instance_percent` - (Optional) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability. Defaults to `20`.
 * `max_unhealthy_instance_percent` - (Optional) The maximum percentage of the total virtual machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the virtual machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch. Defaults to `20`.
 * `max_unhealthy_upgraded_instance_percent` - (Optional) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts. Defaults to `20`.
-* `pause_time_between_batches` - (Optional) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format for duration (https://en.wikipedia.org/wiki/ISO_8601#Durations). Defaults to `0` seconds represented as `PT0S`.
+* `pause_time_between_batches` - (Optional) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format for duration (<https://en.wikipedia.org/wiki/ISO_8601#Durations>). Defaults to `0` seconds represented as `PT0S`.
 
 `identity` supports the following:
 
@@ -392,7 +392,6 @@ output "principal_id" {
 * `certificate_url` - (Required) It is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be `data`, `dataType` and `password`.
 * `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
 
-
 `os_profile_windows_config` supports the following:
 
 * `provision_vm_agent` - (Optional) Indicates whether virtual machine agent should be provisioned on the virtual machines in the scale set.
@@ -421,7 +420,7 @@ output "principal_id" {
 
 `network_profile` supports the following:
 
-* `name` - (Required) Specifies the name of the network interface configuration.
+* `name` - (Required) Specifies the name of the network interface configuration. Changing this forces a new resource to be created.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below.
 * `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
@@ -435,7 +434,7 @@ output "principal_id" {
 
 `ip_configuration` supports the following:
 
-* `name` - (Required) Specifies name of the IP configuration.
+* `name` - (Required) Specifies name of the IP configuration. Changing this forces a new resource to be created.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
 * `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of multiple application gateways. Multiple scale sets can use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
@@ -452,13 +451,13 @@ output "principal_id" {
 
 `public_ip_address_configuration` supports the following:
 
-* `name` - (Required) The name of the public IP address configuration
+* `name` - (Required) The name of the public IP address configuration Changing this forces a new resource to be created.
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the DNS settings.
 
 `storage_profile_os_disk` supports the following:
 
-* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
+* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set). Changing this forces a new resource to be created.
 * `vhd_containers` - (Optional) Specifies the VHD URI. Cannot be used when `image` or `managed_disk_type` is specified.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.
@@ -490,10 +489,9 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 * `enabled`: (Required) Whether to enable boot diagnostics for the virtual machine.
 * `storage_uri`: (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
 
-
 `extension` supports the following:
 
-* `name` - (Required) Specifies the name of the extension.
+* `name` - (Required) Specifies the name of the extension. Changing this forces a new resource to be created.
 * `publisher` - (Required) The publisher of the extension, available publishers can be found by using the Azure CLI.
 * `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
@@ -504,7 +502,7 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 
 `plan` supports the following:
 
-* `name` - (Required) Specifies the name of the image from the marketplace.
+* `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
 * `publisher` - (Required) Specifies the publisher of the image.
 * `product` - (Required) Specifies the product of the image from the marketplace.
 

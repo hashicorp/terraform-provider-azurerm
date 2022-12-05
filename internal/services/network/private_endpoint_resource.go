@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	mariaDB "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourcePrivateEndpoint() *pluginsdk.Resource {
@@ -57,7 +58,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validate.PrivateLinkName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -83,6 +84,12 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"custom_network_interface_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"private_dns_zone_group": {
@@ -160,6 +167,34 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.PrivateLinkName,
+						},
+						"private_ip_address": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"subresource_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -269,7 +304,9 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
@@ -279,6 +316,8 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -416,7 +455,9 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := network.PrivateEndpoint{
@@ -427,6 +468,8 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -584,11 +627,22 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `private_service_connection`: %+v", err)
 		}
 
+		flattenedipconfiguration := flattenPrivateEndpointIPConfigurations(props.IPConfigurations)
+		if err := d.Set("ip_configuration", flattenedipconfiguration); err != nil {
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
+		}
+
 		subnetId := ""
 		if props.Subnet != nil && props.Subnet.ID != nil {
 			subnetId = *props.Subnet.ID
 		}
 		d.Set("subnet_id", subnetId)
+		customNicName := ""
+		if props.CustomNetworkInterfaceName != nil {
+			customNicName = *props.CustomNetworkInterfaceName
+		}
+		d.Set("custom_network_interface_name", customNicName)
+
 	}
 
 	privateDnsZoneConfigs := make([]interface{}, 0)
@@ -701,6 +755,45 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 	}
 
 	return &results
+}
+
+func expandPrivateEndpointIPConfigurations(input []interface{}) *[]network.PrivateEndpointIPConfiguration {
+	results := make([]network.PrivateEndpointIPConfiguration, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		privateIPAddress := v["private_ip_address"].(string)
+		subResourceName := v["subresource_name"].(string)
+		name := v["name"].(string)
+		result := network.PrivateEndpointIPConfiguration{
+			Name: utils.String(name),
+			PrivateEndpointIPConfigurationProperties: &network.PrivateEndpointIPConfigurationProperties{
+				PrivateIPAddress: utils.String(privateIPAddress),
+				GroupID:          utils.String(subResourceName),
+				MemberName:       utils.String(subResourceName),
+			},
+		}
+		results = append(results, result)
+	}
+
+	return &results
+}
+
+func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]network.PrivateEndpointIPConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+	if ipConfigurations == nil {
+		return results
+	}
+
+	for _, item := range *ipConfigurations {
+		results = append(results, map[string]interface{}{
+			"name":               item.Name,
+			"private_ip_address": item.PrivateIPAddress,
+			"subresource_name":   item.GroupID,
+		})
+	}
+
+	return results
 }
 
 func flattenCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPropertiesFormat) []interface{} {

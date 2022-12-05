@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type WatchlistResource struct{}
@@ -43,7 +42,7 @@ func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 		"display_name": {
 			Type:         pluginsdk.TypeString,
@@ -108,12 +107,12 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			workspaceId, err := loganalyticsParse.LogAnalyticsWorkspaceID(model.LogAnalyticsWorkspaceId)
+			workspaceId, err := workspaces.ParseWorkspaceID(model.LogAnalyticsWorkspaceId)
 			if err != nil {
 				return fmt.Errorf("parsing Log Analytics Workspace ID: %w", err)
 			}
 
-			id := parse.NewWatchlistID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, model.Name)
+			id := parse.NewWatchlistID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
@@ -130,10 +129,6 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 					DisplayName: &model.DisplayName,
 					// The only supported provider for now is "Microsoft"
 					Provider: utils.String("Microsoft"),
-
-					// The "source" represent the source file name which contains the watchlist items.
-					// Setting them here is merely to make the API happy.
-					Source: securityinsight.Source("a.csv"),
 
 					ItemsSearchKey: utils.String(model.ItemSearchKey),
 				},
@@ -181,7 +176,7 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 
 			model := WatchlistModel{
 				Name:                    id.Name,
-				LogAnalyticsWorkspaceId: loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(),
+				LogAnalyticsWorkspaceId: workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(),
 			}
 
 			if props := resp.WatchlistProperties; props != nil {

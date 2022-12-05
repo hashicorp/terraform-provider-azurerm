@@ -52,8 +52,8 @@ resource "azurerm_lb_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the LB Rule.
-* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Rule.
+* `name` - (Required) Specifies the name of the LB Rule. Changing this forces a new resource to be created.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Rule. Changing this forces a new resource to be created.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration to which the rule is associated.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Tcp`, `Udp` or `All`.
 * `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 0 and 65534, inclusive.

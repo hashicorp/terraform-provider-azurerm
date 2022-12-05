@@ -1,12 +1,14 @@
 package servicebus
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -221,43 +223,71 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	userConfig := make(map[string]interface{})
+
 	status := queues.EntityStatus(d.Get("status").(string))
+	userConfig["status"] = status
+	maxDeliveryCount := d.Get("max_delivery_count").(int)
+	userConfig["maxDeliveryCount"] = maxDeliveryCount
+	deadLetteringOnMesExp := d.Get("dead_lettering_on_message_expiration").(bool)
+	userConfig["deadLetteringOnMesExp"] = deadLetteringOnMesExp
+	enableExpress := d.Get("enable_express").(bool)
+	userConfig["enableExpress"] = enableExpress
+	enablePartitioning := d.Get("enable_partitioning").(bool)
+	userConfig["enablePartitioning"] = enablePartitioning
+	maxSizeInMB := d.Get("max_size_in_megabytes").(int)
+	requireDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
+	requireSession := d.Get("requires_session").(bool)
+	enableBatchOps := d.Get("enable_batched_operations").(bool)
+	userConfig["enableBatchOps"] = enableBatchOps
+	forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string)
+	userConfig["forwardDeadLetteredMessagesTo"] = forwardDeadLetteredMessagesTo
+	forwardTo := d.Get("forward_to").(string)
+	userConfig["forwardTo"] = forwardTo
+	lockDuration := d.Get("lock_duration").(string)
+	userConfig["lockDuration"] = lockDuration
+	defaultMessageTTL := d.Get("default_message_ttl").(string)
+	userConfig["defaultMessageTTL"] = defaultMessageTTL
+	autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string)
+	userConfig["autoDeleteOnIdle"] = autoDeleteOnIdle
+	duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string)
+
 	parameters := queues.SBQueue{
 		Name: utils.String(id.QueueName),
 		Properties: &queues.SBQueueProperties{
-			DeadLetteringOnMessageExpiration: utils.Bool(d.Get("dead_lettering_on_message_expiration").(bool)),
-			EnableBatchedOperations:          utils.Bool(d.Get("enable_batched_operations").(bool)),
-			EnableExpress:                    utils.Bool(d.Get("enable_express").(bool)),
-			EnablePartitioning:               utils.Bool(d.Get("enable_partitioning").(bool)),
-			MaxDeliveryCount:                 utils.Int64(int64(d.Get("max_delivery_count").(int))),
-			MaxSizeInMegabytes:               utils.Int64(int64(d.Get("max_size_in_megabytes").(int))),
-			RequiresDuplicateDetection:       utils.Bool(d.Get("requires_duplicate_detection").(bool)),
-			RequiresSession:                  utils.Bool(d.Get("requires_session").(bool)),
+			DeadLetteringOnMessageExpiration: utils.Bool(deadLetteringOnMesExp),
+			EnableBatchedOperations:          utils.Bool(enableBatchOps),
+			EnableExpress:                    utils.Bool(enableExpress),
+			EnablePartitioning:               utils.Bool(enablePartitioning),
+			MaxDeliveryCount:                 utils.Int64(int64(maxDeliveryCount)),
+			MaxSizeInMegabytes:               utils.Int64(int64(maxSizeInMB)),
+			RequiresDuplicateDetection:       utils.Bool(requireDuplicateDetection),
+			RequiresSession:                  utils.Bool(requireSession),
 			Status:                           &status,
 		},
 	}
 
-	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
+	if autoDeleteOnIdle != "" {
 		parameters.Properties.AutoDeleteOnIdle = &autoDeleteOnIdle
 	}
 
-	if defaultMessageTTL := d.Get("default_message_ttl").(string); defaultMessageTTL != "" {
+	if defaultMessageTTL != "" {
 		parameters.Properties.DefaultMessageTimeToLive = &defaultMessageTTL
 	}
 
-	if duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateDetectionHistoryTimeWindow != "" {
+	if duplicateDetectionHistoryTimeWindow != "" {
 		parameters.Properties.DuplicateDetectionHistoryTimeWindow = &duplicateDetectionHistoryTimeWindow
 	}
 
-	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
+	if forwardDeadLetteredMessagesTo != "" {
 		parameters.Properties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
 	}
 
-	if forwardTo := d.Get("forward_to").(string); forwardTo != "" {
+	if forwardTo != "" {
 		parameters.Properties.ForwardTo = &forwardTo
 	}
 
-	if lockDuration := d.Get("lock_duration").(string); lockDuration != "" {
+	if lockDuration != "" {
 		parameters.Properties.LockDuration = &lockDuration
 	}
 
@@ -275,11 +305,11 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 	// Enforce Premium namespace to have Express Entities disabled in Terraform since they are not supported for
 	// Premium SKU.
-	if sku == namespaces.SkuNamePremium && d.Get("enable_express").(bool) {
+	if sku == namespaces.SkuNamePremium && enableExpress {
 		return fmt.Errorf("%s does not support Express Entities in Premium SKU and must be disabled", id)
 	}
 
-	if sku == namespaces.SkuNamePremium && d.Get("enable_partitioning").(bool) && !isPartitioningEnabled {
+	if sku == namespaces.SkuNamePremium && enablePartitioning && !isPartitioningEnabled {
 		return fmt.Errorf("partitioning Entities is not supported in Premium SKU and must be disabled")
 	}
 
@@ -293,6 +323,25 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
+	}
+
+	// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
+	log.Printf("[DEBUG] Waiting for %s status to become ready", id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	statusPropertyChangeConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Updating"},
+		Target:                    []string{"Succeeded"},
+		Refresh:                   serviceBusQueueStatusRefreshFunc(ctx, client, id, userConfig),
+		ContinuousTargetOccurence: 5,
+		Timeout:                   time.Until(deadline),
+		MinTimeout:                1 * time.Minute,
+	}
+
+	if _, err = statusPropertyChangeConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for status of %s to become ready: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -384,4 +433,54 @@ func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.QueuesClient, id queues.QueueId, userConfig map[string]interface{}) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking servicebus queue %s status...", id)
+
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "Error", fmt.Errorf("checking servicebus queue %s error: %+v", id, err)
+		}
+
+		queueStatus := "Updating"
+
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if props.Status != nil && *props.Status == userConfig["status"] &&
+					props.MaxDeliveryCount != nil && int(*props.MaxDeliveryCount) == userConfig["maxDeliveryCount"].(int) &&
+					props.EnableExpress != nil && *props.EnableExpress == userConfig["enableExpress"].(bool) &&
+					props.EnablePartitioning != nil && *props.EnablePartitioning == userConfig["enablePartitioning"].(bool) &&
+					props.EnableBatchedOperations != nil && *props.EnableBatchedOperations == userConfig["enableBatchOps"].(bool) {
+					queueStatus = "Succeeded"
+				}
+
+				if props.DeadLetteringOnMessageExpiration != nil && userConfig["deadLetteringOnMesExp"] != "" {
+					if *props.DeadLetteringOnMessageExpiration != userConfig["deadLetteringOnMesExp"].(bool) {
+						queueStatus = "Updating"
+					}
+				}
+
+				if props.LockDuration != nil && userConfig["lockDuration"] != "" {
+					if *props.LockDuration != userConfig["lockDuration"].(string) {
+						queueStatus = "Updating"
+					}
+				}
+
+				if props.ForwardTo != nil && userConfig["forwardTo"] != "" {
+					if *props.ForwardTo != userConfig["forwardTo"].(string) {
+						queueStatus = "Updating"
+					}
+				}
+
+				if props.ForwardDeadLetteredMessagesTo != nil && userConfig["forwardDeadLetteredMessagesTo"] != nil {
+					if *props.ForwardDeadLetteredMessagesTo != userConfig["forwardDeadLetteredMessagesTo"].(string) {
+						queueStatus = "Updating"
+					}
+				}
+			}
+		}
+		return resp, queueStatus, nil
+	}
 }

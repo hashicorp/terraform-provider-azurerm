@@ -50,7 +50,6 @@ data "azurerm_blueprint_definition" "example" {
 
 * `versions` - A list of versions published for this Blueprint Definition.  
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

@@ -25,7 +25,7 @@ resource "azurerm_policy_definition" "example" {
   display_name = "my-policy-definition"
 
   policy_rule = <<POLICY_RULE
-	{
+ {
     "if": {
       "not": {
         "field": "location",
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
 
 * `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 

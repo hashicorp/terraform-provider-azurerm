@@ -2,10 +2,10 @@ package network
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceNetworkSecurityRule() *pluginsdk.Resource {
@@ -40,7 +41,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"network_security_group_name": {
 				Type:     pluginsdk.TypeString,
@@ -316,9 +317,16 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("network_security_group_name", id.NetworkSecurityGroupName)
 
+	// For fixing the case insensitive issue for the NSR protocol in Azure
+	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/16092
+	protocolMap := map[string]network.SecurityRuleProtocol{}
+	for _, protocol := range network.PossibleSecurityRuleProtocolValues() {
+		protocolMap[strings.ToLower(string(protocol))] = protocol
+	}
+
 	if props := resp.SecurityRulePropertiesFormat; props != nil {
 		d.Set("description", props.Description)
-		d.Set("protocol", string(props.Protocol))
+		d.Set("protocol", string(protocolMap[strings.ToLower(string(props.Protocol))]))
 		d.Set("destination_address_prefix", props.DestinationAddressPrefix)
 		d.Set("destination_address_prefixes", props.DestinationAddressPrefixes)
 		d.Set("destination_port_range", props.DestinationPortRange)

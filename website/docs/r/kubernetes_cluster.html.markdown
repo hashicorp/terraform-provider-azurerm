@@ -91,7 +91,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** Cluster Auto-Upgrade only updates to GA versions of Kubernetes and will not update to Preview versions.
 
-* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to allow for incoming traffic to the server nodes.
+* `api_server_authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
@@ -100,6 +100,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
+
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
 * `http_application_routing_enabled` - (Optional) Should HTTP Application Routing be enabled?
 
@@ -139,13 +141,11 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
-* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
+* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `oidc_issuer_enabled` - (Required) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/azure/aks/cluster-configuration#oidc-issuer-preview)
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableOIDCIssuerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/cluster-configuration#oidc-issuer-preview) for more information.
+* `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/azure/aks/cluster-configuration#oidc-issuer-preview)
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
@@ -161,7 +161,15 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
-```
+* `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
+
+* `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
+
+-> **Note** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
+
+-> **Note** This requires that the Preview Feature `Microsoft.ContainerService/EnableWorkloadIdentityPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag) for more information.
+
+```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example"
   location = "West Europe"
@@ -192,7 +200,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   private_cluster_enabled = true
   private_dns_zone_id     = azurerm_private_dns_zone.example.id
 
-  ... rest of configuration omitted for brevity
+  # rest of configuration omitted for brevity
 
   depends_on = [
     azurerm_role_assignment.example,
@@ -217,6 +225,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
+
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
 ---
@@ -229,7 +239,7 @@ A `aci_connector_linux` block supports the following:
 
 -> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 
-```
+```hcl
 resource "azurerm_subnet" "virtual" {
 
   #...
@@ -248,39 +258,39 @@ resource "azurerm_subnet" "virtual" {
 
 An `auto_scaler_profile` block supports the following:
 
-* `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
+* `balance_similar_node_groups` - (Optional) Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
 
-* `expander` - Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
+* `expander` - (Optional) Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
 
-* `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
+* `max_graceful_termination_sec` - (Optional) Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
 
-* `max_node_provisioning_time` - Maximum time the autoscaler waits for a node to be provisioned. Defaults to `15m`.
+* `max_node_provisioning_time` - (Optional) Maximum time the autoscaler waits for a node to be provisioned. Defaults to `15m`.
 
-* `max_unready_nodes` - Maximum Number of allowed unready nodes. Defaults to `3`.
+* `max_unready_nodes` - (Optional) Maximum Number of allowed unready nodes. Defaults to `3`.
 
-* `max_unready_percentage` - Maximum percentage of unready nodes the cluster autoscaler will stop if the percentage is exceeded. Defaults to `45`.
+* `max_unready_percentage` - (Optional) Maximum percentage of unready nodes the cluster autoscaler will stop if the percentage is exceeded. Defaults to `45`.
 
-* `new_pod_scale_up_delay` - For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. Defaults to `10s`.
+* `new_pod_scale_up_delay` - (Optional) For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. Defaults to `10s`.
 
-* `scale_down_delay_after_add` - How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
+* `scale_down_delay_after_add` - (Optional) How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
 
-* `scale_down_delay_after_delete` - How long after node deletion that scale down evaluation resumes. Defaults to the value used for `scan_interval`.
+* `scale_down_delay_after_delete` - (Optional) How long after node deletion that scale down evaluation resumes. Defaults to the value used for `scan_interval`.
 
-* `scale_down_delay_after_failure` - How long after scale down failure that scale down evaluation resumes. Defaults to `3m`.
+* `scale_down_delay_after_failure` - (Optional) How long after scale down failure that scale down evaluation resumes. Defaults to `3m`.
 
-* `scan_interval` - How often the AKS Cluster should be re-evaluated for scale up/down. Defaults to `10s`.
+* `scan_interval` - (Optional) How often the AKS Cluster should be re-evaluated for scale up/down. Defaults to `10s`.
 
-* `scale_down_unneeded` - How long a node should be unneeded before it is eligible for scale down. Defaults to `10m`.
+* `scale_down_unneeded` - (Optional) How long a node should be unneeded before it is eligible for scale down. Defaults to `10m`.
 
-* `scale_down_unready` - How long an unready node should be unneeded before it is eligible for scale down. Defaults to `20m`.
+* `scale_down_unready` - (Optional) How long an unready node should be unneeded before it is eligible for scale down. Defaults to `20m`.
 
-* `scale_down_utilization_threshold` - Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down. Defaults to `0.5`.
+* `scale_down_utilization_threshold` - (Optional) Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down. Defaults to `0.5`.
 
-* `empty_bulk_delete_max` - Maximum number of empty nodes that can be deleted at the same time. Defaults to `10`.
+* `empty_bulk_delete_max` - (Optional) Maximum number of empty nodes that can be deleted at the same time. Defaults to `10`.
 
-* `skip_nodes_with_local_storage` - If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `true`.
+* `skip_nodes_with_local_storage` - (Optional) If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `true`.
 
-* `skip_nodes_with_system_pods` - If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
+* `skip_nodes_with_system_pods` - (Optional) If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
 
 ---
 
@@ -298,11 +308,11 @@ When `managed` is set to `true` the following properties can be specified:
 
 When `managed` is set to `false` the following properties can be specified:
 
-* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
+* `client_app_id` - (Optional) The Client ID of an Azure Active Directory Application.
 
-* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
+* `server_app_id` - (Optional) The Server ID of an Azure Active Directory Application.
 
-* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
+* `server_app_secret` - (Optional) The Server Secret of an Azure Active Directory Application.
 
 ---
 
@@ -320,7 +330,7 @@ A `default_node_pool` block supports the following:
 
 -> **Note:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `node_count` field.
 
-* `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? Defaults to `false`.
+* `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -336,6 +346,8 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
+* `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
+
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool.
@@ -350,17 +362,21 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
 
-* `os_sku` - (Optional) OsSKU to be used to specify Linux OSType. Not applicable to Windows OSType. Possible values include: `Ubuntu`, `CBLMariner`. Defaults to `Ubuntu`. Changing this forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `Ubuntu`, `CBLMariner`, `Mariner`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
-* `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
+
+* `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. If not specified, it defaults to 'ScaleDownModeDelete'. Possible values include 'ScaleDownModeDelete' and 'ScaleDownModeDeallocate'. Changing this forces a new resource to be created.
+
+* `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
 
-* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information.
+* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this forces a new resource to be created.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
@@ -370,9 +386,9 @@ A `default_node_pool` block supports the following:
 
 If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
 
-* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
+* `max_count` - (Optional) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
-* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
+* `min_count` - (Optional) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
 * `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000` and between `min_count` and `max_count`.
 
@@ -380,9 +396,11 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
-* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
+* `node_count` - (Optional) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
 -> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
+
+* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible values are `OCIContainer`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. Changing this forces a new Kubernetes Cluster to be created.
 
@@ -392,19 +410,19 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned` or `UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
 A `key_vault_secrets_provider` block supports the following:
 
-* `secret_rotation_enabled` - (Required) Is secret rotation enabled?
+* `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
 
-* `secret_rotation_interval` - (Required) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
+* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
 
 ---
 
@@ -514,13 +532,15 @@ A `network_profile` block supports the following:
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Changing this forces a new resource to be created.
 
-* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`.
-
-~> **Note:** Outbound NAT Gateway is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/azure/aks/nat-gateway#register-the-aks-natgatewaypreview-feature-flag).
+* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. Changing this forces a new resource to be created.
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
+* `pod_cidrs` - (Optional) A list of CIDRs to use for pod IP addresses. For single-stack networking a single IPv4 CIDR is expected. For dual-stack networking an IPv4 and IPv6 CIDR are expected. Changing this forces a new resource to be created.
+
 * `service_cidr` - (Optional) The Network Range used by the Kubernetes service. Changing this forces a new resource to be created.
+
+* `service_cidrs` - (Optional) A list of CIDRs to use for Kubernetes services. For single-stack networking a single IPv4 CIDR is expected. For dual-stack networking an IPv4 and IPv6 CIDR are expected. Changing this forces a new resource to be created.
 
 ~> **Note:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12. `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.
 
@@ -532,7 +552,7 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 ->**Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
 
-* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`.
+* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`. Changing this forces a new resource to be created.
 
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `standard`.
 
@@ -547,6 +567,10 @@ A `load_balancer_profile` block supports the following:
 * `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `120` inclusive. Defaults to `30`.
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
+
+* `managed_outbound_ipv6_count` - (Optional) The desired number of IPv6 outbound IPs created and managed by Azure for the cluster load balancer. Must be in the range of 1 to 100 (inclusive). The default value is 0 for single-stack and 1 for dual-stack.
+
+~> **Note:** `managed_outbound_ipv6_count` requires dual-stack networking. To enable dual-stack networking the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` needs to be enabled and the Resource Provider re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
 
 * `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
 
@@ -666,23 +690,48 @@ A `sysctl_config` block supports the following:
 
 ---
 
+A `web_app_routing` block supports the following:
+
+* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled.
+
+ ---
+
 A `windows_profile` block supports the following:
 
-* `admin_username` - (Required) The Admin Username for Windows VMs.
+* `admin_username` - (Required) The Admin Username for Windows VMs. Changing this forces a new resource to be created.
 
-* `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
+* `admin_password` - (Optional) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
 * `license` - (Optional) Specifies the type of on-premise license which should be used for Node Pool Windows Virtual Machine. At this time the only possible value is `Windows_Server`.
+
+* `gmsa`- (Optional) A `gmsa` block as defined below.
+
+---
+
+A `gmsa` block supports the following:
+
+* `dns_server` - (Required) Specifies the DNS server for Windows gMSA. Set this to an empty string if you have configured the DNS server in the VNet which was used to create the managed cluster.
+
+* `root_domain` - (Required) Specifies the root domain name for Windows gMSA. Set this to an empty string if you have configured the DNS server in the VNet which was used to create the managed cluster.
+
+-> **Note:** The properties `dns_server` and `root_domain` must both either be set or unset, i.e. empty.
+
+---
+A `workload_autoscaler_profile` block supports the following:
+
+* `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-KedaPreview](https://docs.microsoft.com/azure/aks/keda-deploy-add-on-arm#register-the-aks-kedapreview-feature-flag) for more information.
 
 ---
 
 A `http_proxy_config` block supports the following:
 
-* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP. Changing this forces a new resource to be created.
 
-* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS. Changing this forces a new resource to be created.
 
-* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
+* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication. Changing this forces a new resource to be created.
 
 -> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 
@@ -762,7 +811,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 -> **Note:** It's possible to use these credentials with [the Kubernetes Provider](/providers/hashicorp/kubernetes/latest/docs) like so:
 
-```
+```hcl
 provider "kubernetes" {
   host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
   username               = azurerm_kubernetes_cluster.main.kube_config.0.username
@@ -824,7 +873,6 @@ The `secret_identity` block exports the following:
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
 
 ---
-
 
 ## Timeouts
 

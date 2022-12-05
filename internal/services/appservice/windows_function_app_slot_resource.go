@@ -39,6 +39,7 @@ type WindowsFunctionAppSlotModel struct {
 	BuiltinLogging                bool                                       `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled             bool                                       `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                                     `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings             []helpers.ConnectionString                 `tfschema:"connection_string"`
 	DailyMemoryTimeQuota          int                                        `tfschema:"daily_memory_time_quota"`
 	Enabled                       bool                                       `tfschema:"enabled"`
@@ -56,6 +57,7 @@ type WindowsFunctionAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential                   `tfschema:"site_credential"`
+	StorageAccounts               []helpers.StorageAccount                   `tfschema:"storage_account"`
 	VirtualNetworkSubnetID        string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
@@ -175,6 +177,12 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Description: "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"daily_memory_time_quota": {
@@ -224,6 +232,8 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
+
+		"storage_account": helpers.StorageAccountSchemaWindows(),
 
 		"tags": tags.Schema(),
 
@@ -462,6 +472,10 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionAppSlot.KeyVaultReferenceIdentityID)
 			}
 
+			if functionAppSlot.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(functionAppSlot.ClientCertExclusionPaths)
+			}
+
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
@@ -490,6 +504,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *auth, id.SlotName); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for Windows %s: %+v", id, err)
+				}
+			}
+
+			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
+					}
 				}
 			}
 
@@ -545,6 +568,11 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
 			}
 
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
+			}
+
 			siteCredentialsFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for Windows %s: %+v", id, err)
@@ -580,6 +608,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
@@ -610,6 +639,8 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
@@ -703,6 +734,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
+			}
+
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
@@ -732,6 +767,13 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
+				}
+			}
+
 			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {
@@ -742,7 +784,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 				if err != nil {
 					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 				}
@@ -902,6 +944,9 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
+
+		case "WEBSITE_VNET_ROUTE_ALL":
+			// Filter out - handled by site_config setting `vnet_route_all_enabled`
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)

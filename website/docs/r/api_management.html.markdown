@@ -55,6 +55,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Premium SKU's are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
 
+~> **NOTE:** Consumption SKU capacity should be 0 (e.g. `Consumption_0`) as this tier includes automatic scaling.
+
 ---
 
 * `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
@@ -89,13 +91,14 @@ The following arguments are supported:
 
 * `tenant_access` - (Optional) A `tenant_access` block as defined below.
 
-* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP. 
+* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
 ~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
 * `public_network_access_enabled` - (Optional) Is public access to the service allowed?. Defaults to `true`
 
-* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
@@ -110,13 +113,15 @@ A `additional_location` block supports the following:
 
 * `capacity` - (Optional) The number of compute units in this region. Defaults to the capacity of the main region.
 
-* `zones` - (Optional) A list of availability zones.
+* `zones` - (Optional) A list of availability zones. Changing this forces a new resource to be created.
 
 * `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
 ~> **NOTE:** Availability zones and custom public IPs are only supported in the Premium tier.
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
+
+* `gateway_disabled` - (Optional) Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
 
 ---
 
@@ -160,7 +165,7 @@ A `management`, `portal`, `developer_portal` and `scm` block supports the follow
 
 * `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
 
--> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
+-> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
 * `certificate` - (Optional) The Base64 Encoded Certificate.
 
@@ -338,7 +343,6 @@ A `terms_of_service` block supports the following:
 
 * `text` - (Required) The Terms of Service which users are required to agree to in order to sign up.
 
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -415,6 +419,9 @@ The `hostname_configuration` block exports the following:
 
 * `subject` - The subject of the certificate.
 
+* `certificate_source` - The source of the certificate.
+
+* `certificate_status` - The status of the certificate.
 
 ## Timeouts
 

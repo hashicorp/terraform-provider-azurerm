@@ -37,7 +37,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Share Blob Storage Dataset.
 
@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `storage_account` block supports the following:
 
-* `name` - The name of the storage account to be shared with the receiver. 
+* `name` - The name of the storage account to be shared with the receiver.
 
 * `resource_group_name` - The resource group name of the storage account to be shared with the receiver.
 

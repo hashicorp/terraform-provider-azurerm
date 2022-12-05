@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,9 +66,9 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"cluster_version": SchemaHDInsightClusterVersion(),
 
@@ -81,6 +82,8 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 				ForceNew: true,
 				Computed: true,
 			},
+
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
 			"component_version": {
 				Type:     pluginsdk.TypeList,
@@ -96,6 +99,8 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
 
 			"gateway": SchemaHDInsightsGateway(),
 
@@ -137,6 +142,8 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 			},
 
 			"monitor": SchemaHDInsightsMonitor(),
+
+			"extension": SchemaHDInsightsExtension(),
 		},
 	}
 }
@@ -190,6 +197,8 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("expanding `roles`: %+v", err)
 	}
 
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
+
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -225,9 +234,17 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
+			ComputeIsolationProperties: computeIsolationProperties,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
+	}
+
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
@@ -267,6 +284,13 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
 		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+			return err
+		}
+	}
+
+	if v, ok := d.GetOk("extension"); ok {
+		extensionRaw := v.([]interface{})
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -345,6 +369,16 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
 			}
 
+			if props.DiskEncryptionProperties != nil {
+				diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+				if err != nil {
+					return err
+				}
+				if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+					return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+				}
+			}
+
 			if props.NetworkProperties != nil {
 				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
 					return fmt.Errorf("flattening `network`: %+v", err)
@@ -362,6 +396,12 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 			return fmt.Errorf("flattening `roles`: %+v", err)
 		}
 
+		if props.ComputeIsolationProperties != nil {
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
+			}
+		}
+
 		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
@@ -373,6 +413,13 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+		}
+
+		d.Set("extension", flattenHDInsightAzureMonitor(extension))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)

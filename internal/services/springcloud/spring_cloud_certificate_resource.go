@@ -3,10 +3,10 @@ package springcloud
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
 )
 
 func resourceSpringCloudCertificate() *pluginsdk.Resource {
@@ -44,7 +45,7 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"service_name": {
 				Type:         pluginsdk.TypeString,
@@ -105,7 +106,7 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		cert.Properties = &appplatform.KeyVaultCertificateProperties{
-			VaultURI:         &keyVaultCertificateId.KeyVaultBaseUrl,
+			VaultURI:         utils.String(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
 			KeyVaultCertName: &keyVaultCertificateId.Name,
 		}
 	}

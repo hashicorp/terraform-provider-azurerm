@@ -31,10 +31,10 @@ func resourceSearchService() *pluginsdk.Resource {
 		Delete: resourceSearchServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -49,9 +49,9 @@ func resourceSearchService() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,

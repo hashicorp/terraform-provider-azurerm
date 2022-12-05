@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -41,7 +41,7 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 
 			"api_name": schemaz.SchemaApiManagementApiName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
@@ -53,7 +53,7 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 
 			"value": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					if d.Get("content_type") == "application/vnd.ms-azure-apim.swagger.definitions+json" || d.Get("content_type") == "application/vnd.oai.openapi.components+json" {
@@ -61,6 +61,21 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 					}
 					return old == new
 				},
+				ExactlyOneOf: []string{"value", "definitions", "components"},
+			},
+
+			"components": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				ExactlyOneOf:     []string{"value", "definitions", "components"},
+			},
+
+			"definitions": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				ExactlyOneOf:     []string{"value", "definitions", "components"},
 			},
 		},
 	}
@@ -88,14 +103,23 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	contentType := d.Get("content_type").(string)
-	value := d.Get("value").(string)
 	parameters := apimanagement.SchemaContract{
 		SchemaContractProperties: &apimanagement.SchemaContractProperties{
-			ContentType: &contentType,
-			SchemaDocumentProperties: &apimanagement.SchemaDocumentProperties{
-				Value: &value,
-			},
+			ContentType:              &contentType,
+			SchemaDocumentProperties: &apimanagement.SchemaDocumentProperties{},
 		},
+	}
+
+	if v, ok := d.GetOk("value"); ok {
+		parameters.SchemaContractProperties.SchemaDocumentProperties.Value = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("components"); ok {
+		parameters.SchemaContractProperties.SchemaDocumentProperties.Components = v.(string)
+	}
+
+	if v, ok := d.GetOk("definitions"); ok {
+		parameters.SchemaContractProperties.SchemaDocumentProperties.Definitions = v.(string)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, parameters, "")
@@ -120,6 +144,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 		d.SetId(id.ID())
 		return nil
 	})
+
 	if err != nil {
 		return fmt.Errorf("getting %s: %+v", id, err)
 	}
@@ -155,30 +180,24 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
 		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
-			/*
-				As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
+			if documentProperties.Value != nil {
+				d.Set("value", documentProperties.Value)
+			}
 
-				- Swagger Schema use application/vnd.ms-azure-apim.swagger.definitions+json
-				- WSDL Schema use application/vnd.ms-azure-apim.xsd+xml
-				- OpenApi Schema use application/vnd.oai.openapi.components+json
-				- WADL Schema use application/vnd.ms-azure-apim.wadl.grammars+xml.
-
-				Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
-			*/
-			switch *properties.ContentType {
-			case "application/vnd.ms-azure-apim.swagger.definitions+json", "application/vnd.oai.openapi.components+json":
-				if documentProperties.Definitions != nil {
-					value, err := json.Marshal(documentProperties.Definitions)
-					if err != nil {
-						return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, documentProperties.Definitions)
-					}
-					d.Set("value", string(value))
+			if properties.Components != nil {
+				value, err := convert2Str(properties.Components)
+				if err != nil {
+					return err
 				}
-			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
-				d.Set("value", documentProperties.Value)
-			default:
-				log.Printf("[WARN] Unknown content type %q for %s", *properties.ContentType, *id)
-				d.Set("value", documentProperties.Value)
+				d.Set("components", value)
+			}
+
+			if properties.Definitions != nil {
+				value, err := convert2Str(properties.Definitions)
+				if err != nil {
+					return err
+				}
+				d.Set("definitions", value)
 			}
 		}
 	}
@@ -202,4 +221,18 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func convert2Str(rawVal interface{}) (string, error) {
+	value := ""
+	if val, ok := rawVal.(string); ok {
+		value = val
+	} else {
+		val, err := json.Marshal(rawVal)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal to json: %+v", err)
+		}
+		value = string(val)
+	}
+	return value, nil
 }

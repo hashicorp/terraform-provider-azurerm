@@ -54,3 +54,14 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_iothub_shared_access_policy":       resourceIotHubSharedAccessPolicy(),
 	}
 }
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		IotHubDeviceUpdateAccountResource{},
+		IotHubDeviceUpdateInstanceResource{},
+	}
+}

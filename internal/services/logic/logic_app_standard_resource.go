@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -49,9 +50,9 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validate.LogicAppStandardName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
@@ -106,8 +107,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// TODO: API supports UserAssigned & SystemAssignedUserAssigned too?
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -220,6 +220,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"virtual_network_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
 		},
 	}
 }
@@ -233,7 +239,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
 
-	id := parse.NewLogicAppStandardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := parse.NewLogicAppStandardID(
+		subscriptionId,
+		d.Get("resource_group_name").(string),
+		d.Get("name").(string),
+	)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -255,7 +265,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v", id.SiteName, *available.Message)
+		return fmt.Errorf(
+			"the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v",
+			id.SiteName,
+			*available.Message,
+		)
 	}
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
@@ -265,6 +279,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	VirtualNetworkSubnetID := d.Get("virtual_network_subnet_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -304,6 +319,10 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	if clientCertMode != "" {
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
+	}
+
+	if VirtualNetworkSubnetID != "" {
+		siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(VirtualNetworkSubnetID)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -395,6 +414,19 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
+	if d.HasChange("virtual_network_subnet_id") {
+		subnetId := d.Get("virtual_network_subnet_id").(string)
+		if subnetId == "" {
+			if _, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+			}
+			var empty *string
+			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = empty
+		} else {
+			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+		}
+	}
+
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentity, err := expandLogicAppStandardIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
@@ -412,19 +444,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
 	}
 
-	settings := web.StringDictionary{
-		Properties: appSettings,
-	}
-
-	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
-		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
-	}
-
-	if d.HasChange("site_config") {
-		siteConfig, err := expandLogicAppStandardSiteConfig(d)
-		if err != nil {
-			return fmt.Errorf("expanding `site_config`: %+v", err)
-		}
+	if d.HasChange("site_config") { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -432,6 +452,14 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
 			return fmt.Errorf("updating Configuration for %s: %+v", *id, err)
 		}
+	}
+
+	settings := web.StringDictionary{
+		Properties: appSettings,
+	}
+
+	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
+		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
 	}
 
 	if d.HasChange("connection_string") {
@@ -507,6 +535,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
@@ -569,7 +598,10 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity := flattenLogicAppStandardIdentity(resp.Identity)
+	identity, err := flattenLogicAppStandardIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
@@ -611,7 +643,10 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicLogicAppSettings(
+	d *pluginsdk.ResourceData,
+	endpointSuffix string,
+) ([]web.NameValuePair, error) {
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
@@ -621,7 +656,12 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 
 	storageAccount := d.Get("storage_account_name").(string)
 	accountKey := d.Get("storage_account_access_key").(string)
-	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, accountKey, endpointSuffix)
+	storageConnection := fmt.Sprintf(
+		"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
+		storageAccount,
+		accountKey,
+		endpointSuffix,
+	)
 	functionVersion := d.Get("version").(string)
 
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
@@ -645,7 +685,9 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 		extensionBundleVersion := d.Get("bundle_version").(string)
 
 		if extensionBundleVersion == "" {
-			return nil, fmt.Errorf("when `use_extension_bundle` is true, `bundle_version` must be specified")
+			return nil, fmt.Errorf(
+				"when `use_extension_bundle` is true, `bundle_version` must be specified",
+			)
 		}
 
 		bundleSettings := []web.NameValuePair{
@@ -716,6 +758,47 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 20),
+				},
+
+				"scm_ip_restriction": schemaLogicAppStandardIpRestriction(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"scm_min_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
+					}, false),
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.ScmTypeBitbucketGit),
+						string(web.ScmTypeBitbucketHg),
+						string(web.ScmTypeCodePlexGit),
+						string(web.ScmTypeCodePlexHg),
+						string(web.ScmTypeDropbox),
+						string(web.ScmTypeExternalGit),
+						string(web.ScmTypeExternalHg),
+						string(web.ScmTypeGitHub),
+						string(web.ScmTypeLocalGit),
+						string(web.ScmTypeNone),
+						string(web.ScmTypeOneDrive),
+						string(web.ScmTypeTfs),
+						string(web.ScmTypeVSO),
+						string(web.ScmTypeVSTSRM),
+					}, false),
 				},
 
 				"use_32_bit_worker_process": {
@@ -849,7 +932,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					}, false),
 				},
 
-				//lintignore:XS003
+				// lintignore:XS003
 				"headers": {
 					Type:       pluginsdk.TypeList,
 					Optional:   true,
@@ -858,7 +941,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							//lintignore:S018
+							// lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -868,7 +951,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							//lintignore:S018
+							// lintignore:S018
 							"x_forwarded_for": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -879,7 +962,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							//lintignore:S018
+							// lintignore:S018
 							"x_azure_fdid": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -890,7 +973,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							//lintignore:S018
+							// lintignore:S018
 							"x_fd_health_probe": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -919,7 +1002,9 @@ func flattenLogicAppStandardAppSettings(input map[string]*string) map[string]str
 	return output
 }
 
-func flattenLogicAppStandardConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenLogicAppStandardConnectionStrings(
+	input map[string]*web.ConnStringValueTypePair,
+) interface{} {
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
@@ -967,6 +1052,15 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
+
+	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
+
+	if input.ScmIPSecurityRestrictionsUseMain != nil {
+		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
+	}
+
+	result["scm_type"] = string(input.ScmType)
+	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
@@ -1172,6 +1266,27 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
 
+	if v, ok := config["scm_ip_restriction"]; ok {
+		scmIPSecurityRestrictions := v.([]interface{})
+		scmRestrictions, err := expandLogicAppStandardIpRestriction(scmIPSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
+		}
+		siteConfig.ScmIPSecurityRestrictions = &scmRestrictions
+	}
+
+	if v, ok := config["scm_use_main_ip_restriction"]; ok {
+		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["scm_min_tls_version"]; ok {
+		siteConfig.ScmMinTLSVersion = web.SupportedTLSVersions(v.(string))
+	}
+
+	if v, ok := config["scm_type"]; ok {
+		siteConfig.ScmType = web.ScmType(v.(string))
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -1180,7 +1295,8 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	if v, ok := config["pre_warmed_instance_count"]; ok {
+	// get value from `d` rather than the `config` map, or it will be covered by the zero-value "0" instead of nil.
+	if v, ok := d.GetOk("site_config.0.pre_warmed_instance_count"); ok {
 		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
@@ -1188,11 +1304,11 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
-	if v, ok := config["elastic_instance_minimum"]; ok {
+	if v, ok := d.GetOk("site_config.0.elastic_instance_minimum"); ok {
 		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := config["app_scale_limit"]; ok {
+	if v, ok := d.GetOk("site_config.0.app_scale_limit"); ok {
 		siteConfig.FunctionAppScaleLimit = utils.Int32(int32(v.(int)))
 	}
 
@@ -1212,21 +1328,35 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 }
 
 func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &web.ManagedServiceIdentity{
+	output := web.ManagedServiceIdentity{
 		Type: web.ManagedServiceIdentityType(expanded.Type),
-	}, nil
+	}
+
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		output.UserAssignedIdentities = expandLogicAppStandardUserAssignedIdentity(expanded.IdentityIds)
+	}
+
+	return &output, nil
 }
 
-func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interface{} {
-	var transform *identity.SystemAssigned
+func expandLogicAppStandardUserAssignedIdentity(input map[string]identity.UserAssignedIdentityDetails) map[string]*web.UserAssignedIdentity {
+	output := make(map[string]*web.UserAssignedIdentity)
+	for k := range input {
+		output[k] = &web.UserAssignedIdentity{}
+	}
+	return output
+}
+
+func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) ([]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
+		transform = &identity.SystemAndUserAssignedMap{
 			Type: identity.Type(string(input.Type)),
 		}
 		if input.PrincipalID != nil {
@@ -1235,12 +1365,37 @@ func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interf
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+		if input.UserAssignedIdentities != nil {
+			transform.IdentityIds = flattenLogicAppStandardUserAssignedIdentity(input.UserAssignedIdentities)
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	output, err := identity.FlattenSystemAndUserAssignedMap(transform)
+	if err != nil {
+		return nil, err
+	}
+	return *output, nil
 }
 
-func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]*string, error) {
+func flattenLogicAppStandardUserAssignedIdentity(input map[string]*web.UserAssignedIdentity) map[string]identity.UserAssignedIdentityDetails {
+	expanded := make(map[string]identity.UserAssignedIdentityDetails)
+	for k, v := range input {
+		identityDetail := identity.UserAssignedIdentityDetails{}
+		if v.PrincipalID != nil {
+			identityDetail.PrincipalId = v.PrincipalID
+		}
+		if v.ClientID != nil {
+			identityDetail.ClientId = v.ClientID
+		}
+		expanded[k] = identityDetail
+	}
+	return expanded
+}
+
+func expandLogicAppStandardSettings(
+	d *pluginsdk.ResourceData,
+	endpointSuffix string,
+) (map[string]*string, error) {
 	output := make(map[string]*string)
 	appSettings := expandAppSettings(d)
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -1269,7 +1424,9 @@ func expandAppSettings(d *pluginsdk.ResourceData) []web.NameValuePair {
 	return output
 }
 
-func expandLogicAppStandardConnectionStrings(d *pluginsdk.ResourceData) map[string]*web.ConnStringValueTypePair {
+func expandLogicAppStandardConnectionStrings(
+	d *pluginsdk.ResourceData,
+) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").(*pluginsdk.Set).List()
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -1341,11 +1498,15 @@ func expandLogicAppStandardIpRestriction(input interface{}) ([]web.IPSecurityRes
 		action := restriction["action"].(string)
 
 		if vNetSubnetID != "" && ipAddress != "" && serviceTag != "" {
-			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")
+			return nil, fmt.Errorf(
+				"only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction",
+			)
 		}
 
 		if vNetSubnetID == "" && ipAddress == "" && serviceTag == "" {
-			return nil, fmt.Errorf("one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction")
+			return nil, fmt.Errorf(
+				"one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction",
+			)
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}

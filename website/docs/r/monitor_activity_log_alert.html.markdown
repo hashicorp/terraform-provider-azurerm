@@ -64,7 +64,7 @@ resource "azurerm_monitor_activity_log_alert" "main" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the activity log alert. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the activity log alert instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the activity log alert instance. Changing this forces a new resource to be created.
 * `scopes` - (Required) The Scope at which the Activity Log should be applied, for example a the Resource ID of a Subscription or a Resource (such as a Storage Account).
 * `criteria` - (Required) A `criteria` block as defined below.
 * `action` - (Optional) One or more `action` blocks as defined below.
@@ -115,13 +115,11 @@ A `service_health` block supports the following:
 * `locations` (Optional) Locations this alert will monitor. For example, `West Europe`. Defaults to `Global`.
 * `services` (Optional) Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`. Defaults to all Services.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the activity log alert.
-
 
 ## Timeouts
 

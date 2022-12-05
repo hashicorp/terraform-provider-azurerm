@@ -5,25 +5,24 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
-	logAnalytiscValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
@@ -629,7 +628,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.FirewallPolicyName(),
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku": {
 			Type:     pluginsdk.TypeString,
@@ -859,7 +858,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					"default_log_analytics_workspace_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
+						ValidateFunc: workspaces.ValidateWorkspaceID,
 					},
 					"retention_in_days": {
 						Type:         pluginsdk.TypeInt,
@@ -874,7 +873,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 								"id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: logAnalytiscValidate.LogAnalyticsWorkspaceID,
+									ValidateFunc: workspaces.ValidateWorkspaceID,
 								},
 								"firewall_location": commonschema.LocationWithoutForceNew(),
 							},
@@ -926,6 +925,6 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": tags.SchemaEnforceLowerCaseKeys(),
+		"tags": tags.Schema(),
 	}
 }
