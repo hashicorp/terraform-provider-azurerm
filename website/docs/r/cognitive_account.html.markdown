@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S0`, `S`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, `P2` and `E0`.
 
-* `custom_subdomain_name` - (Required) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
+* `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
 * `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account. Defaults to `false`.
 
@@ -82,9 +82,9 @@ The following arguments are supported:
 
 * `qna_runtime_endpoint` - (Optional) A URL to link a QnAMaker cognitive account to a QnA runtime.
 
-* `custom_question_answering_search_service_id` - If `kind` is `TextAnalytics` this specifies the ID of the Search service.
+* `custom_question_answering_search_service_id` - (Optional) If `kind` is `TextAnalytics` this specifies the ID of the Search service.
 
-* `custom_question_answering_search_service_key` - If `kind` is `TextAnalytics` this specifies the key of the Search service.
+* `custom_question_answering_search_service_key` - (Optional) If `kind` is `TextAnalytics` this specifies the key of the Search service.
 
 -> **NOTE:** `custom_question_answering_search_service_id` and `custom_question_answering_search_service_key` are used for [Custom Question Answering, the renamed version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/custom-question-answering), while `qna_runtime_endpoint` is used for [the old version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/overview/overview)
 

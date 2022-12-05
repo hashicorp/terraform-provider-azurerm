@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `allocation_policy` - (Optional) The allocation policy of the IoT Device Provisioning Service (`Hashed`, `GeoLatency` or `Static`). Defaults to `Hashed`.
 
-* `data_residency_enabled` - (Optional) Specifies if the IoT Device Provisioning Service has data residency and disaster recovery enabled. Defaults to `false`.
+* `data_residency_enabled` - (Optional) Specifies if the IoT Device Provisioning Service has data residency and disaster recovery enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as defined below.
 

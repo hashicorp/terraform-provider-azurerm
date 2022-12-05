@@ -74,9 +74,9 @@ The following arguments are supported:
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this Bgp connection should be created. Changing this forces a new resource to be created.
 
-* `peer_asn` - (Optional) The peer autonomous system number for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
+* `peer_asn` - (Required) The peer autonomous system number for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
 
-* `peer_ip` - (Optional) The peer IP address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
+* `peer_ip` - (Required) The peer IP address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
 
 * `virtual_network_connection_id` - (Optional) The ID of virtual network connection.
 

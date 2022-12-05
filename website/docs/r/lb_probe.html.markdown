@@ -49,8 +49,8 @@ resource "azurerm_lb_probe" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Probe.
-* `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the NAT Rule.
+* `name` - (Required) Specifies the name of the Probe. Changing this forces a new resource to be created.
+* `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the NAT Rule. Changing this forces a new resource to be created.
 * `protocol` - (Optional) Specifies the protocol of the end point. Possible values are `Http`, `Https` or `Tcp`. If TCP is specified, a received ACK is required for the probe to be successful. If HTTP is specified, a 200 OK response from the specified URI is required for the probe to be successful.
 * `port` - (Required) Port on which the Probe queries the backend endpoint. Possible values range from 1 to 65535, inclusive.
 * `request_path` - (Optional) The URI used for requesting health status from the backend endpoint. Required if protocol is set to `Http` or `Https`. Otherwise, it is not allowed.

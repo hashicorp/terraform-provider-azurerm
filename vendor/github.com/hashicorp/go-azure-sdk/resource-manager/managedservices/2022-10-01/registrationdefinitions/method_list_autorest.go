@@ -38,9 +38,33 @@ func (r ListOperationResponse) LoadMore(ctx context.Context) (resp ListOperation
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
+type ListOperationOptions struct {
+	Filter *string
+}
+
+func DefaultListOperationOptions() ListOperationOptions {
+	return ListOperationOptions{}
+}
+
+func (o ListOperationOptions) toHeaders() map[string]interface{} {
+	out := make(map[string]interface{})
+
+	return out
+}
+
+func (o ListOperationOptions) toQueryString() map[string]interface{} {
+	out := make(map[string]interface{})
+
+	if o.Filter != nil {
+		out["$filter"] = *o.Filter
+	}
+
+	return out
+}
+
 // List ...
-func (c RegistrationDefinitionsClient) List(ctx context.Context, id commonids.ScopeId) (resp ListOperationResponse, err error) {
-	req, err := c.preparerForList(ctx, id)
+func (c RegistrationDefinitionsClient) List(ctx context.Context, id commonids.ScopeId, options ListOperationOptions) (resp ListOperationResponse, err error) {
+	req, err := c.preparerForList(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "registrationdefinitions.RegistrationDefinitionsClient", "List", nil, "Failure preparing request")
 		return
@@ -61,15 +85,20 @@ func (c RegistrationDefinitionsClient) List(ctx context.Context, id commonids.Sc
 }
 
 // preparerForList prepares the List request.
-func (c RegistrationDefinitionsClient) preparerForList(ctx context.Context, id commonids.ScopeId) (*http.Request, error) {
+func (c RegistrationDefinitionsClient) preparerForList(ctx context.Context, id commonids.ScopeId, options ListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
+	}
+
+	for k, v := range options.toQueryString() {
+		queryParameters[k] = autorest.Encode("query", v)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
+		autorest.WithHeaders(options.toHeaders()),
 		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.ManagedServices/registrationDefinitions", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -143,15 +172,15 @@ func (c RegistrationDefinitionsClient) responderForList(resp *http.Response) (re
 }
 
 // ListComplete retrieves all of the results into a single object
-func (c RegistrationDefinitionsClient) ListComplete(ctx context.Context, id commonids.ScopeId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, RegistrationDefinitionOperationPredicate{})
+func (c RegistrationDefinitionsClient) ListComplete(ctx context.Context, id commonids.ScopeId, options ListOperationOptions) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, options, RegistrationDefinitionOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c RegistrationDefinitionsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate RegistrationDefinitionOperationPredicate) (resp ListCompleteResult, err error) {
+func (c RegistrationDefinitionsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, options ListOperationOptions, predicate RegistrationDefinitionOperationPredicate) (resp ListCompleteResult, err error) {
 	items := make([]RegistrationDefinition, 0)
 
-	page, err := c.List(ctx, id)
+	page, err := c.List(ctx, id, options)
 	if err != nil {
 		err = fmt.Errorf("loading the initial page: %+v", err)
 		return
