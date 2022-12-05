@@ -150,8 +150,3 @@ The resulting schema in Terraform would look as follows and also requires a conv
     }, false),
 },
 ```
-
-
-
-
-
