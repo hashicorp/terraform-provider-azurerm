@@ -101,7 +101,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 			},
 
 			"eligible_authorization": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -139,7 +139,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 									},
 
 									"approver": {
-										Type:     pluginsdk.TypeList,
+										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
@@ -254,7 +254,7 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("eligible_authorization"); ok {
-		eligibleAuthorization, err := expandLighthouseDefinitionEligibleAuthorization(v.([]interface{}))
+		eligibleAuthorization, err := expandLighthouseDefinitionEligibleAuthorization(v.(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}
@@ -444,7 +444,7 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) (*reg
 	}
 	result.MultiFactorAuthProvider = multiFactorAuthProvider
 
-	approvers, err := expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].([]interface{}))
+	approvers, err := expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List())
 	if err != nil {
 		return nil, err
 	}
