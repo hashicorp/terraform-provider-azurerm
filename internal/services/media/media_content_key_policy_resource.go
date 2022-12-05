@@ -396,7 +396,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 }
 
 func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.ContentKeyPolicies
+	client := meta.(*clients.Client).Media.V20220801Client.ContentKeyPolicies
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -440,7 +440,7 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.ContentKeyPolicies
+	client := meta.(*clients.Client).Media.V20220801Client.ContentKeyPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -479,7 +479,7 @@ func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceMediaContentKeyPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.ContentKeyPolicies
+	client := meta.(*clients.Client).Media.V20220801Client.ContentKeyPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

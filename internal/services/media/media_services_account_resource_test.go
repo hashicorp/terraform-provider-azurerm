@@ -79,6 +79,28 @@ func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 	})
 }
 
+func TestAccMediaServicesAccount_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := MediaServicesAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMediaServicesAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 	r := MediaServicesAccountResource{}
@@ -100,7 +122,7 @@ func (MediaServicesAccountResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20210501Client.Accounts.MediaservicesGet(ctx, *id)
+	resp, err := clients.Media.V20211101Client.Accounts.MediaservicesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -130,6 +152,58 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString)
 }
 
+func (r MediaServicesAccountResource) systemAssignedIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  storage_account {
+    id         = azurerm_storage_account.first.id
+    is_primary = true
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  tags = {
+    environment = "staging"
+  }
+}
+`, template, data.RandomString)
+}
+
+func (r MediaServicesAccountResource) userAssignedIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%[2]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  storage_account {
+    id         = azurerm_storage_account.first.id
+    is_primary = true
+  }
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+  tags = {
+    environment = "staging"
+  }
+}
+`, template, data.RandomString)
+}
 func (r MediaServicesAccountResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`

@@ -97,7 +97,7 @@ func (StreamingPolicyResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.StreamingPoliciesAndStreamingLocators.StreamingPoliciesGet(ctx, *id)
+	resp, err := clients.Media.V20220801Client.StreamingPoliciesAndStreamingLocators.StreamingPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

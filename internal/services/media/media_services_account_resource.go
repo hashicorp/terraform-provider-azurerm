@@ -82,7 +82,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"storage_authentication_type": {
 				Type:     pluginsdk.TypeString,
@@ -128,7 +128,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 }
 
 func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20210501Client.Accounts
+	client := meta.(*clients.Client).Media.V20211101Client.Accounts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	identity, err := expandMediaAccountIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -186,7 +186,7 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20210501Client.Accounts
+	client := meta.(*clients.Client).Media.V20211101Client.Accounts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -211,8 +211,13 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+
+		identity, err := flattenMediaAccountIdentity(model.Identity)
+		if err != nil {
 			return fmt.Errorf("flattening `identity`: %s", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
 		if props := model.Properties; props != nil {
@@ -244,7 +249,7 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceMediaServicesAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20210501Client.Accounts
+	client := meta.(*clients.Client).Media.V20211101Client.Accounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -313,6 +318,53 @@ func flattenMediaServicesAccountStorageAccounts(input *[]accounts.StorageAccount
 	return &results, nil
 }
 
+func expandMediaAccountIdentity(input []interface{}) (*accounts.MediaServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := accounts.MediaServiceIdentity{
+		Type: string(expanded.Type),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		userAssignedIdentities := make(map[string]accounts.UserAssignedManagedIdentity)
+		for k := range expanded.IdentityIds {
+			userAssignedIdentities[k] = accounts.UserAssignedManagedIdentity{
+				// intentionally empty
+			}
+		}
+		out.UserAssignedIdentities = &userAssignedIdentities
+	}
+	return &out, nil
+}
+
+func flattenMediaAccountIdentity(input *accounts.MediaServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalId != nil {
+			transform.PrincipalId = *input.PrincipalId
+		}
+		if input.TenantId != nil {
+			transform.TenantId = *input.TenantId
+		}
+		if input.UserAssignedIdentities != nil {
+			for k, v := range *input.UserAssignedIdentities {
+				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.ClientId,
+					PrincipalId: v.PrincipalId,
+				}
+			}
+		}
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
 func expandKeyDelivery(input []interface{}) *accounts.KeyDelivery {
 	if len(input) == 0 {
 		return nil

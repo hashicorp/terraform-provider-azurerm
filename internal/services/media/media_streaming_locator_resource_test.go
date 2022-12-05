@@ -101,7 +101,7 @@ func (StreamingLocatorResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.StreamingPoliciesAndStreamingLocators.StreamingLocatorsGet(ctx, *id)
+	resp, err := clients.Media.V20220801Client.StreamingPoliciesAndStreamingLocators.StreamingLocatorsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

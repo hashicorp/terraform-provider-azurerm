@@ -101,7 +101,7 @@ func resourceMediaAsset() *pluginsdk.Resource {
 }
 
 func resourceMediaAssetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +147,7 @@ func resourceMediaAssetCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -184,7 +184,7 @@ func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceMediaAssetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

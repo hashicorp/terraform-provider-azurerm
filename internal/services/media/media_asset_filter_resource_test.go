@@ -95,7 +95,7 @@ func (AssetFilterResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.AssetsAndAssetFilters.AssetFiltersGet(ctx, *id)
+	resp, err := clients.Media.V20220801Client.AssetsAndAssetFilters.AssetFiltersGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

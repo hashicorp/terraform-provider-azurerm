@@ -69,7 +69,7 @@ func (r MediaContentKeyPolicyResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.ContentKeyPolicies.ContentKeyPoliciesGet(ctx, *id)
+	resp, err := clients.Media.V20220801Client.ContentKeyPolicies.ContentKeyPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

@@ -160,7 +160,7 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 }
 
 func resourceMediaStreamingPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingPoliciesAndStreamingLocators
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingPoliciesAndStreamingLocators
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -209,7 +209,7 @@ func resourceMediaStreamingPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceMediaStreamingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingPoliciesAndStreamingLocators
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingPoliciesAndStreamingLocators
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -258,7 +258,7 @@ func resourceMediaStreamingPolicyRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceMediaStreamingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingPoliciesAndStreamingLocators
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingPoliciesAndStreamingLocators
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

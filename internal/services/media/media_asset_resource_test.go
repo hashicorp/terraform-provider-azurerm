@@ -102,7 +102,7 @@ func (MediaAssetResource) Exists(ctx context.Context, clients *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.AssetsAndAssetFilters.AssetsGet(ctx, *id)
+	resp, err := clients.Media.V20220801Client.AssetsAndAssetFilters.AssetsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

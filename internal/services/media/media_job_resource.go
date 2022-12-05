@@ -150,7 +150,7 @@ func resourceMediaJob() *pluginsdk.Resource {
 }
 
 func resourceMediaJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,7 +201,7 @@ func resourceMediaJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceMediaJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -257,7 +257,7 @@ func resourceMediaJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceMediaJobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -298,7 +298,7 @@ func resourceMediaJobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceMediaJobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

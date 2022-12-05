@@ -176,7 +176,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20221129.1175354
+# github.com/hashicorp/go-azure-sdk v0.20221202.1180026
 ## explicit; go 1.18
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -301,18 +301,26 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/accountfilters
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/accounts
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/contentkeypolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveoutputs
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingpoliciesandstreaminglocators
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01
-github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01/accounts
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accountfilters
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/assetsandassetfilters
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/contentkeypolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/encodings
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/liveevents
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/liveoutputs
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/streamingendpoint
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/streamingendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/streamingpoliciesandstreaminglocators
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/accountfilters
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/assetsandassetfilters
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/contentkeypolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveevents
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveoutputs
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoint
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators
 github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/capacitypools
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/netappaccounts

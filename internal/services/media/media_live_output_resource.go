@@ -106,7 +106,7 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 }
 
 func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
+	client := meta.(*clients.Client).Media.V20220801Client.LiveOutputs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -168,7 +168,7 @@ func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
+	client := meta.(*clients.Client).Media.V20220801Client.LiveOutputs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -216,7 +216,7 @@ func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceMediaLiveOutputDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
+	client := meta.(*clients.Client).Media.V20220801Client.LiveOutputs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
