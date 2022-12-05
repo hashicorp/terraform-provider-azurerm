@@ -86,12 +86,6 @@ func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config: r.runCommand(data, currentKubernetesVersion, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 	})
 }
 
