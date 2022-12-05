@@ -146,7 +146,7 @@ resource "azurerm_mssql_server_transparent_data_encryption" "example" {
 
 The following arguments are supported:
 
-* `server_id` - (Required) Specifies the name of the MS SQL Server.
+* `server_id` - (Required) Specifies the name of the MS SQL Server. Changing this forces a new resource to be created.
 
 ---
 

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -18,7 +17,10 @@ import (
 
 type OutputTableResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = OutputTableResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = OutputTableResource{}
+	_ sdk.ResourceWithStateMigration = OutputTableResource{}
+)
 
 type OutputTableResourceModel struct {
 	Name               string   `tfschema:"name"`
@@ -29,7 +31,7 @@ type OutputTableResourceModel struct {
 	Table              string   `tfschema:"table"`
 	PartitionKey       string   `tfschema:"partition_key"`
 	RowKey             string   `tfschema:"row_key"`
-	BatchSize          int32    `tfschema:"batch_size"`
+	BatchSize          int64    `tfschema:"batch_size"`
 	ColumnsToRemove    []string `tfschema:"columns_to_remove"`
 }
 
@@ -112,7 +114,7 @@ func (r OutputTableResource) ResourceType() string {
 }
 
 func (r OutputTableResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.OutputID
+	return outputs.ValidateOutputID
 }
 
 func (r OutputTableResource) Create() sdk.ResourceFunc {
@@ -127,41 +129,41 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
+			id := outputs.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			tableOutputProps := &streamanalytics.AzureTableOutputDataSourceProperties{
+			tableOutputProps := &outputs.AzureTableOutputDataSourceProperties{
 				AccountName:  utils.String(model.StorageAccount),
 				AccountKey:   utils.String(model.StorageAccountKey),
 				Table:        utils.String(model.Table),
 				PartitionKey: utils.String(model.PartitionKey),
 				RowKey:       utils.String(model.RowKey),
-				BatchSize:    utils.Int32(model.BatchSize),
+				BatchSize:    utils.Int64(model.BatchSize),
 			}
 
 			if v := model.ColumnsToRemove; v != nil && len(v) > 0 {
 				tableOutputProps.ColumnsToRemove = &v
 			}
 
-			props := streamanalytics.Output{
+			props := outputs.Output{
 				Name: utils.String(model.Name),
-				OutputProperties: &streamanalytics.OutputProperties{
-					Datasource: &streamanalytics.AzureTableOutputDataSource{
-						Type:                                 streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
-						AzureTableOutputDataSourceProperties: tableOutputProps,
+				Properties: &outputs.OutputProperties{
+					Datasource: &outputs.AzureTableOutputDataSource{
+						Properties: tableOutputProps,
 					},
 				},
 			}
 
-			if _, err = client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+			var opts outputs.CreateOrReplaceOperationOptions
+			if _, err = client.CreateOrReplace(ctx, id, props, opts); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -177,48 +179,77 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := parse.OutputID(metadata.ResourceData.Id())
+			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			if props := resp.OutputProperties; props != nil && props.Datasource != nil {
-				v, ok := props.Datasource.AsAzureTableOutputDataSource()
-				if !ok {
-					return fmt.Errorf("converting output data source to a blob output: %+v", err)
-				}
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					output, ok := props.Datasource.(outputs.AzureTableOutputDataSource)
+					if !ok {
+						return fmt.Errorf("converting %s to a Table Output", *id)
+					}
 
-				if v.AccountName == nil || v.Table == nil || v.PartitionKey == nil || v.RowKey == nil || v.BatchSize == nil {
-					return nil
-				}
+					if output.Properties != nil {
+						if output.Properties.AccountName == nil || output.Properties.Table == nil || output.Properties.PartitionKey == nil || output.Properties.RowKey == nil || output.Properties.BatchSize == nil {
+							return nil
+						}
 
-				state := OutputTableResourceModel{
-					Name:               id.Name,
-					ResourceGroup:      id.ResourceGroup,
-					StreamAnalyticsJob: id.StreamingjobName,
-					StorageAccount:     *v.AccountName,
-					StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
-					Table:              *v.Table,
-					PartitionKey:       *v.PartitionKey,
-					RowKey:             *v.RowKey,
-					BatchSize:          *v.BatchSize,
-				}
+						state := OutputTableResourceModel{
+							Name:               id.OutputName,
+							ResourceGroup:      id.ResourceGroupName,
+							StreamAnalyticsJob: id.JobName,
+							StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
+						}
 
-				var columnsToRemove []string
-				if columns := v.ColumnsToRemove; columns != nil && len(*columns) > 0 {
-					columnsToRemove = *columns
-				}
-				state.ColumnsToRemove = columnsToRemove
+						accountName := ""
+						if v := output.Properties.AccountName; v != nil {
+							accountName = *v
+						}
+						state.StorageAccount = accountName
 
-				return metadata.Encode(&state)
+						table := ""
+						if v := output.Properties.Table; v != nil {
+							table = *v
+						}
+						state.Table = table
+
+						partitonKey := ""
+						if v := output.Properties.PartitionKey; v != nil {
+							partitonKey = *v
+						}
+						state.PartitionKey = partitonKey
+
+						rowKey := ""
+						if v := output.Properties.RowKey; v != nil {
+							rowKey = *v
+						}
+						state.RowKey = rowKey
+
+						var batchSize int64
+						if v := output.Properties.BatchSize; v != nil {
+							batchSize = *v
+						}
+						state.BatchSize = batchSize
+
+						var columnsToRemove []string
+						if columns := output.Properties.ColumnsToRemove; columns != nil && len(*columns) > 0 {
+							columnsToRemove = *columns
+						}
+						state.ColumnsToRemove = columnsToRemove
+
+						return metadata.Encode(&state)
+					}
+				}
 			}
 			return nil
 		},
@@ -230,7 +261,7 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := parse.OutputID(metadata.ResourceData.Id())
+			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -240,32 +271,29 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props := streamanalytics.Output{
-				Name: utils.String(state.Name),
-				OutputProperties: &streamanalytics.OutputProperties{
-					Datasource: &streamanalytics.AzureTableOutputDataSource{
-						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
-						AzureTableOutputDataSourceProperties: &streamanalytics.AzureTableOutputDataSourceProperties{
-							AccountName:  utils.String(state.StorageAccount),
-							AccountKey:   utils.String(state.StorageAccountKey),
-							Table:        utils.String(state.Table),
-							PartitionKey: utils.String(state.PartitionKey),
-							RowKey:       utils.String(state.RowKey),
-							BatchSize:    utils.Int32(state.BatchSize),
-						},
-					},
-				},
+			props := &outputs.AzureTableOutputDataSourceProperties{
+				AccountName:  utils.String(state.StorageAccount),
+				AccountKey:   utils.String(state.StorageAccountKey),
+				Table:        utils.String(state.Table),
+				PartitionKey: utils.String(state.PartitionKey),
+				RowKey:       utils.String(state.RowKey),
+				BatchSize:    utils.Int64(state.BatchSize),
 			}
 
 			if metadata.ResourceData.HasChange("columns_to_remove") {
-				tableOutput, ok := props.OutputProperties.Datasource.AsAzureTableOutputDataSource()
-				if !ok {
-					return fmt.Errorf("converting output data source to a table output: %+v", err)
-				}
-				tableOutput.ColumnsToRemove = &state.ColumnsToRemove
+				props.ColumnsToRemove = &state.ColumnsToRemove
 			}
 
-			if _, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+			output := outputs.Output{
+				Name: utils.String(state.Name),
+				Properties: &outputs.OutputProperties{
+					Datasource: &outputs.AzureTableOutputDataSource{
+						Properties: props,
+					},
+				},
+			}
+			var opts outputs.UpdateOperationOptions
+			if _, err = client.Update(ctx, *id, output, opts); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -279,15 +307,15 @@ func (r OutputTableResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := parse.OutputID(metadata.ResourceData.Id())
+			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
-				if !response.WasNotFound(resp.Response) {
+			if resp, err := client.Delete(ctx, *id); err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}
@@ -298,21 +326,30 @@ func (r OutputTableResource) Delete() sdk.ResourceFunc {
 
 func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := parse.OutputID(metadata.ResourceData.Id())
+		id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
 		client := metadata.Client.StreamAnalytics.OutputsClient
-		resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
-		if err != nil || resp.OutputProperties == nil {
+		resp, err := client.Get(ctx, *id)
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
 			return fmt.Errorf("reading %s: %+v", *id, err)
 		}
 
-		props := resp.OutputProperties
-		if _, ok := props.Datasource.AsAzureTableOutputDataSource(); !ok {
-			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable)
+		props := resp.Model.Properties
+		if _, ok := props.Datasource.(outputs.AzureTableOutputDataSource); !ok {
+			return fmt.Errorf("specified output is not of type")
 		}
 		return nil
+	}
+}
+
+func (r OutputTableResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsOutputTableV0ToV1{},
+		},
 	}
 }

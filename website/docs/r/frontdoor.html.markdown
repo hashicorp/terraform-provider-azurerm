@@ -81,7 +81,7 @@ resource "azurerm_frontdoor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
@@ -125,7 +125,7 @@ The `backend` block supports the following:
 
 The `backend_pool` block supports the following:
 
-* `name` - (Required) Specifies the name of the Backend Pool.
+* `name` - (Required) Specifies the name of the Backend Pool. Changing this forces a new resource to be created.
 
 * `backend` - (Required) A `backend` block as defined below.
 
@@ -147,7 +147,7 @@ The `backend_pool_settings` block supports the following:
 
 The `frontend_endpoint` block supports the following:
 
-* `name` - (Required) Specifies the name of the `frontend_endpoint`.
+* `name` - (Required) Specifies the name of the `frontend_endpoint`. Changing this forces a new resource to be created.
 
 * `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name. In order to use a name.azurefd.net domain, the name value must match the Front Door name.
 
@@ -161,13 +161,13 @@ The `frontend_endpoint` block supports the following:
 
 The `backend_pool_health_probe` block supports the following:
 
-* `name` - (Required) Specifies the name of the Health Probe.
+* `name` - (Required) Specifies the name of the Health Probe. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is this health probe enabled? Defaults to `true`.
 
 * `path` - (Optional) The path to use for the Health Probe. Default is `/`.
 
-* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Defaults to `Http`.
+* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Possible values are `Http` and `Https`. Defaults to `Http`.
 
 * `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `Get`.
 
@@ -179,7 +179,7 @@ The `backend_pool_health_probe` block supports the following:
 
 The `backend_pool_load_balancing` block supports the following:
 
-* `name` - (Required) Specifies the name of the Load Balancer.
+* `name` - (Required) Specifies the name of the Load Balancer. Changing this forces a new resource to be created.
 
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
 
@@ -191,11 +191,11 @@ The `backend_pool_load_balancing` block supports the following:
 
 The `routing_rule` block supports the following:
 
-* `name` - (Required) Specifies the name of the Routing Rule.
+* `name` - (Required) Specifies the name of the Routing Rule. Changing this forces a new resource to be created.
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
-* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
+* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`. Defaults to `Http`.
 
 * `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 

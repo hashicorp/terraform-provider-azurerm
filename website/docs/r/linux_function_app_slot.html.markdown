@@ -128,7 +128,7 @@ The following arguments are supported:
 
 an `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature be enabled?
+* `enabled` - (Optional) Should the Authentication / Authorization feature be enabled?
 
 * `active_directory` - (Optional) an `active_directory` block as detailed below.
 
@@ -394,7 +394,7 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
 
-* `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
+* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16` and `18`
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , and `7.2`.
 

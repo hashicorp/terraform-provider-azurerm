@@ -164,11 +164,11 @@ resource "azurerm_active_directory_domain_service" "example" {
 
 The following arguments are supported:
 
-* `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.
+* `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations. Changing this forces a new resource to be created.
 
 * `domain_configuration_type` - (Optional)  The configuration type of this Active Directory Domain. Possible values are `FullySynced` and `ResourceTrusting`. Changing this forces a new resource to be created.
 
-* `filtered_sync_enabled` - Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
+* `filtered_sync_enabled` - (Optional) Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
 
 * `secure_ldap` - (Optional) A `secure_ldap` block as defined below.
 
@@ -214,7 +214,7 @@ A `notifications` block supports the following:
 
 An `initial_replica_set` block supports the following:
 
-* `subnet_id` - (Required) The ID of the subnet in which to place the initial replica set.
+* `subnet_id` - (Required) The ID of the subnet in which to place the initial replica set. Changing this forces a new resource to be created.
 
 ---
 

@@ -68,7 +68,7 @@ resource "azurerm_monitor_metric_alert" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the Metric Alert. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance. Changing this forces a new resource to be created.
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
 

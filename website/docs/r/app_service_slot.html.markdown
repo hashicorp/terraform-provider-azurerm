@@ -145,9 +145,9 @@ resource "azurerm_app_service_slot" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Service Slot component. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the App Service Slot component. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Slot component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Slot component. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -199,7 +199,7 @@ A `storage_account` block supports the following:
 
 `connection_string` supports the following:
 
-* `name` - (Required) The name of the Connection String.
+* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 * `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and  `SQLServer`.
 * `value` - (Required) The value for the Connection String.
 
@@ -275,7 +275,7 @@ Additional examples of how to run Containers via the `azurerm_app_service_slot` 
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015`, and `VS2017`.
+* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2017` and `VS2019`.
 
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service Slot. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 

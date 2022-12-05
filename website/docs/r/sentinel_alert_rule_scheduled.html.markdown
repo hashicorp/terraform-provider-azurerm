@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `suppression_enabled` - (Optional) Should the Sentinel Scheduled Alert Rulea stop running query after alert is generated? Defaults to `false`.
 
-* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`,  `PrivilegeEscalation`, `ImpairProcessControl`, `InhibitResponseFunction`, `Reconnaissance` and `ResourceDevelopment`.
+* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `ImpairProcessControl`, `InhibitResponseFunction`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation`, `PreAttack`, `Reconnaissance` and `ResourceDevelopment`.
 
 * `techniques` - (Optional) A list of techniques of attacks by which to classify the rule.
 
@@ -134,7 +134,7 @@ An `entity_mapping` block supports the following:
 
 A `event_grouping` block supports the following:
 
-* `aggregation_method` - (Required) The aggregation type of grouping the events.
+* `aggregation_method` - (Required) The aggregation type of grouping the events. Possible values are `AlertPerResult` and `SingleAlert`.
 
 ---
 

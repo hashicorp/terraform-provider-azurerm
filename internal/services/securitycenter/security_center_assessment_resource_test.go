@@ -15,7 +15,7 @@ import (
 
 type SecurityCenterAssessmentResource struct{}
 
-func TestAccSecurityCenterAssessment_basic(t *testing.T) {
+func testAccSecurityCenterAssessment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -30,7 +30,7 @@ func TestAccSecurityCenterAssessment_basic(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessment_requiresImport(t *testing.T) {
+func testAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -45,7 +45,7 @@ func TestAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessment_complete(t *testing.T) {
+func testAccSecurityCenterAssessment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -60,7 +60,7 @@ func TestAccSecurityCenterAssessment_complete(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessment_update(t *testing.T) {
+func testAccSecurityCenterAssessment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -218,6 +218,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "VirtualMachines"
+  subplan       = "P2"
 }
 
 resource "azurerm_security_center_assessment_policy" "test" {

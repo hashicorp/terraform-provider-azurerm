@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -18,7 +18,10 @@ import (
 
 type StreamInputEventHubV2Resource struct{}
 
-var _ sdk.ResourceWithCustomImporter = StreamInputEventHubV2Resource{}
+var (
+	_ sdk.ResourceWithCustomImporter = StreamInputEventHubV2Resource{}
+	_ sdk.ResourceWithStateMigration = StreamInputEventHubV2Resource{}
+)
 
 type StreamInputEventHubV2ResourceModel struct {
 	Name                      string `tfschema:"name"`
@@ -53,7 +56,7 @@ func (r StreamInputEventHubV2Resource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StreamingJobID,
+			ValidateFunc: streamingjobs.ValidateStreamingJobID,
 		},
 
 		"servicebus_namespace": {
@@ -96,10 +99,10 @@ func (r StreamInputEventHubV2Resource) Arguments() map[string]*pluginsdk.Schema 
 		"authentication_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(streamanalytics.AuthenticationModeConnectionString),
+			Default:  string(inputs.AuthenticationModeConnectionString),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(streamanalytics.AuthenticationModeMsi),
-				string(streamanalytics.AuthenticationModeConnectionString),
+				string(inputs.AuthenticationModeMsi),
+				string(inputs.AuthenticationModeConnectionString),
 			}, false),
 		},
 
@@ -131,26 +134,26 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.InputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			streamingJobStruct, err := parse.StreamingJobID(model.StreamAnalyticsJobId)
+			streamingJobStruct, err := streamingjobs.ParseStreamingJobID(model.StreamAnalyticsJobId)
 			if err != nil {
 				return err
 			}
-			id := parse.NewStreamInputID(subscriptionId, streamingJobStruct.ResourceGroup, streamingJobStruct.Name, model.Name)
+			id := inputs.NewInputID(subscriptionId, streamingJobStruct.ResourceGroupName, streamingJobStruct.JobName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			props := &streamanalytics.EventHubStreamInputDataSourceProperties{
+			props := &inputs.EventHubStreamInputDataSourceProperties{
 				ServiceBusNamespace: utils.String(model.ServiceBusNamespace),
 				EventHubName:        utils.String(model.EventHubName),
 				ConsumerGroupName:   utils.String(model.EventHubConsumerGroupName),
-				AuthenticationMode:  streamanalytics.AuthenticationMode(model.AuthenticationMode),
+				AuthenticationMode:  utils.ToPtr(inputs.AuthenticationMode(model.AuthenticationMode)),
 			}
 
 			if v := model.SharedAccessPolicyKey; v != "" {
@@ -166,19 +169,19 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `serialization`: %+v", err)
 			}
 
-			payload := streamanalytics.Input{
+			payload := inputs.Input{
 				Name: utils.String(model.Name),
-				Properties: &streamanalytics.StreamInputProperties{
-					Datasource: &streamanalytics.EventHubV2StreamInputDataSource{
-						Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftEventHubEventHub,
-						EventHubStreamInputDataSourceProperties: props,
+				Properties: &inputs.StreamInputProperties{
+					Datasource: &inputs.EventHubV2StreamInputDataSource{
+						Properties: props,
 					},
 					Serialization: serialization,
 					PartitionKey:  utils.String(model.PartitionKey),
 				},
 			}
 
-			if _, err = client.CreateOrReplace(ctx, payload, id.ResourceGroup, id.StreamingjobName, id.InputName, "", ""); err != nil {
+			var opts inputs.CreateOrReplaceOperationOptions
+			if _, err = client.CreateOrReplace(ctx, id, payload, opts); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -194,7 +197,7 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.InputsClient
-			id, err := parse.StreamInputID(metadata.ResourceData.Id())
+			id, err := inputs.ParseInputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -207,11 +210,11 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 			d := metadata.ResourceData
 
 			if d.HasChangesExcept("name", "stream_analytics_job_id") {
-				props := &streamanalytics.EventHubStreamInputDataSourceProperties{
+				props := &inputs.EventHubStreamInputDataSourceProperties{
 					ServiceBusNamespace: utils.String(state.ServiceBusNamespace),
 					EventHubName:        utils.String(state.EventHubName),
 					ConsumerGroupName:   utils.String(state.EventHubConsumerGroupName),
-					AuthenticationMode:  streamanalytics.AuthenticationMode(state.AuthenticationMode),
+					AuthenticationMode:  utils.ToPtr(inputs.AuthenticationMode(state.AuthenticationMode)),
 				}
 
 				serialization, err := expandStreamAnalyticsStreamInputSerializationTyped(state.Serialization)
@@ -219,19 +222,19 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `serialization`: %+v", err)
 				}
 
-				payload := streamanalytics.Input{
+				payload := inputs.Input{
 					Name: utils.String(state.Name),
-					Properties: &streamanalytics.StreamInputProperties{
-						Datasource: &streamanalytics.EventHubV2StreamInputDataSource{
-							Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftEventHubEventHub,
-							EventHubStreamInputDataSourceProperties: props,
+					Properties: &inputs.StreamInputProperties{
+						Datasource: &inputs.EventHubV2StreamInputDataSource{
+							Properties: props,
 						},
 						Serialization: serialization,
 						PartitionKey:  utils.String(state.PartitionKey),
 					},
 				}
 
-				if _, err := client.Update(ctx, payload, id.ResourceGroup, id.StreamingjobName, id.InputName, ""); err != nil {
+				var opts inputs.UpdateOperationOptions
+				if _, err := client.Update(ctx, *id, payload, opts); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}
@@ -246,79 +249,88 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.InputsClient
-			id, err := parse.StreamInputID(metadata.ResourceData.Id())
+			id, err := inputs.ParseInputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			if props := resp.Properties; props != nil {
-				v, ok := props.AsStreamInputProperties()
-				if !ok {
-					return fmt.Errorf("converting Stream Input EventHub to an Stream Input: %+v", err)
+			streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+
+			state := StreamInputEventHubV2ResourceModel{
+				Name:                 id.InputName,
+				StreamAnalyticsJobId: streamingJobId.ID(),
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					input, ok := props.(inputs.InputProperties)
+					if !ok {
+						return fmt.Errorf("converting %s to an Input", *id)
+					}
+
+					streamInput, ok := input.(inputs.StreamInputProperties)
+					if !ok {
+						return fmt.Errorf("converting %s to a Stream Input", *id)
+					}
+
+					eventHubV2Input, ok := streamInput.Datasource.(inputs.EventHubV2StreamInputDataSource)
+					if !ok {
+						return fmt.Errorf("converting %s to an EventHub V2 Stream Input", *id)
+					}
+
+					if eventHubV2InputProps := eventHubV2Input.Properties; eventHubV2InputProps != nil {
+						servicebusNamespace := ""
+						if v := eventHubV2InputProps.ServiceBusNamespace; v != nil {
+							servicebusNamespace = *v
+						}
+
+						eventHubName := ""
+						if v := eventHubV2InputProps.EventHubName; v != nil {
+							eventHubName = *v
+						}
+
+						eventHubConsumerGroup := ""
+						if v := eventHubV2InputProps.ConsumerGroupName; v != nil {
+							eventHubConsumerGroup = *v
+						}
+
+						authenticationMode := ""
+						if v := eventHubV2InputProps.AuthenticationMode; v != nil {
+							authenticationMode = string(*v)
+						}
+
+						sharedAccessPolicyName := ""
+						if v := eventHubV2InputProps.SharedAccessPolicyName; v != nil {
+							sharedAccessPolicyName = *v
+						}
+
+						serialization := flattenStreamAnalyticsStreamInputSerializationTyped(streamInput.Serialization)
+
+						partitionKey := ""
+						if v := streamInput.PartitionKey; v != nil {
+							partitionKey = *v
+						}
+
+						state.ServiceBusNamespace = servicebusNamespace
+						state.EventHubName = eventHubName
+						state.EventHubConsumerGroupName = eventHubConsumerGroup
+						state.AuthenticationMode = authenticationMode
+						state.SharedAccessPolicyName = sharedAccessPolicyName
+						state.SharedAccessPolicyKey = metadata.ResourceData.Get("shared_access_policy_key").(string)
+						state.Serialization = []Serialization{serialization}
+						state.PartitionKey = partitionKey
+
+						return metadata.Encode(&state)
+					}
 				}
-
-				eventHubV2, ok := v.Datasource.AsEventHubV2StreamInputDataSource()
-				if !ok {
-					return fmt.Errorf("converting Stream Input EventHub to an EventHubV2 Stream Input: %+v", err)
-				}
-
-				streamingJobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
-
-				state := StreamInputEventHubV2ResourceModel{
-					Name:                 id.InputName,
-					StreamAnalyticsJobId: streamingJobId.ID(),
-				}
-
-				servicebusNamespace := ""
-				if v := eventHubV2.ServiceBusNamespace; v != nil {
-					servicebusNamespace = *v
-				}
-
-				eventHubName := ""
-				if v := eventHubV2.EventHubName; v != nil {
-					eventHubName = *v
-				}
-
-				eventHubConsumerGroup := ""
-				if v := eventHubV2.ConsumerGroupName; v != nil {
-					eventHubConsumerGroup = *v
-				}
-
-				authenticationMode := ""
-				if v := eventHubV2.AuthenticationMode; v != "" {
-					authenticationMode = string(v)
-				}
-
-				sharedAccessPolicyName := ""
-				if v := eventHubV2.SharedAccessPolicyName; v != nil {
-					sharedAccessPolicyName = *v
-				}
-
-				serialization := flattenStreamAnalyticsStreamInputSerializationTyped(v.Serialization)
-
-				partitionKey := ""
-				if v := v.PartitionKey; v != nil {
-					partitionKey = *v
-				}
-
-				state.ServiceBusNamespace = servicebusNamespace
-				state.EventHubName = eventHubName
-				state.EventHubConsumerGroupName = eventHubConsumerGroup
-				state.AuthenticationMode = authenticationMode
-				state.SharedAccessPolicyName = sharedAccessPolicyName
-				state.SharedAccessPolicyKey = metadata.ResourceData.Get("shared_access_policy_key").(string)
-				state.Serialization = []Serialization{serialization}
-				state.PartitionKey = partitionKey
-
-				return metadata.Encode(&state)
 			}
 			return nil
 		},
@@ -330,15 +342,15 @@ func (r StreamInputEventHubV2Resource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.InputsClient
-			id, err := parse.StreamInputID(metadata.ResourceData.Id())
+			id, err := inputs.ParseInputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName); err != nil {
-				if !response.WasNotFound(resp.Response) {
+			if resp, err := client.Delete(ctx, *id); err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}
@@ -348,31 +360,47 @@ func (r StreamInputEventHubV2Resource) Delete() sdk.ResourceFunc {
 }
 
 func (r StreamInputEventHubV2Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.StreamInputID
+	return inputs.ValidateInputID
 }
 
 func (r StreamInputEventHubV2Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := parse.StreamInputID(metadata.ResourceData.Id())
+		id, err := inputs.ParseInputID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
 		client := metadata.Client.StreamAnalytics.InputsClient
-		resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
-		if err != nil || resp.Properties == nil {
+		resp, err := client.Get(ctx, *id)
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		props := resp.Properties
-		streamInput, ok := props.AsStreamInputProperties()
+		props := resp.Model.Properties
+
+		input, ok := props.(inputs.InputProperties)
 		if !ok {
-			return fmt.Errorf("specified resource is not a Stream Input")
+			return fmt.Errorf("specified resource is not an Input: %+v", err)
 		}
-		if _, ok := streamInput.Datasource.AsEventHubV2StreamInputDataSource(); !ok {
-			return fmt.Errorf("specified input is not of type EventHubV2")
+
+		streamInput, ok := input.(inputs.StreamInputProperties)
+		if !ok {
+			return fmt.Errorf("specified resource is not a Stream Input: %+v", err)
+		}
+
+		if _, ok := streamInput.Datasource.(inputs.EventHubV2StreamInputDataSource); !ok {
+			return fmt.Errorf("specified input is not of type EventHubV2: %+v", err)
 		}
 
 		return nil
+	}
+}
+
+func (r StreamInputEventHubV2Resource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsStreamInputEventHubV2V0ToV1{},
+		},
 	}
 }

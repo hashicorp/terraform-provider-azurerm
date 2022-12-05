@@ -2886,9 +2886,13 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded = existing
 	}
 
-	currentStack := ""
-
 	winSiteConfig := siteConfig[0]
+
+	currentStack := ""
+	if len(winSiteConfig.ApplicationStack) == 1 {
+		winAppStack := winSiteConfig.ApplicationStack[0]
+		currentStack = winAppStack.CurrentStack
+	}
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
@@ -3817,6 +3821,9 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
 		"WEBSITE_VNET_ROUTE_ALL",
+		"spring.datasource.password",
+		"spring.datasource.url",
+		"spring.datasource.username",
 		maxPingFailures,
 	}
 
