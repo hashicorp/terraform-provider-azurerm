@@ -1040,7 +1040,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"storage_snapshot_controller": {
+			"snapshot_controller_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
