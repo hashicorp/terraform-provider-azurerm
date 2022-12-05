@@ -568,16 +568,3 @@ func flattenEdgeZone(input *network.ExtendedLocation) string {
 	}
 	return edgezones.NormalizeNilable(input.Name)
 }
-
-func checkZonesChangedInExistInFrontendIpConfiguration(old, new []interface{}) bool {
-	for _, nc := range new {
-		dataNew := nc.(map[string]interface{})
-		for _, oc := range old {
-			dataOld := oc.(map[string]interface{})
-			if dataOld["name"].(string) == dataNew["name"].(string) {
-				return !reflect.DeepEqual(dataOld["zones"].(*pluginsdk.Set).List(), dataNew["zones"].(*pluginsdk.Set).List())
-			}
-		}
-	}
-	return false
-}
