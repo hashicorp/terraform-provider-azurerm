@@ -1004,7 +1004,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"storage_blob_driver": {
+			"blob_driver_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
