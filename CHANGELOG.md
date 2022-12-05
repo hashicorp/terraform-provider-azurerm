@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `lighthouse`: updating to API version `2022-10-01` [GH-19499]
+* `azurerm_mssql_virtual_machine` - support for the `days_of_week` property [GH-19553]
 
 BUG FIXES:
 
