@@ -57,7 +57,6 @@ func TestAccLabServiceLabPlan_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -143,6 +142,22 @@ func (r LabServiceLabPlanResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+data "azuread_service_principal" "test" {
+  application_id = "c7bb12bf-0b39-4f7f-9171-f418ff39b76a"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_shared_image_gallery.test.id
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
   address_space       = ["10.0.0.0/16"]
@@ -175,6 +190,7 @@ resource "azurerm_lab_service_lab_plan" "test" {
   location                  = azurerm_resource_group.test.location
   allowed_regions           = [azurerm_resource_group.test.location]
   default_network_subnet_id = azurerm_subnet.test.id
+  shared_gallery_id         = azurerm_shared_image_gallery.test.id
 
   default_auto_shutdown {
     disconnect_delay                    = "PT15M"
@@ -200,8 +216,10 @@ resource "azurerm_lab_service_lab_plan" "test" {
   tags = {
     Env = "Test"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LabServiceLabPlanResource) update(data acceptance.TestData) string {
