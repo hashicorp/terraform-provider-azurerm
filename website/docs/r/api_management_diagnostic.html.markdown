@@ -101,7 +101,7 @@ resource "azurerm_api_management_diagnostic" "example" {
 
 The following arguments are supported:
 
-* `identifier` - (Required) The diagnostic identifier for the API Management Service. At this time the only supported value is `applicationinsights`. Changing this forces a new resource to be created.
+* `identifier` - (Required) The diagnostic identifier for the API Management Service. At this time the supported values are `applicationinsights` and `azuremonitor`. Changing this forces a new resource to be created.
 
 * `api_management_name` - (Required) The Name of the API Management Service where this Diagnostic should be created. Changing this forces a new resource to be created.
 

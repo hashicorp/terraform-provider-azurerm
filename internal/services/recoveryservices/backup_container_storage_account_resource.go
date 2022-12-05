@@ -113,7 +113,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	}
 
 	operationID := parsedLocation.Path["operationResults"]
-	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d); err != nil {
+	if err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -185,7 +185,7 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.Resource
 	}
 	operationID := parsedLocation.Path["backupOperationResults"]
 
-	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, id.VaultName, id.ResourceGroup, operationID, d); err != nil {
+	if err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, id.VaultName, id.ResourceGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -193,7 +193,7 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.Resource
 }
 
 // nolint unused - linter mistakenly things this function isn't used?
-func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *pluginsdk.ResourceData) (backup.OperationStatus, error) {
+func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
 		Delay:                     10 * time.Second,
@@ -210,11 +210,11 @@ func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context
 	}
 
 	log.Printf("[DEBUG] Waiting for backup container operation %q (Vault %q) to complete", operationID, vaultName)
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(backup.OperationStatus), err
+		return err
 	}
-	return resp.(backup.OperationStatus), nil
+	return nil
 }
 
 func resourceBackupProtectionContainerStorageAccountCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) pluginsdk.StateRefreshFunc {

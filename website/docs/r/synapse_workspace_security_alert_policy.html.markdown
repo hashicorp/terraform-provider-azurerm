@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) Specifies the ID of the Synapse Workspace. Changing this forces a new resource to be created.
 
-* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific workspace. Allowed values are: `Disabled`, `Enabled`.
+* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific workspace. Possible values are `Disabled`, `Enabled` and `New`.
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 

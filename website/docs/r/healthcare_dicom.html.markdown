@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare DICOM Service. Changing this forces a new Healthcare DICOM Service to be created.
 
-* `workspace_id`  - (Required) Specifies the name of the Healthcare Workspace where the Healthcare DICOM Service should exist. Changing this forces a new Healthcare DICOM Service to be created.
+* `workspace_id`  - (Required) Specifies the id of the Healthcare Workspace where the Healthcare DICOM Service should exist. Changing this forces a new Healthcare DICOM Service to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare DICOM Service should be created. Changing this forces a new Healthcare DICOM Service to be created.
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the Healthcare DICOM service. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, an `identity_ids` must be set as well.
+* `type` - (Required) The type of identity used for the Healthcare DICOM service. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`. If `UserAssigned` is set, an `identity_ids` must be set as well.
 
 * `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Healthcare DICOM service.
 

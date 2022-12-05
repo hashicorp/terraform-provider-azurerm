@@ -74,7 +74,7 @@ resource "azurerm_spring_cloud_gateway" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway to be created.
+* `name` - (Required) The name which should be used for this Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway to be created. The only possible value is `default`.
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Gateway to be created.
 
@@ -116,7 +116,7 @@ A `cors` block supports the following:
 
 * `allowed_headers` - (Optional) Allowed headers in cross-site requests. The special value `*` allows actual requests to send any header.
 
-* `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default.
+* `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
 
 * `allowed_origins` - (Optional) Allowed origins to make cross-site requests. The special value `*` allows all domains.
 

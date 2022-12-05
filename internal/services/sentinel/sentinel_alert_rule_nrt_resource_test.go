@@ -153,6 +153,7 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
   display_name               = "Complete Rule"
   description                = "Some Description"
   tactics                    = ["Collection", "CommandAndControl"]
+  techniques                 = ["T1560", "T1123"]
   severity                   = "Low"
   enabled                    = false
   incident {

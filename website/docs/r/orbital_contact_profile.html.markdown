@@ -106,7 +106,7 @@ A `links` block supports the following:
 
 * `name` - (Required) Name of the link.
 
-* `polarization` - (Required) Polarization of the link. Possible values are `RHCP`, `LHCP`, `linearVertical` and `linearHorizonal`.
+* `polarization` - (Required) Polarization of the link. Possible values are `LHCP`, `RHCP`, `linearVertical` and `linearHorizontal`.
 
 ---
 

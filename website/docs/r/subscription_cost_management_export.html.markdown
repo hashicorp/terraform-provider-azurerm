@@ -87,7 +87,7 @@ A `export_data_storage_location` block supports the following:
 
 A `export_data_options` block supports the following:
 
-* `type` - (Required) The type of the query.
+* `type` - (Required) The type of the query. Possible values are `ActualCost`, `AmortizedCost` and `Usage`.
 
 * `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `BillingMonthToDate`, `TheLastWeek`, `TheLastMonth`, `TheLastBillingMonth`, `Custom`.
 

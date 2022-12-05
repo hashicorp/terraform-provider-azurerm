@@ -486,7 +486,7 @@ A `metric_trigger` block supports the following:
 
 * `operator` - (Required) Specifies the operator used to compare the metric data and threshold. Possible values are: `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`.
 
-* `statistic` - (Required) Specifies how the metrics from multiple instances are combined. Possible values are `Average`, `Min` and `Max`.
+* `statistic` - (Required) Specifies how the metrics from multiple instances are combined. Possible values are `Average`, `Max`, `Min` and `Sum`.
 
 * `time_aggregation` - (Required) Specifies how the data that's collected should be combined over time. Possible values include `Average`, `Count`, `Maximum`, `Minimum`, `Last` and `Total`. Defaults to `Average`.
 
@@ -592,5 +592,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 AutoScale Setting can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/autoscaleSettings/setting1
+terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1
 ```

@@ -368,7 +368,12 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `cache`: %+v", err)
 		}
 
-		if err := d.Set("cdn_frontdoor_origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
+		originGroupId, err := flattenOriginGroupResourceReference(props.OriginGroup)
+		if err != nil {
+			return fmt.Errorf("flattening `cdn_frontdoor_origin_group_id`: %+v", err)
+		}
+
+		if err := d.Set("cdn_frontdoor_origin_group_id", originGroupId); err != nil {
 			return fmt.Errorf("setting `cdn_frontdoor_origin_group_id`: %+v", err)
 		}
 

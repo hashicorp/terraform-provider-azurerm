@@ -104,8 +104,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks.
-Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
+* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
 
 * `draft` - (Required) A `draft` block as defined below .
 

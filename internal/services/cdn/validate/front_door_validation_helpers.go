@@ -133,15 +133,16 @@ func CdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (_ []stri
 
 	// Query string must be in <key>=<value> format. ? and & will be added automatically so do not include them.
 	if v != "" {
-		if strings.ContainsAny(v, "?&") {
-			return nil, []error{fmt.Errorf("%q is invalid: %q must not include the %q or the %q characters in the %q field. They will be automatically added by Frontdoor, got %q", "url_redirect_action", k, "?", "&", "query_string", v)}
+		if strings.HasPrefix(v, "?") {
+			return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q must not start with the '?' character in the 'query_string' field. It will be automatically added by Frontdoor, got %q", k, v)}
 		}
 
-		if m, _ := validate.RegExHelper(i, k, `^(\b[\da-zA-Z\-\._~]*)(={1})((\b[\da-zA-Z\-\._~]*)|(\{{1}\b(socket_ip|client_ip|client_port|hostname|geo_country|http_method|http_version|query_string|request_scheme|request_uri|ssl_protocol|server_port|url_path){1}\}){1})$`); !m {
-			return nil, []error{fmt.Errorf("%q is invalid: %q must be in the <key>=<value> or <key>={action_server_variable} format, got %q", "url_redirect_action", k, v)}
+		// NOTE: This matches the service code validation logic for this field
+		if len(v) > 2048 {
+			return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q cannot be longer than 2048 characters in length, got %d", k, len(v))}
 		}
 	} else {
-		return nil, []error{fmt.Errorf("%q is invalid: %q must not be empty, got %q", "url_redirect_action", k, v)}
+		return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q must not be empty, got %q", k, v)}
 	}
 
 	return nil, nil
