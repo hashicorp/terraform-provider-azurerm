@@ -99,6 +99,10 @@ The `manual_schedule` block supports the following:
 
 * `log_backup_frequency_in_minutes` - (Required) Frequency of log backups, in minutes. Valid values are from `5` to `60`.
 
+* `days_of_week` - (Optional) A list of days on which backup can take place. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`
+
+* ~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
+
 ---
 
 The `auto_patching` block supports the following:
