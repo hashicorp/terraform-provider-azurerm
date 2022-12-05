@@ -1,5 +1,9 @@
 ## 3.35.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_spring_cloud_application_live_view` [GH-19495]
+
 ENHANCEMENTS:
 
 * `lighthouse`: updating to API version `2022-10-01` [GH-19499]
