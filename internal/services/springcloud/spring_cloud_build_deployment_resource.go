@@ -2,6 +2,7 @@ package springcloud
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"log"
 	"time"
 
@@ -22,6 +23,11 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 		Read:   resourceSpringCloudBuildDeploymentRead,
 		Update: resourceSpringCloudBuildDeploymentCreateUpdate,
 		Delete: resourceSpringCloudBuildDeploymentDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudBuildDeploymentV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudDeploymentID(id)
