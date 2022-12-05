@@ -2,6 +2,7 @@ package springcloud
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"log"
 	"time"
 
@@ -22,6 +23,11 @@ func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 		Read:   resourceSpringCloudConfigurationServiceRead,
 		Update: resourceSpringCloudConfigurationServiceCreateUpdate,
 		Delete: resourceSpringCloudConfigurationServiceDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudConfigurationServiceV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
