@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `lighthouse`: updating to API version `2022-10-01` [GH-19499]
+* `azurerm_firewall_policy` - support for the `explicit_proxy` block and `auto_learn_private_ranges_mode` property [GH-19313]
 * `azurerm_mssql_virtual_machine` - support for the `days_of_week` property [GH-19553]
 * `azurerm_spring_cloud_gateway_route_config` - support for the `filters`, `predicates`, and `sso_validation_enabled` properties [GH-19493]
 
