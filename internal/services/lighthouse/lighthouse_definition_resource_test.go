@@ -280,8 +280,24 @@ resource "azurerm_lighthouse_definition" "test" {
     principal_display_name        = "Tier 2 Support"
     delegated_role_definition_ids = [data.azurerm_role_definition.contributor.role_definition_id]
   }
+
+  eligible_authorizations {
+    principal_id           = "%s"
+    role_definition_id     = data.azurerm_role_definition.user_access_administrator.role_definition_id
+    principal_display_name = "Tier 2 Support"
+
+    just_in_time_access_policy {
+      multi_factor_auth_provider  = "Azure"
+      maximum_activation_duration = "PT9H"
+
+      approver {
+        principal_id           = "%s"
+        principal_display_name = "Tier 2 Support"
+      }
+    }
+  }
 }
-`, id, data.RandomInteger, secondTenantID, principalID)
+`, id, data.RandomInteger, secondTenantID, principalID, principalID, principalID)
 }
 
 func (LighthouseDefinitionResource) updateDelegatedRoleDefinitionIds(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
