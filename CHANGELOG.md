@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_connection` - correctly pass the secret to the service [GH-19519]
 * `azurerm_automation_software_update_configuration` - fix issue where omitting `tags`and `tag_filter` result in an error [GH-19516]
 * `azurerm_automation_source_control` - a state migration to work around the previously incorrect id casing [GH-19506]
 * `azurerm_automation_webhook` - a state migration to work around the previously incorrect id casing [GH-19506]
