@@ -2,6 +2,7 @@ package springcloud
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"log"
 	"strings"
 	"time"
@@ -25,6 +26,11 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 		Create: resourceSpringCloudCertificateCreate,
 		Read:   resourceSpringCloudCertificateRead,
 		Delete: resourceSpringCloudCertificateDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudCertificateV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudCertificateID(id)
