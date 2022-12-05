@@ -292,9 +292,9 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 	}
 
 	return &pluginsdk.Resource{
-		Create: resourceSentinelAutomationRuleCreateUpdate,
+		Create: resourceSentinelAutomationRuleCreateOrUpdate,
 		Read:   resourceSentinelAutomationRuleRead,
-		Update: resourceSentinelAutomationRuleCreateUpdate,
+		Update: resourceSentinelAutomationRuleCreateOrUpdate,
 		Delete: resourceSentinelAutomationRuleDelete,
 
 		SchemaVersion: 1,
@@ -318,7 +318,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAutomationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AutomationRulesClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
