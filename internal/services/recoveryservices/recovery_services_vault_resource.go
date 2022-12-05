@@ -6,17 +6,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2021-08-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +31,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 		Delete: resourceRecoveryServicesVaultDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VaultID(id)
+			_, err := vaults.ParseVaultID(id)
 			return err
 		}),
 
@@ -92,14 +92,14 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			// TODO: the API for this also supports UserAssigned & SystemAssigned, UserAssigned
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(recoveryservices.SkuNameRS0),
-					string(recoveryservices.SkuNameStandard),
+					string(vaults.SkuNameRSZero),
+					string(vaults.SkuNameStandard),
 				}, false),
 			},
 
@@ -137,7 +137,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	storageMode := d.Get("storage_mode_type").(string)
 	crossRegionRestore := d.Get("cross_region_restore_enabled").(bool)
@@ -151,14 +151,14 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Creating Recovery Service %s", id.String())
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_recovery_services_vault", *existing.ID)
+	if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+		return tf.ImportAsExistsError("azurerm_recovery_services_vault", *existing.Model.Id)
 	}
 
 	expandedIdentity, err := expandVaultIdentity(d.Get("identity").([]interface{}))
@@ -166,26 +166,23 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	sku := d.Get("sku").(string)
-	vault := recoveryservices.Vault{
-		Location: utils.String(location),
+	vault := vaults.Vault{
+		Location: location,
 		Tags:     tags.Expand(t),
 		Identity: expandedIdentity,
-		Sku: &recoveryservices.Sku{
-			Name: recoveryservices.SkuName(sku),
+		Sku: &vaults.Sku{
+			Name: vaults.SkuName(sku),
 		},
-		Properties: &recoveryservices.VaultProperties{},
+		Properties: &vaults.VaultProperties{},
 	}
 
-	if recoveryservices.SkuName(sku) == recoveryservices.SkuNameRS0 {
+	if vaults.SkuName(sku) == vaults.SkuNameRSZero {
 		vault.Sku.Tier = utils.String("Standard")
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
+	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
 	if err != nil {
 		return fmt.Errorf("creating Recovery Service %s: %+v", id.String(), err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
 	storageCfg := backup.ResourceConfigResource{
@@ -196,7 +193,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if resp, err := storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
+		if resp, err := storageCfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, storageCfg); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 			}
@@ -214,7 +211,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// storage type is not updated instantaneously, so we wait until storage type is correct
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if resp, err := storageCfgsClient.Get(ctx, id.Name, id.ResourceGroup); err == nil {
+		if resp, err := storageCfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName); err == nil {
 			if resp.Properties == nil {
 				return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
 			}
@@ -236,16 +233,13 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
 	if _, ok := d.GetOk("encryption"); ok {
-		updateFuture, err := client.Update(ctx, id.ResourceGroup, id.Name, recoveryservices.PatchVault{
-			Properties: &recoveryservices.VaultProperties{
+		err = client.UpdateThenPoll(ctx, id, vaults.PatchVault{
+			Properties: &vaults.VaultProperties{
 				Encryption: expandEncryption(d),
 			},
 		})
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
-		}
-		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update encryption of %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
 	}
 
@@ -265,7 +259,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		Target:     []string{"success"},
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			resp, err := cfgsClient.Update(ctx, id.Name, id.ResourceGroup, cfg)
+			resp, err := cfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, cfg)
 			if err != nil {
 				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
 					return resp, "syncing", nil
@@ -295,25 +289,28 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	encryption := expandEncryption(d)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
 	}
-	if existing.Properties != nil && existing.Properties.Encryption != nil {
-		if encryption == nil {
-			return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
-		}
-		if encryption.InfrastructureEncryption != existing.Properties.Encryption.InfrastructureEncryption {
-			return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
-		}
-		if d.HasChange("sku") {
-			// Once encryption has been enabled, calling `CreateOrUpdate` without it is not allowed.
-			// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://docs.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
-			// TODO remove this restriction and add `encryption` to below `sku` update block when `encryption` in `CreateOrUpdate` is GA
-			return fmt.Errorf("`sku` cannot be changed when encryption with your own key has been enabled")
+	if existing.Model != nil && existing.Model.Properties != nil {
+		prop := existing.Model.Properties
+		if prop.Encryption != nil {
+			if encryption == nil {
+				return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
+			}
+			if *encryption.InfrastructureEncryption != *prop.Encryption.InfrastructureEncryption {
+				return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
+			}
+			if d.HasChange("sku") {
+				// Once encryption has been enabled, calling `CreateOrUpdate` without it is not allowed.
+				// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://docs.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
+				// TODO remove this restriction and add `encryption` to below `sku` update block when `encryption` in `CreateOrUpdate` is GA
+				return fmt.Errorf("`sku` cannot be changed when encryption with your own key has been enabled")
+			}
 		}
 	}
 
@@ -344,7 +341,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {
-			if resp, err := storageCfgsClient.Update(ctx, id.Name, id.ResourceGroup, storageCfg); err != nil {
+			if resp, err := storageCfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, storageCfg); err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 				}
@@ -362,7 +359,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		// storage type is not updated instantaneously, so we wait until storage type is correct
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {
-			if resp, err := storageCfgsClient.Get(ctx, id.Name, id.ResourceGroup); err == nil {
+			if resp, err := storageCfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName); err == nil {
 				if resp.Properties == nil {
 					return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
 				}
@@ -386,29 +383,26 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	// `sku` can only be updated by `CreateOrUpdate` but not `Update`, so use `CreateOrUpdate` with required and unchangeable properties
 	if d.HasChange("sku") {
 		sku := d.Get("sku").(string)
-		vault := recoveryservices.Vault{
-			Location: utils.String(d.Get("location").(string)),
+		vault := vaults.Vault{
+			Location: d.Get("location").(string),
 			Identity: expandedIdentity,
-			Sku: &recoveryservices.Sku{
-				Name: recoveryservices.SkuName(sku),
+			Sku: &vaults.Sku{
+				Name: vaults.SkuName(sku),
 			},
-			Properties: &recoveryservices.VaultProperties{},
+			Properties: &vaults.VaultProperties{},
 		}
 
-		if recoveryservices.SkuName(sku) == recoveryservices.SkuNameRS0 {
+		if vaults.SkuName(sku) == vaults.SkuNameRSZero {
 			vault.Sku.Tier = utils.String("Standard")
 		}
 
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
+		err = client.CreateOrUpdateThenPoll(ctx, id, vault)
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v", id.String(), err)
 		}
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of %q: %+v", id, err)
-		}
 	}
 
-	vault := recoveryservices.PatchVault{}
+	vault := vaults.PatchVault{}
 
 	if d.HasChange("identity") {
 		vault.Identity = expandedIdentity
@@ -416,7 +410,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.HasChange("encryption") {
 		if vault.Properties == nil {
-			vault.Properties = &recoveryservices.VaultProperties{}
+			vault.Properties = &vaults.VaultProperties{}
 		}
 
 		vault.Properties.Encryption = encryption
@@ -426,12 +420,9 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		vault.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	updateFuture, err := client.Update(ctx, id.ResourceGroup, id.Name, vault)
+	err = client.UpdateThenPoll(ctx, id, vault)
 	if err != nil {
 		return fmt.Errorf("updating Recovery Service Encryption %s: %+v", id, err)
-	}
-	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update encryption of %s: %+v", id, err)
 	}
 
 	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
@@ -446,7 +437,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		Target:     []string{"success"},
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			resp, err := cfgsClient.Update(ctx, id.Name, id.ResourceGroup, cfg)
+			resp, err := cfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, cfg)
 			if err != nil {
 				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
 					return resp, "syncing", nil
@@ -475,16 +466,16 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VaultID(d.Id())
+	id, err := vaults.ParseVaultID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Reading Recovery Service %s", id.String())
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -492,17 +483,20 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("making Read request on Recovery Service %s: %+v", id.String(), err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if resp.Model == nil {
+		return fmt.Errorf("recovery Service Vault response %q : model is nil", id.ID())
 	}
+	model := resp.Model
 
-	if sku := resp.Sku; sku != nil {
+	d.Set("name", id.VaultName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("location", location.Normalize(model.Location))
+
+	if sku := model.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
-	cfg, err := cfgsClient.Get(ctx, id.Name, id.ResourceGroup)
+	cfg, err := cfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName)
 	if err != nil {
 		return fmt.Errorf("reading Recovery Service Vault Cfg %s: %+v", id.String(), err)
 	}
@@ -511,7 +505,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("soft_delete_enabled", props.SoftDeleteFeatureState == backup.SoftDeleteFeatureStateEnabled)
 	}
 
-	storageCfg, err := storageCfgsClient.Get(ctx, id.Name, id.ResourceGroup)
+	storageCfg, err := storageCfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName)
 	if err != nil {
 		return fmt.Errorf("reading Recovery Service storage Cfg %s: %+v", id.String(), err)
 	}
@@ -521,16 +515,20 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
 	}
 
-	if err := d.Set("identity", flattenVaultIdentity(resp.Identity)); err != nil {
+	flattenIdentity := flattenVaultIdentity(model.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	encryption := flattenVaultEncryption(resp)
+	encryption := flattenVaultEncryption(*model)
 	if encryption != nil {
 		d.Set("encryption", []interface{}{encryption})
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, model.Tags)
 }
 
 func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -538,16 +536,16 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VaultID(d.Id())
+	id, err := vaults.ParseVaultID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Deleting Recovery Service  %s", id.String())
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("issuing delete request for Recovery Service %s: %+v", id.String(), err)
 		}
 	}
@@ -555,36 +553,31 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func expandVaultIdentity(input []interface{}) (*recoveryservices.IdentityData, error) {
+func expandVaultIdentity(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &recoveryservices.IdentityData{
-		Type: recoveryservices.ResourceIdentityType(string(expanded.Type)),
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
+	return &identity.SystemAndUserAssignedMap{
+		Type:        expanded.Type,
+		PrincipalId: expanded.PrincipalId,
+		TenantId:    expanded.TenantId,
+		IdentityIds: identityIds,
 	}, nil
 }
 
-func flattenVaultIdentity(input *recoveryservices.IdentityData) []interface{} {
-	var transition *identity.SystemAssigned
-
-	if input != nil {
-		transition = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transition.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transition.TenantId = *input.TenantID
-		}
+func flattenVaultIdentity(input *identity.SystemAndUserAssignedMap) []interface{} {
+	systemAssignedIdentity := &identity.SystemAssigned{
+		Type:        input.Type,
+		PrincipalId: input.PrincipalId,
+		TenantId:    input.TenantId,
 	}
-
-	return identity.FlattenSystemAssigned(transition)
+	return identity.FlattenSystemAssigned(systemAssignedIdentity)
 }
 
-func expandEncryption(d *pluginsdk.ResourceData) *recoveryservices.VaultPropertiesEncryption {
+func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncryption {
 	encryptionRaw := d.Get("encryption")
 	if encryptionRaw == nil {
 		return nil
@@ -596,28 +589,28 @@ func expandEncryption(d *pluginsdk.ResourceData) *recoveryservices.VaultProperti
 	encryptionMap := settings[0].(map[string]interface{})
 	keyUri := encryptionMap["key_id"].(string)
 	enabledInfraEncryption := encryptionMap["infrastructure_encryption_enabled"].(bool)
-	infraEncryptionState := recoveryservices.InfrastructureEncryptionStateEnabled
+	infraEncryptionState := vaults.InfrastructureEncryptionStateEnabled
 	if !enabledInfraEncryption {
-		infraEncryptionState = recoveryservices.InfrastructureEncryptionStateDisabled
+		infraEncryptionState = vaults.InfrastructureEncryptionStateDisabled
 	}
-	encryption := &recoveryservices.VaultPropertiesEncryption{
-		KeyVaultProperties: &recoveryservices.CmkKeyVaultProperties{
-			KeyURI: utils.String(keyUri),
+	encryption := &vaults.VaultPropertiesEncryption{
+		KeyVaultProperties: &vaults.CmkKeyVaultProperties{
+			KeyUri: utils.String(keyUri),
 		},
-		KekIdentity: &recoveryservices.CmkKekIdentity{
+		KekIdentity: &vaults.CmkKekIdentity{
 			UseSystemAssignedIdentity: utils.Bool(encryptionMap["use_system_assigned_identity"].(bool)),
 		},
-		InfrastructureEncryption: infraEncryptionState,
+		InfrastructureEncryption: &infraEncryptionState,
 	}
 	return encryption
 }
 
-func flattenVaultEncryption(resp recoveryservices.Vault) interface{} {
-	if resp.Properties == nil || resp.Properties.Encryption == nil {
+func flattenVaultEncryption(model vaults.Vault) interface{} {
+	if model.Properties == nil || model.Properties.Encryption == nil {
 		return nil
 	}
-	encryption := resp.Properties.Encryption
-	if encryption.KeyVaultProperties == nil || encryption.KeyVaultProperties.KeyURI == nil {
+	encryption := model.Properties.Encryption
+	if encryption.KeyVaultProperties == nil || encryption.KeyVaultProperties.KeyUri == nil {
 		return nil
 	}
 	if encryption.KekIdentity == nil || encryption.KekIdentity.UseSystemAssignedIdentity == nil {
@@ -625,8 +618,8 @@ func flattenVaultEncryption(resp recoveryservices.Vault) interface{} {
 	}
 	encryptionMap := make(map[string]interface{})
 
-	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyURI
+	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyUri
 	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
-	encryptionMap["infrastructure_encryption_enabled"] = encryption.InfrastructureEncryption == recoveryservices.InfrastructureEncryptionStateEnabled
+	encryptionMap["infrastructure_encryption_enabled"] = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
 	return encryptionMap
 }
