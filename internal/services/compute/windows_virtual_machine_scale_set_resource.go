@@ -531,8 +531,9 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
 
 			// however if this block has been changed then we need to pull it
-			// we can guarantee this always has a value since it'll have been expanded and thus is safe to de-ref
-			automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			if upgradePolicy.AutomaticOSUpgradePolicy != nil && upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
+				automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			}
 		}
 
 		if d.HasChange("rolling_upgrade_policy") {

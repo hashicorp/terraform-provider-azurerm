@@ -293,7 +293,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
-	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
+	aadOnlyAuthenticationsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -367,7 +367,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.SetId(id.ID())
 
 	if d.HasChange("azuread_administrator") {
-		aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, id.ResourceGroup, id.Name)
+		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
 				return fmt.Errorf("deleting AD Only Authentications %s: %+v", id.String(), err)
@@ -404,7 +404,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
 			},
 		}
-		aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+		aadOnlyEnabledFuture, err := aadOnlyAuthenticationsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
 		if err != nil {
 			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
 		}

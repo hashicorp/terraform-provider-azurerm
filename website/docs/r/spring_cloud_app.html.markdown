@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Is only HTTPS allowed? Defaults to `false`.
 
+* `ingress_settings` - (Optional) An `ingress_settings` block as defined below.
+
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 
 * `public_endpoint_enabled` - (Optional) Should the App in vnet injection instance exposes endpoint which could be accessed from Internet?
@@ -87,6 +89,20 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Spring Cloud Application.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `ingress_settings` block supports the following:
+
+* `backend_protocol` - (Optional) Specifies how ingress should communicate with this app backend service. Allowed values are `GRPC` and `Default`. Defaults to `Default`.
+
+* `read_timeout_in_seconds` - (Optional) Specifies the ingress read time out in seconds. Defaults to 300.
+
+* `send_timeout_in_seconds` - (Optional) Specifies the ingress send time out in seconds. Defaults to 60.
+
+* `session_affinity` - (Optional) Specifies the type of the affinity, set this to `Cookie` to enable session affinity. Allowed values are `Cookie` and `None`. Defaults to `None`.
+
+* `session_cookie_max_age` - (Optional) Specifies the time in seconds until the cookie expires.
 
 ---
 

@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	servicebusValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -70,6 +71,11 @@ func resourceIotHub() *pluginsdk.Resource {
 		Read:   resourceIotHubRead,
 		Update: resourceIotHubCreateUpdate,
 		Delete: resourceIotHubDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.IoTHubV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IotHubID(id)

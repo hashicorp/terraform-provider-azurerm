@@ -167,6 +167,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
+  protocol                = "HTTP"
   route {
     description            = "test description"
     filters                = ["StripPrefix=2", "RateLimit=1,1s"]

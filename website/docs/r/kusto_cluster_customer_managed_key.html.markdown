@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `cluster_id` - (Required) The ID of the Kusto Cluster. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
+* `key_vault_id` - (Required) The ID of the Key Vault. 
 
 * `key_name` - (Required) The name of Key Vault Key.
 

@@ -45,6 +45,21 @@ func TestAccKustoDatabase_complete(t *testing.T) {
 	})
 }
 
+func TestAccKustoDatabase_name(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+	r := KustoDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.name(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKustoDatabase_softDeletePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 	r := KustoDatabaseResource{}
@@ -149,6 +164,37 @@ resource "azurerm_kusto_database" "test" {
   cluster_name        = azurerm_kusto_cluster.cluster.name
   soft_delete_period  = "P31D"
   hot_cache_period    = "P7D"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (KustoDatabaseResource) name(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "cluster" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_kusto_database" "test" {
+  name                = "acctest_kd_%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  cluster_name        = azurerm_kusto_cluster.cluster.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

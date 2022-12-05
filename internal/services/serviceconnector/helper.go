@@ -264,7 +264,7 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInf
 	}
 }
 
-//TODO: Only support Azure resource for now. Will include ConfluentBootstrapServer and ConfluentSchemaRegistry in the future.
+// TODO: Only support Azure resource for now. Will include ConfluentBootstrapServer and ConfluentSchemaRegistry in the future.
 func flattenTargetService(input servicelinker.TargetServiceBase) string {
 	var targetServiceId string
 

@@ -88,9 +88,9 @@ The following arguments are supported:
 
 * `managed_instance_name` - (Required) The name of the SQL Managed Instance which will be replicated using a SQL Instance Failover Group. Changing this forces a new SQL Instance Failover Group to be created.
 
-* `location` - The Azure Region where the SQL Instance Failover Group exists.
+* `location` - The Azure Region where the SQL Instance Failover Group exists. Changing this forces a new resource to be created.
 
-* `partner_managed_instance_id` - (Required) ID of the SQL Managed Instance which will be replicated to.
+* `partner_managed_instance_id` - (Required) ID of the SQL Managed Instance which will be replicated to. Changing this forces a new resource to be created.
 
 * `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as defined below.
 

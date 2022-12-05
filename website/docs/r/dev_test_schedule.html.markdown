@@ -51,7 +51,7 @@ resource "azurerm_dev_test_schedule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the dev test lab schedule. Valid value for name depends on the `task_type`. For instance for task_type `LabVmsStartupTask` the name needs to be `LabVmAutoStart`.
+* `name` - (Required) The name of the dev test lab schedule. Valid value for name depends on the `task_type`. For instance for task_type `LabVmsStartupTask` the name needs to be `LabVmAutoStart`. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location where the schedule is created. Changing this forces a new resource to be created.
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `lab_name` - (Required) The name of the dev test lab. Changing this forces a new resource to be created.
 
-* `status` - The status of this schedule. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`.
+* `status` - (Optional) The status of this schedule. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`.
 
 * `task_type` - (Required) The task type of the schedule. Possible values include `LabVmsShutdownTask` and `LabVmAutoStart`.
 
@@ -71,25 +71,25 @@ The following arguments are supported:
 
 A `weekly_recurrence` - block supports the following:
 
-* `time` - The time when the schedule takes effect.
+* `time` - (Required) The time when the schedule takes effect.
 
-* `week_days` -  A list of days that this schedule takes effect . Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
+* `week_days` - (Optional) A list of days that this schedule takes effect . Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 
 ---
 
 A `daily_recurrence` - block supports the following:
 
-* `time` - The time each day when the schedule takes effect.
+* `time` - (Required) The time each day when the schedule takes effect.
 
 ---
 
 A `notification_settings` - (Required)  - block supports the following:
 
-* `status` - The status of the notification. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`
+* `status` - (Optional) The status of the notification. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`
 
-* `time_in_minutes` - Time in minutes before event at which notification will be sent.
+* `time_in_minutes` - (Optional) Time in minutes before event at which notification will be sent.
 
-* `webhook_url` - The webhook URL to which the notification will be sent.
+* `webhook_url` - (Optional) The webhook URL to which the notification will be sent.
 
 ## Attributes Reference
 

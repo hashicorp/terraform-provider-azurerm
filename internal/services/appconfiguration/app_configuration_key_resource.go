@@ -139,7 +139,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, model.Key, v.Error())
+						return fmt.Errorf("checking for presence of existing %s: %+v", appCfgKeyResourceID, err)
 					}
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)

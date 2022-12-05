@@ -114,7 +114,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `location` - (Optional) Resource location. Changing this forces a new resource to be created.
+* `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
 * `custom_rules` - (Optional) One or more `custom_rules` blocks as defined below.
 
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 The `custom_rules` block supports the following:
 
-* `name` - (Optional) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
+* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
 
