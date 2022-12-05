@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -23,7 +22,7 @@ func dataSourceWebPubsubPrivateLinkResource() *pluginsdk.Resource {
 			"web_pubsub_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.WebPubsubID,
+				ValidateFunc: webpubsub.ValidateWebPubSubID,
 			},
 
 			"shared_private_link_resource_types": {
@@ -48,42 +47,49 @@ func dataSourceWebPubsubPrivateLinkResource() *pluginsdk.Resource {
 }
 
 func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	privateLinkResourceClient := meta.(*clients.Client).SignalR.WebPubsubPrivateLinkedResourceClient
+	privateLinkResourceClient := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	webPubsubID, err := parse.WebPubsubID(d.Get("web_pubsub_id").(string))
+	webPubSubIdRaw := d.Get("web_pubsub_id").(string)
+	webPubSubId, err := webpubsub.ParseWebPubSubID(webPubSubIdRaw)
 	if err != nil {
-		return fmt.Errorf("parsing ID of %q: %+v", webPubsubID, err)
+		return fmt.Errorf("parsing ID of %q: %+v", webPubSubIdRaw, err)
 	}
 
-	resourceList, err := privateLinkResourceClient.List(ctx, webPubsubID.ResourceGroup, webPubsubID.WebPubSubName)
+	resourceList, err := privateLinkResourceClient.PrivateLinkResourcesListComplete(ctx, *webPubSubId)
 	if err != nil {
-		return fmt.Errorf("retrieving Private Link Resource for Resource %s: %+v", webPubsubID, err)
+		return fmt.Errorf("retrieving Private Link Resourcse for %s: %+v", *webPubSubId, err)
 	}
 
-	if resourceList.Values() == nil {
-		return fmt.Errorf("retrieving Private Link Resource for Resource %s: `resource value` was nil", webPubsubID)
+	if resourceList.Items == nil {
+		return fmt.Errorf("retrieving Private Link Resource for %s: `items` was nil", webPubSubId)
 	}
 
-	d.SetId(webPubsubID.ID())
-	val := resourceList.Values()
+	d.SetId(webPubSubId.ID())
 
 	linkTypeList := make([]interface{}, 0)
+	for _, v := range resourceList.Items {
+		if v.Properties != nil {
+			if v.Properties.ShareablePrivateLinkResourceTypes == nil {
+				continue
+			}
 
-	for _, v := range val {
-		if v.PrivateLinkResourceProperties != nil && v.PrivateLinkResourceProperties.ShareablePrivateLinkResourceTypes != nil {
-			for _, resource := range *v.PrivateLinkResourceProperties.ShareablePrivateLinkResourceTypes {
-				item := make(map[string]interface{})
+			for _, resource := range *v.Properties.ShareablePrivateLinkResourceTypes {
+				description := ""
+				subResourceName := ""
 				if props := resource.Properties; props != nil {
-					if props.GroupID != nil {
-						item["subresource_name"] = props.GroupID
+					if props.GroupId != nil {
+						subResourceName = *props.GroupId
 					}
 					if props.Description != nil {
-						item["description"] = props.Description
+						description = *props.Description
 					}
 				}
-				linkTypeList = append(linkTypeList, item)
+				linkTypeList = append(linkTypeList, map[string]interface{}{
+					"description":      description,
+					"subresource_name": subResourceName,
+				})
 			}
 		}
 	}

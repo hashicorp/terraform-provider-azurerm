@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below.
 
+* `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
+
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
 
 * `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
@@ -108,6 +110,7 @@ The following arguments are supported:
 * `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
 
 ~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
+
 ---
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Interactive Query Cluster.
@@ -158,6 +161,18 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `script_actions` - (Optional)  The script action which will run on the cluster.
+
+---
+
+A `script_action` block supports the following:
+
+* `name` - (Required) The name of the script action.
+
+* `uri` - (Required) The URI to the script.
+
+* `parameters` - (Required) The parameters for the script provided.
+
 ---
 
 A `roles` block supports the following:
@@ -177,6 +192,14 @@ A `network` block supports the following:
 -> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
 
 * `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+
+---
+
+A `compute_isolation` block supports the following:
+
+* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+
+* `host_sku` - (Optional) The name of the host SKU.
 
 ---
 
@@ -268,7 +291,7 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
---- 
+---
 
 A `metastores` block supports the following:
 
@@ -289,7 +312,6 @@ A `hive` block supports the following:
 * `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
-
 
 ---
 

@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Web App.
 
@@ -50,6 +50,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `client_certificate_enabled` - Are Client Certificates enabled?
 
 * `client_certificate_mode` - The Client Certificate mode.
+
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
 * `connection_string` - A `connection_string` block as defined below.
 

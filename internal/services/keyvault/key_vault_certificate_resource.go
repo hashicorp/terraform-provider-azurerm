@@ -65,7 +65,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			"certificate": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				AtLeastOneOf: []string{
 					"certificate_policy",
 					"certificate",
@@ -76,14 +75,12 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 						"contents": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
-							ForceNew:  true,
 							Sensitive: true,
 						},
 					},
@@ -553,13 +550,34 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	patch := keyvault.CertificateUpdateParameters{}
-	if t, ok := d.GetOk("tags"); ok {
-		patch.Tags = tags.Expand(t.(map[string]interface{}))
+
+	if d.HasChange("certificate") {
+		if v, ok := d.GetOk("certificate"); ok {
+			// Import new version of certificate
+			certificate := expandKeyVaultCertificate(v)
+			importParameters := keyvault.CertificateImportParameters{
+				Base64EncodedCertificate: utils.String(certificate.CertificateData),
+				Password:                 utils.String(certificate.CertificatePassword),
+			}
+			resp, err := client.ImportCertificate(ctx, id.KeyVaultBaseUrl, id.Name, importParameters)
+			if err != nil {
+				return err
+			}
+			if resp.ID != nil {
+				d.SetId(*resp.ID)
+			}
+		}
 	}
 
-	if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, patch); err != nil {
-		return err
+	if d.HasChange("tags") {
+		patch := keyvault.CertificateUpdateParameters{}
+		if t, ok := d.GetOk("tags"); ok {
+			patch.Tags = tags.Expand(t.(map[string]interface{}))
+		}
+
+		if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "", patch); err != nil {
+			return err
+		}
 	}
 	return resourceKeyVaultCertificateRead(d, meta)
 }

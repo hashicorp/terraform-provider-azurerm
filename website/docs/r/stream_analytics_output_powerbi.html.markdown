@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `group_name` - (Required) The name of the Power BI group. Use this property to help remember which specific Power BI group id was used.
 
-* `token_user_principal_name` - (Optional) The user principal name (UPN) of the user that was used to obtain the refresh token. 
+* `token_user_principal_name` - (Optional) The user principal name (UPN) of the user that was used to obtain the refresh token.
 
 * `token_user_display_name` - (Optional) The user display name of the user that was used to obtain the refresh token.
 

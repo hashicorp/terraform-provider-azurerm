@@ -140,6 +140,8 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
+* `custom_network_interface_name` - (Optional) The custom name of the network interface attached to the private endpoint. Changing this forces a new resource to be created.
+
 * `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
@@ -185,9 +187,9 @@ A `private_service_connection` supports the following:
 | Storage Account               | table            | table_secondary            |
 | Storage Account               | web              | web_secondary              |
 | Web App / Function App        | sites            |                            |
-| Web App / Function App Slots  | sites-<slotName> |                            |
+| Web App / Function App Slots  | sites-&lt;slotName&gt; |                            |
 
-See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
+Some resource types (such as Storage Account) only support 1 subresource per private endpoint. See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
@@ -195,9 +197,9 @@ See the product [documentation](https://docs.microsoft.com/azure/private-link/pr
 
 An `ip_configuration` supports the following:
 
-* `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
-* `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created.
+* `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
 
@@ -302,5 +304,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Private Endpoints can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoint1
+terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoint1
 ```

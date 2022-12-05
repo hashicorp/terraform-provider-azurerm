@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type SentinelAlertRuleFusionResource struct{}
@@ -31,13 +31,27 @@ func TestAccSentinelAlertRuleFusion_basic(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAlertRuleFusion_complete(t *testing.T) {
+func TestAccSentinelAlertRuleFusion_disable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
 	r := SentinelAlertRuleFusionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -46,27 +60,19 @@ func TestAccSentinelAlertRuleFusion_complete(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAlertRuleFusion_update(t *testing.T) {
+func TestAccSentinelAlertRuleFusion_sourceSetting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
 	r := SentinelAlertRuleFusionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.sourceSetting(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
+			Config: r.sourceSetting(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -131,7 +137,7 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SentinelAlertRuleFusionResource) complete(data acceptance.TestData) string {
+func (r SentinelAlertRuleFusionResource) disabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -147,6 +153,81 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
   enabled                    = false
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleFusionResource) sourceSetting(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_sentinel_alert_rule_template" "test" {
+  display_name               = "Advanced Multistage Attack Detection"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+}
+
+resource "azurerm_sentinel_alert_rule_fusion" "test" {
+  name                       = "acctest-SentinelAlertRule-Fusion-%[2]d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
+  source {
+    name    = "Anomalies"
+    enabled = %[3]t
+  }
+  source {
+    name    = "Alert providers"
+    enabled = %[3]t
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Azure Active Directory Identity Protection"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Microsoft 365 Defender"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Microsoft Cloud App Security"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Azure Defender"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Microsoft Defender for Endpoint"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Microsoft Defender for Identity"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Azure Defender for IoT"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Microsoft Defender for Office 365"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Azure Sentinel scheduled analytics rules"
+      enabled            = %[3]t
+    }
+    sub_type {
+      severities_allowed = ["High", "Informational", "Low", "Medium"]
+      name               = "Azure Sentinel NRT analytic rules"
+      enabled            = %[3]t
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, enabled)
 }
 
 func (r SentinelAlertRuleFusionResource) requiresImport(data acceptance.TestData) string {

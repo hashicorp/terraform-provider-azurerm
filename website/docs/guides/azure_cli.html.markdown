@@ -33,7 +33,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
-$ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
+az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 ```
 
 ---
@@ -41,13 +41,13 @@ $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 Firstly, login to the Azure CLI using:
 
 ```shell
-$ az login
+az login
 ```
 
 Once logged in - it's possible to list the Subscriptions associated with the account via:
 
 ```shell
-$ az account list
+az account list
 ```
 
 The output (similar to below) will display one or more Subscriptions - with the `id` field being the `subscription_id` field referenced above.
@@ -72,7 +72,7 @@ The output (similar to below) will display one or more Subscriptions - with the 
 Should you have more than one Subscription, you can specify the Subscription to use via the following command:
 
 ```bash
-$ az account set --subscription="SUBSCRIPTION_ID"
+az account set --subscription="SUBSCRIPTION_ID"
 ```
 
 ---

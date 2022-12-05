@@ -201,8 +201,9 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -397,23 +398,17 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"application_insights_key": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_connection_string",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_key",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
@@ -524,8 +519,9 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -823,6 +819,10 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.RemoteDebuggingVersion = utils.String(windowsSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(windowsSlotSiteConfig.RuntimeScaleMonitoring)
+	}
+
 	expanded.Use32BitWorkerProcess = utils.Bool(windowsSlotSiteConfig.Use32BitWorker)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
@@ -924,8 +924,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			result.Cors = []CorsSetting{cors}
 		}
+		result.Cors = []CorsSetting{cors}
 	}
 
 	var appStack []ApplicationStackWindowsFunctionApp
@@ -1159,6 +1159,10 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.RemoteDebuggingVersion = utils.String(linuxSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(linuxSlotSiteConfig.RuntimeScaleMonitoring)
+	}
+
 	expanded.Use32BitWorkerProcess = utils.Bool(linuxSlotSiteConfig.Use32BitWorker)
 
 	expanded.WebSocketsEnabled = utils.Bool(linuxSlotSiteConfig.WebSockets)
@@ -1260,8 +1264,8 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			result.Cors = []CorsSetting{cors}
 		}
+		result.Cors = []CorsSetting{cors}
 	}
 
 	var appStack []ApplicationStackLinuxFunctionApp

@@ -35,7 +35,7 @@ func flattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []inte
 }
 
 // flattenBatchPoolFixedScaleSettings flattens the fixed scale settings for a Batch pool
-func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []interface{} {
+func flattenBatchPoolFixedScaleSettings(d *pluginsdk.ResourceData, settings *batch.FixedScaleSettings) []interface{} {
 	results := make([]interface{}, 0)
 
 	if settings == nil {
@@ -44,6 +44,11 @@ func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 	}
 
 	result := make(map[string]interface{})
+
+	// for now, this is a writeOnly property, so we treat this as secret.
+	if v, ok := d.GetOk("fixed_scale.0.node_deallocation_method"); ok {
+		result["node_deallocation_method"] = v.(string)
+	}
 
 	if settings.TargetDedicatedNodes != nil {
 		result["target_dedicated_nodes"] = *settings.TargetDedicatedNodes
@@ -89,7 +94,7 @@ func flattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
 }
 
 // flattenBatchPoolStartTask flattens a Batch pool start task
-func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
+func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *batch.StartTask) []interface{} {
 	results := make([]interface{}, 0)
 
 	if startTask == nil {
@@ -103,6 +108,25 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		commandLine = *startTask.CommandLine
 	}
 	result["command_line"] = commandLine
+
+	if startTask.ContainerSettings != nil {
+		containerSettings := make(map[string]interface{})
+		containerSettings["image_name"] = *startTask.ContainerSettings.ImageName
+		containerSettings["working_directory"] = string(startTask.ContainerSettings.WorkingDirectory)
+		if startTask.ContainerSettings.ContainerRunOptions != nil {
+			containerSettings["run_options"] = *startTask.ContainerSettings.ContainerRunOptions
+		}
+		if startTask.ContainerSettings.Registry != nil {
+			tmpReg := flattenBatchPoolContainerRegistry(oldConfig, startTask.ContainerSettings.Registry)
+			containerSettings["registry"] = []interface{}{
+				tmpReg,
+			}
+		}
+
+		result["container"] = []interface{}{
+			containerSettings,
+		}
+	}
 
 	waitForSuccess := false
 	if startTask.WaitForSuccess != nil {
@@ -676,6 +700,29 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
 	}
 
+	if startTaskValue["container"] != nil && len(startTaskValue["container"].([]interface{})) > 0 {
+		var containerSettings batch.TaskContainerSettings
+		containerSettingsList := startTaskValue["container"].([]interface{})
+
+		if len(containerSettingsList) > 0 && containerSettingsList[0] != nil {
+			settingMap := containerSettingsList[0].(map[string]interface{})
+			containerSettings.ImageName = utils.String(settingMap["image_name"].(string))
+			if containerRunOptions, ok := settingMap["run_options"]; ok {
+				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
+			}
+			if settingMap["registry"].([]interface{})[0] != nil {
+				containerRegMap := settingMap["registry"].([]interface{})[0].(map[string]interface{})
+				if containerRegistryRef, err := expandBatchPoolContainerRegistry(containerRegMap); err == nil {
+					containerSettings.Registry = containerRegistryRef
+				}
+			}
+			if workingDir, ok := settingMap["working_directory"]; ok {
+				containerSettings.WorkingDirectory = batch.ContainerWorkingDirectory(workingDir.(string))
+			}
+		}
+		startTask.ContainerSettings = &containerSettings
+	}
+
 	return startTask, nil
 }
 
@@ -1060,6 +1107,10 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	networkConfigValue := list[0].(map[string]interface{})
 	networkConfiguration := &batch.NetworkConfiguration{}
 
+	if v, ok := networkConfigValue["dynamic_vnet_assignment_scope"]; ok {
+		networkConfiguration.DynamicVNetAssignmentScope = batch.DynamicVNetAssignmentScope(v.(string))
+	}
+
 	if v, ok := networkConfigValue["subnet_id"]; ok {
 		if value := v.(string); value != "" {
 			networkConfiguration.SubnetID = &value
@@ -1164,6 +1215,21 @@ func expandPoolNetworkSecurityGroupRule(list []interface{}) []batch.NetworkSecur
 		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
 		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
 
+		networkSecurityGroupRuleObject := batch.NetworkSecurityGroupRule{
+			Priority:            &priority,
+			SourceAddressPrefix: &sourceAddressPrefix,
+			Access:              access,
+		}
+
+		portRanges := groupRuleMap["source_port_ranges"].([]interface{})
+		if len(portRanges) > 0 {
+			portRangesResult := make([]string, 0)
+			for _, v := range portRanges {
+				portRangesResult = append(portRangesResult, v.(string))
+			}
+			networkSecurityGroupRuleObject.SourcePortRanges = &portRangesResult
+		}
+
 		networkSecurityGroupRule = append(networkSecurityGroupRule, batch.NetworkSecurityGroupRule{
 			Priority:            &priority,
 			SourceAddressPrefix: &sourceAddressPrefix,
@@ -1220,10 +1286,17 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 					if networkSecurity.SourceAddressPrefix != nil {
 						sourceAddressPrefix = *networkSecurity.SourceAddressPrefix
 					}
+					sourcePortRanges := make([]interface{}, 0)
+					if networkSecurity.SourcePortRanges != nil {
+						for _, sourcePortRange := range *networkSecurity.SourcePortRanges {
+							sourcePortRanges = append(sourcePortRanges, sourcePortRange)
+						}
+					}
 					networkSecurities = append(networkSecurities, map[string]interface{}{
 						"access":                string(networkSecurity.Access),
 						"priority":              priority,
 						"source_address_prefix": sourceAddressPrefix,
+						"source_port_ranges":    sourcePortRanges,
 					})
 				}
 			}
@@ -1240,6 +1313,7 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 
 	return []interface{}{
 		map[string]interface{}{
+			"dynamic_vnet_assignment_scope":    string(input.DynamicVNetAssignmentScope),
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
 			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),

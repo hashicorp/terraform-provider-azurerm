@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_iothub_dps_certificate
 
-Manages an IotHub Device Provisioning Service Certificate. 
+Manages an IotHub Device Provisioning Service Certificate.
 
 ## Example Usage
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `certificate_content` - (Required) The Base-64 representation of the X509 leaf certificate .cer file or just a .pem file content.
 
-* `is_verified` - (Optional) Specifies if the certificate is created in verified state. Defaults to `false`.
+* `is_verified` - (Optional) Specifies if the certificate is created in verified state. Defaults to `false`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -59,8 +59,6 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub Device Provisioning Service Certificate.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

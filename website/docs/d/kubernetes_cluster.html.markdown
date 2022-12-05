@@ -42,7 +42,7 @@ The following attributes are exported:
 
 * `aci_connector_linux` - An `aci_connector_linux` block as documented below.
 
-* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below. 
+* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
 
 * `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
 
@@ -60,7 +60,7 @@ The following attributes are exported:
 
 * `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
 
-* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located                   
+* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
 -> **NOTE:**  At this time Private Link is in Public Preview.
 
@@ -74,7 +74,7 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.                           
+* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 

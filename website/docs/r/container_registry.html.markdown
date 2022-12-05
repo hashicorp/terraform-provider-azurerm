@@ -34,7 +34,7 @@ resource "azurerm_container_registry" "acr" {
     tags                    = {}
   }
   georeplications {
-    location                = "westeurope"
+    location                = "North Europe"
     zone_redundancy_enabled = true
     tags                    = {}
   }
@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`.
 
@@ -165,7 +165,7 @@ The following arguments are supported:
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
@@ -185,11 +185,11 @@ The following arguments are supported:
 
 `georeplications` supports the following:
 
-* `location` - (Required) A location where the container registry should be geo-replicated.
+* `location` - (Required) A location where the container registry should be geo-replicated. Changing this forces a new resource to be created.
 
 * `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? Defaults to `false`.
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`. Changing this forces a new resource to be created.
 
   ~> **NOTE:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
 
@@ -205,7 +205,7 @@ The following arguments are supported:
 
 * `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
 
-~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+~> **NOTE:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
@@ -262,6 +262,7 @@ An `identity` block supports the following:
 ~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type WatchlistItemResource struct{}
@@ -139,7 +139,7 @@ func (r WatchlistItemResource) Read() sdk.ResourceFunc {
 			var properties map[string]interface{}
 			if props := resp.WatchlistItemProperties; props != nil {
 				if itemsKV := props.ItemsKeyValue; itemsKV != nil {
-					properties = itemsKV.(map[string]interface{})
+					properties = itemsKV
 				}
 			}
 			model := WatchlistItemModel{

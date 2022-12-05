@@ -10,7 +10,7 @@ description: |-
 
 Manages a Content Key Policy.
 
-## Example Usage 
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -181,11 +181,10 @@ A `playready_configuration_license` block supports the following:
 
 * `begin_date` - (Optional) The begin date of license.
 
-* `content_key_location_from_header_enabled` - (Optional) Specifies that the content key ID is in the PlayReady header. 
-* `content_key_location_from_key_id` - (Optional) The content key ID. Specifies that the content key ID is specified in the PlayReady configuration. 
+* `content_key_location_from_header_enabled` - (Optional) Specifies that the content key ID is in the PlayReady header.
+* `content_key_location_from_key_id` - (Optional) The content key ID. Specifies that the content key ID is specified in the PlayReady configuration.
 
 -> **NOTE:** You can only specify one content key location. For example if you specify content_key_location_from_header_enabled in true, you shouldn't specify content_key_location_from_key_id and vice versa.
-
 
 * `content_type` - (Optional) The PlayReady content type. Supported values are `UltraVioletDownload`, `UltraVioletStreaming` or `Unspecified`.
 
@@ -209,7 +208,7 @@ A `policy_option` block supports the following:
 
 * `clear_key_configuration_enabled` - (Optional) Enable a configuration for non-DRM keys.
 
-* `fairplay_configuration` - (Optional) A `fairplay_configuration` block as defined above. Check license requirements here https://docs.microsoft.com/azure/media-services/latest/fairplay-license-overview.
+* `fairplay_configuration` - (Optional) A `fairplay_configuration` block as defined above. Check license requirements here <https://docs.microsoft.com/azure/media-services/latest/fairplay-license-overview>.
 
 * `open_restriction_enabled` - (Optional) Enable an open restriction. License or key will be delivered on every request.
 
@@ -251,13 +250,13 @@ A `token_restriction` block supports the following:
 
 * `token_type` - (Optional) The type of token. Supported values are `Jwt` or `Swt`.
 
--> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want use RSA you must provide primary_rsa_token_key_exponent and primary_rsa_token_key_modulus, if you want to use symmetric you need to provide primary_symmetric_token_key and for x509 you must provide primary_x509_token_key_raw. For more information about Token access please refer to https://docs.microsoft.com/azure/media-services/latest/content-protection-overview#controlling-content-access 
+-> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want use RSA you must provide primary_rsa_token_key_exponent and primary_rsa_token_key_modulus, if you want to use symmetric you need to provide primary_symmetric_token_key and for x509 you must provide primary_x509_token_key_raw. For more information about Token access please refer to <https://docs.microsoft.com/azure/media-services/latest/content-protection-overview#controlling-content-access>
 
 ---
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Resource Group.
 

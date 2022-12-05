@@ -39,7 +39,7 @@ func (id DataConnectionId) String() string {
 }
 
 func (id DataConnectionId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s/DataConnections/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/clusters/%s/databases/%s/dataConnections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 }
 
@@ -63,13 +63,81 @@ func DataConnectionID(input string) (*DataConnectionId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
+	if resourceId.ClusterName, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
-	if resourceId.DatabaseName, err = id.PopSegment("Databases"); err != nil {
+	if resourceId.DatabaseName, err = id.PopSegment("databases"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("DataConnections"); err != nil {
+	if resourceId.Name, err = id.PopSegment("dataConnections"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// DataConnectionIDInsensitively parses an DataConnection ID into an DataConnectionId struct, insensitively
+// This should only be used to parse an ID for rewriting, the DataConnectionID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func DataConnectionIDInsensitively(input string) (*DataConnectionId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := DataConnectionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'clusters' segment
+	clustersKey := "clusters"
+	for key := range id.Path {
+		if strings.EqualFold(key, clustersKey) {
+			clustersKey = key
+			break
+		}
+	}
+	if resourceId.ClusterName, err = id.PopSegment(clustersKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'databases' segment
+	databasesKey := "databases"
+	for key := range id.Path {
+		if strings.EqualFold(key, databasesKey) {
+			databasesKey = key
+			break
+		}
+	}
+	if resourceId.DatabaseName, err = id.PopSegment(databasesKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'dataConnections' segment
+	dataConnectionsKey := "dataConnections"
+	for key := range id.Path {
+		if strings.EqualFold(key, dataConnectionsKey) {
+			dataConnectionsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(dataConnectionsKey); err != nil {
 		return nil, err
 	}
 

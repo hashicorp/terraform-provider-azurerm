@@ -102,6 +102,24 @@ func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *testing.T
 	})
 }
 
+func TestAccMonitorDiagnosticSetting_partnerSolution(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.partnerSolution(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partner_solution_id").Exists(),
+				check.That(data.ResourceName).Key("log.#").HasValue("2"),
+				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
@@ -543,6 +561,71 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (MonitorDiagnosticSettingResource) partnerSolution(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_elastic_cloud_elasticsearch" "test" {
+  name                        = "acctest-elastic%[3]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku_name                    = "ess-monthly-consumption_Monthly"
+  elastic_cloud_email_address = "user@example.com"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                = "acctest-DS-%[1]d"
+  target_resource_id  = azurerm_key_vault.test.id
+  partner_solution_id = azurerm_elastic_cloud_elasticsearch.test.id
+
+  log {
+    category = "AuditEvent"
+    enabled  = false
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AzurePolicyEvaluationDetails"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func (MonitorDiagnosticSettingResource) storageAccount(data acceptance.TestData) string {

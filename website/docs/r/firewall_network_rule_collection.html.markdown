@@ -110,7 +110,7 @@ A `rule` block supports the following:
 
 * `description` - (Optional) Specifies a description for the rule.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+* `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
 
 * `source_ip_groups` - (Optional) A list of IP Group IDs for the rule.
 
@@ -131,8 +131,6 @@ A `rule` block supports the following:
 * `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

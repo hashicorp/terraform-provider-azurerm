@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
@@ -44,7 +45,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -174,9 +175,15 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
 										}, false),
 									},
 									"selector": {

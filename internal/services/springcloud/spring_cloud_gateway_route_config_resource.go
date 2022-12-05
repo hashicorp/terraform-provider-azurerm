@@ -5,15 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
@@ -62,6 +63,22 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"protocol": {
+				Type:     pluginsdk.TypeString,
+				Optional: !features.FourPointOh(),
+				Required: features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOh() {
+						return string(appplatform.GatewayRouteConfigProtocolHTTP)
+					}
+					return nil
+				}(),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(appplatform.GatewayRouteConfigProtocolHTTP),
+					string(appplatform.GatewayRouteConfigProtocolHTTPS),
+				}, false),
 			},
 
 			"spring_cloud_app_id": {
@@ -168,6 +185,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
+			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
 			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
@@ -208,6 +226,7 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("spring_cloud_app_id", props.AppResourceID)
+		d.Set("protocol", props.Protocol)
 		if err := d.Set("route", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)
 		}

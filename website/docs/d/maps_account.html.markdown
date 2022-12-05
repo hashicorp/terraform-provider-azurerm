@@ -41,7 +41,6 @@ output "maps_account_id" {
 
 * `x_ms_client_id` - A unique identifier for the Maps Account.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `server_name` - (Required) Specifies the name of the MS SQL Server. Changing this forces a new resource to be created.
 
-* `state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific database server. Allowed values are: `Disabled`, `Enabled`.
+* `state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific database server. Possible values are `Disabled`, `Enabled` and `New`.
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
@@ -70,12 +70,11 @@ The following arguments are supported:
 
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs. Defaults to `0`.
 
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all Threat Detection audit logs.
 
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. This is mandatory when you use `storage_endpoint` to specify a storage account blob endpoint.
 
 -> **NOTE:**  Please note that storage accounts configured with `shared_access_key_enabled = false` cannot be used to configure `azurerm_mssql_server_security_alert_policy` with `storage_endpoint` for now.
-
 
 ## Attributes Reference
 

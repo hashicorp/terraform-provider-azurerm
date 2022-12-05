@@ -5,17 +5,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -626,167 +626,184 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
+	id := managedclusters.NewManagedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterUser")
+	profileId := managedclusters.NewAccessProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string), "clusterUser")
+	profile, err := client.GetAccessProfile(ctx, profileId)
 	if err != nil {
 		return fmt.Errorf("retrieving Access Profile for %s: %+v", id, err)
 	}
+	if profile.Model == nil {
+		return fmt.Errorf("retrieving Access Profile for %s: payload is empty", id)
+	}
+	profileModel := profile.Model
 
 	d.SetId(id.ID())
+	if model := resp.Model; model != nil {
+		d.Set("name", model.Name)
+		d.Set("resource_group_name", id.ResourceGroupName)
+		if location := model.Location; location != "" {
+			d.Set("location", azure.NormalizeLocation(location))
+		}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+		if props := model.Properties; props != nil {
+			d.Set("dns_prefix", props.DnsPrefix)
+			d.Set("fqdn", props.Fqdn)
+			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
+			d.Set("private_fqdn", props.PrivateFQDN)
+			d.Set("kubernetes_version", props.KubernetesVersion)
+			d.Set("node_resource_group", props.NodeResourceGroup)
 
-	if props := resp.ManagedClusterProperties; props != nil {
-		d.Set("dns_prefix", props.DNSPrefix)
-		d.Set("fqdn", props.Fqdn)
-		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
-		d.Set("private_fqdn", props.PrivateFQDN)
-		d.Set("kubernetes_version", props.KubernetesVersion)
-		d.Set("node_resource_group", props.NodeResourceGroup)
+			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
+				apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
+				if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
+					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
+				}
 
-		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
-			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
-			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
-				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
+				d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			}
 
-			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
-		}
-
-		addOns := flattenKubernetesClusterDataSourceAddOns(props.AddonProfiles)
-		d.Set("aci_connector_linux", addOns["aci_connector_linux"])
-		d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
-		d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
-		d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
-		d.Set("oms_agent", addOns["oms_agent"])
-		d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
-		d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
-		d.Set("key_vault_secrets_provider", addOns["key_vault_secrets_provider"])
-
-		agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
-		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
-			return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
-		}
-
-		kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
-		if err != nil {
-			return err
-		}
-		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
-			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
-		}
-
-		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
-		if err := d.Set("linux_profile", linuxProfile); err != nil {
-			return fmt.Errorf("setting `linux_profile`: %+v", err)
-		}
-
-		windowsProfile := flattenKubernetesClusterDataSourceWindowsProfile(props.WindowsProfile)
-		if err := d.Set("windows_profile", windowsProfile); err != nil {
-			return fmt.Errorf("setting `windows_profile`: %+v", err)
-		}
-
-		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
-		if err := d.Set("network_profile", networkProfile); err != nil {
-			return fmt.Errorf("setting `network_profile`: %+v", err)
-		}
-
-		oidcIssuerEnabled := false
-		oidcIssuerUrl := ""
-		if props.OidcIssuerProfile != nil {
-			if props.OidcIssuerProfile.Enabled != nil {
-				oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
+			if addonProfiles := props.AddonProfiles; addonProfiles != nil {
+				addOns := flattenKubernetesClusterDataSourceAddOns(*addonProfiles)
+				d.Set("aci_connector_linux", addOns["aci_connector_linux"])
+				d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
+				d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
+				d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
+				d.Set("oms_agent", addOns["oms_agent"])
+				d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
+				d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
+				d.Set("key_vault_secrets_provider", addOns["key_vault_secrets_provider"])
 			}
-			if props.OidcIssuerProfile.IssuerURL != nil {
-				oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
+
+			agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
+			if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
+				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
 			}
-		}
 
-		if err := d.Set("oidc_issuer_enabled", oidcIssuerEnabled); err != nil {
-			return fmt.Errorf("setting `oidc_issuer_enabled`: %+v", err)
-		}
-		if err := d.Set("oidc_issuer_url", oidcIssuerUrl); err != nil {
-			return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
-		}
-
-		rbacEnabled := true
-		if props.EnableRBAC != nil {
-			rbacEnabled = *props.EnableRBAC
-		}
-		d.Set("role_based_access_control_enabled", rbacEnabled)
-
-		microsoftDefender := flattenKubernetesClusterDataSourceMicrosoftDefender(props.SecurityProfile)
-		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
-			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
-		}
-
-		aadRbac := flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(props)
-		if err := d.Set("azure_active_directory_role_based_access_control", aadRbac); err != nil {
-			return fmt.Errorf("setting `azure_active_directory_role_based_access_control`: %+v", err)
-		}
-
-		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
-		if err := d.Set("service_principal", servicePrincipal); err != nil {
-			return fmt.Errorf("setting `service_principal`: %+v", err)
-		}
-
-		// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
-		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterAdmin")
+			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
 			if err != nil {
-				return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
+				return err
+			}
+			if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
+				return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 			}
 
-			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
-			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
-			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
-				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
+			linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
+			if err := d.Set("linux_profile", linuxProfile); err != nil {
+				return fmt.Errorf("setting `linux_profile`: %+v", err)
 			}
-		} else {
-			d.Set("kube_admin_config_raw", "")
-			d.Set("kube_admin_config", []interface{}{})
+
+			windowsProfile := flattenKubernetesClusterDataSourceWindowsProfile(props.WindowsProfile)
+			if err := d.Set("windows_profile", windowsProfile); err != nil {
+				return fmt.Errorf("setting `windows_profile`: %+v", err)
+			}
+
+			networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
+			if err := d.Set("network_profile", networkProfile); err != nil {
+				return fmt.Errorf("setting `network_profile`: %+v", err)
+			}
+
+			oidcIssuerEnabled := false
+			oidcIssuerUrl := ""
+			if props.OidcIssuerProfile != nil {
+				if props.OidcIssuerProfile.Enabled != nil {
+					oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
+				}
+				if props.OidcIssuerProfile.IssuerURL != nil {
+					oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
+				}
+			}
+
+			if err := d.Set("oidc_issuer_enabled", oidcIssuerEnabled); err != nil {
+				return fmt.Errorf("setting `oidc_issuer_enabled`: %+v", err)
+			}
+			if err := d.Set("oidc_issuer_url", oidcIssuerUrl); err != nil {
+				return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
+			}
+
+			rbacEnabled := true
+			if props.EnableRBAC != nil {
+				rbacEnabled = *props.EnableRBAC
+			}
+			d.Set("role_based_access_control_enabled", rbacEnabled)
+
+			microsoftDefender := flattenKubernetesClusterDataSourceMicrosoftDefender(props.SecurityProfile)
+			if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
+				return fmt.Errorf("setting `microsoft_defender`: %+v", err)
+			}
+
+			aadRbac := flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(props)
+			if err := d.Set("azure_active_directory_role_based_access_control", aadRbac); err != nil {
+				return fmt.Errorf("setting `azure_active_directory_role_based_access_control`: %+v", err)
+			}
+
+			servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
+			if err := d.Set("service_principal", servicePrincipal); err != nil {
+				return fmt.Errorf("setting `service_principal`: %+v", err)
+			}
+
+			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
+			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
+				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
+				adminProfile, err := client.GetAccessProfile(ctx, profileId)
+				if err != nil {
+					return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
+				}
+
+				if adminProfileModel := adminProfile.Model; adminProfileModel != nil {
+
+					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfileModel)
+					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
+					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
+						return fmt.Errorf("setting `kube_admin_config`: %+v", err)
+					}
+				}
+			} else {
+				d.Set("kube_admin_config_raw", "")
+				d.Set("kube_admin_config", []interface{}{})
+			}
 		}
+
+		identity, err := flattenClusterDataSourceIdentity(model.Identity)
+		if err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(*profileModel)
+		d.Set("kube_config_raw", kubeConfigRaw)
+		if err := d.Set("kube_config", kubeConfig); err != nil {
+			return fmt.Errorf("setting `kube_config`: %+v", err)
+		}
+
+		d.Set("tags", tags.Flatten(model.Tags))
 	}
 
-	identity, err := flattenClusterDataSourceIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(profile)
-	d.Set("kube_config_raw", kubeConfigRaw)
-	if err := d.Set("kube_config", kubeConfig); err != nil {
-		return fmt.Errorf("setting `kube_config`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
-	if profile.AccessProfile == nil {
+func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.ManagedClusterAccessProfile) (*string, []interface{}) {
+	if profile.Properties == nil {
 		return nil, []interface{}{}
 	}
 
-	if kubeConfigRaw := profile.AccessProfile.KubeConfig; kubeConfigRaw != nil {
-		rawConfig := string(*kubeConfigRaw)
+	if kubeConfigRaw := profile.Properties.KubeConfig; kubeConfigRaw != nil {
+		rawConfig := *kubeConfigRaw
+		if base64IsEncoded(*kubeConfigRaw) {
+			rawConfig, _ = base64Decode(*kubeConfigRaw)
+		}
+
 		var flattenedKubeConfig []interface{}
 
 		if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
@@ -811,129 +828,121 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 	return nil, []interface{}{}
 }
 
-func flattenKubernetesClusterDataSourceAddOns(profile map[string]*containerservice.ManagedClusterAddonProfile) map[string]interface{} {
+func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) map[string]interface{} {
 	aciConnectors := make([]interface{}, 0)
-	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
-		if enabled := aciConnector.Enabled; enabled != nil && *enabled {
-			subnetName := ""
-			if v := aciConnector.Config["SubnetName"]; v != nil {
-				subnetName = *v
-			}
-
-			aciConnectors = append(aciConnectors, map[string]interface{}{
-				"subnet_name": subnetName,
-			})
+	aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey)
+	if enabled := aciConnector.Enabled; enabled {
+		subnetName := ""
+		if v := aciConnector.Config; v != nil && (*v)["SubnetName"] != "" {
+			subnetName = (*v)["SubnetName"]
 		}
 
+		aciConnectors = append(aciConnectors, map[string]interface{}{
+			"subnet_name": subnetName,
+		})
 	}
 
 	azurePolicyEnabled := false
-	if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
-		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
-			azurePolicyEnabled = *enabledVal
-		}
+	azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
+	if enabledVal := azurePolicy.Enabled; enabledVal {
+		azurePolicyEnabled = enabledVal
 	}
 
 	httpApplicationRoutingEnabled := false
 	httpApplicationRoutingZone := ""
-	if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
-		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
-			httpApplicationRoutingEnabled = *enabledVal
-		}
+	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)
+	if enabledVal := httpApplicationRouting.Enabled; enabledVal {
+		httpApplicationRoutingEnabled = enabledVal
+	}
 
-		if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
-			httpApplicationRoutingZone = *v
-		}
+	if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != "" {
+		httpApplicationRoutingZone = v
 	}
 
 	omsAgents := make([]interface{}, 0)
-	if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
-		if enabled := omsAgent.Enabled; enabled != nil && *enabled {
-			workspaceID := ""
-			if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
-				if lawid, err := workspaces.ParseWorkspaceID(*v); err == nil {
-					workspaceID = lawid.ID()
-				}
+	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
+	if enabled := omsAgent.Enabled; enabled {
+		workspaceID := ""
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
+			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
+				workspaceID = lawid.ID()
 			}
-
-			omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
-
-			omsAgents = append(omsAgents, map[string]interface{}{
-				"log_analytics_workspace_id": workspaceID,
-				"oms_agent_identity":         omsAgentIdentity,
-			})
 		}
+
+		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
+
+		omsAgents = append(omsAgents, map[string]interface{}{
+			"log_analytics_workspace_id": workspaceID,
+			"oms_agent_identity":         omsAgentIdentity,
+		})
 	}
 
 	ingressApplicationGateways := make([]interface{}, 0)
-	if ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey); ingressApplicationGateway != nil {
-		if enabled := ingressApplicationGateway.Enabled; enabled != nil && *enabled {
-			gatewayId := ""
-			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
-				gatewayId = *v
-			}
-
-			gatewayName := ""
-			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
-				gatewayName = *v
-			}
-
-			effectiveGatewayId := ""
-			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
-				effectiveGatewayId = *v
-			}
-
-			subnetCIDR := ""
-			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != nil {
-				subnetCIDR = *v
-			}
-
-			subnetId := ""
-			if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != nil {
-				subnetId = *v
-			}
-
-			ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
-
-			ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
-				"gateway_id":                           gatewayId,
-				"gateway_name":                         gatewayName,
-				"effective_gateway_id":                 effectiveGatewayId,
-				"subnet_cidr":                          subnetCIDR,
-				"subnet_id":                            subnetId,
-				"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
-			})
+	ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey)
+	if enabled := ingressApplicationGateway.Enabled; enabled {
+		gatewayId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != "" {
+			gatewayId = v
 		}
+
+		gatewayName := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != "" {
+			gatewayName = v
+		}
+
+		effectiveGatewayId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != "" {
+			effectiveGatewayId = v
+		}
+
+		subnetCIDR := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != "" {
+			subnetCIDR = v
+		}
+
+		subnetId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != "" {
+			subnetId = v
+		}
+
+		ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
+
+		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
+			"gateway_id":                           gatewayId,
+			"gateway_name":                         gatewayName,
+			"effective_gateway_id":                 effectiveGatewayId,
+			"subnet_cidr":                          subnetCIDR,
+			"subnet_id":                            subnetId,
+			"ingress_application_gateway_identity": ingressApplicationGatewayIdentity,
+		})
 	}
 
 	openServiceMeshEnabled := false
-	if openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey); openServiceMesh != nil {
-		if enabledVal := openServiceMesh.Enabled; enabledVal != nil {
-			openServiceMeshEnabled = *enabledVal
-		}
+	openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey)
+	if enabledVal := openServiceMesh.Enabled; enabledVal {
+		openServiceMeshEnabled = enabledVal
 	}
 
 	azureKeyVaultSecretsProviders := make([]interface{}, 0)
-	if azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey); azureKeyVaultSecretsProvider != nil {
-		if enabled := azureKeyVaultSecretsProvider.Enabled; enabled != nil && *enabled {
-			enableSecretRotation := false
-			if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "enableSecretRotation"); v != nil && *v != "false" {
-				enableSecretRotation = true
-			}
-
-			rotationPollInterval := ""
-			if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "rotationPollInterval"); v != nil {
-				rotationPollInterval = *v
-			}
-
-			azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyVaultSecretsProvider.Identity)
-
-			azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]interface{}{
-				"secret_rotation_enabled":  enableSecretRotation,
-				"secret_rotation_interval": rotationPollInterval,
-				"secret_identity":          azureKeyvaultSecretsProviderIdentity,
-			})
+	azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
+	if enabled := azureKeyVaultSecretsProvider.Enabled; enabled {
+		enableSecretRotation := false
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "enableSecretRotation"); v != "false" {
+			enableSecretRotation = true
 		}
+
+		rotationPollInterval := ""
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProvider.Config, "rotationPollInterval"); v != "" {
+			rotationPollInterval = v
+		}
+
+		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyVaultSecretsProvider.Identity)
+
+		azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]interface{}{
+			"secret_rotation_enabled":  enableSecretRotation,
+			"secret_rotation_interval": rotationPollInterval,
+			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
+		})
 	}
 
 	return map[string]interface{}{
@@ -948,7 +957,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]*containerservi
 	}
 }
 
-func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservice.ManagedClusterAgentPoolProfile) []interface{} {
+func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedclusters.ManagedClusterAgentPoolProfile) []interface{} {
 	agentPoolProfiles := make([]interface{}, 0)
 
 	if input == nil {
@@ -981,15 +990,9 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			enableAutoScaling = *profile.EnableAutoScaling
 		}
 
-		name := ""
-		if profile.Name != nil {
-			name = *profile.Name
-		}
+		name := profile.Name
 
-		nodePublicIPPrefixID := ""
-		if profile.NodePublicIPPrefixID != nil {
-			nodePublicIPPrefixID = *profile.NodePublicIPPrefixID
-		}
+		nodePublicIPPrefixID := profile.NodePublicIPPrefixID
 
 		osDiskSizeGb := 0
 		if profile.OsDiskSizeGB != nil {
@@ -1013,12 +1016,12 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		nodeLabels := make(map[string]string)
 		if profile.NodeLabels != nil {
-			for k, v := range profile.NodeLabels {
-				if v == nil {
+			for k, v := range *profile.NodeLabels {
+				if v == "" {
 					continue
 				}
 
-				nodeLabels[k] = *v
+				nodeLabels[k] = v
 			}
 		}
 
@@ -1027,10 +1030,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			nodeTaints = *profile.NodeTaints
 		}
 
-		vmSize := ""
-		if profile.VMSize != nil {
-			vmSize = *profile.VMSize
-		}
+		vmSize := profile.VmSize
 
 		out := map[string]interface{}{
 			"count":                    count,
@@ -1045,13 +1045,13 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			"node_taints":              nodeTaints,
 			"orchestrator_version":     orchestratorVersion,
 			"os_disk_size_gb":          osDiskSizeGb,
-			"os_type":                  string(profile.OsType),
+			"os_type":                  string(*profile.OsType),
 			"tags":                     tags.Flatten(profile.Tags),
-			"type":                     string(profile.Type),
-			"upgrade_settings":         flattenUpgradeSettings(profile.UpgradeSettings),
+			"type":                     string(*profile.Type),
+			"upgrade_settings":         flattenKubernetesClusterDataSourceUpgradeSettings(profile.UpgradeSettings),
 			"vm_size":                  vmSize,
 			"vnet_subnet_id":           vnetSubnetId,
-			"zones":                    zones.Flatten(profile.AvailabilityZones),
+			"zones":                    zones.FlattenUntyped(profile.AvailabilityZones),
 		}
 		agentPoolProfiles = append(agentPoolProfiles, out)
 	}
@@ -1059,7 +1059,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *containerservice.ManagedClusterProperties) []interface{} {
+func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
 		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
@@ -1102,62 +1102,61 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 	return results
 }
 
-func flattenKubernetesClusterDataSourceIdentityProfile(profile map[string]*containerservice.UserAssignedIdentity) ([]interface{}, error) {
-	if profile == nil {
+func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]managedclusters.UserAssignedIdentity) ([]interface{}, error) {
+	if profile == nil || *profile == nil {
 		return []interface{}{}, nil
 	}
 
 	kubeletIdentity := make([]interface{}, 0)
-	if kubeletidentity := profile["kubeletidentity"]; kubeletidentity != nil {
-		clientId := ""
-		if clientid := kubeletidentity.ClientID; clientid != nil {
-			clientId = *clientid
-		}
-
-		objectId := ""
-		if objectid := kubeletidentity.ObjectID; objectid != nil {
-			objectId = *objectid
-		}
-
-		userAssignedIdentityId := ""
-		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceid)
-			if err != nil {
-				return nil, err
-			}
-			userAssignedIdentityId = parsedId.ID()
-		}
-
-		kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
-			"client_id":                 clientId,
-			"object_id":                 objectId,
-			"user_assigned_identity_id": userAssignedIdentityId,
-		})
+	kubeletidentity := (*profile)["kubeletidentity"]
+	clientId := ""
+	if clientid := kubeletidentity.ClientId; clientid != nil {
+		clientId = *clientid
 	}
+
+	objectId := ""
+	if objectid := kubeletidentity.ObjectId; objectid != nil {
+		objectId = *objectid
+	}
+
+	userAssignedIdentityId := ""
+	if resourceid := kubeletidentity.ResourceId; resourceid != nil {
+		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceid)
+		if err != nil {
+			return nil, err
+		}
+		userAssignedIdentityId = parsedId.ID()
+	}
+
+	kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
+		"client_id":                 clientId,
+		"object_id":                 objectId,
+		"user_assigned_identity_id": userAssignedIdentityId,
+	})
 
 	return kubeletIdentity, nil
 }
 
-func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
+func flattenKubernetesClusterDataSourceLinuxProfile(input *managedclusters.ContainerServiceLinuxProfile) []interface{} {
 	values := make(map[string]interface{})
 	sshKeys := make([]interface{}, 0)
 
 	if profile := input; profile != nil {
-		if username := profile.AdminUsername; username != nil {
-			values["admin_username"] = *username
+		if username := profile.AdminUsername; username != "" {
+			values["admin_username"] = username
 		}
 
-		if ssh := profile.SSH; ssh != nil {
-			if keys := ssh.PublicKeys; keys != nil {
-				for _, sshKey := range *keys {
-					if keyData := sshKey.KeyData; keyData != nil {
-						outputs := make(map[string]interface{})
-						outputs["key_data"] = *keyData
-						sshKeys = append(sshKeys, outputs)
-					}
+		ssh := profile.Ssh
+		if keys := ssh.PublicKeys; keys != nil {
+			for _, sshKey := range keys {
+				if keyData := sshKey.KeyData; keyData != "" {
+					outputs := make(map[string]interface{})
+					outputs["key_data"] = keyData
+					sshKeys = append(sshKeys, outputs)
 				}
 			}
 		}
+
 	}
 
 	values["ssh_key"] = sshKeys
@@ -1165,34 +1164,34 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceWindowsProfile(input *containerservice.ManagedClusterWindowsProfile) []interface{} {
+func flattenKubernetesClusterDataSourceWindowsProfile(input *managedclusters.ManagedClusterWindowsProfile) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 	values := make(map[string]interface{})
 
-	if username := input.AdminUsername; username != nil {
-		values["admin_username"] = *username
+	if username := input.AdminUsername; username != "" {
+		values["admin_username"] = username
 	}
 
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []interface{} {
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
 
-	if profile.NetworkPolicy != "" {
-		values["network_policy"] = string(profile.NetworkPolicy)
+	if profile.NetworkPolicy != nil {
+		values["network_policy"] = string(*profile.NetworkPolicy)
 	}
 
 	if profile.ServiceCidr != nil {
 		values["service_cidr"] = *profile.ServiceCidr
 	}
 
-	if profile.DNSServiceIP != nil {
-		values["dns_service_ip"] = *profile.DNSServiceIP
+	if profile.DnsServiceIP != nil {
+		values["dns_service_ip"] = *profile.DnsServiceIP
 	}
 
 	if profile.DockerBridgeCidr != nil {
@@ -1203,22 +1202,22 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 		values["pod_cidr"] = *profile.PodCidr
 	}
 
-	if profile.LoadBalancerSku != "" {
-		values["load_balancer_sku"] = string(profile.LoadBalancerSku)
+	if profile.LoadBalancerSku != nil {
+		values["load_balancer_sku"] = string(*profile.LoadBalancerSku)
 	}
 
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) []interface{} {
+func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *managedclusters.ManagedClusterServicePrincipalProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
 
 	values := make(map[string]interface{})
 
-	if clientID := profile.ClientID; clientID != nil {
-		values["client_id"] = *clientID
+	if clientID := profile.ClientId; clientID != "" {
+		values["client_id"] = clientID
 	}
 
 	return []interface{}{values}
@@ -1259,44 +1258,40 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	return []interface{}{values}
 }
 
-func flattenClusterDataSourceIdentity(input *containerservice.ManagedClusterIdentity) (*[]interface{}, error) {
-	var transform *identity.SystemOrUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemOrUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		if input.PrincipalID != nil {
-			transform.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transform.TenantId = *input.TenantID
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-
-	return identity.FlattenSystemOrUserAssignedMap(transform)
+func flattenClusterDataSourceIdentity(input *identity.SystemOrUserAssignedMap) (*[]interface{}, error) {
+	return identity.FlattenSystemOrUserAssignedMap(input)
 }
 
-func flattenKubernetesClusterDataSourceMicrosoftDefender(input *containerservice.ManagedClusterSecurityProfile) []interface{} {
-	if input == nil || input.AzureDefender == nil || (input.AzureDefender.Enabled != nil && !*input.AzureDefender.Enabled) {
+func flattenKubernetesClusterDataSourceMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	if input == nil || input.Defender == nil || input.Defender.SecurityMonitoring == nil || (input.Defender.SecurityMonitoring.Enabled != nil && !*input.Defender.SecurityMonitoring.Enabled) {
 		return []interface{}{}
 	}
 
 	logAnalyticsWorkspace := ""
-	if v := input.AzureDefender.LogAnalyticsWorkspaceResourceID; v != nil {
+	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
 		logAnalyticsWorkspace = *v
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"log_analytics_workspace_id": logAnalyticsWorkspace,
+		},
+	}
+}
+
+func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
+	maxSurge := ""
+	if input != nil && input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
+	}
+
+	if maxSurge == "" {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"max_surge": maxSurge,
 		},
 	}
 }

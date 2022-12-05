@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -74,14 +76,17 @@ func (r StreamAnalyticsJobScheduleResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, "")
+	streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+
+	var opts streamingjobs.GetOperationOptions
+	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, streamingJobId, opts)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), err
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, err
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.StreamingJobProperties != nil && resp.StreamingJobProperties.OutputStartTime != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Properties.OutputStartTime != nil), nil
 }
 
 func (r StreamAnalyticsJobScheduleResource) basic(data acceptance.TestData) string {

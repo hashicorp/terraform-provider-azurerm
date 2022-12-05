@@ -10,7 +10,6 @@ description: |-
 
 Manages a MS SQL Server Extended Auditing Policy.
 
-
 ## Example Usage
 
 ```hcl
@@ -50,6 +49,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
 ```
 
 ## Example Usage with storage account behind VNet and firewall
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -163,11 +163,11 @@ The following arguments are supported:
 
 * `server_id` - (Required) The ID of the SQL Server to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
+* `enabled` - (Optional) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
 ->**NOTE:**  If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
 
-* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all extended auditing logs.
+* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
 
 * `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
 
@@ -181,7 +181,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MS SQL Server Extended Auditing Policy.
 

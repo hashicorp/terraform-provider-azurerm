@@ -1,12 +1,12 @@
 ---
 subcategory: "Attestation"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_attestation"
+page_title: "Azure Resource Manager: azurerm_attestation_provider"
 description: |-
   Manages a Attestation Provider.
 ---
 
-# azurerm_attestation
+# azurerm_attestation_provider
 
 Manages a Attestation Provider.
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following Attributes are exported: 
+The following Attributes are exported:
 
 * `id` - The ID of the Attestation Provider.
 

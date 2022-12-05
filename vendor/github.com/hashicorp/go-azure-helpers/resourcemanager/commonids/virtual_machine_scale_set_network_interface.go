@@ -12,17 +12,17 @@ var _ resourceids.ResourceId = VirtualMachineScaleSetNetworkInterfaceId{}
 // VirtualMachineScaleSetNetworkInterfaceId is a struct representing the Resource ID for a Virtual Machine Scale Set Network Interface
 type VirtualMachineScaleSetNetworkInterfaceId struct {
 	SubscriptionId             string
-	ResourceGroup              string
+	ResourceGroupName          string
 	VirtualMachineScaleSetName string
 	VirtualMachineIndex        string
 	NetworkInterfaceName       string
 }
 
 // NewVirtualMachineScaleSetNetworkInterfaceID returns a new VirtualMachineScaleSetNetworkInterfaceId struct
-func NewVirtualMachineScaleSetNetworkInterfaceID(subscriptionId string, resourceGroup string, virtualMachineScaleSetName string, virtualMachineIndex string, networkInterfaceName string) VirtualMachineScaleSetNetworkInterfaceId {
+func NewVirtualMachineScaleSetNetworkInterfaceID(subscriptionId string, resourceGroupName string, virtualMachineScaleSetName string, virtualMachineIndex string, networkInterfaceName string) VirtualMachineScaleSetNetworkInterfaceId {
 	return VirtualMachineScaleSetNetworkInterfaceId{
 		SubscriptionId:             subscriptionId,
-		ResourceGroup:              resourceGroup,
+		ResourceGroupName:          resourceGroupName,
 		VirtualMachineScaleSetName: virtualMachineScaleSetName,
 		VirtualMachineIndex:        virtualMachineIndex,
 		NetworkInterfaceName:       networkInterfaceName,
@@ -44,8 +44,8 @@ func ParseVirtualMachineScaleSetNetworkInterfaceID(input string) (*VirtualMachin
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.VirtualMachineScaleSetName, ok = parsed.Parsed["virtualMachineScaleSetName"]; !ok {
@@ -79,8 +79,8 @@ func ParseVirtualMachineScaleSetNetworkInterfaceIDInsensitively(input string) (*
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.VirtualMachineScaleSetName, ok = parsed.Parsed["virtualMachineScaleSetName"]; !ok {
@@ -116,7 +116,7 @@ func ValidateVirtualMachineScaleSetNetworkInterfaceID(input interface{}, key str
 // ID returns the formatted Virtual Machine Scale Set Network Interface ID
 func (id VirtualMachineScaleSetNetworkInterfaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s/virtualMachines/%s/networkInterfaces/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName, id.VirtualMachineIndex, id.NetworkInterfaceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName, id.VirtualMachineIndex, id.NetworkInterfaceName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Virtual Machine Scale Set Network Interface ID
@@ -125,7 +125,7 @@ func (id VirtualMachineScaleSetNetworkInterfaceId) Segments() []resourceids.Segm
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.ResourceGroupSegment("resourceGroup", "example-resource-group"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("providers", "providers", "providers"),
 		resourceids.ResourceProviderSegment("resourceProvider", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("virtualMachineScaleSets", "virtualMachineScaleSets", "virtualMachineScaleSets"),
@@ -141,7 +141,7 @@ func (id VirtualMachineScaleSetNetworkInterfaceId) Segments() []resourceids.Segm
 func (id VirtualMachineScaleSetNetworkInterfaceId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Resource Group: %q", id.ResourceGroup),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Virtual Machine Scale Set Name: %q", id.VirtualMachineScaleSetName),
 		fmt.Sprintf("Virtual Machine Index: %q", id.VirtualMachineIndex),
 		fmt.Sprintf("Network Interface Name: %q", id.NetworkInterfaceName),

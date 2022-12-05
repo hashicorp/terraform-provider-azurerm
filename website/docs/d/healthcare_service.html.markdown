@@ -36,7 +36,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the Service is located.
 
-~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`. 
+~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
 * `kind` - The type of the service.
 * `authentication_configuration` - An `authentication_configuration` block as defined below.
@@ -48,8 +48,8 @@ The following attributes are exported:
 ---
 An `authentication_configuration` exports the following:
 
-* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. 
-* `audience` - The intended audience to receive authentication tokens for the service. 
+* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service.
+* `audience` - The intended audience to receive authentication tokens for the service.
 * `smart_proxy_enabled` - Is the 'SMART on FHIR' option for mobile and web implementations enabled?
 
 ---
@@ -60,7 +60,6 @@ A `cors_configuration` block exports the following:
 * `allowed_methods` - The methods to be allowed via CORS.
 * `max_age_in_seconds` - The max age to be allowed via CORS.
 * `allow_credentials` - Are credentials are allowed via CORS?
-
 
 ## Timeouts
 
