@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_lb` - adding/removing a frontend configuration will no longer force recreation a new resource to be created [GH-19548]
 * `azurerm_kusto_*` - a  state migration to work around the previously incorrect id casing [GH-19525]
 * `azurerm_monitor_smart_detector_alert_rule` - a  state migration to work around the previously incorrect id casing [GH-19513]
+* `azurerm_virtual_desktop_workspace_application_group_association` - set `tags` properly [GH-19574]
 
 ## 3.34.0 (December 01, 2022)
 
