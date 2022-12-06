@@ -3,6 +3,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -18,10 +19,11 @@ type RouteMapResource struct{}
 func TestAccRouteMap_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_map", "test")
 	r := RouteMapResource{}
+	nameSuffix := randString()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -33,10 +35,11 @@ func TestAccRouteMap_basic(t *testing.T) {
 func TestAccRouteMap_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_map", "test")
 	r := RouteMapResource{}
+	nameSuffix := randString()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -48,24 +51,25 @@ func TestAccRouteMap_complete(t *testing.T) {
 func TestAccRouteMap_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_map", "test")
 	r := RouteMapResource{}
+	nameSuffix := randString()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -87,6 +91,16 @@ func (r RouteMapResource) Exists(ctx context.Context, clients *clients.Client, s
 	}
 
 	return utils.Bool(resp.ID != nil), nil
+}
+
+func randString() string {
+	charSet := "abcdefghijklmnopqrstuvwxyz"
+	strlen := 5
+	result := make([]byte, strlen)
+	for i := 0; i < strlen; i++ {
+		result[i] = charSet[rand.Intn(len(charSet))]
+	}
+	return string(result)
 }
 
 func (r RouteMapResource) template(data acceptance.TestData) string {
@@ -116,7 +130,7 @@ resource "azurerm_virtual_hub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r RouteMapResource) basic(data acceptance.TestData) string {
+func (r RouteMapResource) basic(data acceptance.TestData, nameSuffix string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -124,10 +138,10 @@ resource "azurerm_route_map" "test" {
   name           = "acctestrm-%s"
   virtual_hub_id = azurerm_virtual_hub.test.id
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), nameSuffix)
 }
 
-func (r RouteMapResource) complete(data acceptance.TestData) string {
+func (r RouteMapResource) complete(data acceptance.TestData, nameSuffix string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -153,10 +167,10 @@ resource "azurerm_route_map" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), nameSuffix)
 }
 
-func (r RouteMapResource) update(data acceptance.TestData) string {
+func (r RouteMapResource) update(data acceptance.TestData, nameSuffix string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -182,5 +196,5 @@ resource "azurerm_route_map" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), nameSuffix)
 }
