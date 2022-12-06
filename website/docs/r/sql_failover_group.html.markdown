@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group containing the SQL server Changing this forces a new resource to be created.
 
-* `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created. 
 
 * `databases` - (Optional) A list of database ids to add to the failover group
 
