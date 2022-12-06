@@ -109,6 +109,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 		Properties: &workspace.WorkspacePatchProperties{
 			ApplicationGroupReferences: &applicationGroupAssociations,
 		},
+		Tags: model.Tags,
 	}
 	if _, err = client.Update(ctx, *workspaceId, payload); err != nil {
 		return fmt.Errorf("creating association between %s and %s: %+v", *workspaceId, *applicationGroupId, err)
