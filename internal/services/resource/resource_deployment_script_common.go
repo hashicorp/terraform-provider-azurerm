@@ -32,14 +32,14 @@ type ResourceDeploymentScriptModel struct {
 	Arguments              string                             `tfschema:"arguments"`
 	Version                string                             `tfschema:"version"`
 	CleanupPreference      deploymentscripts.CleanupOptions   `tfschema:"cleanup_preference"`
-	ContainerSettings      []ContainerConfigurationModel      `tfschema:"container_setting"`
+	ContainerSettings      []ContainerConfigurationModel      `tfschema:"container"`
 	EnvironmentVariables   []EnvironmentVariableModel         `tfschema:"environment_variable"`
 	ForceUpdateTag         string                             `tfschema:"force_update_tag"`
 	Location               string                             `tfschema:"location"`
 	PrimaryScriptUri       string                             `tfschema:"primary_script_uri"`
 	RetentionInterval      string                             `tfschema:"retention_interval"`
 	ScriptContent          string                             `tfschema:"script_content"`
-	StorageAccountSettings []StorageAccountConfigurationModel `tfschema:"storage_account_settings"`
+	StorageAccountSettings []StorageAccountConfigurationModel `tfschema:"storage_account"`
 	SupportingScriptUris   []string                           `tfschema:"supporting_script_uris"`
 	Tags                   map[string]string                  `tfschema:"tags"`
 	Timeout                string                             `tfschema:"timeout"`
@@ -57,8 +57,8 @@ type EnvironmentVariableModel struct {
 }
 
 type StorageAccountConfigurationModel struct {
-	StorageAccountKey  string `tfschema:"storage_account_key"`
-	StorageAccountName string `tfschema:"storage_account_name"`
+	StorageAccountKey  string `tfschema:"key"`
+	StorageAccountName string `tfschema:"name"`
 }
 
 type ResourceDeploymentScriptPatchModel struct {
@@ -107,7 +107,7 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Default: string(deploymentscripts.CleanupOptionsAlways),
 		},
 
-		"container_setting": {
+		"container": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
@@ -177,21 +177,21 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			ExactlyOneOf: []string{"primary_script_uri", "script_content"},
 		},
 
-		"storage_account_settings": {
+		"storage_account": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"storage_account_key": {
+					"key": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 						Sensitive:    true,
 					},
 
-					"storage_account_name": {
+					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,

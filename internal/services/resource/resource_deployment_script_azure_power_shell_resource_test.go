@@ -55,7 +55,7 @@ func TestAccResourceDeploymentScriptAzurePowerShell_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("environment_variable.0.secure_value", "storage_account_settings.0.storage_account_key"),
+		data.ImportStep("environment_variable.0.secure_value", "storage_account.0.key"),
 	})
 }
 
@@ -69,14 +69,14 @@ func TestAccResourceDeploymentScriptAzurePowerShell_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("environment_variable.0.secure_value", "storage_account_settings.0.storage_account_key"),
+		data.ImportStep("environment_variable.0.secure_value", "storage_account.0.key"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("environment_variable.0.secure_value", "storage_account_settings.0.storage_account_key"),
+		data.ImportStep("environment_variable.0.secure_value", "storage_account.0.key"),
 	})
 }
 
@@ -90,7 +90,7 @@ func TestAccResourceDeploymentScriptAzurePowerShell_scriptUri(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("environment_variable.0.secure_value", "storage_account_settings.0.storage_account_key"),
+		data.ImportStep("environment_variable.0.secure_value", "storage_account.0.key"),
 	})
 }
 
@@ -203,7 +203,7 @@ EOF
 
   supporting_script_uris = ["https://raw.githubusercontent.com/Azure/azure-docs-json-samples/master/deployment-script/create-cert.ps1"]
 
-  container_setting {
+  container {
     container_group_name = "cgn-%[2]d"
   }
 
@@ -224,9 +224,9 @@ EOF
     ]
   }
 
-  storage_account_settings {
-    storage_account_name = azurerm_storage_account.test.name
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
+  storage_account {
+    name = azurerm_storage_account.test.name
+    key  = azurerm_storage_account.test.primary_access_key
   }
 
   tags = {
@@ -279,7 +279,7 @@ EOF
 
   supporting_script_uris = ["https://raw.githubusercontent.com/Azure/azure-docs-json-samples/master/deployment-script/create-cert.ps1"]
 
-  container_setting {
+  container {
     container_group_name = "cgn-%[2]d"
   }
 
@@ -300,9 +300,9 @@ EOF
     ]
   }
 
-  storage_account_settings {
-    storage_account_name = azurerm_storage_account.test.name
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
+  storage_account {
+    name = azurerm_storage_account.test.name
+    key  = azurerm_storage_account.test.primary_access_key
   }
 
   tags = {

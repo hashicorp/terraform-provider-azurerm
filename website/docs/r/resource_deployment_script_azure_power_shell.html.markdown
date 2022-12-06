@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `cleanup_preference` - (Optional) Specifies the cleanup preference when the script execution gets in a terminal state. Possible values are `Always`, `OnExpiration`, `OnSuccess`. Defaults to `Always`. Changing this forces a new Resource Deployment Script to be created.
 
-* `container_setting` - (Optional) A `container_setting` block as defined below. Changing this forces a new Resource Deployment Script to be created.
+* `container` - (Optional) A `container` block as defined below. Changing this forces a new Resource Deployment Script to be created.
 
 * `environment_variable` - (Optional) An `environment_variable` block as defined below. Changing this forces a new Resource Deployment Script to be created.
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `script_content` - (Optional) Script body. Changing this forces a new Resource Deployment Script to be created.
 
-* `storage_account_settings` - (Optional) A `storage_account_settings` block as defined below. Changing this forces a new Resource Deployment Script to be created.
+* `storage_account` - (Optional) A `storage_account` block as defined below. Changing this forces a new Resource Deployment Script to be created.
 
 * `supporting_script_uris` - (Optional) Supporting files for the external script. Changing this forces a new Resource Deployment Script to be created.
 
@@ -96,9 +96,9 @@ The following arguments are supported:
 
 ---
 
-A `container_setting` block supports the following:
+A `container` block supports the following:
 
-* `container_group_name` - (Optional) Container group name, if not specified then the name will get auto-generated. Not specifying a 'containerGroupName' indicates the system to generate a unique name which might end up flagging an Azure Policy as non-compliant. Use 'containerGroupName' when you have an Azure Policy that expects a specific naming convention or when you want to fully control the name. 'containerGroupName' property must be between 1 and 63 characters long, must contain only lowercase letters, numbers, and dashes and it cannot start or end with a dash and consecutive dashes are not allowed. To specify a 'containerGroupName', add the following object to properties: { "containerSettings": { "containerGroupName": "contoso-container" } }. If you do not want to specify a 'containerGroupName' then do not add 'containerSettings' property.
+* `container_group_name` - (Optional) Container group name, if not specified then the name will get auto-generated. For more information, please refer to the [Container Configuration](https://learn.microsoft.com/en-us/rest/api/resources/deployment-scripts/create?tabs=HTTP#containerconfiguration) documentation.
 
 ---
 
@@ -120,11 +120,11 @@ An `identity` block supports the following:
 
 ---
 
-A `storage_account_settings` block supports the following:
+A `storage_account` block supports the following:
 
-* `storage_account_key` - (Required) Specifies the storage account access key.
+* `key` - (Required) Specifies the storage account access key.
 
-* `storage_account_name` - (Required) Specifies the storage account name.
+* `name` - (Required) Specifies the storage account name.
 
 ## Attributes Reference
 
