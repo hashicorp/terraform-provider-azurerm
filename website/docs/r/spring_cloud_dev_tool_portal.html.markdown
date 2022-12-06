@@ -32,8 +32,8 @@ resource "azurerm_spring_cloud_service" "example" {
 }
 
 resource "azurerm_spring_cloud_dev_tool_portal" "example" {
-  name = "default"
-  spring_cloud_service_id = azurerm_spring_cloud_service.example.id
+  name                          = "default"
+  spring_cloud_service_id       = azurerm_spring_cloud_service.example.id
   public_network_access_enabled = true
 
   sso {
