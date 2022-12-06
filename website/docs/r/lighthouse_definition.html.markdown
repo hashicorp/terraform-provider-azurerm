@@ -80,7 +80,7 @@ An `eligible_authorization` block supports the following:
 
 A `just_in_time_access_policy` block supports the following:
 
-* `multi_factor_auth_provider` - (Required) The multi-factor authorization provider to be used for just-in-time access requests. Possible value is `Azure`.
+* `multi_factor_auth_provider` - (Optional) The multi-factor authorization provider to be used for just-in-time access requests. Possible value is `Azure`.
 
 ~> **Note:** When this property isn't set, it would be set to `None`.
 
