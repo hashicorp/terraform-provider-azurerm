@@ -27,7 +27,7 @@ resource "azurerm_security_center_setting" "example" {
 
 The following arguments are supported:
 
-* `setting_name` - (Required) The setting to manage. Possible values are `MCAS` and `WDATP`. Changing this forces a new resource to be created.
+* `setting_name` - (Required) The setting to manage. Possible values are `MCAS` , `WDATP` and `SENTINEL`. Changing this forces a new resource to be created.
 * `enabled` - (Required) Boolean flag to enable/disable data access.
 
 ## Attributes Reference

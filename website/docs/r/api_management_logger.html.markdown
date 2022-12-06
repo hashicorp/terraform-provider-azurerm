@@ -10,7 +10,6 @@ description: |-
 
 Manages a Logger within an API Management Service.
 
-
 ## Example Usage
 
 ```hcl
@@ -48,7 +47,6 @@ resource "azurerm_api_management_logger" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -83,7 +81,6 @@ An `eventhub` block supports the following:
 
 * `connection_string` - (Required) The connection string of an EventHub Namespace.
 
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -104,5 +101,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 API Management Loggers can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_api_management_logger.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/example-rg/providers/Microsoft.ApiManagement/service/example-apim/loggers/example-logger
+terraform import azurerm_api_management_logger.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/example-rg/providers/Microsoft.ApiManagement/service/example-apim/loggers/example-logger
 ```

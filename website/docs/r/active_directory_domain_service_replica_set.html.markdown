@@ -284,7 +284,7 @@ The following arguments are supported:
   
 * `location` - (Required) The Azure location where this Replica Set should exist. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set.
+* `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set. Changing this forces a new resource to be created.
   
 ## Attributes Reference
 

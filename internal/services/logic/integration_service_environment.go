@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -24,14 +23,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIntegrationServiceEnvironmentCreateUpdate,
-		Read:   resourceIntegrationServiceEnvironmentRead,
-		Update: resourceIntegrationServiceEnvironmentCreateUpdate,
-		Delete: resourceIntegrationServiceEnvironmentDelete,
+		Create:             resourceIntegrationServiceEnvironmentCreateUpdate,
+		Read:               resourceIntegrationServiceEnvironmentRead,
+		Update:             resourceIntegrationServiceEnvironmentCreateUpdate,
+		Delete:             resourceIntegrationServiceEnvironmentDelete,
+		DeprecationMessage: "The \"azurerm_integrated_service_environment\" resource is deprecated and will be removed in v4.0 of the Azure Provider. The underlying Azure Service is being retired on 2024-08-31 and new instances cannot be provisioned by default after 2022-11-01. More information on the retirement and how to migrate to Logic Apps Standard (\"azurerm_logic_app_standard\") can be found here: https://aka.ms/isedeprecation.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IntegrationServiceEnvironmentID(id)

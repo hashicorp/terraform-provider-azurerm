@@ -91,13 +91,14 @@ The following arguments are supported:
 
 * `tenant_access` - (Optional) A `tenant_access` block as defined below.
 
-* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP. 
+* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
 ~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
 * `public_network_access_enabled` - (Optional) Is public access to the service allowed?. Defaults to `true`
 
-* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
@@ -112,7 +113,7 @@ A `additional_location` block supports the following:
 
 * `capacity` - (Optional) The number of compute units in this region. Defaults to the capacity of the main region.
 
-* `zones` - (Optional) A list of availability zones.
+* `zones` - (Optional) A list of availability zones. Changing this forces a new resource to be created.
 
 * `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
@@ -250,11 +251,11 @@ A `security` block supports the following:
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` field
 
-* `tls_ecdheRsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` field
 
-* `tls_ecdheRsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` field
 
@@ -269,6 +270,10 @@ A `security` block supports the following:
 * `tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256` field
+
+* `tls_rsa_with_aes256_gcm_sha384_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_GCM_SHA384` cipher be enabled? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384` field
 
 * `tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher be enabled? Defaults to `false`.
 
@@ -341,7 +346,6 @@ A `terms_of_service` block supports the following:
 * `enabled` - (Required) Should Terms of Service be displayed during sign up?.
 
 * `text` - (Required) The Terms of Service which users are required to agree to in order to sign up.
-
 
 ## Attributes Reference
 
@@ -422,7 +426,6 @@ The `hostname_configuration` block exports the following:
 * `certificate_source` - The source of the certificate.
 
 * `certificate_status` - The status of the certificate.
-
 
 ## Timeouts
 

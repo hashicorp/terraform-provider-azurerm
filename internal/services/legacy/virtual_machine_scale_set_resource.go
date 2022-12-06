@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -24,11 +23,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
-//       `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
-//       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
+//
+//	`azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
+//	and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
 func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineScaleSetCreateUpdate,
@@ -1987,9 +1988,9 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *pluginsdk.ResourceData) *com
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
+	identityIds := make(map[string]*compute.UserAssignedIdentitiesValue)
 	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
+		identityIds[id.(string)] = &compute.UserAssignedIdentitiesValue{}
 	}
 
 	vmssIdentity := compute.VirtualMachineScaleSetIdentity{

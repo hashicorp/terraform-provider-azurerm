@@ -117,6 +117,24 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.IntBetween(5, 60),
 									},
+
+									"days_of_week": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekMonday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekTuesday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekWednesday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekThursday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekFriday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekSaturday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekSunday),
+											}, false),
+										},
+									},
 								},
 							},
 						},
@@ -315,6 +333,64 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validate.SqlVirtualMachineLoginUserName,
 			},
 
+			"sql_instance": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"adhoc_workloads_optimization_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"collation": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      "SQL_Latin1_General_CP1_CI_AS",
+							ValidateFunc: validate.DatabaseCollation(),
+						},
+
+						"instant_file_initialization_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
+
+						"lock_pages_in_memory_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
+
+						"max_dop": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 32767),
+						},
+
+						"max_server_memory_mb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      2147483647,
+							ValidateFunc: validation.IntBetween(128, 2147483647),
+						},
+
+						"min_server_memory_mb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 2147483647),
+						},
+					},
+				},
+			},
+
 			"storage_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -338,6 +414,11 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 								string(sqlvirtualmachines.SqlWorkloadTypeOLTP),
 								string(sqlvirtualmachines.SqlWorkloadTypeDW),
 							}, false),
+						},
+						"system_db_on_data_disk_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 						"data_settings":    helper.StorageSettingSchema(),
 						"log_settings":     helper.StorageSettingSchema(),
@@ -407,14 +488,23 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("location is empty from making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
 	}
 
+	sqlInstance, err := expandSqlVirtualMachineSQLInstance(d.Get("sql_instance").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `sql_instance`: %+v", err)
+	}
+
 	connectivityType := sqlvirtualmachines.ConnectivityType(d.Get("sql_connectivity_type").(string))
 	sqlManagement := sqlvirtualmachines.SqlManagementModeFull
 	sqlServerLicenseType := sqlvirtualmachines.SqlServerLicenseType(d.Get("sql_license_type").(string))
+	autoBackupSettings, err := expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `auto_backup`: %+v", err)
+	}
 
 	parameters := sqlvirtualmachines.SqlVirtualMachine{
 		Location: *respvm.Location,
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
-			AutoBackupSettings:         expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{})),
+			AutoBackupSettings:         autoBackupSettings,
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 			AssessmentSettings:         expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
@@ -428,6 +518,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 					SqlAuthUpdatePassword: utils.String(d.Get("sql_connectivity_update_password").(string)),
 					SqlAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
 				},
+				SqlInstanceSettings: sqlInstance,
 			},
 			SqlManagement:                &sqlManagement,
 			SqlServerLicenseType:         &sqlServerLicenseType,
@@ -541,6 +632,8 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 					d.Set("sql_connectivity_port", mgmtSettings.SqlConnectivityUpdateSettings.Port)
 					d.Set("sql_connectivity_type", mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType)
 				}
+
+				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))
 			}
 
 			// `storage_configuration.0.storage_workload_type` is in a different spot than the rest of the `storage_configuration`
@@ -626,6 +719,28 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 									if !strings.EqualFold(v2.(string), val2.(string)) {
 										return resp, "Pending", nil
 									}
+								case "days_of_week":
+									daysOfWeekLocal := make(map[string]bool, 0)
+									if v2 != nil {
+										for _, item := range v2.(*pluginsdk.Set).List() {
+											daysOfWeekLocal[item.(string)] = true
+										}
+									}
+
+									daysOfWeekRemote := make([]interface{}, 0)
+									if val2 != nil {
+										daysOfWeekRemote = val2.([]interface{})
+									}
+
+									if len(daysOfWeekRemote) != len(daysOfWeekLocal) {
+										return resp, "Pending", nil
+									}
+
+									for _, item := range daysOfWeekRemote {
+										if _, ok := daysOfWeekLocal[item.(string)]; !ok {
+											return resp, "Pending", nil
+										}
+									}
 								default:
 									if v2 != val2 {
 										return resp, "Pending", nil
@@ -651,7 +766,7 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 	}
 }
 
-func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualmachines.AutoBackupSettings {
+func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtualmachines.AutoBackupSettings, error) {
 	ret := sqlvirtualmachines.AutoBackupSettings{
 		Enable: utils.Bool(false),
 	}
@@ -688,23 +803,24 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualm
 			backupScheduleTypeManual := sqlvirtualmachines.BackupScheduleTypeManual
 			ret.BackupScheduleType = &backupScheduleTypeManual
 
-			if v, ok := manualSchedule["full_backup_frequency"]; ok {
-				fullBackupFrequencyType := sqlvirtualmachines.FullBackupFrequencyType(v.(string))
-				ret.FullBackupFrequency = &fullBackupFrequencyType
+			fullBackupFrequency := sqlvirtualmachines.FullBackupFrequencyType(manualSchedule["full_backup_frequency"].(string))
+
+			daysOfWeek := manualSchedule["days_of_week"].(*pluginsdk.Set).List()
+			if len(daysOfWeek) > 0 {
+				if !strings.EqualFold(string(fullBackupFrequency), string(sqlvirtualmachines.FullBackupFrequencyTypeWeekly)) {
+					return nil, fmt.Errorf("`manual_schedule.0.days_of_week` can only be specified when `manual_schedule.0.full_backup_frequency` is set to `Weekly`")
+				}
+				ret.DaysOfWeek = expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(daysOfWeek)
 			}
-			if v, ok := manualSchedule["full_backup_start_hour"]; ok {
-				ret.FullBackupStartTime = utils.Int64(int64(v.(int)))
-			}
-			if v, ok := manualSchedule["full_backup_window_in_hours"]; ok {
-				ret.FullBackupWindowHours = utils.Int64(int64(v.(int)))
-			}
-			if v, ok := manualSchedule["log_backup_frequency_in_minutes"]; ok {
-				ret.LogBackupFrequency = utils.Int64(int64(v.(int)))
-			}
+
+			ret.FullBackupFrequency = &fullBackupFrequency
+			ret.FullBackupStartTime = utils.Int64(int64(manualSchedule["full_backup_start_hour"].(int)))
+			ret.FullBackupWindowHours = utils.Int64(int64(manualSchedule["full_backup_window_in_hours"].(int)))
+			ret.LogBackupFrequency = utils.Int64(int64(manualSchedule["log_backup_frequency_in_minutes"].(int)))
 		}
 	}
 
-	return &ret
+	return &ret, nil
 }
 
 func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBackupSettings, d *pluginsdk.ResourceData) []interface{} {
@@ -744,6 +860,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 				"full_backup_start_hour":          fullBackupStartHour,
 				"full_backup_window_in_hours":     fullBackupWindowHours,
 				"log_backup_frequency_in_minutes": logBackupFrequency,
+				"days_of_week":                    flattenSqlVirtualMachineAutoBackupDaysOfWeek(autoBackup.DaysOfWeek),
 			},
 		}
 	}
@@ -770,6 +887,26 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 			"system_databases_backup_enabled": autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
 		},
 	}
+}
+
+func expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(input []interface{}) *[]sqlvirtualmachines.AutoBackupDaysOfWeek {
+	result := make([]sqlvirtualmachines.AutoBackupDaysOfWeek, 0)
+	for _, item := range input {
+		result = append(result, sqlvirtualmachines.AutoBackupDaysOfWeek(item.(string)))
+	}
+	return &result
+}
+
+func flattenSqlVirtualMachineAutoBackupDaysOfWeek(daysOfWeek *[]sqlvirtualmachines.AutoBackupDaysOfWeek) []interface{} {
+	output := make([]interface{}, 0)
+
+	if daysOfWeek != nil {
+		for _, v := range *daysOfWeek {
+			output = append(output, string(v))
+		}
+	}
+
+	return output
 }
 
 func resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx context.Context, client *sqlvirtualmachines.SqlVirtualMachinesClient, d *pluginsdk.ResourceData) pluginsdk.StateRefreshFunc {
@@ -1027,6 +1164,7 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 	return &sqlvirtualmachines.StorageConfigurationSettings{
 		DiskConfigurationType: &diskConfigurationType,
 		StorageWorkloadType:   &storageWorkloadType,
+		SqlSystemDbOnDataDisk: utils.Bool(storageSettings["system_db_on_data_disk_enabled"].(bool)),
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
 		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
@@ -1043,12 +1181,18 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		diskType = string(*input.DiskConfigurationType)
 	}
 
+	systemDbOnDataDisk := false
+	if input.SqlSystemDbOnDataDisk != nil {
+		systemDbOnDataDisk = *input.SqlSystemDbOnDataDisk
+	}
+
 	output := map[string]interface{}{
-		"storage_workload_type": storageWorkloadType,
-		"disk_type":             diskType,
-		"data_settings":         flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
-		"log_settings":          flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
-		"temp_db_settings":      flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
+		"storage_workload_type":          storageWorkloadType,
+		"disk_type":                      diskType,
+		"system_db_on_data_disk_enabled": systemDbOnDataDisk,
+		"data_settings":                  flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
+		"log_settings":                   flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
+		"temp_db_settings":               flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
 	}
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
@@ -1153,4 +1297,79 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 	}
 
 	return []interface{}{attrs}
+}
+func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
+	if len(input) == 0 || input[0] == nil {
+		return &sqlvirtualmachines.SQLInstanceSettings{}, nil
+	}
+
+	settings := input[0].(map[string]interface{})
+	maxServerMemoryMB := settings["max_server_memory_mb"].(int)
+	minServerMemoryMB := settings["min_server_memory_mb"].(int)
+
+	if maxServerMemoryMB < minServerMemoryMB {
+		return nil, fmt.Errorf("`max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`")
+	}
+
+	result := sqlvirtualmachines.SQLInstanceSettings{
+		Collation:                          utils.String(settings["collation"].(string)),
+		IsIfiEnabled:                       utils.Bool(settings["instant_file_initialization_enabled"].(bool)),
+		IsLpimEnabled:                      utils.Bool(settings["lock_pages_in_memory_enabled"].(bool)),
+		IsOptimizeForAdHocWorkloadsEnabled: utils.Bool(settings["adhoc_workloads_optimization_enabled"].(bool)),
+		MaxDop:                             utils.Int64(int64(settings["max_dop"].(int))),
+		MaxServerMemoryMB:                  utils.Int64(int64(maxServerMemoryMB)),
+		MinServerMemoryMB:                  utils.Int64(int64(minServerMemoryMB)),
+	}
+
+	return &result, nil
+}
+
+func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSettings) []interface{} {
+	if input == nil || input.Collation == nil {
+		return []interface{}{}
+	}
+
+	collation := *input.Collation
+
+	isIfiEnabled := false
+	if input.IsIfiEnabled != nil {
+		isIfiEnabled = *input.IsIfiEnabled
+	}
+
+	isLpimEnabled := false
+	if input.IsLpimEnabled != nil {
+		isLpimEnabled = *input.IsLpimEnabled
+	}
+
+	isOptimizeForAdhocWorkloadsEnabled := false
+	if input.IsOptimizeForAdHocWorkloadsEnabled != nil {
+		isOptimizeForAdhocWorkloadsEnabled = *input.IsOptimizeForAdHocWorkloadsEnabled
+	}
+
+	var maxDop int64 = 0
+	if input.MaxDop != nil {
+		maxDop = *input.MaxDop
+	}
+
+	var maxServerMemoryMB int64 = 2147483647
+	if input.MaxServerMemoryMB != nil {
+		maxServerMemoryMB = *input.MaxServerMemoryMB
+	}
+
+	var minServerMemoryMB int64 = 0
+	if input.MinServerMemoryMB != nil {
+		minServerMemoryMB = *input.MinServerMemoryMB
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"adhoc_workloads_optimization_enabled": isOptimizeForAdhocWorkloadsEnabled,
+			"collation":                            collation,
+			"instant_file_initialization_enabled":  isIfiEnabled,
+			"lock_pages_in_memory_enabled":         isLpimEnabled,
+			"max_dop":                              maxDop,
+			"max_server_memory_mb":                 maxServerMemoryMB,
+			"min_server_memory_mb":                 minServerMemoryMB,
+		},
+	}
 }

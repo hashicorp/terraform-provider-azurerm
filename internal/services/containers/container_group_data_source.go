@@ -87,7 +87,7 @@ func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("zones", zones.Flatten(model.Zones))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err

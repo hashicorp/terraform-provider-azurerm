@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
@@ -453,9 +453,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		d.Set("virtual_network_gateway_id", conn.VirtualNetworkGateway1.ID)
 	}
 
-	if conn.AuthorizationKey != nil {
-		d.Set("authorization_key", conn.AuthorizationKey)
-	}
+	// not returned from api - getting from state
+	d.Set("authorization_key", d.Get("authorization_key").(string))
 
 	if conn.DpdTimeoutSeconds != nil {
 		d.Set("dpd_timeout_seconds", conn.DpdTimeoutSeconds)

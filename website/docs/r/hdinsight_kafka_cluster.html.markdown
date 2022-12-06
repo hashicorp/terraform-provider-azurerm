@@ -298,7 +298,7 @@ A `kafka_management_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Kafka Management Nodes should be provisioned within. Changing this forces a new resource to be created.
 
---- 
+---
 
 A `metastores` block supports the following:
 
@@ -319,7 +319,6 @@ A `hive` block supports the following:
 * `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
-
 
 ---
 
@@ -367,7 +366,7 @@ A `rest_proxy` block supports the following:
 
 * `security_group_id` - (Required) The Azure Active Directory Security Group ID. Changing this forces a new resource to be created.
 
-* `security_group_name` - (Optional) The Azure Active Directory Security Group name. Changing this forces a new resource to be created.
+* `security_group_name` - (Required) The Azure Active Directory Security Group name. Changing this forces a new resource to be created.
 
 -> **Note:** The `security_group_name` property will be Required in version 3.0 of the AzureRM Provider.
 

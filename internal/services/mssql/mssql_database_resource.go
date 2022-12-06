@@ -164,7 +164,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, d.Get("maintenance_configuration_name").(string))
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
@@ -237,7 +236,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
 			RequestedBackupStorageRedundancy: sql.RequestedBackupStorageRedundancy(d.Get("storage_account_type").(string)),
 			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
-			MaintenanceConfigurationID:       utils.String(maintenanceConfigId.ID()),
 			IsLedgerOn:                       utils.Bool(ledgerEnabled),
 		},
 
@@ -253,6 +251,16 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
 		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
+	}
+
+	// we should not specify the value of `maintenance_configuration_name` when `elastic_pool_id` is set since its value depends on the elastic pool's `maintenance_configuration_name` value.
+	if _, ok := d.GetOk("elastic_pool_id"); !ok {
+		// set default value here because `elastic_pool_id` is not specified, API returns default value `SQL_Default` for `maintenance_configuration_name`
+		maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, "SQL_Default")
+		if v, ok := d.GetOk("maintenance_configuration_name"); ok {
+			maintenanceConfigId = publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, v.(string))
+		}
+		params.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
 	}
 
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
@@ -520,7 +528,12 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
 		d.Set("elastic_pool_id", props.ElasticPoolID)
-		d.Set("license_type", props.LicenseType)
+		if props.LicenseType != "" {
+			d.Set("license_type", props.LicenseType)
+		} else {
+			// value not returned, try to set from existing state/config
+			d.Set("license_type", d.Get("license_type").(string))
+		}
 		if props.MaxSizeBytes != nil {
 			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
@@ -540,11 +553,17 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props.IsLedgerOn != nil {
 			ledgerEnabled = *props.IsLedgerOn
 		}
-		maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
-		if err != nil {
-			return err
+
+		configurationName := ""
+		if v := props.MaintenanceConfigurationID; v != nil {
+			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*v)
+			if err != nil {
+				return err
+			}
+			configurationName = maintenanceConfigId.ResourceName
 		}
-		d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
+		d.Set("maintenance_configuration_name", configurationName)
+
 		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
@@ -1059,7 +1078,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"maintenance_configuration_name": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Default:       "SQL_Default",
+			Computed:      true,
 			ConflictsWith: []string{"elastic_pool_id"},
 			ValidateFunc:  validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 		},

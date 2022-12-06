@@ -111,6 +111,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
 }
 ```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -123,7 +124,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_ids` - (Required) One or more Front Door Origin resource IDs that this Front Door Route will link to.
 
-* `forwarding_protocol` - (Required) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
+* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
 
 * `patterns_to_match` - (Required) The route patterns of the rule.
 
@@ -159,7 +160,7 @@ A `cache` block supports the following:
 
 * `query_strings` - (Optional) Query strings to include or ignore.
 
-* `compression_enabled` - (Optional) Is content compression enabled? Possible values are `true` or `false`. Defaults to `false`. 
+* `compression_enabled` - (Optional) Is content compression enabled? Possible values are `true` or `false`. Defaults to `false`.
 
 ~> **NOTE:** Content won't be compressed when the requested content is smaller than `1 KB` or larger than `8 MB`(inclusive).
 

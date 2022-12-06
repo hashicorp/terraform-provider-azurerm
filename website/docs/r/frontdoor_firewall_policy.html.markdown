@@ -8,9 +8,9 @@ description: |-
 
 # azurerm_frontdoor_firewall_policy
 
-Manages an Azure Front Door (classic) Web Application Firewall Policy instance.
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain). The service team has [announced](https://azure.microsoft.com/blog/zero-downtime-migration-for-azure-front-door-now-in-preview/) the release of their `Front Door Classic` to `Front Door Standard/Premium` [migration tool](https://learn.microsoft.com/azure/frontdoor/tier-migration) to allow you to migrate your existing `Front Door Classic` instances to the new `Front Door Standard/Premium` product tiers.
 
-!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_endpoint).
+Manages an Azure Front Door (classic) Web Application Firewall Policy instance.
 
 !> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and Front Door resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
@@ -127,7 +127,7 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the policy. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the policy. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
@@ -151,7 +151,7 @@ The following arguments are supported:
 
 The `custom_rule` block supports the following:
 
-* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
+* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource. Changing this forces a new resource to be created.
 
 * `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
@@ -251,5 +251,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 FrontDoor Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/examplefdwafpolicy
+terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/examplefdwafpolicy
 ```

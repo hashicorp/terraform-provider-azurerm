@@ -85,11 +85,11 @@ An `upstream_endpoint` block supports the following:
 
 * `url_template` - (Required) The upstream URL Template. This can be a url or a template such as `http://host.com/{hub}/api/{category}/{event}`.
 
-* `category_pattern` - (Optional) The categories to match on, or `*` for all.
+* `category_pattern` - (Required) The categories to match on, or `*` for all.
 
-* `event_pattern` - (Optional) The events to match on, or `*` for all.
+* `event_pattern` - (Required) The events to match on, or `*` for all.
 
-* `hub_pattern` - (Optional) The hubs to match on, or `*` for all.
+* `hub_pattern` - (Required) The hubs to match on, or `*` for all.
 
 ---
 

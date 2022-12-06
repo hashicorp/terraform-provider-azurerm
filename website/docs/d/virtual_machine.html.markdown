@@ -38,7 +38,7 @@ output "virtual_machine_id" {
 * `id` - The ID of the Virtual Machine.
 
 * `identity` - A `identity` block as defined below.
-* 
+*
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 
 * `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.

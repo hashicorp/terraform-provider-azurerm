@@ -28,7 +28,6 @@ output "access_policy_key_permissions" {
 `Secret Management`, `Certificate Management`, `Key & Secret Management`, `Key & Certificate Management`,
 `Secret & Certificate Management`,  `Key, Secret, & Certificate Management`
 
-
 ## Attributes Reference
 
 The following attributes are exported:

@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
+	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -58,12 +59,43 @@ func expandResourceReference(input string) *cdn.ResourceReference {
 	}
 }
 
-func flattenResourceReference(input *cdn.ResourceReference) string {
+func flattenOriginGroupResourceReference(input *cdn.ResourceReference) (string, error) {
 	if input != nil && input.ID != nil {
-		return *input.ID
+		id, err := parse.FrontDoorOriginGroupIDInsensitively(*input.ID)
+		if err != nil {
+			return "", err
+		}
+
+		return id.ID(), nil
 	}
 
-	return ""
+	return "", nil
+}
+
+func flattenSecretResourceReference(input *cdn.ResourceReference) (string, error) {
+	if input != nil && input.ID != nil {
+		id, err := parse.FrontDoorSecretIDInsensitively(*input.ID)
+		if err != nil {
+			return "", err
+		}
+
+		return id.ID(), nil
+	}
+
+	return "", nil
+}
+
+func flattenDNSZoneResourceReference(input *cdn.ResourceReference) (string, error) {
+	if input != nil && input.ID != nil {
+		id, err := dnsValidate.ParseDnsZoneIDInsensitively(*input.ID)
+		if err != nil {
+			return "", err
+		}
+
+		return id.ID(), nil
+	}
+
+	return "", nil
 }
 
 func flattenEnabledBool(input cdn.EnabledState) bool {

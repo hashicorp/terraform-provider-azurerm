@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/deletedconfigurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 )
 
@@ -48,6 +49,38 @@ func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string
 	client := appconfiguration.NewWithoutDefaults("", endpoint)
 	c.configureClientFunc(&client.Client, appConfigAuth)
 	return &client, nil
+}
+
+func (c Client) LinkWorkaroundDataPlaneClient(ctx context.Context, configurationStoreId string) (*azuresdkhacks.DataPlaneClient, error) {
+	appConfigId, err := configurationstores.ParseConfigurationStoreID(configurationStoreId)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: caching all of this
+	appConfig, err := c.ConfigurationStoresClient.Get(ctx, *appConfigId)
+	if err != nil {
+		if response.WasNotFound(appConfig.HttpResponse) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	if appConfig.Model == nil || appConfig.Model.Properties == nil || appConfig.Model.Properties.Endpoint == nil {
+		return nil, fmt.Errorf("endpoint was nil")
+	}
+
+	endpoint := *appConfig.Model.Properties.Endpoint
+	appConfigAuth, err := c.tokenFunc(endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", endpoint, err)
+	}
+
+	client := appconfiguration.NewWithoutDefaults("", endpoint)
+	c.configureClientFunc(&client.Client, appConfigAuth)
+	workaroundClient := azuresdkhacks.NewDataPlaneClient(client)
+	return &workaroundClient, nil
 }
 
 func NewClient(o *common.ClientOptions) *Client {

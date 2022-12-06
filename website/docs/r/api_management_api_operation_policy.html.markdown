@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management API Operation Policy
 
-
 ## Example Usage
 
 ```hcl
@@ -66,7 +65,6 @@ XML
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -77,7 +75,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `operation_id` - (Required) The operation identifier within an API. Must be unique in the current API Management service instance.
+* `operation_id` - (Required) The operation identifier within an API. Must be unique in the current API Management service instance. Changing this forces a new resource to be created.
 
 * `xml_content` - (Optional) The XML Content for this Policy.
 

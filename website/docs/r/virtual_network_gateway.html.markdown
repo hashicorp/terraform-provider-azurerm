@@ -109,15 +109,11 @@ The following arguments are supported:
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
-* `location` - (Required) The location/region where the Virtual Network Gateway is
-  located. Changing the location/region forces a new resource to be created.
+* `location` - (Required) The location/region where the Virtual Network Gateway is located. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Virtual Network Gateway. Changing the name
-  forces a new resource to be created.
+* `name` - (Required) The name of the Virtual Network Gateway. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-  create the Virtual Network Gateway. Changing the resource group name forces
-  a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Virtual Network Gateway. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
   gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
@@ -131,8 +127,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
-* `type` - (Required) The type of the Virtual Network Gateway. Valid options are
-  `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
+* `type` - (Required) The type of the Virtual Network Gateway. Valid options are `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
 
 ---
 
@@ -151,10 +146,10 @@ The following arguments are supported:
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled
   for this Virtual Network Gateway. Defaults to `false`.
-  
+
 * `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 
-* `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
+* `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`. Changing this forces a new resource to be created.
 
 -> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
 
@@ -166,15 +161,13 @@ The following arguments are supported:
   is documented below. In this block the Virtual Network Gateway can be configured
   to accept IPSec point-to-site connections.
 
-* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid
-  options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
+* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
 ---
 
 The `ip_configuration` block supports:
 
-* `name` - (Optional) A user-defined name of the IP configuration. Defaults to
-    `vnetGatewayConfig`.
+* `name` - (Optional) A user-defined name of the IP configuration. Defaults to `vnetGatewayConfig`. Changing this forces a new resource to be created.
 
 * `private_ip_address_allocation` - (Optional) Defines how the private IP address
     of the gateways virtual interface is assigned. Valid options are `Static` or
@@ -200,7 +193,7 @@ The `vpn_client_configuration` block supports:
 
 * `aad_audience` - (Optional) The client id of the Azure VPN application.
     See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
-  
+
 * `aad_issuer` - (Optional) The STS url for your tenant
 
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are
@@ -216,13 +209,14 @@ The `vpn_client_configuration` block supports:
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
-    Values `SSTP` and `IkeV2` are incompatible with the use of 
+    Values `SSTP` and `IkeV2` are incompatible with the use of
     `aad_tenant`, `aad_audience` and `aad_issuer`.
 
 * `vpn_auth_types` - (Optional) List of the vpn authentication types for the virtual network gateway.
     The supported values are `AAD`, `Radius` and `Certificate`.
 
 -> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types.
+
 ---
 
 The `bgp_settings` block supports:
@@ -233,7 +227,7 @@ The `bgp_settings` block supports:
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
-  
+
 ---
 
 A `custom_route` block supports the following:
@@ -247,29 +241,29 @@ A `peering_addresses` supports the following:
 * `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
 
 * `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway.
-  
+
 ~> **Note:** The valid range for the reserved APIPA address in Azure Public is from `169.254.21.0` to `169.254.22.255`.
 
 ---
 
 The `root_certificate` block supports:
 
-* `name` - (Required) A user-defined name of the root certificate.
+* `name` - (Required) A user-defined name of the root certificate. Changing this forces a new resource to be created.
 
 * `public_cert_data` - (Required) The public certificate of the root certificate
     authority. The certificate must be provided in Base-64 encoded X.509 format
     (PEM). In particular, this argument *must not* include the
     `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers.
- 
+
 ---
 
 The `root_revoked_certificate` block supports:
 
-* `name` - (Required) A user-defined name of the revoked certificate.
+* `name` - (Required) A user-defined name of the revoked certificate. Changing this forces a new resource to be created.
 
 * `public_cert_data` - (Required) The SHA1 thumbprint of the certificate to be
     revoked.
-  
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -291,7 +285,6 @@ The `peering_addresses` supports:
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 
 * `tunnel_ip_addresses` - A list of tunnel IP addresses assigned to the BGP peer of the Virtual Network Gateway.
-
 
 ## Timeouts
 

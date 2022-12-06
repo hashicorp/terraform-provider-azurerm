@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
@@ -30,6 +28,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 	"golang.org/x/net/context"
 )
 
@@ -49,8 +49,9 @@ func userDataStateFunc(v interface{}) string {
 }
 
 // NOTE: the `azurerm_virtual_machine` resource has been superseded by the `azurerm_linux_virtual_machine` and
-// 		 `azurerm_windows_virtual_machine` resources - as such this resource is feature-frozen and new
-//		 functionality will be added to these new resources instead.
+//
+//	`azurerm_windows_virtual_machine` resources - as such this resource is feature-frozen and new
+//	functionality will be added to these new resources instead.
 func resourceVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineCreateUpdate,
@@ -1443,9 +1444,9 @@ func expandAzureRmVirtualMachineIdentity(d *pluginsdk.ResourceData) *compute.Vir
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue)
+	identityIds := make(map[string]*compute.UserAssignedIdentitiesValue)
 	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
+		identityIds[id.(string)] = &compute.UserAssignedIdentitiesValue{}
 	}
 
 	vmIdentity := compute.VirtualMachineIdentity{

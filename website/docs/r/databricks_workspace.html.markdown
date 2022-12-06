@@ -98,7 +98,6 @@ A `custom_parameters` block supports the following:
 
 ~> **NOTE** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
 
-
 ## Example HCL Configurations
 
 * [Databricks Workspace Secure Connectivity Cluster with Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/secure-connectivity-cluster/with-load-balancer)
@@ -107,7 +106,6 @@ A `custom_parameters` block supports the following:
 * [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/managed-services)
 * [Databricks Workspace with Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs)
 * [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services)
-
 
 ## Attributes Reference
 
@@ -132,7 +130,6 @@ A `storage_account_identity` block exports the following:
 * `tenant_id` - The UUID of the tenant where the internal databricks storage account was created.
 
 * `type` - The type of the internal databricks storage account.
-
 
 ## Timeouts
 

@@ -49,13 +49,13 @@ The following arguments are supported:
 
 * `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. 
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
 * `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones). Changing this forces a new resource to be created. Defaults to `false`.
 
-~> **Note:** `zone_redundant` is computed by api based on the availability zone in each region. User's input will be overridden. It will turn into a computed property in 4.0 provider.
+~> **Note:** For eventhub premium namespace, `zone_redundant` is computed by api based on the availability zone feature in each region. User's input will be overridden. Please explicitly sets the property to `true` when creating the premium namespace in a region that supports availability zone since the default value is `false` in 3.0 provider.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -143,8 +143,6 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

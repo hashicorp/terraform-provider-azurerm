@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `allocation_policy` - (Optional) The allocation policy of the IoT Device Provisioning Service (`Hashed`, `GeoLatency` or `Static`). Defaults to `Hashed`.
 
-* `data_residency_enabled` - (Optional) Specifies if the IoT Device Provisioning Service has data residency and disaster recovery enabled. Defaults to `false`.
+* `data_residency_enabled` - (Optional) Specifies if the IoT Device Provisioning Service has data residency and disaster recovery enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as defined below.
 
@@ -102,8 +102,6 @@ The following attributes are exported:
 * `service_operations_host_name` - The service endpoint of the IoT Device Provisioning Service.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

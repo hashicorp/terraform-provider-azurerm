@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2021-04-01/objectreplicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -111,7 +111,7 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 }
 
 func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ObjectReplicationClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicies
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,7 +188,7 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ObjectReplicationClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicies
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -227,7 +227,7 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ObjectReplicationClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -271,7 +271,7 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceStorageObjectReplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ObjectReplicationClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

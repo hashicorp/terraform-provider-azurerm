@@ -128,7 +128,7 @@ The following arguments are supported:
 
 an `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature be enabled?
+* `enabled` - (Optional) Should the Authentication / Authorization feature be enabled?
 
 * `active_directory` - (Optional) an `active_directory` block as detailed below.
 
@@ -148,7 +148,7 @@ an `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) a `microsoft` block as detailed below.
 
@@ -255,6 +255,8 @@ A `site_config` block supports the following:
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Functions Runtime Scale Monitoring be enabled.
+
+~> **NOTE:** Functions runtime scale monitoring can only be enabled for Elastic Premium Function Apps or Workflow Standard Logic Apps and requires a minimum prewarmed instance count of 1.
 
 * `scm_ip_restriction` - (Optional) a `scm_ip_restriction` block as detailed below.
 
@@ -386,13 +388,13 @@ An `application_stack` block supports the following:
 
 * `docker` - (Optional) a `docker` block as detailed below.
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1` and `6.0`.
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0` and `7.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
 
-* `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
+* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16` and `18`
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , and `7.2`.
 
@@ -496,7 +498,6 @@ A `storage_account` block supports the following:
 
 * `mount_path` - (Optional) The path at which to mount the storage share.
 
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -536,7 +537,6 @@ A `site_credential` block exports the following:
 * `name` - The Site Credentials Username used for publishing.
 
 * `password` - The Site Credentials Password used for publishing.
-
 
 ## Timeouts
 

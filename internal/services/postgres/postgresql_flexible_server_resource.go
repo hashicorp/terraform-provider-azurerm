@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -74,6 +74,33 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"authentication": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"active_directory_auth_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"password_auth_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							RequiredWith: []string{
+								"authentication.0.active_directory_auth_enabled",
+							},
+						},
+					},
+				},
 			},
 
 			"sku_name": {
@@ -322,6 +349,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
 	}
 
+	if authRaw, ok := d.GetOk("authentication"); ok {
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw)
+	}
+
 	if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -406,6 +437,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
+
+			if props.AuthConfig != nil {
+				d.Set("authentication", flattenFlexibleServerAuthConfig(props.AuthConfig))
+			}
 		}
 
 		sku, err := flattenFlexibleServerSku(model.Sku)
@@ -433,7 +468,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	parameters := servers.ServerForUpdate{
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &servers.ServerPropertiesForUpdate{},
 	}
 
@@ -481,6 +515,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("administrator_password") {
 		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
+	}
+
+	if d.HasChange("authentication") {
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication"))
 	}
 
 	if d.HasChange("storage_mb") {
@@ -720,4 +758,46 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 			"standby_availability_zone": zone,
 		},
 	}
+}
+
+func expandFlexibleServerAuthConfig(authRaw interface{}) *servers.AuthConfig {
+	authConfigs := authRaw.([]interface{})[0].(map[string]interface{})
+	out := servers.AuthConfig{
+		ActiveDirectoryAuthEnabled: utils.Bool(authConfigs["active_directory_auth_enabled"].(bool)),
+		PasswordAuthEnabled:        utils.Bool(authConfigs["password_auth_enabled"].(bool)),
+	}
+	if tenantId, ok := authConfigs["tenant_id"].(string); ok {
+		out.TenantId = &tenantId
+	}
+
+	return &out
+}
+
+func flattenFlexibleServerAuthConfig(ac *servers.AuthConfig) interface{} {
+	out := make(map[string]interface{}, 0)
+
+	if ac == nil {
+		return out
+	}
+
+	aadEnabled := false
+	if ac.ActiveDirectoryAuthEnabled != nil {
+		aadEnabled = *ac.ActiveDirectoryAuthEnabled
+	}
+	out["active_directory_auth_enabled"] = aadEnabled
+
+	// It is by design if PasswordAuthEnabled is not returned or undefined, we consider it as true.
+	pwdEnabled := true
+	if ac.PasswordAuthEnabled != nil {
+		pwdEnabled = *ac.PasswordAuthEnabled
+	}
+	out["password_auth_enabled"] = pwdEnabled
+
+	if ac.TenantId != nil {
+		out["tenant_id"] = *ac.TenantId
+	}
+
+	result := make([]interface{}, 0)
+	result = append(result, out)
+	return result
 }

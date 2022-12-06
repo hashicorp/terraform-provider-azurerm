@@ -69,6 +69,7 @@ The following arguments are supported:
 * `id` - The ID of the Healthcare Med Tech Service Fhir Destination.
 
 ## Timeouts
+
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare Med Tech Service Fhir Destination.
@@ -81,5 +82,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Healthcare Med Tech Service Fhir Destination can be imported using the resource`id`, e.g.
 
 ```shell
-terraform import azurerm_healthcare_medtech_service_fhir_destination.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1/fhirdestinations/destination1
+terraform import azurerm_healthcare_medtech_service_fhir_destination.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotConnectors/iotconnector1/fhirDestinations/destination1
 ```

@@ -106,7 +106,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the destination path to be an empty string,
-									// Leave blank to preserve the incoming path.
+									// Leave blank to preserve the incoming path. Issue #18249
 									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -115,7 +115,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the destination hostname to be an empty string.
-									// Leave blank to preserve the incoming host.
+									// Leave blank to preserve the incoming host. Issue #18249
 									"destination_hostname": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -123,16 +123,17 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the query string to be an empty string.
-									// Leave blank to preserve the incoming query string.
+									// Leave blank to preserve the incoming query string. Issue #18249
 									"query_string": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      "",
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "",
+										// Update validation logic to match RP. Issue #19097
 										ValidateFunc: validate.CdnFrontDoorUrlRedirectActionQueryString,
 									},
 
 									// NOTE: it is valid for the destination fragment to be an empty string.
-									// Leave blank to preserve the incoming fragment.
+									// Leave blank to preserve the incoming fragment. Issue #18249
 									"destination_fragment": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -246,14 +247,14 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 									"cdn_frontdoor_origin_group_id": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.FrontDoorOriginGroupID,
 									},
 
+									// Removed Default value for issue #18889
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.ForwardingProtocolMatchRequest),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.ForwardingProtocolHTTPOnly),
 											string(cdn.ForwardingProtocolHTTPSOnly),
@@ -261,10 +262,10 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
+									// Removed Default value for issue #19008
 									"query_string_caching_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
 											string(cdn.RuleQueryStringCachingBehaviorUseQueryString),
@@ -288,23 +289,24 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"compression_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  false,
 									},
 
+									// Exposed Disabled for issue #19008
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.RuleCacheBehaviorHonorOrigin),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.RuleCacheBehaviorHonorOrigin),
 											string(cdn.RuleCacheBehaviorOverrideAlways),
 											string(cdn.RuleCacheBehaviorOverrideIfOriginMissing),
+											string(cdn.RuleIsCompressionEnabledDisabled),
 										}, false),
 									},
 
+									// Made Optional for issue #19008
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.CdnFrontDoorCacheDuration,
 									},
 								},
@@ -1180,7 +1182,11 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 	for _, item := range *input {
 		if action, ok := item.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
+			flattened, err := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
+			if err != nil {
+				return nil, fmt.Errorf("'route_configuration_override_action' unable to parse 'cdn_frontdoor_origin_group_id': %+v", err)
+			}
+
 			routeConfigOverrideActions = append(routeConfigOverrideActions, flattened)
 			continue
 		}
