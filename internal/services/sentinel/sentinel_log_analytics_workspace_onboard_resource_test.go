@@ -1,0 +1,275 @@
+package sentinel_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+type SecurityInsightsSentinelOnboardingStateResource struct{}
+
+func TestAccSecurityInsightsSentinelOnboardingState_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboard", "test")
+	r := SecurityInsightsSentinelOnboardingStateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboard", "test")
+	r := SecurityInsightsSentinelOnboardingStateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCmk(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withCmk(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withCmk(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSecurityInsightsSentinelOnboardingState_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboard", "test")
+	r := SecurityInsightsSentinelOnboardingStateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func (r SecurityInsightsSentinelOnboardingStateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := sentinelonboardingstates.ParseOnboardingStateID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	client := clients.Sentinel.OnboardingStatesClient
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	return utils.Bool(resp.Model != nil), nil
+}
+
+func (r SecurityInsightsSentinelOnboardingStateResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SecurityInsightsSentinelOnboardingStateResource) withCmk(data acceptance.TestData, cmkEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctest-LA-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "standard"
+
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+}
+
+
+resource "azurerm_key_vault_access_policy" "terraform" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Update",
+  ]
+
+  secret_permissions = [
+    "Get",
+    "Delete",
+    "Set",
+  ]
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey"
+  ]
+
+  tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
+  object_id = azurerm_log_analytics_cluster.test.identity.0.principal_id
+
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+}
+
+data "azuread_service_principal" "cosmos" {
+  display_name = "Azure Cosmos DB"
+}
+
+resource "azurerm_key_vault_access_policy" "cosmos" { #sentinel works with Azure Cosmos DB as an additional storage resource.
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey"
+  ]
+
+  tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
+  object_id = data.azuread_service_principal.cosmos.object_id
+
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+}
+
+resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
+  log_analytics_cluster_id = azurerm_log_analytics_cluster.test.id
+  key_vault_key_id         = azurerm_key_vault_key.test.id
+
+  depends_on = [azurerm_key_vault_access_policy.test]
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  lifecycler {
+    ignore_changes = [sku]
+  }
+}
+
+resource "azurerm_log_analytics_linked_service" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  write_access_id     = azurerm_log_analytics_cluster.test.id
+
+  depends_on = [azurerm_log_analytics_cluster_customer_managed_key.test]
+}
+
+resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
+  resource_group_name          = azurerm_resource_group.test.name
+  workspace_name               = azurerm_log_analytics_workspace.test.name
+  customer_managed_key_enabled = %[4]v
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, cmkEnabled)
+}
+
+func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_sentinel_log_analytics_workspace_onboard" "import" {
+  name                = azurerm_sentinel_log_analytics_workspace_onboard.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+}
+`, config)
+}
