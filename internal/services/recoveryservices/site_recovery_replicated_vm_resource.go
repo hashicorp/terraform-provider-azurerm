@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -132,6 +133,43 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"target_edge_zone_name": commonschema.EdgeZoneOptionalForceNew(),
+
+			"unmanaged_disk": {
+				Type:       pluginsdk.TypeSet,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Optional:   true,
+				ForceNew:   true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"disk_uri": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"staging_storage_account_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"target_storage_account_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
+
+			"multi_vm_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"managed_disk": {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -200,6 +238,26 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+			"target_proximity_placement_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			"target_boot_diag_storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			"target_capacity_reservation_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			"target_virtual_machine_scale_set_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 			"network_interface": {
 				Type:       pluginsdk.TypeSet,
@@ -364,19 +422,42 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		})
 	}
 
+	var vmDisks []replicationprotecteditems.A2AVmDiskInputDetails
+	for _, raw := range d.Get("unmanaged_disk").(*pluginsdk.Set).List() {
+		diskInput := raw.(map[string]interface{})
+		diskUri := diskInput["disk_uri"].(string)
+		primaryStagingAzureStorageAccountID := diskInput["staging_storage_account_id"].(string)
+		recoveryAzureStorageAccountId := diskInput["target_storage_account_id"].(string)
+
+		vmDisks = append(vmDisks, replicationprotecteditems.A2AVmDiskInputDetails{
+			DiskUri:                             diskUri,
+			PrimaryStagingAzureStorageAccountId: primaryStagingAzureStorageAccountID,
+			RecoveryAzureStorageAccountId:       recoveryAzureStorageAccountId,
+		})
+
+	}
+
 	parameters := replicationprotecteditems.EnableProtectionInput{
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
 			PolicyId: &policyId,
 			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
-				FabricObjectId:            sourceVmId,
-				RecoveryContainerId:       &targetProtectionContainerId,
-				RecoveryResourceGroupId:   &targetResourceGroupId,
-				RecoveryAvailabilitySetId: targetAvailabilitySetID,
-				RecoveryAvailabilityZone:  targetAvailabilityZone,
-				VmManagedDisks:            &managedDisks,
+				FabricObjectId:                     sourceVmId,
+				RecoveryContainerId:                &targetProtectionContainerId,
+				RecoveryResourceGroupId:            &targetResourceGroupId,
+				RecoveryAvailabilitySetId:          targetAvailabilitySetID,
+				RecoveryAvailabilityZone:           targetAvailabilityZone,
+				MultiVmGroupId:                     utils.String(d.Get("multi_vm_group_id").(string)),
+				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
+				VmManagedDisks:                     &managedDisks,
+				VmDisks:                            &vmDisks,
+				RecoveryExtendedLocation:           expandEdgeZone(d.Get("target_edge_zone").(string)),
 			},
 		},
 	}
+
 	err := client.CreateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating replicated vm %s (vault %s): %+v", name, vaultName, err)
@@ -482,7 +563,11 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			VmNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
-				ManagedDiskUpdateDetails: &managedDisks,
+				ManagedDiskUpdateDetails:           &managedDisks,
+				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
 			},
 		},
 	}
@@ -550,6 +635,24 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 			d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
+			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
+			d.Set("target_boot_diag_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
+			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
+			d.Set("target_virtual_machine_scale_set_id", a2aDetails.RecoveryVirtualMachineScaleSetId)
+			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
+			d.Set("multi_vm_group_name", a2aDetails.MultiVmGroupName)
+
+			if a2aDetails.ProtectedDisks != nil {
+				disksOutput := make([]interface{}, 0)
+				for _, disk := range *a2aDetails.ProtectedDisks {
+					disksOutput = append(disksOutput, map[string]interface{}{
+						"disk_uri":                   disk.DiskUri,
+						"staging_storage_account_id": disk.PrimaryStagingAzureStorageAccountId,
+						"target_storage_account_id":  disk.RecoveryAzureStorageAccountId,
+					})
+				}
+				d.Set("unmanaged_disk", a2aDetails.ProtectedDisks)
+			}
 
 			if a2aDetails.ProtectedManagedDisks != nil {
 				disksOutput := make([]interface{}, 0)
@@ -812,4 +915,22 @@ func flattenTargetDiskEncryption(disk replicationprotecteditems.A2AProtectedMana
 			"key_encryption_key":  keyEncryptionKeys,
 		},
 	}
+}
+
+func expandEdgeZone(input string) *edgezones.Model {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &edgezones.Model{
+		Name: normalized,
+	}
+}
+
+func flattenEdgeZone(input *edgezones.Model) string {
+	if input == nil || input.Name == "" {
+		return ""
+	}
+	return edgezones.NormalizeNilable(&input.Name)
 }
