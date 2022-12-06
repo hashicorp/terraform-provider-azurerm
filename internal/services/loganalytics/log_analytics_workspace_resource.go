@@ -406,7 +406,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("daily_quota_gb", utils.Float(-1))
 			}
 
-			allowResourceOnlyPermissions := false
+			allowResourceOnlyPermissions := true
 			if features := props.Features; features != nil {
 				v, ok := (*features).(map[string]interface{})["enableLogAccessUsingOnlyResourcePermissions"]
 				if ok {

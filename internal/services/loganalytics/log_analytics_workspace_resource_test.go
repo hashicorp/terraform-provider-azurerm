@@ -282,12 +282,6 @@ func TestAccLogAnalyticsWorkspace_ToggleAllowOnlyResourcePermission(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withUseResourceOnlyPermission(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
 			Config: r.withUseResourceOnlyPermission(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -295,6 +289,12 @@ func TestAccLogAnalyticsWorkspace_ToggleAllowOnlyResourcePermission(t *testing.T
 		},
 		{
 			Config: r.withUseResourceOnlyPermission(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withUseResourceOnlyPermission(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
