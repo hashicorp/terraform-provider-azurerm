@@ -50,7 +50,7 @@ resource "azurerm_network_security_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the network security group. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the network security group. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the network security group. Changing this forces a new resource to be created.
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 Elements of `security_rule` support:
 
-* `name` - (Required) The name of the security rule.
+* `name` - (Required) The name of the security rule. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description for this rule. Restricted to 140 characters.
 

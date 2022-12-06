@@ -64,13 +64,13 @@ resource "azurerm_iothub_endpoint_storage_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
+* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group under which the Storage Container has been created. Changing this forces a new resource to be created.
 
 * `container_name` - (Required) The name of storage container in the storage account.
 
-* `iothub_id` - (Required) The IoTHub ID for the endpoint.
+* `iothub_id` - (Required) The IoTHub ID for the endpoint. Changing this forces a new resource to be created.
 
 * `authentication_type` - (Optional) Type used to authenticate against the storage endpoint. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
 
@@ -110,5 +110,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 IoTHub Storage Container Endpoint can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_endpoint_storage_container.storage_container1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/storage_container_endpoint1
+terraform import azurerm_iothub_endpoint_storage_container.storage_container1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/endpoints/storage_container_endpoint1
 ```

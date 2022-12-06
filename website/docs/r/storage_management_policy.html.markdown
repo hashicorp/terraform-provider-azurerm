@@ -86,7 +86,7 @@ resource "azurerm_storage_management_policy" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the id of the storage account to apply the management policy to.
+* `storage_account_id` - (Required) Specifies the id of the storage account to apply the management policy to. Changing this forces a new resource to be created.
 
 * `rule` - (Optional) A `rule` block as documented below.
 

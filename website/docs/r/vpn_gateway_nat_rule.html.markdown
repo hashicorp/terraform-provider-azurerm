@@ -74,11 +74,11 @@ The following arguments are supported:
 
 * `type` - (Optional) The type of the VPN Gateway NAT Rule. Possible values are `Dynamic` and `Static`. Defaults to `Static`. Changing this forces a new resource to be created.
 
-* `external_address_space_mappings` - (Deprecated) A list of CIDR Ranges which are used for external mapping of the VPN Gateway NAT Rule.
+* `external_address_space_mappings` - (Optional) (Deprecated) A list of CIDR Ranges which are used for external mapping of the VPN Gateway NAT Rule.
 
 ~> **NOTE:** `external_address_space_mappings` is deprecated and will be removed in favour of the property `external_mapping` in version 4.0 of the AzureRM Provider.
 
-* `internal_address_space_mappings` - (Deprecated) A list of CIDR Ranges which are used for internal mapping of the VPN Gateway NAT Rule.
+* `internal_address_space_mappings` - (Optional) (Deprecated) A list of CIDR Ranges which are used for internal mapping of the VPN Gateway NAT Rule.
 
 ~> **NOTE:** `internal_address_space_mappings` is deprecated and will be removed in favour of the property `internal_mapping` in version 4.0 of the AzureRM Provider.
 

@@ -181,7 +181,7 @@ resource "azurerm_mssql_managed_instance_transparent_data_encryption" "example" 
 
 The following arguments are supported:
 
-* `managed_instance_id` - (Required) Specifies the name of the MS SQL Managed Instance.
+* `managed_instance_id` - (Required) Specifies the name of the MS SQL Managed Instance. Changing this forces a new resource to be created.
 
 ---
 

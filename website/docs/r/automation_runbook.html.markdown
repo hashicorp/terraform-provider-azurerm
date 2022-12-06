@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
 
-* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `Python3`, `Python2` or `Script`.
+* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `Python3`, `Python2` or `Script`. Changing this forces a new resource to be created.
 
 * `log_progress` - (Required) Progress log option.
 

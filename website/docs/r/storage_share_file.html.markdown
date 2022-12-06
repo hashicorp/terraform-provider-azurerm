@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `path` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created.
 
-* `source` - (Optional) An absolute path to a file on the local system.
+* `source` - (Optional) An absolute path to a file on the local system. Changing this forces a new resource to be created.
 
 * `content_type` - (Optional) The content type of the share file. Defaults to `application/octet-stream`.
 

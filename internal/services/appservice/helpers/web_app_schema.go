@@ -3821,6 +3821,9 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
 		"WEBSITE_VNET_ROUTE_ALL",
+		"spring.datasource.password",
+		"spring.datasource.url",
+		"spring.datasource.username",
 		maxPingFailures,
 	}
 
