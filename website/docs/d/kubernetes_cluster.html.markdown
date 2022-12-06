@@ -38,8 +38,6 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable the feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/azure/firewall/public-preview)
-
 * `aci_connector_linux` - An `aci_connector_linux` block as documented below.
 
 * `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
@@ -131,8 +129,6 @@ An `agent_pool_profile` block exports the following:
 * `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
 
 * `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
 
 * `min_count` - Minimum number of nodes for auto-scaling
 
@@ -250,10 +246,8 @@ A `network_profile` block exports the following:
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
 * `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
-
+  
 * `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
-
--> **NOTE:** `network_mode` Is currently in Preview on an opt-in basis. To use it, enable the feature `AKSNetworkModePreview` for `namespace Microsoft.ContainerService`.
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
@@ -325,7 +319,7 @@ A `storage_profile` block exports the following:
 
 * `disk_driver_enabled` Is the Disk CSI driver enabled?
 
-* `disk_driver_version` The configured Disck CSI Driver version.
+* `disk_driver_version` The configured Disk CSI Driver version.
 
 * `file_driver_enabled` Is the File CSI driver enabled?
 
