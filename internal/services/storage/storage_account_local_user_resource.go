@@ -54,7 +54,7 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.LocalUserName,
 		},
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
@@ -265,7 +265,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			}
 
 			if needSetState {
-				if err := metadata.Encode(state); err != nil {
+				if err := metadata.Encode(&state); err != nil {
 					return err
 				}
 			}
@@ -397,7 +397,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 				}
 
 				if needSetState {
-					if err := metadata.Encode(state); err != nil {
+					if err := metadata.Encode(&state); err != nil {
 						return err
 					}
 				}

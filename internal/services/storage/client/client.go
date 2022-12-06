@@ -50,6 +50,9 @@ func NewClient(options *common.ClientOptions) *Client {
 	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
 
+	localUsersClient := storage.NewLocalUsersClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&localUsersClient.Client, options.ResourceManagerAuthorizer)
+
 	fileSystemsClient := filesystems.NewWithEnvironment(options.Environment)
 	options.ConfigureClient(&fileSystemsClient.Client, options.StorageAuthorizer)
 
@@ -89,6 +92,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
 		AccountsClient:              &accountsClient,
+		LocalUsersClient:            &localUsersClient,
 		FileSystemsClient:           &fileSystemsClient,
 		ADLSGen2PathsClient:         &adlsGen2PathsClient,
 		ManagementPoliciesClient:    &managementPoliciesClient,
