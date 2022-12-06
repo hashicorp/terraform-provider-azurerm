@@ -1,0 +1,535 @@
+package storage
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+type LocalUserResource struct{}
+
+var _ sdk.ResourceWithUpdate = LocalUserResource{}
+
+type PermissionsModel struct {
+	Create bool `tfschema:"create"`
+	Delete bool `tfschema:"delete"`
+	List   bool `tfschema:"list"`
+	Read   bool `tfschema:"read"`
+	Write  bool `tfschema:"write"`
+}
+type PermissionScopeModel struct {
+	Permissions  []PermissionsModel `tfschema:"permissions"`
+	ResourceName string             `tfschema:"resource_name"`
+	Service      string             `tfschema:"service"`
+}
+type SshAuthorizedKeyModel struct {
+	Description string `tfschema:"description"`
+	Key         string `tfschema:"key"`
+}
+type LocalUserModel struct {
+	HomeDirectory      string                  `tfschema:"home_directory"`
+	Name               string                  `tfschema:"name"`
+	Password           string                  `tfschema:"password"`
+	PermissionScope    []PermissionScopeModel  `tfschema:"permission_scope"`
+	Sid                string                  `tfschema:"sid"`
+	SshAuthorizedKey   []SshAuthorizedKeyModel `tfschema:"ssh_authorized_key"`
+	SshKeyEnabled      bool                    `tfschema:"ssh_key_enabled"`
+	SshPasswordEnabled bool                    `tfschema:"ssh_password_enabled"`
+	StorageAccountName string                  `tfschema:"storage_account_name"`
+}
+
+func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"storage_account_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountName,
+		},
+		"ssh_key_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Default:      false,
+			AtLeastOneOf: []string{"ssh_key_enabled", "ssh_password_enabled"},
+		},
+		"ssh_password_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Default:      false,
+			AtLeastOneOf: []string{"ssh_key_enabled", "ssh_password_enabled"},
+		},
+		"home_directory": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+		"ssh_authorized_key": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"ssh_key_enabled"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"key": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+		"permission_scope": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"permissions": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"read": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+
+								"write": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+
+								"delete": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+
+								"list": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+
+								"create": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+							},
+						},
+					},
+					"service": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice(
+							[]string{"blob", "file"},
+							false,
+						),
+					},
+					"resource_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+	}
+}
+
+func (r LocalUserResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"sid": {
+			Type:      pluginsdk.TypeString,
+			Sensitive: true,
+			Computed:  true,
+		},
+		"password": {
+			Type:      pluginsdk.TypeString,
+			Sensitive: true,
+			Computed:  true,
+		},
+	}
+}
+
+func (r LocalUserResource) ResourceType() string {
+	return "azurerm_storage_account_local_user"
+}
+
+func (r LocalUserResource) ModelObject() interface{} {
+	return &LocalUserModel{}
+}
+
+func (r LocalUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.LocalUserID
+}
+
+func (r LocalUserResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.LocalUsersClient
+			storageClient := metadata.Client.Storage
+
+			var plan LocalUserModel
+			if err := metadata.Decode(&plan); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
+			account, err := storageClient.FindAccount(ctx, plan.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Local User %q: %s", plan.StorageAccountName, plan.Name, err)
+			}
+			if account == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", plan.StorageAccountName)
+			}
+
+			accountId, err := parse.StorageAccountID(account.ID)
+			if err != nil {
+				return err
+			}
+
+			id := parse.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, plan.Name)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			permissionScopes, err := r.expandPermissionScopes(plan.PermissionScope)
+			if err != nil {
+				return err
+			}
+
+			params := storage.LocalUser{
+				LocalUserProperties: &storage.LocalUserProperties{
+					PermissionScopes:  permissionScopes,
+					SSHAuthorizedKeys: r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey),
+					HasSSHKey:         pointer.To(plan.SshKeyEnabled),
+					HasSSHPassword:    pointer.To(plan.SshPasswordEnabled),
+				},
+			}
+
+			if plan.HomeDirectory != "" {
+				params.LocalUserProperties.HomeDirectory = utils.String(plan.HomeDirectory)
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, params); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			var needSetState bool
+			var state LocalUserModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+			if plan.SshPasswordEnabled {
+				needSetState = true
+				resp, err := client.RegeneratePassword(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+				if err != nil {
+					return fmt.Errorf("generating password for %s: %v", id.ID(), err)
+				}
+				if v := resp.SSHPassword; v != nil {
+					state.Password = *v
+				}
+			}
+
+			if len(plan.SshAuthorizedKey) != 0 {
+				needSetState = true
+				state.SshAuthorizedKey = plan.SshAuthorizedKey
+			}
+
+			if needSetState {
+				if err := metadata.Encode(state); err != nil {
+					return err
+				}
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r LocalUserResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.LocalUsersClient
+			id, err := parse.LocalUserID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state LocalUserModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(existing.Response) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			model := LocalUserModel{
+				Name:               id.Name,
+				StorageAccountName: id.StorageAccountName,
+				// Password is only accessible during creation
+				Password: state.Password,
+				// SshAuthorizedKey is only accessible during creation
+				SshAuthorizedKey: state.SshAuthorizedKey,
+			}
+
+			if props := existing.LocalUserProperties; props != nil {
+				model.PermissionScope = r.flattenPermissionScopes(props.PermissionScopes)
+				if props.HomeDirectory != nil {
+					model.HomeDirectory = *props.HomeDirectory
+				}
+				if props.HasSSHKey != nil {
+					model.SshKeyEnabled = *props.HasSSHKey
+				}
+				if props.HasSSHPassword != nil {
+					model.SshPasswordEnabled = *props.HasSSHPassword
+				}
+				if props.Sid != nil {
+					model.Sid = *props.Sid
+				}
+			}
+
+			return metadata.Encode(&model)
+		},
+	}
+}
+
+func (r LocalUserResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := parse.LocalUserID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var plan LocalUserModel
+			if err := metadata.Decode(&plan); err != nil {
+				return err
+			}
+
+			client := metadata.Client.Storage.LocalUsersClient
+
+			params, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if props := params.LocalUserProperties; props != nil {
+				var state LocalUserModel
+				if err := metadata.Decode(&state); err != nil {
+					return err
+				}
+				var needSetState bool
+
+				if metadata.ResourceData.HasChange("home_directory") {
+					if plan.HomeDirectory != "" {
+						props.HomeDirectory = &plan.HomeDirectory
+					} else {
+						props.HomeDirectory = nil
+					}
+				}
+				if metadata.ResourceData.HasChange("permission_scope") {
+					props.PermissionScopes, err = r.expandPermissionScopes(plan.PermissionScope)
+					if err != nil {
+						return err
+					}
+				}
+
+				if metadata.ResourceData.HasChange("ssh_key_enabled") {
+					props.HasSSHKey = &plan.SshKeyEnabled
+				}
+
+				if metadata.ResourceData.HasChange("ssh_password_enabled") {
+					props.HasSSHPassword = &plan.SshPasswordEnabled
+					if _, isEnabled := metadata.ResourceData.GetChange("ssh_password_enabled"); isEnabled.(bool) {
+						resp, err := client.RegeneratePassword(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+						if err != nil {
+							return fmt.Errorf("generating password for %s: %v", id.ID(), err)
+						}
+						if v := resp.SSHPassword; v != nil {
+							state.Password = *v
+							needSetState = true
+						}
+					}
+				}
+
+				if metadata.ResourceData.HasChange("ssh_authorized_key") {
+					props.SSHAuthorizedKeys = r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey)
+					state.SshAuthorizedKey = plan.SshAuthorizedKey
+					needSetState = true
+				}
+
+				if needSetState {
+					if err := metadata.Encode(state); err != nil {
+						return err
+					}
+				}
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, params); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+			return nil
+		},
+	}
+}
+
+func (r LocalUserResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.LocalUsersClient
+
+			id, err := parse.LocalUserID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.StorageAccountName, id.Name); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) (*[]storage.PermissionScope, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	var output []storage.PermissionScope
+
+	for _, v := range input {
+		if len(v.Permissions) != 1 {
+			return nil, fmt.Errorf("permissions must be of length of 1, got %d", len(v.Permissions))
+		}
+		permissions := v.Permissions[0]
+		var permissionStr string
+		if permissions.Read {
+			permissionStr += "r"
+		}
+		if permissions.Write {
+			permissionStr += "w"
+		}
+		if permissions.Delete {
+			permissionStr += "d"
+		}
+		if permissions.List {
+			permissionStr += "l"
+		}
+		if permissions.Create {
+			permissionStr += "c"
+		}
+
+		output = append(output, storage.PermissionScope{
+			Permissions:  pointer.To(permissionStr),
+			Service:      pointer.To(v.Service),
+			ResourceName: pointer.To(v.ResourceName),
+		})
+	}
+
+	return &output, nil
+}
+
+func (r LocalUserResource) flattenPermissionScopes(input *[]storage.PermissionScope) []PermissionScopeModel {
+	if input == nil {
+		return nil
+	}
+
+	var output []PermissionScopeModel
+
+	for _, v := range *input {
+		permissions := PermissionsModel{}
+		if p := v.Permissions; p != nil {
+			if strings.Index(*p, "r") != -1 {
+				permissions.Read = true
+			}
+			if strings.Index(*p, "w") != -1 {
+				permissions.Write = true
+			}
+			if strings.Index(*p, "d") != -1 {
+				permissions.Delete = true
+			}
+			if strings.Index(*p, "l") != -1 {
+				permissions.List = true
+			}
+			if strings.Index(*p, "c") != -1 {
+				permissions.Create = true
+			}
+		}
+
+		var service string
+		if v.Service != nil {
+			service = *v.Service
+		}
+
+		var resourceName string
+		if v.ResourceName != nil {
+			resourceName = *v.ResourceName
+		}
+
+		output = append(output, PermissionScopeModel{
+			Permissions:  []PermissionsModel{permissions},
+			Service:      service,
+			ResourceName: resourceName,
+		})
+	}
+
+	return output
+}
+
+func (r LocalUserResource) expandSSHAuthorizedKeys(input []SshAuthorizedKeyModel) *[]storage.SSHPublicKey {
+	if len(input) == 0 {
+		return nil
+	}
+
+	var output []storage.SSHPublicKey
+
+	for _, v := range input {
+		output = append(output, storage.SSHPublicKey{
+			Description: pointer.To(v.Description),
+			Key:         pointer.To(v.Key),
+		})
+	}
+
+	return &output
+}

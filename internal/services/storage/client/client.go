@@ -26,6 +26,7 @@ import (
 
 type Client struct {
 	AccountsClient              *storage.AccountsClient
+	LocalUsersClient            *storage.LocalUsersClient
 	FileSystemsClient           *filesystems.Client
 	ADLSGen2PathsClient         *paths.Client
 	ManagementPoliciesClient    *storage.ManagementPoliciesClient
