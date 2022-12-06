@@ -121,10 +121,10 @@ func (r RouteMapResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_route_map" "test" {
-  name           = "acctestrm-%d"
+  name           = "acctestrm-%s"
   virtual_hub_id = azurerm_virtual_hub.test.id
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString)
 }
 
 func (r RouteMapResource) complete(data acceptance.TestData) string {
@@ -132,7 +132,7 @@ func (r RouteMapResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_route_map" "test" {
-  name           = "acctestrm-%d"
+  name           = "acctestrm-%s"
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   rule {
@@ -153,7 +153,7 @@ resource "azurerm_route_map" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString)
 }
 
 func (r RouteMapResource) update(data acceptance.TestData) string {
@@ -161,7 +161,7 @@ func (r RouteMapResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_route_map" "test" {
-  name           = "acctestrm-%d"
+  name           = "acctestrm-%s"
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   rule {
@@ -182,5 +182,5 @@ resource "azurerm_route_map" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString)
 }
