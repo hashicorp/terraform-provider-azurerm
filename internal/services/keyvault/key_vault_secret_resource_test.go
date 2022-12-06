@@ -556,6 +556,15 @@ resource "azurerm_key_vault" "test" {
       "Recover",
       "Set",
     ]
+
+	certificate_permissions = [
+	  "Get",
+	  "Delete",
+	  "List",
+	  "Purge",
+	  "Recover",
+	  "Create",
+	]
   }
 
   tags = {
