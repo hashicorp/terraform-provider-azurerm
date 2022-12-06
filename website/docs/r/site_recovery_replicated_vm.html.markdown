@@ -246,7 +246,19 @@ The following arguments are supported:
 
 * `managed_disk` - (Optional) One or more `managed_disk` block.
 
+* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block.
+
+* `target_proximity_placement_group_id` (Optional) Id of Proximity Placement Group the new VM should belong to when a failover is done.
+
+* `target_boot_diag_storage_account_id` - (Optional) Id of the storage account which the new VM should used for boot diagnostic when a failover is done.
+
+* `target_capacity_reservation_group_id` - (Optional) Id of the Capacity reservation group where the new VM should belong to when a failover is done.
+
+* `target_virtual_machine_scale_set_id` - (Optional) Id of the Virtual Machine Scale Set which the new Vm should belong to when a failover is done.
+
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
+
+* `multi_vm_group_name` - (Optional) Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over.
 
 * `network_interface` - (Optional) One or more `network_interface` block.
 
@@ -266,7 +278,19 @@ A `managed_disk` block supports the following:
 
 * `target_disk_encryption_set_id` - (Optional)  The Disk Encryption Set that the Managed Disk will be associated with.
 
+-> **NOTE:** Creating replicated vm with `target_disk_encryption_set_id` wil take more time (up to 5 hours), please extend the `timeout` for `create`. 
+
 * `target_disk_encryption` - (Optional) A `target_disk_encryption` block as defined below.
+
+---
+
+A `unmanaged_disk` block supports the following:
+
+* `disk_uri` - (Required) Id of disk that should be replicated.
+
+* `staging_storage_account_id` - (Required) Storage account that should be used for caching.
+
+* `target_storage_account_id` - (Required) Storage account disk should belong to when a failover is done.
 
 ---
 
@@ -314,7 +338,7 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 120 minutes) Used when creating the Site Recovery Replicated VM.
+* `create` - (Defaults to 180 minutes) Used when creating the Site Recovery Replicated VM.
 * `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.
