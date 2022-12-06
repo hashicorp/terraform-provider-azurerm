@@ -23,6 +23,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		BackupProtectionPolicyVMWorkloadResource{},
+		SiteRecoveryReplicationRecoveryPlanResource{},
 	}
 }
 
@@ -41,12 +42,13 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_recovery_services_vault":            dataSourceRecoveryServicesVault(),
-		"azurerm_site_recovery_fabric":               dataSourceSiteRecoveryFabric(),
-		"azurerm_site_recovery_protection_container": dataSourceSiteRecoveryProtectionContainer(),
-		"azurerm_backup_policy_vm":                   dataSourceBackupPolicyVm(),
-		"azurerm_backup_policy_file_share":           dataSourceBackupPolicyFileShare(),
-		"azurerm_site_recovery_replication_policy":   dataSourceSiteRecoveryReplicationPolicy(),
+		"azurerm_recovery_services_vault":                 dataSourceRecoveryServicesVault(),
+		"azurerm_site_recovery_fabric":                    dataSourceSiteRecoveryFabric(),
+		"azurerm_site_recovery_protection_container":      dataSourceSiteRecoveryProtectionContainer(),
+		"azurerm_backup_policy_vm":                        dataSourceBackupPolicyVm(),
+		"azurerm_backup_policy_file_share":                dataSourceBackupPolicyFileShare(),
+		"azurerm_site_recovery_replication_policy":        dataSourceSiteRecoveryReplicationPolicy(),
+		"azurerm_site_recovery_replication_recovery_plan": dataSourceSiteRecoveryReplicationPlan(),
 	}
 }
 
