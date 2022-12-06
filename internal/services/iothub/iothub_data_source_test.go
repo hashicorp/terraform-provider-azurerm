@@ -51,7 +51,7 @@ resource "azurerm_iothub" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 
   sku {
