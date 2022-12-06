@@ -136,9 +136,6 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
-	if d.IsNewResource() {
-		log.Printf("is new resource")
-	}
 
 	newProbe := expandAzureRmLoadBalancerProbe(d)
 	probes := append(*loadBalancer.LoadBalancerPropertiesFormat.Probes, *newProbe)
