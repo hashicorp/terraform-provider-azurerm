@@ -201,6 +201,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *plugins
 		Properties: &workspace.WorkspacePatchProperties{
 			ApplicationGroupReferences: &applicationGroupReferences,
 		},
+		Tags: model.Tags,
 	}
 	if _, err = client.Update(ctx, id.Workspace, payload); err != nil {
 		return fmt.Errorf("removing association between %s and %s: %+v", id.Workspace, id.ApplicationGroup, err)
