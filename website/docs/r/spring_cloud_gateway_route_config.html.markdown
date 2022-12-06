@@ -129,5 +129,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Gateway Route Configs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_gateway_route_config.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/gateways/gateway1/routeConfigs/routeConfig1
+terraform import azurerm_spring_cloud_gateway_route_config.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1/routeConfigs/routeConfig1
 ```
