@@ -69,6 +69,12 @@ The following arguments are supported:
 
 * `spring_cloud_gateway_id` - (Required) The ID of the Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway Route Config to be created.
 
+* `filters` - (Optional) Specifies a list of filters which are used to modify the request before sending it to the target endpoint, or the received response in app level.
+
+* `predicates` - (Optional) Specifies a list of conditions to evaluate a route for each request in app level. Each predicate may be evaluated against request headers and parameter values. All of the predicates associated with a route must evaluate to true for the route to be matched to the request.
+
+* `sso_validation_enabled` - (Optional) Should the sso validation be enabled in app level?
+
 ---
 
 * `route` - (Optional) One or more `route` blocks as defined below.

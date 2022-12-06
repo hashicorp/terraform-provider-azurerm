@@ -1,11 +1,19 @@
 ## 3.35.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_spring_cloud_application_live_view` [GH-19495]
+
 ENHANCEMENTS:
 
 * `lighthouse`: updating to API version `2022-10-01` [GH-19499]
+* `azurerm_firewall_policy` - support for the `explicit_proxy` block and `auto_learn_private_ranges_mode` property [GH-19313]
+* `azurerm_mssql_virtual_machine` - support for the `days_of_week` property [GH-19553]
+* `azurerm_spring_cloud_gateway_route_config` - support for the `filters`, `predicates`, and `sso_validation_enabled` properties [GH-19493]
 
 BUG FIXES:
 
+* `azurerm_app_service_connection` - correctly pass the secret to the service [GH-19519]
 * `azurerm_automation_software_update_configuration` - fix issue where omitting `tags`and `tag_filter` result in an error [GH-19516]
 * `azurerm_automation_source_control` - a state migration to work around the previously incorrect id casing [GH-19506]
 * `azurerm_automation_webhook` - a state migration to work around the previously incorrect id casing [GH-19506]
@@ -13,6 +21,8 @@ BUG FIXES:
 * `azurerm_frontdoor_rules_engine` - a state migration to work around the previously incorrect id casing [GH-19512]
 * `azurerm_healthcare_*` - a  state migration to work around the previously incorrect id casing [GH-19511]
 * `azurerm_iothub_x` - a  state migration to work around the previously incorrect id casing [GH-19524]
+* `azurerm_key_vault` - allow for keyvaults in two different subscriptions [GH-19531]
+* `azurerm_lb` - adding/removing a frontend configuration will no longer force recreation a new resource to be created [GH-19548]
 * `azurerm_kusto_*` - a  state migration to work around the previously incorrect id casing [GH-19525]
 * `azurerm_monitor_smart_detector_alert_rule` - a  state migration to work around the previously incorrect id casing [GH-19513]
 

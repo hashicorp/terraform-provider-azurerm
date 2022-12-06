@@ -30,7 +30,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   sku_name                     = "GP_Standard_D2s_v3"
   zone                         = "2"
 
-  auth_config {
+  authentication {
     active_directory_auth_enabled = true
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
