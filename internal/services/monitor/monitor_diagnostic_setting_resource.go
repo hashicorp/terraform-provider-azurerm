@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -26,7 +27,7 @@ import (
 )
 
 func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMonitorDiagnosticSettingCreate,
 		Read:   resourceMonitorDiagnosticSettingRead,
 		Update: resourceMonitorDiagnosticSettingUpdate,
@@ -102,58 +103,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"log": {
-				Type:         pluginsdk.TypeSet,
-				Optional:     true,
-				Computed:     true,
-				AtLeastOneOf: []string{"enabled_log", "log", "metric"},
-				Deprecated:   "`log` will be removed in favour of the properties `enabled_log` in version 4.0 of the AzureRM Provider.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"category": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"category_group": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-
-						"retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-								},
-							},
-						},
-					},
-				},
-				Set: resourceMonitorDiagnosticLogSettingHash,
-			},
-
 			"enabled_log": {
 				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Computed:      true,
+				Computed:      !features.FourPointOhBeta(),
 				ConflictsWith: []string{"log"},
 				AtLeastOneOf:  []string{"enabled_log", "log", "metric"},
 				Elem: &pluginsdk.Resource{
@@ -234,6 +187,57 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		resource.Schema["log"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			Computed:     true,
+			AtLeastOneOf: []string{"enabled_log", "log", "metric"},
+			Deprecated:   "`log` will be removed in favour of the properties `enabled_log` in version 4.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"category": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"category_group": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"retention_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+
+								"days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
+								},
+							},
+						},
+					},
+				},
+			},
+			Set: resourceMonitorDiagnosticLogSettingHash,
+		}
+	}
+
+	return resource
 }
 
 func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -257,26 +261,28 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", *existing.Model.Id)
 	}
 
-	logsRaw := d.Get("log").(*pluginsdk.Set).List()
 	enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
 
 	var logs []diagnosticsettings.LogSettings
-	hasEnabledLogs := true
-	if len(logsRaw) > 0 {
-		hasEnabledLogs = false
-		logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
-		for _, v := range logs {
-			if v.Enabled {
-				hasEnabledLogs = true
-				break
+	hasEnabledLogs := false
+	if !features.FourPointOhBeta() {
+		logsRaw := d.Get("log").(*pluginsdk.Set).List()
+		if len(logsRaw) > 0 {
+			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
+			for _, v := range logs {
+				if v.Enabled {
+					hasEnabledLogs = true
+					break
+				}
 			}
 		}
 	}
 
 	if len(enabledLogs) > 0 {
 		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+		hasEnabledLogs = true
 	}
 
 	// if no logs/metrics are not enabled the API "creates" but 404's on Read
@@ -370,20 +376,24 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
 
 	var logs []diagnosticsettings.LogSettings
-	hasEnabledLogs := true
-	if d.HasChange("log") {
-		logsRaw := d.Get("log").(*pluginsdk.Set).List()
-		logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
-		hasEnabledLogs = false
-		for _, v := range logs {
-			if v.Enabled {
-				hasEnabledLogs = true
-				break
+	hasEnabledLogs := false
+	if !features.FourPointOhBeta() {
+		if d.HasChange("log") {
+			logsRaw := d.Get("log").(*pluginsdk.Set).List()
+			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
+			for _, v := range logs {
+				if v.Enabled {
+					hasEnabledLogs = true
+					break
+				}
 			}
 		}
-	} else if d.HasChange("enabled_log") {
+	}
+
+	if d.HasChange("enabled_log") {
 		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
 		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+		hasEnabledLogs = true
 	}
 
 	// if no logs/metrics are not enabled the API "creates" but 404's on Read
@@ -573,8 +583,10 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 
-			if err = d.Set("log", flattenMonitorDiagnosticLogs(resp.Model.Properties.Logs)); err != nil {
-				return fmt.Errorf("setting `log`: %+v", err)
+			if !features.FourPointOhBeta() {
+				if err = d.Set("log", flattenMonitorDiagnosticLogs(resp.Model.Properties.Logs)); err != nil {
+					return fmt.Errorf("setting `log`: %+v", err)
+				}
 			}
 
 			if err := d.Set("metric", flattenMonitorDiagnosticMetrics(resp.Model.Properties.Metrics)); err != nil {

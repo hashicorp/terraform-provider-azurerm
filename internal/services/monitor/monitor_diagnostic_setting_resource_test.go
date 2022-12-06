@@ -26,7 +26,6 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
 				check.That(data.ResourceName).Key("log.#").HasValue("2"),
-				check.That(data.ResourceName).Key("disabled_log.#").HasValue("1"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -255,6 +254,16 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AzurePolicyEvaluationDetails"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
       enabled = false
     }
   }
