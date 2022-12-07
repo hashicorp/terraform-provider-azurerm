@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -62,17 +62,17 @@ func TestAccLiveEvent_complete(t *testing.T) {
 }
 
 func (LiveEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LiveEventID(state.ID)
+	id, err := liveevents.ParseLiveEventID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.LiveEventsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := clients.Media.V20200501Client.LiveEvents.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Live Event %s (Media Services Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.LiveEventProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r LiveEventResource) basic(data acceptance.TestData) string {

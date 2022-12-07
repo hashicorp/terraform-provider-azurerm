@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -24,27 +25,27 @@ import (
 )
 
 type MsSqlManagedInstanceModel struct {
-	AdministratorLogin           string                    `tfschema:"administrator_login"`
-	AdministratorLoginPassword   string                    `tfschema:"administrator_login_password"`
-	Collation                    string                    `tfschema:"collation"`
-	DnsZonePartnerId             string                    `tfschema:"dns_zone_partner_id"`
-	Fqdn                         string                    `tfschema:"fqdn"`
-	Identity                     []identity.SystemAssigned `tfschema:"identity"`
-	LicenseType                  string                    `tfschema:"license_type"`
-	Location                     string                    `tfschema:"location"`
-	MaintenanceConfigurationName string                    `tfschema:"maintenance_configuration_name"`
-	MinimumTlsVersion            string                    `tfschema:"minimum_tls_version"`
-	Name                         string                    `tfschema:"name"`
-	ProxyOverride                string                    `tfschema:"proxy_override"`
-	PublicDataEndpointEnabled    bool                      `tfschema:"public_data_endpoint_enabled"`
-	ResourceGroupName            string                    `tfschema:"resource_group_name"`
-	SkuName                      string                    `tfschema:"sku_name"`
-	StorageAccountType           string                    `tfschema:"storage_account_type"`
-	StorageSizeInGb              int                       `tfschema:"storage_size_in_gb"`
-	SubnetId                     string                    `tfschema:"subnet_id"`
-	Tags                         map[string]string         `tfschema:"tags"`
-	TimezoneId                   string                    `tfschema:"timezone_id"`
-	VCores                       int                       `tfschema:"vcores"`
+	AdministratorLogin           string                              `tfschema:"administrator_login"`
+	AdministratorLoginPassword   string                              `tfschema:"administrator_login_password"`
+	Collation                    string                              `tfschema:"collation"`
+	DnsZonePartnerId             string                              `tfschema:"dns_zone_partner_id"`
+	Fqdn                         string                              `tfschema:"fqdn"`
+	Identity                     []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	LicenseType                  string                              `tfschema:"license_type"`
+	Location                     string                              `tfschema:"location"`
+	MaintenanceConfigurationName string                              `tfschema:"maintenance_configuration_name"`
+	MinimumTlsVersion            string                              `tfschema:"minimum_tls_version"`
+	Name                         string                              `tfschema:"name"`
+	ProxyOverride                string                              `tfschema:"proxy_override"`
+	PublicDataEndpointEnabled    bool                                `tfschema:"public_data_endpoint_enabled"`
+	ResourceGroupName            string                              `tfschema:"resource_group_name"`
+	SkuName                      string                              `tfschema:"sku_name"`
+	StorageAccountType           string                              `tfschema:"storage_account_type"`
+	StorageSizeInGb              int                                 `tfschema:"storage_size_in_gb"`
+	SubnetId                     string                              `tfschema:"subnet_id"`
+	Tags                         map[string]string                   `tfschema:"tags"`
+	TimezoneId                   string                              `tfschema:"timezone_id"`
+	VCores                       int                                 `tfschema:"vcores"`
 }
 
 var _ sdk.Resource = MsSqlManagedInstanceResource{}
@@ -158,7 +159,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ManagedInstanceID,
 		},
 
-		"identity": commonschema.SystemAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"maintenance_configuration_name": {
 			Type:     schema.TypeString,
@@ -317,6 +318,13 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				Tags: tags.FromTypedObject(model.Tags),
 			}
 
+			if parameters.Identity != nil && len(parameters.Identity.UserAssignedIdentities) > 0 {
+				for k := range parameters.Identity.UserAssignedIdentities {
+					parameters.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = utils.String(k)
+					break
+				}
+			}
+
 			metadata.Logger.Infof("Creating %s", id)
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
@@ -376,6 +384,13 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					VCores:                    utils.Int32(int32(state.VCores)),
 				},
 				Tags: tags.FromTypedObject(state.Tags),
+			}
+
+			if properties.Identity != nil && len(properties.Identity.UserAssignedIdentities) > 0 {
+				for k := range properties.Identity.UserAssignedIdentities {
+					properties.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = utils.String(k)
+					break
+				}
 			}
 
 			if metadata.ResourceData.HasChange("maintenance_configuration_name") {
@@ -516,7 +531,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemAssigned) *sql.ResourceIdentity {
+func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemOrUserAssignedList) *sql.ResourceIdentity {
 	if len(input) == 0 {
 		return nil
 	}
@@ -526,12 +541,21 @@ func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemAssi
 		return nil
 	}
 
+	var identityIds map[string]*sql.UserIdentity
+	if len(input[0].IdentityIds) != 0 {
+		identityIds = map[string]*sql.UserIdentity{}
+		for _, id := range input[0].IdentityIds {
+			identityIds[id] = &sql.UserIdentity{}
+		}
+	}
+
 	return &sql.ResourceIdentity{
-		Type: sql.IdentityType(input[0].Type),
+		Type:                   sql.IdentityType(input[0].Type),
+		UserAssignedIdentities: identityIds,
 	}
 }
 
-func (r MsSqlManagedInstanceResource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemAssigned {
+func (r MsSqlManagedInstanceResource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemOrUserAssignedList {
 	if input == nil {
 		return nil
 	}
@@ -546,10 +570,20 @@ func (r MsSqlManagedInstanceResource) flattenIdentity(input *sql.ResourceIdentit
 		tenantId = input.TenantID.String()
 	}
 
-	return []identity.SystemAssigned{{
+	var identityIds = make([]string, 0)
+	for k := range input.UserAssignedIdentities {
+		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
+		if err != nil {
+			continue
+		}
+		identityIds = append(identityIds, parsedId.ID())
+	}
+
+	return []identity.SystemOrUserAssignedList{{
 		Type:        identity.Type(input.Type),
 		PrincipalId: principalId,
 		TenantId:    tenantId,
+		IdentityIds: identityIds,
 	}}
 }
 

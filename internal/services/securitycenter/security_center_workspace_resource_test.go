@@ -16,17 +16,6 @@ import (
 
 type SecurityCenterWorkspaceResource struct{}
 
-func TestAccSecurityCenterWorkspace(t *testing.T) {
-	// there is only one workspace with the same name could exist, so run the tests in sequence.
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"setting": {
-			"basic":          testAccSecurityCenterWorkspace_basic,
-			"update":         testAccSecurityCenterWorkspace_update,
-			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
-		},
-	})
-}
-
 func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
@@ -42,10 +31,6 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
@@ -70,10 +55,6 @@ func testAccSecurityCenterWorkspace_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
@@ -93,10 +74,6 @@ func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 		{
 			Config:      r.requiresImportCfg(data, scope),
 			ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
-		},
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
 		},
 	})
 }

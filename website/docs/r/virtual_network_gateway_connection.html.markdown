@@ -206,21 +206,13 @@ The following arguments are supported:
 * `name` - (Required) The name of the connection. Changing the name forces a
     new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the connection Changing the name forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the connection Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the connection is
-    located. Changing this forces a new resource to be created.
+* `location` - (Required) The location/region where the connection is located. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of connection. Valid options are `IPsec`
-    (Site-to-Site), `ExpressRoute` (ExpressRoute), and `Vnet2Vnet` (VNet-to-VNet).
-    Each connection type requires different mandatory arguments (refer to the
-    examples above). Changing the connection type will force a new connection
-    to be created.
+* `type` - (Required) The type of connection. Valid options are `IPsec` (Site-to-Site), `ExpressRoute` (ExpressRoute), and `Vnet2Vnet` (VNet-to-VNet). Each connection type requires different mandatory arguments (refer to the examples above). Changing this forces a new resource to be created.
 
-* `virtual_network_gateway_id` - (Required) The ID of the Virtual Network Gateway
-    in which the connection will be created. Changing the gateway forces a new
-    resource to be created.
+* `virtual_network_gateway_id` - (Required) The ID of the Virtual Network Gateway in which the connection will be created. Changing this forces a new resource to be created.
 
 * `authorization_key` - (Optional) The authorization key associated with the
     Express Route Circuit. This field is required only if the type is an
@@ -228,14 +220,9 @@ The following arguments are supported:
 
 * `dpd_timeout_seconds` - (Optional) The dead peer detection timeout of this connection in seconds. Changing this forces a new resource to be created.
 
-* `express_route_circuit_id` - (Optional) The ID of the Express Route Circuit
-    when creating an ExpressRoute connection (i.e. when `type` is `ExpressRoute`).
-    The Express Route Circuit can be in the same or in a different subscription.
+* `express_route_circuit_id` - (Optional) The ID of the Express Route Circuit when creating an ExpressRoute connection (i.e. when `type` is `ExpressRoute`). The Express Route Circuit can be in the same or in a different subscription. Changing this forces a new resource to be created.
 
-* `peer_virtual_network_gateway_id` - (Optional) The ID of the peer virtual
-    network gateway when creating a VNet-to-VNet connection (i.e. when `type`
-    is `Vnet2Vnet`). The peer Virtual Network Gateway can be in the same or
-    in a different subscription.
+* `peer_virtual_network_gateway_id` - (Optional) The ID of the peer virtual network gateway when creating a VNet-to-VNet connection (i.e. when `type` is `Vnet2Vnet`). The peer Virtual Network Gateway can be in the same or in a different subscription. Changing this forces a new resource to be created.
 
 * `local_azure_ip_address_enabled` - (Optional) Use private local Azure IP for the connection. Changing this forces a new resource to be created.
 
@@ -249,9 +236,7 @@ The following arguments are supported:
 
 * `connection_mode` - (Optional) Connection mode to use. Possible values are `Default`, `InitiatorOnly` and `ResponderOnly`. Defaults to `Default`. Changing this value will force a resource to be created.
 
-* `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`.
-    values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
-    Changing this value will force a resource to be created.
+* `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`, values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. Changing this forces a new resource to be created.
 -> **Note:** Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`.
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled

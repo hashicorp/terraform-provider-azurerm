@@ -44,13 +44,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Azure IoT Time Series Insights Gen2 Environment. Changing this forces a new resource to be created. Must be globally unique.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Azure IoT Time Series Insights Gen2 Environment.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Azure IoT Time Series Insights Gen2 Environment. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specifies the SKU Name for this IoT Time Series Insights Gen2 Environment. Currently it supports only `L1`. For gen2, capacity cannot be specified.
+* `sku_name` - (Required) Specifies the SKU Name for this IoT Time Series Insights Gen2 Environment. Currently it supports only `L1`. For gen2, capacity cannot be specified. Changing this forces a new resource to be created.
 
-* `warm_store_data_retention_time` - (Required) Specifies the ISO8601 timespan specifying the minimum number of days the environment's events will be available for query. Changing this forces a new resource to be created.
+* `warm_store_data_retention_time` - (Required) Specifies the ISO8601 timespan specifying the minimum number of days the environment's events will be available for query. 
 
 * `storage` - (Required) A `storage` block as defined below.
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 A `storage` block supports the following:
 
-* `name` - (Required) Name of storage account for Azure IoT Time Series Insights Gen2 Environment
+* `name` - (Required) Name of storage account for Azure IoT Time Series Insights Gen2 Environment. Changing this forces a new resource to be created.
 
 * `key` - (Required) Access key of storage account for Azure IoT Time Series Insights Gen2 Environment
 

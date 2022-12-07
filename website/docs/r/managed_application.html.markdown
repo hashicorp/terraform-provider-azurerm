@@ -63,7 +63,7 @@ resource "azurerm_managed_application" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Managed Application. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Managed Application. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Managed Application should exist. Changing this forces a new resource to be created.
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 The `plan` block exports the following:
 
-* `name` - (Required) Specifies the name of the plan from the marketplace.
+* `name` - (Required) Specifies the name of the plan from the marketplace. Changing this forces a new resource to be created.
 
 * `product` - (Required) Specifies the product of the plan from the marketplace.
 

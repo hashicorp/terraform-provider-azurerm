@@ -36,7 +36,7 @@ resource "azurerm_private_dns_aaaa_record" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS A Record.
+* `name` - (Required) The name of the DNS A Record. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 

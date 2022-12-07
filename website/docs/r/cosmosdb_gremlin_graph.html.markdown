@@ -124,7 +124,7 @@ An `conflict_resolution_policy` block supports the following:
 
 An `unique_key` block supports the following:
 
-* `paths` - (Required) A list of paths to use for this unique key.
+* `paths` - (Required) A list of paths to use for this unique key. Changing this forces a new resource to be created.
 
 ---
 

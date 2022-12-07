@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. Changing this forces a new resource to be created.
+* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. 
 
 ~> **Note:** One of `source_uri`, `source_resource_id` or `storage_account_id` must be specified.
 
