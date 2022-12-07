@@ -51,7 +51,6 @@ For features that can accept or require configuration, i.e. the object contains 
                 ValidateFunc: validation.StringInSlice([]string{
                     string(managedclusters.UpdateModeAuto),
                     string(managedclusters.UpdateModeInitial),
-                    string(managedclusters.UpdateModeOff),
                     string(managedclusters.UpdateModeRecreate),
                 }, false),
             },
@@ -120,9 +119,9 @@ Depending on the behaviour of the Azure API and the default set by it, a worthwh
 },
 ```
 
-## The `None` value
+## The `None` value or similar
 
-Many Azure APIs and services will accept the value `None` and expose it as an enum in the API specification. 
+Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification. 
 
 ```
     "shutdownOnIdleMode": {
@@ -134,19 +133,58 @@ Many Azure APIs and services will accept the value `None` and expose it as an en
       ],
 ```
 
-Whilst it isn't uncommon to stumble across older resources in the provider that accept this as a valid value, the provider is moving away from the pattern of exposing `None`, since Terraform has its own null type i.e. by omitting the field this.
+Whilst it isn't uncommon to stumble across older resources in the provider that expose and accept these as a valid values, the provider is moving away from this pattern, since Terraform has its own null type i.e. by omitting the field. Existing `None`, `Off` or `Default` values within the provider are planned for removal in version 4.0.
 
 This ultimately means that the end user doesn't need to bloat their configuration with superfluous information that is implied through the omission of information.
 
 The resulting schema in Terraform would look as follows and also requires a conversion between the Terraform null value and `None` within the Create and Read functions.
 
 ```go
+// How the property is exposed in the schema
 "shutdown_on_idle": {
     Type:     pluginsdk.TypeString,
     Optional: true,
     ValidateFunc: validation.StringInSlice([]string{
         string(labplan.ShutdownOnIdleModeUserAbsence),
         string(labplan.ShutdownOnIdleModeLowUsage),
+        // NOTE: Whilst the `None` value exists it's handled in the Create/Update and Read functions.
+        // string(labplan.ShutdownOnIdleModeNone),
     }, false),
 },
+
+// Normalising in the create or expand function
+func (r resource) Create() sdk.ResourceFunc {
+	
+	...
+	
+	var config resourceModel
+	if err := metadata.Decode(&config); err != nil {
+        return fmt.Errorf("decoding: %+v", err)
+    }
+	
+	// The resource property shutdown_on_idle maps to the attribute shutdownOnIdle in the defined model for a typed resource in this example
+	shutdownOnIdle := string(labplan.ShutdownOnIdleModeNone)
+	if v := model.ShutdownOnIdle; v != "" {
+		shutdownOnIdle = v
+    }
+	
+	...
+	
+}
+
+// Normalising in the read or flatten function
+func (r resource) Read() sdk.ResourceFunc {
+	
+	...
+	
+	shutdownOnIdle := ""
+	if v := props.ShutdownOnIdle; v != nil && v != string(labplan.ShutdownOnIdleModeNone) {
+		shutdownOnIdle = string(*v)
+    }
+	
+	state.ShutdownOnIdle = shutdownOnIdle
+	
+	...
+	
+}
 ```
