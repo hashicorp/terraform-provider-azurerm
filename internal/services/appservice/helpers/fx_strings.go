@@ -22,16 +22,38 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	case "NODE":
 		result.NodeVersion = parts[1]
 
-	case "JAVA", "TOMCAT", "JBOSSEAP":
-		result.JavaServer = parts[0]
+	case LinuxJavaServerJava:
+		result.JavaServer = LinuxJavaServerJava
+		javaParts := strings.Split(parts[1], "-")
+		if strings.HasPrefix(parts[1], "8") {
+			result.JavaVersion = "8"
+		}
+		if strings.HasPrefix(javaParts[0], "11") {
+			result.JavaVersion = "11"
+		}
+		if strings.HasPrefix(javaParts[0], "17") {
+			result.JavaVersion = "17"
+		}
+		result.JavaServerVersion = javaParts[0]
+
+	case LinuxJavaServerTomcat:
+		result.JavaServer = LinuxJavaServerTomcat
 		javaParts := strings.Split(parts[1], "-")
 		if len(javaParts) == 2 {
-			// e.g. 8-jre8
 			result.JavaServerVersion = javaParts[0]
-			result.JavaVersion = javaParts[1]
-		} else {
-			// e.g. 8u242 or 11.0.9
-			result.JavaVersion = parts[1]
+			javaVersion := strings.TrimPrefix(javaParts[1], "jre")
+			javaVersion = strings.TrimPrefix(javaVersion, "java")
+			result.JavaVersion = javaVersion
+		}
+
+	case LinuxJavaServerJboss:
+		result.JavaServer = LinuxJavaServerJboss
+		javaParts := strings.Split(parts[1], "-")
+		if len(javaParts) == 2 {
+			result.JavaServerVersion = javaParts[0]
+			javaVersion := strings.TrimPrefix(javaParts[1], "jre")
+			javaVersion = strings.TrimPrefix(javaVersion, "java")
+			result.JavaVersion = javaVersion
 		}
 
 	case "PHP":

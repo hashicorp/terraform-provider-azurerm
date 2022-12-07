@@ -792,7 +792,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 			if linuxAppStack.JavaServer != "" {
 				javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 				}
 				expanded.LinuxFxVersion = javaString
 			}
