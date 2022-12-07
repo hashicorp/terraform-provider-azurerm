@@ -37,6 +37,7 @@ BUG FIXES:
 * `azurerm_lb` - adding/removing a frontend configuration will no longer force recreation a new resource to be created [GH-19548]
 * `azurerm_kusto_*` - added a state migration to work around the previously incorrect id casing [GH-19525]
 * `azurerm_media_services_account` - fixing an issue in the state upgrade where the Resource ID was being parsed incorrectly [GH-19578]
+* `azurerm_mssql_elasticpool` - Prevent `license_type` from being configured in specific scenarios [GH-19586]
 * `azurerm_monitor_smart_detector_alert_rule` - added a state migration to work around the previously incorrect id casing [GH-19513]
 * `azurerm_spring_cloud_*` - added a state migration to work around the previously incorrect id casing [GH-19564]
 * `azurerm_virtual_desktop_workspace_application_group_association` - set `tags` properly [GH-19574]
