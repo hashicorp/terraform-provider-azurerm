@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_ids` - (Required) One or more Front Door Origin resource IDs that this Front Door Route will link to.
 
-* `forwarding_protocol` - (Required) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
+* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
 
 * `patterns_to_match` - (Required) The route patterns of the rule.
 

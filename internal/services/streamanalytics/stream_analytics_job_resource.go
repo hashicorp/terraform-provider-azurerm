@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,9 +30,15 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsJobRead,
 		Update: resourceStreamAnalyticsJobCreateUpdate,
 		Delete: resourceStreamAnalyticsJobDelete,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := streamingjobs.ParseStreamingJobID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsJobV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -148,11 +155,10 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 					Schema: map[string]*schema.Schema{
 						"authentication_mode": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(streamingjobs.AuthenticationModeConnectionString),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(streamingjobs.AuthenticationModeConnectionString),
-								string(streamingjobs.AuthenticationModeMsi),
-								string(streamingjobs.AuthenticationModeUserToken),
 							}, false),
 						},
 
@@ -547,10 +553,15 @@ func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.Jo
 		return []interface{}{}
 	}
 
+	accountName := ""
+	if v := input.AccountName; v != nil {
+		accountName = *v
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"authentication_mode": string(*input.AuthenticationMode),
-			"account_name":        *input.AccountName,
+			"account_name":        accountName,
 			"account_key":         d.Get("job_storage_account.0.account_key").(string),
 		},
 	}

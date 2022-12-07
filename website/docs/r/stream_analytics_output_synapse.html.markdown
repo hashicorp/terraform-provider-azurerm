@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `user` - (Required) The user name that will be used to connect to the Azure SQL database. Changing this forces a new resource to be created.
 
-* `password` - (Required) The password that will be used to connect to the Azure SQL database. Changing this forces a new resource to be created.
+* `password` - (Required) The password that will be used to connect to the Azure SQL database. 
 
 * `table` - (Required) The name of the table in the Azure SQL database. Changing this forces a new resource to be created.
 

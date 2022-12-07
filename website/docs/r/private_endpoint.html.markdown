@@ -172,7 +172,7 @@ A `private_service_connection` supports the following:
 
 * `private_connection_resource_alias` - (Optional) The Service Alias of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
 
-* `subresource_names` - (Required) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
+* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
 
 -> Several possible values for this field are shown below, however this is not extensive:
 
@@ -197,11 +197,11 @@ Some resource types (such as Storage Account) only support 1 subresource per pri
 
 An `ip_configuration` supports the following:
 
-* `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created. 
 
-* `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created.
+* `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created. 
 
-* `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id` and in this context is also used for `member_name`. Changing this forces a new resource to be created.
+* `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id` and in this context is also used for `member_name`. Changing this forces a new resource to be created. 
 
 ## Attributes Reference
 

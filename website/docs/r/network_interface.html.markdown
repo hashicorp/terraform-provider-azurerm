@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location where the Network Interface should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Network Interface. Changing this forces a new resource to be created.
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Required) A name used for this IP Configuration.
+* `name` - (Required) A name used for this IP Configuration. Changing this forces a new resource to be created.
 
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 

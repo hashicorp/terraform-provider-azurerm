@@ -405,9 +405,8 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units        = 3
   content_storage_policy = "JobStorageAccount"
   job_storage_account {
-    authentication_mode = "ConnectionString"
-    account_name        = azurerm_storage_account.test.name
-    account_key         = azurerm_storage_account.test.primary_access_key
+    account_name = azurerm_storage_account.test.name
+    account_key  = azurerm_storage_account.test.primary_access_key
   }
 
   tags = {

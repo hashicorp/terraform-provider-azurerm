@@ -99,7 +99,7 @@ The following arguments are supported:
 
 * `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`.
 
-* `name` - (Optional) Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.
+* `name` - (Required) Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.
 
 * `secret` - (Optional) Password or account key for secret auth. `secret` and `name` should be either both specified or both not specified when `type` is set to `secret`.
 

@@ -65,7 +65,7 @@ resource "azurerm_dns_caa_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS CAA Record. If you are creating the record in the apex of the zone use `"@"` as the name.
+* `name` - (Required) The name of the DNS CAA Record. If you are creating the record in the apex of the zone use `"@"` as the name. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
