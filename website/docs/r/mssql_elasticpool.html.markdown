@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
+-> **Note:** `license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`
+
 ---
 
 `sku` supports the following:
