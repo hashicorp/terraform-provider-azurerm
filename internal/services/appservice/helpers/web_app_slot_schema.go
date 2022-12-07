@@ -593,13 +593,11 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 			}
 
 			if linuxAppStack.JavaServer != "" {
-				// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
-				// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
-				if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
-					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
-				} else {
-					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+				javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
+				if err != nil {
+					return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 				}
+				expanded.LinuxFxVersion = javaString
 			}
 
 			if linuxAppStack.DockerImage != "" {
