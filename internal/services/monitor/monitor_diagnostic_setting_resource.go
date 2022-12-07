@@ -242,18 +242,16 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 
 func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
-	name := d.Get("name").(string)
-	actualResourceId := d.Get("target_resource_id").(string)
-	diagnosticSettingId := diagnosticsettings.NewScopedDiagnosticSettingID(actualResourceId, name)
+	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, diagnosticSettingId)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", diagnosticSettingId.Name, diagnosticSettingId.ResourceUri, err)
+			return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", id.Name, id.ResourceUri, err)
 		}
 	}
 
@@ -261,7 +259,6 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", *existing.Model.Id)
 	}
 
-	enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
 
@@ -280,9 +277,12 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if len(enabledLogs) > 0 {
-		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
-		hasEnabledLogs = true
+	if enabledLogs, ok := d.GetOk("enabled_log"); ok {
+		enabledLogsList := enabledLogs.(*pluginsdk.Set).List()
+		if len(enabledLogsList) > 0 {
+			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogsList)
+			hasEnabledLogs = true
+		}
 	}
 
 	// if no logs/metrics are not enabled the API "creates" but 404's on Read
@@ -346,31 +346,22 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, diagnosticSettingId, parameters); err != nil {
-		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", name, actualResourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
 	}
 
-	read, err := client.Get(ctx, diagnosticSettingId)
-	if err != nil {
-		return err
-	}
-	if read.Model == nil && read.Model.Id == nil {
-		return fmt.Errorf("cannot read ID for Monitor Diagnostics %q for Resource ID %q", diagnosticSettingId.Name, diagnosticSettingId.ResourceUri)
-	}
-
-	d.SetId(fmt.Sprintf("%s|%s", actualResourceId, name))
+	d.SetId(fmt.Sprintf("%s|%s", id.ResourceUri, id.Name))
 
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
 func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
-	name := d.Get("name").(string)
-	actualResourceId := d.Get("target_resource_id").(string)
-	diagnosticSettingId := diagnosticsettings.NewScopedDiagnosticSettingID(actualResourceId, name)
+
+	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
 
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
@@ -503,8 +494,8 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, diagnosticSettingId, parameters); err != nil {
-		return fmt.Errorf("updating Monitor Diagnostics Setting %q for Resource %q: %+v", name, actualResourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("updating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
 	}
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
@@ -519,16 +510,15 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	actualResourceId := id.ResourceUri
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.Name, actualResourceId)
+			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.Name, id.ResourceUri)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, actualResourceId, err)
+		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
 	}
 
 	d.Set("name", id.Name)
@@ -791,7 +781,7 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings
 
 			outputPolicy["days"] = int(inputPolicy.Days)
 
-			outputPolicy["enabled"] = true
+			outputPolicy["enabled"] = inputPolicy.Enabled
 
 			policies = append(policies, outputPolicy)
 		}
