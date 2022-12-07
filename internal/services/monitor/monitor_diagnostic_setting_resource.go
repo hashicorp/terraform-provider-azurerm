@@ -572,12 +572,15 @@ func flattenMonitorDiagnosticMetrics(input *[]diagnosticsettings.MetricSettings)
 func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagnosticSettingId, error) {
 	v := strings.Split(monitorId, "|")
 	if len(v) != 2 {
-		return nil, fmt.Errorf("Expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
+		return nil, fmt.Errorf("expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
 	}
 
 	identifier := diagnosticsettings.ScopedDiagnosticSettingId{
 		ResourceUri: v[0],
 		Name:        v[1],
+	}
+	if _, err := azure.ParseAzureResourceID(v[0]); err != nil {
+		return nil, fmt.Errorf("can not parse %q as a resource id: %v", v[0], err)
 	}
 	return &identifier, nil
 }
