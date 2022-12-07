@@ -21,12 +21,12 @@ func TestAccNetworkManager(t *testing.T) {
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]map[string]func(t *testing.T){
-		//"Manager": {
-		//	"basic":          testAccNetworkManager_basic,
-		//	"complete":       testAccNetworkManager_complete,
-		//	"update":         testAccNetworkManager_update,
-		//	"requiresImport": testAccNetworkManager_requiresImport,
-		//},
+		"Manager": {
+			"basic":          testAccNetworkManager_basic,
+			"complete":       testAccNetworkManager_complete,
+			"update":         testAccNetworkManager_update,
+			"requiresImport": testAccNetworkManager_requiresImport,
+		},
 		"NetworkGroup": {
 			"basic":          testAccNetworkManagerNetworkGroup_basic,
 			"complete":       testAccNetworkManagerNetworkGroup_complete,
