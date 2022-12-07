@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	mysqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
@@ -195,10 +196,17 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"member_name": { // TODO: set to Required, remove Computed in v4.0
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true, // to avoid breaking change, set it to `Computed`.
+						"member_name": {
+							Type: pluginsdk.TypeString,
+							Required: func() bool {
+								return features.FourPointOhBeta()
+							}(),
+							Optional: func() bool {
+								return !features.FourPointOhBeta()
+							}(),
+							Computed: func() bool {
+								return !features.FourPointOhBeta()
+							}(),
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
