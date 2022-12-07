@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -255,7 +255,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
+* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2017` and `VS2019`.
 
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
@@ -409,9 +409,9 @@ A `backup` block supports the following:
 
 * `name` (Required) Specifies the name for this Backup.
 
-* `enabled` - (Required) Is this Backup enabled?
+* `enabled` - (Optional) Is this Backup enabled?
 
-* `storage_account_url` (Optional) The SAS URL to a Storage Container where Backups should be saved.
+* `storage_account_url` (Required) The SAS URL to a Storage Container where Backups should be saved.
 
 * `schedule` - (Optional) A `schedule` block as defined below.
 
@@ -433,7 +433,7 @@ A `schedule` block supports the following:
 
 A `source_control` block supports the following:
 
-* `repo_url` - (Required) The URL of the source code repository.
+* `repo_url` - (Optional) The URL of the source code repository.
 
 * `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'.
 

@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management API exists. Changing this forces a new resource to be created.
 
-* `revision` - (Required) The Revision which used for this API.
+* `revision` - (Required) The Revision which used for this API. Changing this forces a new resource to be created.
 
 ---
 

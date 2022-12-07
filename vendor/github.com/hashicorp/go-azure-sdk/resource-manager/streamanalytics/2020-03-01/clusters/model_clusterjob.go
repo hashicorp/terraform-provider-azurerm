@@ -1,0 +1,10 @@
+package clusters
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type ClusterJob struct {
+	Id             *string   `json:"id,omitempty"`
+	JobState       *JobState `json:"jobState,omitempty"`
+	StreamingUnits *int64    `json:"streamingUnits,omitempty"`
+}

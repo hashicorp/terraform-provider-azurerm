@@ -139,7 +139,7 @@ An `application_stack` block supports the following:
 
 * `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, and `6.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
 
 * `java_server` - (Optional) The Java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 

@@ -56,13 +56,13 @@ resource "azurerm_traffic_manager_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Traffic Manager profile. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Traffic Manager profile. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager profile.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager profile. Changing this forces a new resource to be created.
 
 * `profile_status` - (Optional) The status of the profile, can be set to either `Enabled` or `Disabled`. Defaults to `Enabled`.
 
-* `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic, possible values are:
+* `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic. Possible values are `Geographic`, `Weighted`, `Performance`, `Priority`, `Subnet` and `MultiValue`.
   * `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
   * `MultiValue` - All healthy Endpoints are returned.  MultiValue routing method works only if all the endpoints of type ‘External’ and are specified as IPv4 or IPv6 addresses.
   * `Performance` - Traffic is routed via the User's closest Endpoint
@@ -108,7 +108,7 @@ The `monitor_config` block supports:
 
 A `custom_header` block supports the following:
 
-* `name` - (Required) The name of the custom header.
+* `name` - (Required) The name of the custom header. Changing this forces a new resource to be created.
 
 * `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 

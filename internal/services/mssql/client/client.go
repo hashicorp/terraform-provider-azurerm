@@ -28,6 +28,8 @@ type Client struct {
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ManagedInstanceAdministratorsClient                *sql.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient    *sql.ManagedInstanceAzureADOnlyAuthenticationsClient
+	ManagedInstanceEncryptionProtectorClient           *sql.ManagedInstanceEncryptionProtectorsClient
+	ManagedInstanceKeysClient                          *sql.ManagedInstanceKeysClient
 	ReplicationLinksClient                             *sql.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
@@ -99,6 +101,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	managedInstanceAzureADOnlyAuthenticationsClient := sql.NewManagedInstanceAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
+
+	managedInstanceEncryptionProtectorsClient := sql.NewManagedInstanceEncryptionProtectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstanceEncryptionProtectorsClient.Client, o.ResourceManagerAuthorizer)
+
+	managedInstanceKeysClient := sql.NewManagedInstanceKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstanceKeysClient.Client, o.ResourceManagerAuthorizer)
 
 	managedInstanceVulnerabilityAssessmentsClient := sql.NewManagedInstanceVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
@@ -172,18 +180,20 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedDatabasesClient:                           &managedDatabasesClient,
 		ManagedInstanceAdministratorsClient:              &managedInstancesAdministratorsClient,
 		ManagedInstanceAzureADOnlyAuthenticationsClient:  &managedInstanceAzureADOnlyAuthenticationsClient,
-		ManagedInstancesClient:                           &managedInstancesClient,
-		ManagedInstanceVulnerabilityAssessmentsClient:    &managedInstanceVulnerabilityAssessmentsClient,
+		ManagedInstanceEncryptionProtectorClient:         &managedInstanceEncryptionProtectorsClient,
+		ManagedInstanceKeysClient:                        &managedInstanceKeysClient,
 		ManagedInstanceServerSecurityAlertPoliciesClient: &managedInstanceServerSecurityAlertPoliciesClient,
+		ManagedInstanceVulnerabilityAssessmentsClient:    &managedInstanceVulnerabilityAssessmentsClient,
+		ManagedInstancesClient:                           &managedInstancesClient,
 		OutboundFirewallRulesClient:                      &outboundFirewallRulesClient,
 		ReplicationLinksClient:                           &replicationLinksClient,
 		RestorableDroppedDatabasesClient:                 &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:                &serverAzureADAdministratorsClient,
 		ServerAzureADOnlyAuthenticationsClient:           &serverAzureADOnlyAuthenticationsClient,
 		ServerConnectionPoliciesClient:                   &serverConnectionPoliciesClient,
-		ServerExtendedBlobAuditingPoliciesClient:         &serverExtendedBlobAuditingPoliciesClient,
 		ServerDNSAliasClient:                             &serverDNSAliasClient,
 		ServerDevOpsAuditSettingsClient:                  &serverDevOpsAuditSettingsClient,
+		ServerExtendedBlobAuditingPoliciesClient:         &serverExtendedBlobAuditingPoliciesClient,
 		ServerKeysClient:                                 &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:                &serverSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient:             &serverVulnerabilityAssessmentsClient,

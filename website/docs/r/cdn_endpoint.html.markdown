@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint.
+* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint.
+* `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -206,7 +206,7 @@ A `url_redirect_action` block supports the following:
 
 * `redirect_type` - (Required) Type of the redirect. Valid values are `Found`, `Moved`, `PermanentRedirect` and `TemporaryRedirect`.
 
-* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `Http` and `Https`.
+* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `MatchRequest`, `Http` and `Https`.
 
 * `hostname` - (Optional) Specifies the hostname part of the URL.
 

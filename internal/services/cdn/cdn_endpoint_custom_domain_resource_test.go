@@ -292,7 +292,7 @@ data "azurerm_client_config" "test" {
 }
 
 data "azuread_service_principal" "test" {
-  display_name = "Microsoft.AzureFrontDoor-Cdn"
+  display_name = "Microsoft.Azure.Cdn"
 }
 
 resource "azurerm_key_vault" "test" {

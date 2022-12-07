@@ -42,7 +42,7 @@ resource "azurerm_key_vault_certificate_issuer" "example" {
 
 The following arguments are supported:
 
-* `key_vault_id` - (Required) The ID of the Key Vault in which to create the Certificate Issuer.
+* `key_vault_id` - (Required) The ID of the Key Vault in which to create the Certificate Issuer. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name which should be used for this Key Vault Certificate Issuer. Changing this forces a new Key Vault Certificate Issuer to be created.
 

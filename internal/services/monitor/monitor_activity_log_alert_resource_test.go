@@ -101,6 +101,28 @@ func TestAccMonitorActivityLogAlert_complete(t *testing.T) {
 	})
 }
 
+func TestAccMonitorActivityLogAlert_actionWebhook(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWebhook(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateWebhook(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorActivityLogAlert_criteria(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
@@ -355,6 +377,128 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) basicWebhook(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_resource_group.test.id]
+
+  criteria {
+    operation_name = "Microsoft.Storage/storageAccounts/write"
+    category       = "Recommendation"
+    resource_id    = azurerm_storage_account.test.id
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test.id
+    webhook_properties = {
+      from = "terraform test"
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+    webhook_properties = {
+      to   = "microsoft azure"
+      from = "terraform test"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) updateWebhook(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_resource_group.test.id]
+
+  criteria {
+    operation_name = "Microsoft.Storage/storageAccounts/write"
+    category       = "Recommendation"
+    resource_id    = azurerm_storage_account.test.id
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+    webhook_properties = {
+      from = "terraform test"
+      to   = "microsoft azure"
+      env  = "test"
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test.id
+    webhook_properties = {
+      from = "terraform test"
+      env  = "test"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func (MonitorActivityLogAlertResource) complete(data acceptance.TestData) string {

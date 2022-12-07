@@ -49,13 +49,13 @@ resource "azurerm_sql_server" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Microsoft SQL Server. This needs to be globally unique within Azure.
+* `name` - (Required) The name of the Microsoft SQL Server. This needs to be globally unique within Azure. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Microsoft SQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Microsoft SQL Server. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version for the new server. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server).
+* `version` - (Required) The version for the new server. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server). Changing this forces a new resource to be created.
 
 * `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
 

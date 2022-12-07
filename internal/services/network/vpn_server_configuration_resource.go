@@ -718,7 +718,7 @@ type vpnServerConfigurationRadius struct {
 }
 
 func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigurationRadius {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

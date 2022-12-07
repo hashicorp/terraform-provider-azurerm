@@ -85,7 +85,7 @@ The following arguments are supported:
 
 ---
 
-* `authentication_mode` - (Required) The authentication mode of the storage account. Possible values are `ConnectionString`, `Msi` and `UserToken`.
+* `authentication_mode` - (Optional) The authentication mode of the storage account. The only supported value is `ConnectionString`. Defaults to `ConnectionString`.
 
 * `account_name` - (Required) The name of the Azure storage account.
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `transformation_query` - (Required) Specifies the query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
 
-* `tags` - A mapping of tags assigned to the resource.
+* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 

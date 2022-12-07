@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -613,6 +613,36 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"storage_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"blob_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"disk_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"disk_driver_version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"file_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"snapshot_controller_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -729,6 +759,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
 			}
 
+			storageProfile := flattenKubernetesClusterDataSourceStorageProfile(props.StorageProfile)
+			if err := d.Set("storage_profile", storageProfile); err != nil {
+				return fmt.Errorf("setting `storage_profile`: %+v", err)
+			}
+
 			rbacEnabled := true
 			if props.EnableRBAC != nil {
 				rbacEnabled = *props.EnableRBAC
@@ -791,6 +826,49 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {
+
+	storageProfile := make([]interface{}, 0)
+
+	if input != nil {
+
+		blobEnabled := false
+		if input.BlobCSIDriver != nil {
+			blobEnabled = *input.BlobCSIDriver.Enabled
+		}
+
+		diskEnabled := true
+		if input.DiskCSIDriver != nil {
+			diskEnabled = *input.DiskCSIDriver.Enabled
+		}
+
+		diskVersion := ""
+		if input.FileCSIDriver != nil {
+			diskVersion = *input.DiskCSIDriver.Version
+		}
+
+		fileEnabled := true
+		if input.DiskCSIDriver != nil {
+			fileEnabled = *input.FileCSIDriver.Enabled
+		}
+
+		snapshotController := true
+		if input.SnapshotController != nil {
+			snapshotController = *input.SnapshotController.Enabled
+		}
+
+		storageProfile = append(storageProfile, map[string]interface{}{
+			"blob_driver_enabled":         blobEnabled,
+			"disk_driver_enabled":         diskEnabled,
+			"disk_driver_version":         diskVersion,
+			"file_driver_enabled":         fileEnabled,
+			"snapshot_controller_enabled": snapshotController,
+		})
+	}
+
+	return storageProfile
 }
 
 func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.ManagedClusterAccessProfile) (*string, []interface{}) {
@@ -1030,7 +1108,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			nodeTaints = *profile.NodeTaints
 		}
 
-		vmSize := profile.VmSize
+		vmSize := profile.VMSize
 
 		out := map[string]interface{}{
 			"count":                    count,

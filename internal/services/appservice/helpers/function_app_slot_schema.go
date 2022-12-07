@@ -924,8 +924,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			result.Cors = []CorsSetting{cors}
 		}
+		result.Cors = []CorsSetting{cors}
 	}
 
 	var appStack []ApplicationStackWindowsFunctionApp
@@ -1264,8 +1264,8 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			result.Cors = []CorsSetting{cors}
 		}
+		result.Cors = []CorsSetting{cors}
 	}
 
 	var appStack []ApplicationStackLinuxFunctionApp

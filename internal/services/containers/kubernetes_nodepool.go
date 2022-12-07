@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -628,7 +628,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		Name: &defaultCluster.Name,
 		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
 			Count:                     defaultCluster.Count,
-			VmSize:                    defaultCluster.VmSize,
+			VMSize:                    defaultCluster.VMSize,
 			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
 			VnetSubnetID:              defaultCluster.VnetSubnetID,
 			MaxPods:                   defaultCluster.MaxPods,
@@ -744,7 +744,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
 		Type:                   utils.ToPtr(managedclusters.AgentPoolType(raw["type"].(string))),
-		VmSize:                 utils.String(raw["vm_size"].(string)),
+		VMSize:                 utils.String(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
@@ -1051,13 +1051,13 @@ func expandClusterNodePoolSysctlConfig(input []interface{}) (*managedclusters.Sy
 		result.KernelThreadsMax = utils.Int64(int64(v))
 	}
 	if v := raw["vm_max_map_count"].(int); v != 0 {
-		result.VmMaxMapCount = utils.Int64(int64(v))
+		result.VMMaxMapCount = utils.Int64(int64(v))
 	}
 	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VmSwappiness = utils.Int64(int64(v))
+		result.VMSwappiness = utils.Int64(int64(v))
 	}
 	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VmVfsCachePressure = utils.Int64(int64(v))
+		result.VMVfsCachePressure = utils.Int64(int64(v))
 	}
 	return result, nil
 }
@@ -1194,8 +1194,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	vmSize := ""
-	if agentPool.VmSize != nil {
-		vmSize = *agentPool.VmSize
+	if agentPool.VMSize != nil {
+		vmSize = *agentPool.VMSize
 	}
 	capacityReservationGroupId := ""
 	if agentPool.CapacityReservationGroupID != nil {
@@ -1542,16 +1542,16 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 		netNetfilterNfConntrackMax = int(*input.NetNetfilterNfConntrackMax)
 	}
 	var vmMaxMapCount int
-	if input.VmMaxMapCount != nil {
-		vmMaxMapCount = int(*input.VmMaxMapCount)
+	if input.VMMaxMapCount != nil {
+		vmMaxMapCount = int(*input.VMMaxMapCount)
 	}
 	var vmSwappiness int
-	if input.VmSwappiness != nil {
-		vmSwappiness = int(*input.VmSwappiness)
+	if input.VMSwappiness != nil {
+		vmSwappiness = int(*input.VMSwappiness)
 	}
 	var vmVfsCachePressure int
-	if input.VmVfsCachePressure != nil {
-		vmVfsCachePressure = int(*input.VmVfsCachePressure)
+	if input.VMVfsCachePressure != nil {
+		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
 	return []interface{}{
 		map[string]interface{}{

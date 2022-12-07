@@ -130,6 +130,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		costmanagement.Registration{},
 		dashboard.Registration{},
 		databricks.Registration{},
+		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
@@ -141,6 +142,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loganalytics.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
+		network.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
 		privatednsresolver.Registration{},
@@ -152,6 +154,8 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},
+		springcloud.Registration{},
+		vmware.Registration{},
 		web.Registration{},
 	}
 	services = append(services, autoRegisteredTypedServices()...)
