@@ -31,19 +31,20 @@ The following arguments are supported:
 
 * `key_vault_id` - Specifies the ID of the Key Vault instance to fetch certificate names from, available on the `azurerm_key_vault` Data Source / Resource.
 
-* `include_pending` - Specifies whether to include certificates which are not completely provisioned. Defaults to true.
-
 **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
+
+* `include_pending` - Specifies whether to include certificates which are not completely provisioned. Defaults to true.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the arguments above, the following attributes are exported:
 
 * `names` - List containing names of certificates that exist in this Key Vault.
+
 * `key_vault_id` - The Key Vault ID.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificates.

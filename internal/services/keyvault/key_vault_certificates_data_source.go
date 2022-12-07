@@ -2,8 +2,6 @@ package keyvault
 
 import (
 	"fmt"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,7 +64,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 
 	certificateList, err := client.GetCertificatesComplete(ctx, *keyVaultBaseUri, utils.Int32(25), &includePending)
 	if err != nil {
-		return fmt.Errorf("making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
+		return fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
 	}
 
 	d.SetId(keyVaultId.ID())
@@ -75,14 +73,14 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	if certificateList.Response().Value != nil {
 		for certificateList.NotDone() {
 			for _, v := range *certificateList.Response().Value {
-				name, err := parseNameFromCertificateUrl(*v.ID)
+				nestedItem, err := parse.ParseOptionallyVersionedNestedItemID(*v.ID)
 				if err != nil {
 					return err
 				}
-				names = append(names, *name)
+				names = append(names, nestedItem.Name)
 				err = certificateList.NextWithContext(ctx)
 				if err != nil {
-					return fmt.Errorf("listing certificates on Azure KeyVault %q: %+v", *keyVaultId, err)
+					return fmt.Errorf("retrieving next page of Certificates from %s: %+v", *keyVaultId, err)
 				}
 			}
 		}
@@ -92,17 +90,4 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("key_vault_id", keyVaultId.ID())
 
 	return nil
-}
-
-func parseNameFromCertificateUrl(input string) (*string, error) {
-	uri, err := url.Parse(input)
-	if err != nil {
-		return nil, err
-	}
-	// https://favoretti-keyvault.vault.azure.net//certificates/certificate-name
-	segments := strings.Split(uri.Path, "/")
-	if len(segments) != 3 {
-		return nil, fmt.Errorf("expected a Path in the format `/certificates/certificate-name` but got %q", uri.Path)
-	}
-	return &segments[2], nil
 }
