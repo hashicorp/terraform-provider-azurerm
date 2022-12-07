@@ -153,7 +153,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the Virtual Machine.
 
-* `zones` - (Optional) A list of a single item of the Availability Zone which the Virtual Machine should be allocated in.
+* `zones` - (Optional) A list of a single item of the Availability Zone which the Virtual Machine should be allocated in. Changing this forces a new resource to be created.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
@@ -185,7 +185,7 @@ A `boot_diagnostics` block supports the following:
 
 A `additional_capabilities` block supports the following:
 
-* `ultra_ssd_enabled` - (Required) Should Ultra SSD disk be enabled for this Virtual Machine?
+* `ultra_ssd_enabled` - (Required) Should Ultra SSD disk be enabled for this Virtual Machine? Changing this forces a new resource to be created.
 
 -> **Note:** Azure Ultra Disk Storage is only available in a region that support availability zones and can only enabled on the following VM series: `ESv3`, `DSv3`, `FSv3`, `LSv2`, `M` and `Mv2`. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 
@@ -207,11 +207,11 @@ A `identity` block supports the following:
 
 A `os_profile` block supports the following:
 
-* `computer_name` - (Required) Specifies the name of the Virtual Machine.
+* `computer_name` - (Required) Specifies the name of the Virtual Machine. Changing this forces a new resource to be created.
 
 * `admin_username` - (Required) Specifies the name of the local administrator account.
 
-* `admin_password` - (Required for Windows, Optional for Linux) The password associated with the local administrator account.
+* `admin_password` - (Optional for Windows, Optional for Linux) The password associated with the local administrator account.
 
 -> **NOTE:** If using Linux, it may be preferable to use SSH Key authentication (available in the `os_profile_linux_config` block) instead of password authentication.
 
@@ -222,7 +222,7 @@ A `os_profile` block supports the following:
 3. Contains a numeric digit
 4. Contains a special character
 
-* `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
+* `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes. Changing this forces a new resource to be created.
 
 ---
 
@@ -250,7 +250,7 @@ A `os_profile_windows_config` block supports the following:
 
 * `enable_automatic_upgrades` - (Optional) Are automatic updates enabled on this Virtual Machine? Defaults to `false.`
 
-* `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+* `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Changing this forces a new resource to be created.
 
 * `winrm` - (Optional) One or more `winrm` blocks as defined below.
 
@@ -288,17 +288,17 @@ This block provisions the Virtual Machine from one of two sources: an Azure Plat
 
 To provision from an Azure Platform Image, the following fields are applicable:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machine. Changing this forces a new resource to be created.
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machine. Changing this forces a new resource to be created.
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machine. Changing this forces a new resource to be created.
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
 * `version` - (Optional) Specifies the version of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
 To provision a Custom Image, the following fields are applicable:
 
-* `id` - (Required) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
+* `id` - (Optional) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
 
 -> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
 
@@ -332,7 +332,7 @@ The following properties apply when using Managed Disks:
 
 The following properties apply when using Unmanaged Disks:
 
-* `vhd_uri` - (Optional) Specifies the URI of the VHD file backing this Unmanaged Data Disk. Changing this forces a new resource to be created.
+* `vhd_uri` - (Optional) Specifies the URI of the VHD file backing this Unmanaged Data Disk. 
 
 ---
 
@@ -354,7 +354,7 @@ A `storage_os_disk` block supports the following:
 
 The following properties apply when using Managed Disks:
 
-* `managed_disk_id` - (Optional) Specifies the ID of an existing Managed Disk which should be attached as the OS Disk of this Virtual Machine. If this is set then the `create_option` must be set to `Attach`.
+* `managed_disk_id` - (Optional) Specifies the ID of an existing Managed Disk which should be attached as the OS Disk of this Virtual Machine. If this is set then the `create_option` must be set to `Attach`. Changing this forces a new resource to be created.
 
 * `managed_disk_type` - (Optional) Specifies the type of Managed Disk which should be created. Possible values are `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 

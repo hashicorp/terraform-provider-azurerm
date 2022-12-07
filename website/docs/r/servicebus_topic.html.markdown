@@ -46,7 +46,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the ServiceBus Topic resource. Changing this forces a
     new resource to be created.
 
-* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create
+* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create Changing this forces a new resource to be created.
     this topic in. Changing this forces a new resource to be created.
 
 * `status` - (Optional) The Status of the Service Bus Topic. Acceptable values are `Active` or `Disabled`. Defaults to `Active`.
@@ -67,7 +67,7 @@ The following arguments are supported:
     are enabled. An express topic holds a message in memory temporarily before writing
     it to persistent storage. Defaults to false.
 
-* `enable_partitioning` - (Optional) Boolean flag which controls whether to enable
+* `enable_partitioning` - (Optional) Boolean flag which controls whether to enable Changing this forces a new resource to be created.
     the topic to be partitioned across multiple message brokers. Defaults to false.
     Changing this forces a new resource to be created.
 
@@ -81,7 +81,7 @@ The following arguments are supported:
     memory allocated for the topic. For supported values see the "Queue/topic size"
     section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
-* `requires_duplicate_detection` - (Optional) Boolean flag which controls whether
+* `requires_duplicate_detection` - (Optional) Boolean flag which controls whether Changing this forces a new resource to be created.
     the Topic requires duplicate detection. Defaults to false. Changing this forces
     a new resource to be created.
 

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -112,17 +113,17 @@ func TestAccStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T) {
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StreamInputID(state.ID)
+	id, err := inputs.ParseInputID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
+	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -325,9 +326,9 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units                          = 3
 
   transformation_query = <<QUERY
-    SELECT *
-    INTO [YourOutputAlias]
-    FROM [YourInputAlias]
+   SELECT *
+   INTO [YourOutputAlias]
+   FROM [YourInputAlias]
 QUERY
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)

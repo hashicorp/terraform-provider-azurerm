@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account where this Storage Encryption Scope is created. Changing this forces a new Storage Encryption Scope to be created.
 
-* `infrastructure_encryption_required` - (Optional) Is a secondary layer of encryption with Platform Managed Keys for data applied?
+* `infrastructure_encryption_required` - (Optional) Is a secondary layer of encryption with Platform Managed Keys for data applied? Changing this forces a new resource to be created.
 
 ---
 

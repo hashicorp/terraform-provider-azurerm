@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -33,6 +34,11 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IotSecuritySolutionID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SecurityCenterIotSecuritySolutionV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

@@ -3,10 +3,10 @@ package mssql
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,25 +20,26 @@ import (
 )
 
 type MsSqlManagedInstanceDataSourceModel struct {
-	AdministratorLogin        string                    `tfschema:"administrator_login"`
-	Collation                 string                    `tfschema:"collation"`
-	DnsZonePartnerId          string                    `tfschema:"dns_zone_partner_id"`
-	Fqdn                      string                    `tfschema:"fqdn"`
-	Identity                  []identity.SystemAssigned `tfschema:"identity"`
-	LicenseType               string                    `tfschema:"license_type"`
-	Location                  string                    `tfschema:"location"`
-	MinimumTlsVersion         string                    `tfschema:"minimum_tls_version"`
-	Name                      string                    `tfschema:"name"`
-	ProxyOverride             string                    `tfschema:"proxy_override"`
-	PublicDataEndpointEnabled bool                      `tfschema:"public_data_endpoint_enabled"`
-	ResourceGroupName         string                    `tfschema:"resource_group_name"`
-	SkuName                   string                    `tfschema:"sku_name"`
-	StorageAccountType        string                    `tfschema:"storage_account_type"`
-	StorageSizeInGb           int                       `tfschema:"storage_size_in_gb"`
-	SubnetId                  string                    `tfschema:"subnet_id"`
-	Tags                      map[string]string         `tfschema:"tags"`
-	TimezoneId                string                    `tfschema:"timezone_id"`
-	VCores                    int                       `tfschema:"vcores"`
+	AdministratorLogin        string                              `tfschema:"administrator_login"`
+	Collation                 string                              `tfschema:"collation"`
+	CustomerManagedKeyId      string                              `tfschema:"customer_managed_key_id"`
+	DnsZonePartnerId          string                              `tfschema:"dns_zone_partner_id"`
+	Fqdn                      string                              `tfschema:"fqdn"`
+	Identity                  []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	LicenseType               string                              `tfschema:"license_type"`
+	Location                  string                              `tfschema:"location"`
+	MinimumTlsVersion         string                              `tfschema:"minimum_tls_version"`
+	Name                      string                              `tfschema:"name"`
+	ProxyOverride             string                              `tfschema:"proxy_override"`
+	PublicDataEndpointEnabled bool                                `tfschema:"public_data_endpoint_enabled"`
+	ResourceGroupName         string                              `tfschema:"resource_group_name"`
+	SkuName                   string                              `tfschema:"sku_name"`
+	StorageAccountType        string                              `tfschema:"storage_account_type"`
+	StorageSizeInGb           int                                 `tfschema:"storage_size_in_gb"`
+	SubnetId                  string                              `tfschema:"subnet_id"`
+	Tags                      map[string]string                   `tfschema:"tags"`
+	TimezoneId                string                              `tfschema:"timezone_id"`
+	VCores                    int                                 `tfschema:"vcores"`
 }
 
 var _ sdk.DataSource = MsSqlManagedInstanceDataSource{}
@@ -77,6 +78,11 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
+		"customer_managed_key_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"dns_zone_partner_id": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -87,7 +93,7 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
-		"identity": commonschema.SystemAssignedIdentityComputed(),
+		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 		"license_type": {
 			Type:     schema.TypeString,
@@ -192,6 +198,9 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				if props.Collation != nil {
 					model.Collation = *props.Collation
 				}
+				if props.KeyID != nil {
+					model.CustomerManagedKeyId = *props.KeyID
+				}
 				if props.FullyQualifiedDomainName != nil {
 					model.Fqdn = *props.FullyQualifiedDomainName
 				}
@@ -221,8 +230,8 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemAssigned {
-	if input == nil || !strings.EqualFold(string(input.Type), string(identity.TypeSystemAssigned)) {
+func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemOrUserAssignedList {
+	if input == nil {
 		return nil
 	}
 
@@ -236,9 +245,19 @@ func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdent
 		tenantId = input.TenantID.String()
 	}
 
-	return []identity.SystemAssigned{{
+	var identityIds = make([]string, 0)
+	for k := range input.UserAssignedIdentities {
+		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
+		if err != nil {
+			continue
+		}
+		identityIds = append(identityIds, parsedId.ID())
+	}
+
+	return []identity.SystemOrUserAssignedList{{
 		Type:        identity.Type(input.Type),
 		PrincipalId: principalId,
 		TenantId:    tenantId,
+		IdentityIds: identityIds,
 	}}
 }

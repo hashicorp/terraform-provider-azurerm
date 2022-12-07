@@ -67,7 +67,7 @@ resource "azurerm_app_service_environment" "example" {
 
 * `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below.
 
-* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web`, `Publishing` and combined value `"Web, Publishing"`. Defaults to `None`.
+* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web`, `Publishing` and combined value `"Web, Publishing"`. Defaults to `None`. Changing this forces a new resource to be created.
 
 * `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1`, `I2` and `I3`. Defaults to `I1`.
 
@@ -77,7 +77,7 @@ resource "azurerm_app_service_environment" "example" {
 
 ~> **NOTE:** `allowed_user_ip_cidrs` The addresses that will be used for all outbound traffic from your App Service Environment to the internet to avoid asymmetric routing challenge. If you're routing the traffic on premises, these addresses are your NATs or gateway IPs. If you want to route the App Service Environment outbound traffic through an NVA, the egress address is the public IP of the NVA. Please visit [Create your ASE with the egress addresses](https://docs.microsoft.com/azure/app-service/environment/forced-tunnel-support#add-your-own-ips-to-the-ase-azure-sql-firewall)
 
-* `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
+* `resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 

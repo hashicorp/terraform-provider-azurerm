@@ -70,7 +70,7 @@ The following arguments are supported:
 
 ~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively.
 
-* `key_vault_id` - (Required) The ID of the Key Vault where the Secret should be created.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Secret should be created. Changing this forces a new resource to be created.
 
 * `content_type` - (Optional) Specifies the content type for the Key Vault Secret.
 

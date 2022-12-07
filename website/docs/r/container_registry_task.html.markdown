@@ -163,9 +163,9 @@ A `encoded_step` block supports the following:
 
 * `task_content` - (Required) The (optionally base64 encoded) content of the build template.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 
@@ -179,9 +179,9 @@ A `file_step` block supports the following:
 
 * `task_file_path` - (Required) The task template file path relative to the source context.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 

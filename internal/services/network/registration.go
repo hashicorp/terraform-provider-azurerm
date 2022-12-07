@@ -8,12 +8,24 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
+// Name is the name of this Service
+func (r Registration) Name() string {
+	return "Network"
+}
+
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/network"
+}
+
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"Network",
+	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
@@ -22,19 +34,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ManagerResource{},
 		RouteMapResource{},
-	}
-}
-
-// Name is the name of this Service
-func (r Registration) Name() string {
-	return "Network"
-}
-
-// WebsiteCategories returns a list of categories which can be used for the sidebar
-func (r Registration) WebsiteCategories() []string {
-	return []string{
-		"Network",
 	}
 }
 
