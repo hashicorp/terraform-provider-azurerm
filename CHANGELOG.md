@@ -9,7 +9,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20221130.1102501` of `github.com/hashicorp/go-azure-sdk` [GH-19537]
 * `lighthouse`: updating to API version `2022-10-01` [GH-19499]
+* `proximityplacementgroups`: updating to API Version `2022-03-01` [GH-19537]
 * Data Source: `azurerm_kubernetes_cluster` - support for the `storage_profile` block [GH-19396]
 * `azurerm_firewall_policy` - support for the `explicit_proxy` block and `auto_learn_private_ranges_mode` property [GH-19313]
 * `azurerm_kubernetes_cluster` - support for the `storage_profile` block [GH-19396]
