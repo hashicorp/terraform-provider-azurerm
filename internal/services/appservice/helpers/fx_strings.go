@@ -19,6 +19,9 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	case "DOTNETCORE", "DOTNET":
 		result.NetFrameworkVersion = parts[1]
 
+	case "GO":
+		result.GoVersion = parts[1]
+
 	case "NODE":
 		result.NodeVersion = parts[1]
 
