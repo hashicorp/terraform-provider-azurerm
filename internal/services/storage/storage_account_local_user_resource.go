@@ -356,8 +356,6 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 				if err := metadata.Decode(&state); err != nil {
 					return err
 				}
-				var needSetState bool
-
 				if metadata.ResourceData.HasChange("home_directory") {
 					if plan.HomeDirectory != "" {
 						props.HomeDirectory = &plan.HomeDirectory
@@ -376,6 +374,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 					props.HasSSHKey = &plan.SshKeyEnabled
 				}
 
+				var needSetState bool
 				if metadata.ResourceData.HasChange("ssh_password_enabled") {
 					props.HasSSHPassword = &plan.SshPasswordEnabled
 					if _, isEnabled := metadata.ResourceData.GetChange("ssh_password_enabled"); isEnabled.(bool) {
@@ -388,12 +387,6 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 							needSetState = true
 						}
 					}
-				}
-
-				if metadata.ResourceData.HasChange("ssh_authorized_key") {
-					props.SSHAuthorizedKeys = r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey)
-					state.SshAuthorizedKey = plan.SshAuthorizedKey
-					needSetState = true
 				}
 
 				if needSetState {
