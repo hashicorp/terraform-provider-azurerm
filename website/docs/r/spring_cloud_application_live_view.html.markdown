@@ -64,6 +64,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 Spring Cloud Application Live Views can be imported using the `resource id`, e.g.
 
-```shell
-terraform import azurerm_spring_cloud_application_live_view.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/applicationLiveViews/default
+```shellg
+terraform import azurerm_spring_cloud_application_live_view.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/applicationLiveViews/default
 ```
