@@ -238,34 +238,60 @@ func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsF
 	return result, nil
 }
 
-func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion string) (result string) {
+func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion string) string {
 	switch javaMajorVersion {
 	case "8":
 		{
 			switch javaServer {
 			case LinuxJavaServerJava:
-				{
-					if strings.Contains(javaServerVersion, "u") {
-						result = fmt.Sprintf("%s|%s", javaServer, javaServerVersion) // e.g. JAVA|8u302
-					} else {
-						result = fmt.Sprintf("%s|%s-jre8", javaServer, javaServerVersion) // e.g. "JAVA|8-jre8"
-					}
+				if strings.Contains(javaServerVersion, "u") {
+					return fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion) // e.g. JAVA|8u302
+				} else {
+					return fmt.Sprintf("%s|%s-jre8", LinuxJavaServerJava, javaServerVersion) // e.g. "JAVA|8-jre8"
 				}
 			case LinuxJavaServerTomcat:
 				if len(strings.Split(javaServerVersion, ".")) == 3 {
-					result = fmt.Sprintf("%s|%s-java8", javaServer, javaServerVersion) // e.g. TOMCAT|10.0.20-java8
+					return fmt.Sprintf("%s|%s-java8", LinuxJavaServerTomcat, javaServerVersion) // e.g. TOMCAT|10.0.20-java8
 				} else {
-					result = fmt.Sprintf("%s|%s-jre8", javaServer, javaServerVersion) // e.g. TOMCAT|10.0-jre8
+					return fmt.Sprintf("%s|%s-jre8", LinuxJavaServerTomcat, javaServerVersion) // e.g. TOMCAT|10.0-jre8
 				}
 			case LinuxJavaServerJboss:
+				return fmt.Sprintf("%s|%s-java8", LinuxJavaServerJboss, javaServerVersion)
 			}
 		}
 	case "11":
+		switch javaServer {
+		case LinuxJavaServerJava:
+			if len(strings.Split(javaServerVersion, ".")) == 3 {
+				return fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion) // e.g. JAVA|11.0.13
+			} else {
+				return fmt.Sprintf("%s|%s-java11", LinuxJavaServerJava, javaServerVersion) // e.g.JAVA|11-java1
+			}
+		case LinuxJavaServerTomcat:
+			return fmt.Sprintf("%s|%s-java11", LinuxJavaServerTomcat, javaServerVersion) // e.g. TOMCAT|10.0-java11 and TOMCAT|10.0.20-java11
+
+		case LinuxJavaServerJboss:
+			return fmt.Sprintf("%s|%s-java11", LinuxJavaServerJboss, javaServerVersion) // e.g. TOMCAT|10.0-java11 and TOMCAT|10.0.20-java11// e.g. JBOSSEAP|7-java11 / JBOSSEAP|7.4.2-java11
+		}
+
 	case "17":
+		switch javaServer {
+		case LinuxJavaServerJava:
+			if len(strings.Split(javaServerVersion, ".")) == 3 {
+				return fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion) // "JAVA|17.0.2"
+			} else {
+				return fmt.Sprintf("%s|%s-java17", LinuxJavaServerJava, javaServerVersion) // "JAVA|17-java17"
+			}
+
+		case LinuxJavaServerTomcat:
+			return fmt.Sprintf("%s|%s-java17", LinuxJavaServerTomcat, javaServerVersion) // e,g, TOMCAT|10.0-java17 / TOMCAT|10.0.20-java17
+		default:
+			return fmt.Sprintf("%s|%s-java17", javaServer, javaServerVersion)
+		}
+
 	default:
-		// best guess here...
-		result = fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)
+		return fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)
 
 	}
-	return result
+	return ""
 }
