@@ -87,6 +87,24 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
+			"filters": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"predicates": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -154,6 +172,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"sso_validation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -185,8 +208,11 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
+			Filters:       utils.ExpandStringSlice(d.Get("filters").(*pluginsdk.Set).List()),
+			Predicates:    utils.ExpandStringSlice(d.Get("predicates").(*pluginsdk.Set).List()),
 			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
+			SsoEnabled:    utils.Bool(d.Get("sso_validation_enabled").(bool)),
 			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
 	}
@@ -234,6 +260,14 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		if err := d.Set("open_api", flattenGatewayRouteConfigOpenApi(props.OpenAPI)); err != nil {
 			return fmt.Errorf("setting `open_api`: %+v", err)
 		}
+
+		if props.Filters != nil {
+			d.Set("filters", utils.FlattenStringSlice(props.Filters))
+		}
+		if props.Predicates != nil {
+			d.Set("predicates", utils.FlattenStringSlice(props.Predicates))
+		}
+		d.Set("sso_validation_enabled", props.SsoEnabled)
 	}
 	return nil
 }

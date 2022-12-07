@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -407,7 +407,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		ScaleSetPriority:       utils.ToPtr(agentpools.ScaleSetPriority(d.Get("priority").(string))),
 		Tags:                   tags.Expand(t),
 		Type:                   utils.ToPtr(agentpools.AgentPoolTypeVirtualMachineScaleSets),
-		VmSize:                 utils.String(d.Get("vm_size").(string)),
+		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
@@ -897,7 +897,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("spot_max_price", spotMaxPrice)
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
-		d.Set("vm_size", props.VmSize)
+		d.Set("vm_size", props.VMSize)
 		d.Set("host_group_id", props.HostGroupID)
 		d.Set("capacity_reservation_group_id", props.CapacityReservationGroupID)
 
@@ -1158,13 +1158,13 @@ func expandAgentPoolSysctlConfig(input []interface{}) (*agentpools.SysctlConfig,
 		result.KernelThreadsMax = utils.Int64(int64(v))
 	}
 	if v := raw["vm_max_map_count"].(int); v != 0 {
-		result.VmMaxMapCount = utils.Int64(int64(v))
+		result.VMMaxMapCount = utils.Int64(int64(v))
 	}
 	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VmSwappiness = utils.Int64(int64(v))
+		result.VMSwappiness = utils.Int64(int64(v))
 	}
 	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VmVfsCachePressure = utils.Int64(int64(v))
+		result.VMVfsCachePressure = utils.Int64(int64(v))
 	}
 	return result, nil
 }
@@ -1318,16 +1318,16 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 		netNetfilterNfConntrackMax = int(*input.NetNetfilterNfConntrackMax)
 	}
 	var vmMaxMapCount int
-	if input.VmMaxMapCount != nil {
-		vmMaxMapCount = int(*input.VmMaxMapCount)
+	if input.VMMaxMapCount != nil {
+		vmMaxMapCount = int(*input.VMMaxMapCount)
 	}
 	var vmSwappiness int
-	if input.VmSwappiness != nil {
-		vmSwappiness = int(*input.VmSwappiness)
+	if input.VMSwappiness != nil {
+		vmSwappiness = int(*input.VMSwappiness)
 	}
 	var vmVfsCachePressure int
-	if input.VmVfsCachePressure != nil {
-		vmVfsCachePressure = int(*input.VmVfsCachePressure)
+	if input.VMVfsCachePressure != nil {
+		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
 	return []interface{}{
 		map[string]interface{}{

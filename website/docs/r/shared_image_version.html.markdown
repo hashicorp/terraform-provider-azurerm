@@ -45,7 +45,7 @@ resource "azurerm_shared_image_version" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The version number for this Image Version, such as `1.0.0`. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The version number for this Image Version, such as `1.0.0`. Changing this forces a new resource to be created. 
 
 * `gallery_name` - (Required) The name of the Shared Image Gallery in which the Shared Image exists. Changing this forces a new resource to be created.
 

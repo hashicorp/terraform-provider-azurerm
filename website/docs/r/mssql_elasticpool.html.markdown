@@ -53,7 +53,7 @@ resource "azurerm_mssql_elasticpool" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the elastic pool. This needs to be globally unique. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the elastic pool. This needs to be globally unique. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the elastic pool. This must be the same as the resource group of the underlying SQL server. Changing this forces a new resource to be created.
 
