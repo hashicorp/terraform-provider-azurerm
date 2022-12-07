@@ -275,6 +275,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"azure_vmware_data_store_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -413,6 +420,11 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	avsDataStoreEnabled := volumes.AvsDataStoreDisabled
+	if d.Get("azure_vmware_data_store_enabled").(bool) {
+		avsDataStoreEnabled = volumes.AvsDataStoreEnabled
+	}
+
 	parameters := volumes.Volume{
 		Location: location,
 		Properties: volumes.VolumeProperties{
@@ -430,6 +442,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 			},
+			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -582,6 +595,9 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+		if props.AvsDataStore != nil {
+			d.Set("azure_vmware_data_store_enabled", strings.EqualFold(string(*props.AvsDataStore), string(volumes.AvsDataStoreEnabled)))
+		}
 		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("setting `export_policy_rule`: %+v", err)
 		}
