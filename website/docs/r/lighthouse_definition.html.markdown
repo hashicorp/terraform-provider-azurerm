@@ -90,7 +90,7 @@ A `just_in_time_access_policy` block supports the following:
 
 ---
 
-A `approver` block supports the following:
+An `approver` block supports the following:
 
 * `principal_id` - (Required) The Principal ID of the Azure Active Directory principal for the approver.
 
