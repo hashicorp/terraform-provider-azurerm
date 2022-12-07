@@ -100,7 +100,7 @@ A `permissions` block supports the following:
 
 * `delete` - (Optional) The permission to delete the resources defined in this scope.
 
-* `list` - (Optional) The permission to list the resoruces defined in this scope.
+* `list` - (Optional) The permission to list the resources defined in this scope.
 
 * `read` - (Optional) The permission to read the resources defined in this scope.
 
