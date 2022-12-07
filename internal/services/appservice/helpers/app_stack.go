@@ -21,6 +21,10 @@ const (
 	CurrentStackNode       string = "node"
 	CurrentStackPhp        string = "php"
 	CurrentStackPython     string = "python"
+
+	LinuxJavaServerJava   string = "JAVA"
+	LinuxJavaServerTomcat string = "TOMCAT"
+	LinuxJavaServerJboss  string = "JBOSSEAP"
 )
 
 type ApplicationStackWindows struct {
@@ -522,9 +526,13 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"java_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // There a significant number of variables here, and the versions are not uniformly formatted.
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"8",
+						"11",
+						"17",
+					}, false),
 					// TODO - Needs notes in the docs for this to help users navigate the inconsistencies in the service. e.g. jre8 va java8 etc
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",

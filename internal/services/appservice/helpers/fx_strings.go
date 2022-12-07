@@ -237,3 +237,35 @@ func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsF
 
 	return result, nil
 }
+
+func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion string) (result string) {
+	switch javaMajorVersion {
+	case "8":
+		{
+			switch javaServer {
+			case LinuxJavaServerJava:
+				{
+					if strings.Contains(javaServerVersion, "u") {
+						result = fmt.Sprintf("%s|%s", javaServer, javaServerVersion) // e.g. JAVA|8u302
+					} else {
+						result = fmt.Sprintf("%s|%s-jre8", javaServer, javaServerVersion) // e.g. "JAVA|8-jre8"
+					}
+				}
+			case LinuxJavaServerTomcat:
+				if len(strings.Split(javaServerVersion, ".")) == 3 {
+					result = fmt.Sprintf("%s|%s-java8", javaServer, javaServerVersion) // e.g. TOMCAT|10.0.20-java8
+				} else {
+					result = fmt.Sprintf("%s|%s-jre8", javaServer, javaServerVersion) // e.g. TOMCAT|10.0-jre8
+				}
+			case LinuxJavaServerJboss:
+			}
+		}
+	case "11":
+	case "17":
+	default:
+		// best guess here...
+		result = fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)
+
+	}
+	return result
+}
