@@ -42,7 +42,7 @@ func (id SpringCloudBuildPackBindingId) String() string {
 }
 
 func (id SpringCloudBuildPackBindingId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/buildServices/%s/builders/%s/buildPackBindings/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/spring/%s/buildServices/%s/builders/%s/buildPackBindings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 }
 
@@ -66,7 +66,7 @@ func SpringCloudBuildPackBindingID(input string) (*SpringCloudBuildPackBindingId
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {
+	if resourceId.SpringName, err = id.PopSegment("spring"); err != nil {
 		return nil, err
 	}
 	if resourceId.BuildServiceName, err = id.PopSegment("buildServices"); err != nil {
@@ -111,15 +111,15 @@ func SpringCloudBuildPackBindingIDInsensitively(input string) (*SpringCloudBuild
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	// find the correct casing for the 'Spring' segment
-	SpringKey := "Spring"
+	// find the correct casing for the 'spring' segment
+	springKey := "spring"
 	for key := range id.Path {
-		if strings.EqualFold(key, SpringKey) {
-			SpringKey = key
+		if strings.EqualFold(key, springKey) {
+			springKey = key
 			break
 		}
 	}
-	if resourceId.SpringName, err = id.PopSegment(SpringKey); err != nil {
+	if resourceId.SpringName, err = id.PopSegment(springKey); err != nil {
 		return nil, err
 	}
 
