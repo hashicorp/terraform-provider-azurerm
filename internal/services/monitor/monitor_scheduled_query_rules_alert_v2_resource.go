@@ -114,7 +114,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(scheduledqueryrules.ConditionOperatorEquals),
+							// see https://github.com/Azure/azure-rest-api-specs/issues/21794
+							"Equal",
 							string(scheduledqueryrules.ConditionOperatorGreaterThan),
 							string(scheduledqueryrules.ConditionOperatorGreaterThanOrEqual),
 							string(scheduledqueryrules.ConditionOperatorLessThan),
