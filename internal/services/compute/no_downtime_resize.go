@@ -80,8 +80,8 @@ func determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx context.Context, v
 	}
 
 	vmSku := ""
-	if model := virtualMachine.Model; model != nil && model.Properties != nil && model.Properties.HardwareProfile != nil && model.Properties.HardwareProfile.VmSize != nil {
-		vmSku = string(*model.Properties.HardwareProfile.VmSize)
+	if model := virtualMachine.Model; model != nil && model.Properties != nil && model.Properties.HardwareProfile != nil && model.Properties.HardwareProfile.VMSize != nil {
+		vmSku = string(*model.Properties.HardwareProfile.VMSize)
 	}
 	if vmSku == "" {
 		return pointer.To(false), nil

@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups` Documentation
 
-The `proximityplacementgroups` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2021-11-01`).
+The `proximityplacementgroups` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2022-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 ```
 
 
