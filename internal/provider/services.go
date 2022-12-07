@@ -130,6 +130,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		costmanagement.Registration{},
 		dashboard.Registration{},
 		databricks.Registration{},
+		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
