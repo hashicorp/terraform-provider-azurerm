@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -238,60 +239,62 @@ func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsF
 	return result, nil
 }
 
-func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion string) string {
+func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion string) (*string, error) {
 	switch javaMajorVersion {
 	case "8":
 		{
 			switch javaServer {
 			case LinuxJavaServerJava:
 				if strings.Contains(javaServerVersion, "u") {
-					return fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion) // e.g. JAVA|8u302
+					return pointer.To(fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion)), nil // e.g. JAVA|8u302
 				} else {
-					return fmt.Sprintf("%s|%s-jre8", LinuxJavaServerJava, javaServerVersion) // e.g. "JAVA|8-jre8"
+					return pointer.To(fmt.Sprintf("%s|%s-jre8", LinuxJavaServerJava, javaServerVersion)), nil // e.g. "JAVA|8-jre8"
 				}
 			case LinuxJavaServerTomcat:
 				if len(strings.Split(javaServerVersion, ".")) == 3 {
-					return fmt.Sprintf("%s|%s-java8", LinuxJavaServerTomcat, javaServerVersion) // e.g. TOMCAT|10.0.20-java8
+					return pointer.To(fmt.Sprintf("%s|%s-java8", LinuxJavaServerTomcat, javaServerVersion)), nil // e.g. TOMCAT|10.0.20-java8
 				} else {
-					return fmt.Sprintf("%s|%s-jre8", LinuxJavaServerTomcat, javaServerVersion) // e.g. TOMCAT|10.0-jre8
+					return pointer.To(fmt.Sprintf("%s|%s-jre8", LinuxJavaServerTomcat, javaServerVersion)), nil // e.g. TOMCAT|10.0-jre8
 				}
 			case LinuxJavaServerJboss:
-				return fmt.Sprintf("%s|%s-java8", LinuxJavaServerJboss, javaServerVersion)
+				return pointer.To(fmt.Sprintf("%s|%s-java8", LinuxJavaServerJboss, javaServerVersion)), nil
 			}
 		}
 	case "11":
 		switch javaServer {
 		case LinuxJavaServerJava:
 			if len(strings.Split(javaServerVersion, ".")) == 3 {
-				return fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion) // e.g. JAVA|11.0.13
+				return pointer.To(fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion)), nil // e.g. JAVA|11.0.13
 			} else {
-				return fmt.Sprintf("%s|%s-java11", LinuxJavaServerJava, javaServerVersion) // e.g.JAVA|11-java1
+				return pointer.To(fmt.Sprintf("%s|%s-java11", LinuxJavaServerJava, javaServerVersion)), nil // e.g.JAVA|11-java1
 			}
 		case LinuxJavaServerTomcat:
-			return fmt.Sprintf("%s|%s-java11", LinuxJavaServerTomcat, javaServerVersion) // e.g. TOMCAT|10.0-java11 and TOMCAT|10.0.20-java11
+			return pointer.To(fmt.Sprintf("%s|%s-java11", LinuxJavaServerTomcat, javaServerVersion)), nil // e.g. TOMCAT|10.0-java11 and TOMCAT|10.0.20-java11
 
 		case LinuxJavaServerJboss:
-			return fmt.Sprintf("%s|%s-java11", LinuxJavaServerJboss, javaServerVersion) // e.g. TOMCAT|10.0-java11 and TOMCAT|10.0.20-java11// e.g. JBOSSEAP|7-java11 / JBOSSEAP|7.4.2-java11
+			return pointer.To(fmt.Sprintf("%s|%s-java11", LinuxJavaServerJboss, javaServerVersion)), nil // e.g. TOMCAT|10.0-java11 and TOMCAT|10.0.20-java11// e.g. JBOSSEAP|7-java11 / JBOSSEAP|7.4.2-java11
 		}
 
 	case "17":
 		switch javaServer {
 		case LinuxJavaServerJava:
 			if len(strings.Split(javaServerVersion, ".")) == 3 {
-				return fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion) // "JAVA|17.0.2"
+				return pointer.To(fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|17.0.2"
 			} else {
-				return fmt.Sprintf("%s|%s-java17", LinuxJavaServerJava, javaServerVersion) // "JAVA|17-java17"
+				return pointer.To(fmt.Sprintf("%s|%s-java17", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|17-java17"
 			}
 
 		case LinuxJavaServerTomcat:
-			return fmt.Sprintf("%s|%s-java17", LinuxJavaServerTomcat, javaServerVersion) // e,g, TOMCAT|10.0-java17 / TOMCAT|10.0.20-java17
+			return pointer.To(fmt.Sprintf("%s|%s-java17", LinuxJavaServerTomcat, javaServerVersion)), nil // e,g, TOMCAT|10.0-java17 / TOMCAT|10.0.20-java17
+		case LinuxJavaServerJboss:
+			return nil, fmt.Errorf("java 17 is not supported on %s", LinuxJavaServerJboss)
 		default:
-			return fmt.Sprintf("%s|%s-java17", javaServer, javaServerVersion)
+			return pointer.To(fmt.Sprintf("%s|%s-java17", javaServer, javaServerVersion)), nil
 		}
 
 	default:
-		return fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)
+		return pointer.To(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)), nil
 
 	}
-	return ""
+	return nil, fmt.Errorf("unsupported combination of `java_version`, `java_server`, and `java_server_version`")
 }
