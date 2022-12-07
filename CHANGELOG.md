@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_spring_cloud_application_live_view` [GH-19495]
+* **New Resource:** `azurerm_vmware_netapp_volume_attachment` [GH-19082]
 
 ENHANCEMENTS:
 
