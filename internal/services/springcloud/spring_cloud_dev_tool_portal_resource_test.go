@@ -167,14 +167,8 @@ resource "azurerm_spring_cloud_dev_tool_portal" "test" {
     scope         = ["openid", "profile", "email"]
   }
 
-  feature {
-    application_accelerator {
-      enabled = true
-    }
-    application_live_view {
-      enabled = true
-    }
-  }
+  application_accelerator_enabled = true
+  application_live_view_enabled   = true
 }
 `, template, clientId, clientSecret)
 }

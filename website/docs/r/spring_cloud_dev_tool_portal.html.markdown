@@ -43,14 +43,8 @@ resource "azurerm_spring_cloud_dev_tool_portal" "example" {
     scope         = ["openid", "profile", "email"]
   }
 
-  feature {
-    application_accelerator {
-      enabled = true
-    }
-    application_live_view {
-      enabled = true
-    }
-  }
+  application_accelerator_enabled = true
+  application_live_view_enabled   = true
 }
 ```
 
@@ -64,31 +58,13 @@ The following arguments are supported:
 
 ---
 
-* `feature` - (Optional) A `feature` block as defined below.
+* `application_accelerator_enabled` - (Optional) Should the Accelerator plugin be enabled?
+
+* `application_live_view_enabled` - (Optional) Should the Application Live View be enabled?
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled?
 
 * `sso` - (Optional) A `sso` block as defined below.
-
----
-
-A `application_accelerator` block supports the following:
-
-* `enabled` - (Optional) Should the Accelerator plugin be enabled?
-
----
-
-A `application_live_view` block supports the following:
-
-* `enabled` - (Optional) Should the Application Live View be enabled?
-
----
-
-A `feature` block supports the following:
-
-* `application_accelerator` - (Optional) A `application_accelerator` block as defined above.
-
-* `application_live_view` - (Optional) A `application_live_view` block as defined above.
 
 ---
 

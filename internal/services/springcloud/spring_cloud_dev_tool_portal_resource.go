@@ -17,20 +17,12 @@ import (
 )
 
 type SpringCloudDevToolPortalModel struct {
-	Name                       string         `tfschema:"name"`
-	SpringCloudServiceId       string         `tfschema:"spring_cloud_service_id"`
-	Feature                    []FeatureModel `tfschema:"feature"`
-	PublicNetworkAccessEnabled bool           `tfschema:"public_network_access_enabled"`
-	Sso                        []SsoModel     `tfschema:"sso"`
-}
-
-type FeatureModel struct {
-	ApplicationAccelerator []FeatureDetailModel `tfschema:"application_accelerator"`
-	ApplicationLiveView    []FeatureDetailModel `tfschema:"application_live_view"`
-}
-
-type FeatureDetailModel struct {
-	Enabled bool `tfschema:"enabled"`
+	Name                          string     `tfschema:"name"`
+	SpringCloudServiceId          string     `tfschema:"spring_cloud_service_id"`
+	ApplicationAcceleratorEnabled bool       `tfschema:"application_accelerator_enabled"`
+	ApplicationLiveViewEnabled    bool       `tfschema:"application_live_view_enabled"`
+	PublicNetworkAccessEnabled    bool       `tfschema:"public_network_access_enabled"`
+	Sso                           []SsoModel `tfschema:"sso"`
 }
 
 type SsoModel struct {
@@ -72,46 +64,16 @@ func (s SpringCloudDevToolPortalResource) Arguments() map[string]*schema.Schema 
 			ValidateFunc: validate.SpringCloudServiceID,
 		},
 
-		"feature": {
-			Type:     pluginsdk.TypeList,
+		"application_accelerator_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"application_accelerator": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-					},
+		},
 
-					"application_live_view": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-					},
-				},
-			},
+		"application_live_view_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
 		},
 
 		"public_network_access_enabled": {
@@ -189,7 +151,7 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 				Properties: &appplatform.DevToolPortalProperties{
 					Public:        utils.Bool(model.PublicNetworkAccessEnabled),
 					SsoProperties: expandSpringCloudDevToolPortalSsoProperties(model.Sso),
-					Features:      expandSpringCloudDevToolPortalFeatures(model.Feature),
+					Features:      expandSpringCloudDevToolPortalFeatures(model.ApplicationAcceleratorEnabled, model.ApplicationLiveViewEnabled),
 				},
 			}
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName, DevToolPortalResource)
@@ -223,8 +185,7 @@ func (s SpringCloudDevToolPortalResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			_, err = client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
-			if err != nil {
+			if _, err = client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
@@ -232,7 +193,7 @@ func (s SpringCloudDevToolPortalResource) Update() sdk.ResourceFunc {
 				Properties: &appplatform.DevToolPortalProperties{
 					Public:        utils.Bool(model.PublicNetworkAccessEnabled),
 					SsoProperties: expandSpringCloudDevToolPortalSsoProperties(model.Sso),
-					Features:      expandSpringCloudDevToolPortalFeatures(model.Feature),
+					Features:      expandSpringCloudDevToolPortalFeatures(model.ApplicationAcceleratorEnabled, model.ApplicationLiveViewEnabled),
 				},
 			}
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName, DevToolPortalResource)
@@ -286,7 +247,12 @@ func (s SpringCloudDevToolPortalResource) Read() sdk.ResourceFunc {
 					state.Sso = flattenSpringCloudDevToolPortalSsoProperties(props.SsoProperties, model)
 				}
 				if props.Features != nil {
-					state.Feature = flattenSpringCloudDevToolPortalFeatures(props.Features)
+					if props.Features.ApplicationAccelerator != nil && props.Features.ApplicationAccelerator.State == appplatform.DevToolPortalFeatureStateEnabled {
+						state.ApplicationAcceleratorEnabled = true
+					}
+					if props.Features.ApplicationLiveView != nil && props.Features.ApplicationLiveView.State == appplatform.DevToolPortalFeatureStateEnabled {
+						state.ApplicationLiveViewEnabled = true
+					}
 				}
 			}
 			return metadata.Encode(&state)
@@ -321,24 +287,25 @@ func (s SpringCloudDevToolPortalResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandSpringCloudDevToolPortalFeatures(input []FeatureModel) *appplatform.DevToolPortalFeatureSettings {
-	if len(input) == 0 {
-		return nil
-	}
-	feature := input[0]
-	res := appplatform.DevToolPortalFeatureSettings{}
-	if len(feature.ApplicationAccelerator) != 0 && feature.ApplicationAccelerator[0].Enabled {
-		res.ApplicationAccelerator = &appplatform.DevToolPortalFeatureDetail{
-			State: appplatform.DevToolPortalFeatureStateEnabled,
-		}
-	}
-	if len(feature.ApplicationLiveView) != 0 && feature.ApplicationLiveView[0].Enabled {
-		res.ApplicationLiveView = &appplatform.DevToolPortalFeatureDetail{
-			State: appplatform.DevToolPortalFeatureStateEnabled,
-		}
+func expandSpringCloudDevToolPortalFeatures(applicationAcceleratorEnabled, applicationLiveViewEnabled bool) *appplatform.DevToolPortalFeatureSettings {
+	applicationAcceleratorState := appplatform.DevToolPortalFeatureStateDisabled
+	if applicationAcceleratorEnabled {
+		applicationAcceleratorState = appplatform.DevToolPortalFeatureStateEnabled
 	}
 
-	return &res
+	applicationLiveViewState := appplatform.DevToolPortalFeatureStateDisabled
+	if applicationLiveViewEnabled {
+		applicationLiveViewState = appplatform.DevToolPortalFeatureStateEnabled
+	}
+
+	return &appplatform.DevToolPortalFeatureSettings{
+		ApplicationAccelerator: &appplatform.DevToolPortalFeatureDetail{
+			State: applicationAcceleratorState,
+		},
+		ApplicationLiveView: &appplatform.DevToolPortalFeatureDetail{
+			State: applicationLiveViewState,
+		},
+	}
 }
 
 func expandSpringCloudDevToolPortalSsoProperties(input []SsoModel) *appplatform.DevToolPortalSsoProperties {
@@ -346,6 +313,7 @@ func expandSpringCloudDevToolPortalSsoProperties(input []SsoModel) *appplatform.
 		return nil
 	}
 	sso := input[0]
+
 	return &appplatform.DevToolPortalSsoProperties{
 		Scopes:       &sso.Scope,
 		ClientID:     utils.String(sso.ClientId),
@@ -354,45 +322,31 @@ func expandSpringCloudDevToolPortalSsoProperties(input []SsoModel) *appplatform.
 	}
 }
 
-func flattenSpringCloudDevToolPortalFeatures(features *appplatform.DevToolPortalFeatureSettings) []FeatureModel {
-	if features == nil {
-		return []FeatureModel{}
-	}
-
-	featureModel := FeatureModel{}
-	if features.ApplicationLiveView != nil {
-		featureModel.ApplicationLiveView = []FeatureDetailModel{{
-			Enabled: features.ApplicationLiveView.State == appplatform.DevToolPortalFeatureStateEnabled,
-		}}
-	}
-	if features.ApplicationAccelerator != nil {
-		featureModel.ApplicationAccelerator = []FeatureDetailModel{{
-			Enabled: features.ApplicationAccelerator.State == appplatform.DevToolPortalFeatureStateEnabled,
-		}}
-	}
-	return []FeatureModel{featureModel}
-}
-
 func flattenSpringCloudDevToolPortalSsoProperties(properties *appplatform.DevToolPortalSsoProperties, model SpringCloudDevToolPortalModel) []SsoModel {
 	if properties == nil {
 		return []SsoModel{}
 	}
+
 	clientId := ""
 	if properties.ClientID != nil {
 		clientId = *properties.ClientID
 	}
+
 	clientSecret := ""
 	if len(model.Sso) != 0 {
 		clientSecret = model.Sso[0].ClientSecret
 	}
+
 	metadataUrl := ""
 	if properties.MetadataURL != nil {
 		metadataUrl = *properties.MetadataURL
 	}
+
 	scopes := make([]string, 0)
 	if properties.Scopes != nil {
 		scopes = *properties.Scopes
 	}
+
 	return []SsoModel{
 		{
 			ClientId:     clientId,
