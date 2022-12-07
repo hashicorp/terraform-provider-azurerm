@@ -10,7 +10,9 @@ FEATURES:
 ENHANCEMENTS:
 
 * `lighthouse`: updating to API version `2022-10-01` [GH-19499]
+* Data Source: `azurerm_kubernetes_cluster` - support for the `storage_profile` block [GH-19396]
 * `azurerm_firewall_policy` - support for the `explicit_proxy` block and `auto_learn_private_ranges_mode` property [GH-19313]
+* `azurerm_kubernetes_cluster`-  support for the `storage_profile` block [GH-19396]
 * `azurerm_lb_probe` - support for the `probe_threshold` property [GH-19573]
 * `azurerm_mssql_virtual_machine` - support for the `days_of_week` property [GH-19553]
 * `azurerm_spring_cloud_gateway_route_config` - support for the `filters`, `predicates`, and `sso_validation_enabled` properties [GH-19493]
