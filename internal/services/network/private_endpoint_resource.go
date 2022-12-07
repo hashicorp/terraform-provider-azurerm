@@ -197,16 +197,10 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"member_name": {
-							Type: pluginsdk.TypeString,
-							Required: func() bool {
-								return features.FourPointOhBeta()
-							}(),
-							Optional: func() bool {
-								return !features.FourPointOhBeta()
-							}(),
-							Computed: func() bool {
-								return !features.FourPointOhBeta()
-							}(),
+							Type:         pluginsdk.TypeString,
+							Required:     features.FourPointOhBeta(),
+							Optional:     !features.FourPointOhBeta(),
+							Computed:     !features.FourPointOhBeta(),
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
