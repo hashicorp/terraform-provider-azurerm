@@ -86,12 +86,12 @@ func resourceApiManagementGatewayCertificateAuthorityCreateUpdate(d *pluginsdk.R
 		},
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, d.Get("gateway_name").(string), d.Get("certificate_name").(string), parameters, "")
+	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, d.Get("gateway_name").(string), d.Get("certificate_name").(string), parameters, "")
 	if err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementGatewayCertificateAuthorityRead(d, meta)
 }

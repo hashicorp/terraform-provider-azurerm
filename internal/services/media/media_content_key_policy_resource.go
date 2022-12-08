@@ -552,11 +552,7 @@ func flattenPolicyOptions(input []contentkeypolicies.ContentKeyPolicyOption) ([]
 		}
 
 		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyPlayReadyConfiguration); ok {
-			license, err := flattenPlayReadyLicenses(v.Licenses)
-			if err != nil {
-				return nil, err
-			}
-			playReadyLicense = license
+			playReadyLicense = flattenPlayReadyLicenses(v.Licenses)
 		}
 
 		if v, ok := option.Configuration.(contentkeypolicies.ContentKeyPolicyWidevineConfiguration); ok {
@@ -569,11 +565,7 @@ func flattenPolicyOptions(input []contentkeypolicies.ContentKeyPolicyOption) ([]
 			openRestrictionEnabled = true
 		}
 		if v, ok := option.Restriction.(contentkeypolicies.ContentKeyPolicyTokenRestriction); ok {
-			restriction, err := flattenTokenRestriction(v)
-			if err != nil {
-				return nil, err
-			}
-			tokenRestriction = restriction
+			tokenRestriction = flattenTokenRestriction(v)
 		}
 
 		results = append(results, map[string]interface{}{
@@ -643,7 +635,7 @@ func expandRestriction(option map[string]interface{}) (contentkeypolicies.Conten
 	return nil, fmt.Errorf("policy_option must contain at least one type of restriction: open_restriction_enabled or token_restriction.")
 }
 
-func flattenTokenRestriction(input contentkeypolicies.ContentKeyPolicyTokenRestriction) ([]interface{}, error) {
+func flattenTokenRestriction(input contentkeypolicies.ContentKeyPolicyTokenRestriction) []interface{} {
 	openIDConnectDiscoveryDocument := ""
 	if input.OpenIdConnectDiscoveryDocument != nil {
 		openIDConnectDiscoveryDocument = *input.OpenIdConnectDiscoveryDocument
@@ -688,7 +680,7 @@ func flattenTokenRestriction(input contentkeypolicies.ContentKeyPolicyTokenRestr
 			"primary_rsa_token_key_exponent":     rsaTokenKeyExponent,
 			"primary_rsa_token_key_modulus":      rsaTokenKeyModulus,
 		},
-	}, nil
+	}
 }
 
 func expandConfiguration(input map[string]interface{}) (contentkeypolicies.ContentKeyPolicyConfiguration, error) {
@@ -698,7 +690,7 @@ func expandConfiguration(input map[string]interface{}) (contentkeypolicies.Conte
 	widevineConfigurationTemplate := input["widevine_configuration_template"].(string)
 
 	configurationCount := 0
-	if clearKeyConfigurationEnabled != false {
+	if clearKeyConfigurationEnabled {
 		configurationCount++
 	}
 	if len(fairPlayConfigurations) > 0 {
@@ -1010,7 +1002,7 @@ func expandPlayReadyLicenses(input []interface{}) (*[]contentkeypolicies.Content
 	return &results, nil
 }
 
-func flattenPlayReadyLicenses(input []contentkeypolicies.ContentKeyPolicyPlayReadyLicense) ([]interface{}, error) {
+func flattenPlayReadyLicenses(input []contentkeypolicies.ContentKeyPolicyPlayReadyLicense) []interface{} {
 	results := make([]interface{}, 0)
 	for _, v := range input {
 		beginDate := ""
@@ -1069,7 +1061,7 @@ func flattenPlayReadyLicenses(input []contentkeypolicies.ContentKeyPolicyPlayRea
 		})
 	}
 
-	return results, nil
+	return results
 }
 
 func expandPlayRight(input []interface{}) *contentkeypolicies.ContentKeyPolicyPlayReadyPlayRight {
