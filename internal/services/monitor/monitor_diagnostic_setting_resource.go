@@ -361,7 +361,10 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
-	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
+	id, err := ParseMonitorDiagnosticId(d.Id())
+	if err != nil {
+		return err
+	}
 
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
@@ -494,7 +497,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
 	}
 	return resourceMonitorDiagnosticSettingRead(d, meta)
