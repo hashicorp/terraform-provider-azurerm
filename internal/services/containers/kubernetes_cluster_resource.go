@@ -1480,7 +1480,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
 	if d.HasChange("role_based_access_control_enabled") {
-
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
 			return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
@@ -2132,7 +2131,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-
 			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
 			adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
 			if err != nil {
@@ -2216,7 +2214,7 @@ func flattenKubernetesClusterAccessProfile(profile managedclusters.ManagedCluste
 		if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
 			rawConfig := *kubeConfigRaw
 			if base64IsEncoded(*kubeConfigRaw) {
-				rawConfig, _ = base64Decode(*kubeConfigRaw)
+				rawConfig = base64Decode(*kubeConfigRaw)
 			}
 			var flattenedKubeConfig []interface{}
 
@@ -2344,7 +2342,6 @@ func flattenKubernetesClusterLinuxProfile(profile *managedclusters.ContainerServ
 				"key_data": keyData,
 			})
 		}
-
 	}
 
 	return []interface{}{
@@ -2404,7 +2401,6 @@ func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile 
 		DnsServer:      utils.String(config["dns_server"].(string)),
 		RootDomainName: utils.String(config["root_domain"].(string)),
 	}
-
 }
 
 func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
@@ -3275,7 +3271,6 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input *[]maintena
 		var start string
 		if item.Start != nil {
 			start = *item.Start
-
 		}
 		results = append(results, map[string]interface{}{
 			"end":   end,
@@ -3409,7 +3404,6 @@ func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClu
 }
 
 func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterStorageProfile {
-
 	if (input == nil) || len(input) == 0 {
 		return nil
 	}
@@ -3454,12 +3448,12 @@ func flattenEdgeZone(input *edgezones.Model) string {
 	return edgezones.NormalizeNilable(&input.Name)
 }
 
-func base64Decode(str string) (string, bool) {
+func base64Decode(str string) string {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return "", true
+		return ""
 	}
-	return string(data), false
+	return string(data)
 }
 
 func base64IsEncoded(data string) bool {

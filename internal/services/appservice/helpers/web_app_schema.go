@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -2896,10 +2896,10 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if winSiteConfig.AlwaysOn == true {
+			if winSiteConfig.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}
@@ -3062,10 +3062,10 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if linuxSiteConfig.AlwaysOn == true {
+			if linuxSiteConfig.AlwaysOn {
 				return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
 				return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}

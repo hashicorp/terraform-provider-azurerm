@@ -275,7 +275,7 @@ func resourceMediaStreamingPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 }
 
 func enabledProtocolsSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -312,7 +312,7 @@ func enabledProtocolsSchema() *pluginsdk.Schema {
 }
 
 func defaultContentKeySchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
