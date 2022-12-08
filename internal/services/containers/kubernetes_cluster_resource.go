@@ -732,7 +732,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"overlay",
+								string(managedclusters.NetworkPluginModeOverlay),
 							}, false),
 						},
 
@@ -2753,6 +2753,12 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	networkPluginMode := ""
 	if profile.NetworkPluginMode != nil {
 		networkPluginMode = string(*profile.NetworkPluginMode)
+		// The returned value has inconsistent casing
+		// TODO: Remove the normalization codes once the following issue is fixed.
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21810
+		if strings.EqualFold(networkPlugin, string(managedclusters.NetworkPluginModeOverlay)) {
+			networkPluginMode = string(managedclusters.NetworkPluginModeOverlay)
+		}
 	}
 	ebpfDataPlane := ""
 	if profile.EbpfDataplane != nil {
