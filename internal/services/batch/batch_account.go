@@ -8,7 +8,7 @@ import (
 
 // expandBatchAccountKeyVaultReference expands Batch account KeyVault reference
 func expandBatchAccountKeyVaultReference(list []interface{}) (*batch.KeyVaultReference, error) {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("Error: key vault reference should be defined")
 	}
 
