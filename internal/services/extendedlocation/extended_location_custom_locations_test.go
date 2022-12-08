@@ -51,6 +51,12 @@ func (r CustomLocationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_role_assignment" "admin" {
+  scope                = azurerm_kubernetes_cluster.test.id
+  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+  principal_id         = "51dfe1e8-70c6-4de5-a08e-e18aff23d815"
+}
+
 resource "azurerm_extended_custom_locations" "test" {
   name = "acctestcustomlocation%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -66,7 +72,7 @@ resource "azurerm_extended_custom_locations" "test" {
 }
 
 func (r CustomLocationResource) template(data acceptance.TestData) string {
-	data.Locations.Primary = "westus"
+	data.Locations.Primary = "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
