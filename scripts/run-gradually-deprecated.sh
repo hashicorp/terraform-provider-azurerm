@@ -60,7 +60,7 @@ function runGraduallyDeprecatedFunctions {
     line=$(grep -H -n "Create:.*CreateUpdate," "$f" -m1)
     if [ "$line" != "" ];
     then
-      git diff --diff-filter=AMRC origin/main -U0 "$f" | grep -q "+.*Create:.*CreateUpdate," && {
+      git diff --diff-filter=AMC origin/main -U0 "$f" | grep -q "+.*Create:.*CreateUpdate," && {
         echo "$line"
         echo "New Resources should no longer use combined CreateUpdate methods, please"
         echo "split these into two separate Create and Update methods."
