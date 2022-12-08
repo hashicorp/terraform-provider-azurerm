@@ -3161,7 +3161,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
     ebpf_data_plane     = "cilium"
-    network_plugin_mode = "overlay"
+    network_plugin_mode = "Overlay"
   }
 }
 `, "westcentralus", data.RandomInteger)
@@ -3209,7 +3209,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
-    network_plugin_mode = "overlay"
+    network_plugin_mode = "Overlay"
   }
 }
 `, "westcentralus", data.RandomInteger)

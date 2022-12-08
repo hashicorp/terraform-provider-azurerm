@@ -33,7 +33,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 				isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
 
 				// Azure network plugin is not compatible with pod_cidr
-				if podCidr != "" && networkPlugin == "azure" && networkPluginMode != "overlay" {
+				if podCidr != "" && networkPlugin == "azure" && networkPluginMode != string(managedclusters.NetworkPluginModeOverlay) {
 					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
 				}
 

@@ -2752,11 +2752,10 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 	networkPluginMode := ""
 	if profile.NetworkPluginMode != nil {
-		networkPluginMode = string(*profile.NetworkPluginMode)
 		// The returned value has inconsistent casing
 		// TODO: Remove the normalization codes once the following issue is fixed.
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21810
-		if strings.EqualFold(networkPlugin, string(managedclusters.NetworkPluginModeOverlay)) {
+		if strings.EqualFold(string(*profile.NetworkPluginMode), string(managedclusters.NetworkPluginModeOverlay)) {
 			networkPluginMode = string(managedclusters.NetworkPluginModeOverlay)
 		}
 	}
