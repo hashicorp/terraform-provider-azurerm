@@ -120,12 +120,12 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 		},
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string), parameters, "")
+	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string), parameters, "")
 	if err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementGatewayHostNameConfigurationRead(d, meta)
 }
