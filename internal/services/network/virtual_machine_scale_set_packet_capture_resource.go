@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,11 +27,6 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PacketCaptureID(id)
 			return err
-		}),
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.NetworkPacketCaptureV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
