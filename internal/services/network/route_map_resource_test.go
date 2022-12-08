@@ -32,6 +32,25 @@ func TestAccRouteMap_basic(t *testing.T) {
 	})
 }
 
+func TestAccRouteMap_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_map", "test")
+	r := RouteMapResource{}
+	nameSuffix := randString()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, nameSuffix),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data, nameSuffix),
+			ExpectError: acceptance.RequiresImportError("azurerm_route_map"),
+		},
+	})
+}
+
 func TestAccRouteMap_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_map", "test")
 	r := RouteMapResource{}
@@ -139,6 +158,17 @@ resource "azurerm_route_map" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
 }
 `, r.template(data), nameSuffix)
+}
+
+func (r RouteMapResource) requiresImport(data acceptance.TestData, nameSuffix string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_route_map" "import" {
+  name           = azurerm_route_map.test.name
+  virtual_hub_id = azurerm_route_map.test.virtual_hub_id
+}
+`, r.basic(data, nameSuffix))
 }
 
 func (r RouteMapResource) complete(data acceptance.TestData, nameSuffix string) string {
