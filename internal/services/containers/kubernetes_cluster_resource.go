@@ -2059,8 +2059,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
-			d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
-			d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
+			if props.SecurityProfile.ImageCleaner.Enabled != nil {
+				d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
+			}
+			if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
+				d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
+			}
 		}
 
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
