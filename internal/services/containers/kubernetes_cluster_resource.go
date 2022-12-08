@@ -379,23 +379,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
-			"image_cleaner": {
-				Type:     pluginsdk.TypeList,
+			"image_cleaner_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"interval_hours": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-						},
-					},
-				},
+				Default:  false,
+			},
+
+			"image_cleaner_interval_hours": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      48,
+				ValidateFunc: validation.IntBetween(24, 2160),
 			},
 
 			"web_app_routing": {
@@ -1243,15 +1237,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Enabled: &workloadIdentity,
 		}
 	}
+	if securityProfile == nil {
+		securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+	}
 
-	imageCleanerSecurityProfileRaw := d.Get("image_cleaner").([]interface{})
-	imageCleanerSecurityProfile := expandKubernetesClusterImageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
-
-	if imageCleanerSecurityProfile != nil {
-		if securityProfile == nil {
-			securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
-		}
-		securityProfile.ImageCleaner = imageCleanerSecurityProfile
+	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+		Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
 	}
 
 	parameters := managedclusters.ManagedCluster{
@@ -1772,14 +1764,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChanges("image_cleaner") {
+	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_hours") {
 		updateCluster = true
-		imageCleanerSecurityProfileRaw := d.Get("image_cleaner").([]interface{})
-		imageCleanerSecurityProfile := expandKubernetesClusterImageCleanerSecurityProfile(imageCleanerSecurityProfileRaw)
 		if existing.Model.Properties.SecurityProfile == nil {
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 		}
-		existing.Model.Properties.SecurityProfile.ImageCleaner = imageCleanerSecurityProfile
+		existing.Model.Properties.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+		}
 	}
 
 	if d.HasChange("web_app_routing") {
@@ -2065,9 +2058,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 		}
 
-		imageCleaner := flattenKubernetesClusterImageCleanerSecurityProfile(props.SecurityProfile.ImageCleaner, d)
-		if err := d.Set("image_cleaner", imageCleaner); err != nil {
-			return fmt.Errorf("setting `image_cleaner`: %+v", err)
+		if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+			d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
+			d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
 		}
 
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
@@ -2368,22 +2361,6 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *mana
 	}
 }
 
-func expandKubernetesClusterImageCleanerSecurityProfile(input []interface{}) *managedclusters.ManagedClusterSecurityProfileImageCleaner {
-	if len(input) == 0 {
-		return nil
-	}
-
-	config := input[0].(map[string]interface{})
-	imageCleaner := managedclusters.ManagedClusterSecurityProfileImageCleaner{}
-	if v := config["enabled"].(bool); v {
-		imageCleaner.Enabled = utils.Bool(v)
-	}
-
-	imageCleaner.IntervalHours = utils.Int64(int64(config["interval_hours"].(int)))
-
-	return &imageCleaner
-}
-
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
@@ -2441,24 +2418,6 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 	return []interface{}{
 		map[string]interface{}{
 			"keda_enabled": kedaEnabled,
-		},
-	}
-}
-
-func flattenKubernetesClusterImageCleanerSecurityProfile(profile *managedclusters.ManagedClusterSecurityProfileImageCleaner, d *pluginsdk.ResourceData) []interface{} {
-	if profile == nil || len(d.Get("image_cleaner").([]interface{})) == 0 {
-		return []interface{}{}
-	}
-
-	enabled := false
-	if v := profile.Enabled; v != nil {
-		enabled = *profile.Enabled
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":        enabled,
-			"interval_hours": profile.IntervalHours,
 		},
 	}
 }

@@ -106,15 +106,15 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileOnOff(t *testing.T) {
 			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("image_cleaner.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("image_cleaner.0.interval_hours").HasValue("48"),
+				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("image_cleaner_interval_hours").HasValue("96"),
 			),
 		},
 		{
 			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("image_cleaner.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -393,10 +393,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
 
-  image_cleaner {
-    enabled        = %t
-    interval_hours = 48
-  }
+  image_cleaner_enabled        = %t
+  image_cleaner_interval_hours = 96
 
   default_node_pool {
     name       = "default"
