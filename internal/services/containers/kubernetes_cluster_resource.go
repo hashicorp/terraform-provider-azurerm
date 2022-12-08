@@ -1212,7 +1212,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if v, ok := d.GetOk("workload_identity_enabled"); ok {
 		workloadIdentity = v.(bool)
 
-		if workloadIdentity == true && enableOidcIssuer == false {
+		if workloadIdentity {
 			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
 		}
 
@@ -2147,7 +2147,7 @@ func flattenKubernetesClusterAccessProfile(profile managedclusters.ManagedCluste
 		if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
 			rawConfig := *kubeConfigRaw
 			if base64IsEncoded(*kubeConfigRaw) {
-				rawConfig, _ = base64Decode(*kubeConfigRaw)
+				rawConfig = base64Decode(*kubeConfigRaw)
 			}
 			var flattenedKubeConfig []interface{}
 
@@ -3336,12 +3336,12 @@ func flattenEdgeZone(input *edgezones.Model) string {
 	return edgezones.NormalizeNilable(&input.Name)
 }
 
-func base64Decode(str string) (string, bool) {
+func base64Decode(str string) string {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return "", true
+		return ""
 	}
-	return string(data), false
+	return string(data)
 }
 
 func base64IsEncoded(data string) bool {

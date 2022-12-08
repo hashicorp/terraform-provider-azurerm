@@ -5,7 +5,7 @@ run:
   skip-dirs:
     - /sdk/ # Excluding sdk folders as these are externally generated
   skip-files:
-    - ".*\\*_gen.go$"
+    - "internal/services/.*/.*_gen.go$"
 
 issues:
   max-per-linter: 0

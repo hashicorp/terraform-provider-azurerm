@@ -683,10 +683,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
 			canBeResizedWithoutDowntime := false
 			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
-				diskSupportsNoDowntimeResize, err := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
-				if err != nil {
-					return fmt.Errorf("determining if the Disk supports no-downtime-resize: %+v", err)
-				}
+				diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
 
 				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
 				if err != nil {

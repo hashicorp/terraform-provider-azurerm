@@ -127,7 +127,7 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			var result Result
-			err = json.Unmarshal([]byte(buf.String()), &result)
+			err = json.Unmarshal(buf.Bytes(), &result)
 			if err != nil {
 				return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
 			}

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -267,7 +267,7 @@ func resourceMediaStreamingPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 }
 
 func enabledProtocolsSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -304,7 +304,7 @@ func enabledProtocolsSchema() *pluginsdk.Schema {
 }
 
 func defaultContentKeySchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,

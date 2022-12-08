@@ -239,6 +239,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
+	// nolint : staticcheck
 	if v, ok := d.GetOkExists("cmk_for_query_forced"); ok {
 		parameters.Properties.ForceCmkForQuery = utils.Bool(v.(bool))
 	}

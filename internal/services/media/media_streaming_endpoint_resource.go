@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -77,7 +77,7 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						//lintignore:XS003
+						// lintignore:XS003
 						"akamai_signature_header_authentication_key": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -102,7 +102,7 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 							},
 							AtLeastOneOf: []string{"access_control.0.akamai_signature_header_authentication_key", "access_control.0.ip_allow"},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"ip_allow": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

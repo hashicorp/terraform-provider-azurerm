@@ -250,20 +250,22 @@ func (s Server) Read() sdk.ResourceFunc {
 			if server.Model.Tags != nil {
 				output.Tags = *server.Model.Tags
 			}
-			if prop := model.Properties; prop != nil {
-				if prop.FrsTenantId != nil {
-					output.FrsTenantId = *prop.FrsTenantId
-				}
-				if points := prop.FluidRelayEndpoints; points != nil {
-					if points.OrdererEndpoints != nil {
-						output.OrdererEndpoints = *points.OrdererEndpoints
+			if model != nil {
+				if prop := model.Properties; prop != nil {
+					if prop.FrsTenantId != nil {
+						output.FrsTenantId = *prop.FrsTenantId
 					}
-					if points.StorageEndpoints != nil {
-						output.StorageEndpoints = *points.StorageEndpoints
-					}
+					if points := prop.FluidRelayEndpoints; points != nil {
+						if points.OrdererEndpoints != nil {
+							output.OrdererEndpoints = *points.OrdererEndpoints
+						}
+						if points.StorageEndpoints != nil {
+							output.StorageEndpoints = *points.StorageEndpoints
+						}
 
-					if points.ServiceEndpoints != nil {
-						output.ServiceEndpoints = *points.ServiceEndpoints
+						if points.ServiceEndpoints != nil {
+							output.ServiceEndpoints = *points.ServiceEndpoints
+						}
 					}
 				}
 			}

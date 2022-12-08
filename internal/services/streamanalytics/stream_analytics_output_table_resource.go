@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -147,7 +147,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				BatchSize:    utils.Int32(model.BatchSize),
 			}
 
-			if v := model.ColumnsToRemove; v != nil && len(v) > 0 {
+			if v := model.ColumnsToRemove; len(v) > 0 {
 				tableOutputProps.ColumnsToRemove = &v
 			}
 

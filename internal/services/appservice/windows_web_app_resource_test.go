@@ -2246,6 +2246,7 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, pythonVersion)
 }
 
+//nolint:unparam
 func (r WindowsWebAppResource) java(data acceptance.TestData, javaVersion string, javaContainer string, javaContainerVersion string) string {
 	javaContainerStr := ""
 	if javaContainer != "" {

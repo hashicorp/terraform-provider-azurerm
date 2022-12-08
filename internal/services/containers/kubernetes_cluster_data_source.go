@@ -801,7 +801,7 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.Man
 	if kubeConfigRaw := profile.Properties.KubeConfig; kubeConfigRaw != nil {
 		rawConfig := *kubeConfigRaw
 		if base64IsEncoded(*kubeConfigRaw) {
-			rawConfig, _ = base64Decode(*kubeConfigRaw)
+			rawConfig = base64Decode(*kubeConfigRaw)
 		}
 
 		var flattenedKubeConfig []interface{}

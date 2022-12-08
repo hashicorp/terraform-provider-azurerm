@@ -235,6 +235,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 	networkAccessBehindVnetEnabled := false
 
+	// nolint: staticcheck
 	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
 		networkAccessBehindVnetEnabled = v.(bool)
 	}

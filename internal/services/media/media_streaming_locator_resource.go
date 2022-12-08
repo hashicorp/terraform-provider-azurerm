@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -81,7 +81,7 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"content_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

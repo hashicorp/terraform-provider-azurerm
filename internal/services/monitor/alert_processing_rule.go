@@ -420,7 +420,6 @@ func expandAlertProcessingRuleSingleConditions(input []AlertProcessingRuleSingle
 			Values:   &values,
 		})
 	}
-	return
 }
 
 func expandAlertProcessingRuleSchedule(input []AlertProcessingRuleScheduleModel) *alertprocessingrules.Schedule {

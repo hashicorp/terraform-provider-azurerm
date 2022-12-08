@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -69,7 +69,7 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						//lintignore:XS003
+						// lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -242,7 +242,7 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						//lintignore:XS003
+						// lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

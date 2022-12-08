@@ -566,7 +566,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if props.RestrictOutboundNetworkAccess != nil {
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
-			//lintignore:R001
+			// lintignore:R001
 			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
@@ -575,7 +575,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("local_auth_enabled", localAuthEnabled)
 
-			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(id, props.Encryption)
+			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption)
 			if err != nil {
 				return err
 			}
@@ -789,7 +789,6 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 		}
 	}
 
-	virtualNetworkSubnetIds := make([]interface{}, 0)
 	virtualNetworkRules := make([]interface{}, 0)
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
@@ -799,7 +798,6 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 				id = subnetId.ID()
 			}
 
-			virtualNetworkSubnetIds = append(virtualNetworkSubnetIds, id)
 			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
 				"subnet_id":                            id,
 				"ignore_missing_vnet_service_endpoint": *v.IgnoreMissingVnetServiceEndpoint,
@@ -857,7 +855,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	}
 }
 
-func flattenCognitiveAccountCustomerManagedKey(cognitiveAccountId *cognitiveservicesaccounts.AccountId, input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
+func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
