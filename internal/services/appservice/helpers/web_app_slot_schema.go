@@ -831,7 +831,6 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(winSlotSiteConfig.ApplicationStack) == 1 {
-
 			winAppStack := winSlotSiteConfig.ApplicationStack[0]
 			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
 			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)

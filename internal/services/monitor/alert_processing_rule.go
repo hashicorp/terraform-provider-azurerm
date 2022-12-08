@@ -568,7 +568,6 @@ func flattenAlertProcessingRuleConditions(input *[]alertprocessingrules.Conditio
 			case alertprocessingrules.FieldTargetResourceType:
 				condition.TargetResourceType = []AlertProcessingRuleSingleConditionModel{{string(*item.Operator), *item.Values}}
 			}
-
 		}
 	}
 

@@ -794,7 +794,6 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
 				}
-
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {

@@ -1216,7 +1216,6 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-
 				var locations []documentdb.Location
 
 				if props.ReadLocations != nil {
@@ -1593,7 +1592,6 @@ func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdent
 		}
 	}
 	return &out, nil
-
 }
 
 func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) (*[]interface{}, error) {

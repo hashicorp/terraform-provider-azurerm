@@ -45,7 +45,6 @@ func TestAccServerVulnerabilityAssessment(t *testing.T) {
 			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
 		},
 	})
-
 }
 
 func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {

@@ -266,7 +266,6 @@ func expandMetricRules(input []interface{}) *datadog.MetricRules {
 }
 
 func expandFilteringTag(input []interface{}) *[]datadog.FilteringTag {
-
 	filteringTags := make([]datadog.FilteringTag, 0)
 
 	for _, v := range input {
@@ -309,7 +308,6 @@ func flattenLogRules(input *datadog.LogRules) []interface{} {
 
 	result["filter"] = flattenFilteringTags(input.FilteringTags)
 	return append(results, result)
-
 }
 
 func flattenMetricRules(input *datadog.MetricRules) []interface{} {

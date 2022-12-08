@@ -300,7 +300,6 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			internetIngestionEnabled := true
 			if props.PublicNetworkAccessForIngestion != nil {
 				internetIngestionEnabled = *props.PublicNetworkAccessForIngestion == workspaces.PublicNetworkAccessTypeEnabled
@@ -326,7 +325,6 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 					if strings.EqualFold(v, string(sku.Name)) {
 						skuName = v
 					}
-
 				}
 				if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
 					d.Set("reservation_capacity_in_gb_per_day", capacityReservationLevel)

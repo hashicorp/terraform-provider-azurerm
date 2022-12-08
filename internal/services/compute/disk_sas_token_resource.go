@@ -27,7 +27,6 @@ type Output struct {
 }
 
 func resourceManagedDiskSasToken() *pluginsdk.Resource {
-
 	return &pluginsdk.Resource{
 		Create: resourceManagedDiskSasTokenCreate,
 		Read:   resourceManagedDiskSasTokenRead,
@@ -77,7 +76,6 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 			},
 		},
 	}
-
 }
 
 func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -142,7 +140,6 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return resourceManagedDiskSasTokenRead(d, meta)
-
 }
 
 func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {

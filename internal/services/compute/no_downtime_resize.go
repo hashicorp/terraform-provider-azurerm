@@ -53,7 +53,6 @@ func determineIfDataDiskSupportsNoDowntimeResize(disk *disks.Disk, oldSizeGb, ne
 			disks.DiskStorageAccountTypesStandardSSDLRS,
 			disks.DiskStorageAccountTypesStandardSSDZRS,
 		} {
-
 			if strings.EqualFold(string(*disk.Sku.Name), string(supportedDiskType)) {
 				diskTypeIsSupported = true
 			}

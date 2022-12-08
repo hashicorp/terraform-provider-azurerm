@@ -46,7 +46,6 @@ func importStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFu
 				if actualType != expectType {
 					return nil, fmt.Errorf("stream analytics reference input has mismatched type, expected: %q, got %q", expectType, actualType)
 				}
-
 			}
 		}
 		return []*pluginsdk.ResourceData{d}, nil

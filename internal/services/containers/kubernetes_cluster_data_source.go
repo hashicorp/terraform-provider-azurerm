@@ -794,7 +794,6 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 
 				if adminProfileModel := adminProfile.Model; adminProfileModel != nil {
-
 					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfileModel)
 					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
@@ -829,11 +828,9 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {
-
 	storageProfile := make([]interface{}, 0)
 
 	if input != nil {
-
 		blobEnabled := false
 		if input.BlobCSIDriver != nil {
 			blobEnabled = *input.BlobCSIDriver.Enabled
@@ -1234,7 +1231,6 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *managedclusters.Conta
 				}
 			}
 		}
-
 	}
 
 	values["ssh_key"] = sshKeys

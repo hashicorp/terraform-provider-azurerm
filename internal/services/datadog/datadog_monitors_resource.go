@@ -390,7 +390,6 @@ func flattenMonitorIdentityProperties(input *datadog.IdentityProperties) []inter
 }
 
 func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties, d *pluginsdk.ResourceData) []interface{} {
-
 	organisationProperties := d.Get("datadog_organization").([]interface{})
 	if len(organisationProperties) == 0 {
 		return make([]interface{}, 0)

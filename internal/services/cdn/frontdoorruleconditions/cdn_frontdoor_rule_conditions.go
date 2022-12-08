@@ -1257,7 +1257,6 @@ func FlattenFrontdoorSslProtocolCondition(input cdn.BasicDeliveryRuleCondition) 
 	normalized := createCdnFrontDoorNormalizedConditionStub()
 
 	if params := condition.Parameters; params != nil {
-
 		matchValues := make([]string, 0)
 		for _, value := range *params.MatchValues {
 			matchValues = append(matchValues, string(value))

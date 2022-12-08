@@ -169,7 +169,6 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetDelete(d *pluginsdk.R
 }
 
 func getMaintenanceAssignmentVirtualMachineScaleSet(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, vmScaleSetId *parseCompute.VirtualMachineScaleSetId) (result *[]configurationassignments.ConfigurationAssignment, err error) {
-
 	id := configurationassignments.NewProviderID(vmScaleSetId.SubscriptionId, vmScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", vmScaleSetId.Name)
 
 	resp, err := client.List(ctx, id)

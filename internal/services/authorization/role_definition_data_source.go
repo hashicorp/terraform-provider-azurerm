@@ -123,7 +123,6 @@ func dataSourceArmRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	if name != "" {
 		// Accounting for eventual consistency
 		err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutRead), func() *pluginsdk.RetryError {
-
 			roleDefinitions, err := client.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", name))
 			if err != nil {
 				return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: %+v", err))

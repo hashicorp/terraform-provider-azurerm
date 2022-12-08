@@ -608,7 +608,6 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
-
 	}
 
 	if d.HasChange("aad_admin") {

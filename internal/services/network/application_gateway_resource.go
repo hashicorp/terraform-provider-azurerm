@@ -4888,7 +4888,6 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 				config := ac.(map[string]interface{})
 				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
 				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
-
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {

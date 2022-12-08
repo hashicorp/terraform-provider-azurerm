@@ -397,7 +397,6 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		} else {
 			parameters.AllowedAuthenticationModes = expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List())
 		}
-
 	}
 
 	if d.HasChange("storage_account_id") {

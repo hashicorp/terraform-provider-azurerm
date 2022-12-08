@@ -304,7 +304,6 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "hybrid_connection_endpoint", id.EventSubscriptionName, err)
 				}
 			}
-
 		}
 		if serviceBusQueueEndpoint, ok := destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_queue_endpoint_id", serviceBusQueueEndpoint.ResourceID); err != nil {

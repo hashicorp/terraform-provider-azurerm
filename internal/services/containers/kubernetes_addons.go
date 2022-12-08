@@ -434,7 +434,6 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			"log_analytics_workspace_id": workspaceID,
 			"oms_agent_identity":         omsAgentIdentity,
 		})
-
 	}
 
 	ingressApplicationGateways := make([]interface{}, 0)

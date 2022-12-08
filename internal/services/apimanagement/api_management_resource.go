@@ -882,7 +882,6 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("deleting %s: %+v", productId, err)
 			}
 		}
-
 	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
@@ -1050,7 +1049,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			minApiVersion = *props.APIVersionConstraint.MinAPIVersion
 		}
 		d.Set("min_api_version", minApiVersion)
-
 	}
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
@@ -1972,7 +1970,6 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 
 	if input.SecondaryKey != nil {
 		result["secondary_key"] = *input.SecondaryKey
-
 	}
 
 	return []interface{}{result}

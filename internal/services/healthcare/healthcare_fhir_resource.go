@@ -223,7 +223,6 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
 }
 
 func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -359,7 +358,6 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 			if artifacts := acrConfig.OciArtifacts; artifacts != nil {
 				d.Set("oci_artifact", flattenOciArtifacts(artifacts))
 			}
-
 		}
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
 			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
