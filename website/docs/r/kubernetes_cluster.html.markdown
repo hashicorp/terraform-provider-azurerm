@@ -117,7 +117,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `image_cleaner_enabled` - (Optional) Specifies whether Image Cleaner is enabled.
 
-* `image_cleaner_interval_hours` - (Optional) Specifies interval in hours when images should be cleaned up.
+* `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableImageCleanerPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/EnableImageCleanerPreview](https://learn.microsoft.com/en-us/azure/aks/image-cleaner) for more information.
 
