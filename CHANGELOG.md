@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_firewall_policy` - support for the `explicit_proxy` block and `auto_learn_private_ranges_mode` property [GH-19313]
 * `azurerm_kubernetes_cluster` - support for the `storage_profile` block [GH-19396]
 * `azurerm_kubernetes_cluster` - support for the `custom_ca_trust_enabled` property [GH-19546]
+* `azurerm_kubernetes_cluster` - support for the `network_plugin_mode` and `ebpf_data_plane` properties [GH-19527]
 * `azurerm_kubernetes_cluster_node_pool` - support for the `custom_ca_trust_enabled` property [GH-19546]
 * `azurerm_lb_probe` - support for the `probe_threshold` property [GH-19573]
 * `azurerm_mssql_virtual_machine` - support for the `days_of_week` property [GH-19553]
