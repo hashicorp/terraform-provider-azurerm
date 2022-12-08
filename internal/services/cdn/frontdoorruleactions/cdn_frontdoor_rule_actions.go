@@ -216,10 +216,13 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 
 		var originGroupOverride cdn.OriginGroupOverride
 		var cacheConfiguration cdn.CacheConfiguration
+
 		originGroupIdRaw := item["cdn_frontdoor_origin_group_id"].(string)
 		protocol := item["forwarding_protocol"].(string)
 		cacheBehavior := item["cache_behavior"].(string)
 		compressionEnabled := cdn.RuleIsCompressionEnabledEnabled
+		queryStringCachingBehavior := item["query_string_caching_behavior"].(string)
+		cacheDuration := item["cache_duration"].(string)
 
 		if !item["compression_enabled"].(bool) {
 			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
@@ -250,7 +253,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 		}
 
 		if cacheBehavior == string(cdn.RuleIsCompressionEnabledDisabled) {
-			if queryStringCachingBehavior := cdn.RuleQueryStringCachingBehavior(item["query_string_caching_behavior"].(string)); queryStringCachingBehavior != "" {
+			if queryStringCachingBehavior != "" {
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'query_string_caching_behavior', got %q", queryStringCachingBehavior)
 			}
 
@@ -258,51 +261,47 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'query_string_parameters', got %d", len(queryParameters))
 			}
 
-			if cacheDuration := item["cache_duration"].(string); cacheDuration != "" {
+			if cacheDuration != "" {
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'cache_duration', got %q", cacheDuration)
 			}
 		} else {
-			var cacheDuration string
-			var queryStringCachingBehavior string
-			var cacheBehavior string
-
 			if !features.FourPointOhBeta() {
 				// since 'cache_duration', 'query_string_caching_behavior' and 'cache_behavior' are optional create a default values
 				// for those values if not set.
-				cacheDuration = "1.12:00:00"
-				queryStringCachingBehavior = string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString)
-				cacheBehavior = string(cdn.RuleCacheBehaviorHonorOrigin)
-
-				if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw != "" {
-					cacheBehavior = cacheBehaviorRaw
+				if cacheBehavior == "" {
+					cacheBehavior = string(cdn.RuleCacheBehaviorHonorOrigin)
 				}
 
-				if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw != "" {
-					cacheDuration = cacheDurationRaw
+				if queryStringCachingBehavior == "" {
+					queryStringCachingBehavior = string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString)
 				}
 
-				if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw != "" {
-					queryStringCachingBehavior = queryStringCachingBehaviorRaw
+				// NOTE: if the cacheBehavior is 'HonorOrigin' the cacheDuration must be null, issue #19311
+				if cacheBehavior != string(cdn.RuleCacheBehaviorHonorOrigin) {
+					if cacheDuration == "" {
+						cacheDuration = "1.12:00:00"
+					}
+				} else if cacheDuration != "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' field is set to 'HonorOrigin' the 'cache_duration' must not be set")
 				}
 			}
 
 			if features.FourPointOhBeta() {
-				if cacheBehaviorRaw := item["cache_behavior"].(string); cacheBehaviorRaw == "" {
+				if cacheBehavior == "" {
 					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_behavior' field must be set")
-				} else {
-					cacheBehavior = cacheBehaviorRaw
 				}
 
-				if cacheDurationRaw := item["cache_duration"].(string); cacheDurationRaw == "" {
-					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
-				} else {
-					cacheDuration = cacheDurationRaw
-				}
-
-				if queryStringCachingBehaviorRaw := item["query_string_caching_behavior"].(string); queryStringCachingBehaviorRaw == "" {
+				if queryStringCachingBehavior == "" {
 					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set")
-				} else {
-					queryStringCachingBehavior = queryStringCachingBehaviorRaw
+				}
+
+				// NOTE: if the cacheBehavior is 'HonorOrigin' cacheDuration must be null, issue #19311
+				if cacheBehavior != string(cdn.RuleCacheBehaviorHonorOrigin) {
+					if cacheDuration == "" {
+						return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
+					}
+				} else if cacheDuration != "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must not be set if the 'cache_behavior' is 'HonorOrigin'")
 				}
 			}
 
@@ -311,7 +310,10 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 				QueryParameters:            expandStringSliceToCsvFormat(item["query_string_parameters"].([]interface{})),
 				IsCompressionEnabled:       compressionEnabled,
 				CacheBehavior:              cdn.RuleCacheBehavior(cacheBehavior),
-				CacheDuration:              utils.String(cacheDuration),
+			}
+
+			if cacheDuration != "" {
+				cacheConfiguration.CacheDuration = utils.String(cacheDuration)
 			}
 
 			if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
@@ -335,7 +337,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			routeConfigurationOverrideAction.Parameters.OriginGroupOverride = &originGroupOverride
 		}
 
-		if cacheConfiguration.CacheDuration != nil {
+		if cacheConfiguration.CacheDuration != nil || cacheConfiguration.CacheBehavior == cdn.RuleCacheBehaviorHonorOrigin {
 			routeConfigurationOverrideAction.Parameters.CacheConfiguration = &cacheConfiguration
 		}
 
@@ -439,8 +441,11 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleR
 			queryStringCachingBehavior = string(config.QueryStringCachingBehavior)
 			cacheBehavior = string(config.CacheBehavior)
 			compressionEnabled = config.IsCompressionEnabled == cdn.RuleIsCompressionEnabledEnabled
-			cacheDuration = *config.CacheDuration
 			queryParameters = flattenCsvToStringSlice(config.QueryParameters)
+
+			if config.CacheDuration != nil {
+				cacheDuration = *config.CacheDuration
+			}
 		} else {
 			cacheBehavior = string(cdn.RuleIsCompressionEnabledDisabled)
 		}

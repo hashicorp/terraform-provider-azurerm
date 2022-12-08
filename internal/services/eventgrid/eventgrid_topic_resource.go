@@ -387,20 +387,31 @@ func expandAzureRmEventgridTopicInputMapping(d *pluginsdk.ResourceData) *eventgr
 		if len(mappings) > 0 && mappings[0] != nil {
 			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
 				if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-					jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+					if v := jismp.DataVersion; v != nil && v.SourceField != nil {
+						jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: v.SourceField, DefaultValue: &dataVersion}
+					} else {
+						jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+					}
 				}
 
 				if subject := mapping["subject"].(string); subject != "" {
-					jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+					if v := jismp.Subject; v != nil && v.SourceField != nil {
+						jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: v.SourceField, DefaultValue: &subject}
+					} else {
+						jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+					}
 				}
 
 				if eventType := mapping["event_type"].(string); eventType != "" {
-					jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+					if v := jismp.EventType; v != nil && v.SourceField != nil {
+						jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: v.SourceField, DefaultValue: &eventType}
+					} else {
+						jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+					}
 				}
 			}
 		}
 	}
-
 	jsonMapping := eventgrid.JSONInputSchemaMapping{
 		JSONInputSchemaMappingProperties: &jismp,
 		InputSchemaMappingType:           eventgrid.InputSchemaMappingTypeJSON,

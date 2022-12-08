@@ -1,8 +1,11 @@
 package loadbalancer
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -45,6 +49,30 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 		},
 
 		Schema: resourceArmLoadBalancerSchema(),
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				old, new := d.GetChange("frontend_ip_configuration")
+				if len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0 || len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+					return false
+				} else {
+					for i, nc := range new.([]interface{}) {
+						dataNew := nc.(map[string]interface{})
+						for _, oc := range old.([]interface{}) {
+							dataOld := oc.(map[string]interface{})
+							if dataOld["name"].(string) == dataNew["name"].(string) {
+								if !reflect.DeepEqual(dataOld["zones"].(*pluginsdk.Set).List(), dataNew["zones"].(*pluginsdk.Set).List()) {
+									// set ForceNew to true when the `frontend_ip_configuration.#.zones` is changed.
+									d.ForceNew("frontend_ip_configuration." + strconv.Itoa(i) + ".zones")
+									break
+								}
+							}
+						}
+					}
+				}
+				return false
+			}),
+		),
 	}
 }
 
@@ -58,6 +86,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := parse.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	log.Printf("elena: is new resource : %t", d.IsNewResource())
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
@@ -491,7 +520,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 						Set: pluginsdk.HashString,
 					},
 
-					"zones": commonschema.ZonesMultipleOptionalForceNew(),
+					"zones": commonschema.ZonesMultipleOptional(),
 
 					"id": {
 						Type:     pluginsdk.TypeString,

@@ -7,7 +7,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/spring"
@@ -56,5 +59,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_spring_cloud_java_deployment":          resourceSpringCloudJavaDeployment(),
 		"azurerm_spring_cloud_service":                  resourceSpringCloudService(),
 		"azurerm_spring_cloud_storage":                  resourceSpringCloudStorage(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		SpringCloudApplicationLiveViewResource{},
 	}
 }

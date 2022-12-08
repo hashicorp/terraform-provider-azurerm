@@ -36,7 +36,7 @@ resource "azurerm_storage_queue" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Queue which should be created within the Storage Account. Must be unique within the storage account the queue is located.
+* `name` - (Required) The name of the Queue which should be created within the Storage Account. Must be unique within the storage account the queue is located. Changing this forces a new resource to be created.
 
 * `storage_account_name` - (Required) Specifies the Storage Account in which the Storage Queue should exist. Changing this forces a new resource to be created.
 

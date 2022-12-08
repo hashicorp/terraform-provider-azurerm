@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
 
-* `subscription_required` - (Required) Is a Subscription required to access API's included in this Product?
+* `subscription_required` - (Optional) Is a Subscription required to access API's included in this Product?
 
 ---
 

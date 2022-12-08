@@ -83,7 +83,7 @@ client := metadata.Client.Resource.GroupsClient
 
 Next we're going to generate a Resource ID Struct, Parser and Validator for the specific Azure Resource that we're working with, in this case for a Resource Group.
 
-We have [some automation within the codebase](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/generator-resource-id) which generates all of that using `go:generate` commands - what this means is that we can add a single line to the `resourceids.go` file within the Service Package (in this case `./internal/services/resources/resourceids.go`) to generate these.
+We have [some automation within the codebase](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/generator-resource-id) which generates all of that using `go:generate` commands - what this means is that we can add a single line to the `resourceids.go` file within the Service Package (in this case `./internal/services/resource/resourceids.go`) to generate these.
 
 An example of this is shown below:
 
@@ -107,7 +107,7 @@ These types can then be used in the Resource we're creating below, but [see this
 
 ### Step 4: Scaffold an empty/new Resource
 
-Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resources`.
+Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resource`.
 
 In this case, this'd be a file called `resource_group_example_resource.go`, which we'll start out with the following:
 
@@ -161,7 +161,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		
 		"location": commonschema.Location(),
 
-		"tags": commonschema.TagsDataSource(),
+		"tags": tags.Schema(),
 	}
 }
 
@@ -232,6 +232,61 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 	}
 }
 ```
+
+
+Let's implement the Update function:
+
+```go
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+        // the Timeout is how long Terraform should wait for this function to run before returning an error
+        // whilst 30 minutes may initially seem excessive, we set this as a default to account for rate
+        // limiting - but having this here means that users can override this in their config as necessary
+		Timeout: 30 * time.Minute,
+
+		// the Func returns a function which retrieves the current state of the Resource Group into the state
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.GroupsClient
+
+			// parse the existing Resource ID from the State
+			id, err := parse.ResourceGroupID(metadata.ResourceData.Get("id").(string))
+			if err != nil {
+				return err
+			}
+			
+			// update the Resource Group
+			// NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
+			// API and then conditionally updating it when fields in the config have been updated, which
+			// can be determined by using `d.HasChanges` - for example:
+			//
+			//   existing, err := client.Get(ctx, id.ResourceGroup)
+			//   if err != nil {
+			//     return fmt.Errorf("retrieving existing %s: %+v", id, err)
+			//   }
+			//   if d.HasChanges("tags") {
+			//     existing.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
+			//   }
+			//
+			// doing so allows users to take advantage of Terraform's `ignore_changes` functionality.
+			//
+			// However since a Resource Group only has one field which is updatable (tags) so in this case we'll only
+			// enter the update function if `tags` has been updated.
+			param := resources.Group{
+				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
+				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			}
+			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, param); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// set the Resource ID, meaning that we track this resource
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+```
+
 
 ---
 
@@ -381,7 +436,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"tags": commonschema.TagsDataSource(),
+		"tags": tags.Schema(),
 	}
 }
 
@@ -427,6 +482,55 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 			}
 
 			// create the Resource Group
+			param := resources.Group{
+				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
+				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			}
+			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, param); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// set the Resource ID, meaning that we track this resource
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+        // the Timeout is how long Terraform should wait for this function to run before returning an error
+        // whilst 30 minutes may initially seem excessive, we set this as a default to account for rate
+        // limiting - but having this here means that users can override this in their config as necessary
+		Timeout: 30 * time.Minute,
+
+		// the Func returns a function which retrieves the current state of the Resource Group into the state
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Resource.GroupsClient
+
+			// parse the existing Resource ID from the State
+			id, err := parse.ResourceGroupID(metadata.ResourceData.Get("id").(string))
+			if err != nil {
+				return err
+			}
+			
+			// update the Resource Group
+			// NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
+			// API and then conditionally updating it when fields in the config have been updated, which
+			// can be determined by using `d.HasChanges` - for example:
+			//
+			//   existing, err := client.Get(ctx, id.ResourceGroup)
+			//   if err != nil {
+			//     return fmt.Errorf("retrieving existing %s: %+v", id, err)
+			//   }
+			//   if d.HasChanges("tags") {
+			//     existing.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
+			//   }
+			//
+			// doing so allows users to take advantage of Terraform's `ignore_changes` functionality.
+			//
+			// However since a Resource Group only has one field which is updatable (tags) so in this case we'll only
+			// enter the update function if `tags` has been updated.
 			param := resources.Group{
 				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
 				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),

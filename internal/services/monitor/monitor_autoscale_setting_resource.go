@@ -35,9 +35,10 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.AutoscaleSettingUpgradeV0ToV1{},
+			1: migration.AutoscaleSettingUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

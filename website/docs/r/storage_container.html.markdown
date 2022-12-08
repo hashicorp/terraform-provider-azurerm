@@ -41,9 +41,9 @@ resource "azurerm_storage_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Container which should be created within the Storage Account.
+* `name` - (Required) The name of the Container which should be created within the Storage Account. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The name of the Storage Account where the Container should be created.
+* `storage_account_name` - (Required) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
