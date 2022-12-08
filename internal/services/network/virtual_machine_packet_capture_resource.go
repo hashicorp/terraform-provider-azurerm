@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,12 +18,11 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
-func resourceNetworkPacketCapture() *pluginsdk.Resource {
+func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:             resourceNetworkPacketCaptureCreate,
-		Read:               resourceNetworkPacketCaptureRead,
-		Delete:             resourceNetworkPacketCaptureDelete,
-		DeprecationMessage: "The \"azurerm_network_packet_capture\" resource is deprecated and will be removed in favour of `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` in version 4.0 of the AzureRM Provider.",
+		Create: resourceVirtualMachinePacketCaptureCreate,
+		Read:   resourceVirtualMachinePacketCaptureRead,
+		Delete: resourceVirtualMachinePacketCaptureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PacketCaptureID(id)
@@ -37,7 +37,6 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -60,6 +59,9 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.Any(
+					computeValidate.VirtualMachineID,
+				),
 			},
 
 			"maximum_bytes_per_packet": {
@@ -152,7 +154,7 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachinePacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -173,10 +175,10 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_network_packet_capture", id.ID())
+		return tf.ImportAsExistsError("azurerm_virtual_machine_packet_capture", id.ID())
 	}
 
-	storageLocation, err := expandNetworkPacketCaptureStorageLocation(d)
+	storageLocation, err := expandVirtualMachinePacketCaptureStorageLocation(d)
 	if err != nil {
 		return err
 	}
@@ -184,11 +186,12 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 	properties := network.PacketCapture{
 		PacketCaptureParameters: &network.PacketCaptureParameters{
 			Target:                  utils.String(targetResourceId),
+			TargetType:              network.PacketCaptureTargetTypeAzureVM,
 			StorageLocation:         storageLocation,
 			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
 			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
-			Filters:                 expandNetworkPacketCaptureFilters(d),
+			Filters:                 expandVirtualMachinePacketCaptureFilters(d),
 		},
 	}
 
@@ -203,10 +206,10 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 
 	d.SetId(id.ID())
 
-	return resourceNetworkPacketCaptureRead(d, meta)
+	return resourceVirtualMachinePacketCaptureRead(d, meta)
 }
 
-func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachinePacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -237,12 +240,12 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
 		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
 
-		location := flattenNetworkPacketCaptureStorageLocation(props.StorageLocation)
+		location := flattenVirtualMachinePacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
 			return fmt.Errorf("setting `storage_location`: %+v", err)
 		}
 
-		filters := flattenNetworkPacketCaptureFilters(props.Filters)
+		filters := flattenVirtualMachinePacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
 			return fmt.Errorf("setting `filter`: %+v", err)
 		}
@@ -251,7 +254,7 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachinePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -273,7 +276,7 @@ func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandNetworkPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
+func expandVirtualMachinePacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
 	locations := d.Get("storage_location").([]interface{})
 	if len(locations) == 0 {
 		return nil, fmt.Errorf("expandng `storage_location`: not found")
@@ -293,7 +296,7 @@ func expandNetworkPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*netw
 	return &storageLocation, nil
 }
 
-func flattenNetworkPacketCaptureStorageLocation(input *network.PacketCaptureStorageLocation) []interface{} {
+func flattenVirtualMachinePacketCaptureStorageLocation(input *network.PacketCaptureStorageLocation) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -315,7 +318,7 @@ func flattenNetworkPacketCaptureStorageLocation(input *network.PacketCaptureStor
 	return []interface{}{output}
 }
 
-func expandNetworkPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.PacketCaptureFilter {
+func expandVirtualMachinePacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.PacketCaptureFilter {
 	inputFilters := d.Get("filter").([]interface{})
 	if len(inputFilters) == 0 {
 		return nil
@@ -345,7 +348,7 @@ func expandNetworkPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.Pac
 	return &filters
 }
 
-func flattenNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {
+func flattenVirtualMachinePacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {
 	filters := make([]interface{}, 0)
 
 	if inFilter := input; inFilter != nil {
