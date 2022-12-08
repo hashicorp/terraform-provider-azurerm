@@ -1,5 +1,9 @@
 ## 3.35.0 (Unreleased)
 
+BREAKING CHANGES
+
+* `azurerm_stream_analytics_output_blob` - the field `batch_min_rows` is now an integer rather than a float due to a [breaking change in the API Specifications](https://github.com/Azure/azure-rest-api-specs) - we believe this was only previously valid as an integer, as such whilst this is a breaking change we believe this shouldn't cause an issue for most users (since the API required that this was an integer) [GH-19602]
+
 FEATURES:
 
 * **New Resource:** `azurerm_digital_twins_time_series_database_connection` [GH-19576]
@@ -9,7 +13,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20221130.1102501` of `github.com/hashicorp/go-azure-sdk` [GH-19537]
+* dependencies: updating to `v0.20221207.1121859` of `github.com/hashicorp/go-azure-sdk` [GH-19602]
 * `lighthouse`: updating to API version `2022-10-01` [GH-19499]
 * `proximityplacementgroups`: updating to API Version `2022-03-01` [GH-19537]
 * Data Source: `azurerm_kubernetes_cluster` - support for the `storage_profile` block [GH-19396]
@@ -23,7 +27,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `data.azurerm_sentinel_alert_rule_template`: Set custom ID rather than using ID returned from API [GH-19580]
+* Data Source: `azurerm_sentinel_alert_rule_template`: Set custom ID rather than using ID returned from API [GH-19580]
 * `azurerm_app_service_connection` - correctly pass the secret to the service [GH-19519]
 * `azurerm_automation_software_update_configuration` - fix issue where omitting `tags`and `tag_filter` result in an error [GH-19516]
 * `azurerm_automation_source_control` - a state migration to work around the previously incorrect id casing [GH-19506]
@@ -43,6 +47,7 @@ BUG FIXES:
 * `azurerm_mssql_elasticpool` - Prevent `license_type` from being configured in specific scenarios [GH-19586]
 * `azurerm_monitor_smart_detector_alert_rule` - added a state migration to work around the previously incorrect id casing [GH-19513]
 * `azurerm_spring_cloud_*` - added a state migration to work around the previously incorrect id casing [GH-19564]
+* `azurerm_stream_analytics_output_blob` - the field `batch_min_rows` is now an integer rather than a float due to a [breaking change in the API Specifications](https://github.com/Azure/azure-rest-api-specs) - we believe this was only previously valid as an integer, as such whilst this is a breaking change we believe this shouldn't cause an issue for most users (since the API required that this was an integer) [GH-19602]
 * `azurerm_virtual_desktop_workspace_application_group_association` - set `tags` properly [GH-19574]
 
 ## 3.34.0 (December 01, 2022)
