@@ -102,6 +102,8 @@ A `network_acls` block supports the following:
 
 * `virtual_network_rules` - (Optional) A `virtual_network_rules` block as defined below.
 
+---
+
 A `virtual_network_rules` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet which should be able to access this Cognitive Account.

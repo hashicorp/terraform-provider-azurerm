@@ -266,10 +266,14 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `custom_bgp_addresses` block supports:
 
 * `primary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
 * `secondary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
+
+---
 
 The `ipsec_policy` block supports:
 
@@ -298,6 +302,8 @@ The `ipsec_policy` block supports:
 
 * `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least
     `300` seconds. Defaults to `27000` seconds.
+
+---
 
 The `traffic_selector_policy` block supports:
 

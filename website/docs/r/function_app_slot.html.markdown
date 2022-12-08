@@ -312,6 +312,8 @@ The `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
+---
+
 The `site_credential` block exports the following:
 
 * `username` - The username which can be used to publish to this App Service
