@@ -4,5 +4,5 @@ package disks
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ShareInfoElement struct {
-	VmUri *string `json:"vmUri,omitempty"`
+	VMUri *string `json:"vmUri,omitempty"`
 }

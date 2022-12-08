@@ -36,7 +36,7 @@ func (id SpringCloudApplicationLiveViewId) String() string {
 }
 
 func (id SpringCloudApplicationLiveViewId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/applicationLiveViews/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/spring/%s/applicationLiveViews/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.ApplicationLiveViewName)
 }
 
@@ -60,7 +60,7 @@ func SpringCloudApplicationLiveViewID(input string) (*SpringCloudApplicationLive
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {
+	if resourceId.SpringName, err = id.PopSegment("spring"); err != nil {
 		return nil, err
 	}
 	if resourceId.ApplicationLiveViewName, err = id.PopSegment("applicationLiveViews"); err != nil {
