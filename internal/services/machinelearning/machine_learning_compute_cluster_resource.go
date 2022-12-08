@@ -339,7 +339,7 @@ func expandScaleSettings(input []interface{}) *machinelearningcomputes.ScaleSett
 }
 
 func expandUserAccountCredentials(input []interface{}) *machinelearningcomputes.UserAccountCredentials {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
