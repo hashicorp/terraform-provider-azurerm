@@ -229,6 +229,14 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
+	if _, ok := d.GetOk("license_type"); ok {
+		if sku.Tier != nil && (*sku.Tier == "GeneralPurpose" || *sku.Tier == "BusinessCritical") {
+			elasticPool.ElasticPoolProperties.LicenseType = sql.ElasticPoolLicenseType(d.Get("license_type").(string))
+		} else {
+			return fmt.Errorf("`license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`")
+		}
+	}
+
 	if d.HasChange("max_size_gb") {
 		if v, ok := d.GetOk("max_size_gb"); ok {
 			maxSizeBytes := v.(float64) * 1073741824

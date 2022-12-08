@@ -145,7 +145,7 @@ resource "azurerm_app_service_slot" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Service Slot component. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the App Service Slot component. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the App Service Slot component. Changing this forces a new resource to be created.
 
