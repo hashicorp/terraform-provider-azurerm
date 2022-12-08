@@ -440,7 +440,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionAppSlot.SiteConfig[0].ApplicationStack)
+			//siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionAppSlot.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionAppSlot.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -815,7 +815,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-				existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
+				//existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)

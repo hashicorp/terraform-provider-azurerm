@@ -1113,6 +1113,31 @@ func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
 	})
 }
 
+// (@jackofallops) - The portal does not allow the active stack to be changed currently, however, the API accepts it and the changes are reflected in the portal.
+func TestAccLinuxFunctionApp_appStackUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNet(data, SkuBasicPlan, "6.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appStackJava(data, SkuBasicPlan, "11"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Others
 
 func TestAccLinuxFunctionApp_identity(t *testing.T) {

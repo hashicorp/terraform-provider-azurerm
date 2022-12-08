@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"strconv"
 	"strings"
 	"time"
@@ -435,7 +436,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionApp.SiteConfig[0].ApplicationStack)
+			//siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionApp.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -650,6 +651,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
+
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
@@ -843,9 +845,9 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-				existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
-			}
+			//if metadata.ResourceData.HasChange("site_config.0.application_stack") {
+			//	existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
+			//}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
@@ -1043,7 +1045,11 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION":
+			if len(m.SiteConfig[0].ApplicationStack) == 0 {
+				m.SiteConfig[0].ApplicationStack = []helpers.ApplicationStackWindowsFunctionApp{{}}
+			}
+			m.SiteConfig[0].ApplicationStack[0].NodeVersion = pointer.From(v)
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
@@ -1056,12 +1062,15 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
-			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
-				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
-			}
-
 			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+			switch *v {
+			case "dotnet-isolated":
+				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
+			case "custom":
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
+
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":
