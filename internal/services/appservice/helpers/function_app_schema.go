@@ -1048,6 +1048,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						"3.10",
 						"3.9",
 						"3.8",
 						"3.7",
@@ -1068,7 +1069,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"12",
+						"12", // Deprecated, and removed from portal, but seemingly accepted by API
 						"14",
 						"16",
 						"18", // preview LTS Support
@@ -1089,8 +1090,8 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"7",
-						"7.2", // preview LTS Support
+						"7", // Deprecated / not available in the portal
+						"7.2",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1121,7 +1122,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Java to use. Possible values are `8`, and `11`",
+					Description: "The version of Java to use. Possible values are `8`, `11`, and `17`",
 				},
 
 				"docker": {
@@ -1567,17 +1568,17 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 		if linuxAppStack.PythonVersion != "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "python", false)
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 		}
 
 		if linuxAppStack.JavaVersion != "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("JAVA|%s", linuxAppStack.JavaVersion))
 		}
 
 		if linuxAppStack.PowerShellCoreVersion != "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("POWERSHELL|%s", linuxAppStack.PowerShellCoreVersion))
 		}
 
 		if linuxAppStack.CustomHandler {
