@@ -9,7 +9,6 @@ type WebApplicationFirewallPolicyPredicate struct {
 }
 
 func (p WebApplicationFirewallPolicyPredicate) Matches(input WebApplicationFirewallPolicy) bool {
-
 	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
 		return false
 	}

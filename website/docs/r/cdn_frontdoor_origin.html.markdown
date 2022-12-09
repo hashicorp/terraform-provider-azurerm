@@ -240,7 +240,7 @@ A `private_link` block supports the following:
 
 -> **NOTE:** `target_type` cannot be specified when using a Load Balancer as an Origin.
 
-* `location` - (Required) Specifies the location where the Private Link resource should exist.
+* `location` - (Required) Specifies the location where the Private Link resource should exist. Changing this forces a new resource to be created.
 
 * `private_link_target_id` - (Required) The ID of the Azure Resource to connect to via the Private Link.
 

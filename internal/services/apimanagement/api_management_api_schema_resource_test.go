@@ -215,17 +215,3 @@ resource "azurerm_api_management_api_schema" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
-func (r ApiManagementApiSchemaResource) definitionsYaml(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_api_schema" "test" {
-  api_name            = azurerm_api_management_api.test.name
-  api_management_name = azurerm_api_management_api.test.api_management_name
-  resource_group_name = azurerm_api_management_api.test.resource_group_name
-  schema_id           = "acctestSchema%d"
-  content_type        = "application/vnd.ms-azure-apim.swagger.definitions+json"
-  definitions         = file("testdata/api_management_api_swagger_definitions.yaml")
-}
-`, r.template(data), data.RandomInteger)
-}

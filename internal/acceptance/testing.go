@@ -47,8 +47,8 @@ func Environment() (*azure.Environment, error) {
 }
 
 func GetAuthConfig(t *testing.T) *authentication.Config {
-	if os.Getenv(resource.TestEnvVar) == "" {
-		t.Skip(fmt.Sprintf("Integration test skipped unless env '%s' set", resource.TestEnvVar))
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("Integration test skipped unless env '%s' set", resource.EnvTfAcc)
 		return nil
 	}
 

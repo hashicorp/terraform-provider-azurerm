@@ -120,8 +120,8 @@ resource "azurerm_monitor_action_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance.
+* `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created. 
+* `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance. Changing this forces a new resource to be created.
 * `short_name` - (Required) The short name of the action group. This will be used in SMS messages.
 * `enabled` - (Optional) Whether this action group is enabled. If an action group is not enabled, then none of its receivers will receive communications. Defaults to `true`.
 * `arm_role_receiver` - (Optional) One or more `arm_role_receiver` blocks as defined below.
@@ -141,7 +141,7 @@ The following arguments are supported:
 
 `arm_role_receiver` supports the following:
 
-* `name` - (Required) The name of the ARM role receiver.
+* `name` - (Required) The name of the ARM role receiver. Changing this forces a new resource to be created.
 * `role_id` - (Required) The arm role id.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
@@ -149,7 +149,7 @@ The following arguments are supported:
 
 `automation_runbook_receiver` supports the following:
 
-* `name` - (Required) The name of the automation runbook receiver.
+* `name` - (Required) The name of the automation runbook receiver. Changing this forces a new resource to be created.
 * `automation_account_id` - (Required) The automation account ID which holds this runbook and authenticates to Azure resources.
 * `runbook_name` - (Required) The name for this runbook.
 * `webhook_resource_id` - (Required) The resource id for webhook linked to this runbook.
@@ -161,14 +161,14 @@ The following arguments are supported:
 
 `azure_app_push_receiver` supports the following:
 
-* `name` - (Required) The name of the Azure app push receiver.
+* `name` - (Required) The name of the Azure app push receiver. Changing this forces a new resource to be created.
 * `email_address` - (Required) The email address of the user signed into the mobile app who will receive push notifications from this receiver.
 
 ---
 
 `azure_function_receiver` supports the following:
 
-* `name` - (Required) The name of the Azure Function receiver.
+* `name` - (Required) The name of the Azure Function receiver. Changing this forces a new resource to be created.
 * `function_app_resource_id` - (Required) The Azure resource ID of the function app.
 * `function_name` - (Required) The function name in the function app.
 * `http_trigger_url` - (Required) The HTTP trigger url where HTTP request sent to.
@@ -178,7 +178,7 @@ The following arguments are supported:
 
 `email_receiver` supports the following:
 
-* `name` - (Required) The name of the email receiver. Names must be unique (case-insensitive) across all receivers within an action group.
+* `name` - (Required) The name of the email receiver. Names must be unique (case-insensitive) across all receivers within an action group. Changing this forces a new resource to be created.
 * `email_address` - (Required) The email address of this receiver.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
@@ -186,7 +186,7 @@ The following arguments are supported:
 
 `event_hub_receiver` supports the following:
 
-* `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
+* `name` - (Required) The name of the EventHub Receiver, must be unique within action group. Changing this forces a new resource to be created.
 * `event_hub_id` - (Optional) The resource ID of the respective Event Hub.
 * `event_hub_name` - (Optional) The name of the specific Event Hub queue.
 * `event_hub_namespace` - (Optional) The namespace name of the Event Hub.
@@ -201,7 +201,7 @@ The following arguments are supported:
 
 `itsm_receiver` supports the following:
 
-* `name` - (Required) The name of the ITSM receiver.
+* `name` - (Required) The name of the ITSM receiver. Changing this forces a new resource to be created.
 * `workspace_id` - (Required) The Azure Log Analytics workspace ID where this connection is defined. Format is `<subscription id>|<workspace id>`, for example `00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000`.
 * `connection_id` - (Required) The unique connection identifier of the ITSM connection.
 * `ticket_configuration` - (Required) A JSON blob for the configurations of the ITSM action. CreateMultipleWorkItems option will be part of this blob as well.
@@ -213,7 +213,7 @@ The following arguments are supported:
 
 `logic_app_receiver` supports the following:
 
-* `name` - (Required) The name of the logic app receiver.
+* `name` - (Required) The name of the logic app receiver. Changing this forces a new resource to be created.
 * `resource_id` - (Required) The Azure resource ID of the logic app.
 * `callback_url` - (Required) The callback url where HTTP request sent to.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
@@ -222,7 +222,7 @@ The following arguments are supported:
 
 `sms_receiver` supports the following:
 
-* `name` - (Required) The name of the SMS receiver. Names must be unique (case-insensitive) across all receivers within an action group.
+* `name` - (Required) The name of the SMS receiver. Names must be unique (case-insensitive) across all receivers within an action group. Changing this forces a new resource to be created.
 * `country_code` - (Required) The country code of the SMS receiver.
 * `phone_number` - (Required) The phone number of the SMS receiver.
 
@@ -230,7 +230,7 @@ The following arguments are supported:
 
 `voice_receiver` supports the following:
 
-* `name` - (Required) The name of the voice receiver.
+* `name` - (Required) The name of the voice receiver. Changing this forces a new resource to be created.
 * `country_code` - (Required) The country code of the voice receiver.
 * `phone_number` - (Required) The phone number of the voice receiver.
 
@@ -238,7 +238,7 @@ The following arguments are supported:
 
 `webhook_receiver` supports the following:
 
-* `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group.
+* `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group. Changing this forces a new resource to be created.
 * `service_uri` - (Required) The URI where webhooks should be sent.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 * `aad_auth` - (Optional) The `aad_auth` block as defined below

@@ -56,9 +56,9 @@ resource "azurerm_lb_nat_pool" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the NAT pool.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT pool.
+* `name` - (Required) Specifies the name of the NAT pool. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT pool. Changing this forces a new resource to be created.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration exposing this rule.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `All`, `Tcp` and `Udp`.
 * `frontend_port_start` - (Required) The first port number in the range of external ports that will be used to provide Inbound NAT to NICs associated with this Load Balancer. Possible values range between 1 and 65534, inclusive.

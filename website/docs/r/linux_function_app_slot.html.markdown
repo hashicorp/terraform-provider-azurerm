@@ -128,7 +128,7 @@ The following arguments are supported:
 
 an `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature be enabled?
+* `enabled` - (Optional) Should the Authentication / Authorization feature be enabled?
 
 * `active_directory` - (Optional) an `active_directory` block as detailed below.
 

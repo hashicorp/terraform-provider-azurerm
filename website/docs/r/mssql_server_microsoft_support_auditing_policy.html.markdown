@@ -160,7 +160,7 @@ The following arguments are supported:
 
 * `server_id` - (Required) The ID of the SQL Server to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
+* `enabled` - (Optional) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
 ->**NOTE:**  If `enabled` is `true`, `blob_storage_endpoint` or `log_monitoring_enabled` are required.
 

@@ -122,7 +122,6 @@ func dataSourcePrivateDnsSoaRecordRead(d *pluginsdk.ResourceData, meta interface
 
 			return tags.FlattenAndSet(d, props.Metadata)
 		}
-
 	}
 
 	return nil

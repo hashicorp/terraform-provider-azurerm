@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `iothub_name` - (Required) The name of the IoTHub to which this Route belongs. Changing this forces a new resource to be created.
 
-* `source` - (Optional) The source that the routing rule is to be applied to. Possible values include: `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `DigitalTwinChangeEvents`, `Invalid`, `TwinChangeEvents`. Defaults to `DeviceMessages`.
+* `source` - (Required) The source that the routing rule is to be applied to. Possible values include: `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `DigitalTwinChangeEvents`, `Invalid`, `TwinChangeEvents`. Defaults to `DeviceMessages`.
 
 * `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
@@ -112,5 +112,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 IoTHub Route can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_route.route1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Routes/route1
+terraform import azurerm_iothub_route.route1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/routes/route1
 ```

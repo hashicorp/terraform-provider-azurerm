@@ -1285,7 +1285,6 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-
 }
 
 func (RedisCacheResource) userAssignedIdentity(data acceptance.TestData) string {

@@ -8,6 +8,6 @@ package securitycenter
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AssessmentMetadata -id=/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Security/assessmentMetadata/metadata1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AutoProvisioningSetting -id=/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Security/autoProvisioningSettings/default -rewrite=true
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IotSecuritySolution -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/IoTSecuritySolutions/solution1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IotSecuritySolution -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/iotSecuritySolutions/solution1 -rewrite=true
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VulnerabilityAssessmentVm -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm-name1/providers/Microsoft.Security/serverVulnerabilityAssessments/default1

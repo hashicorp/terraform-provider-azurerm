@@ -110,7 +110,7 @@ A `rule` block supports the following:
 
 * `description` - (Optional) Specifies a description for the rule.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+* `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
 
 * `source_ip_groups` - (Optional) A list of IP Group IDs for the rule.
 
