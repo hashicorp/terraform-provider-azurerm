@@ -1067,7 +1067,23 @@ func TestAccWindowsFunctionApp_appStackJavaUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionApp_appStackPowerShellCore(t *testing.T) {
+func TestAccWindowsFunctionApp_appStackPowerShellCore7(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionApp_appStackPowerShellCore72(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
 

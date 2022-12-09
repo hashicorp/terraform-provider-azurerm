@@ -436,7 +436,6 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			//siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionApp.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -844,10 +843,6 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("site_config") {
 				existing.SiteConfig = siteConfig
 			}
-
-			//if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-			//	existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
-			//}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
