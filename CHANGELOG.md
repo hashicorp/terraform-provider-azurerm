@@ -1,4 +1,4 @@
-## 3.35.0 (Unreleased)
+## 3.35.0 (December 09, 2022)
 
 BREAKING CHANGES
 
