@@ -772,24 +772,6 @@ func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, 
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (ManagedDiskResource) destroyVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	vmName := state.Attributes["name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-
-	// this is a preview feature we don't want to use right now
-	var forceDelete *bool = nil
-	future, err := client.Compute.VMClient.Delete(ctx, resourceGroup, vmName, forceDelete)
-	if err != nil {
-		return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-	}
-
-	return nil
-}
-
 func (ManagedDiskResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -197,11 +197,11 @@ Some resource types (such as Storage Account) only support 1 subresource per pri
 
 An `ip_configuration` supports the following:
 
-* `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created. 
 
-* `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created. 
 
-* `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id` and in this context is also used for `member_name`. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id` and in this context is also used for `member_name`. Changing this forces a new resource to be created. 
 
 ## Attributes Reference
 

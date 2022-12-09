@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mysqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,6 +29,11 @@ func resourceSpringCloudAppMysqlAssociation() *pluginsdk.Resource {
 		Read:   resourceSpringCloudAppMysqlAssociationRead,
 		Update: resourceSpringCloudAppMysqlAssociationCreateUpdate,
 		Delete: resourceSpringCloudAppMysqlAssociationDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudAppMySqlAssociationV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SpringCloudAppAssociationID(id)

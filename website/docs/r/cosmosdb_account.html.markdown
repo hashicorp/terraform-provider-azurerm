@@ -70,11 +70,11 @@ resource "azurerm_cosmosdb_account" "db" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the CosmosDB Account. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which the CosmosDB Account is created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

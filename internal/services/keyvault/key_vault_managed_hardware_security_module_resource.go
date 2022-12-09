@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -235,7 +235,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedHSMsOnDestroy
 	if shouldPurge && resp.Properties != nil && utils.NormaliseNilableBool(resp.Properties.EnablePurgeProtection) {
-		return fmt.Errorf("cannot purge %s because purge protection is enabled", id)
+		log.Printf("[DEBUG] cannot purge %s because purge protection is enabled", id)
+		return nil
 	}
 
 	purgeFuture, err := client.PurgeDeleted(ctx, id.Name, *resp.Location)

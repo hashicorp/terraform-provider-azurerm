@@ -18,7 +18,7 @@ Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Servi
 
 This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes).
 
-An example on how to attach a specific Container Registry to a Managed Kubernetes Cluster can be found in the docs for [azurerm_container_registry](container_registry.html).
+An example of how to attach a specific Container Registry to a Managed Kubernetes Cluster can be found in the docs for [azurerm_container_registry](container_registry.html).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -141,9 +141,9 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
-* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created. 
 
--> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
+-> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
 
 * `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/azure/aks/cluster-configuration#oidc-issuer-preview)
 
@@ -153,13 +153,13 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `private_cluster_enabled` - (Optional) Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning. Changing this forces a new resource to be created.
+* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise, the cluster will have issues after provisioning. Changing this forces a new resource to be created.
 
 * `private_cluster_public_fqdn_enabled` - (Optional) Specifies whether a Public FQDN for this Private Cluster should be added. Defaults to `false`.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnablePrivateClusterPublicFQDN` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/private-clusters#create-a-private-aks-cluster-with-a-public-dns-address) for more information.
 
--> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
+-> **Note:** If you use BYO DNS Zone, the AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - the cluster should depend on the role assignment, like in this example:
 
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
 
@@ -223,6 +223,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
 
+* `storage_profile` - (Optional) A `storage_profile` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
@@ -231,7 +233,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ---
 
-A `aci_connector_linux` block supports the following:
+An `aci_connector_linux` block supports the following:
 
 * `subnet_name` - (Required) The subnet name for the virtual nodes to run.
 
@@ -323,6 +325,10 @@ A `default_node_pool` block supports the following:
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`. Changing this forces a new resource to be created.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
+
+* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA. Defaults to `false`.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
 
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
@@ -464,7 +470,7 @@ The `kubelet_identity` block supports the following:
 
 A `linux_os_config` block supports the following:
 
-* `swap_file_size_mb` - (Optional) Specifies the size of swap file on each node in MB. Changing this forces a new resource to be created.
+* `swap_file_size_mb` - (Optional) Specifies the size of the swap file on each node in MB. Changing this forces a new resource to be created.
 
 * `sysctl_config` - (Optional) A `sysctl_config` block as defined below. Changing this forces a new resource to be created.
 
@@ -484,7 +490,7 @@ A `linux_profile` block supports the following:
 
 A `maintenance_window` block supports the following:
 
-* `allowed` - (Optional) One or more `allowed` block as defined below.
+* `allowed` - (Optional) One or more `allowed` blocks as defined below.
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
@@ -531,6 +537,14 @@ A `network_profile` block supports the following:
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Changing this forces a new resource to be created.
+
+* `ebpf_data_plane` - (Optional) Specifies the eBPF data plane used for building the Kubernetes network. Possible value is `cilium`. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CiliumDataplanePreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-powered-by-cilium) for more information.
+
+* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureOverlayPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-overlay) for more information.
 
 * `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. Changing this forces a new resource to be created.
 
@@ -645,6 +659,22 @@ A `service_principal` block supports the following:
 A `ssh_key` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+
+---
+
+A `storage_profile` block supports the following:
+
+* `blob_driver_enabled` - (Optional) Is the Blob CSI driver enabled? Defaults to `false`.
+
+* `disk_driver_enabled` - (Optional) Is the Disk CSI driver enabled? Defaults to `true`.
+
+* `disk_driver_version` - (Optional) Disk CSI Driver version to be used. Possible values are `v1` and `v2`. Defaults to `v1`.
+
+-> **NOTE:** `Azure Disk CSI driver v2` is currently in [Public Preview](https://azure.microsoft.com/en-us/updates/public-preview-azure-disk-csi-driver-v2-in-aks/) on an opt-in basis. To use it, the feature `EnableAzureDiskCSIDriverV2` for namespace `Microsoft.ContainerService` must be requested.
+
+* `file_driver_enabled` - (Optional) Is the File CSI driver enabled? Defaults to `true`.
+
+* `snapshot_controller_enabled` - (Optional) Is the Snapshot Controller enabled? Defaults to `true`.
 
 ---
 
