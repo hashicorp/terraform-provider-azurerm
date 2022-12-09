@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,6 +22,11 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 		Create: resourceKustoClusterPrincipalAssignmentCreateUpdate,
 		Read:   resourceKustoClusterPrincipalAssignmentRead,
 		Delete: resourceKustoClusterPrincipalAssignmentDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KustoAttachedClusterPrincipalAssignmentV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterPrincipalAssignmentID(id)

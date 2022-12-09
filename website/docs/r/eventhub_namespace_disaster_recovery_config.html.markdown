@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Disaster Recovery Config exists. Changing this forces a new resource to be created.
 
-* `partner_namespace_id` - (Optional) The ID of the EventHub Namespace to replicate to.
+* `partner_namespace_id` - (Required) The ID of the EventHub Namespace to replicate to.
 
 * `wait_for_replication` - (Optional) Should the resource wait for replication upon creation? Defaults to `false`.
 

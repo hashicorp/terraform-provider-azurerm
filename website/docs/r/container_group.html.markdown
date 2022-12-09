@@ -85,7 +85,7 @@ The following arguments are supported:
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
-* `dns_name_label_reuse_policy` - (Optional) The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`. Defaults to `Unsecure`. Changing this forces a new resource to be created.
+* `dns_name_label_reuse_policy` - (Optional) The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`. Defaults to `Unsecure`. 
 
 * `exposed_port` - (Optional) Zero or more `exposed_port` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones in which this Container Group is located.
+* `zones` - (Optional) A list of Availability Zones in which this Container Group is located. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

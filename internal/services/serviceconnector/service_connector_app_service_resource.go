@@ -183,6 +183,8 @@ func (r AppServiceConnectorResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
+			pwd := metadata.ResourceData.Get("authentication.0.secret").(string)
+
 			if model := resp.Model; model != nil {
 				props := model.Properties
 				if props.AuthInfo == nil || props.TargetService == nil {
@@ -193,7 +195,7 @@ func (r AppServiceConnectorResource) Read() sdk.ResourceFunc {
 					Name:             id.LinkerName,
 					AppServiceId:     id.ResourceUri,
 					TargetResourceId: flattenTargetService(props.TargetService),
-					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo),
+					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
 				}
 
 				if props.ClientType != nil {

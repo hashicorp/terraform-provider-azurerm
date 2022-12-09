@@ -145,9 +145,9 @@ resource "azurerm_app_service_slot" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Service Slot component. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the App Service Slot component. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Slot component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Slot component. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -199,7 +199,7 @@ A `storage_account` block supports the following:
 
 `connection_string` supports the following:
 
-* `name` - (Required) The name of the Connection String.
+* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 * `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and  `SQLServer`.
 * `value` - (Required) The value for the Connection String.
 

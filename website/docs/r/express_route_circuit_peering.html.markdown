@@ -114,11 +114,11 @@ resource "azurerm_express_route_circuit_peering" "example" {
 
 The following arguments are supported:
 
-* `peering_type` - (Required) The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`. Changing this forces a new resource to be created.
+* `peering_type` - (Required) The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`. 
 
 ~> **NOTE:** only one Peering of each Type can be created. Attempting to create multiple peerings of the same type will overwrite the original peering.
 
-* `express_route_circuit_name` - (Required) The name of the ExpressRoute Circuit in which to create the Peering.
+* `express_route_circuit_name` - (Required) The name of the ExpressRoute Circuit in which to create the Peering. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Express Route Circuit Peering. Changing this forces a new resource to be created.
 

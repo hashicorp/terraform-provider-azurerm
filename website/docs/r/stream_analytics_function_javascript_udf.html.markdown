@@ -64,7 +64,7 @@ The following arguments are supported:
 
 A `input` block supports the following:
 
-* `type` - The Data Type for the Input Argument of this JavaScript Function. Possible values include `array`, `any`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
+* `type` - (Required) The Data Type for the Input Argument of this JavaScript Function. Possible values include `array`, `any`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
 * `configuration_parameter` - (Optional) Is this input parameter a configuration parameter? Defaults to `false`.
 
@@ -72,7 +72,7 @@ A `input` block supports the following:
 
 A `output` block supports the following:
 
-* `type` - The Data Type output from this JavaScript Function. Possible values include `array`, `any`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
+* `type` - (Required) The Data Type output from this JavaScript Function. Possible values include `array`, `any`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
 ## Attributes Reference
 

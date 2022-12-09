@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,7 +20,10 @@ import (
 
 type OutputCosmosDBResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = OutputCosmosDBResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = OutputCosmosDBResource{}
+	_ sdk.ResourceWithStateMigration = OutputCosmosDBResource{}
+)
 
 type OutputCosmosDBResourceModel struct {
 	Name               string `tfschema:"name"`
@@ -305,5 +309,14 @@ func (r OutputCosmosDBResource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("specified output is not of type")
 		}
 		return nil
+	}
+}
+
+func (r OutputCosmosDBResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsOutputCosmosDbV0ToV1{},
+		},
 	}
 }

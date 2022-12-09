@@ -81,7 +81,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `license_type` - (Optional) Specifies the type of on-premise license (also known as Azure Hybrid Use Benefit) which should be used for this Orchestrated Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`. Changing this forces a new resource to be created.
+* `license_type` - (Optional) Specifies the type of on-premise license (also known as Azure Hybrid Use Benefit) which should be used for this Orchestrated Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`. 
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for each Orchestrated Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the eviction_policy. Defaults to `-1`, which means that each Virtual Machine in the Orchestrated Scale Set should not be evicted for price reasons.
 
@@ -369,11 +369,11 @@ An `os_disk` block supports the following:
 
 * `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
-* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS` and `Premium_ZRS`.
+* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
 
 * `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above.
 
-* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk.
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk. Changing this forces a new resource to be created.
 
 -> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
@@ -435,13 +435,13 @@ A `termination_notification` block supports the following:
 
 A `source_image_reference` block supports the following:
 
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
 
-* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+* `version` - (Required) Specifies the version of the image used to create the virtual machines.
 
 ---
 
