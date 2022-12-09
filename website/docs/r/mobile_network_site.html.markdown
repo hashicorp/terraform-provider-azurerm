@@ -68,11 +68,6 @@ resource "azurerm_mobile_network_site" "example" {
   mobile_network_id = azurerm_mobile_network.example.id
   location          = azurerm_resource_group.example.location
 
-  network_function_ids = [
-    azurerm_mobile_network_packet_control_plane.example.id,
-    azurerm_mobile_network_packet_core_data_plan.example.id
-  ]
-
   tags = {
     key = "value"
   }
@@ -90,8 +85,6 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Mobile Network Site should exist. Changing this forces a new Mobile Network Site to be created.
 
-* `network_function_ids` - (Optional) An array of Network Functions deployed on the site.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Site.
 
 
@@ -101,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network Site.
 
-
+* `network_function_ids` - (Optional) An array of Id of Network Functions deployed on the site.
 
 ## Timeouts
 

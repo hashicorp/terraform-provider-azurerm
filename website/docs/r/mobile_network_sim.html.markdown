@@ -118,6 +118,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sim_state` - The state of the SIM resource.
 
+* `vendor_key_fingerprint` - The public key fingerprint of the SIM vendor who provided this SIM, if any.
+
+* `vendor_name` - The name of the SIM vendor who provided this SIM, if any.
 
 ## Timeouts
 

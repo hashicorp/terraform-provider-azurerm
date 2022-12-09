@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/simpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -153,7 +153,6 @@ resource "azurerm_mobile_network_data_network" "test" {
   location          = "%[2]s"
 }
 
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -267,6 +266,7 @@ resource "azurerm_mobile_network_sim_policy" "test" {
       preemption_vulnerability                = "Preemptable"
       allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
       data_network_id                         = azurerm_mobile_network_data_network.test.id
+      max_buffered_packets                    = 200
       session_aggregate_maximum_bit_rate {
         downlink = "1 Gbps"
         uplink   = "500 Mbps"

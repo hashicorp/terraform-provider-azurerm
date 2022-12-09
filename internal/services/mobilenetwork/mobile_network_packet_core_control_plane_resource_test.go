@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/packetcorecontrolplane"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,12 +30,13 @@ func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
 	})
 }
 
-func TestAccMobileNetworkPacketCoreControlPlane_withAKSHCI(t *testing.T) {
+func TestAccMobileNetworkPacketCoreControlPlane_with3PSTACKHCI(t *testing.T) {
+	t.Skip("service is still in progress")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withAKSHCI(data),
+			Config: r.with3PStackHci(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -50,6 +51,20 @@ func TestAccMobileNetworkPacketCoreControlPlane_withIneropSettings(t *testing.T)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withInteropSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+	r := MobileNetworkPacketCoreControlPlaneResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUeMTU(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -127,57 +142,8 @@ func (r MobileNetworkPacketCoreControlPlaneResource) Exists(ctx context.Context,
 
 func (r MobileNetworkPacketCoreControlPlaneResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-mn-rg-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_mobile_network" "test" {
-  name                = "acctest-mn-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
-  mobile_country_code = "001"
-  mobile_network_code = "01"
-}
-
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MobileNetworkPacketCoreControlPlaneResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_mobile_network_packet_core_control_plane" "test" {
-  name                = "acctest-mnpccp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.test.id
-
-  control_plane_access_interface {
-    name         = "default-interface"
-    ipv4_address = "192.168.1.199"
-    ipv4_gateway = "192.168.1.1"
-    ipv4_subnet  = "192.168.1.0/25"
-  }
-
-  platform {
-    type = "BaseVM"
-  }
-
-}
-`, template, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MobileNetworkPacketCoreControlPlaneResource) withAKSHCI(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-				%s
 resource "azurerm_databox_edge_device" "test" {
   name                = "acct%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -186,12 +152,23 @@ resource "azurerm_databox_edge_device" "test" {
   sku_name = "EdgeP_Base-Standard"
 }
 
+`, MobileNetworkSiteResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MobileNetworkPacketCoreControlPlaneResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+				%s
+
 resource "azurerm_mobile_network_packet_core_control_plane" "test" {
-  name                = "acctest-mnpccp-%[2]d"
+  name                = "acctest-mnpccp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.test.id
+  location            = "%s"
+  sku                 = "G0"
+  site_ids            = [azurerm_mobile_network_site.test.id]
+
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
 
   control_plane_access_interface {
     name         = "default-interface"
@@ -205,12 +182,44 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
     edge_device_id = azurerm_databox_edge_device.test.id
   }
 
+  depends_on = [azurerm_mobile_network.test]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MobileNetworkPacketCoreControlPlaneResource) with3PStackHci(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_mobile_network_packet_core_control_plane" "test" {
+  name                = "acctest-mnpccp-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  sku                 = "G0"
+  site_ids            = [azurerm_mobile_network_site.test.id]
+
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
+
+  control_plane_access_interface {
+    name         = "default-interface"
+    ipv4_address = "192.168.1.199"
+    ipv4_gateway = "192.168.1.1"
+    ipv4_subnet  = "192.168.1.0/25"
+  }
+
+  platform {
+    type           = "3P-AZURE-STACK-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
+  }
+
+  depends_on = [azurerm_mobile_network.test]
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) withCertificateUserAssignedIdentity(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -256,13 +265,16 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_mobile_network_packet_core_control_plane" "test" {
-  name                                     = "acctest-mnpccp-%[2]d"
-  resource_group_name                      = azurerm_resource_group.test.name
-  location                                 = "%[3]s"
-  sku                                      = "EvaluationPackage"
-  core_network_technology                  = "5GC"
-  mobile_network_id                        = azurerm_mobile_network.test.id
-  local_diagnostics_access_certificate_url = azurerm_key_vault_certificate.test.versionless_secret_id
+  name                    = "acctest-mnpccp-%[2]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = "%[3]s"
+  sku                     = "G0"
+  core_network_technology = "5GC"
+  site_ids                = [azurerm_mobile_network_site.test.id]
+  local_diagnostics_access_setting {
+    authentication_type          = "AAD""
+    https_server_certificate_url = azurerm_key_vault_certificate.test.versionless_secret_id
+  }
 
   identity {
     type = "UserAssigned"
@@ -279,14 +291,16 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   }
 
   platform {
-    type = "BaseVM"
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
   }
+
+  depends_on = [azurerm_mobile_network.test]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) withInteropSettings(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
@@ -294,8 +308,12 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   name                = "acctest-mnpccp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.test.id
+  sku                 = "G0"
+  site_ids            = [azurerm_mobile_network_site.test.id]
+
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
 
   control_plane_access_interface {
     name         = "default-interface"
@@ -305,19 +323,54 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   }
 
   platform {
-    type = "BaseVM"
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
   }
 
   interop_settings = jsonencode({
     "mtu" = 1440
   })
 
+  depends_on = [azurerm_mobile_network.test]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MobileNetworkPacketCoreControlPlaneResource) withUeMTU(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_mobile_network_packet_core_control_plane" "test" {
+  name                        = "acctest-mnpccp-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = "%s"
+  sku                         = "G0"
+  user_equipment_mtu_in_bytes = 1600
+  site_ids                    = [azurerm_mobile_network_site.test.id]
+
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
+
+  control_plane_access_interface {
+    name         = "default-interface"
+    ipv4_address = "192.168.1.199"
+    ipv4_gateway = "192.168.1.1"
+    ipv4_subnet  = "192.168.1.0/25"
+  }
+
+  platform {
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
+  }
+
+  depends_on = [azurerm_mobile_network.test]
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -326,7 +379,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "import" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.test.id
+  site_ids            = [azurerm_mobile_network_site.test.id]
 
   control_plane_access_interface {
     name         = "default-interface"
@@ -336,15 +389,20 @@ resource "azurerm_mobile_network_packet_core_control_plane" "import" {
   }
 
   platform {
-    type = "BaseVM"
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
   }
 
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
+
+  depends_on = [azurerm_mobile_network.test]
 }
-`, config, data.Locations.Primary)
+`, r.basic(data), data.Locations.Primary)
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -352,8 +410,12 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   name                = "acctest-mnpccp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  sku                 = "EdgeSite4GBPS"
-  mobile_network_id   = azurerm_mobile_network.test.id
+  sku                 = "G0"
+  site_ids            = [azurerm_mobile_network_site.test.id]
+
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
 
   control_plane_access_interface {
     name         = "default-interface"
@@ -363,13 +425,15 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   }
 
   platform {
-    type = "BaseVM"
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
   }
 
   tags = {
     "Environment" = "non-prod"
   }
 
+  depends_on = [azurerm_mobile_network.test]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }

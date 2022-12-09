@@ -6,15 +6,14 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/datanetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/service"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/slice"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/mobilenetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/simpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/service"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -39,15 +38,16 @@ type SliceConfigurationModel struct {
 }
 
 type DataNetworkConfigurationModel struct {
-	AdditionalAllowedSessionTypes       []simpolicy.PduSessionType        `tfschema:"additional_allowed_session_types"`
-	AllocationAndRetentionPriorityLevel int64                             `tfschema:"allocation_and_retention_priority_level"`
-	AllowedServices                     []string                          `tfschema:"allowed_services_ids"`
-	DataNetworkId                       string                            `tfschema:"data_network_id"`
-	DefaultSessionType                  simpolicy.PduSessionType          `tfschema:"default_session_type"`
-	QosIdentifier                       int64                             `tfschema:"qos_indicator"`
-	PreemptionCapability                simpolicy.PreemptionCapability    `tfschema:"preemption_capability"`
-	PreemptionVulnerability             simpolicy.PreemptionVulnerability `tfschema:"preemption_vulnerability"`
-	SessionAmbr                         []AmbrModel                       `tfschema:"session_aggregate_maximum_bit_rate"`
+	AdditionalAllowedSessionTypes       []string    `tfschema:"additional_allowed_session_types"`
+	AllocationAndRetentionPriorityLevel int64       `tfschema:"allocation_and_retention_priority_level"`
+	AllowedServices                     []string    `tfschema:"allowed_services_ids"`
+	DataNetworkId                       string      `tfschema:"data_network_id"`
+	DefaultSessionType                  string      `tfschema:"default_session_type"`
+	QosIdentifier                       int64       `tfschema:"qos_indicator"`
+	MaximumNumberOfBufferedPackets      int64       `tfschema:"max_buffered_packets"`
+	PreemptionCapability                string      `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string      `tfschema:"preemption_vulnerability"`
+	SessionAmbr                         []AmbrModel `tfschema:"session_aggregate_maximum_bit_rate"`
 }
 
 type AmbrModel struct {
@@ -166,6 +166,12 @@ func (r SimPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntBetween(1, 127),
+								},
+								"max_buffered_packets": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      10,
+									ValidateFunc: validation.IntAtLeast(0),
 								},
 
 								"preemption_capability": {
@@ -530,13 +536,18 @@ func expandDataNetworkConfigurationModel(inputList []DataNetworkConfigurationMod
 	var outputList []simpolicy.DataNetworkConfiguration
 	for _, v := range inputList {
 		input := v
+
+		defaultSessionType := simpolicy.PduSessionType(input.DefaultSessionType)
+		preemptionCapability := simpolicy.PreemptionCapability(input.PreemptionCapability)
+		preemptionVulnerability := simpolicy.PreemptionVulnerability(input.PreemptionVulnerability)
 		output := simpolicy.DataNetworkConfiguration{
-			AdditionalAllowedSessionTypes:       &input.AdditionalAllowedSessionTypes,
+			AdditionalAllowedSessionTypes:       expandSimPolicyAdditionalAllowedSessionType(input.AdditionalAllowedSessionTypes),
 			AllocationAndRetentionPriorityLevel: &input.AllocationAndRetentionPriorityLevel,
-			DefaultSessionType:                  &input.DefaultSessionType,
+			DefaultSessionType:                  &defaultSessionType,
 			Fiveqi:                              &input.QosIdentifier,
-			PreemptionCapability:                &input.PreemptionCapability,
-			PreemptionVulnerability:             &input.PreemptionVulnerability,
+			PreemptionCapability:                &preemptionCapability,
+			PreemptionVulnerability:             &preemptionVulnerability,
+			MaximumNumberOfBufferedPackets:      &input.MaximumNumberOfBufferedPackets,
 		}
 
 		allowedServicesValue, err := expandServiceResourceIdModel(input.AllowedServices)
@@ -567,6 +578,15 @@ func expandDataNetworkConfigurationModel(inputList []DataNetworkConfigurationMod
 	}
 
 	return &outputList, nil
+}
+
+func expandSimPolicyAdditionalAllowedSessionType(inputList []string) *[]simpolicy.PduSessionType {
+	var outputList []simpolicy.PduSessionType
+	for _, v := range inputList {
+		outputList = append(outputList, simpolicy.PduSessionType(v))
+	}
+
+	return &outputList
 }
 
 func expandServiceResourceIdModel(inputList []string) (*[]simpolicy.ServiceResourceId, error) {
@@ -633,9 +653,7 @@ func flattenDataNetworkConfigurationModel(inputList *[]simpolicy.DataNetworkConf
 			DataNetworkId: input.DataNetwork.Id,
 		}
 
-		if input.AdditionalAllowedSessionTypes != nil {
-			output.AdditionalAllowedSessionTypes = *input.AdditionalAllowedSessionTypes
-		}
+		output.AdditionalAllowedSessionTypes = flattenSimPolicyAllowedSessionType(input.AdditionalAllowedSessionTypes)
 
 		if input.AllocationAndRetentionPriorityLevel != nil {
 			output.AllocationAndRetentionPriorityLevel = *input.AllocationAndRetentionPriorityLevel
@@ -649,19 +667,23 @@ func flattenDataNetworkConfigurationModel(inputList *[]simpolicy.DataNetworkConf
 		output.AllowedServices = allowedServicesValue
 
 		if input.DefaultSessionType != nil {
-			output.DefaultSessionType = *input.DefaultSessionType
+			output.DefaultSessionType = string(*input.DefaultSessionType)
 		}
 
 		if input.Fiveqi != nil {
 			output.QosIdentifier = *input.Fiveqi
 		}
 
+		if input.MaximumNumberOfBufferedPackets != nil {
+			output.MaximumNumberOfBufferedPackets = *input.MaximumNumberOfBufferedPackets
+		}
+
 		if input.PreemptionCapability != nil {
-			output.PreemptionCapability = *input.PreemptionCapability
+			output.PreemptionCapability = string(*input.PreemptionCapability)
 		}
 
 		if input.PreemptionVulnerability != nil {
-			output.PreemptionVulnerability = *input.PreemptionVulnerability
+			output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 		}
 
 		sessionAmbrValue, err := flattenSimPolicyAmbrModel(&input.SessionAmbr)
@@ -675,6 +697,17 @@ func flattenDataNetworkConfigurationModel(inputList *[]simpolicy.DataNetworkConf
 	}
 
 	return outputList, nil
+}
+
+func flattenSimPolicyAllowedSessionType(input *[]simpolicy.PduSessionType) []string {
+	output := make([]string, 0)
+	if input == nil {
+		return output
+	}
+	for _, v := range *input {
+		output = append(output, string(v))
+	}
+	return output
 }
 
 func flattenServiceResourceIdModel(inputList *[]simpolicy.ServiceResourceId) ([]string, error) {

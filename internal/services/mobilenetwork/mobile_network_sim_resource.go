@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/attacheddatanetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/sim"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/simgroup"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/simpolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/slice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/sim"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +29,9 @@ type SimModel struct {
 	OperatorKeyCode                       string                       `tfschema:"operator_key_code"`
 	SimPolicyId                           string                       `tfschema:"sim_policy_id"`
 	StaticIPConfiguration                 []SimStaticIPPropertiesModel `tfschema:"static_ip_configuration"`
-	SimState                              sim.SimState                 `tfschema:"sim_state"`
+	SimState                              string                       `tfschema:"sim_state"`
+	VendorKeyFingerprint                  string                       `tfschema:"vendor_key_fingerprint"`
+	VendorName                            string                       `tfschema:"vendor_name"`
 }
 
 type SimStaticIPPropertiesModel struct {
@@ -156,6 +158,15 @@ func (r SimResource) Arguments() map[string]*pluginsdk.Schema {
 func (r SimResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"sim_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"vendor_key_fingerprint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"vendor_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -364,15 +375,22 @@ func (r SimResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties.SimState != nil {
-				state.SimState = *properties.SimState
+				state.SimState = string(*properties.SimState)
 			}
 
 			staticIPConfigurationValue, err := flattenSimStaticIPPropertiesModel(properties.StaticIPConfiguration)
 			if err != nil {
 				return err
 			}
-
 			state.StaticIPConfiguration = staticIPConfigurationValue
+
+			if properties.VendorKeyFingerprint != nil {
+				state.VendorKeyFingerprint = *properties.VendorKeyFingerprint
+			}
+
+			if properties.VendorName != nil {
+				state.VendorName = *properties.VendorName
+			}
 
 			state.AuthenticationKey = metadata.ResourceData.Get("authentication_key").(string)
 			state.OperatorKeyCode = metadata.ResourceData.Get("operator_key_code").(string)

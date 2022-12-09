@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/attacheddatanetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/packetcoredataplane"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcoredataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -88,7 +88,7 @@ func (r AttachedDataNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"dns_addresses": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.IPv4Address,
@@ -248,7 +248,7 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 			properties := &attacheddatanetwork.AttachedDataNetwork{
 				Location: location.Normalize(model.Location),
 				Properties: attacheddatanetwork.AttachedDataNetworkPropertiesFormat{
-					DnsAddresses:                         &model.DnsAddresses,
+					DnsAddresses:                         model.DnsAddresses,
 					UserEquipmentAddressPoolPrefix:       &model.UserEquipmentAddressPoolPrefix,
 					UserEquipmentStaticAddressPoolPrefix: &model.UserEquipmentStaticAddressPoolPrefix,
 				},
@@ -308,7 +308,7 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("dns_addresses") {
-				properties.Properties.DnsAddresses = &model.DnsAddresses
+				properties.Properties.DnsAddresses = model.DnsAddresses
 			}
 
 			if metadata.ResourceData.HasChange("network_address_port_translation_configuration") {
@@ -387,7 +387,7 @@ func (r AttachedDataNetworkResource) Read() sdk.ResourceFunc {
 
 			properties := &model.Properties
 			if properties.DnsAddresses != nil {
-				state.DnsAddresses = *properties.DnsAddresses
+				state.DnsAddresses = properties.DnsAddresses
 			}
 
 			naptConfigurationValue, err := flattenNaptConfigurationModel(properties.NaptConfiguration)

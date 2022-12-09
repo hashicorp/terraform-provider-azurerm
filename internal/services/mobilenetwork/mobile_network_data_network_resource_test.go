@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/datanetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,28 +96,7 @@ func (r MobileNetworkDataNetworkResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MobileNetworkDataNetworkResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
-  location = "%[2]s"
-}
-resource "azurerm_mobile_network" "test" {
-  name                = "acctest-mn-%[1]d"
-  location            = "%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  mobile_country_code = "001"
-  mobile_network_code = "01"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (r MobileNetworkDataNetworkResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
@@ -126,7 +105,7 @@ resource "azurerm_mobile_network_data_network" "test" {
   mobile_network_id = azurerm_mobile_network.test.id
   location          = "%s"
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkDataNetworkResource) requiresImport(data acceptance.TestData) string {
@@ -143,7 +122,6 @@ resource "azurerm_mobile_network_data_network" "import" {
 }
 
 func (r MobileNetworkDataNetworkResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -157,11 +135,10 @@ resource "azurerm_mobile_network_data_network" "test" {
   }
 
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkDataNetworkResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -175,5 +152,5 @@ resource "azurerm_mobile_network_data_network" "test" {
   }
 
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/sim"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/sim"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -144,6 +144,14 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_databox_edge_device" "test" {
+  name                = "acct%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku_name = "EdgeP_Base-Standard"
+}
+
 resource "azurerm_mobile_network" "test" {
   name                = "acctest-mn-%[1]d"
   location            = "%[2]s"
@@ -159,12 +167,22 @@ resource "azurerm_mobile_network_sim_group" "test" {
   mobile_network_id   = azurerm_mobile_network.test.id
 }
 
+resource "azurerm_mobile_network_site" "test" {
+  name              = "acctest-mns-%[1]d"
+  mobile_network_id = azurerm_mobile_network.test.id
+  location          = "%[2]s"
+}
+
 resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   name                = "acctest-mnpccp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.test.id
+  sku                 = "G0"
+  site_ids            = [azurerm_mobile_network_site.test.id]
+
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
 
   control_plane_access_interface {
     name         = "default-interface"
@@ -174,7 +192,8 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   }
 
   platform {
-    type = "BaseVM"
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
   }
 
 }
@@ -205,6 +224,7 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   location                                    = "%[2]s"
   user_equipment_address_pool_prefixes        = ["2.4.0.0/16"]
   user_equipment_static_address_pool_prefixes = ["2.4.0.0/16"]
+  dns_addresses                               = ["1.1.1.1"]
 
   user_plane_data_interface {
     name         = "test"
@@ -284,6 +304,13 @@ resource "azurerm_mobile_network_sim_policy" "test" {
   }
 
 }
+
+
+
+
+
+
+
 
 `, data.RandomInteger, data.Locations.Primary)
 }

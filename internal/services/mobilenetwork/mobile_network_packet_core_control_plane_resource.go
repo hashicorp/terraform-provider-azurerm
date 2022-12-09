@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/mobilenetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/packetcorecontrolplane"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	edgedevicevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,23 +21,30 @@ import (
 )
 
 type PacketCoreControlPlaneModel struct {
-	Name                        string                                 `tfschema:"name"`
-	ResourceGroupName           string                                 `tfschema:"resource_group_name"`
-	ControlPlaneAccessInterface []InterfacePropertiesModel             `tfschema:"control_plane_access_interface"`
-	CoreNetworkTechnology       packetcorecontrolplane.CoreNetworkType `tfschema:"core_network_technology"`
-	LocalDiagnosticsAccessUrl   string                                 `tfschema:"local_diagnostics_access_certificate_url"`
-	Location                    string                                 `tfschema:"location"`
-	MobileNetworkId             string                                 `tfschema:"mobile_network_id"`
-	Platform                    []PlatformConfigurationModel           `tfschema:"platform"`
-	Sku                         packetcorecontrolplane.BillingSku      `tfschema:"sku"`
-	InteropSettings             string                                 `tfschema:"interop_settings"`
-	Tags                        map[string]string                      `tfschema:"tags"`
-	Version                     string                                 `tfschema:"version"`
+	Name                        string                                     `tfschema:"name"`
+	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
+	ControlPlaneAccessInterface []InterfacePropertiesModel                 `tfschema:"control_plane_access_interface"`
+	CoreNetworkTechnology       string                                     `tfschema:"core_network_technology"`
+	LocalDiagnosticsAccess      []LocalDiagnosticsAccessConfigurationModel `tfschema:"local_diagnostics_access_setting"`
+	Location                    string                                     `tfschema:"location"`
+	SiteIds                     []string                                   `tfschema:"site_ids"`
+	Platform                    []PlatformConfigurationModel               `tfschema:"platform"`
+	Sku                         string                                     `tfschema:"sku"`
+	UeMtu                       int64                                      `tfschema:"user_equipment_mtu_in_bytes"`
+	InteropSettings             string                                     `tfschema:"interop_settings"`
+	Tags                        map[string]string                          `tfschema:"tags"`
+	Version                     string                                     `tfschema:"version"`
+}
+
+type LocalDiagnosticsAccessConfigurationModel struct {
+	AuthenticationType        string `tfschema:"authentication_type"`
+	HttpsServerCertificateUrl string `tfschema:"https_server_certificate_url"`
 }
 
 type PlatformConfigurationModel struct {
 	AzureStackEdgeDeviceId string                              `tfschema:"edge_device_id"`
-	ConnectedClusterId     string                              `tfschema:"connected_cluster_id"`
+	AzureStackHciClusterId string                              `tfschema:"azure_stack_hci_cluster_id"`
+	ConnectedClusterId     string                              `tfschema:"azure_arc_connected_cluster_id"`
 	CustomLocationId       string                              `tfschema:"custom_location_id"`
 	Type                   packetcorecontrolplane.PlatformType `tfschema:"type"`
 }
@@ -71,24 +80,35 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 
 		"control_plane_access_interface": interfacePropertiesSchema(),
 
-		"mobile_network_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: mobilenetwork.ValidateMobileNetworkID,
+		"site_ids": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: site.ValidateSiteID,
+			},
 		},
 
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(packetcorecontrolplane.BillingSkuEdgeSiteFourGBPS),
-				string(packetcorecontrolplane.BillingSkuMediumPackage),
-				string(packetcorecontrolplane.BillingSkuLargePackage),
-				string(packetcorecontrolplane.BillingSkuEvaluationPackage),
-				string(packetcorecontrolplane.BillingSkuFlagshipStarterPackage),
-				string(packetcorecontrolplane.BillingSkuEdgeSiteTwoGBPS),
-				string(packetcorecontrolplane.BillingSkuEdgeSiteThreeGBPS),
+				string(packetcorecontrolplane.BillingSkuGZero),
+				string(packetcorecontrolplane.BillingSkuGOne),
+				string(packetcorecontrolplane.BillingSkuGTwo),
+				string(packetcorecontrolplane.BillingSkuGThree),
+				string(packetcorecontrolplane.BillingSkuGFour),
+				string(packetcorecontrolplane.BillingSkuGFive),
+				string(packetcorecontrolplane.BillingSkuGOneZero),
 			}, false),
+		},
+
+		"user_equipment_mtu_in_bytes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      1440,
+			ValidateFunc: validation.IntBetween(1280, 1930),
 		},
 
 		"core_network_technology": {
@@ -112,7 +132,13 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 						ValidateFunc: edgedevicevalidate.DeviceID,
 					},
 
-					"connected_cluster_id": {
+					"azure_stack_hci_cluster_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"azure_arc_connected_cluster_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -129,7 +155,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(packetcorecontrolplane.PlatformTypeAKSNegativeHCI),
-							string(packetcorecontrolplane.PlatformTypeBaseVM),
+							string(packetcorecontrolplane.PlatformTypeThreePNegativeAZURENegativeSTACKNegativeHCI),
 						}, false),
 					},
 				},
@@ -137,7 +163,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
-		//it's still in progress, And will only support user assigned identity.
+		// it's still in progress, And will only support user assigned identity.
 
 		"interop_settings": {
 			Type:             pluginsdk.TypeString,
@@ -146,10 +172,27 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		"local_diagnostics_access_certificate_url": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+		"local_diagnostics_access_setting": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"authentication_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(packetcorecontrolplane.AuthenticationTypeAAD),
+							string(packetcorecontrolplane.AuthenticationTypePassword),
+						}, false),
+					},
+					"https_server_certificate_url": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
+				},
+			},
 		},
 
 		"tags": commonschema.Tags(),
@@ -191,27 +234,30 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
-			properties := &packetcorecontrolplane.PacketCoreControlPlane{
+			properties := packetcorecontrolplane.PacketCoreControlPlane{
+				Name:     &model.Name,
 				Identity: identityValue,
 				Location: location.Normalize(model.Location),
 				Properties: packetcorecontrolplane.PacketCoreControlPlanePropertiesFormat{
-					CoreNetworkTechnology: &model.CoreNetworkTechnology,
-					Sku:                   model.Sku,
-					MobileNetwork: packetcorecontrolplane.MobileNetworkResourceId{
-						Id: model.MobileNetworkId,
-					},
+					Sku:   packetcorecontrolplane.BillingSku(model.Sku),
+					Sites: expandPacketCoreControlPlaneSites(model.SiteIds),
+					UeMtu: &model.UeMtu,
 				},
 				Tags: &model.Tags,
+			}
+
+			props := &properties.Properties
+
+			if model.CoreNetworkTechnology != "" {
+				value := packetcorecontrolplane.CoreNetworkType(model.CoreNetworkTechnology)
+				props.CoreNetworkTechnology = &value
 			}
 
 			controlPlaneAccessInterfaceValue, err := expandPacketCoreControlPlaneInterfacePropertiesModel(model.ControlPlaneAccessInterface)
 			if err != nil {
 				return err
 			}
-
-			if controlPlaneAccessInterfaceValue != nil {
-				properties.Properties.ControlPlaneAccessInterface = *controlPlaneAccessInterfaceValue
-			}
+			props.ControlPlaneAccessInterface = *controlPlaneAccessInterfaceValue
 
 			if model.InteropSettings != "" {
 				var interopSettingsValue interface{}
@@ -219,29 +265,23 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				properties.Properties.InteropSettings = &interopSettingsValue
+				props.InteropSettings = &interopSettingsValue
 			}
 
-			if model.LocalDiagnosticsAccessUrl != "" {
-				properties.Properties.LocalDiagnosticsAccess = &packetcorecontrolplane.LocalDiagnosticsAccessConfiguration{
-					HTTPSServerCertificate: &packetcorecontrolplane.KeyVaultCertificate{
-						CertificateUrl: &model.LocalDiagnosticsAccessUrl,
-					},
-				}
-			}
+			props.LocalDiagnosticsAccess = expandPacketCoreControlLocalDiagnosticsAccessConfiguration(model.LocalDiagnosticsAccess)
 
 			platformValue, err := expandPlatformConfigurationModel(model.Platform)
 			if err != nil {
 				return err
 			}
 
-			properties.Properties.Platform = platformValue
+			props.Platform = platformValue
 
 			if model.Version != "" {
-				properties.Properties.Version = &model.Version
+				props.Version = &model.Version
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -297,7 +337,8 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("core_network_technology") {
-				properties.Properties.CoreNetworkTechnology = &model.CoreNetworkTechnology
+				value := packetcorecontrolplane.CoreNetworkType(model.CoreNetworkTechnology)
+				properties.Properties.CoreNetworkTechnology = &value
 			}
 
 			if metadata.ResourceData.HasChange("interop_settings") {
@@ -311,17 +352,11 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("local_diagnostics_access") {
-				properties.Properties.LocalDiagnosticsAccess = &packetcorecontrolplane.LocalDiagnosticsAccessConfiguration{
-					HTTPSServerCertificate: &packetcorecontrolplane.KeyVaultCertificate{
-						CertificateUrl: &model.LocalDiagnosticsAccessUrl,
-					},
-				}
+				properties.Properties.LocalDiagnosticsAccess = expandPacketCoreControlLocalDiagnosticsAccessConfiguration(model.LocalDiagnosticsAccess)
 			}
 
 			if metadata.ResourceData.HasChange("mobile_network_id") {
-				properties.Properties.MobileNetwork = packetcorecontrolplane.MobileNetworkResourceId{
-					Id: model.MobileNetworkId,
-				}
+				properties.Properties.Sites = expandPacketCoreControlPlaneSites(model.SiteIds)
 			}
 
 			if metadata.ResourceData.HasChange("platform") {
@@ -334,7 +369,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku") {
-				properties.Properties.Sku = model.Sku
+				properties.Properties.Sku = packetcorecontrolplane.BillingSku(model.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("version") {
@@ -391,6 +426,10 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
+			if model.Properties.UeMtu != nil {
+				state.UeMtu = *model.Properties.UeMtu
+			}
+
 			identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
@@ -409,7 +448,7 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 			state.ControlPlaneAccessInterface = controlPlaneAccessInterfaceValue
 
 			if properties.CoreNetworkTechnology != nil {
-				state.CoreNetworkTechnology = *properties.CoreNetworkTechnology
+				state.CoreNetworkTechnology = string(*properties.CoreNetworkTechnology)
 			}
 
 			if properties.InteropSettings != nil && *properties.InteropSettings != nil {
@@ -422,20 +461,14 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 				state.InteropSettings = string(interopSettingsValue)
 			}
 
-			if properties.LocalDiagnosticsAccess != nil && properties.LocalDiagnosticsAccess.HTTPSServerCertificate != nil && properties.LocalDiagnosticsAccess.HTTPSServerCertificate.CertificateUrl != nil {
-				state.LocalDiagnosticsAccessUrl = *properties.LocalDiagnosticsAccess.HTTPSServerCertificate.CertificateUrl
-			}
+			state.LocalDiagnosticsAccess = flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(properties.LocalDiagnosticsAccess)
 
-			state.MobileNetworkId = properties.MobileNetwork.Id
+			state.SiteIds = flattenPacketCoreControlPlaneSites(properties.Sites)
 
-			platformValue, err := flattenPlatformConfigurationModel(properties.Platform)
-			if err != nil {
-				return err
-			}
-
+			platformValue := flattenPlatformConfigurationModel(properties.Platform)
 			state.Platform = platformValue
 
-			state.Sku = properties.Sku
+			state.Sku = string(properties.Sku)
 
 			if properties.Version != nil {
 				state.Version = *properties.Version
@@ -469,6 +502,49 @@ func (r PacketCoreControlPlaneResource) Delete() sdk.ResourceFunc {
 	}
 }
 
+func expandPacketCoreControlPlaneSites(input []string) []packetcorecontrolplane.SiteResourceId {
+	outputs := make([]packetcorecontrolplane.SiteResourceId, 0)
+	for _, siteId := range input {
+		outputs = append(outputs, packetcorecontrolplane.SiteResourceId{
+			Id: siteId,
+		})
+	}
+	return outputs
+}
+
+func flattenPacketCoreControlPlaneSites(input []packetcorecontrolplane.SiteResourceId) []string {
+	outputs := make([]string, 0)
+	for _, site := range input {
+		outputs = append(outputs, site.Id)
+	}
+	return outputs
+}
+
+func expandPacketCoreControlLocalDiagnosticsAccessConfiguration(input []LocalDiagnosticsAccessConfigurationModel) packetcorecontrolplane.LocalDiagnosticsAccessConfiguration {
+	model := input[0]
+	output := packetcorecontrolplane.LocalDiagnosticsAccessConfiguration{
+		AuthenticationType: packetcorecontrolplane.AuthenticationType(model.AuthenticationType),
+	}
+	if model.HttpsServerCertificateUrl != "" {
+		output.HTTPSServerCertificate = &packetcorecontrolplane.HTTPSServerCertificate{
+			CertificateUrl: model.HttpsServerCertificateUrl,
+		}
+	}
+	return output
+}
+
+func flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(input packetcorecontrolplane.LocalDiagnosticsAccessConfiguration) []LocalDiagnosticsAccessConfigurationModel {
+	outputs := make([]LocalDiagnosticsAccessConfigurationModel, 0)
+	output := LocalDiagnosticsAccessConfigurationModel{
+		AuthenticationType: string(input.AuthenticationType),
+	}
+	if input.HTTPSServerCertificate != nil {
+		output.HttpsServerCertificateUrl = input.HTTPSServerCertificate.CertificateUrl
+	}
+	outputs = append(outputs, output)
+	return outputs
+}
+
 func expandPacketCoreControlPlaneInterfacePropertiesModel(inputList []InterfacePropertiesModel) (*packetcorecontrolplane.InterfaceProperties, error) {
 	if len(inputList) == 0 {
 		return nil, nil
@@ -496,22 +572,17 @@ func expandPacketCoreControlPlaneInterfacePropertiesModel(inputList []InterfaceP
 	return &output, nil
 }
 
-func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (*packetcorecontrolplane.PlatformConfiguration, error) {
+func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (packetcorecontrolplane.PlatformConfiguration, error) {
+	output := packetcorecontrolplane.PlatformConfiguration{}
 	if len(inputList) == 0 {
-		return nil, nil
+		return output, nil
 	}
 
-	input := &inputList[0]
-	output := packetcorecontrolplane.PlatformConfiguration{
-		Type: input.Type,
-	}
+	input := inputList[0]
+	output.Type = input.Type
 
-	if input.Type == packetcorecontrolplane.PlatformTypeAKSNegativeHCI && input.AzureStackEdgeDeviceId == "" {
-		return nil, fmt.Errorf("`edge_device_id` must be specified when `type` is `AKS-HCI`")
-	}
-
-	if input.Type == packetcorecontrolplane.PlatformTypeBaseVM && input.AzureStackEdgeDeviceId != "" {
-		return nil, fmt.Errorf("`edge_device_id` must not be specified when `type` is `BaseVM`")
+	if pass, err := vertifyPlatformConfigurationModel(input); !pass {
+		return output, err
 	}
 
 	if input.AzureStackEdgeDeviceId != "" {
@@ -526,13 +597,45 @@ func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (*
 		}
 	}
 
+	if input.AzureStackHciClusterId != "" {
+		output.AzureStackHciCluster = &packetcorecontrolplane.AzureStackHCIClusterResourceId{
+			Id: input.AzureStackHciClusterId,
+		}
+	}
+
 	if input.CustomLocationId != "" {
 		output.CustomLocation = &packetcorecontrolplane.CustomLocationResourceId{
 			Id: input.CustomLocationId,
 		}
 	}
 
-	return &output, nil
+	return output, nil
+}
+
+func vertifyPlatformConfigurationModel(input PlatformConfigurationModel) (bool, error) {
+	idList := make([]string, 0)
+	if input.AzureStackEdgeDeviceId != "" {
+		idList = append(idList, input.AzureStackEdgeDeviceId)
+	}
+	if input.AzureStackHciClusterId != "" {
+		idList = append(idList, input.AzureStackHciClusterId)
+	}
+	if input.ConnectedClusterId != "" {
+		idList = append(idList, input.ConnectedClusterId)
+	}
+
+	if len(idList) == 0 {
+		return false, fmt.Errorf("at least one of `azure_arc_connected_cluster_id`, `azure_stack_hci_cluster_id` and `custom_location_id` should be specified")
+	}
+
+	firstId := idList[0]
+	for _, id := range idList {
+		if !strings.EqualFold(firstId, id) {
+			return false, fmt.Errorf("if multiple of `azure_arc_connected_cluster_id`, `azure_stack_hci_cluster_id` and `custom_location_id` are specified, they should be consistent with each other")
+		}
+	}
+
+	return true, nil
 }
 
 func flattenPacketCoreControlPlaneInterfacePropertiesModel(input *packetcorecontrolplane.InterfaceProperties) ([]InterfacePropertiesModel, error) {
@@ -562,11 +665,8 @@ func flattenPacketCoreControlPlaneInterfacePropertiesModel(input *packetcorecont
 	return append(outputList, output), nil
 }
 
-func flattenPlatformConfigurationModel(input *packetcorecontrolplane.PlatformConfiguration) ([]PlatformConfigurationModel, error) {
+func flattenPlatformConfigurationModel(input packetcorecontrolplane.PlatformConfiguration) []PlatformConfigurationModel {
 	var outputList []PlatformConfigurationModel
-	if input == nil {
-		return outputList, nil
-	}
 
 	output := PlatformConfigurationModel{
 		Type: input.Type,
@@ -574,6 +674,10 @@ func flattenPlatformConfigurationModel(input *packetcorecontrolplane.PlatformCon
 
 	if input.AzureStackEdgeDevice != nil {
 		output.AzureStackEdgeDeviceId = input.AzureStackEdgeDevice.Id
+	}
+
+	if input.AzureStackHciCluster != nil {
+		output.AzureStackHciClusterId = input.AzureStackHciCluster.Id
 	}
 
 	if input.ConnectedCluster != nil {
@@ -584,5 +688,5 @@ func flattenPlatformConfigurationModel(input *packetcorecontrolplane.PlatformCon
 		output.CustomLocationId = input.CustomLocation.Id
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

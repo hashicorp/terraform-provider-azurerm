@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/mobilenetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/site"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -59,21 +58,21 @@ func (r SiteResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"network_function_ids": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }
 
 func (r SiteResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"network_function_ids": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+		},
+	}
 }
 
 func (r SiteResource) Create() sdk.ResourceFunc {
@@ -106,13 +105,6 @@ func (r SiteResource) Create() sdk.ResourceFunc {
 				Properties: &site.SitePropertiesFormat{},
 				Tags:       &model.Tags,
 			}
-
-			networkFunctionsValue, err := expandSubResourceModel(model.NetworkFunctions)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.NetworkFunctions = networkFunctionsValue
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -148,15 +140,6 @@ func (r SiteResource) Update() sdk.ResourceFunc {
 			properties := resp.Model
 			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("network_function_ids") {
-				networkFunctionsValue, err := expandSubResourceModel(model.NetworkFunctions)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.NetworkFunctions = networkFunctionsValue
 			}
 
 			properties.SystemData = nil
@@ -240,19 +223,6 @@ func (r SiteResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandSubResourceModel(inputList []string) (*[]site.SubResource, error) {
-	var outputList []site.SubResource
-	for _, v := range inputList {
-		output := site.SubResource{
-			Id: v,
-		}
-
-		outputList = append(outputList, output)
-	}
-
-	return &outputList, nil
 }
 
 func flattenSubResourceModel(inputList *[]site.SubResource) ([]string, error) {

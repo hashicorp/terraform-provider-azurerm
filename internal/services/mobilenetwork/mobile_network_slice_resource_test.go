@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/slice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,29 +96,7 @@ func (r MobileNetworkSliceResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MobileNetworkSliceResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_mobile_network" "test" {
-  name                = "acctest-mn-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
-  mobile_country_code = "001"
-  mobile_network_code = "01"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
 func (r MobileNetworkSliceResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
@@ -130,11 +108,10 @@ resource "azurerm_mobile_network_slice" "test" {
     slice_service_type = 1
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkSliceResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -147,11 +124,10 @@ resource "azurerm_mobile_network_slice" "import" {
     slice_service_type = 1
   }
 }
-`, config, data.Locations.Primary)
+`, r.basic(data), data.Locations.Primary)
 }
 
 func (r MobileNetworkSliceResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -168,11 +144,10 @@ resource "azurerm_mobile_network_slice" "test" {
   }
 
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkSliceResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -190,5 +165,5 @@ resource "azurerm_mobile_network_slice" "test" {
   }
 
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }

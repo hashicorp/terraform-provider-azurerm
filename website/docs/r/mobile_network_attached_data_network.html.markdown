@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Attached Data Network should exist. Changing this forces a new Mobile Network Attached Data Network to be created.
 
-* `dns_addresses` - (Optional) Specifies the DNS servers to signal to UEs to use for this attached data network.
+* `dns_addresses` - (Required) Specifies the DNS servers to signal to UEs to use for this attached data network.
 
 * `network_address_port_translation_configuration` - (Optional) A `network_address_port_translation_configuration` block as defined below.
 

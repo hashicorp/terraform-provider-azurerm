@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/mobilenetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/service"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/service"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -35,12 +35,12 @@ type PccRuleConfigurationModel struct {
 }
 
 type PccRuleQosPolicyModel struct {
-	AllocationAndRetentionPriorityLevel int64                           `tfschema:"allocation_and_retention_priority_level"`
-	QosIdentifier                       int64                           `tfschema:"qos_indicator"`
-	GuaranteedBitRate                   []maxBitRateModel               `tfschema:"guaranteed_bit_rate"`
-	MaximumBitRate                      []maxBitRateModel               `tfschema:"maximum_bit_rate"`
-	PreemptionCapability                service.PreemptionCapability    `tfschema:"preemption_capability"`
-	PreemptionVulnerability             service.PreemptionVulnerability `tfschema:"preemption_vulnerability"`
+	AllocationAndRetentionPriorityLevel int64             `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64             `tfschema:"qos_indicator"`
+	GuaranteedBitRate                   []maxBitRateModel `tfschema:"guaranteed_bit_rate"`
+	MaximumBitRate                      []maxBitRateModel `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                string            `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string            `tfschema:"preemption_vulnerability"`
 }
 
 type maxBitRateModel struct {
@@ -49,19 +49,19 @@ type maxBitRateModel struct {
 }
 
 type ServiceDataFlowTemplateModel struct {
-	Direction    service.SdfDirection `tfschema:"direction"`
-	Ports        []string             `tfschema:"ports"`
-	Protocol     []string             `tfschema:"protocol"`
-	RemoteIPList []string             `tfschema:"remote_ip_list"`
-	TemplateName string               `tfschema:"template_name"`
+	Direction    string   `tfschema:"direction"`
+	Ports        []string `tfschema:"ports"`
+	Protocol     []string `tfschema:"protocol"`
+	RemoteIPList []string `tfschema:"remote_ip_list"`
+	TemplateName string   `tfschema:"template_name"`
 }
 
 type QosPolicyModel struct {
-	AllocationAndRetentionPriorityLevel int64                           `tfschema:"allocation_and_retention_priority_level"`
-	QosIdentifier                       int64                           `tfschema:"qos_indicator"`
-	MaximumBitRate                      []maxBitRateModel               `tfschema:"maximum_bit_rate"`
-	PreemptionCapability                service.PreemptionCapability    `tfschema:"preemption_capability"`
-	PreemptionVulnerability             service.PreemptionVulnerability `tfschema:"preemption_vulnerability"`
+	AllocationAndRetentionPriorityLevel int64             `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64             `tfschema:"qos_indicator"`
+	MaximumBitRate                      []maxBitRateModel `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                string            `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string            `tfschema:"preemption_vulnerability"`
 }
 
 type MobileNetworkServiceResource struct{}
@@ -584,11 +584,13 @@ func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) (*service.Pc
 	}
 
 	input := &inputList[0]
+	cap := service.PreemptionCapability(input.PreemptionCapability)
+	vulnerability := service.PreemptionVulnerability(input.PreemptionVulnerability)
 	output := service.PccRuleQosPolicy{
 		AllocationAndRetentionPriorityLevel: &input.AllocationAndRetentionPriorityLevel,
 		Fiveqi:                              &input.QosIdentifier,
-		PreemptionCapability:                &input.PreemptionCapability,
-		PreemptionVulnerability:             &input.PreemptionVulnerability,
+		PreemptionCapability:                &cap,
+		PreemptionVulnerability:             &vulnerability,
 	}
 
 	guaranteedBitRateValue, err := expandMaxBitRateModel(input.GuaranteedBitRate)
@@ -615,7 +617,7 @@ func expandServiceDataFlowTemplateModel(inputList []ServiceDataFlowTemplateModel
 	for _, v := range inputList {
 		input := v
 		output := service.ServiceDataFlowTemplate{
-			Direction:    input.Direction,
+			Direction:    service.SdfDirection(input.Direction),
 			Ports:        &input.Ports,
 			Protocol:     input.Protocol,
 			RemoteIPList: input.RemoteIPList,
@@ -634,11 +636,13 @@ func expandQosPolicyModel(inputList []QosPolicyModel) (*service.QosPolicy, error
 	}
 
 	input := &inputList[0]
+	cap := service.PreemptionCapability(input.PreemptionCapability)
+	vulnerability := service.PreemptionVulnerability(input.PreemptionVulnerability)
 	output := service.QosPolicy{
 		AllocationAndRetentionPriorityLevel: &input.AllocationAndRetentionPriorityLevel,
 		Fiveqi:                              &input.QosIdentifier,
-		PreemptionCapability:                &input.PreemptionCapability,
-		PreemptionVulnerability:             &input.PreemptionVulnerability,
+		PreemptionCapability:                &cap,
+		PreemptionVulnerability:             &vulnerability,
 	}
 
 	maximumBitRateValue, err := expandMaxBitRateModel(input.MaximumBitRate)
@@ -720,11 +724,11 @@ func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) ([]PccRuleQos
 	output.MaximumBitRate = maximumBitRateValue
 
 	if input.PreemptionCapability != nil {
-		output.PreemptionCapability = *input.PreemptionCapability
+		output.PreemptionCapability = string(*input.PreemptionCapability)
 	}
 
 	if input.PreemptionVulnerability != nil {
-		output.PreemptionVulnerability = *input.PreemptionVulnerability
+		output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 	}
 
 	return append(outputList, output), nil
@@ -738,7 +742,7 @@ func flattenServiceDataFlowTemplateModel(inputList *[]service.ServiceDataFlowTem
 
 	for _, input := range *inputList {
 		output := ServiceDataFlowTemplateModel{
-			Direction:    input.Direction,
+			Direction:    string(input.Direction),
 			Protocol:     input.Protocol,
 			RemoteIPList: input.RemoteIPList,
 			TemplateName: input.TemplateName,
@@ -778,11 +782,11 @@ func flattenQosPolicyModel(input *service.QosPolicy) ([]QosPolicyModel, error) {
 	output.MaximumBitRate = maximumBitRateValue
 
 	if input.PreemptionCapability != nil {
-		output.PreemptionCapability = *input.PreemptionCapability
+		output.PreemptionCapability = string(*input.PreemptionCapability)
 	}
 
 	if input.PreemptionVulnerability != nil {
-		output.PreemptionVulnerability = *input.PreemptionVulnerability
+		output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 	}
 
 	return append(outputList, output), nil

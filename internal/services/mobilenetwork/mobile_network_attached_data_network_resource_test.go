@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/attacheddatanetwork"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,63 +98,15 @@ func (r MobileNetworkAttachedDataNetworkResource) Exists(ctx context.Context, cl
 
 func (r MobileNetworkAttachedDataNetworkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_mobile_network" "test" {
-  name                = "acctest-mn-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
-  mobile_country_code = "001"
-  mobile_network_code = "01"
-}
+%s
 
 resource "azurerm_mobile_network_data_network" "test" {
-  name              = "acctest-mnadn-%[1]d"
+  name              = "acctest-mnadn-%[2]d"
   mobile_network_id = azurerm_mobile_network.test.id
-  location          = "%[2]s"
+  location          = azurerm_resource_group.test.location
 }
 
-resource "azurerm_mobile_network_packet_core_control_plane" "test" {
-  name                = "acctest-mnpccp-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.test.id
-
-  control_plane_access_interface {
-    name         = "default-interface"
-    ipv4_address = "192.168.1.199"
-    ipv4_gateway = "192.168.1.1"
-    ipv4_subnet  = "192.168.1.0/25"
-  }
-
-  platform {
-    type = "BaseVM"
-  }
-
-}
-
-resource "azurerm_mobile_network_packet_core_data_plane" "test" {
-  name                                        = "acctest-mnpcdp-%[1]d"
-  mobile_network_packet_core_control_plane_id = azurerm_mobile_network_packet_core_control_plane.test.id
-  location                                    = "%[2]s"
-
-  user_plane_access_interface {
-    name         = "default-interface"
-    ipv4_address = "192.168.1.199"
-    ipv4_gateway = "192.168.1.1"
-    ipv4_subnet  = "192.168.1.0/25"
-  }
-
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, MobileNetworkPacketCoreDataPlaneResource{}.basic(data), data.RandomInteger)
 }
 
 func (r MobileNetworkAttachedDataNetworkResource) basic(data acceptance.TestData) string {
@@ -167,6 +118,7 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   name                                     = "acctest-mnadn-%d"
   mobile_network_packet_core_data_plane_id = azurerm_mobile_network_packet_core_data_plane.test.id
   location                                 = "%s"
+  dns_addresses                            = ["1.1.1.1"]
 
   user_plane_data_interface {
     name         = "test"
@@ -189,6 +141,7 @@ resource "azurerm_mobile_network_attached_data_network" "import" {
   name                                     = azurerm_mobile_network_attached_data_network.test.name
   mobile_network_packet_core_data_plane_id = azurerm_mobile_network_packet_core_data_plane.test.id
   location                                 = "%s"
+  dns_addresses                            = azurerm_mobile_network_attached_data_network.test.dns_addresses
 
   user_plane_data_interface {
     name         = "test"

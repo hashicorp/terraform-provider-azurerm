@@ -26,12 +26,27 @@ resource "azurerm_mobile_network" "example" {
   mobile_network_code = "01"
 }
 
+resource "azurerm_mobile_network_site" "example" {
+  name              = "example-mns"
+  mobile_network_id = azurerm_mobile_network.test.id
+  location          = azurerm_resource_group.example.location
+}
+
+resource "azurerm_databox_edge_device" "example" {
+  name                = "example-device"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  sku_name = "EdgeP_Base-Standard"
+}
+
 resource "azurerm_mobile_network_packet_core_control_plane" "example" {
   name                = "example-mnpccp"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.example.id
+  location            = azurerm_resource_group.example.location
+  sku                 = "G0"
+
+  site_ids = [azurerm_mobile_network_site.example.id]
 
   control_plane_access_interface {
     name         = "default-interface"
@@ -41,7 +56,8 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
   }
 
   platform {
-    type = "BaseVM"
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.example.id
   }
 
   interop_settings = jsonencode({
@@ -67,9 +83,13 @@ The following arguments are supported:
 
 * `control_plane_access_interface` - (Required) A `control_plane_access_interface` block as defined below. The control plane interface on the access network. For 5G networks, this is the N2 interface. For 4G networks, this is the S1-MME interface.
 
-* `mobile_network_id` - (Required) The ID of Mobile Network in which this packet core control plane is deployed.
+* `site_ids` - (Required) A list of IDs of Mobile Network Sites in which this packet core control plane should be deployed. The Sites must be in the same location as the packet core control plane.
 
-* `sku` - (Required) The SKU defining the throughput and SIM allowances for this packet core control plane deployment. Possible values are `EdgeSite4GBPS`, `EdgeSite3GBPS`, `EdgeSite2GBPS`, `EvaluationPackage`, `FlagshipStarterPackage`, `LargePackage` and `MediumPackage`.
+* `sku` - (Required) The SKU defining the throughput and SIM allowances for this packet core control plane deployment. Possible values are `G0`, `G1`, `G2`, `G3`, `G4`, `G5` and `G10`.
+
+* `local_diagnostics_access_setting` - (Required) One or more `local_diagnostics_access_setting` block as defined below. The kubernetes ingress configuration to control access to packet core diagnostics over local APIs.
+
+* `user_equipment_mtu_in_bytes` - (Optional) Specifies the MTU (in bytes) signaled to the UE. The same MTU is set on the user plane data links for all data networks. The MTU set on the user plane access link is calculated to be 60 bytes greater than this value to allow for GTP encapsulation.
 
 * `core_network_technology` - (Optional) The core network technology generation. Possible values are `EPG` and `5GC`.
 
@@ -78,8 +98,6 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `interop_settings` - (Optional) Settings to allow interoperability with third party components e.g. RANs and UEs.
-
-* `local_diagnostics_access_certificate_url` - (Optional) A versionless certificate URL, which used to secure local access to packet core diagnostics over local APIs by the kubernetes ingress.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Packet Core Control Plane.
 
@@ -99,6 +117,14 @@ A `control_plane_access_interface` block supports the following:
 
 ---
 
+A `local_diagnostics_access_setting` block supports the following:
+
+* `authentication_type` - (Required) How to authenticate users who access local diagnostics APIs. Possible values are `AAD` and `Password`.
+
+* `https_server_certificate_url` - (Optional) A versionless certificate URL, which used to secure local access to packet core diagnostics over local APIs by the kubernetes ingress.
+
+---
+
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
@@ -109,15 +135,17 @@ An `identity` block supports the following:
 
 A `platform` block supports the following:
 
-* `type` - (Required) Specifies the platform type where packet core is deployed. Possible values are `BaseVM` and `AKS-HCI`.
+* `type` - (Required) Specifies the platform type where packet core is deployed. Possible values are `AKS-HCI` and `3P-AZURE-STACK-HCI`.
 
 * `edge_device_id` - (Optional) The ID of Azure Stack Edge device where the packet core is deployed. If the device is part of a fault tolerant pair, either device in the pair can be specified.
 
-~> **NOTE:** `edge_device_id` is required when `type` is set to `AKS-HCI`, and it should not be specified when `type` is set to `BaseVM`.
+* `azure_arc_connected_cluster_id` - (Optional) The ID of Azure Arc connected cluster where the packet core is deployed.
 
-* `connected_cluster_id` - (Optional) The ID of Azure Arc connected cluster where the packet core is deployed.
+* `azure_stack_hci_cluster_id` - (Optional) The ID of Azure Stack HCI clusterwhere the packet core is deployed.
 
 * `custom_location_id` - (Optional) The ID of Azure Arc custom location where the packet core is deployed.
+
+~> **NOTE:** At least one of `azure_arc_connected_cluster_id`, `azure_stack_hci_cluster_id` and `custom_location_id` should be specified. If multiple are set, they must be consistent with each other.
 
 ---
 

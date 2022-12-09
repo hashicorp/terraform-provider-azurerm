@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-04-01-preview/packetcoredataplane"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcoredataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,49 +96,7 @@ func (r MobileNetworkPacketCoreDataPlaneResource) Exists(ctx context.Context, cl
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MobileNetworkPacketCoreDataPlaneResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_mobile_network" "test" {
-  name                = "acctest-mn-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
-  mobile_country_code = "001"
-  mobile_network_code = "01"
-}
-
-resource "azurerm_mobile_network_packet_core_control_plane" "test" {
-  name                = "acctest-mnpccp-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.test.id
-
-  control_plane_access_interface {
-    name         = "default-interface"
-    ipv4_address = "192.168.1.199"
-    ipv4_gateway = "192.168.1.1"
-    ipv4_subnet  = "192.168.1.0/25"
-  }
-
-  platform {
-    type = "BaseVM"
-  }
-
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (r MobileNetworkPacketCoreDataPlaneResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
@@ -155,7 +113,7 @@ resource "azurerm_mobile_network_packet_core_data_plane" "test" {
   }
 
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkPacketCoreControlPlaneResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkPacketCoreDataPlaneResource) requiresImport(data acceptance.TestData) string {
@@ -179,7 +137,6 @@ resource "azurerm_mobile_network_packet_core_data_plane" "import" {
 }
 
 func (r MobileNetworkPacketCoreDataPlaneResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -200,11 +157,10 @@ resource "azurerm_mobile_network_packet_core_data_plane" "test" {
   }
 
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkPacketCoreControlPlaneResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkPacketCoreDataPlaneResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -224,5 +180,5 @@ resource "azurerm_mobile_network_packet_core_data_plane" "test" {
     key = "value 2"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, MobileNetworkPacketCoreControlPlaneResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
