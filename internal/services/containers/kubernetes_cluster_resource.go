@@ -1755,6 +1755,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
 		}
+
+		existing.Model.Properties.NetworkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(d.Get("network_profile.0.kube_proxy").([]interface{}))
 	}
 
 	if d.HasChange("tags") {
@@ -3585,13 +3587,8 @@ func expandKubernetesClusterKubeProxyIPvsConfig(input []interface{}) *managedclu
 }
 
 func flattenKubernetesClusterKubeProxyConfig(input *managedclusters.ContainerServiceNetworkProfileKubeProxyConfig) []interface{} {
-	if input == nil {
+	if input == nil || input.Enabled == nil || !*input.Enabled {
 		return []interface{}{}
-	}
-	if input.Enabled != nil && !*input.Enabled {
-		return []interface{}{
-			map[string]interface{}{},
-		}
 	}
 	mode := ""
 	if input.Mode != nil {

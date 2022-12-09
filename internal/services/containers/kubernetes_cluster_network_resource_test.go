@@ -3261,7 +3261,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
+    network_plugin = "none"
     kube_proxy {
       mode = "IPVS"
       ipvs {
@@ -3300,7 +3300,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
+    network_plugin = "none"
   }
 }
  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
