@@ -379,6 +379,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			"image_cleaner_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"image_cleaner_interval_hours": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      48,
+				ValidateFunc: validation.IntBetween(24, 2160),
+			},
+
 			"web_app_routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1285,6 +1298,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Enabled: &workloadIdentity,
 		}
 	}
+	if securityProfile == nil {
+		securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+	}
+
+	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+		Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+	}
 
 	parameters := managedclusters.ManagedCluster{
 		Name:             utils.String(id.ResourceName),
@@ -1811,6 +1832,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_hours") {
+		updateCluster = true
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		existing.Model.Properties.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+		}
+	}
+
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
@@ -2092,6 +2124,15 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile, d)
 		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+		}
+
+		if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+			if props.SecurityProfile.ImageCleaner.Enabled != nil {
+				d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
+			}
+			if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
+				d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
+			}
 		}
 
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)

@@ -115,6 +115,12 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
 
+* `image_cleaner_enabled` - (Optional) Specifies whether Image Cleaner is enabled.
+
+* `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableImageCleanerPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/EnableImageCleanerPreview](https://learn.microsoft.com/en-us/azure/aks/image-cleaner) for more information.
+
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
 * `key_vault_secrets_provider` - (Optional) A `key_vault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver).
@@ -747,6 +753,7 @@ A `gmsa` block supports the following:
 -> **Note:** The properties `dns_server` and `root_domain` must both either be set or unset, i.e. empty.
 
 ---
+
 A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
