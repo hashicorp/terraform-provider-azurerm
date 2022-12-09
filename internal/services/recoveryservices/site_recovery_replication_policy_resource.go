@@ -92,6 +92,10 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
+	if appConsitency > recoveryPoint {
+		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
+	}
+
 	parameters := siterecovery.CreatePolicyInput{
 		Properties: &siterecovery.CreatePolicyInputProperties{
 			ProviderSpecificInput: &siterecovery.A2APolicyCreationInput{
@@ -131,6 +135,10 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
+	if appConsitency > recoveryPoint {
+		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
+	}
+
 	parameters := siterecovery.UpdatePolicyInput{
 		Properties: &siterecovery.UpdatePolicyInputProperties{
 			ReplicationProviderSettings: &siterecovery.A2APolicyCreationInput{
