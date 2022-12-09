@@ -54,7 +54,6 @@ github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/ma
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
-github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup
 github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis
 github.com/Azure/azure-sdk-for-go/services/redisenterprise/mgmt/2021-03-01/redisenterprise
@@ -365,6 +364,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/private
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/virtualnetworklinks
 github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account
+github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2021-08-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections
