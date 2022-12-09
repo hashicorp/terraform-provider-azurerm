@@ -141,7 +141,7 @@ A `lb_rule` block supports the following:
 
 * `probe_protocol` - (Required) Protocol for the probe. Can be one of `tcp`, `udp`, `http`, or `https`.
 
-* `probe_request_path` - (Required) Path for the probe to check, when probe protocol is set to `http`.
+* `probe_request_path` - (Optional) Path for the probe to check, when probe protocol is set to `http`.
 
 * `protocol` - (Required) The transport protocol used in this rule. Can be one of `tcp` or `udp`.
 

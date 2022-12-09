@@ -41,11 +41,11 @@ resource "azurerm_lb" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Load Balancer.
+* `name` - (Required) Specifies the name of the Load Balancer. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
+* `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
+* `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created. Changing this forces a new resource to be created.
 
 ---
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
 
-* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Basic`.
+* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Basic`. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 `frontend_ip_configuration` supports the following:
 
-* `name` - (Required) Specifies the name of the frontend IP configuration.
+* `name` - (Required) Specifies the name of the frontend IP configuration. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located. Changing this forces a new Load Balancer to be created.
 

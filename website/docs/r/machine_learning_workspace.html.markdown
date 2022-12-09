@@ -344,7 +344,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Machine Learning Workspace should exist. Changing this forces a new resource to be created.
 
-* `location` - (Optional) Specifies the supported Azure location where the Machine Learning Workspace should exist. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the Machine Learning Workspace should exist. Changing this forces a new resource to be created.
 
 * `application_insights_id` - (Required) The ID of the Application Insights associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
@@ -360,13 +360,13 @@ The following arguments are supported:
 
 -> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
-* `public_access_behind_virtual_network_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind a VNet.
+* `public_access_behind_virtual_network_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind a VNet. Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
 
 ~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
 
-* `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
+* `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace. Changing this forces a new resource to be created.
 
 * `description` - (Optional) The description of this Machine Learning Workspace.
 

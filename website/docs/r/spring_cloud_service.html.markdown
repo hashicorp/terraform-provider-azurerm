@@ -56,7 +56,7 @@ resource "azurerm_spring_cloud_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) Specifies The name of the resource group in which to create the Spring Cloud Service. Changing this forces a new resource to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `build_agent_pool_size` - (Optional) Specifies the size for this Spring Cloud Service's default build agent pool. Possible values are `S1`, `S2`, `S3`, `S4` and `S5`. This field is applicable only for Spring Cloud Service with enterprise tier.
 
-* `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`.
+* `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`. Changing this forces a new resource to be created.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
@@ -116,7 +116,7 @@ The `config_server_git_setting` block supports the following:
 
 The `repository` block supports the following:
 
-* `name` - (Required) A name to identify on the Git repository, required only if repos exists.
+* `name` - (Required) A name to identify on the Git repository, required only if repos exists. Changing this forces a new resource to be created.
 
 * `uri` - (Required) The URI of the Git repository that's used as the Config Server back end should be started with `http://`, `https://`, `git@`, or `ssh://`.
 
@@ -198,5 +198,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/Spring/spring1
+terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/spring/spring1
 ```

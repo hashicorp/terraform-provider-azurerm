@@ -127,7 +127,7 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the policy. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the policy. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
@@ -151,7 +151,7 @@ The following arguments are supported:
 
 The `custom_rule` block supports the following:
 
-* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
+* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource. Changing this forces a new resource to be created.
 
 * `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 

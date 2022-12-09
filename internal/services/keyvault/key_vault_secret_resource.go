@@ -199,10 +199,15 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
+		return fmt.Errorf("cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
 	}
 
-	d.SetId(*read.ID)
+	secretId, err := parse.ParseNestedItemID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(secretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
@@ -290,12 +295,13 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
-	if _, err = parse.ParseNestedItemID(*read.ID); err != nil {
+	secretId, err := parse.ParseNestedItemID(*read.ID)
+	if err != nil {
 		return err
 	}
 
 	// the ID is suffixed with the secret version
-	d.SetId(*read.ID)
+	d.SetId(secretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
@@ -399,17 +405,22 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
+		if utils.ResponseWasNotFound(kv.Response) {
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedSecretsOnDestroy
+	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+		log.Printf("[DEBUG] cannot purge secret %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		shouldPurge = false
+	}
+
 	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeSecret{
 		client:      client,

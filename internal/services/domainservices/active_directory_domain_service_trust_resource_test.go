@@ -179,7 +179,7 @@ resource "azurerm_active_directory_domain_service_trust" "import" {
 `, template)
 }
 
-func (r DomainServiceTrustResource) template(data acceptance.TestData) string {
+func (r DomainServiceTrustResource) template(_ acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

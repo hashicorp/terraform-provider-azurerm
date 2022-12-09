@@ -306,7 +306,6 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 				clientScopedEnabled = true
 			}
 			d.Set("client_scoped_subscription", flattenServiceBusNamespaceClientScopedSubscription(props.ClientAffineProperties))
-
 		}
 	}
 

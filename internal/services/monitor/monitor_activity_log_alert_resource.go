@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -159,7 +159,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"resource_health": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -217,7 +217,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							},
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name", "criteria.0.service_health"},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"service_health": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,

@@ -176,7 +176,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20221129.1175354
+# github.com/hashicorp/go-azure-sdk v0.20221207.1121859
 ## explicit; go 1.18
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -202,9 +202,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots
@@ -248,6 +248,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02
 github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate
 github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource
 github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates
+github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2022-10-31/timeseriesdatabaseconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/dns
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets
@@ -293,7 +294,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/public
 github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities
 github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments
-github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationdefinitions
+github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts
 github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/creators
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations
@@ -424,6 +425,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-prev
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizations
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds
+github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -111,14 +111,14 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 								},
 							},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"actions": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									//lintignore:XS003
+									// lintignore:XS003
 									"base_blob": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -188,7 +188,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 											},
 										},
 									},
-									//lintignore:XS003
+									// lintignore:XS003
 									"snapshot": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,

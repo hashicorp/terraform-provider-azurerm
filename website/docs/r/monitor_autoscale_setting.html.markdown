@@ -432,7 +432,7 @@ The following arguments are supported:
 
 * `profile` - (Required) Specifies one or more (up to 20) `profile` blocks as defined below.
 
-* `target_resource_id` - (Required) Specifies the resource ID of the resource that the autoscale setting should be added to.
+* `target_resource_id` - (Required) Specifies the resource ID of the resource that the autoscale setting should be added to. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Specifies whether automatic scaling is enabled for the target resource. Defaults to `true`.
 
