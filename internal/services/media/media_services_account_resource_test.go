@@ -80,7 +80,7 @@ func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 }
 
 func TestAccMediaServicesAccount_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 	r := MediaServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
