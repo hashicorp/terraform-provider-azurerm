@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_digital_twins_time_series_database_connection` [GH-19576]
 * **New Resource:** `azurerm_network_manager` [GH-19334]
 * **New Resource:** `azurerm_spring_cloud_application_live_view` [GH-19495]
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_threat_protection` [GH-19162]
 * **New Resource:** `azurerm_vmware_netapp_volume_attachment` [GH-19082]
 
 ENHANCEMENTS:
