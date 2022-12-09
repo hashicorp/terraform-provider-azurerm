@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -186,7 +187,22 @@ func (r LocalUserResource) ModelObject() interface{} {
 }
 
 func (r LocalUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.LocalUserID
+	return localusers.ValidateLocalUserID
+}
+
+func (r LocalUserResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			diff := metadata.ResourceDiff
+			if diff.HasChange("ssh_password_enabled") {
+				if err := diff.SetNewComputed("password"); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+		Timeout: 5 * time.Minute,
+	}
 }
 
 func (r LocalUserResource) Create() sdk.ResourceFunc {
@@ -214,41 +230,44 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, plan.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+			id := localusers.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, plan.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			params := storage.LocalUser{
-				LocalUserProperties: &storage.LocalUserProperties{
+			params := localusers.LocalUser{
+				Properties: &localusers.LocalUserProperties{
 					PermissionScopes:  r.expandPermissionScopes(plan.PermissionScope),
-					SSHAuthorizedKeys: r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey),
-					HasSSHKey:         pointer.To(plan.SshKeyEnabled),
-					HasSSHPassword:    pointer.To(plan.SshPasswordEnabled),
+					SshAuthorizedKeys: r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey),
+					HasSshKey:         pointer.To(plan.SshKeyEnabled),
+					HasSshPassword:    pointer.To(plan.SshPasswordEnabled),
 				},
 			}
 
 			if plan.HomeDirectory != "" {
-				params.LocalUserProperties.HomeDirectory = utils.String(plan.HomeDirectory)
+				params.Properties.HomeDirectory = utils.String(plan.HomeDirectory)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, params); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			state := plan
 			if plan.SshPasswordEnabled {
-				resp, err := client.RegeneratePassword(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+				resp, err := client.RegeneratePassword(ctx, id)
 				if err != nil {
 					return fmt.Errorf("generating password for %s: %v", id.ID(), err)
 				}
-				if v := resp.SSHPassword; v != nil {
+				if resp.Model == nil {
+					return fmt.Errorf("unexpected nil of the generate password response model for %s", id.ID())
+				}
+				if v := resp.Model.SshPassword; v != nil {
 					state.Password = *v
 				}
 				if err := metadata.Encode(&state); err != nil {
@@ -268,7 +287,7 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Storage.LocalUsersClient
-			id, err := parse.LocalUserID(metadata.ResourceData.Id())
+			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -278,33 +297,34 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			model := LocalUserModel{
-				Name:             id.Name,
-				StorageAccountId: parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName).ID(),
+				Name:             id.Username,
+				StorageAccountId: parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 				// Password is only accessible during creation
 				Password: state.Password,
 				// SshAuthorizedKey is only accessible during creation
 				SshAuthorizedKey: state.SshAuthorizedKey,
 			}
 
-			if props := existing.LocalUserProperties; props != nil {
+			if existing.Model != nil && existing.Model.Properties != nil {
+				props := existing.Model.Properties
 				model.PermissionScope = r.flattenPermissionScopes(props.PermissionScopes)
 				if props.HomeDirectory != nil {
 					model.HomeDirectory = *props.HomeDirectory
 				}
-				if props.HasSSHKey != nil {
-					model.SshKeyEnabled = *props.HasSSHKey
+				if props.HasSshKey != nil {
+					model.SshKeyEnabled = *props.HasSshKey
 				}
-				if props.HasSSHPassword != nil {
-					model.SshPasswordEnabled = *props.HasSSHPassword
+				if props.HasSshPassword != nil {
+					model.SshPasswordEnabled = *props.HasSshPassword
 				}
 				if props.Sid != nil {
 					model.Sid = *props.Sid
@@ -320,7 +340,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.LocalUserID(metadata.ResourceData.Id())
+			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -332,46 +352,60 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 
 			client := metadata.Client.Storage.LocalUsersClient
 
-			params, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+			params, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if props := params.LocalUserProperties; props != nil {
-				if metadata.ResourceData.HasChange("home_directory") {
-					if plan.HomeDirectory != "" {
-						props.HomeDirectory = &plan.HomeDirectory
-					} else {
-						props.HomeDirectory = nil
-					}
-				}
-				if metadata.ResourceData.HasChange("permission_scope") {
-					props.PermissionScopes = r.expandPermissionScopes(plan.PermissionScope)
-				}
+			model := params.Model
+			if model == nil {
+				return fmt.Errorf("unexpected nil model for %s", id)
+			}
 
-				if metadata.ResourceData.HasChange("ssh_key_enabled") {
-					props.HasSSHKey = &plan.SshKeyEnabled
-				}
+			props := model.Properties
+			if props == nil {
+				return fmt.Errorf("unexpected nil properties for %s", id)
+			}
 
-				if metadata.ResourceData.HasChange("ssh_password_enabled") {
-					props.HasSSHPassword = &plan.SshPasswordEnabled
-					if _, isEnabled := metadata.ResourceData.GetChange("ssh_password_enabled"); isEnabled.(bool) {
-						state := plan
-						resp, err := client.RegeneratePassword(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
-						if err != nil {
-							return fmt.Errorf("generating password for %s: %v", id.ID(), err)
-						}
-						if v := resp.SSHPassword; v != nil {
-							state.Password = *v
-						}
-						if err := metadata.Encode(&state); err != nil {
-							return err
-						}
+			if metadata.ResourceData.HasChange("home_directory") {
+				if plan.HomeDirectory != "" {
+					props.HomeDirectory = &plan.HomeDirectory
+				} else {
+					props.HomeDirectory = nil
+				}
+			}
+			if metadata.ResourceData.HasChange("permission_scope") {
+				props.PermissionScopes = r.expandPermissionScopes(plan.PermissionScope)
+			}
+
+			if metadata.ResourceData.HasChange("ssh_key_enabled") {
+				props.HasSshKey = &plan.SshKeyEnabled
+			}
+
+			if metadata.ResourceData.HasChange("ssh_password_enabled") {
+				props.HasSshPassword = &plan.SshPasswordEnabled
+				_, isEnabled := metadata.ResourceData.GetChange("ssh_password_enabled")
+				state := plan
+				if isEnabled.(bool) {
+					resp, err := client.RegeneratePassword(ctx, *id)
+					if err != nil {
+						return fmt.Errorf("generating password for %s: %v", id.ID(), err)
 					}
+					if resp.Model == nil {
+						return fmt.Errorf("unexpected nil of the generate password response model for %s", id.ID())
+					}
+					if v := resp.Model.SshPassword; v != nil {
+						state.Password = *v
+					}
+				} else {
+					state.Password = ""
+				}
+				if err := metadata.Encode(&state); err != nil {
+					return err
 				}
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, params); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, localusers.LocalUser{Properties: props}); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -385,12 +419,12 @@ func (r LocalUserResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Storage.LocalUsersClient
 
-			id, err := parse.LocalUserID(metadata.ResourceData.Id())
+			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.StorageAccountName, id.Name); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -399,12 +433,12 @@ func (r LocalUserResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) *[]storage.PermissionScope {
+func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) *[]localusers.PermissionScope {
 	if len(input) == 0 {
 		return nil
 	}
 
-	var output []storage.PermissionScope
+	var output []localusers.PermissionScope
 
 	for _, v := range input {
 		// The length constraint is guaranteed by schema
@@ -426,17 +460,17 @@ func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) 
 			permissionStr += "c"
 		}
 
-		output = append(output, storage.PermissionScope{
-			Permissions:  pointer.To(permissionStr),
-			Service:      pointer.To(v.Service),
-			ResourceName: pointer.To(v.ResourceName),
+		output = append(output, localusers.PermissionScope{
+			Permissions:  permissionStr,
+			Service:      v.Service,
+			ResourceName: v.ResourceName,
 		})
 	}
 
 	return &output
 }
 
-func (r LocalUserResource) flattenPermissionScopes(input *[]storage.PermissionScope) []PermissionScopeModel {
+func (r LocalUserResource) flattenPermissionScopes(input *[]localusers.PermissionScope) []PermissionScopeModel {
 	if input == nil {
 		return nil
 	}
@@ -445,55 +479,43 @@ func (r LocalUserResource) flattenPermissionScopes(input *[]storage.PermissionSc
 
 	for _, v := range *input {
 		permissions := PermissionsModel{}
-		if p := v.Permissions; p != nil {
-			// The Storage API's have a history of being case-insensitive, so we case-insensitively check the permission here.
-			np := strings.ToLower(*p)
-			if strings.Index(np, "r") != -1 {
-				permissions.Read = true
-			}
-			if strings.Index(np, "w") != -1 {
-				permissions.Write = true
-			}
-			if strings.Index(np, "d") != -1 {
-				permissions.Delete = true
-			}
-			if strings.Index(np, "l") != -1 {
-				permissions.List = true
-			}
-			if strings.Index(np, "c") != -1 {
-				permissions.Create = true
-			}
+		// The Storage API's have a history of being case-insensitive, so we case-insensitively check the permission here.
+		np := strings.ToLower(v.Permissions)
+		if strings.Index(np, "r") != -1 {
+			permissions.Read = true
 		}
-
-		var service string
-		if v.Service != nil {
-			service = *v.Service
+		if strings.Index(np, "w") != -1 {
+			permissions.Write = true
 		}
-
-		var resourceName string
-		if v.ResourceName != nil {
-			resourceName = *v.ResourceName
+		if strings.Index(np, "d") != -1 {
+			permissions.Delete = true
+		}
+		if strings.Index(np, "l") != -1 {
+			permissions.List = true
+		}
+		if strings.Index(np, "c") != -1 {
+			permissions.Create = true
 		}
 
 		output = append(output, PermissionScopeModel{
 			Permissions:  []PermissionsModel{permissions},
-			Service:      service,
-			ResourceName: resourceName,
+			Service:      v.Service,
+			ResourceName: v.ResourceName,
 		})
 	}
 
 	return output
 }
 
-func (r LocalUserResource) expandSSHAuthorizedKeys(input []SshAuthorizedKeyModel) *[]storage.SSHPublicKey {
+func (r LocalUserResource) expandSSHAuthorizedKeys(input []SshAuthorizedKeyModel) *[]localusers.SshPublicKey {
 	if len(input) == 0 {
 		return nil
 	}
 
-	var output []storage.SSHPublicKey
+	var output []localusers.SshPublicKey
 
 	for _, v := range input {
-		output = append(output, storage.SSHPublicKey{
+		output = append(output, localusers.SshPublicKey{
 			Description: pointer.To(v.Description),
 			Key:         pointer.To(v.Key),
 		})

@@ -124,6 +124,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `password` - The value of the password, which is only available when `ssh_password_enabled` is set to `true`.
 
+~> **Note:** The `password` will be updated everytime when `ssh_password_enabled` got updated. If `ssh_password_enabled` is updated from `false` to `true`, the `password` is updated to be the value of the SSH password. If `ssh_password_enabled` is updated from `true` to `false`, the `password` is reset to empty string.
+
 * `sid` - The unique Security Identifier of this Storage Account Local User.
 
 ## Timeouts

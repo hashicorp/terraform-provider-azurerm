@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -55,6 +56,7 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 			Config: r.passwordAndSSHKey(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("password").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("password", "ssh_authorized_key"),
@@ -62,9 +64,18 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 			Config: r.passwordAndSSHKeyMoreAuthKeys(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("password").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("password", "ssh_authorized_key"),
+		{
+			Config: r.sshKeyOnly(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("password").IsEmpty(),
+			),
+		},
+		data.ImportStep("ssh_authorized_key"),
 	})
 }
 
@@ -137,13 +148,13 @@ func TestAccLocalUser_requiresImport(t *testing.T) {
 func (r LocalUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.Storage.LocalUsersClient
 
-	id, err := parse.LocalUserID(state.ID)
+	id, err := localusers.ParseLocalUserID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	if resp, err := client.Get(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -171,9 +182,9 @@ func (r LocalUserResource) sshKeyOnly(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_account_local_user" "test" {
-  name                 = "user"
-  storage_account_id   = azurerm_storage_account.test.id
-  ssh_key_enabled      = true
+  name               = "user"
+  storage_account_id = azurerm_storage_account.test.id
+  ssh_key_enabled    = true
   ssh_authorized_key {
     description = "key1"
     key         = local.second_public_key
@@ -191,6 +202,7 @@ resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
   storage_account_id   = azurerm_storage_account.test.id
   ssh_key_enabled      = true
+  ssh_password_enabled = true
   ssh_authorized_key {
     description = "key1"
     key         = local.second_public_key
@@ -208,6 +220,7 @@ resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
   storage_account_id   = azurerm_storage_account.test.id
   ssh_key_enabled      = true
+  ssh_password_enabled = true
   ssh_authorized_key {
     description = "key1"
     key         = local.second_public_key
