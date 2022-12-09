@@ -113,7 +113,7 @@ func (t VirtualMachineScaleSetPacketCaptureResource) Exists(ctx context.Context,
 
 	resp, err := clients.Network.PacketCapturesClient.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Machine Scale Set Packet Capture (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -204,10 +204,10 @@ func (r VirtualMachineScaleSetPacketCaptureResource) localDiskConfig(data accept
 %s
 
 resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_linux_virtual_machine_scale_set.test.id
+  name                         = "acctestpc-%d"
+  network_watcher_name         = azurerm_network_watcher.test.name
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -223,10 +223,10 @@ func (r VirtualMachineScaleSetPacketCaptureResource) localDiskConfig_requiresImp
 %s
 
 resource "azurerm_virtual_machine_scale_set_packet_capture" "import" {
-  name                 = azurerm_virtual_machine_scale_set_packet_capture.test.name
-  network_watcher_name = azurerm_virtual_machine_scale_set_packet_capture.test.network_watcher_name
-  resource_group_name  = azurerm_virtual_machine_scale_set_packet_capture.test.resource_group_name
-  target_resource_id   = azurerm_virtual_machine_scale_set_packet_capture.test.target_resource_id
+  name                         = azurerm_virtual_machine_scale_set_packet_capture.test.name
+  network_watcher_name         = azurerm_virtual_machine_scale_set_packet_capture.test.network_watcher_name
+  resource_group_name          = azurerm_virtual_machine_scale_set_packet_capture.test.resource_group_name
+  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_packet_capture.test.virtual_machine_scale_set_id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -242,10 +242,10 @@ func (r VirtualMachineScaleSetPacketCaptureResource) localDiskConfigWithFilters(
 %s
 
 resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_linux_virtual_machine_scale_set.test.id
+  name                         = "acctestpc-%d"
+  network_watcher_name         = azurerm_network_watcher.test.name
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -281,10 +281,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_linux_virtual_machine_scale_set.test.id
+  name                         = "acctestpc-%d"
+  network_watcher_name         = azurerm_network_watcher.test.name
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
 
   storage_location {
     storage_account_id = azurerm_storage_account.test.id
@@ -308,10 +308,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_linux_virtual_machine_scale_set.test.id
+  name                         = "acctestpc-%d"
+  network_watcher_name         = azurerm_network_watcher.test.name
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
 
   storage_location {
     file_path          = "/var/captures/packet.cap"
@@ -328,10 +328,10 @@ func (r VirtualMachineScaleSetPacketCaptureResource) machineScope(data acceptanc
 %s
 
 resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_linux_virtual_machine_scale_set.test.id
+  name                         = "acctestpc-%d"
+  network_watcher_name         = azurerm_network_watcher.test.name
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_machine_scale_set_id = azurerm_linux_virtual_machine_scale_set.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"

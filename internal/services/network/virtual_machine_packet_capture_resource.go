@@ -49,7 +49,7 @@ func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"target_resource_id": {
+			"virtual_machine_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -72,7 +72,7 @@ func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
 				Default:  1073741824,
 			},
 
-			"maximum_capture_duration": {
+			"maximum_capture_duration_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
@@ -156,10 +156,10 @@ func resourceVirtualMachinePacketCaptureCreate(d *pluginsdk.ResourceData, meta i
 
 	id := parse.NewPacketCaptureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
 
-	targetResourceId := d.Get("target_resource_id").(string)
+	targetResourceId := d.Get("virtual_machine_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
-	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
+	timeLimitInSeconds := d.Get("maximum_capture_duration_in_seconds").(int)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
@@ -229,10 +229,10 @@ func resourceVirtualMachinePacketCaptureRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
-		d.Set("target_resource_id", props.Target)
+		d.Set("virtual_machine_id", props.Target)
 		d.Set("maximum_bytes_per_packet", int(*props.BytesToCapturePerPacket))
 		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
-		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
+		d.Set("maximum_capture_duration_in_seconds", int(*props.TimeLimitInSeconds))
 
 		location := flattenVirtualMachinePacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {

@@ -50,7 +50,7 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"target_resource_id": {
+			"virtual_machine_scale_set_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -73,7 +73,7 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 				Default:  1073741824,
 			},
 
-			"maximum_capture_duration": {
+			"maximum_capture_duration_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
@@ -187,10 +187,10 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 
 	id := parse.NewPacketCaptureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
 
-	targetResourceId := d.Get("target_resource_id").(string)
+	targetResourceId := d.Get("virtual_machine_scale_set_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
-	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
+	timeLimitInSeconds := d.Get("maximum_capture_duration_in_seconds").(int)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
@@ -264,10 +264,10 @@ func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, 
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
-		d.Set("target_resource_id", props.Target)
+		d.Set("virtual_machine_scale_set_id", props.Target)
 		d.Set("maximum_bytes_per_packet", int(*props.BytesToCapturePerPacket))
 		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
-		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
+		d.Set("maximum_capture_duration_in_seconds", int(*props.TimeLimitInSeconds))
 
 		location := flattenVirtualMachineScaleSetPacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
