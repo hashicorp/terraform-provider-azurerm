@@ -106,11 +106,11 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Blueprint Assignment
+* `name` - (Required) The name of the Blueprint Assignment. Changing this forces a new resource to be created.
 
-* `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to.
+* `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location of the Assignment.
+* `location` - (Required) The Azure location of the Assignment. Changing this forces a new resource to be created.
 
 * `identity` - (Required) An `identity` block as defined below.
 

@@ -1,8 +1,8 @@
 package synapse
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FirewallRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/firewallRules/firewallRule1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IntegrationRuntime -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/integrationruntimes/IntegrationRuntime1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LinkedService -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/linkedservices/linkedservice1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IntegrationRuntime -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/integrationRuntimes/IntegrationRuntime1 -rewrite=true
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LinkedService -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/linkedServices/linkedservice1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ManagedPrivateEndpoint -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/managedVirtualNetworks/default/managedPrivateEndpoints/endpoint1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=PrivateLinkHub -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/privateLinkHubs/privateLinkHub1
 // RoleAssignment cannot be generated at this time

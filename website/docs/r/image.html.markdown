@@ -102,16 +102,16 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the image. Changing this forces a
     new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create
+* `resource_group_name` - (Required) The name of the resource group in which to create. Changing this forces a new resource to be created.
     the image. Changing this forces a new resource to be created.
-* `location` - (Required) Specified the supported Azure location where the resource exists.
+* `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
     Changing this forces a new resource to be created.
 * `source_virtual_machine_id` - (Optional) The Virtual Machine ID from which to create the image.
 * `os_disk` - (Optional) One or more `os_disk` elements as defined below.
 * `data_disk` - (Optional) One or more `data_disk` elements as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zone_resilient` - (Optional) Is zone resiliency enabled?  Defaults to `false`.  Changing this forces a new resource to be created.
-* `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. The default is `V1`.
+* `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. The default is `V1`. Changing this forces a new resource to be created.
 
 ~> **Note:** `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
 

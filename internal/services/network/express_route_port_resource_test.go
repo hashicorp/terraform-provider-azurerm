@@ -50,7 +50,7 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 
 func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
 	if _, ok := os.LookupEnv(ARMTestExpressRoutePortAdminState); !ok {
-		t.Skip(fmt.Sprintf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState))
+		t.Skipf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState)
 	}
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 function runTests {
   echo "==> Checking source code against terraform provider linters..."
 	tfproviderlint \

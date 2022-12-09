@@ -144,5 +144,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Sentinel Automation Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sentinel_automation_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/AutomationRules/rule1
+terraform import azurerm_sentinel_automation_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/automationRules/rule1
 ```

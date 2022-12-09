@@ -195,9 +195,9 @@ resource "azurerm_function_app" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb)
+* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb). 
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Function App.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Function App. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
 
-* `os_type` - (Optional) A string indicating the Operating System type for this function app. Possible values are `linux` and ``(empty string).
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. Possible values are `linux` and ``(empty string). Changing this forces a new resource to be created.
 
 ~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "Linux"` and `reserved = true`
 
@@ -233,7 +233,7 @@ The following arguments are supported:
 
 * `source_control` - (Optional) A `source_control` block, as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
+* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs). Changing this forces a new resource to be created.
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
@@ -249,7 +249,7 @@ The following arguments are supported:
 
 `connection_string` supports the following:
 
-* `name` - (Required) The name of the Connection String.
+* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 
 * `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
 
@@ -467,7 +467,7 @@ A `headers` block supports the following:
 
 A `source_control` block supports the following:
 
-* `repo_url` - (Required) The URL of the source code repository.
+* `repo_url` - (Optional) The URL of the source code repository.
 
 * `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'.
 

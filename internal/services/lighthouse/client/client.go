@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

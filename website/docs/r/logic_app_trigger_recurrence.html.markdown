@@ -56,11 +56,11 @@ The following arguments are supported:
 
 A `schedule` block supports the following:
 
-* `at_these_minutes` - Specifies a list of minutes when the trigger should run. Valid values are between 0 and 59.
+* `at_these_minutes` - (Optional) Specifies a list of minutes when the trigger should run. Valid values are between 0 and 59.
 
-* `at_these_hours` - Specifies a list of hours when the trigger should run. Valid values are between 0 and 23.
+* `at_these_hours` - (Optional) Specifies a list of hours when the trigger should run. Valid values are between 0 and 23.
 
-* `on_these_days` - Specifies a list of days when the trigger should run. Valid values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`.
+* `on_these_days` - (Optional) Specifies a list of days when the trigger should run. Valid values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`.
 
 ## Attributes Reference
 

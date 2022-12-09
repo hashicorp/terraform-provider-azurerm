@@ -26,7 +26,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the Automation Account in which the Runbook Worker Group is created. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name which should be used for this Automation Account Runbook Worker Group.
+* `name` - (Required) The name which should be used for this Automation Account Runbook Worker Group. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Automation should exist. Changing this forces a new Automation to be created.
 

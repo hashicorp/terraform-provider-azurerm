@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources. Defaults to `false`.
 
-* `express_route_port_id` - (Optional) The ID of the Express Route Port this Express Route Circuit is based on.
+* `express_route_port_id` - (Optional) The ID of the Express Route Port this Express Route Circuit is based on. Changing this forces a new resource to be created.
 
 * `bandwidth_in_gbps` - (Optional) The bandwidth in Gbps of the circuit being created on the Express Route Port.
 

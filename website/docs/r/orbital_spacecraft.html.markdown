@@ -45,11 +45,11 @@ resource "azurerm_orbital_spacecraft" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Spacecraft. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Spacecraft. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Spacecraft exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Spacecraft exists. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location where the Spacecraft exists.
+* `location` - (Required) The location where the Spacecraft exists. Changing this forces a new resource to be created.
 
 * `norad_id` - (Required) NORAD ID of the Spacecraft.
 
@@ -65,13 +65,13 @@ The following arguments are supported:
 
 * `polarization` - (Required) Polarization. Possible values are `RHCP`, `LHCP`, `linearVertical` and `linearHorizontal`.
 
-* `name` - (Required) Name of the link.
+* `name` - (Required) Name of the link. Changing this forces a new resource to be created.
 
 ---
 
-* `two_line_elements` - (Optional) A list of the two line elements(TLE), the first string in the list is the first line of TLE, the second one is the second line of TLE.
+* `two_line_elements` - (Required) A list of the two line elements(TLE), the first string in the list is the first line of TLE, the second one is the second line of TLE.
 
-* `title_line` - (Optional) Title of the two line elements(TLE).
+* `title_line` - (Required) Title of the two line elements(TLE).
 
 ## Attributes Reference
 

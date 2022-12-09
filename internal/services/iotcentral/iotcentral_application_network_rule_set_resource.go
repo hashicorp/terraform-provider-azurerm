@@ -317,7 +317,6 @@ func flattenIotCentralApplicationNetworkRuleSetIPRule(input *[]apps.NetworkRuleS
 
 func isNetworkRuleSetNullified(networkRuleSet apps.NetworkRuleSets) bool {
 	if networkRuleSet.ApplyToDevices != nil && *networkRuleSet.ApplyToDevices {
-
 		return false
 	}
 

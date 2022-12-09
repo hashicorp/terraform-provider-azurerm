@@ -106,5 +106,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Synapse Azure Integration Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_synapse_integration_runtime_azure.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/integrationruntimes/IntegrationRuntime1
+terraform import azurerm_synapse_integration_runtime_azure.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/integrationRuntimes/IntegrationRuntime1
 ```
