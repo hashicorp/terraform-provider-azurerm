@@ -806,14 +806,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"mode": {
 										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(managedclusters.ModeIPVS),
 											string(managedclusters.ModeIPTABLES),
 										}, false),
 									},
 
-									"ipvs_config": {
+									"ipvs": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 1,
 										Optional: true,
@@ -3563,15 +3563,10 @@ func expandKubernetesClusterKubeProxyConfig(input []interface{}) *managedcluster
 			Enabled: utils.Bool(false),
 		}
 	}
-	if input[0] == nil {
-		return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfig{
-			Enabled: utils.Bool(true),
-		}
-	}
 	config := input[0].(map[string]interface{})
 	return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfig{
 		Enabled:    utils.Bool(true),
-		IPvsConfig: expandKubernetesClusterKubeProxyIPvsConfig(config["ipvs_config"].([]interface{})),
+		IPvsConfig: expandKubernetesClusterKubeProxyIPvsConfig(config["ipvs"].([]interface{})),
 		Mode:       utils.ToPtr(managedclusters.Mode(config["mode"].(string))),
 	}
 }
@@ -3604,8 +3599,8 @@ func flattenKubernetesClusterKubeProxyConfig(input *managedclusters.ContainerSer
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"mode":        mode,
-			"ipvs_config": flattenKubernetesClusterKubeProxyIPvsConfig(input.IPvsConfig),
+			"mode": mode,
+			"ipvs": flattenKubernetesClusterKubeProxyIPvsConfig(input.IPvsConfig),
 		},
 	}
 }

@@ -578,13 +578,13 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 A `kube_proxy` block supports the following:
 
-* `mode` - (Optional) Specifies which proxy mode to use. Possible values are `IPTABLES` and `IPVS`(Must be using Kubernetes version >= 1.22).
+* `mode` - (Required) Specifies which proxy mode to use. Possible values are `IPTABLES` and `IPVS`(Must be using Kubernetes version >= 1.22).
 
-* `ipvs_config` - (Optional) A `ipvs_config` block.
+* `ipvs` - (Optional) An `ipvs` block.
 
 ---
 
-A `ipvs_config` block supports the following:
+An `ipvs` block supports the following:
 
 * `scheduler` - (Optional) Specifies the IPVS scheduler, more information please see [this document](http://www.linuxvirtualserver.org/docs/scheduling.html).
 
