@@ -159,7 +159,7 @@ func (r LocalUserResource) passwordOnly(data acceptance.TestData) string {
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   ssh_password_enabled = true
 }
 `, template)
@@ -172,7 +172,7 @@ func (r LocalUserResource) sshKeyOnly(data acceptance.TestData) string {
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   ssh_key_enabled      = true
   ssh_authorized_key {
     description = "key1"
@@ -189,7 +189,7 @@ func (r LocalUserResource) passwordAndSSHKey(data acceptance.TestData) string {
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   ssh_key_enabled      = true
   ssh_authorized_key {
     description = "key1"
@@ -206,7 +206,7 @@ func (r LocalUserResource) passwordAndSSHKeyMoreAuthKeys(data acceptance.TestDat
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   ssh_key_enabled      = true
   ssh_authorized_key {
     description = "key1"
@@ -237,7 +237,7 @@ func (r LocalUserResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_storage_account_local_user" "import" {
   name                 = azurerm_storage_account_local_user.test.name
-  storage_account_name = azurerm_storage_account_local_user.test.storage_account_name
+  storage_account_id   = azurerm_storage_account_local_user.test.storage_account_id
   ssh_password_enabled = true
 }
 `, template)
@@ -250,7 +250,7 @@ func (r LocalUserResource) noPermissionScope(data acceptance.TestData) string {
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   ssh_password_enabled = true
 }
 `, template)
@@ -263,7 +263,7 @@ func (r LocalUserResource) permissionScope(data acceptance.TestData) string {
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   ssh_password_enabled = true
   permission_scope {
     permissions {
@@ -283,7 +283,7 @@ func (r LocalUserResource) permissionScopeUpdate(data acceptance.TestData) strin
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   ssh_password_enabled = true
   permission_scope {
     permissions {
@@ -307,7 +307,7 @@ func (r LocalUserResource) homeDirectory(data acceptance.TestData, directory str
 
 resource "azurerm_storage_account_local_user" "test" {
   name                 = "user"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_id   = azurerm_storage_account.test.id
   home_directory       = "%s"
   ssh_password_enabled = true
 }

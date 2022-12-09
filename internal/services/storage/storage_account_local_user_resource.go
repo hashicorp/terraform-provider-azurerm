@@ -45,7 +45,7 @@ type LocalUserModel struct {
 	SshAuthorizedKey   []SshAuthorizedKeyModel `tfschema:"ssh_authorized_key"`
 	SshKeyEnabled      bool                    `tfschema:"ssh_key_enabled"`
 	SshPasswordEnabled bool                    `tfschema:"ssh_password_enabled"`
-	StorageAccountName string                  `tfschema:"storage_account_name"`
+	StorageAccountId   string                  `tfschema:"storage_account_id"`
 }
 
 func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
@@ -56,11 +56,11 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.LocalUserName,
 		},
-		"storage_account_name": {
+		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageAccountName,
+			ValidateFunc: validate.StorageAccountID,
 		},
 		"ssh_key_enabled": {
 			Type:         pluginsdk.TypeBool,
@@ -190,22 +190,13 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Storage.LocalUsersClient
-			storageClient := metadata.Client.Storage
 
 			var plan LocalUserModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			account, err := storageClient.FindAccount(ctx, plan.StorageAccountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Local User %q: %s", plan.StorageAccountName, plan.Name, err)
-			}
-			if account == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", plan.StorageAccountName)
-			}
-
-			accountId, err := parse.StorageAccountID(account.ID)
+			accountId, err := parse.StorageAccountID(plan.StorageAccountId)
 			if err != nil {
 				return err
 			}
@@ -301,8 +292,8 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 			}
 
 			model := LocalUserModel{
-				Name:               id.Name,
-				StorageAccountName: id.StorageAccountName,
+				Name:             id.Name,
+				StorageAccountId: parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName).ID(),
 				// Password is only accessible during creation
 				Password: state.Password,
 				// SshAuthorizedKey is only accessible during creation

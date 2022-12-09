@@ -39,7 +39,7 @@ resource "azurerm_storage_container" "example" {
 
 resource "azurerm_storage_account_local_user" "example" {
   name                 = "user1"
-  storage_account_name = azurerm_storage_account.example.name
+  storage_account_id   = azurerm_storage_account.example.id
   ssh_key_enabled      = true
   ssh_password_enabled = true
   home_directory       = "example_path"
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Storage Account Local User. Changing this forces a new Storage Account Local User to be created.
 
-* `storage_account_name` - (Required) The name of the Storage Account that this Storage Account Local User resides in. Changing this forces a new Storage Account Local User to be created.
+* `storage_account_id` - (Required) The ID of the Storage Account that this Storage Account Local User resides in. Changing this forces a new Storage Account Local User to be created.
 
 ---
 
