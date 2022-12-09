@@ -326,6 +326,10 @@ A `default_node_pool` block supports the following:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
+* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA. Defaults to `false`.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
+
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets`.
@@ -533,6 +537,14 @@ A `network_profile` block supports the following:
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Changing this forces a new resource to be created.
+
+* `ebpf_data_plane` - (Optional) Specifies the eBPF data plane used for building the Kubernetes network. Possible value is `cilium`. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CiliumDataplanePreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-powered-by-cilium) for more information.
+
+* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureOverlayPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-overlay) for more information.
 
 * `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. Changing this forces a new resource to be created.
 

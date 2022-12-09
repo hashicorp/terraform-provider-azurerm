@@ -789,25 +789,6 @@ resource "azurerm_cognitive_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (CognitiveAccountResource) openAI(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%d"
-  location = "%s"
-}
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "OpenAI"
-  sku_name            = "S0"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (CognitiveAccountResource) dynamicThrottlingEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

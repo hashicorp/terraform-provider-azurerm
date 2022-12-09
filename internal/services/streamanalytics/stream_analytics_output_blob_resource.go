@@ -106,7 +106,7 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				ValidateFunc: validate.BatchMaxWaitTime,
 			},
 			"batch_min_rows": {
-				Type:         pluginsdk.TypeFloat,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 10000),
 			},

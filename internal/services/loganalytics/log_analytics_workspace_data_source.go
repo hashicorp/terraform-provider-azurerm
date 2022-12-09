@@ -98,7 +98,6 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("location", location.NormalizeNilable(&model.Location))
 
 		if props := model.Properties; props != nil {
-
 			customerId := ""
 			if props.CustomerId != nil {
 				customerId = *props.CustomerId

@@ -419,7 +419,6 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge secret %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
 		shouldPurge = false
-
 	}
 
 	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
