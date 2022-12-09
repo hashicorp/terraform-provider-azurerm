@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `ssh_authorized_key` - (Optional) One or more `ssh_authorized_key` blocks as defined below. Changing this forces a new Storage Account Local User to be created.
 
-* `ssh_key_enabled` - (Optional) Should the SSH key be enabled?
+* `ssh_key_enabled` - (Optional) Specifies whether SSH Key Authentication is enabled. Defaults to `false`.
 
 * `ssh_password_enabled` - (Optional) Should the SSh password be enabled?
 
@@ -96,23 +96,25 @@ A `permission_scope` block supports the following:
 
 A `permissions` block supports the following:
 
-* `create` - (Optional) The permission to create the resources defined in this scope.
+* `create` - (Optional) Specifies if the Local User has the create permission for this scope. Defaults to `false`.
 
-* `delete` - (Optional) The permission to delete the resources defined in this scope.
+* `delete` - (Optional) Specifies if the Local User has the delete permission for this scope. Defaults to `false`.
 
-* `list` - (Optional) The permission to list the resources defined in this scope.
+* `list` - (Optional) Specifies if the Local User has the list permission for this scope. Defaults to `false`.
 
-* `read` - (Optional) The permission to read the resources defined in this scope.
+* `read` - (Optional) Specifies if the Local User has the read permission for this scope. Defaults to `false`.
 
-* `write` - (Optional) The permission to modify the resources defined in this scope.
+* `write` - (Optional) Specifies if the Local User has the write permission for this scope. Defaults to `false`.
 
 ---
 
 A `ssh_authorized_key` block supports the following:
 
-* `description` - (Required) The description of this SSH authorized key.
-
 * `key` - (Required) The public key value of this SSH authorized key.
+
+---
+
+* `description` - (Optional) The description of this SSH authorized key.
 
 ## Attributes Reference
 

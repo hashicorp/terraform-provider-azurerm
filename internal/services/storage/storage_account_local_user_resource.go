@@ -9,6 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
+	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -85,13 +87,15 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"ssh_key_enabled"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"key": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ValidateFunc:     computevalidate.SSHKey,
+						DiffSuppressFunc: compute.SSHKeyDiffSuppress,
+					},
 					"description": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"key": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 					},
 				},
 			},
@@ -196,6 +200,15 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
+			// Sanity checks on input
+			if plan.SshKeyEnabled != (len(plan.SshAuthorizedKey) != 0) {
+				if plan.SshKeyEnabled {
+					return fmt.Errorf("`ssh_authorized_key` should be specified when `ssh_key_enabled` is enabled")
+				} else {
+					return fmt.Errorf("`ssh_authorized_key` should not be specified when `ssh_key_enabled` is disabled")
+				}
+			}
+
 			accountId, err := parse.StorageAccountID(plan.StorageAccountId)
 			if err != nil {
 				return err
@@ -212,14 +225,9 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			permissionScopes, err := r.expandPermissionScopes(plan.PermissionScope)
-			if err != nil {
-				return err
-			}
-
 			params := storage.LocalUser{
 				LocalUserProperties: &storage.LocalUserProperties{
-					PermissionScopes:  permissionScopes,
+					PermissionScopes:  r.expandPermissionScopes(plan.PermissionScope),
 					SSHAuthorizedKeys: r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey),
 					HasSSHKey:         pointer.To(plan.SshKeyEnabled),
 					HasSSHPassword:    pointer.To(plan.SshPasswordEnabled),
@@ -234,13 +242,8 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			var needSetState bool
-			var state LocalUserModel
-			if err := metadata.Decode(&state); err != nil {
-				return err
-			}
+			state := plan
 			if plan.SshPasswordEnabled {
-				needSetState = true
 				resp, err := client.RegeneratePassword(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
 				if err != nil {
 					return fmt.Errorf("generating password for %s: %v", id.ID(), err)
@@ -248,14 +251,6 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				if v := resp.SSHPassword; v != nil {
 					state.Password = *v
 				}
-			}
-
-			if len(plan.SshAuthorizedKey) != 0 {
-				needSetState = true
-				state.SshAuthorizedKey = plan.SshAuthorizedKey
-			}
-
-			if needSetState {
 				if err := metadata.Encode(&state); err != nil {
 					return err
 				}
@@ -343,10 +338,6 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 			}
 
 			if props := params.LocalUserProperties; props != nil {
-				var state LocalUserModel
-				if err := metadata.Decode(&state); err != nil {
-					return err
-				}
 				if metadata.ResourceData.HasChange("home_directory") {
 					if plan.HomeDirectory != "" {
 						props.HomeDirectory = &plan.HomeDirectory
@@ -355,34 +346,27 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 					}
 				}
 				if metadata.ResourceData.HasChange("permission_scope") {
-					props.PermissionScopes, err = r.expandPermissionScopes(plan.PermissionScope)
-					if err != nil {
-						return err
-					}
+					props.PermissionScopes = r.expandPermissionScopes(plan.PermissionScope)
 				}
 
 				if metadata.ResourceData.HasChange("ssh_key_enabled") {
 					props.HasSSHKey = &plan.SshKeyEnabled
 				}
 
-				var needSetState bool
 				if metadata.ResourceData.HasChange("ssh_password_enabled") {
 					props.HasSSHPassword = &plan.SshPasswordEnabled
 					if _, isEnabled := metadata.ResourceData.GetChange("ssh_password_enabled"); isEnabled.(bool) {
+						state := plan
 						resp, err := client.RegeneratePassword(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
 						if err != nil {
 							return fmt.Errorf("generating password for %s: %v", id.ID(), err)
 						}
 						if v := resp.SSHPassword; v != nil {
 							state.Password = *v
-							needSetState = true
 						}
-					}
-				}
-
-				if needSetState {
-					if err := metadata.Encode(&state); err != nil {
-						return err
+						if err := metadata.Encode(&state); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -415,17 +399,15 @@ func (r LocalUserResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) (*[]storage.PermissionScope, error) {
+func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) *[]storage.PermissionScope {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	var output []storage.PermissionScope
 
 	for _, v := range input {
-		if len(v.Permissions) != 1 {
-			return nil, fmt.Errorf("permissions must be of length of 1, got %d", len(v.Permissions))
-		}
+		// The length constraint is guaranteed by schema
 		permissions := v.Permissions[0]
 		var permissionStr string
 		if permissions.Read {
@@ -451,7 +433,7 @@ func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) 
 		})
 	}
 
-	return &output, nil
+	return &output
 }
 
 func (r LocalUserResource) flattenPermissionScopes(input *[]storage.PermissionScope) []PermissionScopeModel {
@@ -464,19 +446,21 @@ func (r LocalUserResource) flattenPermissionScopes(input *[]storage.PermissionSc
 	for _, v := range *input {
 		permissions := PermissionsModel{}
 		if p := v.Permissions; p != nil {
-			if strings.Index(*p, "r") != -1 {
+			// The Storage API's have a history of being case-insensitive, so we case-insensitively check the permission here.
+			np := strings.ToLower(*p)
+			if strings.Index(np, "r") != -1 {
 				permissions.Read = true
 			}
-			if strings.Index(*p, "w") != -1 {
+			if strings.Index(np, "w") != -1 {
 				permissions.Write = true
 			}
-			if strings.Index(*p, "d") != -1 {
+			if strings.Index(np, "d") != -1 {
 				permissions.Delete = true
 			}
-			if strings.Index(*p, "l") != -1 {
+			if strings.Index(np, "l") != -1 {
 				permissions.List = true
 			}
-			if strings.Index(*p, "c") != -1 {
+			if strings.Index(np, "c") != -1 {
 				permissions.Create = true
 			}
 		}
