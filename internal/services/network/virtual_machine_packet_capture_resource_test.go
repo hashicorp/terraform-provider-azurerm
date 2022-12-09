@@ -197,10 +197,9 @@ func (r VirtualMachinePacketCaptureResource) localDiskConfig(data acceptance.Tes
 %s
 
 resource "azurerm_virtual_machine_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_machine_id   = azurerm_virtual_machine.test.id
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -216,10 +215,9 @@ func (r VirtualMachinePacketCaptureResource) localDiskConfig_requiresImport(data
 %s
 
 resource "azurerm_virtual_machine_packet_capture" "import" {
-  name                 = azurerm_virtual_machine_packet_capture.test.name
-  network_watcher_name = azurerm_virtual_machine_packet_capture.test.network_watcher_name
-  resource_group_name  = azurerm_virtual_machine_packet_capture.test.resource_group_name
-  virtual_machine_id   = azurerm_virtual_machine_packet_capture.test.virtual_machine_id
+  name               = azurerm_virtual_machine_packet_capture.test.name
+  network_watcher_id = azurerm_virtual_machine_packet_capture.test.network_watcher_id
+  virtual_machine_id = azurerm_virtual_machine_packet_capture.test.virtual_machine_id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -235,10 +233,9 @@ func (r VirtualMachinePacketCaptureResource) localDiskConfigWithFilters(data acc
 %s
 
 resource "azurerm_virtual_machine_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_machine_id   = azurerm_virtual_machine.test.id
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -274,10 +271,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_virtual_machine_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_machine_id   = azurerm_virtual_machine.test.id
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     storage_account_id = azurerm_storage_account.test.id
@@ -301,10 +297,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_virtual_machine_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_machine_id   = azurerm_virtual_machine.test.id
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path          = "/var/captures/packet.cap"

@@ -101,10 +101,9 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_virtual_machine_packet_capture" "example" {
-  name                 = "example-pc"
-  network_watcher_name = azurerm_network_watcher.example.name
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_machine_id   = azurerm_virtual_machine.example.id
+  name               = "example-pc"
+  network_watcher_id = azurerm_network_watcher.example.id
+  virtual_machine_id = azurerm_virtual_machine.example.id
 
   storage_location {
     storage_account_id = azurerm_storage_account.example.id
@@ -122,9 +121,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name to use for this Network Packet Capture. Changing this forces a new resource to be created.
 
-* `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the Network Watcher exists. Changing this forces a new resource to be created.
+* `network_watcher_id` - (Required) The resource ID of the Network Watcher. Changing this forces a new resource to be created.
 
 * `virtual_machine_id` - (Required) The resource ID of the target Virtual Machine to capture packets from. Changing this forces a new resource to be created.
 

@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -37,17 +38,17 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
-
-			"network_watcher_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+			"network_watcher_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: networkValidate.NetworkWatcherID,
 			},
 
 			"virtual_machine_scale_set_id": {
@@ -91,11 +92,13 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 						"file_path": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ValidateFunc: networkValidate.FilePath,
 							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ValidateFunc: storageValidate.StorageAccountID,
 							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_path": {
@@ -185,7 +188,12 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPacketCaptureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
+	watcherId, err := parse.NetworkWatcherID(d.Get("network_watcher_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewPacketCaptureID(subscriptionId, watcherId.ResourceGroup, watcherId.Name, d.Get("name").(string))
 
 	targetResourceId := d.Get("virtual_machine_scale_set_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
@@ -260,8 +268,9 @@ func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, 
 	}
 
 	d.Set("name", id.Name)
-	d.Set("network_watcher_name", id.NetworkWatcherName)
-	d.Set("resource_group_name", id.ResourceGroup)
+
+	networkWatcherId := parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName)
+	d.Set("network_watcher_id", networkWatcherId.ID())
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
 		d.Set("virtual_machine_scale_set_id", props.Target)
