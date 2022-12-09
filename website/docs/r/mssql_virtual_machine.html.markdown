@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created.
 
-* `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
+* `sql_license_type` - (Required) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
 
 * `auto_backup` (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
 
@@ -98,6 +98,10 @@ The `manual_schedule` block supports the following:
 * `full_backup_window_in_hours` - (Required) Duration of the time window of a given day during which full backups can take place, in hours. Valid values are between `1` and `23`.
 
 * `log_backup_frequency_in_minutes` - (Required) Frequency of log backups, in minutes. Valid values are from `5` to `60`.
+
+* `days_of_week` - (Optional) A list of days on which backup can take place. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`
+
+* ~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
 
 ---
 

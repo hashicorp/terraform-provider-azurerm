@@ -147,7 +147,7 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						//lintignore:XS003
+						// lintignore:XS003
 						"condition": {
 							Type:     pluginsdk.TypeList,
 							Required: true,

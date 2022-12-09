@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Managed Disk. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Managed Disk should exist.
+* `resource_group_name` - (Required) The name of the Resource Group where the Managed Disk should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -122,9 +122,9 @@ The following arguments are supported:
 
 * `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. Changing this forces a new resource to be created.
 
-* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`. This field cannot be specified if gallery_image_reference_id is specified.
+* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`. This field cannot be specified if gallery_image_reference_id is specified. Changing this forces a new resource to be created.
 
-* `gallery_image_reference_id` - (Optional) ID of a Gallery Image Version to copy when `create_option` is `FromImage`. This field cannot be specified if image_reference_id is specified.
+* `gallery_image_reference_id` - (Optional) ID of a Gallery Image Version to copy when `create_option` is `FromImage`. This field cannot be specified if image_reference_id is specified. Changing this forces a new resource to be created.
 
 * `logical_sector_size` - (Optional) Logical Sector Size. Possible values are: `512` and `4096`. Defaults to `4096`. Changing this forces a new resource to be created.
 
@@ -132,9 +132,9 @@ The following arguments are supported:
 
 * `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
 
-* `source_resource_id` - (Optional) The ID of an existing Managed Disk or Snapshot to copy when `create_option` is `Copy` or the recovery point to restore when `create_option` is `Restore`
+* `source_resource_id` - (Optional) The ID of an existing Managed Disk or Snapshot to copy when `create_option` is `Copy` or the recovery point to restore when `create_option` is `Restore`. Changing this forces a new resource to be created.
 
-* `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
+* `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`.  Changing this forces a new resource to be created.
 
@@ -146,7 +146,7 @@ The following arguments are supported:
 
 -> **Note:** Premium SSD maxShares limit: `P15` and `P20` disks: 2. `P30`,`P40`,`P50` disks: 5. `P60`,`P70`,`P80` disks: 10. For ultra disks the `max_shares` minimum value is 1 and the maximum is 5.
 
-* `trusted_launch_enabled` (Optional) Specifies if Trusted Launch is enabled for the Managed Disk. Defaults to `false`.
+* `trusted_launch_enabled` (Optional) Specifies if Trusted Launch is enabled for the Managed Disk. Defaults to `false`. Changing this forces a new resource to be created.
 
 -> **Note:** Trusted Launch can only be enabled when `create_option` is `FromImage` or `Import`.
 
@@ -170,9 +170,9 @@ The following arguments are supported:
 
 ~> **Note:** Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
-* `network_access_policy` - Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`.
+* `network_access_policy` - (Optional) Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`.
 
-* `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
+* `disk_access_id` - (Optional) The ID of the disk access resource for using private endpoints on disks.
 
 ~> **Note:** `disk_access_id` is only supported when `network_access_policy` is set to `AllowPrivate`.
 

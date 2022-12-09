@@ -243,7 +243,7 @@ A `backend_http_settings` block supports the following:
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
-* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
+* `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
 * `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
 
@@ -453,7 +453,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
+* `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
 
 ---
 
@@ -539,7 +539,7 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
+* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, `3.1`,  and `3.2`.
 

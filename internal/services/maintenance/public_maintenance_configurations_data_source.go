@@ -138,7 +138,6 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 	if resp.Model != nil {
 		if resp.Model.Value != nil {
 			for _, maintenanceConfig := range *resp.Model.Value {
-
 				var configLocation, configRecurEvery, configScope string
 				if maintenanceConfig.Location != nil {
 					configLocation = azure.NormalizeLocation(*maintenanceConfig.Location)

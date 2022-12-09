@@ -158,10 +158,7 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identityValue, err := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
+			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 
 			apiKey := grafanaresource.ApiKeyDisabled
 			if model.ApiKeyEnabled {
@@ -312,10 +309,7 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 				Location:          location.NormalizeNilable(model.Location),
 			}
 
-			identityValue, err := flattenLegacySystemAndUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
+			identityValue := flattenLegacySystemAndUserAssignedMap(model.Identity)
 
 			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
@@ -404,20 +398,20 @@ func (r DashboardGrafanaResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandLegacySystemAndUserAssignedMap(input []interface{}) (*identity.LegacySystemAndUserAssignedMap, error) {
+func expandLegacySystemAndUserAssignedMap(input []interface{}) *identity.LegacySystemAndUserAssignedMap {
 	identityValue, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	return &identity.LegacySystemAndUserAssignedMap{
 		Type: identityValue.Type,
-	}, nil
+	}
 }
 
-func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAssignedMap) (*[]interface{}, error) {
+func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAssignedMap) *[]interface{} {
 	if input == nil {
-		return &[]interface{}{}, nil
+		return &[]interface{}{}
 	}
 
 	identityValue := &identity.SystemAssigned{
@@ -427,5 +421,5 @@ func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAs
 	}
 
 	output := identity.FlattenSystemAssigned(identityValue)
-	return &output, nil
+	return &output
 }

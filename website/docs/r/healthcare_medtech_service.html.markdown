@@ -108,5 +108,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Healthcare Med Tech Service can be imported using the resource`id`, e.g.
 
 ```shell
-terraform import azurerm_healthcare_medtech_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1
+terraform import azurerm_healthcare_medtech_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotConnectors/iotconnector1
 ```

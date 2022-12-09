@@ -36,10 +36,9 @@ resource "azurerm_storage_table" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the storage table. Only Alphanumeric characters allowed, starting with a letter. Must be unique within the storage account the table is located.
+* `name` - (Required) The name of the storage table. Only Alphanumeric characters allowed, starting with a letter. Must be unique within the storage account the table is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table.
- Changing this forces a new resource to be created.
+* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table. Changing this forces a new resource to be created.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 

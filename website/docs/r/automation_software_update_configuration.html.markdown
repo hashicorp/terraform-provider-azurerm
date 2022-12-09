@@ -91,7 +91,7 @@ A `linux` block supports the following:
 
 A `windows` block supports the following:
 
-* `classification_included` - (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+* `classification_included` - (Optional) (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
@@ -159,7 +159,7 @@ A `schedule` block supports the following:
 
 * `is_enabled` - (Optional) Whether the schedule is enabled.
 
-* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+* `frequency` - (Optional) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
 * `description` -  (Optional) A description for this Schedule.
 

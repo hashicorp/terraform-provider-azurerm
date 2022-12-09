@@ -287,11 +287,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
 
 	if publicNetworkAccessNotEmpty {
-		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
-		if err != nil {
-			return fmt.Errorf("unable to parse public_network_access: %+v", err)
-		}
-		parameters.Properties.PublicNetworkAccess = publicNetworkAccess
+		parameters.Properties.PublicNetworkAccess = parsePublicNetworkAccess(publicNetworkAccessValue.(string))
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -372,11 +368,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
 		if publicNetworkAccessNotEmpty {
-			publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
-			if err != nil {
-				return fmt.Errorf("unable to parse public_network_access: %+v", err)
-			}
-			update.Properties.PublicNetworkAccess = publicNetworkAccess
+			update.Properties.PublicNetworkAccess = parsePublicNetworkAccess(publicNetworkAccessValue.(string))
 		}
 	}
 
@@ -674,16 +666,16 @@ this into Terraform via "terraform import", or pick a different name/location.
 `, name, location)
 }
 
-func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
+func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAccess {
 	vals := map[string]configurationstores.PublicNetworkAccess{
 		"disabled": configurationstores.PublicNetworkAccessDisabled,
 		"enabled":  configurationstores.PublicNetworkAccessEnabled,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
+		return &v
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := configurationstores.PublicNetworkAccess(input)
-	return &out, nil
+	return &out
 }

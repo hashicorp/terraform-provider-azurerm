@@ -301,7 +301,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
-					//lintignore:XS003
+					// lintignore:XS003
 					"success_threshold": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -469,11 +469,7 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	if v, err := expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*pluginsdk.Set).List()); err == nil {
-		properties.ConnectionMonitorParameters.Endpoints = v
-	} else {
-		return err
-	}
+	properties.ConnectionMonitorParameters.Endpoints = expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*pluginsdk.Set).List())
 
 	if notes, ok := d.GetOk("notes"); ok {
 		properties.Notes = utils.String(notes.(string))
@@ -572,7 +568,7 @@ func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.ConnectionMonitorEndpoint, error) {
+func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.ConnectionMonitorEndpoint {
 	results := make([]network.ConnectionMonitorEndpoint, 0)
 
 	for _, item := range input {
@@ -628,7 +624,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 		results = append(results, result)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *network.ConnectionMonitorEndpointFilter {

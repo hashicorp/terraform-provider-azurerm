@@ -551,9 +551,7 @@ func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]backuppolicies.Ba
 			var scheduleTimes []string
 			if criteria.ScheduleTimes != nil {
 				scheduleTimes = make([]string, 0)
-				for _, item := range *criteria.ScheduleTimes {
-					scheduleTimes = append(scheduleTimes, item)
-				}
+				scheduleTimes = append(scheduleTimes, *criteria.ScheduleTimes...)
 			}
 
 			results = append(results, map[string]interface{}{

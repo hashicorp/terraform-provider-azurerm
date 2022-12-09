@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -42,17 +42,16 @@ func (a *AzureQuery) LoadSDKTags(tags map[string][]string) {
 	for k, vs := range tags {
 		t := Tag{}
 		t.Tag = k
-		for _, v := range vs {
-			t.Values = append(t.Values, v)
-		}
+		t.Values = append(t.Values, vs...)
 		a.Tags = append(a.Tags, t)
 	}
 }
 func (a *AzureQuery) ToSDKTags() map[string][]string {
-	if len(a.Tags) == 0 {
-		return nil
-	}
 	m := map[string][]string{}
+	if len(a.Tags) == 0 {
+		// return an empty map instead of nil until issue fixed: https://github.com/Azure/azure-rest-api-specs/issues/21719
+		return m
+	}
 	for _, tag := range a.Tags {
 		m[tag.Tag] = tag.Values
 	}
@@ -355,7 +354,11 @@ func (s *SoftwareUpdateConfigurationModel) ToSDKModel() automation.SoftwareUpdat
 			}
 			tag := automation.TagSettingsProperties{}
 			tag.Tags = az.ToSDKTags()
-			tag.FilterOperator = automation.TagOperators(az.TagFilter)
+			// always set filterOperator until issue fixed: https://github.com/Azure/azure-rest-api-specs/issues/21719
+			tag.FilterOperator = automation.TagOperatorsAll
+			if az.TagFilter != "" {
+				tag.FilterOperator = automation.TagOperators(az.TagFilter)
+			}
 			q.TagSettings = &tag
 			azureQueries = append(azureQueries, q)
 		}
@@ -666,6 +669,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"tag_filter": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
+									Computed: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(automation.TagOperatorsAny),
 										string(automation.TagOperatorsAll),
