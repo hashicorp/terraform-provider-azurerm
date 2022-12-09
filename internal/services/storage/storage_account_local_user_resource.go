@@ -481,19 +481,19 @@ func (r LocalUserResource) flattenPermissionScopes(input *[]localusers.Permissio
 		permissions := PermissionsModel{}
 		// The Storage API's have a history of being case-insensitive, so we case-insensitively check the permission here.
 		np := strings.ToLower(v.Permissions)
-		if strings.Index(np, "r") != -1 {
+		if strings.Contains(np, "r") {
 			permissions.Read = true
 		}
-		if strings.Index(np, "w") != -1 {
+		if strings.Contains(np, "w") {
 			permissions.Write = true
 		}
-		if strings.Index(np, "d") != -1 {
+		if strings.Contains(np, "d") {
 			permissions.Delete = true
 		}
-		if strings.Index(np, "l") != -1 {
+		if strings.Contains(np, "l") {
 			permissions.List = true
 		}
-		if strings.Index(np, "c") != -1 {
+		if strings.Contains(np, "c") {
 			permissions.Create = true
 		}
 

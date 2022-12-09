@@ -233,16 +233,6 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account_local_user" "test" {
-}
-`, template)
-}
-
 func (r LocalUserResource) requiresImport(data acceptance.TestData) string {
 	template := r.passwordOnly(data)
 	return fmt.Sprintf(`
