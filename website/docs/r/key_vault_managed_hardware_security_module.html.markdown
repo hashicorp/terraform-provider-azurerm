@@ -78,7 +78,7 @@ A `network_acls` block supports the following:
 
 * `bypass` - (Required) Specifies which traffic can bypass the network rules. Possible values are `AzureServices` and `None`.
 
-* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_subnet_ids`. Possible values are `Allow` and `Deny`.
+* `default_action` - (Required) The Default Action to use. Possible values are `Allow` and `Deny`.
 
 ## Attributes Reference
 
