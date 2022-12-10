@@ -205,7 +205,7 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOhError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.DRSTwoPointOhError(data),
-			ExpectError: regexp.MustCompile("the managed rules 'action' field must be set to 'AnomalyScoring' if the managed rule is DRS 2.0 or above"),
+			ExpectError: regexp.MustCompile("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above"),
 		},
 	})
 }
@@ -244,7 +244,7 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOneActionError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.DRSTwoPointOneActionError(data),
-			ExpectError: regexp.MustCompile("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log'"),
+			ExpectError: regexp.MustCompile("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above"),
 		},
 	})
 }
