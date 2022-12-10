@@ -1,3 +1,9 @@
+## 3.36.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
+
 ## 3.35.0 (December 09, 2022)
 
 BREAKING CHANGES
