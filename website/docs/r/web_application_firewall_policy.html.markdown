@@ -236,10 +236,6 @@ The `rule_group_override` block supports the following:
 
 * `rule` - (Optional) One or more `rule` block defined below.
 
-* `disabled_rules` - (Optional) One or more Rule IDs.
-
--> **NOTE:** This property has been deprecated in favour of the `rule` property and will be removed in version 4.0 of the provider.
-
 ---
 
 The `rule` block supports the following:
