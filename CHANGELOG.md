@@ -3,6 +3,14 @@
 FEATURES:
 
 * **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
+* **New Resource:** `azurerm_spring_cloud_dev_tool_portal` [GH-19568]
+* **New Resource:** `azurerm_route_map` [GH-19402]
+
+ENHANCEMENTS:
+
+* `healthbot`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19433]
+* `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
+* `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
 
 BUG FIXES:
 

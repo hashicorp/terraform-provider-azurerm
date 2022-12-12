@@ -1,6 +1,7 @@
 package recoveryservices
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -36,9 +37,9 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -255,32 +256,37 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			EnhancedSecurityState: backup.EnhancedSecurityStateEnabled, // always enabled
 		},
 	}
+
+	var StateRefreshPendingStrings []string
+	var StateRefreshTargetStrings []string
 	if sd := d.Get("soft_delete_enabled").(bool); sd {
 		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateEnabled
+		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
 	} else {
 		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateDisabled
+		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
 	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"syncing"},
-		Target:     []string{"success"},
-		MinTimeout: 30 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			resp, err := cfgsClient.Update(ctx, id.Name, id.ResourceGroup, cfg)
-			if err != nil {
-				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
-					return resp, "syncing", nil
-				}
-				return resp, "error", fmt.Errorf("updating Recovery Service Vault Cfg %s: %+v", id.String(), err)
-			}
 
-			return resp, "success", nil
-		},
+	_, err = cfgsClient.Update(ctx, id.Name, id.ResourceGroup, cfg)
+	if err != nil {
+		return err
+	}
+
+	// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   StateRefreshPendingStrings,
+		Target:                    StateRefreshTargetStrings,
+		MinTimeout:                30 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
 	}
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for on update for Recovery Service  %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
 	}
 
 	d.SetId(id.ID())
@@ -435,33 +441,37 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
+	var StateRefreshPendingStrings []string
+	var StateRefreshTargetStrings []string
 	if sd := d.Get("soft_delete_enabled").(bool); sd {
 		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateEnabled
+		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
 	} else {
 		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateDisabled
+		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"syncing"},
-		Target:     []string{"success"},
-		MinTimeout: 30 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			resp, err := cfgsClient.Update(ctx, id.Name, id.ResourceGroup, cfg)
-			if err != nil {
-				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
-					return resp, "syncing", nil
-				}
-				return resp, "error", fmt.Errorf("updating Recovery Service Vault Cfg %s: %+v", id.String(), err)
-			}
+	_, err = cfgsClient.Update(ctx, id.Name, id.ResourceGroup, cfg)
+	if err != nil {
+		return err
+	}
 
-			return resp, "success", nil
-		},
+	// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
+	// tracked by https://github.com/Azure/azure-rest-api-specs/issues/21548
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   StateRefreshPendingStrings,
+		Target:                    StateRefreshTargetStrings,
+		MinTimeout:                30 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
 	}
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for on update for Recovery Service  %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
 	}
 
 	d.SetId(id.ID())
@@ -629,4 +639,21 @@ func flattenVaultEncryption(resp recoveryservices.Vault) interface{} {
 	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
 	encryptionMap["infrastructure_encryption_enabled"] = encryption.InfrastructureEncryption == recoveryservices.InfrastructureEncryptionStateEnabled
 	return encryptionMap
+}
+
+func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfgsClient *backup.ResourceVaultConfigsClient, id parse.VaultId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := cfgsClient.Get(ctx, id.Name, id.ResourceGroup)
+		if err != nil {
+			if strings.Contains(err.Error(), "ResourceNotYetSynced") {
+				return resp, "syncing", nil
+			}
+			return resp, "error", fmt.Errorf("refreshing Recovery Service Vault Cfg %s: %+v", id.String(), err)
+		}
+
+		if resp.Properties != nil {
+			return resp, string(resp.Properties.SoftDeleteFeatureState), nil
+		}
+		return resp, "error", fmt.Errorf("refreshing Recovery Service Vault Cfg %s: Properties is nil", id.String())
+	}
 }
