@@ -576,7 +576,7 @@ func TestAccWindowsWebApp_withDotNetCore(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNetCore(data, "core3.1"),
+			Config: r.dotNetCore(data, "v4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2151,8 +2151,8 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "%s"
-      current_stack  = "dotnetcore"
+      dotnet_core_version = "%s"
+      current_stack       = "dotnetcore"
     }
   }
 }

@@ -60,7 +60,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
 						"v2.0",
 						"v3.0",
-						"core3.1",
 						"v4.0",
 						"v5.0",
 						"v6.0",
@@ -93,7 +92,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.python",
 						"site_config.0.application_stack.0.python_version",
 					},
-					Description: fmt.Sprintf(`The version of DotNet to use.`),
+					Description: fmt.Sprintf(`The version of DotNetCore to use.`),
 				},
 
 				"php_version": {

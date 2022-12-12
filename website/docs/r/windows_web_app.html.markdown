@@ -138,7 +138,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
 
-~> **NOTE:** The value of `dotnetcore` is for use in combination with `dotnet_version` set to `core3.1` only.
+~> **NOTE:** The value of `dotnetcore` is for use in combination with `dotnet_version` set to `v4.0` only.
 
 * `docker_container_name` - (Optional) The name of the Docker Container. For example `azure-app-service/samples/aspnethelloworld`
 

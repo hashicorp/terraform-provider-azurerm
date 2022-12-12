@@ -494,7 +494,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 				}
 			}
 			if winAppStack.NetCoreVersion != "" {
-				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
 				if currentStack == "" {
 					currentStack = CurrentStackDotNetCore
 				}
@@ -702,9 +702,11 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	var winAppStack ApplicationStackWindows
-	winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
 	if currentStack == CurrentStackDotNetCore {
 		winAppStack.NetCoreVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+	}
+	if currentStack == CurrentStackDotNet {
+		winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
 	}
 	winAppStack.PhpVersion = pointer.From(appSiteConfig.PhpVersion)
 	if winAppStack.PhpVersion == "" {
