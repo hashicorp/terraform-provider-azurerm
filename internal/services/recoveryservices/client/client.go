@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2021-08-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
