@@ -56,7 +56,7 @@ The following arguments are supported:
 
 A `key_property` block supports the following:
 
-* `name`- (Required) The name of the key property. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the key property. Changing this forces a new resource to be created.
 
 * `type` - (Required) The data type of the key property. Valid values include `Bool`, `DateTime`, `Double`, `String`. Changing this forces a new resource to be created.
 

@@ -123,7 +123,7 @@ The following attributes are exported:
 
 * `guid` - The GUID of the virtual network.
 
-* `subnet`- One or more `subnet` blocks as defined below.
+* `subnet` - One or more `subnet` blocks as defined below.
 
 ---
 

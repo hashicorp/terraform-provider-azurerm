@@ -126,11 +126,11 @@ The following arguments are supported:
 
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
 
-* `data_disks` - (Optional) A `data_disks` block describes the data disk settings.
+* `data_disks` - (Optional) A `data_disks` block describes the data disk settings as defined below.
 
 * `display_name` - (Optional) Specifies the display name of the Batch pool. Changing this forces a new resource to be created.
 
-* `disk_encryption` - (Optional) A `disk_encryption` block describes the disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
+* `disk_encryption` - (Optional) A `disk_encryption` block, as defined below, describes the disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
 
 * `extensions` - (Optional) An `extensions` block as defined below.
 
@@ -142,13 +142,13 @@ The following arguments are supported:
 
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
-* `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
+* `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale as defined below.
 
-* `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale.
+* `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale as defined below.
 
-* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool.
+* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool as defined below.
 
-* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
+* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool as defined below.
 
 * `container_configuration` - (Optional) The container configuration used in the pool's VMs.
 
@@ -156,17 +156,17 @@ The following arguments are supported:
 
 * `mount` - (Optional) A `mount` block defined as below.
 
-* `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool.
+* `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool as defined below.
 
-* `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool.
+* `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool as defined below.
 
 * `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
 
-* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread.
+* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread as defined below.
 
-* `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
+* `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool as defined below.
 
-* `windows` - (Optional) A `windows` block that describes the Windows configuration in the pool.
+* `windows` - A `windows` block that describes the Windows configuration in the pool as defined below.
 
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
@@ -285,9 +285,9 @@ A `start_task` block supports the following:
 
 * `common_environment_properties` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
 
-* `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs.
+* `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs as defined below.
 
-* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node as defined below.
 
 ---
 
@@ -307,7 +307,7 @@ A `user_identity` block supports the following:
 
 * `user_name` - (Optional) The username to be used by the Batch pool start task.
 
-* `auto_user` - (Optional) A `auto_user` block that describes the user identity under which the start task runs.
+* `auto_user` - (Optional) A `auto_user` block that describes the user identity under which the start task runs as defined below.
 
 ~> **Please Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
 

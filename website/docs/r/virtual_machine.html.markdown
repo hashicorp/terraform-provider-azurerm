@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `os_profile` - (Optional) An `os_profile` block as defined below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 
-* `os_profile_secrets` - (Optional) One or more `os_profile_secrets` blocks.
+* `os_profile_secrets` - (Optional) One or more `os_profile_secrets` blocks as defined below.
 
 * `plan` - (Optional) A `plan` block as defined below.
 
@@ -143,7 +143,7 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
-* `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks.
+* `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks as defined below.
 
 ~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
 
@@ -230,7 +230,7 @@ A `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. If set to `false`, an `admin_password` must be specified.
 
-* `ssh_keys` - (Optional) One or more `ssh_keys` blocks. This field is required if `disable_password_authentication` is set to `true`.
+* `ssh_keys` - (Optional) One or more `ssh_keys` blocks as defined below. This field is required if `disable_password_authentication` is set to `true`.
 
 ---
 
@@ -238,7 +238,7 @@ A `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the ID of the Key Vault to use.
 
-* `vault_certificates` - (Optional) One or more `vault_certificates` blocks.
+* `vault_certificates` - (Required) One or more `vault_certificates` blocks as defined below.
 
 ---
 

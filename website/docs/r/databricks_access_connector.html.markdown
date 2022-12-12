@@ -47,6 +47,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 An `identity` block supports the following:
 * `type` - (Required) The type of identity to use for this Access Connector. `SystemAssigned` is the only possible value.
 * `principal_id` - (Optional) The object id of an existing principal. If not specified, a new system-assigned managed identity is created.
@@ -58,6 +60,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Databricks Access Connector in the Azure management plane.
 * `identity`  - A list of `identity` blocks containing the system-assigned managed identities as defined below.
+
+---
 
 An `identity` block exports the following:
 * `type` - The type of identity.

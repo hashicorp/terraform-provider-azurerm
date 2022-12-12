@@ -461,7 +461,7 @@ A `file_system` block supports the following:
 
 ---
 
-Elements of `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) support:
+A `ip_restriction` block (attribute as block) support:
 
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
