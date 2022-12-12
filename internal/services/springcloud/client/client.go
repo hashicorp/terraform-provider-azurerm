@@ -19,7 +19,7 @@ type Client struct {
 	ConfigServersClient          *appplatform.ConfigServersClient
 	ConfigurationServiceClient   *appplatform.ConfigurationServicesClient
 	CustomDomainsClient          *appplatform.CustomDomainsClient
-	DevToolPortalClient         *appplatform.DevToolPortalsClient
+	DevToolPortalClient          *appplatform.DevToolPortalsClient
 	GatewayClient                *appplatform.GatewaysClient
 	GatewayCustomDomainClient    *appplatform.GatewayCustomDomainsClient
 	GatewayRouteConfigClient     *appplatform.GatewayRouteConfigsClient
