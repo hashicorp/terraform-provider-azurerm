@@ -103,11 +103,12 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 
 						"plan_id": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								PlanId100gb14days,
 							}, false),
+							Default: PlanId100gb14days,
 						},
 
 						"usage_type": {
