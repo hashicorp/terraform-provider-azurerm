@@ -112,4 +112,3 @@ package network
 
 // Network Manager
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManager -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerManagementGroupConnection -id=/providers/Microsoft.Management/managementGroups/12345678-1234-9876-4563-123456789012/providers/Microsoft.Network/networkManagerConnections/connection1

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 type NetworkManagerManagementGroupConnectionId struct {
@@ -37,7 +37,7 @@ func (id NetworkManagerManagementGroupConnectionId) ID() string {
 
 // NetworkManagerManagementGroupConnectionID parses a NetworkManagerManagementGroupConnection ID into an NetworkManagerManagementGroupConnectionId struct
 func NetworkManagerManagementGroupConnectionID(input string) (*NetworkManagerManagementGroupConnectionId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
+	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {
 		return nil, err
 	}
