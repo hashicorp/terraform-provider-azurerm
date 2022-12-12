@@ -118,9 +118,9 @@ An `azure_blob_fs_location` block supports the following:
 
 * `file_system` - (Required) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
 
-* `path` - (Required) The folder path to the file.
+* `path` - (Optional) The folder path to the file.
 
-* `filename` - (Required) The filename of the file.
+* `filename` - (Optional) The filename of the file.
 
 ---
 

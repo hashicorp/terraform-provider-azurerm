@@ -8,14 +8,14 @@ import "strings"
 type DiskEncryptionSetType string
 
 const (
-	DiskEncryptionSetTypeConfidentialVmEncryptedWithCustomerKey      DiskEncryptionSetType = "ConfidentialVmEncryptedWithCustomerKey"
+	DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey      DiskEncryptionSetType = "ConfidentialVmEncryptedWithCustomerKey"
 	DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey             DiskEncryptionSetType = "EncryptionAtRestWithCustomerKey"
 	DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys DiskEncryptionSetType = "EncryptionAtRestWithPlatformAndCustomerKeys"
 )
 
 func PossibleValuesForDiskEncryptionSetType() []string {
 	return []string{
-		string(DiskEncryptionSetTypeConfidentialVmEncryptedWithCustomerKey),
+		string(DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey),
 		string(DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
 		string(DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
 	}
@@ -23,7 +23,7 @@ func PossibleValuesForDiskEncryptionSetType() []string {
 
 func parseDiskEncryptionSetType(input string) (*DiskEncryptionSetType, error) {
 	vals := map[string]DiskEncryptionSetType{
-		"confidentialvmencryptedwithcustomerkey":      DiskEncryptionSetTypeConfidentialVmEncryptedWithCustomerKey,
+		"confidentialvmencryptedwithcustomerkey":      DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey,
 		"encryptionatrestwithcustomerkey":             DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey,
 		"encryptionatrestwithplatformandcustomerkeys": DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys,
 	}

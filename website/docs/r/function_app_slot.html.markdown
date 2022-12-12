@@ -64,17 +64,17 @@ resource "azurerm_function_app_slot" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Function App Slot.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Function App Slot. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot.
+* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot. Changing this forces a new resource to be created.
 
 * `function_app_name` - (Required) The name of the Function App within which to create the Function App Slot. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by the Function App (such as the dashboard, logs).
+* `storage_account_name` - (Required) The backend storage account name which will be used by the Function App (such as the dashboard, logs). Changing this forces a new resource to be created.
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) A `connection_string` block as defined below.
 
-* `os_type` - (Optional) A string indicating the Operating System type for this function app. The only possible value is `linux`.
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. The only possible value is `linux`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default).
 
@@ -114,7 +114,7 @@ The following arguments are supported:
 
 `connection_string` supports the following:
 
-* `name` - (Required) The name of the Connection String.
+* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 * `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
 * `value` - (Required) The value for the Connection String.
 

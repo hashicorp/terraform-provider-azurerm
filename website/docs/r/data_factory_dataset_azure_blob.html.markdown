@@ -69,9 +69,9 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported arguments are specific to Azure Blob Dataset:
 
-* `path` - (Required) The path of the Azure Blob.
+* `path` - (Optional) The path of the Azure Blob.
 
-* `filename` - (Required) The filename of the Azure Blob.
+* `filename` - (Optional) The filename of the Azure Blob.
 
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 

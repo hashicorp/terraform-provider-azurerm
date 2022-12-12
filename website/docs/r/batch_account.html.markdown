@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -1521,7 +1521,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		//lintignore:XS003
+		// lintignore:XS003
 		"resource_file": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
