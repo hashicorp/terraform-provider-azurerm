@@ -137,9 +137,9 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	props := inputs.Input{
 		Name: utils.String(id.InputName),
 		Properties: &inputs.StreamInputProperties{
-			//Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
+			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.BlobStreamInputDataSource{
-				//Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
+				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobStreamInputDataSourceProperties{
 					Container:   utils.String(containerName),
 					DateFormat:  utils.String(dateFormat),
@@ -199,7 +199,7 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties)
+			input, ok := props.(inputs.InputProperties) // nolint: gosimple
 			if !ok {
 				return fmt.Errorf("converting %s to an Input", *id)
 			}

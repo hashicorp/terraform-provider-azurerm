@@ -2,11 +2,10 @@ package sentinel
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
@@ -146,6 +145,7 @@ func dataSourceSentinelAlertRuleTemplate() *pluginsdk.Resource {
 
 func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRuleTemplatesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -155,6 +155,7 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return err
 	}
+	id := parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	// Either "name" or "display_name" must have been specified, constrained by the pluginsdk.
 	var resp securityinsight.BasicAlertRuleTemplate
@@ -172,21 +173,21 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 
 	switch template := resp.(type) {
 	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
-		err = setForMLBehaviorAnalyticsAlertRuleTemplate(d, &template)
+		setForMLBehaviorAnalyticsAlertRuleTemplate(d, id, &template)
 	case securityinsight.FusionAlertRuleTemplate:
-		err = setForFusionAlertRuleTemplate(d, &template)
+		setForFusionAlertRuleTemplate(d, id, &template)
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
-		err = setForMsSecurityIncidentAlertRuleTemplate(d, &template)
+		err = setForMsSecurityIncidentAlertRuleTemplate(d, id, &template)
 	case securityinsight.ScheduledAlertRuleTemplate:
-		err = setForScheduledAlertRuleTemplate(d, &template)
+		err = setForScheduledAlertRuleTemplate(d, id, &template)
 	case securityinsight.NrtAlertRuleTemplate:
-		err = setForNrtAlertRuleTemplate(d, &template)
+		err = setForNrtAlertRuleTemplate(d, id, &template)
 	default:
 		return fmt.Errorf("unknown template type of Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName)
 	}
 
 	if err != nil {
-		return fmt.Errorf("setting ResourceData for Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName)
+		return fmt.Errorf("setting ResourceData for Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID: %+v", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
 	}
 
 	return nil
@@ -245,74 +246,37 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsi
 	return results[0], nil
 }
 
-func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.ScheduledAlertRuleTemplate) error {
-	if template.ID == nil || *template.ID == "" {
-		return errors.New("empty or nil ID")
-	}
-	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
-	if err != nil {
-		return err
-	}
+func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.ScheduledAlertRuleTemplate) error {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
 	return d.Set("scheduled_template", flattenScheduledAlertRuleTemplate(template.ScheduledAlertRuleTemplateProperties))
 }
 
-func setForNrtAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.NrtAlertRuleTemplate) error {
-	if template.ID == nil || *template.ID == "" {
-		return errors.New("empty or nil ID")
-	}
-	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
-	if err != nil {
-		return err
-	}
+func setForNrtAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.NrtAlertRuleTemplate) error {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
 	return d.Set("nrt_template", flattenNrtAlertRuleTemplate(template.NrtAlertRuleTemplateProperties))
 }
 
-func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate) error {
-	if template.ID == nil || *template.ID == "" {
-		return errors.New("empty or nil ID")
-	}
-	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
-	if err != nil {
-		return err
-	}
+func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate) error {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
 	return d.Set("security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(template.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties))
 }
 
-func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.FusionAlertRuleTemplate) error {
-	if template.ID == nil || *template.ID == "" {
-		return errors.New("empty or nil ID")
-	}
-	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
-	if err != nil {
-		return err
-	}
+func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.FusionAlertRuleTemplate) {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
-	return nil
 }
 
-func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) error {
-	if template.ID == nil || *template.ID == "" {
-		return errors.New("empty or nil ID")
-	}
-	id, err := parse.SentinelAlertRuleTemplateID(*template.ID)
-	if err != nil {
-		return err
-	}
+func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
-	return nil
 }
 
 func flattenScheduledAlertRuleTemplate(input *securityinsight.ScheduledAlertRuleTemplateProperties) []interface{} {

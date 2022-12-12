@@ -106,9 +106,9 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				ValidateFunc: validate.BatchMaxWaitTime,
 			},
 			"batch_min_rows": {
-				Type:         pluginsdk.TypeFloat,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.FloatBetween(0, 10000),
+				ValidateFunc: validation.IntBetween(0, 10000),
 			},
 
 			"storage_account_key": {
@@ -181,7 +181,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
-		props.Properties.SizeWindow = utils.Float(batchMinRows.(float64))
+		props.Properties.SizeWindow = utils.Int64(batchMinRows.(int64))
 	}
 
 	// timeWindow and sizeWindow must be set for Parquet serialization

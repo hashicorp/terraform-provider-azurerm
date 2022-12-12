@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -106,9 +106,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 
 		// for existing global module do update instead of raising ImportAsExistsError
-		isGlobal := existing.ModuleProperties != nil &&
-			existing.ModuleProperties.IsGlobal != nil &&
-			*existing.ModuleProperties.IsGlobal == true
+		isGlobal := existing.ModuleProperties != nil && existing.ModuleProperties.IsGlobal != nil && *existing.ModuleProperties.IsGlobal
 		if !utils.ResponseWasNotFound(existing.Response) && !isGlobal {
 			return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
 		}

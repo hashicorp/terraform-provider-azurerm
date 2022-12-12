@@ -77,7 +77,7 @@ func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clie
 		return nil, fmt.Errorf("retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
 	}
 
-	if (*resp.Properties.LogRules.SendResourceLogs == false && *resp.Properties.LogRules.SendSubscriptionLogs == false) || *resp.Properties.MetricRules.FilteringTags == nil {
+	if (!*resp.Properties.LogRules.SendResourceLogs && !*resp.Properties.LogRules.SendSubscriptionLogs) || *resp.Properties.MetricRules.FilteringTags == nil {
 		return utils.Bool(false), nil
 	}
 
