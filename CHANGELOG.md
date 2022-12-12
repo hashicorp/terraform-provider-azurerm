@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
 
+ENHANCEMENTS:
+
+* `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
+
 BUG FIXES:
 
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
