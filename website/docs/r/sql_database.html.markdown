@@ -108,7 +108,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`import` supports the following:
+---
+
+The `import` block supports the following:
 
 * `storage_uri` - (Required) Specifies the blob URI of the .bacpac file.
 * `storage_key` - (Required) Specifies the access key for the storage account.
@@ -120,7 +122,7 @@ The following arguments are supported:
 
 ---
 
-`threat_detection_policy` supports the following:
+The `threat_detection_policy` block supports the following:
 
 * `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.

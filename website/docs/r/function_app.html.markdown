@@ -247,7 +247,7 @@ The following arguments are supported:
 
 ---
 
-`connection_string` supports the following:
+The `connection_string` block supports the following:
 
 * `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 
@@ -257,7 +257,7 @@ The following arguments are supported:
 
 ---
 
-`site_config` supports the following:
+The `site_config` block supports the following:
 
 * `always_on` - (Optional) Should the Function App be loaded at all times? Defaults to `false`.
 

@@ -236,7 +236,7 @@ A `custom_route` block supports the following:
 
 ---
 
-A `peering_addresses` supports the following:
+A `peering_addresses` block supports the following:
 
 * `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
 

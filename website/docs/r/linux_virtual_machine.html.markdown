@@ -326,7 +326,7 @@ A `secret` block supports the following:
 
 ---
 
-`source_image_reference` supports the following:
+The `source_image_reference` block supports the following:
 
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 
