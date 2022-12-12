@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog"
+	"github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -390,7 +390,6 @@ func flattenMonitorIdentityProperties(input *datadog.IdentityProperties) []inter
 }
 
 func flattenMonitorOrganizationProperties(input *datadog.OrganizationProperties, d *pluginsdk.ResourceData) []interface{} {
-
 	organisationProperties := d.Get("datadog_organization").([]interface{})
 	if len(organisationProperties) == 0 {
 		return make([]interface{}, 0)

@@ -2,7 +2,6 @@ package clients
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -245,9 +244,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
 
-	if err := buildAutoClients(&client.autoClient, o); err != nil {
-		return fmt.Errorf("building auto-sdk clients: %+v", err)
-	}
+	buildAutoClients(&client.autoClient, o)
 
 	client.Features = o.Features
 	client.StopContext = ctx

@@ -122,7 +122,6 @@ func dataSourceDnsSoaRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			return tags.FlattenAndSet(d, props.Metadata)
 		}
-
 	}
 
 	return nil

@@ -45,7 +45,7 @@ resource "azurerm_orbital_spacecraft" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Spacecraft. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Spacecraft. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Spacecraft exists. Changing this forces a new resource to be created.
 

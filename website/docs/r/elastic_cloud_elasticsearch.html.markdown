@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 
-* `name` - (Required) The name which should be used for this Elasticsearch resource. Changing this forces a new Elasticsearch to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Elasticsearch resource. Changing this forces a new Elasticsearch to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 

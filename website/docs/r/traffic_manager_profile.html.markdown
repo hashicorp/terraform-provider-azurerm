@@ -56,7 +56,7 @@ resource "azurerm_traffic_manager_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Traffic Manager profile. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Traffic Manager profile. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager profile. Changing this forces a new resource to be created.
 
