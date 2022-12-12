@@ -69,4 +69,5 @@ func handleSlashInIdForKey(input string) string {
 	}
 
 	return input
+
 }
