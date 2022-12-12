@@ -70,7 +70,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "true",
 			HasError:    false,
 			ExpectValue: true,
-			Expect:      func(v interface{}) bool { return v.(bool) == true },
+			Expect:      func(v interface{}) bool { return v.(bool) },
 		},
 		{
 			Name:        "boolean variable false",
@@ -78,7 +78,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "false",
 			HasError:    false,
 			ExpectValue: false,
-			Expect:      func(v interface{}) bool { return v.(bool) == false },
+			Expect:      func(v interface{}) bool { return !v.(bool) },
 		},
 		{
 			Name:        "datetime variable",

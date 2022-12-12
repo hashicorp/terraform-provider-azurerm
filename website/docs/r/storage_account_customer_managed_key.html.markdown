@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
+* `key_vault_id` - (Required) The ID of the Key Vault. 
 
 * `key_name` - (Required) The name of Key Vault Key.
 

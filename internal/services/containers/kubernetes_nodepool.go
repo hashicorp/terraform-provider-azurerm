@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -62,6 +62,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: computeValidate.CapacityReservationGroupID,
+					},
+
+					"custom_ca_trust_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
 					},
 
 					// TODO 4.0: change this from enable_* to *_enabled
@@ -628,7 +633,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		Name: &defaultCluster.Name,
 		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
 			Count:                     defaultCluster.Count,
-			VmSize:                    defaultCluster.VmSize,
+			VMSize:                    defaultCluster.VMSize,
 			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
 			VnetSubnetID:              defaultCluster.VnetSubnetID,
 			MaxPods:                   defaultCluster.MaxPods,
@@ -636,6 +641,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			MessageOfTheDay:           defaultCluster.MessageOfTheDay,
 			MinCount:                  defaultCluster.MinCount,
 			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
+			EnableCustomCATrust:       defaultCluster.EnableCustomCATrust,
 			EnableFIPS:                defaultCluster.EnableFIPS,
 			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
 			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
@@ -735,6 +741,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableCustomCATrust:    utils.Bool(raw["custom_ca_trust_enabled"].(bool)),
 		EnableFIPS:             utils.Bool(raw["fips_enabled"].(bool)),
 		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
 		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
@@ -744,7 +751,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
 		Type:                   utils.ToPtr(managedclusters.AgentPoolType(raw["type"].(string))),
-		VmSize:                 utils.String(raw["vm_size"].(string)),
+		VMSize:                 utils.String(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
@@ -1051,13 +1058,13 @@ func expandClusterNodePoolSysctlConfig(input []interface{}) (*managedclusters.Sy
 		result.KernelThreadsMax = utils.Int64(int64(v))
 	}
 	if v := raw["vm_max_map_count"].(int); v != 0 {
-		result.VmMaxMapCount = utils.Int64(int64(v))
+		result.VMMaxMapCount = utils.Int64(int64(v))
 	}
 	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VmSwappiness = utils.Int64(int64(v))
+		result.VMSwappiness = utils.Int64(int64(v))
 	}
 	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VmVfsCachePressure = utils.Int64(int64(v))
+		result.VMVfsCachePressure = utils.Int64(int64(v))
 	}
 	return result, nil
 }
@@ -1085,6 +1092,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	enableAutoScaling := false
 	if agentPool.EnableAutoScaling != nil {
 		enableAutoScaling = *agentPool.EnableAutoScaling
+	}
+
+	customCaTrustEnabled := false
+	if agentPool.EnableCustomCATrust != nil {
+		customCaTrustEnabled = *agentPool.EnableCustomCATrust
 	}
 
 	enableFIPS := false
@@ -1194,8 +1206,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	vmSize := ""
-	if agentPool.VmSize != nil {
-		vmSize = *agentPool.VmSize
+	if agentPool.VMSize != nil {
+		vmSize = *agentPool.VMSize
 	}
 	capacityReservationGroupId := ""
 	if agentPool.CapacityReservationGroupID != nil {
@@ -1232,6 +1244,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"enable_auto_scaling":           enableAutoScaling,
 		"enable_node_public_ip":         enableNodePublicIP,
 		"enable_host_encryption":        enableHostEncryption,
+		"custom_ca_trust_enabled":       customCaTrustEnabled,
 		"fips_enabled":                  enableFIPS,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,
@@ -1542,16 +1555,16 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 		netNetfilterNfConntrackMax = int(*input.NetNetfilterNfConntrackMax)
 	}
 	var vmMaxMapCount int
-	if input.VmMaxMapCount != nil {
-		vmMaxMapCount = int(*input.VmMaxMapCount)
+	if input.VMMaxMapCount != nil {
+		vmMaxMapCount = int(*input.VMMaxMapCount)
 	}
 	var vmSwappiness int
-	if input.VmSwappiness != nil {
-		vmSwappiness = int(*input.VmSwappiness)
+	if input.VMSwappiness != nil {
+		vmSwappiness = int(*input.VMSwappiness)
 	}
 	var vmVfsCachePressure int
-	if input.VmVfsCachePressure != nil {
-		vmVfsCachePressure = int(*input.VmVfsCachePressure)
+	if input.VMVfsCachePressure != nil {
+		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
 	return []interface{}{
 		map[string]interface{}{

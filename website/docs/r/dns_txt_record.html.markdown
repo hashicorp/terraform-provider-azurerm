@@ -49,7 +49,7 @@ resource "azurerm_dns_txt_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS TXT Record.
+* `name` - (Required) The name of the DNS TXT Record. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 

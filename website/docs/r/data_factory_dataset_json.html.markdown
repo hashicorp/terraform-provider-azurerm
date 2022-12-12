@@ -77,7 +77,7 @@ The following supported arguments are specific to JSON Dataset:
 
 The following supported arguments are specific to Delimited Text Dataset:
 
-* `encoding` - (Required) The encoding format for the file.
+* `encoding` - (Optional) The encoding format for the file.
 
 ---
 

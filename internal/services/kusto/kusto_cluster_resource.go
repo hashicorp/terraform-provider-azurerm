@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -32,6 +33,11 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		Read:   resourceKustoClusterRead,
 		Update: resourceKustoClusterCreateUpdate,
 		Delete: resourceKustoClusterDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KustoAttachedClusterV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := clusters.ParseClusterID(id)
@@ -522,7 +528,7 @@ func flattenOptimizedAutoScale(optimizedAutoScale *clusters.OptimizedAutoscale) 
 }
 
 func expandKustoListString(input []interface{}) (*[]string, error) {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil, fmt.Errorf("list of string is empty")
 	}
 

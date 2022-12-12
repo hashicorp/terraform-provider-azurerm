@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `relay_id` - (Required) The ID of the Service Bus Relay. Changing this forces a new resource to be created.
 
-* `hostname` - (Optional) The hostname of the endpoint.
+* `hostname` - (Required) The hostname of the endpoint.
 
 * `port` - (Required) The port of the endpoint.
 

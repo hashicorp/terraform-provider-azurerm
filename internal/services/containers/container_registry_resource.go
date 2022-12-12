@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -642,13 +642,11 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("making Read request on Azure Container Registry %s for replications: %s", id.Name, err)
 	}
 
-	geoReplicationLocations := make([]interface{}, 0)
 	geoReplications := make([]interface{}, 0)
 	for _, value := range replications.Values() {
 		if value.Location != nil {
 			valueLocation := azure.NormalizeLocation(*value.Location)
 			if location != nil && valueLocation != azure.NormalizeLocation(*location) {
-				geoReplicationLocations = append(geoReplicationLocations, *value.Location)
 				replication := make(map[string]interface{})
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)

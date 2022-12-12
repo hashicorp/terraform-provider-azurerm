@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/dataconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/managedprivateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/scripts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/scripts" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

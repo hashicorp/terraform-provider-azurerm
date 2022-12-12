@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,35 +92,30 @@ func TestAccMediaStreamingEndpoint_standard(t *testing.T) {
 }
 
 func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.StreamingEndpointID(state.ID)
+	id, err := streamingendpoints.ParseStreamingEndpointID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Media.StreamingEndpointsClient.Start(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
-	if err != nil {
+	if err := client.Media.V20200501Client.StreamingEndpoints.StartThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("starting %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Media.StreamingEndpointsClient.Client); err != nil {
-		return fmt.Errorf("waiting for %s to start: %+v", id, err)
 	}
 
 	return nil
 }
 
 func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StreamingEndpointID(state.ID)
+	id, err := streamingendpoints.ParseStreamingEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.StreamingEndpointsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := clients.Media.V20200501Client.StreamingEndpoints.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.StreamingEndpointProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MediaStreamingEndpointResource) basic(data acceptance.TestData) string {

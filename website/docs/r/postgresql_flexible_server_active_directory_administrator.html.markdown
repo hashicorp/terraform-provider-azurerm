@@ -30,7 +30,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   sku_name                     = "GP_Standard_D2s_v3"
   zone                         = "2"
 
-  auth_config {
+  authentication {
     active_directory_auth_enabled = true
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
@@ -82,5 +82,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 A PostgreSQL Flexible Server Active Directory Administrator can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_postgresql_flexible_server_active_directory_administrator /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/flexibleServers/myserver/administrators/objectId
+terraform import azurerm_postgresql_flexible_server_active_directory_administrator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/flexibleServers/myserver/administrators/objectId
 ```

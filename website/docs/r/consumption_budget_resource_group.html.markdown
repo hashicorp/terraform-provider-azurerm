@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
-* `time_grain` - (Required) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `BillingAnnual`, `BillingMonth`, `BillingQuarter`, `Annually`, `Monthly` and `Quarterly`. Defaults to `Monthly`.
+* `time_grain` - (Optional) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `BillingAnnual`, `BillingMonth`, `BillingQuarter`, `Annually`, `Monthly` and `Quarterly`. Defaults to `Monthly`.
 
 * `time_period` - (Required) A `time_period` block as defined below.
 
@@ -130,7 +130,7 @@ A `notification` block supports the following:
 
 * `threshold` - (Required) Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000.
 
-* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
 
 * `contact_emails` - (Optional) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 

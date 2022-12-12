@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Service Plan should exist. Changing this forces a new AppService to be created.
 
-* `os_type` - (Required) The O/S type for the App Services to be hosted in this plan. Possible values include `Windows`, `Linux`, and `WindowsContainer`.
+* `os_type` - (Required) The O/S type for the App Services to be hosted in this plan. Possible values include `Windows`, `Linux`, and `WindowsContainer`. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the AppService should exist. Changing this forces a new AppService to be created.
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
 
-* `zone_balancing_enabled` - (Optional) Should the Service Plan balance across Availability Zones in the region. Defaults to `false`.
+* `zone_balancing_enabled` - (Optional) Should the Service Plan balance across Availability Zones in the region. Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region.
 

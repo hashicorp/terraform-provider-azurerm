@@ -102,9 +102,7 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 
 		if category := v.Properties; category != nil {
 			if category.CategoryGroups != nil {
-				for _, item := range *category.CategoryGroups {
-					categoryGroups = append(categoryGroups, item)
-				}
+				categoryGroups = append(categoryGroups, *category.CategoryGroups...)
 			}
 			if category.CategoryType != nil {
 				switch *category.CategoryType {

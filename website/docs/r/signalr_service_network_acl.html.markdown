@@ -98,7 +98,7 @@ A `public_network` block supports the following:
 
 **Note:** When `default_action` is `Deny`, `denied_request_types`cannot be set.
 
-**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
+**Note:** `allowed_request_types` - (Optional) and `denied_request_types` cannot be set together.
 
 ---
 
@@ -114,7 +114,7 @@ A `private_endpoint` block supports the following:
 
 **Note:** When `default_action` is `Deny`, `denied_request_types`cannot be set.
 
-**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
+**Note:** `allowed_request_types` - (Optional) and `denied_request_types` cannot be set together.
 
 ## Attributes Reference
 

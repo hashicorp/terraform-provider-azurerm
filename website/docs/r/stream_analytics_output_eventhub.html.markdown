@@ -68,9 +68,9 @@ The following arguments are supported:
 
 * `servicebus_namespace` - (Required) The namespace that is associated with the desired Event Hub, Service Bus Queue, Service Bus Topic, etc.
 
-* `shared_access_policy_key` - (Required) The shared access policy key for the specified shared access policy.
+* `shared_access_policy_key` - (Optional) The shared access policy key for the specified shared access policy. Required when `authentication_mode` is set to `ConnectionString`.
 
-* `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
+* `shared_access_policy_name` - (Optional) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc. Required when `authentication_mode` is set to `ConnectionString`.
 
 * `serialization` - (Required) A `serialization` block as defined below.
 

@@ -99,7 +99,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 
 The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments:
 
-* `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to.
+* `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to. Changing this forces a new resource to be created.
 
 * `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?
 

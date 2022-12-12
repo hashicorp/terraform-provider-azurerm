@@ -1,5 +1,6 @@
 ---
 name: Link Milestone
+
 on:
   pull_request_target:
     branches: [main]
@@ -14,9 +15,9 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.19.3'
+          go-version-file: ./.go-version
       - run: |
           go install github.com/stephybun/link-milestone@latest
           link-milestone

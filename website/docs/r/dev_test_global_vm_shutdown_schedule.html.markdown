@@ -107,13 +107,13 @@ The following arguments are supported:
 
 A `notification_settings` - (Required)  - block supports the following:
 
-* `enabled` - (Optional) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`. Defaults to `false`
+* `enabled` - (Required) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`. Defaults to `false`
 
 * `email` - (Optional) E-mail address to which the notification will be sent.
 
 * `time_in_minutes` - (Optional) Time in minutes between 15 and 120 before a shutdown event at which a notification will be sent. Defaults to `30`.
 
-* `webhook_url` - The webhook URL to which the notification will be sent. Required if `enabled` is `true`. Optional otherwise.
+* `webhook_url` - (Optional) The webhook URL to which the notification will be sent.
 
 ## Attributes Reference
 

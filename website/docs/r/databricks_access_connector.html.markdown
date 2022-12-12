@@ -43,13 +43,26 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
+* `identity` - (Required) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+An `identity` block supports the following:
+* `type` - (Required) The type of identity to use for this Access Connector. `SystemAssigned` is the only possible value.
+* `principal_id` - (Optional) The object id of an existing principal. If not specified, a new system-assigned managed identity is created.
+* `tenant_id` - (Optional) The tenant id in which the principal resides.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Databricks Access Connector in the Azure management plane.
+* `identity`  - A list of `identity` blocks containing the system-assigned managed identities as defined below.
+
+An `identity` block exports the following:
+* `type` - The type of identity.
+* `principal_id` - The Principal Id associated with this system-assigned managed identity.
+* `tenant_id` - The Tenant Id associated with this system-assigned managed identity.
 
 ## Timeouts
 
