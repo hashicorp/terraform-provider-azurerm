@@ -280,7 +280,7 @@ The `bgp_settings` block supports:
 
 ---
 
-The `peering_addresses` supports:
+The `peering_addresses` block supports:
 
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 
