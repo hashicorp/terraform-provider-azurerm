@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -42,9 +42,7 @@ func (a *AzureQuery) LoadSDKTags(tags map[string][]string) {
 	for k, vs := range tags {
 		t := Tag{}
 		t.Tag = k
-		for _, v := range vs {
-			t.Values = append(t.Values, v)
-		}
+		t.Values = append(t.Values, vs...)
 		a.Tags = append(a.Tags, t)
 	}
 }

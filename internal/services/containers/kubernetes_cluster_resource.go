@@ -379,6 +379,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			"image_cleaner_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"image_cleaner_interval_hours": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      48,
+				ValidateFunc: validation.IntBetween(24, 2160),
+			},
+
 			"web_app_routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -716,6 +729,24 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
+						},
+
+						"ebpf_data_plane": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.EbpfDataplaneCilium),
+							}, false),
+						},
+
+						"network_plugin_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.NetworkPluginModeOverlay),
+							}, false),
 						},
 
 						"pod_cidr": {
@@ -1267,6 +1298,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Enabled: &workloadIdentity,
 		}
 	}
+	if securityProfile == nil {
+		securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+	}
+
+	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+		Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+	}
 
 	parameters := managedclusters.ManagedCluster{
 		Name:             utils.String(id.ResourceName),
@@ -1462,7 +1501,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
 	if d.HasChange("role_based_access_control_enabled") {
-
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
 			return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
@@ -1794,6 +1832,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_hours") {
+		updateCluster = true
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		existing.Model.Properties.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+		}
+	}
+
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
@@ -2077,6 +2126,15 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 		}
 
+		if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+			if props.SecurityProfile.ImageCleaner.Enabled != nil {
+				d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
+			}
+			if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
+				d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
+			}
+		}
+
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
@@ -2114,7 +2172,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-
 			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
 			adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
 			if err != nil {
@@ -2198,7 +2255,7 @@ func flattenKubernetesClusterAccessProfile(profile managedclusters.ManagedCluste
 		if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
 			rawConfig := *kubeConfigRaw
 			if base64IsEncoded(*kubeConfigRaw) {
-				rawConfig, _ = base64Decode(*kubeConfigRaw)
+				rawConfig = base64Decode(*kubeConfigRaw)
 			}
 			var flattenedKubeConfig []interface{}
 
@@ -2326,7 +2383,6 @@ func flattenKubernetesClusterLinuxProfile(profile *managedclusters.ContainerServ
 				"key_data": keyData,
 			})
 		}
-
 	}
 
 	return []interface{}{
@@ -2386,7 +2442,6 @@ func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile 
 		DnsServer:      utils.String(config["dns_server"].(string)),
 		RootDomainName: utils.String(config["root_domain"].(string)),
 	}
-
 }
 
 func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
@@ -2488,6 +2543,13 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		LoadBalancerSku: utils.ToPtr(managedclusters.LoadBalancerSku(loadBalancerSku)),
 		OutboundType:    utils.ToPtr(managedclusters.OutboundType(outboundType)),
 		IPFamilies:      ipVersions,
+	}
+
+	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
+		networkProfile.EbpfDataplane = utils.ToPtr(managedclusters.EbpfDataplane(ebpfDataPlane))
+	}
+	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
+		networkProfile.NetworkPluginMode = utils.ToPtr(managedclusters.NetworkPluginMode(networkPluginMode))
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -2776,15 +2838,30 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 	}
 
+	networkPluginMode := ""
+	if profile.NetworkPluginMode != nil {
+		// The returned value has inconsistent casing
+		// TODO: Remove the normalization codes once the following issue is fixed.
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21810
+		if strings.EqualFold(string(*profile.NetworkPluginMode), string(managedclusters.NetworkPluginModeOverlay)) {
+			networkPluginMode = string(managedclusters.NetworkPluginModeOverlay)
+		}
+	}
+	ebpfDataPlane := ""
+	if profile.EbpfDataplane != nil {
+		ebpfDataPlane = string(*profile.EbpfDataplane)
+	}
 	return []interface{}{
 		map[string]interface{}{
 			"dns_service_ip":        dnsServiceIP,
 			"docker_bridge_cidr":    dockerBridgeCidr,
+			"ebpf_data_plane":       ebpfDataPlane,
 			"load_balancer_sku":     string(*sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
 			"ip_versions":           ipVersions,
 			"network_plugin":        networkPlugin,
+			"network_plugin_mode":   networkPluginMode,
 			"network_mode":          networkMode,
 			"network_policy":        networkPolicy,
 			"pod_cidr":              podCidr,
@@ -3235,7 +3312,6 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input *[]maintena
 		var start string
 		if item.Start != nil {
 			start = *item.Start
-
 		}
 		results = append(results, map[string]interface{}{
 			"end":   end,
@@ -3369,7 +3445,6 @@ func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClu
 }
 
 func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterStorageProfile {
-
 	if (input == nil) || len(input) == 0 {
 		return nil
 	}
@@ -3414,12 +3489,12 @@ func flattenEdgeZone(input *edgezones.Model) string {
 	return edgezones.NormalizeNilable(&input.Name)
 }
 
-func base64Decode(str string) (string, bool) {
+func base64Decode(str string) string {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return "", true
+		return ""
 	}
-	return string(data), false
+	return string(data)
 }
 
 func base64IsEncoded(data string) bool {

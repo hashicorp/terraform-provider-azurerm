@@ -626,16 +626,18 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	// Removing replication if present
-	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
-	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+	netApp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("fetching netapp error: %+v", err)
+	}
 
-	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+	if netApp.Model != nil && netApp.Model.Properties.DataProtection != nil {
+		dataProtectionReplication := netApp.Model.Properties.DataProtection
 		replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
 		if err != nil {
 			return err
 		}
-		if dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
+		if dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
 			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
 			if err != nil {
@@ -644,7 +646,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
-		// Checking replication status before deletion, it need to be broken before proceeding with deletion
+		// Checking replication status before deletion, it needs to be broken before proceeding with deletion
 		if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
 			// Wait for replication state = "mirrored"
 			if model := res.Model; model != nil {
@@ -670,7 +672,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if err = replicationClient.VolumesDeleteReplicationThenPoll(ctx, *replicaVolumeId); err != nil {
+		if _, err = replicationClient.VolumesDeleteReplication(ctx, *replicaVolumeId); err != nil {
 			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
 		}
 

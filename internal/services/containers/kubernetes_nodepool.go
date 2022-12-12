@@ -64,6 +64,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: computeValidate.CapacityReservationGroupID,
 					},
 
+					"custom_ca_trust_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
 					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_auto_scaling": {
 						Type:     pluginsdk.TypeBool,
@@ -636,6 +641,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			MessageOfTheDay:           defaultCluster.MessageOfTheDay,
 			MinCount:                  defaultCluster.MinCount,
 			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
+			EnableCustomCATrust:       defaultCluster.EnableCustomCATrust,
 			EnableFIPS:                defaultCluster.EnableFIPS,
 			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
 			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
@@ -735,6 +741,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableCustomCATrust:    utils.Bool(raw["custom_ca_trust_enabled"].(bool)),
 		EnableFIPS:             utils.Bool(raw["fips_enabled"].(bool)),
 		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
 		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
@@ -1087,6 +1094,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		enableAutoScaling = *agentPool.EnableAutoScaling
 	}
 
+	customCaTrustEnabled := false
+	if agentPool.EnableCustomCATrust != nil {
+		customCaTrustEnabled = *agentPool.EnableCustomCATrust
+	}
+
 	enableFIPS := false
 	if agentPool.EnableFIPS != nil {
 		enableFIPS = *agentPool.EnableFIPS
@@ -1232,6 +1244,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"enable_auto_scaling":           enableAutoScaling,
 		"enable_node_public_ip":         enableNodePublicIP,
 		"enable_host_encryption":        enableHostEncryption,
+		"custom_ca_trust_enabled":       customCaTrustEnabled,
 		"fips_enabled":                  enableFIPS,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,
