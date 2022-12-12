@@ -97,7 +97,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `azure_active_directory_role_based_access_control` - (Optional) - A `azure_active_directory_role_based_access_control` block as defined below.
 
-* `monitor_metrics` - (Optional) Specifies prometheus addon profile for the container service cluster. A `monitor_metrics` block as defined below.
+* `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-PrometheusAddonPreview` is enabled, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/prometheus-metrics-enable?tabs=azure-portal) for more information.
 
@@ -324,7 +324,7 @@ When `managed` is set to `false` the following properties can be specified:
 
 An `monitor_metrics` block supports the following:
 
-* `annotations_allowed` - (Optional) Specifies a comma-separated list of Kubernetes annotations keys that will be used in the resource's labels metric.
+* `annotations_allowed` - (Optional) Specifies a comma-separated list of Kubernetes annotation keys that will be used in the resource's labels metric.
 
 * `annotations_allowed` - (Optional) Specifies a Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.
 
