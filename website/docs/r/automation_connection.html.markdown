@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `type` - (Required) The type of the Connection - can be either builtin type such as `Azure`, `AzureClassicCertificate`, and `AzureServicePrincipal`, or a user defined types. Changing this forces a new resource to be created.
 
-* `values` - (Optional) A mapping of key value pairs passed to the connection. Different `type` needs different parameters in the `values`. Builtin types have required field values as below:
+* `values` - (Required) A mapping of key value pairs passed to the connection. Different `type` needs different parameters in the `values`. Builtin types have required field values as below:
 
   * `Azure`: parameters `AutomationCertificateName` and `SubscriptionID`.
 

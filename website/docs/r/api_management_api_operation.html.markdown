@@ -148,7 +148,7 @@ A `query_parameter` block supports the following:
 
 A `request` block supports the following:
 
-* `description` - (Required) A description of the HTTP Request, which may include HTML tags.
+* `description` - (Optional) A description of the HTTP Request, which may include HTML tags.
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 
@@ -182,7 +182,7 @@ A `response` block supports the following:
 
 * `status_code` - (Required) The HTTP Status Code.
 
-* `description` - (Required) A description of the HTTP Response, which may include HTML tags.
+* `description` - (Optional) A description of the HTTP Response, which may include HTML tags.
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 

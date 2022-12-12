@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `database` - (Required) The MS SQL database name where the reference table exists. Changing this forces a new resource to be created.
 
-* `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+* `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. 
 
 * `table` - (Required) Table in the database that the output points to. Changing this forces a new resource to be created.
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"

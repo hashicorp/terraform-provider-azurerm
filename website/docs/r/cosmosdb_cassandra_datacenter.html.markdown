@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `delegated_management_subnet_id` - (Required) The ID of the delegated management subnet for this Cassandra Datacenter. Changing this forces a new Cassandra Datacenter to be created.
 
-* `node_count` - (Required) The number of nodes the Cassandra Datacenter should have. The number should be equal or greater than `3`. Defaults to `3`.
+* `node_count` - (Optional) The number of nodes the Cassandra Datacenter should have. The number should be equal or greater than `3`. Defaults to `3`.
 
 ---
 

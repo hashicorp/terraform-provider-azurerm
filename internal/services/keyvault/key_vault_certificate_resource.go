@@ -509,8 +509,15 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+	if resp.ID == nil {
+		return fmt.Errorf("cannot read KeyVault Certificate '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
+	}
 
-	d.SetId(*resp.ID)
+	certificateId, err := parse.ParseNestedItemID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(certificateId.ID())
 
 	return resourceKeyVaultCertificateRead(d, meta)
 }
@@ -564,7 +571,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 				return err
 			}
 			if resp.ID != nil {
-				d.SetId(*resp.ID)
+				d.SetId(id.ID())
 			}
 		}
 	}
@@ -727,17 +734,22 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
+		if utils.ResponseWasNotFound(kv.Response) {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedCertsOnDestroy
+	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+		log.Printf("[DEBUG] cannot purge certificate %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		shouldPurge = false
+	}
+
 	description := fmt.Sprintf("Certificate %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeCertificate{
 		client:      client,

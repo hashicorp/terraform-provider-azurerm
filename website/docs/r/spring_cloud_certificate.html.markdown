@@ -146,5 +146,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Certificate can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AppPlatform/Spring/spring1/certificates/cert1
+terraform import azurerm_spring_cloud_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AppPlatform/spring/spring1/certificates/cert1
 ```

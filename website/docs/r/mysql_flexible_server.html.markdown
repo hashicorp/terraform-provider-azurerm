@@ -109,7 +109,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
-* `replication_role` - The replication role. Possible value is `None`.
+* `replication_role` - (Optional) The replication role. Possible value is `None`.
 
 ~> **NOTE:** The `replication_role` cannot be set while creating and only can be updated from `Replica` to `None`.
 

@@ -80,15 +80,15 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the contact profile. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the contact profile exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the contact profile exists. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location where the contact profile exists.
+* `location` - (Required) The location where the contact profile exists. Changing this forces a new resource to be created.
 
 * `minimum_variable_contact_duration` - (Required) Minimum viable contact duration in ISO 8601 format. Used for listing the available contacts with a spacecraft at a given ground station.
 
 * `auto_tracking` - (Required) Auto-tracking configurations for a spacecraft. Possible values are `disabled`, `xBand` and `sBand`.
 
-* `network_configuration_subnet_id` - (Required) ARM resource identifier of the subnet delegated to the Microsoft.Orbital/orbitalGateways. Needs to be at least a class C subnet, and should not have any IP created in it.
+* `network_configuration_subnet_id` - (Required) ARM resource identifier of the subnet delegated to the Microsoft.Orbital/orbitalGateways. Needs to be at least a class C subnet, and should not have any IP created in it. Changing this forces a new resource to be created.
 
 * `links` - (Required) A list of spacecraft links. A `links` block as defined below.
 

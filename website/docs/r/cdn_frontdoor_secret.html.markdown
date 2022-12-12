@@ -12,11 +12,11 @@ Manages a Front Door (standard/premium) Secret.
 
 ## Required Key Vault Permissions
 
-!>**IMPORTANT:** You must add an `Access Policy` to your `azurerm_key_vault` for the `Microsoft.AzureFrontDoor-Cdn` Enterprise Application Object ID.
+!>**IMPORTANT:** You must add an `Access Policy` to your `azurerm_key_vault` for the `Microsoft.Azure.Cdn` Enterprise Application Object ID.
 
 | Object ID                                | Key Permissions | Secret Permissions   | Certificate Permissions                       |
 |:-----------------------------------------|:---------------:|:--------------------:|:---------------------------------------------:|
-| `Microsoft.AzureFrontDoor-Cdn` Object ID | -               | **Get**              | -                                             |
+| `Microsoft.Azure.Cdn` Object ID          | -               | **Get**              | -                                             |
 | Your Personal AAD Object ID              | -               | **Get** and **List** | **Get**, **List**, **Purge** and **Recover**  |
 | Terraform Service Principal              | -               | **Get**              | **Get**, **Import**, **Delete** and **Purge** |
 
@@ -27,7 +27,7 @@ Manages a Front Door (standard/premium) Secret.
 ```hcl
 data "azurerm_client_config" "current" {}
 data "azuread_service_principal" "frontdoor" {
-  display_name = "Microsoft.AzureFrontDoor-Cdn"
+  display_name = "Microsoft.Azure.Cdn"
 }
 
 resource "azurerm_key_vault" "example" {
@@ -44,7 +44,7 @@ resource "azurerm_key_vault" "example" {
     ip_rules       = ["10.0.0.0/24"]
   }
 
-  # CDN Front Door Enterprise Application Object ID(e.g. Microsoft.AzureFrontDoor-Cdn)
+  # CDN Front Door Enterprise Application Object ID(e.g. Microsoft.Azure.Cdn)
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azuread_service_principal.frontdoor.object_id

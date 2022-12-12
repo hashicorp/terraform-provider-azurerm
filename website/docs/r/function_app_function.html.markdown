@@ -181,9 +181,9 @@ The following arguments are supported:
 
 A `file` block supports the following:
 
-* `name` - (Required) The filename of the file to be uploaded.
+* `name` - (Required) The filename of the file to be uploaded. Changing this forces a new resource to be created.
 
-* `content` - (Required) The content of the file.
+* `content` - (Required) The content of the file. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

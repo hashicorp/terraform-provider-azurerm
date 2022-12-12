@@ -353,7 +353,7 @@ A `winrm_listener` block supports the following:
 
 * `Protocol` - (Required) Specifies Specifies the protocol of listener. Possible values are `Http` or `Https`
 
-* `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`.
+* `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

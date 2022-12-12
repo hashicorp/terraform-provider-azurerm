@@ -62,13 +62,13 @@ resource "azurerm_netapp_snapshot_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the NetApp Snapshot Policy. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the NetApp Snapshot Policy. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group where the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group where the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created. 
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
 
-* `account_name` - (Required) The name of the NetApp Account in which the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created.
+* `account_name` - (Required) The name of the NetApp Account in which the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created. 
 
 * `enabled` - (Required) Defines that the NetApp Snapshot Policy is enabled or not.
 

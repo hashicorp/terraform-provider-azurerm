@@ -47,6 +47,11 @@ resource "azurerm_logic_app_standard" "example" {
   app_service_plan_id        = azurerm_app_service_plan.example.id
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
+
+  app_settings = {
+    "FUNCTIONS_WORKER_RUNTIME"     = "node"
+    "WEBSITE_NODE_DEFAULT_VERSION" = "~18"
+  }
 }
 ```
 
@@ -106,9 +111,9 @@ resource "azurerm_logic_app_standard" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Logic App Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Logic App Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Logic App
+* `resource_group_name` - (Required) The name of the resource group in which to create the Logic App. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -118,7 +123,7 @@ The following arguments are supported:
 
 ~> **NOTE:** There are a number of application settings that will be managed for you by this resource type and *shouldn't* be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `WEBSITE_CONTENTSHARE` is detailed below. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
 
-* `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Default true
+* `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Defaults to `true`.
 
 * `bundle_version` - (Optional) If `use_extension_bundle` then controls the allowed range for bundle versions. Default `[1.*, 2.0.0)`
 
@@ -136,7 +141,7 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data)
+* `storage_account_name` - (Required) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data). Changing this forces a new resource to be created.
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Logic App
 
@@ -146,7 +151,7 @@ The following arguments are supported:
 
 ~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
-* `version` - (Optional) The runtime version associated with the Logic App Defaults to `~1`.
+* `version` - (Optional) The runtime version associated with the Logic App Defaults to `~3`.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
@@ -160,7 +165,7 @@ The following arguments are supported:
 
 `connection_string` supports the following:
 
-* `name` - (Required) The name of the Connection String.
+* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 
 * `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
 

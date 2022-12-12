@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `criteria` - (Required) A `criteria` block as defined below.
 
-* `evaluation_frequency` - (Required) How often the scheduled query rule is evaluated, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D`.
+* `evaluation_frequency` - (Optional) How often the scheduled query rule is evaluated, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D`.
 
 -> **Note** `evaluation_frequency` cannot be greater than the query look back which is `window_duration`*`number_of_evaluation_periods`.
 
@@ -146,7 +146,7 @@ An `action` block supports the following:
 
 A `criteria` block supports the following:
 
-* `operator` - (Required) Specifies the criteria operator. Possible values are `Equals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`,and `LessThanOrEqual`.
+* `operator` - (Required) Specifies the criteria operator. Possible values are `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`,and `LessThanOrEqual`.
 
 * `query` - (Required) The query to run on logs. The results returned by this query are used to populate the alert.
 
