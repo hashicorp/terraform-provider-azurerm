@@ -1,4 +1,10 @@
-## 3.35.0 (December 08, 2022)
+## 3.36.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
+
+## 3.35.0 (December 09, 2022)
 
 BREAKING CHANGES
 
@@ -19,8 +25,9 @@ ENHANCEMENTS:
 * `proximityplacementgroups`: updating to API Version `2022-03-01` ([#19537](https://github.com/hashicorp/terraform-provider-azurerm/issues/19537))
 * Data Source: `azurerm_kubernetes_cluster` - support for the `storage_profile` block ([#19396](https://github.com/hashicorp/terraform-provider-azurerm/issues/19396))
 * `azurerm_firewall_policy` - support for the `explicit_proxy` block and `auto_learn_private_ranges_mode` property ([#19313](https://github.com/hashicorp/terraform-provider-azurerm/issues/19313))
-* `azurerm_kubernetes_cluster` - support for the `storage_profile` block ([#19396](https://github.com/hashicorp/terraform-provider-azurerm/issues/19396))
 * `azurerm_kubernetes_cluster` - support for the `custom_ca_trust_enabled` property ([#19546](https://github.com/hashicorp/terraform-provider-azurerm/issues/19546))
+* `azurerm_kubernetes_cluster` - support for the `storage_profile` block ([#19396](https://github.com/hashicorp/terraform-provider-azurerm/issues/19396))
+* `azurerm_kubernetes_cluster` - support for the `image_cleaner` block ([#19368](https://github.com/hashicorp/terraform-provider-azurerm/issues/19368))
 * `azurerm_kubernetes_cluster` - support for the `network_plugin_mode` and `ebpf_data_plane` properties ([#19527](https://github.com/hashicorp/terraform-provider-azurerm/issues/19527))
 * `azurerm_kubernetes_cluster_node_pool` - support for the `custom_ca_trust_enabled` property ([#19546](https://github.com/hashicorp/terraform-provider-azurerm/issues/19546))
 * `azurerm_lb_probe` - support for the `probe_threshold` property ([#19573](https://github.com/hashicorp/terraform-provider-azurerm/issues/19573))
