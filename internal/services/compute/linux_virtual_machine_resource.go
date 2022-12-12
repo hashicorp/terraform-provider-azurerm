@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -446,10 +446,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
+	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)

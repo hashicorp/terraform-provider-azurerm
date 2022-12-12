@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -553,7 +553,7 @@ func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []i
 }
 
 func expandKustoListString(input []interface{}) (*[]string, error) {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil, fmt.Errorf("list of string is empty")
 	}
 

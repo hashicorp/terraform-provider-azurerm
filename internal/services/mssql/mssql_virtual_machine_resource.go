@@ -605,7 +605,6 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("virtual_machine_id", props.VirtualMachineResourceId)
 			d.Set("sql_license_type", string(*props.SqlServerLicenseType))
 			if err := d.Set("auto_backup", flattenSqlVirtualMachineAutoBackup(props.AutoBackupSettings, d)); err != nil {

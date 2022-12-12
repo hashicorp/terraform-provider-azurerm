@@ -138,7 +138,6 @@ func TestParseFrontendEndpointID(t *testing.T) {
 		if actual.FrontendEndpointName != v.Expected.FrontendEndpointName {
 			t.Fatalf("Expected %q but got %q for FrontendEndpointName", v.Expected.FrontendEndpointName, actual.FrontendEndpointName)
 		}
-
 	}
 }
 
@@ -304,7 +303,6 @@ func TestParseFrontendEndpointIDInsensitively(t *testing.T) {
 		if actual.FrontendEndpointName != v.Expected.FrontendEndpointName {
 			t.Fatalf("Expected %q but got %q for FrontendEndpointName", v.Expected.FrontendEndpointName, actual.FrontendEndpointName)
 		}
-
 	}
 }
 

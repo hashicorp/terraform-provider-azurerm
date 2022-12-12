@@ -201,7 +201,6 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 
 				if props.ClientType != nil {
 					state.ClientType = string(*props.ClientType)
-
 				}
 
 				if props.VNetSolution != nil && props.VNetSolution.Type != nil {

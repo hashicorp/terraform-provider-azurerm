@@ -67,7 +67,6 @@ func (r AccessConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			var model AccessConnectorResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -44,7 +44,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 
 func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		//lintignore: S013
+		// lintignore: S013
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

@@ -451,7 +451,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("sku_name", sku)
 
 		return tags.FlattenAndSet(d, model.Tags)
-
 	}
 
 	return nil
@@ -481,11 +480,9 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		props := resp.Model.Properties
 
 		if d.HasChange("zone") {
-
 			if !d.HasChange("high_availability.0.standby_availability_zone") {
 				return fmt.Errorf("`zone` can only be changed when exchanged with the zone specified in `high_availability.0.standby_availability_zone`")
 			} else {
-
 				// zone can only be changed when it is swapped for an existing high_availability.0.standby_availability_zone - a failover is triggered to make it the new primary availability zone
 				// compare current values of zone and high_availability.0.standby_availability_zone with new values and only allow update/failover if the values of zone and an existing high_availability.0.standby_availability_zone have been swapped
 				var newZone, newHAStandbyZone string

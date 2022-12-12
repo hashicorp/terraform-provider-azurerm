@@ -100,9 +100,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 
 	id := configurationassignments.NewProviders2ConfigurationAssignmentID(dedicatedHostId.SubscriptionId, dedicatedHostId.ResourceGroupName, "Microsoft.Compute", "hostGroups", dedicatedHostId.HostGroupName, "hosts", dedicatedHostId.HostName, assignmentName)
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-
 		if _, err := client.CreateOrUpdateParent(ctx, id, configurationAssignment); err != nil {
-
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
 				return pluginsdk.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
@@ -179,7 +177,6 @@ func resourceArmMaintenanceAssignmentDedicatedHostDelete(d *pluginsdk.ResourceDa
 }
 
 func getMaintenanceAssignmentDedicatedHost(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, hostId dedicatedhosts.HostId, dedicatedHostId string) (result *[]configurationassignments.ConfigurationAssignment, err error) {
-
 	id := configurationassignments.NewResourceGroupProviderID(hostId.SubscriptionId, hostId.ResourceGroupName, "Microsoft.Compute", "hostGroups", hostId.HostGroupName, "hosts", hostId.HostName)
 
 	resp, err := client.ListParent(ctx, id)

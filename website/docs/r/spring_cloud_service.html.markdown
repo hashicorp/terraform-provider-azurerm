@@ -198,5 +198,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/Spring/spring1
+terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/spring/spring1
 ```
