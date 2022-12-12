@@ -18,8 +18,9 @@ type autoClient struct {
 	ManagedIdentity  *managedidentity_v2022_01_31_preview.Client
 }
 
-func buildAutoClients(client *autoClient, o *common.ClientOptions) {
+func buildAutoClients(client *autoClient, o *common.ClientOptions) error {
 	client.ContainerService = containers.NewClient(o)
 	client.LoadTestService = loadtestservice.NewClient(o)
 	client.ManagedIdentity = managedidentity.NewClient(o)
+	return nil
 }
