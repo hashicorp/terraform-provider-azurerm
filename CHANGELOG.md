@@ -1,5 +1,9 @@
 ## 3.36.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
+
 BUG FIXES:
 
 * `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
