@@ -114,19 +114,15 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the resource id of the Storage Account this data connection will use for ingestion. Changing this forces a new resource to be created.
 
-* `eventhub_id` - (Required) Specifies the resource id of the Event Hub this data connection will use for ingestion.
-  Changing this forces a new resource to be created.
+* `eventhub_id` - (Required) Specifies the resource id of the Event Hub this data connection will use for ingestion. Changing this forces a new resource to be created.
 
-* `eventhub_consumer_group_name` - (Required) Specifies the Event Hub consumer group this data connection will use for
-  ingestion. Changing this forces a new resource to be created.
+* `eventhub_consumer_group_name` - (Required) Specifies the Event Hub consumer group this data connection will use for ingestion. Changing this forces a new resource to be created.
 
-* `blob_storage_event_type` - (Optional) Specifies the blob storage event type that needs to be processed. Possible
-  Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults
-  to `Microsoft.Storage.BlobCreated`.
+* `blob_storage_event_type` - (Optional) Specifies the blob storage event type that needs to be processed. Possible Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults to `Microsoft.Storage.BlobCreated`.
 
-* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`.
+* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `ORC`, `PARQUET`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV`, `TSVE`, `TXT` and `W3CLOGFILE`.
 
-* `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`.
+* `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created.
 
 * `eventgrid_resource_id` - (Optional) The resource ID of the event grid that is subscribed to the storage account events.
 
@@ -138,8 +134,6 @@ The following arguments are supported:
 
 * `skip_first_record` - (Optional) is the first record of every file ignored? Defaults to `false`.
 
-
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -148,7 +142,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kusto Event Grid Data Connection.
 * `update` - (Defaults to 60 minutes) Used when updating the Kusto Event Grid Data Connection.
@@ -160,5 +154,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Kusto Event Grid Data Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_eventgrid_data_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/DataConnections/dataConnection1
+terraform import azurerm_kusto_eventgrid_data_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/dataConnections/dataConnection1
 ```

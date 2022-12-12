@@ -58,6 +58,7 @@ func TestAccFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("dns.0.servers.0").HasValue("1.1.1.1"),
 				check.That(data.ResourceName).Key("dns.0.servers.1").HasValue("3.3.3.3"),
 				check.That(data.ResourceName).Key("dns.0.servers.2").HasValue("2.2.2.2"),
+				check.That(data.ResourceName).Key("dns.0.proxy_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -122,13 +123,6 @@ func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.completePremium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -219,6 +213,9 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  tags = {
+    Env = "Test"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -251,6 +248,15 @@ resource "azurerm_firewall_policy" "test" {
     ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
+  explicit_proxy {
+    enabled         = true
+    http_port       = 8087
+    https_port      = 8088
+    enable_pac_file = true
+    pac_file_port   = 8089
+    pac_file        = "https://tinawstorage.file.core.windows.net/?sv=2020-02-10&ss=bfqt&srt=sco&sp=rwdlacuptfx&se=2021-06-04T07:01:12Z&st=2021-06-03T23:01:12Z&sip=68.65.171.11&spr=https&sig=Plsa0RRVpGbY0IETZZOT6znOHcSro71LLTTbzquYPgs%%3D"
+  }
+  auto_learn_private_ranges_enabled = true
   dns {
     servers       = ["1.1.1.1", "3.3.3.3", "2.2.2.2"]
     proxy_enabled = true
@@ -277,6 +283,15 @@ resource "azurerm_firewall_policy" "test" {
     ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
+  explicit_proxy {
+    enabled         = true
+    http_port       = 8087
+    https_port      = 8088
+    enable_pac_file = true
+    pac_file_port   = 8089
+    pac_file        = "https://tinawstorage.file.core.windows.net/?sv=2020-02-10&ss=bfqt&srt=sco&sp=rwdlacuptfx&se=2021-06-04T07:01:12Z&st=2021-06-03T23:01:12Z&sip=68.65.171.11&spr=https&sig=Plsa0RRVpGbY0IETZZOT6znOHcSro71LLTTbzquYPgs%%3D"
+  }
+  auto_learn_private_ranges_enabled = true
   dns {
     servers       = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled = true
@@ -287,11 +302,14 @@ resource "azurerm_firewall_policy" "test" {
       state = "Alert"
       id    = "1"
     }
+    private_ranges = ["172.111.111.111"]
     traffic_bypass {
-      name              = "Name bypass traffic settings"
-      description       = "Description bypass traffic settings"
-      protocol          = "ANY"
-      destination_ports = ["*"]
+      name                  = "Name bypass traffic settings"
+      description           = "Description bypass traffic settings"
+      destination_addresses = []
+      source_addresses      = []
+      protocol              = "Any"
+      destination_ports     = ["*"]
       source_ip_groups = [
         azurerm_ip_group.test_source.id,
       ]
@@ -300,6 +318,7 @@ resource "azurerm_firewall_policy" "test" {
       ]
     }
   }
+  sql_redirect_allowed = true
   identity {
     type = "UserAssigned"
     identity_ids = [

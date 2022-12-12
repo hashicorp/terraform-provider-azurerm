@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2021-04-01-preview/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -684,7 +684,7 @@ func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameter
 		parameters["nat_gateway_name"] = v.Value
 	}
 
-	if v := input.PublicIpName; v != nil {
+	if v := input.PublicIPName; v != nil {
 		parameters["public_ip_name"] = v.Value
 	}
 
@@ -704,7 +704,7 @@ func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameter
 		parameters["machine_learning_workspace_id"] = v.Value
 	}
 
-	if v := input.EnableNoPublicIp; v != nil {
+	if v := input.EnableNoPublicIP; v != nil {
 		parameters["no_public_ip"] = v.Value
 	}
 
@@ -779,7 +779,7 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 	}
 
 	if v, ok := config["public_ip_name"].(string); ok && v != "" {
-		parameters.PublicIpName = &workspaces.WorkspaceCustomStringParameter{
+		parameters.PublicIPName = &workspaces.WorkspaceCustomStringParameter{
 			Value: v,
 		}
 	}
@@ -809,7 +809,7 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 	}
 
 	if v, ok := config["no_public_ip"].(bool); ok {
-		parameters.EnableNoPublicIp = &workspaces.WorkspaceCustomBooleanParameter{
+		parameters.EnableNoPublicIP = &workspaces.WorkspaceCustomBooleanParameter{
 			Value: v,
 		}
 	}

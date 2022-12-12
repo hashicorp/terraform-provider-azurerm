@@ -1,11 +1,12 @@
 package managementgroup
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -159,5 +160,46 @@ func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceD
 		}
 	}
 
+	// It's a workaround to solve the replication delay issue: DELETE operation happens in one region, but it needs more time to sync the result to other regions.
+	log.Printf("[DEBUG] Waiting for %s to be fully deleted..", d.Id())
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Exists"},
+		Target:                    []string{"NotFound"},
+		Refresh:                   subscriptionAssociationRefreshFunc(ctx, meta.(*clients.Client).ManagementGroups.GroupsClient, *id),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be fully deleted: %+v", d.Id(), err)
+	}
+
 	return nil
+}
+
+func subscriptionAssociationRefreshFunc(ctx context.Context, client *managementgroups.Client, id parse.ManagementGroupSubscriptionAssociationId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		managementGroup, err := client.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
+		if err != nil {
+			return nil, "", fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.ManagementGroup, err)
+		}
+
+		if props := managementGroup.Properties; props != nil && props.Children != nil {
+			for _, v := range *props.Children {
+				if v.Type == managementgroups.Type1Subscriptions {
+					if v.Name != nil && *v.Name == id.SubscriptionId {
+						return managementGroup, "Exists", nil
+					}
+				}
+			}
+		}
+
+		return "NotFound", "NotFound", nil
+	}
 }

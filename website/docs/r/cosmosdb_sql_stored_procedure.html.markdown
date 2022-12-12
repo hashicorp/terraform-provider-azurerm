@@ -41,7 +41,7 @@ resource "azurerm_cosmosdb_sql_stored_procedure" "example" {
   container_name      = azurerm_cosmosdb_sql_container.example.name
 
   body = <<BODY
-  	function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }
+   function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }
 BODY
 }
 ```
@@ -62,7 +62,6 @@ The following arguments are supported:
 
 * `body` - (Required) The body of the stored procedure.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -71,7 +70,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Stored Procedure.
 * `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Stored Procedure.

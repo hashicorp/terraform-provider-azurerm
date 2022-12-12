@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -43,7 +43,6 @@ func (EventHubAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (EventHubAuthorizationRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-
 		oldID := rawState["id"].(string)
 
 		newID, err := eventhubs.ParseEventhubAuthorizationRuleIDInsensitively(oldID)

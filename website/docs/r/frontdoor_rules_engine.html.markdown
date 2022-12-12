@@ -3,12 +3,14 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_rules_engine"
 description: |-
-  Manages an Azure Front Door Rules Engine configuration and rules.
+  Manages an Azure Front Door (classic) Rules Engine configuration and rules.
 ---
 
 # azurerm_frontdoor_rules_engine
 
-Manages an Azure Front Door Rules Engine configuration and rules.
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain). The service team has [announced](https://azure.microsoft.com/blog/zero-downtime-migration-for-azure-front-door-now-in-preview/) the release of their `Front Door Classic` to `Front Door Standard/Premium` [migration tool](https://learn.microsoft.com/azure/frontdoor/tier-migration) to allow you to migrate your existing `Front Door Classic` instances to the new `Front Door Standard/Premium` product tiers.
+
+Manages an Azure Front Door (classic) Rules Engine configuration and rules.
 
 ## Example Usage
 
@@ -107,7 +109,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Rules engine configuration. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Rules engine configuration. Changing this forces a new resource to be created. 
 
 * `frontdoor_name` - (Required) The name of the Front Door instance. Changing this forces a new resource to be created.
 
@@ -119,7 +121,7 @@ The following arguments are supported:
 
 The `rule` block supports the following:
 
-* `name` - (Required) The name of the rule.
+* `name` - (Required) The name of the rule. Changing this forces a new resource to be created.
 
 * `priority` - (Required) Priority of the rule, must be unique per rules engine definition.
 
@@ -176,5 +178,5 @@ The `match_condition` block supports the following:
 Azure Front Door Rules Engine's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_rules_engine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/rule1
+terraform import azurerm_frontdoor_rules_engine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesEngines/rule1
 ```

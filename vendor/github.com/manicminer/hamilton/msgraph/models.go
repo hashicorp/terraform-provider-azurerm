@@ -564,8 +564,8 @@ type ConditionalAccessConditionSet struct {
 	ClientAppTypes   *[]ConditionalAccessClientAppType `json:"clientAppTypes,omitempty"`
 	Devices          *ConditionalAccessDevices         `json:"devices,omitempty"`
 	DeviceStates     *ConditionalAccessDeviceStates    `json:"deviceStates,omitempty"`
-	Locations        *ConditionalAccessLocations       `json:"locations,omitempty"`
-	Platforms        *ConditionalAccessPlatforms       `json:"platforms,omitempty"`
+	Locations        *ConditionalAccessLocations       `json:"locations"`
+	Platforms        *ConditionalAccessPlatforms       `json:"platforms"`
 	SignInRiskLevels *[]ConditionalAccessRiskLevel     `json:"signInRiskLevels,omitempty"`
 	UserRiskLevels   *[]ConditionalAccessRiskLevel     `json:"userRiskLevels,omitempty"`
 	Users            *ConditionalAccessUsers           `json:"users,omitempty"`
@@ -747,9 +747,11 @@ type DirectoryAudit struct {
 }
 
 type DirectoryObject struct {
-	ODataId   *odata.Id   `json:"@odata.id,omitempty"`
-	ODataType *odata.Type `json:"@odata.type,omitempty"`
-	ID        *string     `json:"id,omitempty"`
+	ODataId        *odata.Id              `json:"@odata.id,omitempty"`
+	ODataType      *odata.Type            `json:"@odata.type,omitempty"`
+	ID             *string                `json:"id,omitempty"`
+	DisplayName    *string                `json:"displayName,omitempty"`
+	AdditionalData map[string]interface{} `json:"-"`
 }
 
 func (o *DirectoryObject) Uri(endpoint environments.ApiEndpoint, apiVersion ApiVersion) string {
@@ -865,7 +867,7 @@ type Group struct {
 	Description                   *StringNullWhenEmpty                `json:"description,omitempty"`
 	DisplayName                   *string                             `json:"displayName,omitempty"`
 	ExpirationDateTime            *time.Time                          `json:"expirationDateTime,omitempty"`
-	GroupTypes                    []GroupType                         `json:"groupTypes,omitempty"`
+	GroupTypes                    *[]GroupType                        `json:"groupTypes,omitempty"`
 	HasMembersWithLicenseErrors   *bool                               `json:"hasMembersWithLicenseErrors,omitempty"`
 	HideFromAddressLists          *bool                               `json:"hideFromAddressLists,omitempty"`
 	HideFromOutlookClients        *bool                               `json:"hideFromOutlookClients,omitempty"`
@@ -887,8 +889,8 @@ type Group struct {
 	PreferredLanguage             *string                             `json:"preferredLanguage,omitempty"`
 	ProxyAddresses                *[]string                           `json:"proxyAddresses,omitempty"`
 	RenewedDateTime               *time.Time                          `json:"renewedDateTime,omitempty"`
-	ResourceBehaviorOptions       []GroupResourceBehaviorOption       `json:"resourceBehaviorOptions,omitempty"`
-	ResourceProvisioningOptions   []GroupResourceProvisioningOption   `json:"resourceProvisioningOptions,omitempty"`
+	ResourceBehaviorOptions       *[]GroupResourceBehaviorOption      `json:"resourceBehaviorOptions,omitempty"`
+	ResourceProvisioningOptions   *[]GroupResourceProvisioningOption  `json:"resourceProvisioningOptions,omitempty"`
 	SecurityEnabled               *bool                               `json:"securityEnabled,omitempty"`
 	SecurityIdentifier            *string                             `json:"securityIdentifier,omitempty"`
 	Theme                         *GroupTheme                         `json:"theme,omitempty"`
@@ -945,7 +947,7 @@ func (g *Group) UnmarshalJSON(data []byte) error {
 func (g *Group) HasTypes(types []GroupType) bool {
 	for _, t := range types {
 		found := false
-		for _, gt := range g.GroupTypes {
+		for _, gt := range *g.GroupTypes {
 			if t == gt {
 				found = true
 				break
@@ -1280,6 +1282,7 @@ type ServicePrincipal struct {
 	LogoutUrl                           *string                       `json:"logoutUrl,omitempty"`
 	Notes                               *StringNullWhenEmpty          `json:"notes,omitempty"`
 	NotificationEmailAddresses          *[]string                     `json:"notificationEmailAddresses,omitempty"`
+	OAuth2PermissionScopes              *[]PermissionScope            `json:"oauth2PermissionScopes,omitempty"`
 	PasswordCredentials                 *[]PasswordCredential         `json:"passwordCredentials,omitempty"`
 	PasswordSingleSignOnSettings        *PasswordSingleSignOnSettings `json:"passwordSingleSignOnSettings,omitempty"`
 	PreferredSingleSignOnMode           *PreferredSingleSignOnMode    `json:"preferredSingleSignOnMode,omitempty"`
@@ -1305,6 +1308,97 @@ func (s *ServicePrincipal) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	return nil
+}
+
+type SynchronizationSchedule struct {
+	Expiration *time.Time `json:"expiration,omitempty"`
+	Interval   *string    `json:"interval,omitempty"`
+	State      *string    `json:"state,omitempty"`
+}
+
+type SynchronizationTaskExecution struct {
+	ActivityIdentifier *string `json:"activityIdentifier,omitempty"`
+	CountEntitled      *int64  `json:"countEntitled,omitempty"`
+	State              *string `json:"state,omitempty"`
+}
+
+type SynchronizationProgress struct {
+	CompletedUnits              *int32     `json:"completedUnits,omitempty"`
+	ProgressObservationDateTime *time.Time `json:"progressObservationDateTime,omitempty"`
+	TotalUnits                  *int32     `json:"totalUnits,omitempty"`
+	Units                       *string    `json:"units,omitempty"`
+}
+
+type SynchronizationQuarantine struct {
+	CurrentBegan *time.Time `json:"currentBegan,omitempty"`
+	NextAttempt  *time.Time `json:"nextAttempt,omitempty"`
+	Reason       *string    `json:"reason,omitempty"`
+	SeriesBegan  *time.Time `json:"seriesBegan,omitempty"`
+	SeriesCount  *int64     `json:"seriesCount,omitempty"`
+}
+
+type StringKeyLongValuePair struct {
+	Key   *string `json:"key,omitempty"`
+	Value *int64  `json:"value,omitempty"`
+}
+
+type SynchronizationStatus struct {
+	Code                               *string                       `json:"code,omitempty"`
+	CountSuccssiveCompleteFailure      *int64                        `json:"countSuccessiveCompleteFailures,omitempty"`
+	EscrowsPruned                      *bool                         `json:"escrowsPruned,omitempty"`
+	LastExecution                      *SynchronizationTaskExecution `json:"lastExecution,omitempty"`
+	LastSuccessfulExecution            *SynchronizationTaskExecution `json:"lastSuccessfulExecution,omitempty"`
+	LastSuccessfulExecutionWithExports *SynchronizationTaskExecution `json:"lastSuccessfulExecutionWithExports,omitempty"`
+	Progress                           *[]SynchronizationProgress    `json:"progress,omitempty"`
+	Quarantine                         *SynchronizationQuarantine    `json:"quarantine,omitempty"`
+	SteadyStateFirstAchievedTime       *time.Time                    `json:"steadyStateFirstAchievedTime,omitempty"`
+	SteadyStateLastAchievedTime        *time.Time                    `json:"steadyStateLastAchievedTime,omitempty"`
+	SynchronizedEntryCountByType       *[]StringKeyLongValuePair     `json:"synchronizedEntryCountByType,omitempty"`
+}
+
+type SynchronizationJobRestartCriteria struct {
+	ResetScope *string `json:"resetScope,omitempty"`
+}
+
+type SynchronizationJobKeyValue struct {
+	Name  *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type SynchronizationSecretKeyStringValuePair struct {
+	Key   *string `json:"key,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type SynchronizationJobSubject struct {
+	ObjectId       *string `json:"objectId,omitempty"`
+	ObjectTypeName *string `json:"objectTypeName,omitempty"`
+}
+
+type SynchronizationJobApplicationParameters struct {
+	RuleId   *string                      `json:"ruleId,omitempty"`
+	Subjects *[]SynchronizationJobSubject `json:"subjects,omitempty"`
+}
+
+type SynchronizationJobProvisionOnDemand struct {
+	Parameters *[]SynchronizationJobApplicationParameters `json:"parameters,omitempty"`
+}
+
+type SynchronizationJobValidateCredentials struct {
+	UseSavedCredentials *bool                                      `json:"useSavedCredentials,omitempty"`
+	Credentials         *[]SynchronizationSecretKeyStringValuePair `json:"credentials,omitempty"`
+}
+
+type SynchronizationSecret struct {
+	Credentials *[]SynchronizationSecretKeyStringValuePair `json:"value,omitempty"`
+}
+
+type SynchronizationJob struct {
+	ID                         *string                       `json:"id,omitempty"`
+	Schedule                   *SynchronizationSchedule      `json:"schedule,omitempty"`
+	Status                     *SynchronizationStatus        `json:"status,omitempty"`
+	SynchronizationJobSettings *[]SynchronizationJobKeyValue `json:"synchronizationJobSettings,omitempty"`
+	TemplateId                 *string                       `json:"templateId,omitempty"`
 }
 
 type SignInActivity struct {
@@ -1593,4 +1687,22 @@ type WindowsHelloForBusinessAuthenticationMethod struct {
 type EmployeeOrgData struct {
 	CostCenter *string `json:"costCenter,omitempty"`
 	Division   *string `json:"division,omitempty"`
+}
+
+type B2CUserFlow struct {
+	ID                  *string  `json:"id,omitempty"`
+	UserFlowType        *string  `json:"userFlowType,omitempty"`
+	UserFlowTypeVersion *float32 `json:"userFlowTypeVersion,omitempty"`
+	// The property that determines whether language customization is enabled within the B2C user flow. Language customization is not enabled by default for B2C user flows.
+	IsLanguageCustomizationEnabled *bool `json:"IsLanguageCustomizationEnabled,omitempty"`
+	// Indicates the default language of the b2cIdentityUserFlow that is used when no ui_locale tag is specified in the request. This field is RFC 5646 compliant.
+	DefaultLanguageTag *string `json:"defaultLanguageTag,omitempty"`
+}
+
+type UserFlowAttribute struct {
+	ID                    *string                    `json:"id,omitempty"`
+	Description           *string                    `json:"description,omitempty"`
+	DisplayName           *string                    `json:"displayName,omitempty"`
+	UserFlowAttributeType *string                    `json:"userFlowAttributeType,omitempty"`
+	DataType              *UserflowAttributeDataType `json:"dataType,omitempty"`
 }

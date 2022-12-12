@@ -46,11 +46,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Web PubSub service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Web PubSub service. Changing
-  this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Web PubSub service. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this
-  forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Specifies which SKU to use. Possible values are `Free_F1` and `Standard_S1`.
 
@@ -90,7 +88,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Web PubSub. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Web PubSub.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`
 
@@ -129,7 +127,7 @@ An `identity` block exports the following:
 ## Timeouts
 
 The `timeouts` block allows you to
-specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web PubSub Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Web PubSub Service.
@@ -143,4 +141,3 @@ Web PubSub services can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_web_pubsub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/pubsub1
 ```
-

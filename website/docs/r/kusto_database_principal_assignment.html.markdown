@@ -58,6 +58,8 @@ resource "azurerm_kusto_database_principal_assignment" "example" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name of the kusto principal assignment. Changing this forces a new resource to be created.
+
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 
 * `cluster_name` - (Required) The name of the cluster in which to create the resource. Changing this forces a new resource to be created.
@@ -74,7 +76,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kusto Database Principal Assignment.
 
@@ -84,7 +86,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Kusto Database Principal Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Database Principal Assignment.
@@ -95,5 +97,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Kusto Database Principal Assignment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_database_principal_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/PrincipalAssignments/assignment1
+terraform import azurerm_kusto_database_principal_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/principalAssignments/assignment1
 ```

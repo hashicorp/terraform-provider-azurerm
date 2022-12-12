@@ -48,9 +48,9 @@ resource "azurerm_lb_backend_address_pool" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Backend Address Pool.
+* `name` - (Required) Specifies the name of the Backend Address Pool. Changing this forces a new resource to be created.
   
-* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool. Changing this forces a new resource to be created.
 
 * `tunnel_interface` - (Optional) One or more `tunnel_interface` blocks as defined below.
 
@@ -60,9 +60,9 @@ The `tunnel_interface` block supports the following:
 
 * `identifier` - (Required) The unique identifier of this Gateway Lodbalancer Tunnel Interface.
 
-* `type` - (Required) The traffic type of this Gateway Lodbalancer Tunnel Interface. Possible values are `Internal` and `External`.
+* `type` - (Required) The traffic type of this Gateway Lodbalancer Tunnel Interface. Possible values are `None`, `Internal` and `External`.
 
-* `protocol` - (Required) The protocol used for this Gateway Lodbalancer Tunnel Interface. Possible values are `Native` and `VXLAN`.
+* `protocol` - (Required) The protocol used for this Gateway Lodbalancer Tunnel Interface. Possible values are `None`, `Native` and `VXLAN`.
 
 * `port` - (Required) The port number that this Gateway Lodbalancer Tunnel Interface listens to.
 
@@ -82,7 +82,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Backend Address Pool.
 * `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Backend Address Pool.

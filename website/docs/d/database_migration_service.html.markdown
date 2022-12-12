@@ -10,7 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Database Migration Service.
 
-
 ## Example Usage
 
 ```hcl
@@ -27,7 +26,6 @@ output "azurerm_dms_id" {
   value = data.azurerm_database_migration_service.example.id
 }
 ```
-
 
 ## Argument Reference
 
@@ -53,6 +51,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.

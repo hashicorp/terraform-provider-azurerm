@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -61,7 +61,7 @@ A `github_configuration` block supports the following:
 
 * `branch_name` - (Required) Specifies the branch of the repository to get code from.
 
-* `git_url` - (Required) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com. Use https://github.com for open source repositories.
+* `git_url` - (Required) Specifies the GitHub Enterprise host name. For example: <https://github.mydomain.com>. Use <https://github.com> for open source repositories.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
 
@@ -123,10 +123,9 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory.

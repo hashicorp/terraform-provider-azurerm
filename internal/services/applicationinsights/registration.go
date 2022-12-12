@@ -54,6 +54,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ApplicationInsightsWorkbookResource{},
 		ApplicationInsightsWorkbookTemplateResource{},
 	}
 }

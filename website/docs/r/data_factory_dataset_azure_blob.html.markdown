@@ -69,9 +69,9 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported arguments are specific to Azure Blob Dataset:
 
-* `path` - (Required) The path of the Azure Blob.
+* `path` - (Optional) The path of the Azure Blob.
 
-* `filename` - (Required) The filename of the Azure Blob.
+* `filename` - (Optional) The filename of the Azure Blob.
 
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
@@ -87,7 +87,6 @@ A `schema_column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -96,7 +95,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Dataset.

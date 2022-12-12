@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,6 +31,7 @@ type WindowsWebAppSlotModel struct {
 	ClientAffinityEnabled         bool                                  `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                                  `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                                `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                                `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                       bool                                  `tfschema:"enabled"`
 	HttpsOnly                     bool                                  `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID   string                                `tfschema:"key_vault_reference_identity_id"`
@@ -48,6 +49,7 @@ type WindowsWebAppSlotModel struct {
 	SiteCredentials               []helpers.SiteCredential              `tfschema:"site_credential"`
 	ZipDeployFile                 string                                `tfschema:"zip_deploy_file"`
 	Tags                          map[string]string                     `tfschema:"tags"`
+	VirtualNetworkSubnetID        string                                `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsWebAppSlotResource{}
@@ -113,7 +115,14 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(web.ClientCertModeOptional),
 				string(web.ClientCertModeRequired),
+				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -154,6 +163,12 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
 	}
 }
 
@@ -259,18 +274,23 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          siteProps.ServerFarmID,
-					Enabled:               utils.Bool(webAppSlot.Enabled),
-					HTTPSOnly:             utils.Bool(webAppSlot.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: utils.Bool(webAppSlot.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(webAppSlot.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(webAppSlot.ClientCertMode),
+					ServerFarmID:             siteProps.ServerFarmID,
+					Enabled:                  utils.Bool(webAppSlot.Enabled),
+					HTTPSOnly:                utils.Bool(webAppSlot.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientAffinityEnabled:    utils.Bool(webAppSlot.ClientAffinityEnabled),
+					ClientCertEnabled:        utils.Bool(webAppSlot.ClientCertEnabled),
+					ClientCertMode:           web.ClientCertMode(webAppSlot.ClientCertMode),
+					ClientCertExclusionPaths: utils.String(webAppSlot.ClientCertExclusionPaths),
 				},
 			}
 
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
+			}
+
+			if webAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webAppSlot.VirtualNetworkSubnetID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -438,6 +458,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
 				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(props.ClientCertExclusionPaths),
 				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
@@ -449,6 +470,10 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
+			}
+
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
 			}
 
 			var healthCheckCount *int
@@ -554,6 +579,9 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -584,6 +612,19 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 				currentStack = *stack
 				existing.SiteConfig = siteConfig
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
+					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
+					existing.SiteProperties.VirtualNetworkSubnetID = empty
+				} else {
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
 			}
 
 			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
@@ -655,8 +696,8 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("zip_deploy_file") || metadata.ResourceData.HasChange("zip_deploy_file") {
-				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+			if metadata.ResourceData.HasChange("zip_deploy_file") {
+				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile, id.SlotName); err != nil {
 					return err
 				}
 			}

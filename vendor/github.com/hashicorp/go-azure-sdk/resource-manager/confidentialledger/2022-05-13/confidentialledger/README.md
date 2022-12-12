@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := confidentialledger.NewResourceGroupID()
+id := confidentialledger.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.LedgerListByResourceGroup(ctx, id, confidentialledger.DefaultLedgerListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.LedgerListByResourceGroupComplete(ctx, id, confidentialledger.DefaultLedgerListByResourceGroupOperationOptions())
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := confidentialledger.NewSubscriptionID()
+id := confidentialledger.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.LedgerListBySubscription(ctx, id, confidentialledger.DefaultLedgerListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.LedgerListBySubscriptionComplete(ctx, id, confidentialledger.DefaultLedgerListBySubscriptionOperationOptions())

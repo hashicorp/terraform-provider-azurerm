@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Windows Function App.
 
@@ -48,6 +48,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `client_certificate_enabled` - Is the use of Client Certificates enabled?
 
 * `client_certificate_mode` - The mode of the Function App's client certificates requirement for incoming requests.
+
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
 * `connection_string` - One or more `connection_string` blocks as defined below.
 
@@ -96,6 +98,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `storage_uses_managed_identity` - Is the Function App using a Managed Identity to access the storage account?
 
 * `tags` - A mapping of tags assigned to the Windows Function App.
+
+* `virtual_network_subnet_id` - The subnet id which the Windows Function App is vNet Integrated with.
 
 ---
 
@@ -369,6 +373,6 @@ A `twitter` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Function App.

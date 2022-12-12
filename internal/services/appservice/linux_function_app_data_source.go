@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,6 +38,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
 	ClientCertMode            string                               `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths  string                               `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
 	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"`
 	Enabled                   bool                                 `tfschema:"enabled"`
@@ -47,6 +48,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                      map[string]string                    `tfschema:"tags"`
+	VirtualNetworkSubnetID    string                               `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -141,6 +143,12 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"daily_memory_time_quota": {
@@ -219,6 +227,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -239,7 +252,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if utils.ResponseWasNotFound(functionApp.Response) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("Linux %s not found", id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
@@ -301,12 +314,23 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				Location:                   location.NormalizeNilable(functionApp.Location),
 				Enabled:                    utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:             string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:   utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:       int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				StickySettings:             helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                       tags.ToTypedObject(functionApp.Tags),
 				Kind:                       utils.NormalizeNilableString(functionApp.Kind),
 				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
+			}
+
+			if v := props.OutboundIPAddresses; v != nil {
+				state.OutboundIPAddresses = *v
+				state.OutboundIPAddressList = strings.Split(*v, ",")
+			}
+
+			if v := props.PossibleOutboundIPAddresses; v != nil {
+				state.PossibleOutboundIPAddresses = *v
+				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -334,6 +358,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+			state.VirtualNetworkSubnetID = utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID)
 
 			metadata.SetID(id)
 

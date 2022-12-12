@@ -123,6 +123,90 @@ func TestSharedImageName(t *testing.T) {
 	}
 }
 
+func TestSharedImageIdentifierAttribute(t *testing.T) {
+	cases := []struct {
+		MaxLength   int
+		Input       string
+		ShouldError bool
+	}{
+		{
+			MaxLength:   128,
+			Input:       "",
+			ShouldError: true,
+		},
+		{
+			MaxLength:   128,
+			Input:       "hello",
+			ShouldError: false,
+		},
+		{
+			MaxLength:   128,
+			Input:       "hello.",
+			ShouldError: true,
+		},
+		{
+			MaxLength:   128,
+			Input:       "hello123",
+			ShouldError: false,
+		},
+		{
+			MaxLength:   128,
+			Input:       "hello.123",
+			ShouldError: false,
+		},
+		{
+			MaxLength:   128,
+			Input:       "hello,123",
+			ShouldError: true,
+		},
+		{
+			MaxLength:   128,
+			Input:       "hello_123",
+			ShouldError: false,
+		},
+		{
+			MaxLength:   128,
+			Input:       "hello-123",
+			ShouldError: false,
+		},
+		{
+			MaxLength:   128,
+			Input:       strings.Repeat("a", 128),
+			ShouldError: false,
+		},
+		{
+			MaxLength:   128,
+			Input:       strings.Repeat("a", 129),
+			ShouldError: true,
+		},
+		{
+			MaxLength:   64,
+			Input:       strings.Repeat("a", 64),
+			ShouldError: false,
+		},
+		{
+			MaxLength:   64,
+			Input:       strings.Repeat("a", 65),
+			ShouldError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Input, func(t *testing.T) {
+			_, errors := SharedImageIdentifierAttribute(tc.MaxLength)(tc.Input, "test")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.Input)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.Input, len(errors))
+			}
+		})
+	}
+}
+
 func TestSharedImageVersionName(t *testing.T) {
 	cases := []struct {
 		Input       string

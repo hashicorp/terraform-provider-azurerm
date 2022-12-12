@@ -75,9 +75,9 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name of the custom domain. Changing this forces a new CDN Endpoint Custom Domain to be created.
 
-* `cdn_managed_https` (Optional) - A `cdn_managed_https` block as defined below. 
+* `cdn_managed_https` - (Optional) A `cdn_managed_https` block as defined below.
 
-* `user_managed_https` (Optional) - A `user_managed_https` block as defined below.
+* `user_managed_https` - (Optional) A `user_managed_https` block as defined below.
 
 ~> **NOTE** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 A `cdn_managed_https` block supports the following:
 
 * `certificate_type` - (Required) The type of HTTPS certificate. Possible values are `Shared` and `Dedicated`.
- 
+
 * `protocol_type` - (Required) The type of protocol. Possible values are `ServerNameIndication` and `IPBased`.
 
 * `tls_version` - (Optional) The minimum TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1), `TLS12` (representing TLS 1.2) and `None` (representing no minimums). Defaults to `TLS12`.
@@ -95,8 +95,12 @@ A `cdn_managed_https` block supports the following:
 
 A `user_managed_https` block supports the following:
 
-* `key_vault_certificate_id` - (Required) The ID of the Key Vault Certificate that contains the HTTPS certificate.
- 
+* `key_vault_certificate_id` - (Optional) The ID of the Key Vault Certificate that contains the HTTPS certificate. This is deprecated in favor of `key_vault_secret_id`.
+
+* `key_vault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the HTTPS certificate.
+
+~> **NOTE** Either `key_vault_certificate_id` or `key_vault_secret_id` has to be specified.
+
 * `tls_version` - (Optional) The minimum TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1), `TLS12` (representing TLS 1.2) and `None` (representing no minimums). Defaults to `TLS12`.
 
 ## Attributes Reference
@@ -108,7 +112,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 ## Timeouts
 
 The `timeouts` block allows you to
-specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 12 hours) Used when creating the Custom Domain for this CDN Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint Custom Domain.

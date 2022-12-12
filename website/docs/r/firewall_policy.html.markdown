@@ -49,7 +49,9 @@ The following arguments are supported:
 
 * `private_ip_ranges` - (Optional) A list of private IP ranges to which traffic will not be SNAT.
 
-* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium`. Changing this forces a new Firewall Policy to be created.
+* `auto_learn_private_ranges_enabled` - (Optional) Whether enable auto learn private ip range. Defaults to `false`.
+
+* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Changing this forces a new Firewall Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
 
@@ -58,6 +60,10 @@ The following arguments are supported:
 * `threat_intelligence_mode` - (Optional) The operation mode for Threat Intelligence. Possible values are `Alert`, `Deny` and `Off`. Defaults to `Alert`.
 
 * `tls_certificate` - (Optional) A `tls_certificate` block as defined below.
+
+* `sql_redirect_allowed` - (Optional) Whether SQL Redirect traffic filtering is allowed. Enabling this flag requires no rule using ports between `11000`-`11999`.
+
+* `explicit_proxy` - (Optional) A `explicit_proxy` block as defined below.
 
 ---
 
@@ -83,7 +89,7 @@ An `insights` block supports the following:
 
 * `default_log_analytics_workspace_id` - (Required) The ID of the default Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to, when there is no location matches in the `log_analytics_workspace`.
 
-* `retention_in_days` - (Optional) The log retention period in days. 
+* `retention_in_days` - (Optional) The log retention period in days.
 
 * `log_analytics_workspace` - (Optional) A list of `log_analytics_workspace` block as defined below.
 
@@ -96,6 +102,8 @@ A `intrusion_detection` block supports the following:
 * `signature_overrides` - (Optional) One or more `signature_overrides` blocks as defined below.
 
 * `traffic_bypass` - (Optional) One or more `traffic_bypass` blocks as defined below.
+
+* `private_ranges` - (Optional) A list of Private IP address ranges to identify traffic direction. By default, only ranges defined by IANA RFC 1918 are considered private IP addresses.
 
 ---
 
@@ -149,6 +157,22 @@ A `traffic_bypass` block supports the following:
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups that shall be bypassed by intrusion detection.
 
+---
+
+A `explicit_proxy` block supports the following:
+
+* `enabled` - (Optional) Whether the explicit proxy is enabled for this Firewall Policy.
+
+* `http_port` - (Optional) The port number for explicit http protocol.
+
+* `https_port` - (Optional) The port number for explicit proxy https protocol.
+
+* `enable_pac_file` - (Optional) Whether the pac file port and url need to be provided.
+
+* `pac_file_port` - (Optional) Specifies a port number for firewall to serve PAC file.
+
+* `pac_file` - (Optional) Specifies a SAS URL for PAC file.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -163,7 +187,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Policy.

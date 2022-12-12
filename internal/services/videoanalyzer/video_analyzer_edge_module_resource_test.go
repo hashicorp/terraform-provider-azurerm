@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/videoanalyzer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/edgemodules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,12 +48,12 @@ func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
 }
 
 func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := videoanalyzer.ParseEdgeModuleID(state.ID)
+	id, err := edgemodules.ParseEdgeModuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.VideoAnalyzer.VideoAnalyzersClient.EdgeModulesGet(ctx, *id)
+	resp, err := clients.VideoAnalyzer.EdgeModuleClient.EdgeModulesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
@@ -61,8 +61,8 @@ func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
+// nolint: unused
 func (r VideoAnalyzerEdgeModuleResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -71,9 +71,10 @@ resource "azurerm_video_analyzer_edge_module" "test" {
   resource_group_name = azurerm_resource_group.test.name
   video_analyzer_name = azurerm_video_analyzer.test.name
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
+// nolint: unused
 func (r VideoAnalyzerEdgeModuleResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
@@ -87,6 +88,7 @@ resource "azurerm_video_analyzer_edge_module" "import" {
 `, template)
 }
 
+// nolint: unused
 func (VideoAnalyzerEdgeModuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

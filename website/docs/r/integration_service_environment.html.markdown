@@ -10,6 +10,8 @@ description: |-
 
 Manages private and isolated Logic App instances within an Azure virtual network.
 
+!> **NOTE:** The `azurerm_integration_service_environment` resource is deprecated and will be removed in v4.0 of the Azure Provider. The underlying Azure Service is being retired on 2024-08-31 and new instances cannot be provisioned by default after 2022-11-01. More information on the retirement and how to migrate to [Logic Apps Standard](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/logic_app_standard) [can be found here](https://aka.ms/isedeprecation).
+
 ## Example Usage
 
 ```hcl
@@ -29,7 +31,7 @@ resource "azurerm_subnet" "isesubnet1" {
   name                 = "isesubnet1"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/26"]
+  address_prefixes     = ["10.0.1.0/27"]
 
   delegation {
     name = "integrationServiceEnvironments"
@@ -43,21 +45,21 @@ resource "azurerm_subnet" "isesubnet2" {
   name                 = "isesubnet2"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.64/26"]
+  address_prefixes     = ["10.0.1.32/27"]
 }
 
 resource "azurerm_subnet" "isesubnet3" {
   name                 = "isesubnet3"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.128/26"]
+  address_prefixes     = ["10.0.1.64/27"]
 }
 
 resource "azurerm_subnet" "isesubnet4" {
   name                 = "isesubnet4"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.192/26"]
+  address_prefixes     = ["10.0.1.96/27"]
 }
 
 resource "azurerm_integration_service_environment" "example" {
@@ -95,7 +97,7 @@ The following arguments are supported:
 
 * `access_endpoint_type` - (Required) The type of access endpoint to use for the Integration Service Environment. Possible Values are `Internal` and `External`. Changing this forces a new Integration Service Environment to be created.
 
-* `virtual_network_subnet_ids` - (Required) A list of virtual network subnet ids to be used by Integration Service Environment. Exactly four distinct ids to subnets must be provided. Changing this forces a new Integration Service Environment to be created.
+* `virtual_network_subnet_ids` - (Required) A list of virtual network subnet ids to be used by Integration Service Environment. Exactly four distinct ids to `/27` subnets must be provided. Changing this forces a new Integration Service Environment to be created.
 
 ---
 
@@ -103,7 +105,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Integration Service Environment.
 
@@ -117,7 +119,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 hours) Used when creating the Integration Service Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Integration Service Environment.

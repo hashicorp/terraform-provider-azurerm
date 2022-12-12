@@ -19,7 +19,7 @@ data "azurerm_linux_function_app" "example" {
 }
 
 output "id" {
-  value = data.linux_function_app.example.id
+  value = data.azurerm_linux_function_app.example.id
 }
 ```
 
@@ -33,17 +33,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Function App.
 
 * `location` -  The Azure Region where the Linux Function App exists.
-
-* `service_plan_id` - The ID of the App Service Plan within which this Function App has been created.
-
-* `site_config` -  A `site_config` block as defined below.
-
-* `storage_account_name` - The backend storage account name used by this Function App.
 
 * `app_settings` - A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
@@ -51,39 +45,31 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backup` - A `backup` block as defined below.
 
-* `builtin_logging_enabled` - Is built in logging enabled? 
+* `builtin_logging_enabled` - Is built in logging enabled?
 
 * `client_certificate_enabled` - Are Client Certificates enabled?
 
 * `client_certificate_mode` -  The mode of the Function App's client certificates requirement for incoming requests.
 
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` -  A `connection_string` blocks as defined below.
+
+* `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?
+
+* `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `daily_memory_time_quota` -  The amount of memory in gigabyte-seconds that your application is allowed to consume per day.
 
-* `enabled` - Is the Function App enabled?
+* `default_hostname` - The default hostname of the Linux Function App.
 
-* `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?
+* `enabled` - Is the Function App enabled?
 
 * `functions_extension_version` - The runtime version associated with the Function App.
 
 * `https_only` - Can the Function App only be accessed via HTTPS?
 
 * `identity` - A `identity` block as defined below.
-
-* `sticky_settings` - A `sticky_settings` block as defined below.
-
-* `storage_account_access_key` -  The access key used to access the backend storage account for the Function App. 
-
-* `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
-
-* `storage_uses_managed_identity` - Does the Function App use Managed Identity to access the storage account?
-
-* `tags` - A mapping of tags which are assigned to the Linux Function App.
-
-* `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
-
-* `default_hostname` - The default hostname of the Linux Function App.
 
 * `kind` - The Kind value for this Linux Function App.
 
@@ -95,7 +81,25 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
 
+* `service_plan_id` - The ID of the App Service Plan within which this Function App has been created.
+
+* `site_config` -  A `site_config` block as defined below.
+
 * `site_credential` - A `site_credential` block as defined below.
+
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
+* `storage_account_name` - The backend storage account name used by this Function App.
+
+* `storage_account_access_key` -  The access key used to access the backend storage account for the Function App.
+
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
+
+* `storage_uses_managed_identity` - Does the Function App use Managed Identity to access the storage account?
+
+* `tags` - A mapping of tags which are assigned to the Linux Function App.
+
+* `virtual_network_subnet_id` - The subnet id which the Linux Function App is vNet Integrated with.
 
 ---
 
@@ -131,9 +135,9 @@ A `application_stack` block exports the following:
 
 An `app_service_logs` block exports the following:
 
-* `disk_quota_mb` -  The amount of disk space used for logs. 
+* `disk_quota_mb` -  The amount of disk space used for logs.
 
-* `retention_period_days` - The retention period for logs in days. 
+* `retention_period_days` - The retention period for logs in days.
 
 ---
 
@@ -243,11 +247,11 @@ A `google` block exports the following:
 
 * `client_id` - The OpenID Connect Client ID for the Google web application.
 
-* `client_secret` - The client secret associated with the Google web application. 
+* `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login. 
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are requested as part of Google Sign-In authentication. 
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are requested as part of Google Sign-In authentication.
 
 ---
 
@@ -297,11 +301,11 @@ A `microsoft` block exports the following:
 
 * `client_id` -  The OAuth 2.0 client ID that was created for the app used for authentication.
 
-* `client_secret` -  The OAuth 2.0 client secret that was created for the app used for authentication. 
+* `client_secret` -  The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `client_secret_setting_name` - The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. 
+* `oauth_scopes` - A list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication.
 
 ---
 
@@ -377,7 +381,7 @@ A `site_config` block exports the following:
 
 * `elastic_instance_minimum` -  The number of minimum instances for this Linux Function App.
 
-* `ftps_state` - State of FTP / FTPS service for this function app. 
+* `ftps_state` - State of FTP / FTPS service for this function app.
 
 * `health_check_path` - The path that is checked for this function app health.
 
@@ -389,7 +393,7 @@ A `site_config` block exports the following:
 
 * `load_balancing_mode` -  The Site load balancing mode.
 
-* `managed_pipeline_mode` - Managed pipeline mode. 
+* `managed_pipeline_mode` - Managed pipeline mode.
 
 * `minimum_tls_version` -  The minimum version of TLS required for SSL requests.
 
@@ -435,6 +439,6 @@ A `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App.

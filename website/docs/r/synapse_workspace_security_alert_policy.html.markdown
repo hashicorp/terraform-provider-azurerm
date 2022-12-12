@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) Specifies the ID of the Synapse Workspace. Changing this forces a new resource to be created.
 
-* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific workspace. Allowed values are: `Disabled`, `Enabled`.
+* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific workspace. Possible values are `Disabled`, `Enabled` and `New`.
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
@@ -96,8 +96,7 @@ The following arguments are supported:
 
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account.
 
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
-
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all Threat Detection audit logs.
 
 ## Attributes Reference
 
@@ -107,7 +106,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Workspace Security Alert Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the Synapse Workspace Security Alert Policy.

@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -130,7 +130,7 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 				"java_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
+					ValidateFunc: validation.StringInSlice([]string{"1.8", "11", "17"}, false),
 				},
 
 				"elastic_instance_minimum": {

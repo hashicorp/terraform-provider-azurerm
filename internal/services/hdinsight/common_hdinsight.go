@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -132,6 +132,17 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 					return err
 				}
 			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
+				return err
+			}
+		}
+		if d.HasChange("extension") {
+			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
+			if v, ok := d.GetOk("extension"); ok {
+				extensionRaw := v.([]interface{})
+				if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
+					return err
+				}
+			} else if err := disableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name); err != nil {
 				return err
 			}
 		}
@@ -321,6 +332,17 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 			ApplicationType:      utils.String("CustomApplication"),
 		},
 	}
+
+	if v, ok := input["https_endpoints"]; ok {
+		httpsEndpoints := expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
+		application.Properties.HTTPSEndpoints = httpsEndpoints
+	}
+
+	if v, ok := input["uninstall_script_actions"]; ok {
+		uninstallScriptActions := expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
+		application.Properties.UninstallScriptActions = uninstallScriptActions
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, name, application)
 	if err != nil {
 		return fmt.Errorf("creating edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -415,6 +437,19 @@ func flattenHDInsightMonitoring(monitor hdinsight.ClusterMonitoringResponse) []i
 	return nil
 }
 
+func flattenHDInsightAzureMonitor(extension hdinsight.AzureMonitorResponse) []interface{} {
+	if *extension.ClusterMonitoringEnabled {
+		return []interface{}{
+			map[string]string{
+				"log_analytics_workspace_id": *extension.WorkspaceID,
+				"primary_key":                "*****",
+			},
+		}
+	}
+
+	return nil
+}
+
 func enableHDInsightMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string, input []interface{}) error {
 	monitor := ExpandHDInsightsMonitor(input)
 	future, err := client.EnableMonitoring(ctx, resourceGroup, name, monitor)
@@ -437,6 +472,41 @@ func disableHDInsightMonitoring(ctx context.Context, client *hdinsight.Extension
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for disabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func enableHDInsightAzureMonitor(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, clusterName string, input []interface{}) error {
+	v := input[0].(map[string]interface{})
+
+	workSpaceId := v["log_analytics_workspace_id"].(string)
+	primaryKey := v["primary_key"].(string)
+
+	extension := hdinsight.AzureMonitorRequest{
+		WorkspaceID: utils.String(workSpaceId),
+		PrimaryKey:  utils.String(primaryKey),
+	}
+	future, err := client.EnableAzureMonitor(ctx, resourceGroup, clusterName, extension)
+	if err != nil {
+		return err
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creating extension for HDInsight Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func disableHDInsightAzureMonitor(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string) error {
+	future, err := client.DisableAzureMonitor(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for disabling extension for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

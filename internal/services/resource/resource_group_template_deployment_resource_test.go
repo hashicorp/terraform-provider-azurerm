@@ -72,7 +72,24 @@ func TestAccResourceGroupTemplateDeployment_singleItemIncorrectCasing(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_inconsistentProviderCasing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.inconsistentProviderCasing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
+		{ // delete item
+			Config: r.inconsistentProviderCasingEmpty(data),
+		},
 	})
 }
 
@@ -248,6 +265,21 @@ func TestAccResourceGroupTemplateDeployment_templateSpecResources(t *testing.T) 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.templateSpecVersionConfigResources(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_nestedResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nestedResources(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -450,6 +482,83 @@ TEMPLATE
 PARAM
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, value)
+}
+
+func (ResourceGroupTemplateDeploymentResource) inconsistentProviderCasing(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = %q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+    {
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {},
+      "variables": {},
+      "resources": [
+        {
+          "type": "Microsoft.Insights/actionGroups",
+          "apiVersion": "2019-06-01",
+          "name": "acctestTemplateDeployAG1-%d",
+          "location": "Global",
+          "dependsOn": [],
+          "tags": {},
+          "properties": {
+            "groupShortName": "rick-c137",
+            "enabled": true,
+            "emailReceivers": [
+              {
+                "name": "Rick Sanchez",
+                "emailAddress": "rick@example.com"
+              }
+            ],
+            "smsReceivers": [],
+            "webhookReceivers": []
+          }
+        },
+        {
+          "type": "microsoft.insights/actionGroups",
+          "apiVersion": "2019-06-01",
+          "name": "acctestTemplateDeployAG2-%d",
+          "location": "Global",
+          "dependsOn": [],
+          "tags": {},
+          "properties": {
+            "groupShortName": "rick-c138",
+            "enabled": true,
+            "emailReceivers": [
+              {
+                "name": "Rick Sanchez",
+                "emailAddress": "rick@example.com"
+              }
+            ],
+            "smsReceivers": [],
+            "webhookReceivers": []
+          }
+        }
+      ]
+    }
+TEMPLATE
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+func (ResourceGroupTemplateDeploymentResource) inconsistentProviderCasingEmpty(data acceptance.TestData) string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
 }
 
 func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfigAndVariable(data acceptance.TestData, templateVar string, paramVal string) string {
@@ -794,4 +903,65 @@ resource "azurerm_resource_group_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ResourceGroupTemplateDeploymentResource) nestedResources(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+  parameters_content = jsonencode({
+    "healthdicomservicename" = {
+      value = "hd%[1]d"
+    },
+    "healthworkspacename" = {
+      value = "hw%[1]d"
+    }
+  })
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "healthdicomservicename": {
+      "type": "String",
+      "defaultValue": ""
+    },
+    "healthworkspacename": {
+      "type": "String",
+      "defaultValue": ""
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.HealthcareApis/workspaces",
+      "apiVersion": "2022-06-01",
+      "name": "[parameters('healthworkspacename')]",
+      "location": %[2]q
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/dicomservices",
+      "apiVersion": "2022-06-01",
+      "name": "[concat(parameters('healthworkspacename'), '/', parameters('healthdicomservicename'))]",
+      "location": %[2]q,
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces', parameters('healthworkspacename'))]"
+      ]
+    }
+  ]
+}
+TEMPLATE
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

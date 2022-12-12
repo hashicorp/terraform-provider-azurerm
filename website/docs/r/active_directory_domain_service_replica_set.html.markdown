@@ -284,7 +284,7 @@ The following arguments are supported:
   
 * `location` - (Required) The Azure location where this Replica Set should exist. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set.
+* `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set. Changing this forces a new resource to be created.
   
 ## Attributes Reference
 
@@ -300,7 +300,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Domain Service.
 * `update` - (Defaults to 2 hours) Used when updating the Domain Service.

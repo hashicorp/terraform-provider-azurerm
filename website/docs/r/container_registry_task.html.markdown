@@ -163,9 +163,9 @@ A `encoded_step` block supports the following:
 
 * `task_content` - (Required) The (optionally base64 encoded) content of the build template.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 
@@ -179,9 +179,9 @@ A `file_step` block supports the following:
 
 * `task_file_path` - (Required) The task template file path relative to the source context.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 
@@ -253,7 +253,7 @@ A `timer_trigger` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Registry Task.
 
@@ -269,7 +269,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry Task.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Task.

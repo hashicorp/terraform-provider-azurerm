@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -155,6 +155,11 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -190,6 +195,10 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
+		if v := props.PublicNetworkAccess; v != nil {
+			d.Set("public_network_access_enabled", *v == "Enabled")
+		}
+
 		d.Set("vault_uri", props.VaultURI)
 		if props.VaultURI != nil {
 			meta.(*clients.Client).KeyVault.AddToCache(id, *resp.Properties.VaultURI)

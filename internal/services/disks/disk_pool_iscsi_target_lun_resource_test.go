@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/iscsitargets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -97,7 +98,7 @@ func TestAccDiskPoolIscsiTargetLun_destroy(t *testing.T) {
 }
 
 func (r DisksPoolIscsiTargetLunResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := iscsitargets.ParseIscsiTargetLunID(state.ID)
+	id, err := parse.IscsiTargetLunID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +125,9 @@ func (r DisksPoolIscsiTargetLunResource) Exists(ctx context.Context, clients *cl
 }
 
 func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := iscsitargets.ParseIscsiTargetLunID(state.ID)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
+	defer cancel()
+	id, err := parse.IscsiTargetLunID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +168,11 @@ func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *c
 
 	m := disks.DiskPoolIscsiTargetLunModel{}
 
-	err = m.RetryError(30*time.Minute, "waiting for delete DisksPool iscsi target", id.ID(), func() error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return nil, fmt.Errorf("could not retrieve context deadline")
+	}
+	err = m.RetryError(time.Until(deadline), "waiting for delete DisksPool iscsi target", id.ID(), func() error {
 		return client.UpdateThenPoll(ctx, iscsiTargetId, patch)
 	})
 	if err != nil {
@@ -217,9 +224,9 @@ func (r DisksPoolIscsiTargetLunResource) multipleLuns(data acceptance.TestData, 
 %[1]s
 
 resource "azurerm_disk_pool_iscsi_target_lun" "test%[2]d" {
-  iscsi_target_id            = azurerm_disk_pool_iscsi_target.test.id
+  iscsi_target_id                      = azurerm_disk_pool_iscsi_target.test.id
   disk_pool_managed_disk_attachment_id = azurerm_disk_pool_managed_disk_attachment.test[%[2]d].id
-  name                       = "test-%[2]d"
+  name                                 = "test-%[2]d"
 }
 `, tfCode, i)
 	}
@@ -302,10 +309,6 @@ resource "azurerm_disk_pool" "test" {
   subnet_id           = azurerm_subnet.test.id
   tags = {
     "env" = "qa"
-  }
-  timeouts {
-    create = "60m"
-    delete = "60m"
   }
 }
 

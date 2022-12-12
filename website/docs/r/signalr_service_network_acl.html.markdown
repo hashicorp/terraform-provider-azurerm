@@ -98,7 +98,7 @@ A `public_network` block supports the following:
 
 **Note:** When `default_action` is `Deny`, `denied_request_types`cannot be set.
 
-**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
+**Note:** `allowed_request_types` - (Optional) and `denied_request_types` cannot be set together.
 
 ---
 
@@ -114,7 +114,7 @@ A `private_endpoint` block supports the following:
 
 **Note:** When `default_action` is `Deny`, `denied_request_types`cannot be set.
 
-**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
+**Note:** `allowed_request_types` - (Optional) and `denied_request_types` cannot be set together.
 
 ## Attributes Reference
 
@@ -124,7 +124,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network ACL of the SignalR service
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network ACL of the SignalR service

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -26,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 // See https://github.com/Azure/azure-sdk-for-go/blob/master/services/network/mgmt/2018-04-01/network/models.go
@@ -137,7 +137,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
 
-			//lintignore:S016,S023
+			// lintignore:S016,S023
 			"backend_address_pool": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -175,7 +175,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Set: applicationGatewayBackendAddressPool,
 			},
 
-			//lintignore:S016,S017,S023
+			// lintignore:S016,S017,S023
 			"backend_http_settings": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -325,6 +325,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"public_ip_address_id": {
@@ -409,7 +410,25 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S016,S023
+			"global": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"request_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"response_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			// lintignore:S016,S023
 			"http_listener": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -880,7 +899,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
 			// TODO 4.0: change this from enable_* to *_enabled
@@ -894,7 +913,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			//lintignore:S016,S023
+			// lintignore:S016,S023
 			"probe": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -957,7 +976,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Default:  0,
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"match": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -966,7 +985,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"body": {
 										Type:     pluginsdk.TypeString,
-										Required: true,
+										Optional: true,
 									},
 
 									"status_code": {
@@ -1092,6 +1111,17 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
 												},
+
+												"components": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Computed: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														"path_only",
+														"query_string_only",
+													}, false),
+												},
+
 												"reroute": {
 													Type:     pluginsdk.TypeBool,
 													Optional: true,
@@ -1112,7 +1142,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S016,S023
+			// lintignore:S016,S023
 			"ssl_certificate": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -1206,7 +1236,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"ssl_policy": sslProfileSchema(false),
 
 						"id": {
@@ -1431,9 +1461,15 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
 											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
+											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
 										}, false),
 									},
 
@@ -1561,6 +1597,8 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
+	globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
@@ -1585,6 +1623,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
+			GlobalConfiguration:           globalConfiguration,
 			HTTPListeners:                 httpListeners,
 			PrivateLinkConfigurations:     expandApplicationGatewayPrivateLinkConfigurations(d),
 			Probes:                        expandApplicationGatewayProbes(d),
@@ -1601,7 +1640,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		gateway.Zones = &zones
 	}
@@ -1793,6 +1832,11 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations = gatewayIPConfigurations
 	}
 
+	if d.HasChange("global") {
+		globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+		applicationGateway.ApplicationGatewayPropertiesFormat.GlobalConfiguration = globalConfiguration
+	}
+
 	if d.HasChange("http_listener") {
 		httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 		if err != nil {
@@ -1856,7 +1900,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("zones") {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		if len(zones) > 0 {
 			applicationGateway.Zones = &zones
 		}
@@ -1989,7 +2033,7 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	d.Set("location", location.NormalizeNilable(applicationGateway.Location))
-	d.Set("zones", zones.Flatten(applicationGateway.Zones))
+	d.Set("zones", zones.FlattenUntyped(applicationGateway.Zones))
 
 	identity, err := flattenApplicationGatewayIdentity(applicationGateway.Identity)
 	if err != nil {
@@ -2050,6 +2094,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
 			return fmt.Errorf("setting `gateway_ip_configuration`: %+v", setErr)
+		}
+
+		if setErr := d.Set("global", flattenApplicationGatewayGlobalConfiguration(props.GlobalConfiguration)); setErr != nil {
+			return fmt.Errorf("setting `global`: %+v", setErr)
 		}
 
 		if setErr := d.Set("private_endpoint_connection", flattenApplicationGatewayPrivateEndpoints(props.PrivateEndpointConnections)); setErr != nil {
@@ -2966,6 +3014,36 @@ func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatew
 	return results
 }
 
+func expandApplicationGatewayGlobalConfiguration(input []interface{}) *network.ApplicationGatewayGlobalConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &network.ApplicationGatewayGlobalConfiguration{
+		EnableRequestBuffering:  utils.Bool(v["request_buffering_enabled"].(bool)),
+		EnableResponseBuffering: utils.Bool(v["response_buffering_enabled"].(bool)),
+	}
+}
+
+func flattenApplicationGatewayGlobalConfiguration(input *network.ApplicationGatewayGlobalConfiguration) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	output := make(map[string]interface{})
+
+	if input.EnableRequestBuffering != nil {
+		output["request_buffering_enabled"] = *input.EnableRequestBuffering
+	}
+
+	if input.EnableResponseBuffering != nil {
+		output["response_buffering_enabled"] = *input.EnableResponseBuffering
+	}
+
+	return []interface{}{output}
+}
+
 func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayFrontendPort {
 	vs := d.Get("frontend_port").(*pluginsdk.Set).List()
 	results := make([]network.ApplicationGatewayFrontendPort, 0)
@@ -3599,10 +3677,14 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]netw
 				if c["path"] == nil && c["query_string"] == nil {
 					return nil, fmt.Errorf("At least one of `path` or `query_string` must be set")
 				}
-				if c["path"] != nil {
+				components := ""
+				if c["components"] != nil {
+					components = c["components"].(string)
+				}
+				if c["path"] != nil && components != "query_string_only" {
 					urlConfiguration.ModifiedPath = utils.String(c["path"].(string))
 				}
-				if c["query_string"] != nil {
+				if c["query_string"] != nil && components != "path_only" {
 					urlConfiguration.ModifiedQueryString = utils.String(c["query_string"].(string))
 				}
 				if c["reroute"] != nil {
@@ -3733,20 +3815,36 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 						if actionSet.URLConfiguration != nil {
 							config := *actionSet.URLConfiguration
-							urlConfig := map[string]interface{}{}
-
+							components := ""
+							path := ""
 							if config.ModifiedPath != nil {
-								urlConfig["path"] = *config.ModifiedPath
+								path = *config.ModifiedPath
 							}
 
+							queryString := ""
 							if config.ModifiedQueryString != nil {
-								urlConfig["query_string"] = *config.ModifiedQueryString
+								queryString = *config.ModifiedQueryString
 							}
 
-							if config.Reroute != nil {
-								urlConfig["reroute"] = *config.Reroute
+							if path != queryString {
+								if path != "" && queryString == "" {
+									components = "path_only"
+								} else if queryString != "" && path == "" {
+									components = "query_string_only"
+								}
 							}
-							urlConfigs = append(urlConfigs, urlConfig)
+
+							reroute := false
+							if config.Reroute != nil {
+								reroute = *config.Reroute
+							}
+
+							urlConfigs = append(urlConfigs, map[string]interface{}{
+								"components":   components,
+								"query_string": queryString,
+								"path":         path,
+								"reroute":      reroute,
+							})
 						}
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs
@@ -4271,6 +4369,10 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
 		defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string)
 
+		if defaultBackendAddressPoolName == "" && defaultBackendHTTPSettingsName == "" && defaultRedirectConfigurationName == "" {
+			return nil, fmt.Errorf("both the `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` must be specified")
+		}
+
 		if defaultBackendAddressPoolName != "" && defaultRedirectConfigurationName != "" {
 			return nil, fmt.Errorf("Conflict between `default_backend_address_pool_name` and `default_redirect_configuration_name` (back-end pool not applicable when redirection specified)")
 		}
@@ -4786,7 +4888,6 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 				config := ac.(map[string]interface{})
 				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
 				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
-
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {

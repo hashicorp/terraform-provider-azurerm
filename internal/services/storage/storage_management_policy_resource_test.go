@@ -384,6 +384,13 @@ func TestAccStorageManagementPolicy_baseblobAccessTimeBased(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.baseblobCreateBased(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.baseblobModificationBased(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -845,19 +852,22 @@ resource "azurerm_storage_management_policy" "test" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than    = 10
-        tier_to_archive_after_days_since_modification_greater_than = 50
-        delete_after_days_since_modification_greater_than          = 100
+        tier_to_cool_after_days_since_modification_greater_than        = 10
+        tier_to_archive_after_days_since_modification_greater_than     = 50
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 10
+        delete_after_days_since_modification_greater_than              = 100
       }
       snapshot {
-        change_tier_to_archive_after_days_since_creation = 90
-        change_tier_to_cool_after_days_since_creation    = 23
-        delete_after_days_since_creation_greater_than    = 30
+        change_tier_to_archive_after_days_since_creation               = 90
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 10
+        change_tier_to_cool_after_days_since_creation                  = 23
+        delete_after_days_since_creation_greater_than                  = 30
       }
       version {
-        change_tier_to_archive_after_days_since_creation = 9
-        change_tier_to_cool_after_days_since_creation    = 90
-        delete_after_days_since_creation                 = 3
+        change_tier_to_archive_after_days_since_creation               = 9
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 10
+        change_tier_to_cool_after_days_since_creation                  = 90
+        delete_after_days_since_creation                               = 3
       }
     }
   }
@@ -898,19 +908,22 @@ resource "azurerm_storage_management_policy" "test" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than    = 11
-        tier_to_archive_after_days_since_modification_greater_than = 51
-        delete_after_days_since_modification_greater_than          = 101
+        tier_to_cool_after_days_since_modification_greater_than        = 11
+        tier_to_archive_after_days_since_modification_greater_than     = 51
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 20
+        delete_after_days_since_modification_greater_than              = 101
       }
       snapshot {
-        change_tier_to_archive_after_days_since_creation = 91
-        change_tier_to_cool_after_days_since_creation    = 24
-        delete_after_days_since_creation_greater_than    = 31
+        change_tier_to_archive_after_days_since_creation               = 91
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 20
+        change_tier_to_cool_after_days_since_creation                  = 24
+        delete_after_days_since_creation_greater_than                  = 31
       }
       version {
-        change_tier_to_archive_after_days_since_creation = 10
-        change_tier_to_cool_after_days_since_creation    = 91
-        delete_after_days_since_creation                 = 4
+        change_tier_to_archive_after_days_since_creation               = 10
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 20
+        change_tier_to_cool_after_days_since_creation                  = 91
+        delete_after_days_since_creation                               = 4
       }
     }
   }
@@ -990,6 +1003,32 @@ resource "azurerm_storage_management_policy" "test" {
         tier_to_cool_after_days_since_modification_greater_than    = 10
         tier_to_archive_after_days_since_modification_greater_than = 50
         delete_after_days_since_modification_greater_than          = 100
+      }
+    }
+  }
+}
+`, r.templateLastAccessTimeEnabled(data))
+}
+
+func (r StorageManagementPolicyResource) baseblobCreateBased(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  rule {
+    name    = "rule-1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_creation_greater_than    = 10
+        tier_to_archive_after_days_since_creation_greater_than = 50
+        delete_after_days_since_creation_greater_than          = 100
       }
     }
   }

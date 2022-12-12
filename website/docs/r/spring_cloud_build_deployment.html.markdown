@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Build Deployment.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 ## Example Usage
 
 ```hcl
@@ -86,13 +88,13 @@ A `quota` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Build Deployment.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Build Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Build Deployment.
@@ -104,5 +106,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Build Deployments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_build_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/deployments/deploy1
+terraform import azurerm_spring_cloud_build_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/deployments/deploy1
 ```

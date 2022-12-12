@@ -7,42 +7,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FluidRelayResource struct{}
 
-func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := fluidrelayservers.ParseFluidRelayServerID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := client.FluidRelay.ServerClient.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving %s: %v", id, err)
-	}
-	if response.WasNotFound(resp.HttpResponse) {
-		return utils.Bool(false), nil
-	}
-	return utils.Bool(true), nil
-}
-
-var s = fluidrelay.Server{}
-
 func TestAccFluidRelay_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
@@ -51,7 +26,9 @@ func TestAccFluidRelay_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(f),
 				check.That(data.ResourceName).Key("frs_tenant_id").IsUUID(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("orderer_endpoints.0").Exists(),
+				check.That(data.ResourceName).Key("service_endpoints.#").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -59,7 +36,7 @@ func TestAccFluidRelay_basic(t *testing.T) {
 }
 
 func TestAccFluidRelay_storageBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
@@ -76,7 +53,7 @@ func TestAccFluidRelay_storageBasic(t *testing.T) {
 }
 
 func TestAccFluidRelay_ami(t *testing.T) {
-	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
@@ -112,7 +89,7 @@ func TestAccFluidRelay_ami(t *testing.T) {
 }
 
 func TestAccFluidRelayServer_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	var f FluidRelayResource
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
@@ -127,7 +104,7 @@ func TestAccFluidRelayServer_requiresImport(t *testing.T) {
 }
 
 func TestAccFluidRelayServer_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	var f FluidRelayResource
 
 	data.ResourceTest(t, f, []acceptance.TestStep{
@@ -152,6 +129,23 @@ func TestAccFluidRelayServer_update(t *testing.T) {
 			),
 		},
 	})
+}
+
+func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := fluidrelayservers.ParseFluidRelayServerID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.FluidRelay.FluidRelayServers.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (f FluidRelayResource) template(data acceptance.TestData) string {

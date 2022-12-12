@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,23 +94,17 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"application_insights_key": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_connection_string",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Instrumentation Key for connecting the Windows Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_key",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Connection String for linking the Windows Function App to Application Insights.",
 				},
@@ -207,8 +201,9 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -403,23 +398,17 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"application_insights_key": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_connection_string",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Instrumentation Key for connecting the Linux Function App to Application Insights.",
 				},
 
 				"application_insights_connection_string": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
-					RequiredWith: []string{
-						"site_config.0.application_insights_key",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
@@ -530,8 +519,9 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version. Possible values include `VS2017` and `VS2019`",
+					Description: "The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`",
 				},
 
 				"runtime_scale_monitoring_enabled": {
@@ -734,14 +724,13 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 						Value: utils.String("dotnet-isolated"),
 					})
-					windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion)
-
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion))
 				} else {
 					appSettings = append(appSettings, web.NameValuePair{
 						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 						Value: utils.String("dotnet"),
 					})
-					windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion)
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
 				}
 			}
 
@@ -754,7 +743,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
 					Value: utils.String(windowsAppStack.NodeVersion),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion)
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion))
 			}
 
 			if windowsAppStack.JavaVersion != "" {
@@ -762,7 +751,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("java"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion)
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion))
 			}
 
 			if windowsAppStack.PowerShellCoreVersion != "" {
@@ -770,7 +759,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("powershell"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion)
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion))
 			}
 
 			if windowsAppStack.CustomHandler {
@@ -778,14 +767,14 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("custom"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = "" // Custom needs an explicit empty string here
+				expanded.WindowsFxVersion = utils.String("") // Custom needs an explicit empty string here
 			}
 		} else {
 			appSettings = append(appSettings, web.NameValuePair{
 				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 				Value: utils.String(""),
 			})
-			windowsSlotSiteConfig.WindowsFxVersion = ""
+			expanded.WindowsFxVersion = utils.String("")
 		}
 	}
 
@@ -827,6 +816,10 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(windowsSlotSiteConfig.RemoteDebuggingVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(windowsSlotSiteConfig.RuntimeScaleMonitoring)
 	}
 
 	expanded.Use32BitWorkerProcess = utils.Bool(windowsSlotSiteConfig.Use32BitWorker)
@@ -930,8 +923,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			result.Cors = []CorsSetting{cors}
 		}
+		result.Cors = []CorsSetting{cors}
 	}
 
 	var appStack []ApplicationStackWindowsFunctionApp
@@ -951,6 +944,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
+
 	expanded := &web.SiteConfig{}
 	if existing != nil {
 		expanded = existing
@@ -1029,92 +1023,90 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.AppCommandLine = utils.String(linuxSlotSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(linuxSlotSiteConfig.ApplicationStack) > 0 {
-		if len(linuxSlotSiteConfig.ApplicationStack) > 0 {
-			linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
-			if linuxAppStack.DotNetVersion != "" {
-				if linuxAppStack.DotNetIsolated {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet-isolated"),
-					})
-					linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion)
-				} else {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet"),
-					})
-					linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
-				}
-			}
-
-			if linuxAppStack.NodeVersion != "" {
+	if len(linuxSlotSiteConfig.ApplicationStack) > 0 {
+		linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
+		if linuxAppStack.DotNetVersion != "" {
+			if linuxAppStack.DotNetIsolated {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("node"),
+					Value: utils.String("dotnet-isolated"),
 				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-					Value: utils.String(linuxAppStack.NodeVersion),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
-			}
-
-			if linuxAppStack.PythonVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+			} else {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("python"),
+					Value: utils.String("dotnet"),
 				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion)
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
 			}
+		}
 
-			if linuxAppStack.JavaVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("java"),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
-			}
-
-			if linuxAppStack.PowerShellCoreVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("powershell"),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion)
-			}
-
-			if linuxAppStack.CustomHandler {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("custom"),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = "" // Custom needs an explicit empty string here
-			}
-
-			if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
-				dockerConfig := linuxAppStack.Docker[0]
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
-					Value: utils.String(dockerConfig.RegistryURL),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
-					Value: utils.String(dockerConfig.RegistryUsername),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
-					Value: utils.String(dockerConfig.RegistryPassword),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag)
-			}
-		} else {
+		if linuxAppStack.NodeVersion != "" {
 			appSettings = append(appSettings, web.NameValuePair{
 				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String(""),
+				Value: utils.String("node"),
 			})
-			linuxSlotSiteConfig.LinuxFxVersion = ""
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
+				Value: utils.String(linuxAppStack.NodeVersion),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
+
+		if linuxAppStack.PythonVersion != "" {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("python"),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
+		}
+
+		if linuxAppStack.JavaVersion != "" {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("java"),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
+		}
+
+		if linuxAppStack.PowerShellCoreVersion != "" {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("powershell"),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
+		}
+
+		if linuxAppStack.CustomHandler {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String("custom"),
+			})
+			expanded.LinuxFxVersion = utils.String("") // Custom needs an explicit empty string here
+		}
+
+		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+			dockerConfig := linuxAppStack.Docker[0]
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
+				Value: utils.String(dockerConfig.RegistryURL),
+			})
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
+				Value: utils.String(dockerConfig.RegistryUsername),
+			})
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
+				Value: utils.String(dockerConfig.RegistryPassword),
+			})
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
+		}
+	} else {
+		appSettings = append(appSettings, web.NameValuePair{
+			Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+			Value: utils.String(""),
+		})
+		expanded.LinuxFxVersion = utils.String("")
 	}
 
 	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSlotSiteConfig.UseManagedIdentityACR)
@@ -1163,6 +1155,10 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
 		expanded.RemoteDebuggingVersion = utils.String(linuxSlotSiteConfig.RemoteDebuggingVersion)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(linuxSlotSiteConfig.RuntimeScaleMonitoring)
 	}
 
 	expanded.Use32BitWorkerProcess = utils.Bool(linuxSlotSiteConfig.Use32BitWorker)
@@ -1266,8 +1262,8 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			result.Cors = []CorsSetting{cors}
 		}
+		result.Cors = []CorsSetting{cors}
 	}
 
 	var appStack []ApplicationStackLinuxFunctionApp

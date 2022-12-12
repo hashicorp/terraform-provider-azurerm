@@ -10,13 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,6 +34,13 @@ import (
 )
 
 var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
+
+var connStringPropertyMap = map[string]string{
+	"Primary SQL Connection String":             "primary_sql_connection_string",
+	"Secondary SQL Connection String":           "secondary_sql_connection_string",
+	"Primary Read-Only SQL Connection String":   "primary_readonly_sql_connection_string",
+	"Secondary Read-Only SQL Connection String": "secondary_readonly_sql_connection_string",
+}
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
 // any changes to the configuration for bounded staleness should be suppressed.
@@ -108,9 +114,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			// resource fields
 			"offer_type": {
@@ -331,6 +337,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								"EnableTable",
 								"EnableServerless",
 								"EnableMongo",
+								"EnableMongo16MBDocumentSupport",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",
@@ -457,7 +464,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"cors_rule": common.SchemaCorsRule(),
 
@@ -564,6 +571,30 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					Type:      pluginsdk.TypeString,
 					Sensitive: true,
 				},
+			},
+
+			"primary_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tags.Schema(),
@@ -941,16 +972,14 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
 	d.Set("kind", string(resp.Kind))
 
-	if v := resp.Identity; v != nil {
-		if err := d.Set("identity", flattenAccountIdentity(v)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
+	identity, err := flattenAccountIdentity(resp.Identity)
+	if err != nil {
+		return err
 	}
+	d.Set("identity", identity)
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
@@ -1109,6 +1138,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		connStrings = make([]string, len(*connStringResp.ConnectionStrings))
 		for i, v := range *connStringResp.ConnectionStrings {
 			connStrings[i] = *v.ConnectionString
+			if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
+				d.Set(propertyName, *v.ConnectionString)
+			}
 		}
 	}
 	d.Set("connection_strings", connStrings)
@@ -1184,7 +1216,6 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-
 				var locations []documentdb.Location
 
 				if props.ReadLocations != nil {
@@ -1546,22 +1577,30 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 }
 
 func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &documentdb.ManagedServiceIdentity{
+	out := documentdb.ManagedServiceIdentity{
 		Type: documentdb.ResourceIdentityType(string(expanded.Type)),
-	}, nil
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &documentdb.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+		}
+	}
+	return &out, nil
 }
 
-func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interface{} {
-	var transform *identity.SystemAssigned
+func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		if input.PrincipalID != nil {
 			transform.PrincipalId = *input.PrincipalID
@@ -1569,9 +1608,16 @@ func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interfac
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *documentdb.AnalyticalStorageConfiguration {

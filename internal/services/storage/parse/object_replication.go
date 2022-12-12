@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2021-04-01/objectreplicationpolicies"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/objectreplicationpolicies"
 )
 
 // This is manual for concat two ids are not supported in auto-generation
 
+var _ resourceids.Id = ObjectReplicationId{}
+
 type ObjectReplicationId struct {
-	Src objectreplicationpolicies.ObjectReplicationPoliciesId
-	Dst objectreplicationpolicies.ObjectReplicationPoliciesId
+	Src objectreplicationpolicies.ObjectReplicationPolicyId
+	Dst objectreplicationpolicies.ObjectReplicationPolicyId
 }
 
-func NewObjectReplicationID(srcId, dstId objectreplicationpolicies.ObjectReplicationPoliciesId) ObjectReplicationId {
+func NewObjectReplicationID(srcId, dstId objectreplicationpolicies.ObjectReplicationPolicyId) ObjectReplicationId {
 	return ObjectReplicationId{
 		Src: srcId,
 		Dst: dstId,
@@ -40,12 +43,12 @@ func ObjectReplicationID(input string) (*ObjectReplicationId, error) {
 	if len(ids) != 2 {
 		return nil, fmt.Errorf("storage Object Replication Id is composed as format `sourceId;destinationId`")
 	}
-	srcId, err := objectreplicationpolicies.ParseObjectReplicationPoliciesID(ids[0])
+	srcId, err := objectreplicationpolicies.ParseObjectReplicationPolicyID(ids[0])
 	if err != nil {
 		return nil, err
 	}
 
-	dstId, err := objectreplicationpolicies.ParseObjectReplicationPoliciesID(strings.TrimSuffix(ids[1], ";"))
+	dstId, err := objectreplicationpolicies.ParseObjectReplicationPolicyID(strings.TrimSuffix(ids[1], ";"))
 	if err != nil {
 		return nil, err
 	}

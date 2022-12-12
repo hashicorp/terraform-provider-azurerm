@@ -78,11 +78,12 @@ The following supported locations for a Binary Dataset. One of these should be s
 * `azure_blob_storage_location` - (Optional) A `azure_blob_storage_location` block as defined below.
 
 * `sftp_server_location` - (Optional) A `sftp_server_location` block as defined below.
+
 ---
 
 A `compression` block supports the following:
 
-* `type` - (Required) The type of compression used during transport.
+* `type` - (Required) The type of compression used during transport. Possible values are `BZip2`, `Deflate`, `GZip`, `Tar`, `TarGZip` and `ZipDeflate`.
 
 * `level` - (Optional) The level of compression. Possible values are `Fastest` and `Optimal`.
 
@@ -128,7 +129,6 @@ A `sftp_server_location` block supports the following:
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -137,7 +137,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Dataset.

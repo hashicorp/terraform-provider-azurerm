@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumes"
@@ -104,6 +105,7 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 			Config: r.nfsv3FromSnapshot(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("create_from_snapshot_resource_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("(.)/snapshots/acctest-Snapshot-%d", data.RandomInteger))),
 			),
 		},
 		data.ImportStep("create_from_snapshot_resource_id"),
@@ -177,7 +179,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.562"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("64"),
 			),
 		},
 		data.ImportStep(),
@@ -190,7 +192,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("4"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("tags.bAr").HasValue("fOo"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("63"),
 			),
 		},
 		data.ImportStep(),
@@ -657,7 +659,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
+  throughput_in_mibps = 64
 
   export_policy_rule {
     rule_index        = 1
@@ -707,7 +709,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
-  throughput_in_mibps = 65
+  throughput_in_mibps = 63
 
   export_policy_rule {
     rule_index        = 1
@@ -896,12 +898,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true",
-    "SkipNRMSNSG"      = "true"
-  }
 }
 
 resource "azurerm_virtual_network" "test" {

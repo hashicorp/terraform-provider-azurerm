@@ -33,11 +33,15 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine Scale Set.
 
+* `location` - The Azure Region in which this Virtual Machine Scale Set exists.
+
 * `identity` - A `identity` block as defined below.
+
+* `instances` - A list of `instances` blocks as defined below.
 
 * `network_interface` - A list of `network_interface` blocks as defined below.
 
@@ -52,6 +56,22 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Virtual Machine Scale Set.
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Virtual Machine Scale Set.
+
+---
+
+`instances` exports the following:
+
+* `computer_name` - The Hostname of this Virtual Machine.
+* `instance_id` - The Instance ID of this Virtual Machine.
+* `latest_model_applied` - Whether the latest model has been applied to this Virtual Machine.
+* `name` - The name of the this Virtual Machine.
+* `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
+* `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
+* `public_ip_address` - The Primary Public IP Address assigned to this Virtual Machine.
+* `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
+* `provisioning_state` - The provisioning state of the virtual machine.
+* `virtual_machine_id` - The unique ID of the virtual machine.
+* `zone` - The zones of the virtual machine.
 
 ---
 
@@ -83,15 +103,15 @@ An `identity` block exports the following:
 * `domain_name_label` - The domain name label for the DNS settings.
 * `ip_tag` - A list of `ip_tag` blocks as defined below.
 * `public_ip_prefix_id` - The ID of the public IP prefix.
+* `version` - The Internet Protocol Version of the public IP address.
 
 `ip_tag` exports the following:
 
 * `tag` - The IP Tag associated with the Public IP.
 * `type` - The Type of IP Tag.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.

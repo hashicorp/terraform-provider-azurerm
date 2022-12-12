@@ -1,20 +1,41 @@
 package network
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Network"
 }
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/network"
+}
+
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Network",
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ManagerResource{},
+		RouteMapResource{},
 	}
 }
 
@@ -93,6 +114,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_route_filter":                              resourceRouteFilter(),
 		"azurerm_route_table":                               resourceRouteTable(),
 		"azurerm_route":                                     resourceRoute(),
+		"azurerm_route_server":                              resourceRouteServer(),
+		"azurerm_route_server_bgp_connection":               resourceRouteServerBgpConnection(),
 		"azurerm_virtual_hub_security_partner_provider":     resourceVirtualHubSecurityPartnerProvider(),
 		"azurerm_subnet_service_endpoint_storage_policy":    resourceSubnetServiceEndpointStoragePolicy(),
 		"azurerm_subnet_network_security_group_association": resourceSubnetNetworkSecurityGroupAssociation(),

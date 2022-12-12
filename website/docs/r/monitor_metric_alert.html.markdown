@@ -68,7 +68,7 @@ resource "azurerm_monitor_metric_alert" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the Metric Alert. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance. Changing this forces a new resource to be created.
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
 
@@ -157,7 +157,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Metric Alert.
 * `update` - (Defaults to 30 minutes) Used when updating the Metric Alert.

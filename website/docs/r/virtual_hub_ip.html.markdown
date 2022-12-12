@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `private_ip_allocation_method` - (Optional) The private IP address allocation method. Possible values are `Static` and `Dynamic` is allowed. Defaults to `Dynamic`.
 
-* `public_ip_address_id` - (Optional) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Required) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -83,7 +83,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub IP.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub IP.

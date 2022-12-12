@@ -41,7 +41,7 @@ The following attributes are exported:
 
 * `location` - The Azure location where the resource exists.
 
-* `sku_name` - The SKU Name for this MariaDB Server. 
+* `sku_name` - The SKU Name for this MariaDB Server.
 
 * `storage_profile` - A `storage_profile` block as defined below.
 
@@ -52,6 +52,7 @@ The following attributes are exported:
 * `ssl_enforcement` - The SSL being enforced on connections.
 
 * `tags` - A mapping of tags assigned to the resource.
+
 ---
 
 A `storage_profile` block exports the following:
@@ -66,6 +67,6 @@ A `storage_profile` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Server.

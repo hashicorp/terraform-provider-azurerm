@@ -67,7 +67,6 @@ output "app_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -75,8 +74,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Application Insights component. Changing this forces a
     new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Application Insights component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Application Insights component. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -98,7 +96,7 @@ The following arguments are supported:
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
-* `internet_ingestion_enabled ` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Application Insights component support querying over the Public Internet? Defaults to `true`.
 
@@ -118,7 +116,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Component.
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.

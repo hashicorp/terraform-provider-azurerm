@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/workspace"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -109,6 +109,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 		Properties: &workspace.WorkspacePatchProperties{
 			ApplicationGroupReferences: &applicationGroupAssociations,
 		},
+		Tags: model.Tags,
 	}
 	if _, err = client.Update(ctx, *workspaceId, payload); err != nil {
 		return fmt.Errorf("creating association between %s and %s: %+v", *workspaceId, *applicationGroupId, err)
@@ -200,6 +201,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *plugins
 		Properties: &workspace.WorkspacePatchProperties{
 			ApplicationGroupReferences: &applicationGroupReferences,
 		},
+		Tags: model.Tags,
 	}
 	if _, err = client.Update(ctx, id.Workspace, payload); err != nil {
 		return fmt.Errorf("removing association between %s and %s: %+v", id.Workspace, id.ApplicationGroup, err)

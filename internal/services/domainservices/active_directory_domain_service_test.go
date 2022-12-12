@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -124,6 +125,8 @@ func TestAccActiveDirectoryDomainService_updateWithDatasource(t *testing.T) {
 				check.That(dataSourceData.ResourceName).Key("secure_ldap.0.external_access_enabled").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("secure_ldap.0.public_certificate").Exists(),
 				check.That(dataSourceData.ResourceName).Key("security.#").HasValue("1"),
+				check.That(dataSourceData.ResourceName).Key("security.0.kerberos_armoring_enabled").HasValue("true"),
+				check.That(dataSourceData.ResourceName).Key("security.0.kerberos_rc4_encryption_enabled").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("security.0.ntlm_v1_enabled").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("security.0.sync_kerberos_passwords").HasValue("true"),
 				check.That(dataSourceData.ResourceName).Key("security.0.sync_ntlm_passwords").HasValue("true"),
@@ -161,12 +164,14 @@ func (ActiveDirectoryDomainServiceResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.DomainServices.DomainServicesClient.Get(ctx, id.ResourceGroup, id.Name)
+	idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.Name)
+
+	resp, err := client.DomainServices.DomainServicesClient.Get(ctx, idsdk)
 	if err != nil {
 		return nil, fmt.Errorf("reading DomainService: %+v", err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (ActiveDirectoryDomainServiceReplicaSetResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -175,17 +180,29 @@ func (ActiveDirectoryDomainServiceReplicaSetResource) Exists(ctx context.Context
 		return nil, err
 	}
 
-	resp, err := client.DomainServices.DomainServicesClient.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+	idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
+
+	resp, err := client.DomainServices.DomainServicesClient.Get(ctx, idsdk)
 	if err != nil {
 		return nil, fmt.Errorf("reading DomainService: %+v", err)
 	}
 
-	if resp.ReplicaSets == nil || len(*resp.ReplicaSets) == 0 {
+	model := resp.Model
+	if model == nil {
+		return nil, fmt.Errorf("DomainService response returned with nil model")
+	}
+
+	props := model.Properties
+	if props == nil {
+		return nil, fmt.Errorf("DomainService response returned with nil properties")
+	}
+
+	if props.ReplicaSets == nil || len(*props.ReplicaSets) == 0 {
 		return nil, fmt.Errorf("DomainService response returned with nil or empty replicaSets")
 	}
 
-	for _, replica := range *resp.ReplicaSets {
-		if replica.ReplicaSetID != nil && *replica.ReplicaSetID == id.ReplicaSetName {
+	for _, replica := range *props.ReplicaSets {
+		if replica.ReplicaSetId != nil && *replica.ReplicaSetId == id.ReplicaSetName {
 			return utils.Bool(true), nil
 		}
 	}
@@ -292,6 +309,7 @@ data "azuread_domains" "test" {
 
 resource "azuread_service_principal" "test" {
   application_id = "2565bd9d-da50-47d4-8b85-4c97f669dc36" // published app for domain services
+  use_existing   = true
 }
 
 resource "azuread_group" "test" {
@@ -339,11 +357,13 @@ resource "azurerm_active_directory_domain_service" "test" {
   }
 
   security {
-    ntlm_v1_enabled         = true
-    sync_kerberos_passwords = true
-    sync_ntlm_passwords     = true
-    sync_on_prem_passwords  = true
-    tls_v1_enabled          = true
+    kerberos_armoring_enabled       = true
+    kerberos_rc4_encryption_enabled = true
+    ntlm_v1_enabled                 = true
+    sync_kerberos_passwords         = true
+    sync_ntlm_passwords             = true
+    sync_on_prem_passwords          = true
+    tls_v1_enabled                  = true
   }
 
   tags = {

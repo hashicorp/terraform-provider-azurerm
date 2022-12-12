@@ -16,7 +16,7 @@ import (
 
 type SecurityCenterWorkspaceResource struct{}
 
-func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
+func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 
@@ -31,38 +31,10 @@ func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
-func TestAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
-	r := SecurityCenterWorkspaceResource{}
-	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
-
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
-		{
-			Config: r.basicCfg(data, scope),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue(scope),
-			),
-		},
-		{
-			Config:      r.requiresImportCfg(data, scope),
-			ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
-		},
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
-	})
-}
-
-func TestAccSecurityCenterWorkspace_update(t *testing.T) {
+func testAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -83,9 +55,25 @@ func TestAccSecurityCenterWorkspace_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
+	r := SecurityCenterWorkspaceResource{}
+	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
+
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
+			Config: r.basicCfg(data, scope),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue(scope),
+			),
+		},
+		{
+			Config:      r.requiresImportCfg(data, scope),
+			ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
 		},
 	})
 }

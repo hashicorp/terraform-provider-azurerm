@@ -60,11 +60,12 @@ resource "azurerm_dns_caa_record" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS CAA Record. If you are creating the record in the apex of the zone use `"@"` as the name.
+* `name` - (Required) The name of the DNS CAA Record. If you are creating the record in the apex of the zone use `"@"` as the name. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
@@ -76,11 +77,13 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `record` block supports:
 
 * `flags` - (Required) Extensible CAA flags, currently only 1 is implemented to set the issuer critical flag.
 
-* `tag` - (Required) A property tag, options are issue, issuewild and iodef.
+* `tag` - (Required) A property tag, options are `issue`, `issuewild` and `iodef`.
 
 * `value` - (Required) A property value such as a registrar domain.
 
@@ -89,17 +92,19 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS CAA Record ID.
+
 * `fqdn` - The FQDN of the DNS CAA Record.
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS CAA Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS CAA Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS CAA Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS CAA Record.
 
 ## Import
@@ -107,5 +112,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 CAA records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_caa_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/CAA/myrecord1
+terraform import azurerm_dns_caa_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/CAA/myrecord1
 ```

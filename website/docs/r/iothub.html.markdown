@@ -248,9 +248,9 @@ A `route` block supports the following:
 
 * `name` - (Required) The name of the route.
 
-* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
+* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents` and `DigitalTwinChangeEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
@@ -270,9 +270,9 @@ An `enrichment` block supports the following:
 
 A `fallback_route` block supports the following:
 
-* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
+* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents` and `DigitalTwinChangeEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Optional) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
@@ -331,7 +331,7 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub.
 
 * `event_hub_events_endpoint` -  The EventHub compatible endpoint for events data
-* `event_hub_events_namespace` - The EventHub namespace for events data   
+* `event_hub_events_namespace` - The EventHub namespace for events data
 * `event_hub_events_path` -  The EventHub compatible path for events data
 * `event_hub_operations_endpoint` -  The EventHub compatible endpoint for operational data
 * `event_hub_operations_path` -  The EventHub compatible path for operational data
@@ -366,7 +366,7 @@ A `shared access policy` block contains the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub.
 * `update` - (Defaults to 30 minutes) Used when updating the IotHub.
@@ -378,5 +378,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 IoTHubs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub.hub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1
+terraform import azurerm_iothub.hub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1
 ```

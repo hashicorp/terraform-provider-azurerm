@@ -5,15 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
@@ -22,6 +24,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 		Read:   resourceSpringCloudGatewayRouteConfigRead,
 		Update: resourceSpringCloudGatewayRouteConfigCreateUpdate,
 		Delete: resourceSpringCloudGatewayRouteConfigDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudGatewayRouteConfigV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -49,10 +56,59 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudGatewayID,
 			},
 
+			"open_api": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+					},
+				},
+			},
+
+			"protocol": {
+				Type:     pluginsdk.TypeString,
+				Optional: !features.FourPointOh(),
+				Required: features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOh() {
+						return string(appplatform.GatewayRouteConfigProtocolHTTP)
+					}
+					return nil
+				}(),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(appplatform.GatewayRouteConfigProtocolHTTP),
+					string(appplatform.GatewayRouteConfigProtocolHTTPS),
+				}, false),
+			},
+
 			"spring_cloud_app_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.SpringCloudAppID,
+			},
+
+			"filters": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"predicates": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 
 			"route": {
@@ -60,6 +116,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"order": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+
 						"description": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -73,11 +134,6 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-						},
-
-						"order": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
 						},
 
 						"predicates": {
@@ -122,9 +178,15 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"sso_validation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
+
 func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
@@ -152,7 +214,12 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
+			Filters:       utils.ExpandStringSlice(d.Get("filters").(*pluginsdk.Set).List()),
+			Predicates:    utils.ExpandStringSlice(d.Get("predicates").(*pluginsdk.Set).List()),
+			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
+			SsoEnabled:    utils.Bool(d.Get("sso_validation_enabled").(bool)),
+			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
@@ -191,9 +258,22 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("spring_cloud_app_id", props.AppResourceID)
+		d.Set("protocol", props.Protocol)
 		if err := d.Set("route", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)
 		}
+
+		if err := d.Set("open_api", flattenGatewayRouteConfigOpenApi(props.OpenAPI)); err != nil {
+			return fmt.Errorf("setting `open_api`: %+v", err)
+		}
+
+		if props.Filters != nil {
+			d.Set("filters", utils.FlattenStringSlice(props.Filters))
+		}
+		if props.Predicates != nil {
+			d.Set("predicates", utils.FlattenStringSlice(props.Predicates))
+		}
+		d.Set("sso_validation_enabled", props.SsoEnabled)
 	}
 	return nil
 }
@@ -282,4 +362,32 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 		})
 	}
 	return results
+}
+
+func expandGatewayRouteConfigOpenApi(input []interface{}) *appplatform.GatewayRouteConfigOpenAPIProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	return &appplatform.GatewayRouteConfigOpenAPIProperties{
+		URI: utils.String(config["uri"].(string)),
+	}
+}
+
+func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenAPIProperties) interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	uri := ""
+	if input.URI != nil {
+		uri = *input.URI
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"uri": uri,
+		},
+	}
 }

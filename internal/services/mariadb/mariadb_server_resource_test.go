@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -188,7 +188,7 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-			Config:    r.createPointInTimeRestore(data, version, restoreTime.Format(time.RFC3339)),
+			Config:    r.createPointInTimeRestore(data, version, restoreTime.Add(3*time.Minute).Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_mariadb_server.restore").ExistsInAzure(r),
@@ -199,17 +199,17 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 }
 
 func (MariaDbServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerID(state.ID)
+	id, err := servers.ParseServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MariaDB.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.MariaDB.ServersClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ServerProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MariaDbServerResource) basic(data acceptance.TestData, version string) string {

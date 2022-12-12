@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of a Virtual HUB within which the ExpressRoute gateway should be created.
+* `virtual_hub_id` - (Required) The ID of a Virtual HUB within which the ExpressRoute gateway should be created. Changing this forces a new resource to be created.
 
 * `scale_units` - (Required) The number of scale units with which to provision the ExpressRoute gateway. Each scale unit is equal to 2Gbps, with support for up to 10 scale units (20Gbps).
 
@@ -69,7 +69,7 @@ The following attributes are exported:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the ExpressRoute Gateway.
 
@@ -78,7 +78,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Gateway.
 
 * `delete` - (Defaults to 60 minutes) Used when deleting the ExpressRoute Gateway.
-
 
 ## Import
 

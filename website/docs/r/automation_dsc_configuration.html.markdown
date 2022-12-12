@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `content_embedded` - (Required) The PowerShell DSC Configuration script.
 
-* `location` - (Required) Must be the same location as the Automation Account.
+* `location` - (Required) Must be the same location as the Automation Account. Changing this forces a new resource to be created.
 
 * `log_verbose` - (Optional) Verbose log option.
 
@@ -62,7 +62,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation DSC Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation DSC Configuration.

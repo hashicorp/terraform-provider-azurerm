@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Spring Cloud Deployment with a Java runtime.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with basic and standard tier.
+
 ## Example Usage
 
 ```hcl
@@ -88,7 +90,6 @@ The `quota` block supports the following:
 
 -> **Note:** `memory` supports `512Mi`, `1Gi` and `2Gi` for Basic tier, `512Mi`, `1Gi`, `2Gi`, `3Gi`, `4Gi`, `5Gi`, `6Gi`, `7Gi`, and `8Gi` for Standard tier.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -97,7 +98,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Deployment.
@@ -109,5 +110,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Deployment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_java_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AppPlatform/Spring/service1/apps/app1/deployments/deploy1
+terraform import azurerm_spring_cloud_java_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AppPlatform/spring/service1/apps/app1/deployments/deploy1
 ```

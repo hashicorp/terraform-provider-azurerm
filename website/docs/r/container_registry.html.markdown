@@ -34,7 +34,7 @@ resource "azurerm_container_registry" "acr" {
     tags                    = {}
   }
   georeplications {
-    location                = "westeurope"
+    location                = "North Europe"
     zone_redundancy_enabled = true
     tags                    = {}
   }
@@ -135,11 +135,11 @@ resource "azurerm_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Container Registry. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Container Registry. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
 
 * `sku` - (Required) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`.
 
@@ -153,6 +153,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
 
+~> **NOTE:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
+
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
@@ -163,7 +165,7 @@ The following arguments are supported:
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`. 
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
@@ -181,13 +183,13 @@ The following arguments are supported:
 
 ---
 
-`georeplications` supports the following:
+The `georeplications` block supports the following:
 
-* `location` - (Required) A location where the container registry should be geo-replicated.
+* `location` - (Required) A location where the container registry should be geo-replicated. Changing this forces a new resource to be created.
 
 * `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? Defaults to `false`.
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`. Changing this forces a new resource to be created.
 
   ~> **NOTE:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
 
@@ -195,7 +197,7 @@ The following arguments are supported:
 
 ---
 
-`network_rule_set` supports the following:
+The `network_rule_set` block supports the following:
 
 * `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
 
@@ -203,13 +205,13 @@ The following arguments are supported:
 
 * `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
 
-~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+~> **NOTE:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
 ---
 
-`ip_rule` supports the following:
+The `ip_rule` block supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
@@ -217,7 +219,7 @@ The following arguments are supported:
 
 ---
 
-`virtual_network` supports the following:
+The `virtual_network` block supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
@@ -225,13 +227,13 @@ The following arguments are supported:
 
 ---
 
-`trust_policy` supports the following:
+The `trust_policy` block supports the following:
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 
 ---
 
-`retention_policy` supports the following:
+The `retention_policy` block supports the following:
 
 * `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
 
@@ -249,7 +251,7 @@ An `identity` block supports the following:
 
 ---
 
-`encryption` supports the following:
+The `encryption` block supports the following:
 
 * `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
 
@@ -260,6 +262,7 @@ An `identity` block supports the following:
 ~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -288,7 +291,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
 * `update` - (Defaults to 30 minutes) Used when updating the Container Registry.

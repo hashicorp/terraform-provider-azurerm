@@ -37,16 +37,16 @@ resource "azurerm_sql_firewall_rule" "example" {
   end_ip_address      = "10.0.17.62"
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the firewall rule.
+* `name` - (Required) The name of the firewall rule. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the SQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Server. Changing this forces a new resource to be created.
 
-* `server_name` - (Required) The name of the SQL Server on which to create the Firewall Rule.
+* `server_name` - (Required) The name of the SQL Server on which to create the Firewall Rule. Changing this forces a new resource to be created.
 
 * `start_ip_address` - (Required) The starting IP address to allow through the firewall for this rule.
 
@@ -62,7 +62,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Firewall Rule.
 * `update` - (Defaults to 30 minutes) Used when updating the SQL Firewall Rule.

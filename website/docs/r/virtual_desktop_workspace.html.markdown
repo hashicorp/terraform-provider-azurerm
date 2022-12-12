@@ -36,12 +36,9 @@ resource "azurerm_virtual_desktop_workspace" "workspace" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Desktop Workspace. Changing the name
-    forces a new resource to be created.
+* `name` - (Required) The name of the Virtual Desktop Workspace. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Virtual Desktop Workspace. Changing the resource group name forces
-    a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Virtual Desktop Workspace. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location/region where the Virtual Desktop Workspace is located. Changing the location/region forces a new resource to be created.
 
@@ -59,7 +56,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Workspace.
 * `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Workspace.

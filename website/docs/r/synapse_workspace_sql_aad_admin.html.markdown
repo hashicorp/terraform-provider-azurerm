@@ -97,7 +97,7 @@ resource "azurerm_synapse_workspace_sql_aad_admin" "example" {
 
 The following arguments are supported:
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD Administrator should be configured. 
+* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD Administrator should be configured.
 
 * `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace.
 
@@ -107,7 +107,7 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Workspace.

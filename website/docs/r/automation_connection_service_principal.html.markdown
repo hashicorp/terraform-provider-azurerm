@@ -55,7 +55,7 @@ The following arguments are supported:
 * `application_id` - (Required) The (Client) ID of the Service Principal.
 
 * `certificate_thumbprint` - (Required) The thumbprint of the Service Principal Certificate.
- 
+
 * `subscription_id` - (Required) The subscription GUID.
   
 * `tenant_id` - (Required) The ID of the Tenant the Service Principal is assigned in.
@@ -70,7 +70,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Connection.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Connection.

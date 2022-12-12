@@ -41,16 +41,16 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
   activities_json = <<JSON
 [
-	{
-		"name": "Append variable1",
-		"type": "AppendVariable",
-		"dependsOn": [],
-		"userProperties": [],
-		"typeProperties": {
-			"variableName": "bob",
-			"value": "something"
-		}
-	}
+    {
+        "name": "Append variable1",
+        "type": "AppendVariable",
+        "dependsOn": [],
+        "userProperties": [],
+        "typeProperties": {
+          "variableName": "bob",
+          "value": "something"
+        }
+    }
 ]
   JSON
 }
@@ -88,7 +88,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Pipeline.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Pipeline.

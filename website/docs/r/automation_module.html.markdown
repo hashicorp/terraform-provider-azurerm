@@ -48,7 +48,9 @@ The following arguments are supported:
 
 * `module_link` - (Required) The published Module link.
 
-`module_link` supports the following:
+---
+
+The `module_link` block supports the following:
 
 * `uri` - (Required) The URI of the module content (zip or nupkg).
 
@@ -60,7 +62,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Module.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Module.

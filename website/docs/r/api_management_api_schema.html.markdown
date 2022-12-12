@@ -48,7 +48,11 @@ The following arguments are supported:
 
 * `content_type` - (Required) The content type of the API Schema.
 
-* `value` - (Required) The JSON escaped string defining the document representing the Schema.
+* `value` - (Optional) The JSON escaped string defining the document representing the Schema.
+
+* `components` - (Optional) Types definitions. Used for Swagger/OpenAPI v2/v3 schemas only.
+
+* `definitions` - (Optional) Types definitions. Used for Swagger/OpenAPI v1 schemas only.
 
 ## Attributes Reference
 
@@ -58,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Schema.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management API Schema.

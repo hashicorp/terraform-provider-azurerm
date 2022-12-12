@@ -10,7 +10,6 @@ description: |-
 
 Uses this data source to access information about an existing NetApp Pool.
 
-
 ## NetApp Pool Usage
 
 ```hcl
@@ -25,7 +24,6 @@ output "netapp_pool_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -35,7 +33,6 @@ The following arguments are supported:
 * `account_name` - The name of the NetApp account where the NetApp pool exists.
 
 * `resource_group_name` - The Name of the Resource Group where the NetApp Pool exists.
-
 
 ## Attributes Reference
 
@@ -51,6 +48,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Pool.

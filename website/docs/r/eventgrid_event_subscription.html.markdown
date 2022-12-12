@@ -99,7 +99,7 @@ The following arguments are supported:
 
 ---
 
-A `storage_queue_endpoint` supports the following:
+A `storage_queue_endpoint` block supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
@@ -109,7 +109,7 @@ A `storage_queue_endpoint` supports the following:
 
 ---
 
-An `azure_function_endpoint` supports the following:
+An `azure_function_endpoint` block supports the following:
 
 * `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events. This must be the functions ID in format {function_app.id}/functions/{name}.
 
@@ -119,7 +119,7 @@ An `azure_function_endpoint` supports the following:
 
 ---
 
-A `webhook_endpoint` supports the following:
+A `webhook_endpoint` block supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 
@@ -135,7 +135,7 @@ A `webhook_endpoint` supports the following:
 
 ---
 
-A `subject_filter` supports the following:
+A `subject_filter` block supports the following:
 
 * `subject_begins_with` - (Optional) A string to filter events for an event subscription based on a resource path prefix.
 
@@ -173,7 +173,7 @@ Each nested block consists of a key and a value(s) element.
 
 * `value` - (Required) Specifies a single value to compare to when using a single value operator.
 
-**OR**
+OR
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
@@ -181,7 +181,7 @@ Each nested block consists of a key and a value(s) element.
 
 ---
 
-A `delivery_identity` supports the following:
+A `delivery_identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`, `UserAssigned`.
 
@@ -189,7 +189,7 @@ A `delivery_identity` supports the following:
 
 ---
 
-A `delivery_property` supports the following:
+A `delivery_property` block supports the following:
 
 * `header_name` - (Required) The name of the header to send on to the destination
 
@@ -199,11 +199,11 @@ A `delivery_property` supports the following:
 
 * `source_field` - (Optional) If the `type` is `Dynamic`, then provide the payload field to be used as the value. Valid source fields differ by subscription type.
 
-* `secret` - (Optional) True if the `value` is a secret and should be protected, otherwise false. If True, then this value won't be returned from Azure API calls 
+* `secret` - (Optional) True if the `value` is a secret and should be protected, otherwise false. If True, then this value won't be returned from Azure API calls
 
 ---
 
-A `dead_letter_identity` supports the following:
+A `dead_letter_identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`, `UserAssigned`.
 
@@ -211,7 +211,7 @@ A `dead_letter_identity` supports the following:
 
 ---
 
-A `storage_blob_dead_letter_destination` supports the following:
+A `storage_blob_dead_letter_destination` block supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage blob is located.
 
@@ -219,7 +219,7 @@ A `storage_blob_dead_letter_destination` supports the following:
 
 ---
 
-A `retry_policy` supports the following:
+A `retry_policy` block supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
@@ -235,7 +235,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Event Subscription.
 * `update` - (Defaults to 30 minutes) Used when updating the EventGrid Event Subscription.

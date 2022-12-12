@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type DataConnectorAwsS3Resource struct{}
@@ -42,7 +41,7 @@ func (r DataConnectorAwsS3Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"aws_role_arn": {
@@ -102,12 +101,12 @@ func (r DataConnectorAwsS3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			workspaceId, err := loganalyticsParse.LogAnalyticsWorkspaceID(plan.LogAnalyticsWorkspaceId)
+			workspaceId, err := workspaces.ParseWorkspaceID(plan.LogAnalyticsWorkspaceId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, plan.Name)
+			id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
 			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
@@ -152,7 +151,7 @@ func (r DataConnectorAwsS3Resource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {

@@ -158,17 +158,17 @@ The following arguments are supported:
 
 * `regeneration_period` - (Optional) How often Storage Account access key should be regenerated. Value needs to be in [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Key Vault Managed Storage Account.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Key Vault Managed Storage Account. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Key Vault Managed Storage Account.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Storage Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Storage Account.

@@ -181,9 +181,9 @@ The following arguments are supported:
 
 A `file` block supports the following:
 
-* `name` - (Required) The filename of the file to be uploaded.
+* `name` - (Required) The filename of the file to be uploaded. Changing this forces a new resource to be created.
 
-* `content` - (Required) The content of the file.
+* `content` - (Required) The content of the file. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -205,10 +205,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `url` - The function URL.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function App Function.
 * `update` - (Defaults to 30 minutes) Used when updating the Function App Function.

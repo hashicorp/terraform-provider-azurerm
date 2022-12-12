@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -240,18 +240,46 @@ func TestAccPostgresqlFlexibleServer_geoRedundantBackupEnabled(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authConfig(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.authConfig(data, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.authConfig(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlexibleServerID(state.ID)
+	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.FlexibleServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Postgres.FlexibleServersClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Postgresql Flexible Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ServerProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PostgresqlFlexibleServerResource) template(data acceptance.TestData) string {
@@ -606,4 +634,36 @@ resource "azurerm_postgresql_flexible_server" "test" {
   geo_redundant_backup_enabled = true
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) authConfig(data acceptance.TestData, aadEnabled bool, pwdEnabled bool) string {
+	tenantIdBlock := ""
+	if aadEnabled {
+		tenantIdBlock = "tenant_id = data.azurerm_client_config.current.tenant_id"
+	}
+
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+
+  authentication {
+    active_directory_auth_enabled = %[3]t
+    password_auth_enabled         = %[4]t
+   %[5]s
+  }
+}
+`, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }

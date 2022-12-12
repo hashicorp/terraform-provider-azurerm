@@ -80,7 +80,6 @@ The following arguments are supported:
 
 * `notification` - (Optional) One or more `notification` blocks as defined below.
 
-
 * `parent_registry_id` - (Optional) The ID of the parent registry. This can be either a Container Registry ID or a Connected Registry ID. Changing this forces a new Container Connected Registry to be created.
 
 * `sync_message_ttl` - (Optional) The period of time (in form of ISO8601) for which a message is available to sync before it is expired. Allowed range is from `P1D` to `P90D`.
@@ -105,13 +104,13 @@ A `notification` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Connected Registry.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Connected Registry.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Connected Registry.

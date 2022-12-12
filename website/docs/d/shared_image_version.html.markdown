@@ -54,7 +54,7 @@ The following attributes are exported:
 
 * `os_disk_snapshot_id` - The ID of the OS disk snapshot which was the source of this Shared Image Version.
 
-* `os_disk_image_size_gb` - The size of the OS disk snapshot (in Gigabytes) which was the source of this Shared Image Version. 
+* `os_disk_image_size_gb` - The size of the OS disk snapshot (in Gigabytes) which was the source of this Shared Image Version.
 
 * `tags` - A mapping of tags assigned to the Shared Image.
 
@@ -70,6 +70,6 @@ The `target_region` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Version of a Shared Image within a Shared Image Gallery.

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
@@ -350,6 +350,16 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []d
 
 				duration, ok := block["hour_duration"].(int)
 				if !ok {
+					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
+				if interval == 0 && duration == 0 {
+					return nil, fmt.Errorf("`hour_interval` and `hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if interval == 0 {
+					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+				if duration == 0 {
 					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
 				}
 
@@ -731,7 +741,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"instant_restore_retention_days": {
 			Type:         pluginsdk.TypeInt,

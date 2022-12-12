@@ -50,7 +50,7 @@ The following attributes are exported:
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
-* `key_vault_reference` - The `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode. 
+* `key_vault_reference` - The `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
 
 * `tags` - A map of tags assigned to the Batch account.
 
@@ -68,6 +68,6 @@ A `key_vault_reference` block have the following properties:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Account.

@@ -94,7 +94,7 @@ A `github_action_configuration` block supports the following:
 
 A `code_configuration` block supports the following:
 
-* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps. Changing this forces a new resource to be created.
+* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps. Changing this forces a new resource to be created. Possible values are `dotnetcore`, `spring`, `tomcat`, `node` and `python`.
 
 * `runtime_version` - (Required) The value to use for the Runtime Version in the workflow file content for code base apps. Changing this forces a new resource to be created.
 
@@ -120,10 +120,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `uses_github_action` - Indicates if the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control Slot.

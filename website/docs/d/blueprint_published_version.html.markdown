@@ -32,7 +32,6 @@ data "azurerm_blueprint_published_version" "test" {
 
 * `version` - (Required) The Version name of the Published Version of the Blueprint Definition
 
-
 ## Attributes Reference
 
 * `id` - The ID of the Published Version
@@ -45,9 +44,8 @@ data "azurerm_blueprint_published_version" "test" {
 
 * `description` - The description of the Blueprint Published Version
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Blueprint Published Version.

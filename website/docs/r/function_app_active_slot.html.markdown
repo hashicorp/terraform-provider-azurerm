@@ -64,6 +64,7 @@ resource "azurerm_function_app_active_slot" "example" {
 ```
 
 ### Linux Function App
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -132,10 +133,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `last_successful_swap` - The timestamp of the last successful swap with `Production`
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function App Active Slot.
 * `update` - (Defaults to 30 minutes) Used when updating the Function App Active Slot.

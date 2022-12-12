@@ -187,7 +187,7 @@ func TestAccWindowsVirtualMachineScaleSet_networkIPv6(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("Error expanding `network_interface`: An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary"),
+			ExpectError: regexp.MustCompile("instead add a IPv4 IP Configuration as the Primary"),
 		},
 	})
 }
@@ -382,6 +382,23 @@ func TestAccWindowsVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	t.Skip("Skipping test until api version is upgraded to 2022-03-01 with `network_interface.ip_configuration.public_ip_address.sku_name` added")
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkPublicIPVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -435,7 +452,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F4"
+  sku                 = "Standard_D2s_v3" # intentional for accelerated networking
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -1533,6 +1550,98 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
 func (r WindowsVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-%[3]s"
+
+  sku = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 50000
+  frontend_port_end              = 50120
+  backend_port                   = 22
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "primary"
+    primary = true
+
+    ip_configuration {
+      name      = "first"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+
+      public_ip_address {
+        name                    = "pip-%[3]s"
+        idle_timeout_in_minutes = 15
+
+        ip_tag {
+          type = "RoutingPreference"
+          tag  = "Internet"
+        }
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomStringOfLength(9))
+}
+
+//nolint:unused
+func (r WindowsVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1566,12 +1675,19 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
 
       public_ip_address {
-        name = "first"
+        name                    = "first"
+        idle_timeout_in_minutes = 4
+      }
+    }
 
-        ip_tag {
-          tag  = "/Sql"
-          type = "FirstPartyUsage"
-        }
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
+        idle_timeout_in_minutes = 4
+        version                 = "IPv6"
       }
     }
   }

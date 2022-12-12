@@ -36,7 +36,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
 
@@ -96,9 +96,8 @@ A `upgrade_settings` block exports the following:
 
 * `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Node Pool.

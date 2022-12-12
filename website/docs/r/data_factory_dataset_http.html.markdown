@@ -67,11 +67,11 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported arguments are specific to HTTP Dataset:
 
-* `relative_url` - (Required) The relative URL based on the URL in the HTTP Linked Service.
+* `relative_url` - (Optional) The relative URL based on the URL in the HTTP Linked Service.
 
-* `request_body` - (Required) The body for the HTTP request.
+* `request_body` - (Optional) The body for the HTTP request.
 
-* `request_method` - (Required) The HTTP method for the HTTP request. (e.g. GET, POST)
+* `request_method` - (Optional) The HTTP method for the HTTP request. (e.g. GET, POST)
 
 ---
 
@@ -83,7 +83,6 @@ A `schema_column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -92,7 +91,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Dataset.
