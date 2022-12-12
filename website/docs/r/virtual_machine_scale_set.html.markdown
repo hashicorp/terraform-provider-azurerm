@@ -518,8 +518,8 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 
 The `boot_diagnostics` block supports the following:
 
-* `enabled`: (Required) Whether to enable boot diagnostics for the virtual machine.
-* `storage_uri`: (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+* `enabled`: - (Required) Whether to enable boot diagnostics for the virtual machine.
+* `storage_uri`: - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
 
 ---
 

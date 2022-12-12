@@ -104,7 +104,7 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` (Required) One, two or three `ip_configuration` blocks documented below.
+* `ip_configuration` - (Required) One, two or three `ip_configuration` blocks documented below.
   An active-standby gateway requires exactly one `ip_configuration` block,
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
@@ -157,7 +157,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which
   is documented below. In this block the Virtual Network Gateway can be configured
   to accept IPSec point-to-site connections.
 

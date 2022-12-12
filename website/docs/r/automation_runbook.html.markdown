@@ -136,21 +136,21 @@ The `draft` block supports:
 
 * `output_types` (Optioinal) Specifies the output types of the runbook.
 
-* `parameter` (Optional) A list of `parameter` block as define below.
+* `parameter` - (Optional) A list of `parameter` block as define below.
 
 ---
 
 The `parameter` block supports:
 
-* `key` (Required) The name of the parameter.
+* `key` - (Required) The name of the parameter.
 
-* `type` (Optional) Specifies the type of this parameter.
+* `type` - (Optional) Specifies the type of this parameter.
 
-* `mandatory` (Optional) Whether this parameter is mandatory.
+* `mandatory` - (Optional) Whether this parameter is mandatory.
 
-* `positioin` (Optional) Specifies the position of the parameter.
+* `positioin` - (Optional) Specifies the position of the parameter.
 
-* `default_value` (Optional) Specifies the default value of the parameter.
+* `default_value` - (Optional) Specifies the default value of the parameter.
 
 ## Attributes Reference
 
