@@ -344,7 +344,7 @@ func flattenMediaAccountIdentity(input *accounts.MediaServiceIdentity) (*[]inter
 
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
+			Type:        identity.Type(input.Type),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		if input.PrincipalId != nil {
