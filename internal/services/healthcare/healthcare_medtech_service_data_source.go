@@ -75,7 +75,7 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 
 	id := parse.NewMedTechServiceID(subscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -85,7 +85,7 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.IotconnectorName)
+	d.Set("name", id.IotConnectorName)
 
 	d.Set("workspace_id", workspaceId.ID())
 

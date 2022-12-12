@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -579,9 +579,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	var certIdLiteral string
 	cert, err := keyVaultsClient.ManagementClient.GetCertificate(ctx, *keyVaultBaseUrl, secretName, secretVersion)
 	if err == nil && cert.ID != nil {
-		certId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(*cert.ID)
-		if err == nil {
-		}
+		certId, _ := keyvaultParse.ParseOptionallyVersionedNestedItemID(*cert.ID)
 		certIdLiteral = certId.ID()
 		if !isVersioned {
 			certIdLiteral = certId.VersionlessID()

@@ -167,6 +167,34 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 
+# "AzureSecurityOfThings" and "Security" will be created automatically by service, so we create them manually in case the resource group can't be deleted.
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "AzureSecurityOfThings"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/AzureSecurityOfThings"
+  }
+}
+
+resource "azurerm_log_analytics_solution" "test2" {
+  solution_name         = "Security"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/Security"
+  }
+}
+
 resource "azurerm_iot_security_solution" "test" {
   name                       = "acctest-Iot-Security-Solution-%d"
   resource_group_name        = azurerm_resource_group.test.name

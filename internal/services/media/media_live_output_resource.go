@@ -6,11 +6,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveoutputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,9 +33,14 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LiveOutputID(id)
+			_, err := liveoutputs.ParseLiveOutputID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LiveOutputV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -46,7 +53,7 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: liveevents.ValidateLiveEventID,
 			},
 
 			"archive_window_duration": {
@@ -99,66 +106,60 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 }
 
 func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.LiveOutputsClient
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	eventID, err := parse.LiveEventID(d.Get("live_event_id").(string))
+	eventId, err := liveevents.ParseLiveEventID(d.Get("live_event_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewLiveOutputID(subscriptionID, eventID.ResourceGroup, eventID.MediaserviceName, eventID.Name, d.Get("name").(string))
+	id := liveoutputs.NewLiveOutputID(eventId.SubscriptionId, eventId.ResourceGroupName, eventId.AccountName, eventId.LiveEventName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_media_live_event_output", id.ID())
 		}
 	}
 
-	parameters := media.LiveOutput{
-		LiveOutputProperties: &media.LiveOutputProperties{},
+	parameters := liveoutputs.LiveOutput{
+		Properties: &liveoutputs.LiveOutputProperties{},
 	}
 
 	if archiveWindowLength, ok := d.GetOk("archive_window_duration"); ok {
-		parameters.LiveOutputProperties.ArchiveWindowLength = utils.String(archiveWindowLength.(string))
+		parameters.Properties.ArchiveWindowLength = archiveWindowLength.(string)
 	}
 
 	if assetName, ok := d.GetOk("asset_name"); ok {
-		parameters.LiveOutputProperties.AssetName = utils.String(assetName.(string))
+		parameters.Properties.AssetName = assetName.(string)
 	}
 
 	if description, ok := d.GetOk("description"); ok {
-		parameters.LiveOutputProperties.Description = utils.String(description.(string))
+		parameters.Properties.Description = utils.String(description.(string))
 	}
 
 	if hlsFragmentsPerTsSegment, ok := d.GetOk("hls_fragments_per_ts_segment"); ok {
-		parameters.LiveOutputProperties.Hls = &media.Hls{
-			FragmentsPerTsSegment: utils.Int32(int32(hlsFragmentsPerTsSegment.(int))),
+		parameters.Properties.Hls = &liveoutputs.Hls{
+			FragmentsPerTsSegment: pointer.To(int64(hlsFragmentsPerTsSegment.(int))),
 		}
 	}
 
 	if manifestName, ok := d.GetOk("manifest_name"); ok {
-		parameters.LiveOutputProperties.ManifestName = utils.String(manifestName.(string))
+		parameters.Properties.ManifestName = utils.String(manifestName.(string))
 	}
 
 	if outputSnapTime, ok := d.GetOk("output_snap_time_in_seconds"); ok {
-		parameters.LiveOutputProperties.OutputSnapTime = utils.Int64(int64(outputSnapTime.(int)))
+		parameters.Properties.OutputSnapTime = utils.Int64(int64(outputSnapTime.(int)))
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name, parameters)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -167,19 +168,18 @@ func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.LiveOutputsClient
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LiveOutputID(d.Id())
+	id, err := liveoutputs.ParseLiveOutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -188,50 +188,45 @@ func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.LiveOutputName)
+	d.Set("live_event_id", liveevents.NewLiveEventID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.LiveEventName).ID())
 
-	eventID := parse.NewLiveEventID(subscriptionID, id.ResourceGroup, id.MediaserviceName, id.LiveeventName)
-	d.Set("live_event_id", eventID.ID())
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("archive_window_duration", props.ArchiveWindowLength)
+			d.Set("asset_name", props.AssetName)
+			d.Set("description", props.Description)
 
-	if props := resp.LiveOutputProperties; props != nil {
-		d.Set("archive_window_duration", props.ArchiveWindowLength)
-		d.Set("asset_name", props.AssetName)
-		d.Set("description", props.Description)
+			var hlsFragmentsPerTsSegment int64
+			if props.Hls != nil && props.Hls.FragmentsPerTsSegment != nil {
+				hlsFragmentsPerTsSegment = *props.Hls.FragmentsPerTsSegment
+			}
+			d.Set("hls_fragments_per_ts_segment", hlsFragmentsPerTsSegment)
+			d.Set("manifest_name", props.ManifestName)
 
-		var hlsFragmentsPerTsSegment int32
-		if props.Hls != nil && props.Hls.FragmentsPerTsSegment != nil {
-			hlsFragmentsPerTsSegment = *props.Hls.FragmentsPerTsSegment
+			var outputSnapTime int64
+			if props.OutputSnapTime != nil {
+				outputSnapTime = *props.OutputSnapTime
+			}
+			d.Set("output_snap_time_in_seconds", outputSnapTime)
 		}
-		d.Set("hls_fragments_per_ts_segment", hlsFragmentsPerTsSegment)
-		d.Set("manifest_name", props.ManifestName)
-
-		var outputSnapTime int64
-		if props.OutputSnapTime != nil {
-			outputSnapTime = *props.OutputSnapTime
-		}
-		d.Set("output_snap_time_in_seconds", outputSnapTime)
 	}
 
 	return nil
 }
 
 func resourceMediaLiveOutputDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.LiveOutputsClient
+	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LiveOutputID(d.Id())
+	id, err := liveoutputs.ParseLiveOutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to delete: %+v", id, err)
 	}
 
 	return nil

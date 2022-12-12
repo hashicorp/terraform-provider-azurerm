@@ -10,8 +10,6 @@ description: |-
 
 Manages a MS SQL Database Extended Auditing Policy.
 
-~> **NOTE:** The Database Extended Auditing Policy can also be set in the `extended_auditing_policy` block in the [azurerm_mssql_database](mssql_database.html) resource. You can only use one or the other and using both will cause a conflict.
-
 ## Example Usage
 
 ```hcl
@@ -61,7 +59,7 @@ The following arguments are supported:
 
 * `database_id` - (Required) The ID of the SQL database to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
+* `enabled` - (Optional) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
 ->**NOTE:**  If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
 

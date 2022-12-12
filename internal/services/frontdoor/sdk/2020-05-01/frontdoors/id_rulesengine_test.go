@@ -138,7 +138,6 @@ func TestParseRulesEngineID(t *testing.T) {
 		if actual.RulesEngineName != v.Expected.RulesEngineName {
 			t.Fatalf("Expected %q but got %q for RulesEngineName", v.Expected.RulesEngineName, actual.RulesEngineName)
 		}
-
 	}
 }
 
@@ -304,7 +303,6 @@ func TestParseRulesEngineIDInsensitively(t *testing.T) {
 		if actual.RulesEngineName != v.Expected.RulesEngineName {
 			t.Fatalf("Expected %q but got %q for RulesEngineName", v.Expected.RulesEngineName, actual.RulesEngineName)
 		}
-
 	}
 }
 

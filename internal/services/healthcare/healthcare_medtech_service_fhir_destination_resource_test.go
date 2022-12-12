@@ -94,7 +94,7 @@ func (r HealthCareMedTechServiceFhirDestinationResource) Exists(ctx context.Cont
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.HealthCare.HealthcareWorkspaceMedTechServiceFhirDestinationClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
+	resp, err := client.HealthCare.HealthcareWorkspaceMedTechServiceFhirDestinationClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s, %+v", *id, err)
 	}

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -81,7 +81,7 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 			v := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
 			vars = append(vars, v)
 		}
-		t.Skip(fmt.Sprintf("Acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c` skipped unless environment variables set: %s", strings.Join(vars, ", ")))
+		t.Skipf("Acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c` skipped unless environment variables set: %s", strings.Join(vars, ", "))
 	}
 
 	return config

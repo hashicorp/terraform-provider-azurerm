@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Backup Vault should exist. Changing this forces a new Backup Vault to be created.
 
-* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `SnapshotStore` and `VaultStore`.
+* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `SnapshotStore` and `VaultStore`. Changing this forces a new resource to be created.
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant` and `LocallyRedundant`. Changing this forces a new Backup Vault to be created.
 

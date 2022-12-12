@@ -297,7 +297,14 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	d.SetId(*read.Key.Kid)
+	if read.Key == nil || read.Key.Kid == nil {
+		return fmt.Errorf("cannot read KeyVault Key '%s' (in key vault '%s')", name, *keyVaultBaseUri)
+	}
+	keyId, err := parse.ParseNestedItemID(*read.Key.Kid)
+	if err != nil {
+		return err
+	}
+	d.SetId(keyId.ID())
 
 	return resourceKeyVaultKeyRead(d, meta)
 }
@@ -543,7 +550,8 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
 	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
-		return fmt.Errorf("cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		shouldPurge = false
 	}
 
 	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)

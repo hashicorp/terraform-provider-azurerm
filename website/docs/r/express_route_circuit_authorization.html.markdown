@@ -52,10 +52,10 @@ The following arguments are supported:
 * `name` - (Required) The name of the ExpressRoute circuit. Changing this forces a
     new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the ExpressRoute circuit. Changing this forces a new resource to be created.
 
-* `express_route_circuit_name` - (Required) The name of the Express Route Circuit in which to create the Authorization.
+* `express_route_circuit_name` - (Required) The name of the Express Route Circuit in which to create the Authorization. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

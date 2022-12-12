@@ -123,7 +123,7 @@ A `gallery_image_reference` block supports the following:
 
 A `inbound_nat_rule` block supports the following:
 
-* `protocol` - (Required) The Protocol used for this NAT Rule. Possible values are `Tcp` and `Udp`. Changing this forces a new resource to be created.
+* `protocol` - (Required) The Protocol used for this NAT Rule. Possible values are `Tcp` and `Udp`. 
 
 * `backend_port` - (Required) The Backend Port associated with this NAT Rule. Changing this forces a new resource to be created.
 

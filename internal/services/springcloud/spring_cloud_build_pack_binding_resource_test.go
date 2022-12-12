@@ -91,7 +91,7 @@ func (r SpringCloudBuildPackBindingResource) Exists(ctx context.Context, client 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.AppPlatform.BuildPackBindingClient.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildpackBindingName)
+	resp, err := client.AppPlatform.BuildPackBindingClient.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

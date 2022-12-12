@@ -15,7 +15,7 @@ import (
 
 type SecurityCenterAssessmentResource struct{}
 
-func TestAccSecurityCenterAssessment_basic(t *testing.T) {
+func testAccSecurityCenterAssessment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -27,14 +27,10 @@ func TestAccSecurityCenterAssessment_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
-func TestAccSecurityCenterAssessment_requiresImport(t *testing.T) {
+func testAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -46,14 +42,10 @@ func TestAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
-func TestAccSecurityCenterAssessment_complete(t *testing.T) {
+func testAccSecurityCenterAssessment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -65,14 +57,10 @@ func TestAccSecurityCenterAssessment_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
-func TestAccSecurityCenterAssessment_update(t *testing.T) {
+func testAccSecurityCenterAssessment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
@@ -98,10 +86,6 @@ func TestAccSecurityCenterAssessment_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 

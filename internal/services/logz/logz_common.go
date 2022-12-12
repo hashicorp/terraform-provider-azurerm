@@ -3,7 +3,7 @@ package logz
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz"
+	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"

@@ -61,7 +61,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VmPriorityDedicated), string(machinelearningcomputes.VmPriorityLowPriority)}, false),
+				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
@@ -174,10 +174,10 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
 	}
 
-	vmPriority := machinelearningcomputes.VmPriority(d.Get("vm_priority").(string))
+	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
 	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
-		VmSize:                 utils.String(d.Get("vm_size").(string)),
-		VmPriority:             &vmPriority,
+		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		VMPriority:             &vmPriority,
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
 	}
@@ -265,8 +265,8 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	d.Set("description", computeCluster.Description)
 	if props := computeCluster.Properties; props != nil {
-		d.Set("vm_size", props.VmSize)
-		d.Set("vm_priority", props.VmPriority)
+		d.Set("vm_size", props.VMSize)
+		d.Set("vm_priority", props.VMPriority)
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
 		if props.Subnet != nil {
