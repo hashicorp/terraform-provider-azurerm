@@ -275,6 +275,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26
 github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelaycontainers
 github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers
 github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms
+github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08
+github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08/healthbots
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules

@@ -1,7 +1,20 @@
 ## 3.36.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
+* **New Resource:** `azurerm_spring_cloud_dev_tool_portal` [GH-19568]
+* **New Resource:** `azurerm_route_map` [GH-19402]
+
+ENHANCEMENTS:
+
+* `healthbot`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19433]
+* `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
+* `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
+
 BUG FIXES:
 
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
 * `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
 
 ## 3.35.0 (December 09, 2022)
