@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
+* **New Resource:** `azurerm_route_map` [GH-19402]
 
 ENHANCEMENTS:
 
