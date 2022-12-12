@@ -6,6 +6,7 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
 * `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
 
 ## 3.35.0 (December 09, 2022)
