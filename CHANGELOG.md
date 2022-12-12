@@ -9,6 +9,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `healthbot`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19433]
+* `azurerm_key_vault_managed_hardware_security_module` - support for the `public_network_access_enabled` and `network_acls` properties [GH-19640]
 * `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
 * `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
 
