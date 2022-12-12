@@ -58,9 +58,9 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"domain_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[0-9a-zA-Z][0-9a-zA-Z-]{1,13}[0-9a-zA-Z](.[0-9a-zA-Z-]+)+$"),
 					"domain_name must be a valid FQDN and the first element must be 15 or fewer characters",
