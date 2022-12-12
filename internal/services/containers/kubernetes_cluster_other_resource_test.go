@@ -2360,7 +2360,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  azure_monitor_kubernetes_metrics {
+  monitor_metrics {
   }
 }
   `, data.Locations.Primary, data.RandomInteger)
@@ -2393,9 +2393,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  azure_monitor_kubernetes_metrics {
-    metric_annotations_allow_list = "pods=[k8s-annotation-1,k8s-annotation-n]"
-    metric_labels_allow_list      = "namespaces=[k8s-label-1,k8s-label-n]"
+  monitor_metrics {
+    annotations_allowed = "pods=[k8s-annotation-1,k8s-annotation-n]"
+    labels_allowed      = "namespaces=[k8s-label-1,k8s-label-n]"
   }
 }
   `, data.Locations.Primary, data.RandomInteger)

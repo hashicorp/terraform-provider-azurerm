@@ -307,19 +307,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"azure_monitor_kubernetes_metrics": {
+			"monitor_metrics": {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"metric_annotations_allow_list": {
+						"annotations_allowed": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"metric_labels_allow_list": {
+						"labels_allowed": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -1269,7 +1269,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
-	azureMonitorKubernetesMetricsRaw := d.Get("azure_monitor_kubernetes_metrics").([]interface{})
+	azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
 	azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
 
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
@@ -1594,9 +1594,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AutoScalerProfile = autoScalerProfile
 	}
 
-	if d.HasChange("azure_monitor_kubernetes_metrics") {
+	if d.HasChange("monitor_metrics") {
 		updateCluster = true
-		azureMonitorKubernetesMetricsRaw := d.Get("azure_monitor_kubernetes_metrics").([]interface{})
+		azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
 
 		azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
 		existing.Model.Properties.AzureMonitorProfile = azureMonitorProfile
@@ -2072,8 +2072,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
-		if err := d.Set("azure_monitor_kubernetes_metrics", azureMonitorProfile); err != nil {
-			return fmt.Errorf("setting `azure_monitor_kubernetes_metrics`: %+v", err)
+		if err := d.Set("monitor_metrics", azureMonitorProfile); err != nil {
+			return fmt.Errorf("setting `monitor_metrics`: %+v", err)
 		}
 
 		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
@@ -3556,8 +3556,8 @@ func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclu
 		Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
 			Enabled: true,
 			KubeStateMetrics: &managedclusters.ManagedClusterAzureMonitorProfileKubeStateMetrics{
-				MetricAnnotationsAllowList: utils.String(config["metric_annotations_allow_list"].(string)),
-				MetricLabelsAllowlist:      utils.String(config["metric_labels_allow_list"].(string)),
+				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
+				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
 			},
 		},
 	}
@@ -3582,8 +3582,8 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"metric_annotations_allow_list": annotationAllowList,
-			"metric_labels_allow_list":      labelAllowList,
+			"annotations_allowed": annotationAllowList,
+			"labels_allowed":      labelAllowList,
 		},
 	}
 }
