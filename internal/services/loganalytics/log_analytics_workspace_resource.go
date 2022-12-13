@@ -150,7 +150,7 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 		log.Printf("[INFO] Log Analytics Workspace SKU: OLD: %q, NEW: %q", old, new)
 		// If the old value is not LACluster(e.g. "") return ForceNew because they are
 		// really changing the sku...
-		if !strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) {
+		if !strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) && !strings.EqualFold(old.(string), "") {
 			d.ForceNew("sku")
 		}
 	}
