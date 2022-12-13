@@ -152,6 +152,8 @@ The following arguments are supported:
 
 ~> **NOTE:** A route table must be configured on this Subnet.
 
+* `windows_profile` - (Optional) A `windows_profile` block as documented below.
+
 * `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
 
 ~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-wasi-node-pools)
@@ -279,6 +281,12 @@ A `sysctl_config` block supports the following:
 A `upgrade_settings` block supports the following:
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+---
+
+A `windows_profile` block supports the following:
+
+* `outbound_nat_enabled` - (Optional) Should the windows nodes in this Node Pool have outbound nat enabled? Defaults to `true`. Changing this forces a new resource to be created.
 
 -> **Note:** If a percentage is provided, the number of surge nodes is calculated from the current node count on the cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
 

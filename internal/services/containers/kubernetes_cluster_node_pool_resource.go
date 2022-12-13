@@ -326,6 +326,23 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			"upgrade_settings": upgradeSettingsSchema(),
 
+			"windows_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"outbound_nat_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  true,
+						},
+					},
+				},
+			},
+
 			"workload_runtime": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -415,6 +432,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Type:                   utils.ToPtr(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
+		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int64(int64(count)),
@@ -915,6 +933,9 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 		}
+		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
+			return fmt.Errorf("setting `windows_profile`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Properties.Tags)
@@ -1373,4 +1394,33 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 			"vm_vfs_cache_pressure":              vmVfsCachePressure,
 		},
 	}, nil
+}
+
+func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWindowsProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	outboundNatEnabled := v["outbound_nat_enabled"].(bool)
+	return &agentpools.AgentPoolWindowsProfile{
+		DisableOutboundNat: utils.Bool(!outboundNatEnabled),
+	}
+}
+
+func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	outboundNatEnabled := true
+	if input.DisableOutboundNat != nil {
+		outboundNatEnabled = !*input.DisableOutboundNat
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"outbound_nat_enabled": outboundNatEnabled,
+		},
+	}
 }
