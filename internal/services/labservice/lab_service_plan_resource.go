@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LabServiceLabPlanModel struct {
+type LabServicePlanModel struct {
 	Name                   string                `tfschema:"name"`
 	ResourceGroupName      string                `tfschema:"resource_group_name"`
 	Location               string                `tfschema:"location"`
@@ -55,23 +55,23 @@ type Support struct {
 	Url          string `tfschema:"url"`
 }
 
-type LabServiceLabPlanResource struct{}
+type LabServicePlanResource struct{}
 
-var _ sdk.ResourceWithUpdate = LabServiceLabPlanResource{}
+var _ sdk.ResourceWithUpdate = LabServicePlanResource{}
 
-func (r LabServiceLabPlanResource) ResourceType() string {
-	return "azurerm_lab_service_lab_plan"
+func (r LabServicePlanResource) ResourceType() string {
+	return "azurerm_lab_service_plan"
 }
 
-func (r LabServiceLabPlanResource) ModelObject() interface{} {
-	return &LabServiceLabPlanModel{}
+func (r LabServicePlanResource) ModelObject() interface{} {
+	return &LabServicePlanModel{}
 }
 
-func (r LabServiceLabPlanResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LabServicePlanResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return labplan.ValidateLabPlanID
 }
 
-func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
+func (r LabServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -237,15 +237,15 @@ func (r LabServiceLabPlanResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LabServiceLabPlanResource) Attributes() map[string]*pluginsdk.Schema {
+func (r LabServicePlanResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LabServiceLabPlanResource) Create() sdk.ResourceFunc {
+func (r LabServicePlanResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model LabServiceLabPlanModel
+			var model LabServicePlanModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -289,7 +289,7 @@ func (r LabServiceLabPlanResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LabServiceLabPlanResource) Update() sdk.ResourceFunc {
+func (r LabServicePlanResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -300,7 +300,7 @@ func (r LabServiceLabPlanResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model LabServiceLabPlanModel
+			var model LabServicePlanModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -356,7 +356,7 @@ func (r LabServiceLabPlanResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r LabServiceLabPlanResource) Read() sdk.ResourceFunc {
+func (r LabServicePlanResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -381,7 +381,7 @@ func (r LabServiceLabPlanResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := LabServiceLabPlanModel{
+			state := LabServicePlanModel{
 				Name:              id.LabPlanName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -410,7 +410,7 @@ func (r LabServiceLabPlanResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LabServiceLabPlanResource) Delete() sdk.ResourceFunc {
+func (r LabServicePlanResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

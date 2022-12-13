@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LabServiceLabPlanResource struct{}
+type LabServicePlanResource struct{}
 
-func TestAccLabServiceLabPlan_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lab_service_lab_plan", "test")
-	r := LabServiceLabPlanResource{}
+func TestAccLabServicePlan_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lab_service_plan", "test")
+	r := LabServicePlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccLabServiceLabPlan_basic(t *testing.T) {
 	})
 }
 
-func TestAccLabServiceLabPlan_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lab_service_lab_plan", "test")
-	r := LabServiceLabPlanResource{}
+func TestAccLabServicePlan_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lab_service_plan", "test")
+	r := LabServicePlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,9 +46,9 @@ func TestAccLabServiceLabPlan_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccLabServiceLabPlan_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lab_service_lab_plan", "test")
-	r := LabServiceLabPlanResource{}
+func TestAccLabServicePlan_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lab_service_plan", "test")
+	r := LabServicePlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,9 +61,9 @@ func TestAccLabServiceLabPlan_complete(t *testing.T) {
 	})
 }
 
-func TestAccLabServiceLabPlan_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lab_service_lab_plan", "test")
-	r := LabServiceLabPlanResource{}
+func TestAccLabServicePlan_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lab_service_plan", "test")
+	r := LabServicePlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccLabServiceLabPlan_update(t *testing.T) {
 	})
 }
 
-func (r LabServiceLabPlanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LabServicePlanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := labplan.ParseLabPlanID(state.ID)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (r LabServiceLabPlanResource) Exists(ctx context.Context, clients *clients.
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r LabServiceLabPlanResource) template(data acceptance.TestData) string {
+func (r LabServicePlanResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -113,11 +113,11 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LabServiceLabPlanResource) basic(data acceptance.TestData) string {
+func (r LabServicePlanResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_lab_service_lab_plan" "test" {
+resource "azurerm_lab_service_plan" "test" {
   name                = "acctest-lslp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -126,20 +126,20 @@ resource "azurerm_lab_service_lab_plan" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LabServiceLabPlanResource) requiresImport(data acceptance.TestData) string {
+func (r LabServicePlanResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_lab_service_lab_plan" "import" {
-  name                = azurerm_lab_service_lab_plan.test.name
-  resource_group_name = azurerm_lab_service_lab_plan.test.resource_group_name
-  location            = azurerm_lab_service_lab_plan.test.location
-  allowed_regions     = azurerm_lab_service_lab_plan.test.allowed_regions
+resource "azurerm_lab_service_plan" "import" {
+  name                = azurerm_lab_service_plan.test.name
+  resource_group_name = azurerm_lab_service_plan.test.resource_group_name
+  location            = azurerm_lab_service_plan.test.location
+  allowed_regions     = azurerm_lab_service_plan.test.allowed_regions
 }
 `, r.basic(data))
 }
 
-func (r LabServiceLabPlanResource) complete(data acceptance.TestData) string {
+func (r LabServicePlanResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,7 +185,7 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_lab_service_lab_plan" "test" {
+resource "azurerm_lab_service_plan" "test" {
   name                      = "acctest-lslp-%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
@@ -223,7 +223,7 @@ resource "azurerm_lab_service_lab_plan" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LabServiceLabPlanResource) update(data acceptance.TestData) string {
+func (r LabServicePlanResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -272,7 +272,7 @@ resource "azurerm_subnet" "test2" {
   }
 }
 
-resource "azurerm_lab_service_lab_plan" "test" {
+resource "azurerm_lab_service_plan" "test" {
   name                      = "acctest-lslp-%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
