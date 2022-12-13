@@ -538,7 +538,8 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		if purgeProtectionEnabled {
 			deletedInfo, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedId)
 			if err != nil {
-				return fmt.Errorf("while purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
+				log.Printf("[DEBUG] While purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
+				return nil
 			}
 
 			if deletedInfo.Model != nil && deletedInfo.Model.Properties != nil && deletedInfo.Model.Properties.DeletionDate != nil && deletedInfo.Model.Properties.ScheduledPurgeDate != nil {
