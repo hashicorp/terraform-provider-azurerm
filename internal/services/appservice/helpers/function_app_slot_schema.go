@@ -642,7 +642,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	if existing != nil {
 		expanded = existing
 		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
-		expanded.LinuxFxVersion = utils.String("")
+		expanded.WindowsFxVersion = utils.String("")
 	}
 
 	appSettings := make([]web.NameValuePair, 0)
