@@ -161,17 +161,17 @@ A `traffic_bypass` block supports the following:
 
 A `explicit_proxy` block supports the following:
 
-* `enabled` (Optional) Whether the explicit proxy is enabled for this Firewall Policy.
+* `enabled` - (Optional) Whether the explicit proxy is enabled for this Firewall Policy.
 
-* `http_port` (Optional) The port number for explicit http protocol.
+* `http_port` - (Optional) The port number for explicit http protocol.
 
-* `https_port` (Optional) The port number for explicit proxy https protocol.
+* `https_port` - (Optional) The port number for explicit proxy https protocol.
 
-* `enable_pac_file` (Optional) Whether the pac file port and url need to be provided.
+* `enable_pac_file` - (Optional) Whether the pac file port and url need to be provided.
 
-* `pac_file_port` (Optional) Specifies a port number for firewall to serve PAC file.
+* `pac_file_port` - (Optional) Specifies a port number for firewall to serve PAC file.
 
-* `pac_file` (Optional) Specifies a SAS URL for PAC file.
+* `pac_file` - (Optional) Specifies a SAS URL for PAC file.
 
 ## Attributes Reference
 
