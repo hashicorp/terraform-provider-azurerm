@@ -133,7 +133,7 @@ resource "azurerm_network_manager_scope_connection" "test" {
   name               = "acctest-nsc-%d"
   network_manager_id = azurerm_network_manager.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
-  resource_id        = data.azurerm_subscription.current.id
+  target_scope_id    = data.azurerm_subscription.current.id
 }
 `, template, data.RandomInteger)
 }
@@ -147,7 +147,7 @@ resource "azurerm_network_manager_scope_connection" "import" {
   name               = azurerm_network_manager_scope_connection.test.name
   network_manager_id = azurerm_network_manager_scope_connection.test.network_manager_id
   tenant_id          = azurerm_network_manager_scope_connection.test.tenant_id
-  resource_id        = azurerm_network_manager_scope_connection.test.resource_id
+  target_scope_id    = azurerm_network_manager_scope_connection.test.target_scope_id
 }
 `, config)
 }
@@ -161,7 +161,7 @@ resource "azurerm_network_manager_scope_connection" "test" {
   name               = "acctest-nsc-%d"
   network_manager_id = azurerm_network_manager.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
-  resource_id        = data.azurerm_subscription.current.id
+  target_scope_id    = data.azurerm_subscription.current.id
   description        = "complete"
 }
 `, template, data.RandomInteger)
@@ -176,7 +176,7 @@ resource "azurerm_network_manager_scope_connection" "test" {
   name               = "acctest-nsc-%d"
   network_manager_id = azurerm_network_manager.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
-  resource_id        = data.azurerm_subscription.current.id
+  target_scope_id    = data.azurerm_subscription.current.id
   description        = "update"
 }
 `, template, data.RandomInteger)
