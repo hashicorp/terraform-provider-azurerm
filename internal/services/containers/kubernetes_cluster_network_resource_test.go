@@ -764,6 +764,28 @@ func TestAccKubernetesCluster_ebpfDataPlane(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_backendPoolType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.backendPoolType(data, "NodeIP"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.backendPoolType(data, "NodeIPConfiguration"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3213,4 +3235,42 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, "westcentralus", data.RandomInteger)
+}
+
+func (KubernetesClusterResource) backendPoolType(data acceptance.TestData, backendPoolType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
+    load_balancer_profile {
+      backend_pool_type = "%[3]s"
+    }
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, backendPoolType)
 }

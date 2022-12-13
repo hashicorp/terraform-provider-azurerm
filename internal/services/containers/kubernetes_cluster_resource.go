@@ -819,6 +819,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
+									"backend_pool_type": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.BackendPoolTypeNodeIP),
+											string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+										}, false),
+									},
 									"outbound_ports_allocated": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
@@ -1699,6 +1707,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
 				allocatedOutboundPorts := d.Get(key).(int)
 				loadBalancerProfile.AllocatedOutboundPorts = utils.Int64(int64(allocatedOutboundPorts))
+			}
+
+			if key := "network_profile.0.load_balancer_profile.0.backend_pool_type"; d.HasChange(key) {
+				backendPoolType := d.Get(key).(string)
+				loadBalancerProfile.BackendPoolType = utils.ToPtr(managedclusters.BackendPoolType(backendPoolType))
 			}
 
 			existing.Model.Properties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
@@ -2616,6 +2629,10 @@ func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterL
 		profile.AllocatedOutboundPorts = utils.Int64(int64(port))
 	}
 
+	if backendPoolType, ok := config["backend_pool_type"].(string); ok {
+		profile.BackendPoolType = utils.ToPtr(managedclusters.BackendPoolType(backendPoolType))
+	}
+
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int64(ipCount.(int)); c > 0 {
 			profile.ManagedOutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
@@ -2772,6 +2789,20 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 		if v := lbp.AllocatedOutboundPorts; v != nil {
 			lb["outbound_ports_allocated"] = v
+		}
+
+		if v := lbp.BackendPoolType; v != nil {
+			backendPoolType := string(*v)
+			// The returned value has inconsistent casing
+			// TODO: Remove the normalization codes once the following issue is fixed.
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21872
+			if strings.EqualFold(backendPoolType, string(managedclusters.BackendPoolTypeNodeIP)) {
+				backendPoolType = string(managedclusters.BackendPoolTypeNodeIP)
+			}
+			if strings.EqualFold(backendPoolType, string(managedclusters.BackendPoolTypeNodeIPConfiguration)) {
+				backendPoolType = string(managedclusters.BackendPoolTypeNodeIPConfiguration)
+			}
+			lb["backend_pool_type"] = backendPoolType
 		}
 
 		if v := lbp.IdleTimeoutInMinutes; v != nil {
