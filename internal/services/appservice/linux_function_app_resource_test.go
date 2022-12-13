@@ -1006,7 +1006,7 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|16"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|18"),
 			),
 		},
 		data.ImportStep(),
