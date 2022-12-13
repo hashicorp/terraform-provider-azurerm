@@ -205,7 +205,6 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 				user = *v
 			}
 			d.Set("user", user)
-
 		}
 	}
 	return nil

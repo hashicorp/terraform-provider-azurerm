@@ -149,7 +149,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				BatchSize:    utils.Int64(model.BatchSize),
 			}
 
-			if v := model.ColumnsToRemove; v != nil && len(v) > 0 {
+			if v := model.ColumnsToRemove; len(v) > 0 {
 				tableOutputProps.ColumnsToRemove = &v
 			}
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -831,7 +831,6 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(winSlotSiteConfig.ApplicationStack) == 1 {
-
 			winAppStack := winSlotSiteConfig.ApplicationStack[0]
 			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
 			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)

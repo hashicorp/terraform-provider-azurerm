@@ -183,7 +183,7 @@ func (IoTCentralApplicationNetworkRuleSetResource) Exists(ctx context.Context, c
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil && &resp.Model.Properties.NetworkRuleSets != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.NetworkRuleSets != nil), nil
 }
 
 func (r IoTCentralApplicationNetworkRuleSetResource) basic(data acceptance.TestData) string {

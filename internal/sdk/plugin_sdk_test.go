@@ -60,7 +60,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 		},
 	}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -150,7 +150,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error {
 								d.SetId("some-id")
 								d.Set("hello", "world")
 								d.Set("random_number", 42)
@@ -178,7 +178,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 								})
 								return nil
 							},
-							Read: func(d *schema.ResourceData, _ interface{}) error { //nolint:SA1019
+							Read: func(d *schema.ResourceData, _ interface{}) error { //nolint:staticcheck
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -196,7 +196,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 
 								return nil
 							},
-							Delete: func(_ *schema.ResourceData, _ interface{}) error { //nolint:SA1019
+							Delete: func(_ *schema.ResourceData, _ interface{}) error { //nolint:staticcheck
 								return nil
 							},
 						},
@@ -260,7 +260,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 		}
 	}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -269,7 +269,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 					ResourcesMap: map[string]*schema.Resource{
 						"validator_decoder_specified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								return nil
 							},
@@ -285,7 +285,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 
 						"validator_decoder_unspecified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -346,7 +346,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 		// TODO: do we need other field types, or is this sufficient?
 	}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -371,7 +371,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 									Computed: true,
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -452,7 +452,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 		// so we should be covered via this test alone
 	}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -490,7 +490,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("set_of_strings", []string{
 									"some",
@@ -645,7 +645,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 		SetOfFloats   []float64          `tfschema:"set_of_floats"`
 	}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -763,7 +763,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -863,7 +863,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	resourceName := "validator_computed.test"
-	//lintignore:AT001
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
@@ -980,7 +980,7 @@ func computedFieldsResource() *schema.Resource {
 				},
 			},
 		},
-		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:SA1019
+		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 			d.SetId("does-not-matter")
 			return readFunc(d, meta)
 		},

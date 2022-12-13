@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
@@ -173,9 +173,9 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 
 	switch template := resp.(type) {
 	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
-		err = setForMLBehaviorAnalyticsAlertRuleTemplate(d, id, &template)
+		setForMLBehaviorAnalyticsAlertRuleTemplate(d, id, &template)
 	case securityinsight.FusionAlertRuleTemplate:
-		err = setForFusionAlertRuleTemplate(d, id, &template)
+		setForFusionAlertRuleTemplate(d, id, &template)
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
 		err = setForMsSecurityIncidentAlertRuleTemplate(d, id, &template)
 	case securityinsight.ScheduledAlertRuleTemplate:
@@ -267,18 +267,16 @@ func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, id par
 	return d.Set("security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(template.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties))
 }
 
-func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.FusionAlertRuleTemplate) error {
+func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.FusionAlertRuleTemplate) {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
-	return nil
 }
 
-func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) error {
+func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
-	return nil
 }
 
 func flattenScheduledAlertRuleTemplate(input *securityinsight.ScheduledAlertRuleTemplateProperties) []interface{} {

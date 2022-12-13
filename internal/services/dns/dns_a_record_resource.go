@@ -192,7 +192,6 @@ func resourceDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 		}
-
 	}
 
 	return nil

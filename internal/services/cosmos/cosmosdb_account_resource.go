@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -1216,7 +1216,6 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-
 				var locations []documentdb.Location
 
 				if props.ReadLocations != nil {
@@ -1593,7 +1592,6 @@ func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdent
 		}
 	}
 	return &out, nil
-
 }
 
 func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) (*[]interface{}, error) {

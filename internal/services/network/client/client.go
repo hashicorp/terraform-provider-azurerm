@@ -34,6 +34,7 @@ type Client struct {
 	PrivateEndpointClient                  *network.PrivateEndpointsClient
 	PublicIPsClient                        *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
+	RouteMapsClient                        *network.RouteMapsClient
 	RoutesClient                           *network.RoutesClient
 	RouteFiltersClient                     *network.RouteFiltersClient
 	RouteTablesClient                      *network.RouteTablesClient
@@ -166,6 +167,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	PrivateLinkServiceClient := network.NewPrivateLinkServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PrivateLinkServiceClient.Client, o.ResourceManagerAuthorizer)
 
+	RouteMapsClient := network.NewRouteMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RouteMapsClient.Client, o.ResourceManagerAuthorizer)
+
 	RoutesClient := network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RoutesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -270,6 +274,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateEndpointClient:                  &PrivateEndpointClient,
 		PublicIPsClient:                        &PublicIPsClient,
 		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
+		RouteMapsClient:                        &RouteMapsClient,
 		RoutesClient:                           &RoutesClient,
 		RouteFiltersClient:                     &RouteFiltersClient,
 		RouteTablesClient:                      &RouteTablesClient,

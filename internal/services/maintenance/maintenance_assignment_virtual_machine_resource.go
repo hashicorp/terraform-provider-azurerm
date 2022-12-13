@@ -182,7 +182,6 @@ func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceD
 }
 
 func getMaintenanceAssignmentVirtualMachine(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, vmId *parseCompute.VirtualMachineId, virtualMachineId string) (result *[]configurationassignments.ConfigurationAssignment, err error) {
-
 	id := configurationassignments.NewProviderID(vmId.SubscriptionId, vmId.ResourceGroup, "Microsoft.Compute", "virtualMachines", vmId.Name)
 	resp, err := client.List(ctx, id)
 	if err != nil {
