@@ -154,20 +154,14 @@ func (r ManagerSubscriptionConnectionResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
 					properties.Description = &model.Description
-				} else {
-					properties.Description = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("network_manager_id") {
 				if model.NetworkManagerId != "" {
 					properties.NetworkManagerID = &model.NetworkManagerId
-				} else {
-					properties.NetworkManagerID = nil
 				}
 			}
-
-			existing.SystemData = nil
 
 			if _, err := client.CreateOrUpdate(ctx, existing, id.NetworkManagerConnectionName); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
