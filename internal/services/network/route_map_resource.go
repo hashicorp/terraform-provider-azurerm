@@ -235,11 +235,9 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 			}
 
 			props := &network.RouteMap{
-				RouteMapProperties: &network.RouteMapProperties{},
-			}
-
-			if model.Rules != nil {
-				props.RouteMapProperties.Rules = expandRules(model.Rules)
+				RouteMapProperties: &network.RouteMapProperties{
+					Rules: expandRules(model.Rules),
+				},
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, *props)
@@ -357,18 +355,15 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 
 func expandRules(input []Rule) *[]network.RouteMapRule {
 	var rules []network.RouteMapRule
+	if input == nil {
+		return nil
+	}
 
 	for _, v := range input {
 		rule := network.RouteMapRule{
-			Name: utils.String(v.Name),
-		}
-
-		if v.Actions != nil {
-			rule.Actions = expandActions(v.Actions)
-		}
-
-		if v.MatchCriteria != nil {
-			rule.MatchCriteria = expandCriteria(v.MatchCriteria)
+			Name:          utils.String(v.Name),
+			Actions:       expandActions(v.Actions),
+			MatchCriteria: expandCriteria(v.MatchCriteria),
 		}
 
 		if v.NextStepIfMatched != "" {
@@ -383,14 +378,14 @@ func expandRules(input []Rule) *[]network.RouteMapRule {
 
 func expandActions(input []Action) *[]network.Action {
 	var actions []network.Action
+	if input == nil {
+		return nil
+	}
 
 	for _, v := range input {
 		action := network.Action{
-			Type: v.Type,
-		}
-
-		if v.Parameters != nil {
-			action.Parameters = expandParameters(v.Parameters)
+			Type:       v.Type,
+			Parameters: expandParameters(v.Parameters),
 		}
 
 		actions = append(actions, action)
@@ -401,6 +396,9 @@ func expandActions(input []Action) *[]network.Action {
 
 func expandParameters(input []Parameter) *[]network.Parameter {
 	var parameters []network.Parameter
+	if input == nil {
+		return nil
+	}
 
 	for _, item := range input {
 		v := item
@@ -426,6 +424,9 @@ func expandParameters(input []Parameter) *[]network.Parameter {
 
 func expandCriteria(input []Criterion) *[]network.Criterion {
 	var criteria []network.Criterion
+	if input == nil {
+		return nil
+	}
 
 	for _, item := range input {
 		v := item
@@ -458,10 +459,10 @@ func flattenRules(input *[]network.RouteMapRule) []Rule {
 	}
 
 	for _, v := range *input {
-		rule := Rule{}
-
-		rule.Actions = flattenActions(v.Actions)
-		rule.MatchCriteria = flattenCriteria(v.MatchCriteria)
+		rule := Rule{
+			Actions:       flattenActions(v.Actions),
+			MatchCriteria: flattenCriteria(v.MatchCriteria),
+		}
 
 		if v.Name != nil {
 			rule.Name = *v.Name
@@ -484,9 +485,9 @@ func flattenActions(input *[]network.Action) []Action {
 	}
 
 	for _, v := range *input {
-		action := Action{}
-
-		action.Parameters = flattenParameters(v.Parameters)
+		action := Action{
+			Parameters: flattenParameters(v.Parameters),
+		}
 
 		if v.Type != "" {
 			action.Type = v.Type
