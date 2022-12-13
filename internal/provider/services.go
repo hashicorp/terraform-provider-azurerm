@@ -143,6 +143,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		monitor.Registration{},
 		mssql.Registration{},
 		network.Registration{},
+		netapp.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
 		privatednsresolver.Registration{},

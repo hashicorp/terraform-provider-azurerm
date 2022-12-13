@@ -1,7 +1,6 @@
 package netapp
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -12,9 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -94,16 +93,15 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"deployment_spec_id": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
-			Default:  "20542149-bfca-5618-1879-9863dc6767f1",
 			ValidateFunc: validation.StringInSlice([]string{
-				"20542149-bfca-5618-1879-9863dc6767f1",
+				"20542149-bfca-5618-1879-9863dc6767f1", // SAP HANA Deployment Spec ID
 			}, false),
 		},
 
 		"volume": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 5,
 			MaxItems: 5,
@@ -321,100 +319,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceVolumeGroupVolumeListHash,
 		},
 	}
-}
-
-func resourceVolumeGroupVolumeListHash(v interface{}) int {
-	// Computed = true items must be out of this
-
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["proximity_placement_group_id"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["volume_spec_name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["volume_path"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["service_level"].(string)))
-
-		if protocols, ok := m["protocols"].([]interface{}); ok {
-			for _, item := range protocols {
-				v := item.(string)
-				buf.WriteString(fmt.Sprintf("%s-", v))
-			}
-		}
-
-		buf.WriteString(fmt.Sprintf("%s-", m["security_style"].(string)))
-		buf.WriteString(fmt.Sprintf("%d-", m["storage_quota_in_gb"].(int)))
-		buf.WriteString(fmt.Sprintf("%f-", m["throughput_in_mibps"].(float64)))
-		buf.WriteString(fmt.Sprintf("%t-", m["snapshot_directory_visible"].(bool)))
-
-		if exportPolicies, ok := m["export_policy_rule"].([]interface{}); ok {
-			for _, item := range exportPolicies {
-				v := item.(map[string]interface{})
-				if ruleIndex, ok := v["rule_index"].(int); ok {
-					buf.WriteString(fmt.Sprintf("%d-", ruleIndex))
-				}
-				if allowedClients, ok := v["allowed_clients"].(string); ok {
-					buf.WriteString(fmt.Sprintf("%s-", allowedClients))
-				}
-				if nfsv3Enabled, ok := v["nfsv3_enabled"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", nfsv3Enabled))
-				}
-				if nfsv41Enabled, ok := v["nfsv41_enabled"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", nfsv41Enabled))
-				}
-				if unixReadOnly, ok := v["unix_read_only"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", unixReadOnly))
-				}
-				if unixReadWrite, ok := v["unix_read_write"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", unixReadWrite))
-				}
-				if rootAccessEnabled, ok := v["root_access_enabled"].(bool); ok {
-					buf.WriteString(fmt.Sprintf("%t-", rootAccessEnabled))
-				}
-			}
-		}
-
-		if tags, ok := m["tags"].([]interface{}); ok {
-			for _, item := range tags {
-				i := item.(map[string]interface{})
-				for k, v := range i {
-					buf.WriteString(fmt.Sprintf("%s-%s-", k, v))
-				}
-			}
-		}
-
-		if dpReplication, ok := m["data_protection_replication"].([]interface{}); ok {
-			for _, item := range dpReplication {
-				v := item.(map[string]interface{})
-				if endpointType, ok := v["endpoint_type"].(string); ok {
-					buf.WriteString(fmt.Sprintf("%s-", endpointType))
-				}
-				if remoteVolumeLocation, ok := v["remote_volume_location"].(string); ok {
-					buf.WriteString(fmt.Sprintf("%s-", remoteVolumeLocation))
-				}
-				if remoteVolumeResourceId, ok := v["remote_volume_resource_id"].(string); ok {
-					buf.WriteString(fmt.Sprintf("%s-", remoteVolumeResourceId))
-				}
-				if replicationFrequency, ok := v["replication_frequency"].(string); ok {
-					buf.WriteString(fmt.Sprintf("%s-", replicationFrequency))
-				}
-			}
-		}
-
-		if dpSnapshotPolicy, ok := m["data_protection_snapshot_policy"].([]interface{}); ok {
-			for _, item := range dpSnapshotPolicy {
-				v := item.(map[string]interface{})
-				if snapshotPolicyId, ok := v["snapshot_policy_id"].(string); ok {
-					buf.WriteString(fmt.Sprintf("%s-", snapshotPolicyId))
-				}
-			}
-		}
-	}
-
-	return pluginsdk.HashString(buf.String())
 }
 
 func (r NetAppVolumeGroupResource) Attributes() map[string]*pluginsdk.Schema {
@@ -662,19 +568,8 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 			if props := existing.Model.Properties; props != nil {
 				model.GroupDescription = utils.NormalizeNilableString(props.GroupMetaData.GroupDescription)
 				model.ApplicationIdentifier = utils.NormalizeNilableString(props.GroupMetaData.ApplicationIdentifier)
-				model.DeploymentSpecId = utils.NormalizeNilableString(props.GroupMetaData.DeploymentSpecId)
 				model.ApplicationType = string(*props.GroupMetaData.ApplicationType)
-
-				if state.DeploymentSpecId != "" {
-					model.DeploymentSpecId = state.DeploymentSpecId
-				} else {
-					// Setting a default value here to overcome issue with SDK
-					// not returning this value back from Azure
-					// This is the only supported value for the time being and
-					// will be fixed by ANF team if it introduces a new SpecId
-					// option.
-					model.DeploymentSpecId = "20542149-bfca-5618-1879-9863dc6767f1"
-				}
+				model.DeploymentSpecId = utils.NormalizeNilableString(props.GroupMetaData.DeploymentSpecId)
 
 				volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
 				if err != nil {
