@@ -249,7 +249,8 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
 	deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 	if err != nil {
-		if !response.WasNotFound(deleted.HttpResponse) {
+		log.Printf("[DEBUG] checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
+		if !response.WasNotFound(deleted.HttpResponse) && !response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
 			return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
 		}
 	}
@@ -537,7 +538,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		if purgeProtectionEnabled {
 			deletedInfo, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedId)
 			if err != nil {
-				return fmt.Errorf("retrieving the Deletion Details for %s: %+v", *id, err)
+				return fmt.Errorf("while purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
 			}
 
 			if deletedInfo.Model != nil && deletedInfo.Model.Properties != nil && deletedInfo.Model.Properties.DeletionDate != nil && deletedInfo.Model.Properties.ScheduledPurgeDate != nil {
