@@ -78,6 +78,8 @@ An `identity` block supports the following:
 
 -> **Note:** Once customer-managed key encryption has been enabled, it cannot be disabled.
 
+---
+
 A `customer_managed_key` block supports the following:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this ServiceBus Namespace.

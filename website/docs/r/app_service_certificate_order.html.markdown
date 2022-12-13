@@ -80,7 +80,7 @@ The following attributes are exported:
 
 ---
 
-`certificates` supports the following:
+The `certificates` block supports the following:
 
 * `certificate_name` - The name of the App Service Certificate.
 

@@ -60,7 +60,9 @@ The following arguments are supported:
 * `sku_tier` - (Optional) `sku_tier` - (Optional) The SKU tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`frontend_ip_configuration` supports the following:
+---
+
+The `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the frontend IP configuration. Changing this forces a new resource to be created.
 

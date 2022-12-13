@@ -103,14 +103,14 @@ The following arguments are supported:
 
 ---
 
-* `retention_policy` supports the following:
+The `retention_policy` block supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable retention.
 * `days` - (Required) The number of days to retain flow log records.
 
 ---
 
-* `traffic_analytics` supports the following:
+The `traffic_analytics` block supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable traffic analytics.
 * `workspace_id` - (Required) The resource GUID of the attached workspace.

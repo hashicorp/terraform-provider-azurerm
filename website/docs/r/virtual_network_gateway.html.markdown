@@ -104,7 +104,7 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` (Required) One, two or three `ip_configuration` blocks documented below.
+* `ip_configuration` - (Required) One, two or three `ip_configuration` blocks documented below.
   An active-standby gateway requires exactly one `ip_configuration` block,
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
@@ -157,7 +157,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which
   is documented below. In this block the Virtual Network Gateway can be configured
   to accept IPSec point-to-site connections.
 
@@ -236,7 +236,7 @@ A `custom_route` block supports the following:
 
 ---
 
-A `peering_addresses` supports the following:
+A `peering_addresses` block supports the following:
 
 * `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
 
@@ -280,7 +280,7 @@ The `bgp_settings` block supports:
 
 ---
 
-The `peering_addresses` supports:
+The `peering_addresses` block supports:
 
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 

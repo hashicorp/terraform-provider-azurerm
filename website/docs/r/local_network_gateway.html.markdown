@@ -53,7 +53,7 @@ The following arguments are supported:
 
 ---
 
-`bgp_settings` supports the following:
+The `bgp_settings` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
