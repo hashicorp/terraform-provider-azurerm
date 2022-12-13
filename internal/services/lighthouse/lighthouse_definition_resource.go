@@ -403,11 +403,10 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]reg
 		v := item.(map[string]interface{})
 
 		result := registrationdefinitions.EligibleAuthorization{
-			PrincipalId:      v["principal_id"].(string),
-			RoleDefinitionId: v["role_definition_id"].(string),
+			PrincipalId:            v["principal_id"].(string),
+			RoleDefinitionId:       v["role_definition_id"].(string),
+			JustInTimeAccessPolicy: expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]interface{})),
 		}
-
-		result.JustInTimeAccessPolicy = expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]interface{}))
 
 		if principalDisplayName := v["principal_display_name"].(string); principalDisplayName != "" {
 			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
@@ -428,6 +427,7 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *regi
 
 	result := registrationdefinitions.JustInTimeAccessPolicy{
 		MaximumActivationDuration: utils.String(justInTimeAccessPolicy["maximum_activation_duration"].(string)),
+		ManagedByTenantApprovers:  expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List()),
 	}
 
 	multiFactorAuthProvider := registrationdefinitions.MultiFactorAuthProviderNone
@@ -435,8 +435,6 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *regi
 		multiFactorAuthProvider = registrationdefinitions.MultiFactorAuthProvider(v)
 	}
 	result.MultiFactorAuthProvider = multiFactorAuthProvider
-
-	result.ManagedByTenantApprovers = expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List())
 
 	return &result
 }
