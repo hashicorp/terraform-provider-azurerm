@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2021-08-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2022-10-01/backupresourcestorageconfigsnoncrr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2022-10-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -107,11 +108,11 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			"storage_mode_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  backup.StorageTypeGeoRedundant,
+				Default:  backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(backup.StorageTypeGeoRedundant),
-					string(backup.StorageTypeLocallyRedundant),
-					string(backup.StorageTypeZoneRedundant),
+					string(backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant),
+					string(backupresourcestorageconfigsnoncrr.StorageTypeLocallyRedundant),
+					string(backupresourcestorageconfigsnoncrr.StorageTypeZoneRedundant),
 				}, false),
 			},
 
@@ -139,12 +140,22 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	storageId := backupresourcestorageconfigsnoncrr.VaultId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		VaultName:         id.VaultName,
+	}
+	cfgId := backupresourcevaultconfigs.VaultId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		VaultName:         id.VaultName,
+	}
 
 	storageMode := d.Get("storage_mode_type").(string)
 	crossRegionRestore := d.Get("cross_region_restore_enabled").(bool)
 
-	if crossRegionRestore && storageMode != string(backup.StorageTypeGeoRedundant) {
-		return fmt.Errorf("cannot enable cross region restore when storage mode type is not %s. %s", string(backup.StorageTypeGeoRedundant), id.String())
+	if crossRegionRestore && storageMode != string(backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant) {
+		return fmt.Errorf("cannot enable cross region restore when storage mode type is not %s. %s", string(backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant), id.String())
 	}
 
 	location := d.Get("location").(string)
@@ -158,8 +169,8 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
 		}
 	}
-	if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-		return tf.ImportAsExistsError("azurerm_recovery_services_vault", *existing.Model.Id)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_recovery_services_vault", id.ID())
 	}
 
 	expandedIdentity, err := expandVaultIdentity(d.Get("identity").([]interface{}))
@@ -183,22 +194,23 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
 	if err != nil {
-		return fmt.Errorf("creating Recovery Service %s: %+v", id.String(), err)
+		return fmt.Errorf("creating %s: %+v", id.String(), err)
 	}
 
-	storageCfg := backup.ResourceConfigResource{
-		Properties: &backup.ResourceConfig{
-			StorageModelType:       backup.StorageType(d.Get("storage_mode_type").(string)),
+	storageType := backupresourcestorageconfigsnoncrr.StorageType(d.Get("storage_mode_type").(string))
+	storageCfg := backupresourcestorageconfigsnoncrr.BackupResourceConfigResource{
+		Properties: &backupresourcestorageconfigsnoncrr.BackupResourceConfig{
+			StorageModelType:       &storageType,
 			CrossRegionRestoreFlag: utils.Bool(d.Get("cross_region_restore_enabled").(bool)),
 		},
 	}
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if resp, err := storageCfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, storageCfg); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+		if resp, err := storageCfgsClient.Update(ctx, storageId, storageCfg); err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 			}
-			if utils.ResponseWasBadRequest(resp.Response) {
+			if response.WasNotFound(resp.HttpResponse) {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 			}
 
@@ -212,14 +224,17 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// storage type is not updated instantaneously, so we wait until storage type is correct
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if resp, err := storageCfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName); err == nil {
-			if resp.Properties == nil {
+		if resp, err := storageCfgsClient.Get(ctx, storageId); err == nil {
+			if resp.Model == nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `model` was nil", id))
+			}
+			if resp.Model.Properties == nil {
 				return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
 			}
-			if resp.Properties.StorageType != storageCfg.Properties.StorageModelType {
+			if resp.Model.Properties.StorageType != storageCfg.Properties.StorageModelType {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
 			}
-			if *resp.Properties.CrossRegionRestoreFlag != *storageCfg.Properties.CrossRegionRestoreFlag {
+			if *resp.Model.Properties.CrossRegionRestoreFlag != *storageCfg.Properties.CrossRegionRestoreFlag {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
 			}
 		} else {
@@ -245,25 +260,28 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// an update on the vault will reset the vault config to default, so we handle it at last.
-	cfg := backup.ResourceVaultConfigResource{
-		Properties: &backup.ResourceVaultConfig{
-			EnhancedSecurityState: backup.EnhancedSecurityStateEnabled, // always enabled
+	enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
+	cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
+		Properties: &backupresourcevaultconfigs.BackupResourceVaultConfig{
+			EnhancedSecurityState: &enhancedSecurityState, // always enabled
 		},
 	}
 
 	var StateRefreshPendingStrings []string
 	var StateRefreshTargetStrings []string
 	if sd := d.Get("soft_delete_enabled").(bool); sd {
-		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateEnabled
-		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
-		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
 	} else {
-		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateDisabled
-		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
-		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, cfg)
+	_, err = cfgsClient.Update(ctx, cfgId, cfg)
 	if err != nil {
 		return err
 	}
@@ -274,7 +292,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		Target:                    StateRefreshTargetStrings,
 		MinTimeout:                30 * time.Second,
 		ContinuousTargetOccurence: 3,
-		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
+		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
 	}
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
@@ -296,6 +314,16 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	storageId := backupresourcestorageconfigsnoncrr.VaultId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		VaultName:         id.VaultName,
+	}
+	cfgId := backupresourcevaultconfigs.VaultId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		VaultName:         id.VaultName,
+	}
 
 	encryption := expandEncryption(d)
 	existing, err := client.Get(ctx, id)
@@ -323,8 +351,8 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	storageMode := d.Get("storage_mode_type").(string)
 	crossRegionRestore := d.Get("cross_region_restore_enabled").(bool)
 
-	if crossRegionRestore && storageMode != string(backup.StorageTypeGeoRedundant) {
-		return fmt.Errorf("cannot enable cross region restore when storage mode type is not %s. %s", string(backup.StorageTypeGeoRedundant), id.String())
+	if crossRegionRestore && storageMode != string(backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant) {
+		return fmt.Errorf("cannot enable cross region restore when storage mode type is not %s. %s", string(backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant), id.String())
 	}
 
 	expandedIdentity, err := expandVaultIdentity(d.Get("identity").([]interface{}))
@@ -332,26 +360,28 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	cfg := backup.ResourceVaultConfigResource{
-		Properties: &backup.ResourceVaultConfig{
-			EnhancedSecurityState: backup.EnhancedSecurityStateEnabled, // always enabled
+	enhanchedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
+	cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
+		Properties: &backupresourcevaultconfigs.BackupResourceVaultConfig{
+			EnhancedSecurityState: &enhanchedSecurityState, // always enabled
 		},
 	}
 
 	if d.HasChanges("storage_mode_type", "cross_region_restore_enabled") {
-		storageCfg := backup.ResourceConfigResource{
-			Properties: &backup.ResourceConfig{
-				StorageModelType:       backup.StorageType(storageMode),
+		storageType := backupresourcestorageconfigsnoncrr.StorageType(storageMode)
+		storageCfg := backupresourcestorageconfigsnoncrr.BackupResourceConfigResource{
+			Properties: &backupresourcestorageconfigsnoncrr.BackupResourceConfig{
+				StorageModelType:       &storageType,
 				CrossRegionRestoreFlag: utils.Bool(crossRegionRestore),
 			},
 		}
 
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {
-			if resp, err := storageCfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, storageCfg); err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+			if resp, err := storageCfgsClient.Update(ctx, storageId, storageCfg); err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
 					return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 				}
-				if utils.ResponseWasBadRequest(resp.Response) {
+				if response.WasBadRequest(resp.HttpResponse) {
 					return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 				}
 
@@ -365,14 +395,17 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		// storage type is not updated instantaneously, so we wait until storage type is correct
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {
-			if resp, err := storageCfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName); err == nil {
-				if resp.Properties == nil {
+			if resp, err := storageCfgsClient.Get(ctx, storageId); err == nil {
+				if resp.Model == nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `model` was nil", id))
+				}
+				if resp.Model.Properties == nil {
 					return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
 				}
-				if resp.Properties.StorageType != storageCfg.Properties.StorageModelType {
+				if resp.Model.Properties.StorageType != storageCfg.Properties.StorageModelType {
 					return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
 				}
-				if *resp.Properties.CrossRegionRestoreFlag != *storageCfg.Properties.CrossRegionRestoreFlag {
+				if *resp.Model.Properties.CrossRegionRestoreFlag != *storageCfg.Properties.CrossRegionRestoreFlag {
 					return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
 				}
 			} else {
@@ -435,16 +468,18 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	var StateRefreshPendingStrings []string
 	var StateRefreshTargetStrings []string
 	if sd := d.Get("soft_delete_enabled").(bool); sd {
-		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateEnabled
-		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
-		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
 	} else {
-		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateDisabled
-		StateRefreshPendingStrings = []string{string(backup.SoftDeleteFeatureStateEnabled)}
-		StateRefreshTargetStrings = []string{string(backup.SoftDeleteFeatureStateDisabled)}
+		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+		cfg.Properties.SoftDeleteFeatureState = &state
+		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, id.VaultName, id.ResourceGroupName, cfg)
+	_, err = cfgsClient.Update(ctx, cfgId, cfg)
 	if err != nil {
 		return err
 	}
@@ -456,7 +491,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		Target:                    StateRefreshTargetStrings,
 		MinTimeout:                30 * time.Second,
 		ContinuousTargetOccurence: 3,
-		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, id),
+		Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
 	}
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
@@ -479,6 +514,16 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	id, err := vaults.ParseVaultID(d.Id())
 	if err != nil {
 		return err
+	}
+	storageId := backupresourcestorageconfigsnoncrr.VaultId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		VaultName:         id.VaultName,
+	}
+	cfgId := backupresourcevaultconfigs.VaultId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		VaultName:         id.VaultName,
 	}
 
 	log.Printf("[DEBUG] Reading Recovery Service %s", id.String())
@@ -506,22 +551,23 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("sku", string(sku.Name))
 	}
 
-	cfg, err := cfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName)
+	cfg, err := cfgsClient.Get(ctx, cfgId)
 	if err != nil {
 		return fmt.Errorf("reading Recovery Service Vault Cfg %s: %+v", id.String(), err)
 	}
 
-	if props := cfg.Properties; props != nil {
-		d.Set("soft_delete_enabled", props.SoftDeleteFeatureState == backup.SoftDeleteFeatureStateEnabled)
+	if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
+		d.Set("soft_delete_enabled", *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)
 	}
 
-	storageCfg, err := storageCfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName)
+	storageCfg, err := storageCfgsClient.Get(ctx, storageId)
 	if err != nil {
 		return fmt.Errorf("reading Recovery Service storage Cfg %s: %+v", id.String(), err)
 	}
 
-	if props := storageCfg.Properties; props != nil {
-		d.Set("storage_mode_type", string(props.StorageModelType))
+	if storageCfg.Model != nil && storageCfg.Model.Properties != nil {
+		props := storageCfg.Model.Properties
+		d.Set("storage_mode_type", props.StorageModelType)
 		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
 	}
 
@@ -634,9 +680,9 @@ func flattenVaultEncryption(model vaults.Vault) interface{} {
 	return encryptionMap
 }
 
-func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfgsClient *backup.ResourceVaultConfigsClient, id vaults.VaultId) pluginsdk.StateRefreshFunc {
+func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfgsClient *backupresourcevaultconfigs.BackupResourceVaultConfigsClient, id backupresourcevaultconfigs.VaultId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := cfgsClient.Get(ctx, id.VaultName, id.ResourceGroupName)
+		resp, err := cfgsClient.Get(ctx, id)
 		if err != nil {
 			if strings.Contains(err.Error(), "ResourceNotYetSynced") {
 				return resp, "syncing", nil
@@ -644,9 +690,10 @@ func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfg
 			return resp, "error", fmt.Errorf("refreshing Recovery Service Vault Cfg %s: %+v", id.String(), err)
 		}
 
-		if resp.Properties != nil {
-			return resp, string(resp.Properties.SoftDeleteFeatureState), nil
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.SoftDeleteFeatureState != nil {
+			return resp.Model, string(*resp.Model.Properties.SoftDeleteFeatureState), nil
 		}
+
 		return resp, "error", fmt.Errorf("refreshing Recovery Service Vault Cfg %s: Properties is nil", id.String())
 	}
 }

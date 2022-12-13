@@ -300,11 +300,8 @@ func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clie
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service (%s): %+v", id.String(), err)
 	}
-	if resp.Model == nil {
-		return nil, fmt.Errorf("retrieving Recovery Service (%s): `model` was nil", id.String())
-	}
 
-	return utils.Bool(resp.Model.Id != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func TestAccRecoveryServicesVault_encryptionWithKeyVaultKey(t *testing.T) {

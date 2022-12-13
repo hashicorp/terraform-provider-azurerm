@@ -4,6 +4,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2021-08-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2022-10-01/backupresourcestorageconfigsnoncrr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2022-10-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -16,8 +18,8 @@ type Client struct {
 	BackupProtectionContainersClient          *backup.ProtectionContainersClient
 	BackupOperationStatusesClient             *backup.OperationStatusesClient
 	VaultsClient                              *vaults.VaultsClient
-	VaultsConfigsClient                       *backup.ResourceVaultConfigsClient // Not sure why this is in backup, but https://github.com/Azure/azure-sdk-for-go/issues/7279
-	StorageConfigsClient                      *backup.ResourceStorageConfigsNonCRRClient
+	VaultsConfigsClient                       *backupresourcevaultconfigs.BackupResourceVaultConfigsClient
+	StorageConfigsClient                      *backupresourcestorageconfigsnoncrr.BackupResourceStorageConfigsNonCRRClient
 	FabricClient                              func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
 	ProtectionContainerClient                 func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
 	ReplicationPoliciesClient                 func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
@@ -27,10 +29,10 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	vaultConfigsClient := backup.NewResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	vaultConfigsClient := backupresourcevaultconfigs.NewBackupResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
 
-	storageConfigsClient := backup.NewResourceStorageConfigsNonCRRClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	storageConfigsClient := backupresourcestorageconfigsnoncrr.NewBackupResourceStorageConfigsNonCRRClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&storageConfigsClient.Client, o.ResourceManagerAuthorizer)
 
 	vaultsClient := vaults.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint)
