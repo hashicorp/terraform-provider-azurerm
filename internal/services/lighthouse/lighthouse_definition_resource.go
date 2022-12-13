@@ -254,11 +254,7 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("eligible_authorization"); ok {
-		eligibleAuthorization, err := expandLighthouseDefinitionEligibleAuthorization(v.(*pluginsdk.Set).List())
-		if err != nil {
-			return err
-		}
-		parameters.Properties.EligibleAuthorizations = eligibleAuthorization
+		parameters.Properties.EligibleAuthorizations = expandLighthouseDefinitionEligibleAuthorization(v.(*pluginsdk.Set).List())
 	}
 
 	// NOTE: this API call uses DefinitionId then Scope - check in the future
@@ -396,9 +392,9 @@ func flattenLighthouseDefinitionPlan(input *registrationdefinitions.Plan) []inte
 	}
 }
 
-func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) (*[]registrationdefinitions.EligibleAuthorization, error) {
+func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]registrationdefinitions.EligibleAuthorization {
 	if len(input) == 0 || input[0] == nil {
-		return nil, nil
+		return nil
 	}
 
 	var results []registrationdefinitions.EligibleAuthorization
@@ -411,11 +407,9 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) (*[]re
 			RoleDefinitionId: v["role_definition_id"].(string),
 		}
 
-		justInTimeAccessPolicy, err := expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]interface{}))
-		if err != nil {
-			return nil, err
+		if jitAccessPolicy := v["just_in_time_access_policy"]; jitAccessPolicy != nil {
+			result.JustInTimeAccessPolicy = expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]interface{}))
 		}
-		result.JustInTimeAccessPolicy = justInTimeAccessPolicy
 
 		if principalDisplayName := v["principal_display_name"].(string); principalDisplayName != "" {
 			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
@@ -424,12 +418,12 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) (*[]re
 		results = append(results, result)
 	}
 
-	return &results, nil
+	return &results
 }
 
-func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) (*registrationdefinitions.JustInTimeAccessPolicy, error) {
+func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *registrationdefinitions.JustInTimeAccessPolicy {
 	if len(input) == 0 || input[0] == nil {
-		return nil, nil
+		return nil
 	}
 
 	justInTimeAccessPolicy := input[0].(map[string]interface{})
@@ -444,18 +438,16 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) (*reg
 	}
 	result.MultiFactorAuthProvider = multiFactorAuthProvider
 
-	approvers, err := expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List())
-	if err != nil {
-		return nil, err
+	if approvers := justInTimeAccessPolicy["approver"]; approvers != nil {
+		result.ManagedByTenantApprovers = expandLighthouseDefinitionApprover(approvers.(*pluginsdk.Set).List())
 	}
-	result.ManagedByTenantApprovers = approvers
 
-	return &result, nil
+	return &result
 }
 
-func expandLighthouseDefinitionApprover(input []interface{}) (*[]registrationdefinitions.EligibleApprover, error) {
+func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefinitions.EligibleApprover {
 	if len(input) == 0 || input[0] == nil {
-		return nil, nil
+		return nil
 	}
 
 	var results []registrationdefinitions.EligibleApprover
@@ -474,7 +466,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) (*[]registrationdef
 		results = append(results, result)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefinitions.EligibleAuthorization) []interface{} {

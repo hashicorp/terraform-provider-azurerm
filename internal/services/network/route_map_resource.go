@@ -238,11 +238,9 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 				RouteMapProperties: &network.RouteMapProperties{},
 			}
 
-			rules, err := expandRules(model.Rules)
-			if err != nil {
-				return err
+			if model.Rules != nil {
+				props.RouteMapProperties.Rules = expandRules(model.Rules)
 			}
-			props.RouteMapProperties.Rules = rules
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, *props)
 			if err != nil {
@@ -281,11 +279,7 @@ func (r RouteMapResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("rule") {
-				rules, err := expandRules(model.Rules)
-				if err != nil {
-					return err
-				}
-				existing.RouteMapProperties.Rules = rules
+				existing.RouteMapProperties.Rules = expandRules(model.Rules)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, existing)
@@ -328,11 +322,9 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := resp.RouteMapProperties; props != nil {
-				rules, err := flattenRules(props.Rules)
-				if err != nil {
-					return err
+				if props.Rules != nil {
+					state.Rules = flattenRules(props.Rules)
 				}
-				state.Rules = rules
 			}
 
 			return metadata.Encode(&state)
@@ -365,7 +357,7 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
+func expandRules(input []Rule) *[]network.RouteMapRule {
 	var rules []network.RouteMapRule
 
 	for _, v := range input {
@@ -373,17 +365,13 @@ func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
 			Name: utils.String(v.Name),
 		}
 
-		actions, err := expandActions(v.Actions)
-		if err != nil {
-			return nil, err
+		if v.Actions != nil {
+			rule.Actions = expandActions(v.Actions)
 		}
-		rule.Actions = actions
 
-		matchCriteria, err := expandCriteria(v.MatchCriteria)
-		if err != nil {
-			return nil, err
+		if v.MatchCriteria != nil {
+			rule.MatchCriteria = expandCriteria(v.MatchCriteria)
 		}
-		rule.MatchCriteria = matchCriteria
 
 		if v.NextStepIfMatched != "" {
 			rule.NextStepIfMatched = v.NextStepIfMatched
@@ -392,10 +380,10 @@ func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
 		rules = append(rules, rule)
 	}
 
-	return &rules, nil
+	return &rules
 }
 
-func expandActions(input []Action) (*[]network.Action, error) {
+func expandActions(input []Action) *[]network.Action {
 	var actions []network.Action
 
 	for _, v := range input {
@@ -403,19 +391,17 @@ func expandActions(input []Action) (*[]network.Action, error) {
 			Type: v.Type,
 		}
 
-		parameters, err := expandParameters(v.Parameters)
-		if err != nil {
-			return nil, err
+		if v.Parameters != nil {
+			action.Parameters = expandParameters(v.Parameters)
 		}
-		action.Parameters = parameters
 
 		actions = append(actions, action)
 	}
 
-	return &actions, nil
+	return &actions
 }
 
-func expandParameters(input []Parameter) (*[]network.Parameter, error) {
+func expandParameters(input []Parameter) *[]network.Parameter {
 	var parameters []network.Parameter
 
 	for _, item := range input {
@@ -437,10 +423,10 @@ func expandParameters(input []Parameter) (*[]network.Parameter, error) {
 		parameters = append(parameters, parameter)
 	}
 
-	return &parameters, nil
+	return &parameters
 }
 
-func expandCriteria(input []Criterion) (*[]network.Criterion, error) {
+func expandCriteria(input []Criterion) *[]network.Criterion {
 	var criteria []network.Criterion
 
 	for _, item := range input {
@@ -464,29 +450,25 @@ func expandCriteria(input []Criterion) (*[]network.Criterion, error) {
 		criteria = append(criteria, criterion)
 	}
 
-	return &criteria, nil
+	return &criteria
 }
 
-func flattenRules(input *[]network.RouteMapRule) ([]Rule, error) {
+func flattenRules(input *[]network.RouteMapRule) []Rule {
 	var rules []Rule
 	if input == nil {
-		return rules, nil
+		return rules
 	}
 
 	for _, v := range *input {
 		rule := Rule{}
 
-		actions, err := flattenActions(v.Actions)
-		if err != nil {
-			return nil, err
+		if v.Actions != nil {
+			rule.Actions = flattenActions(v.Actions)
 		}
-		rule.Actions = actions
 
-		matchCriteria, err := flattenCriteria(v.MatchCriteria)
-		if err != nil {
-			return nil, err
+		if v.MatchCriteria != nil {
+			rule.MatchCriteria = flattenCriteria(v.MatchCriteria)
 		}
-		rule.MatchCriteria = matchCriteria
 
 		if v.Name != nil {
 			rule.Name = *v.Name
@@ -499,23 +481,21 @@ func flattenRules(input *[]network.RouteMapRule) ([]Rule, error) {
 		rules = append(rules, rule)
 	}
 
-	return rules, nil
+	return rules
 }
 
-func flattenActions(input *[]network.Action) ([]Action, error) {
+func flattenActions(input *[]network.Action) []Action {
 	var actions []Action
 	if input == nil {
-		return actions, nil
+		return actions
 	}
 
 	for _, v := range *input {
 		action := Action{}
 
-		parameters, err := flattenParameters(v.Parameters)
-		if err != nil {
-			return nil, err
+		if v.Parameters != nil {
+			action.Parameters = flattenParameters(v.Parameters)
 		}
-		action.Parameters = parameters
 
 		if v.Type != "" {
 			action.Type = v.Type
@@ -524,13 +504,13 @@ func flattenActions(input *[]network.Action) ([]Action, error) {
 		actions = append(actions, action)
 	}
 
-	return actions, nil
+	return actions
 }
 
-func flattenParameters(input *[]network.Parameter) ([]Parameter, error) {
+func flattenParameters(input *[]network.Parameter) []Parameter {
 	var parameters []Parameter
 	if input == nil {
-		return parameters, nil
+		return parameters
 	}
 
 	for _, v := range *input {
@@ -551,13 +531,13 @@ func flattenParameters(input *[]network.Parameter) ([]Parameter, error) {
 		parameters = append(parameters, parameter)
 	}
 
-	return parameters, nil
+	return parameters
 }
 
-func flattenCriteria(input *[]network.Criterion) ([]Criterion, error) {
+func flattenCriteria(input *[]network.Criterion) []Criterion {
 	var criteria []Criterion
 	if input == nil {
-		return criteria, nil
+		return criteria
 	}
 
 	for _, v := range *input {
@@ -582,5 +562,5 @@ func flattenCriteria(input *[]network.Criterion) ([]Criterion, error) {
 		criteria = append(criteria, criterion)
 	}
 
-	return criteria, nil
+	return criteria
 }
