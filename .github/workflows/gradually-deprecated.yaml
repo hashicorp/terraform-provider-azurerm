@@ -20,5 +20,5 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v3
         with:
-          go-version-file: .go-version
+          go-version-file: ./.go-version
       - run: ./scripts/run-gradually-deprecated.sh

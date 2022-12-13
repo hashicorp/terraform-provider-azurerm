@@ -859,7 +859,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 
 func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeliveryRuleCondition, error) {
 	results := make([]cdn.BasicDeliveryRuleCondition, 0)
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return results, nil
 	}
 
