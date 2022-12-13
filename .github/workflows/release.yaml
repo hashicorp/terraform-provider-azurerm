@@ -1,3 +1,4 @@
+---
 name: Release
 
 on:
@@ -30,6 +31,7 @@ jobs:
           name: release-notes
           path: release-notes.txt
           retention-days: 1
+
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]

@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location where the Network Interface should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Network Interface. Changing this forces a new resource to be created.
 

@@ -244,7 +244,6 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
-
 		},
 		Timeout: 30 * time.Minute,
 	}

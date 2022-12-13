@@ -87,7 +87,7 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"content_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

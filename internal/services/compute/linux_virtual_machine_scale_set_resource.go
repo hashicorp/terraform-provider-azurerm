@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -112,10 +112,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
+	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
@@ -629,10 +626,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-			if err != nil {
-				return err
-			}
+			sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks

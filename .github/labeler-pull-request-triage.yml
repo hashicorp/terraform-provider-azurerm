@@ -207,6 +207,9 @@ service/mysql:
 service/netapp:
   - internal/services/netapp/**/*
 
+service/network:
+  - internal/services/network/**/*
+
 service/nginx:
   - internal/services/nginx/**/*
 

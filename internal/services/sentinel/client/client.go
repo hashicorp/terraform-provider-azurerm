@@ -2,7 +2,7 @@ package client
 
 import (
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
-	onboardstates "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
@@ -14,7 +14,7 @@ type Client struct {
 	DataConnectorsClient     *securityinsight.DataConnectorsClient
 	WatchlistsClient         *securityinsight.WatchlistsClient
 	WatchlistItemsClient     *securityinsight.WatchlistItemsClient
-	OnboardingStatesClient   *onboardstates.SentinelOnboardingStatesClient
+	OnboardingStatesClient   *sentinelonboardingstates.SentinelOnboardingStatesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -36,7 +36,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	watchListItemsClient := securityinsight.NewWatchlistItemsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&watchListItemsClient.Client, o.ResourceManagerAuthorizer)
 
-	onboardingStatesClient := onboardstates.NewSentinelOnboardingStatesClientWithBaseURI(o.ResourceManagerEndpoint)
+	onboardingStatesClient := sentinelonboardingstates.NewSentinelOnboardingStatesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&onboardingStatesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

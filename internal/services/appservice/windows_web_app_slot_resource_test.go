@@ -428,7 +428,6 @@ func TestAccWindowsWebAppSlot_identityKeyVault(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 // Attributes
