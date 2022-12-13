@@ -69,7 +69,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			pluginsdk.ForceNewIfChange("analytical_storage_enabled", func(ctx context.Context, old, new, _ interface{}) bool {
 				// analytical_storage_enabled can not be changed after being set to true
-				return old.(bool) && new.(bool) == false
+				return old.(bool) && !new.(bool)
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
