@@ -953,16 +953,23 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 	}
 
 	if appSiteConfig.Cors != nil {
+		corsEmpty := false
 		corsSettings := appSiteConfig.Cors
 		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
-			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+		if corsSettings.AllowedOrigins != nil {
+			if len(*corsSettings.AllowedOrigins) > 0 {
+				cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			} else if !cors.SupportCredentials {
+				corsEmpty = true
+			}
 		}
-		siteConfig.Cors = []CorsSetting{cors}
+		if !corsEmpty {
+			siteConfig.Cors = []CorsSetting{cors}
+		}
 	}
 
 	return []SiteConfigLinux{siteConfig}

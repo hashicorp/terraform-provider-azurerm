@@ -773,16 +773,24 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 	}
 
 	if appSiteSlotConfig.Cors != nil {
+		corsEmpty := false
 		corsSettings := appSiteSlotConfig.Cors
 		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
-			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+		if corsSettings.AllowedOrigins != nil {
+			if len(*corsSettings.AllowedOrigins) > 0 {
+				cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			} else if !cors.SupportCredentials {
+				corsEmpty = true
+			}
 		}
-		siteConfig.Cors = []CorsSetting{cors}
+
+		if !corsEmpty {
+			siteConfig.Cors = []CorsSetting{cors}
+		}
 	}
 
 	return []SiteConfigLinuxWebAppSlot{siteConfig}
@@ -1103,16 +1111,23 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
 
 	if appSiteSlotConfig.Cors != nil {
-		cors := CorsSetting{}
+		corsEmpty := false
 		corsSettings := appSiteSlotConfig.Cors
+		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
-			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+		if corsSettings.AllowedOrigins != nil {
+			if len(*corsSettings.AllowedOrigins) > 0 {
+				cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			} else if !cors.SupportCredentials {
+				corsEmpty = true
+			}
 		}
-		siteConfig.Cors = []CorsSetting{cors}
+		if !corsEmpty {
+			siteConfig.Cors = []CorsSetting{cors}
+		}
 	}
 
 	return []SiteConfigWindowsWebAppSlot{siteConfig}

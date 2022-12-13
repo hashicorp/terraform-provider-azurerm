@@ -1999,16 +1999,23 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	}
 
 	if functionAppSiteConfig.Cors != nil {
+		corsEmpty := false
 		corsSettings := functionAppSiteConfig.Cors
 		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
-			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+		if corsSettings.AllowedOrigins != nil {
+			if len(*corsSettings.AllowedOrigins) > 0 {
+				cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			} else if !cors.SupportCredentials {
+				corsEmpty = true
+			}
 		}
-		result.Cors = []CorsSetting{cors}
+		if !corsEmpty {
+			result.Cors = []CorsSetting{cors}
+		}
 	}
 
 	var appStack []ApplicationStackLinuxFunctionApp
@@ -2077,15 +2084,23 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 
 	if functionAppSiteConfig.Cors != nil {
 		corsSettings := functionAppSiteConfig.Cors
+		corsEmpty := false
 		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
-			cors.AllowedOrigins = *corsSettings.AllowedOrigins
+		if corsSettings.AllowedOrigins != nil {
+			if len(*corsSettings.AllowedOrigins) > 0 {
+				cors.AllowedOrigins = *corsSettings.AllowedOrigins
+			} else if !cors.SupportCredentials {
+				corsEmpty = true
+			}
 		}
-		result.Cors = []CorsSetting{cors}
+
+		if !corsEmpty {
+			result.Cors = []CorsSetting{cors}
+		}
 	}
 
 	powershellVersion := ""
