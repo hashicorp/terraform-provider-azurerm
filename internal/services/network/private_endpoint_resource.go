@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	mysqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
@@ -175,7 +176,6 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -193,6 +193,14 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						"subresource_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"member_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     features.FourPointOhBeta(),
+							Optional:     !features.FourPointOhBeta(),
+							Computed:     !features.FourPointOhBeta(),
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -763,13 +771,17 @@ func expandPrivateEndpointIPConfigurations(input []interface{}) *[]network.Priva
 		v := item.(map[string]interface{})
 		privateIPAddress := v["private_ip_address"].(string)
 		subResourceName := v["subresource_name"].(string)
+		memberName := v["member_name"].(string)
+		if memberName == "" {
+			memberName = subResourceName
+		}
 		name := v["name"].(string)
 		result := network.PrivateEndpointIPConfiguration{
 			Name: utils.String(name),
 			PrivateEndpointIPConfigurationProperties: &network.PrivateEndpointIPConfigurationProperties{
 				PrivateIPAddress: utils.String(privateIPAddress),
 				GroupID:          utils.String(subResourceName),
-				MemberName:       utils.String(subResourceName),
+				MemberName:       utils.String(memberName),
 			},
 		}
 		results = append(results, result)
@@ -789,6 +801,7 @@ func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]network.PrivateE
 			"name":               item.Name,
 			"private_ip_address": item.PrivateIPAddress,
 			"subresource_name":   item.GroupID,
+			"member_name":        item.MemberName,
 		})
 	}
 

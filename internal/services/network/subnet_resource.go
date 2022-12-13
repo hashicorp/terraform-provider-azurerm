@@ -24,6 +24,42 @@ import (
 
 var SubnetResourceName = "azurerm_subnet"
 
+var subnetDelegationServiceNames = []string{
+	"Microsoft.ApiManagement/service",
+	"Microsoft.AzureCosmosDB/clusters",
+	"Microsoft.BareMetal/AzureVMware",
+	"Microsoft.BareMetal/CrayServers",
+	"Microsoft.Batch/batchAccounts",
+	"Microsoft.ContainerInstance/containerGroups",
+	"Microsoft.ContainerService/managedClusters",
+	"Microsoft.Databricks/workspaces",
+	"Microsoft.DBforMySQL/flexibleServers",
+	"Microsoft.DBforMySQL/serversv2",
+	"Microsoft.DBforPostgreSQL/flexibleServers",
+	"Microsoft.DBforPostgreSQL/serversv2",
+	"Microsoft.DBforPostgreSQL/singleServers",
+	"Microsoft.HardwareSecurityModules/dedicatedHSMs",
+	"Microsoft.Kusto/clusters",
+	"Microsoft.Logic/integrationServiceEnvironments",
+	"Microsoft.LabServices/labplans",
+	"Microsoft.MachineLearningServices/workspaces",
+	"Microsoft.Netapp/volumes",
+	"Microsoft.Network/dnsResolvers",
+	"Microsoft.Network/managedResolvers",
+	"Microsoft.PowerPlatform/vnetaccesslinks",
+	"Microsoft.ServiceFabricMesh/networks",
+	"Microsoft.Sql/managedInstances",
+	"Microsoft.Sql/servers",
+	"Microsoft.StoragePool/diskPools",
+	"Microsoft.StreamAnalytics/streamingJobs",
+	"Microsoft.Synapse/workspaces",
+	"Microsoft.Web/hostingEnvironments",
+	"Microsoft.Web/serverFarms",
+	"Microsoft.Orbital/orbitalGateways",
+	"NGINX.NGINXPLUS/nginxDeployments",
+	"PaloAltoNetworks.Cloudngfw/firewalls",
+}
+
 func resourceSubnet() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceSubnetCreate,
@@ -100,43 +136,9 @@ func resourceSubnet() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Microsoft.ApiManagement/service",
-											"Microsoft.AzureCosmosDB/clusters",
-											"Microsoft.BareMetal/AzureVMware",
-											"Microsoft.BareMetal/CrayServers",
-											"Microsoft.Batch/batchAccounts",
-											"Microsoft.ContainerInstance/containerGroups",
-											"Microsoft.ContainerService/managedClusters",
-											"Microsoft.Databricks/workspaces",
-											"Microsoft.DBforMySQL/flexibleServers",
-											"Microsoft.DBforMySQL/serversv2",
-											"Microsoft.DBforPostgreSQL/flexibleServers",
-											"Microsoft.DBforPostgreSQL/serversv2",
-											"Microsoft.DBforPostgreSQL/singleServers",
-											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
-											"Microsoft.Kusto/clusters",
-											"Microsoft.Logic/integrationServiceEnvironments",
-											"Microsoft.LabServices/labplans",
-											"Microsoft.MachineLearningServices/workspaces",
-											"Microsoft.Netapp/volumes",
-											"Microsoft.Network/dnsResolvers",
-											"Microsoft.Network/managedResolvers",
-											"Microsoft.PowerPlatform/vnetaccesslinks",
-											"Microsoft.ServiceFabricMesh/networks",
-											"Microsoft.Sql/managedInstances",
-											"Microsoft.Sql/servers",
-											"Microsoft.StoragePool/diskPools",
-											"Microsoft.StreamAnalytics/streamingJobs",
-											"Microsoft.Synapse/workspaces",
-											"Microsoft.Web/hostingEnvironments",
-											"Microsoft.Web/serverFarms",
-											"Microsoft.Orbital/orbitalGateways",
-											"NGINX.NGINXPLUS/nginxDeployments",
-											"PaloAltoNetworks.Cloudngfw/firewalls",
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(subnetDelegationServiceNames, false),
 									},
 
 									"actions": {
@@ -697,6 +699,11 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 
 	retDeles := make([]interface{}, 0)
 
+	normalizeServiceName := map[string]string{}
+	for _, normName := range subnetDelegationServiceNames {
+		normalizeServiceName[strings.ToLower(normName)] = normName
+	}
+
 	for _, dele := range *delegations {
 		retDele := make(map[string]interface{})
 		if v := dele.Name; v != nil {
@@ -707,7 +714,11 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 		svcDele := make(map[string]interface{})
 		if props := dele.ServiceDelegationPropertiesFormat; props != nil {
 			if v := props.ServiceName; v != nil {
-				svcDele["name"] = *v
+				name := *v
+				if nv, ok := normalizeServiceName[strings.ToLower(name)]; ok {
+					name = nv
+				}
+				svcDele["name"] = name
 			}
 
 			if v := props.Actions; v != nil {
