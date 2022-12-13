@@ -407,9 +407,7 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]reg
 			RoleDefinitionId: v["role_definition_id"].(string),
 		}
 
-		if jitAccessPolicy := v["just_in_time_access_policy"]; jitAccessPolicy != nil {
-			result.JustInTimeAccessPolicy = expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]interface{}))
-		}
+		result.JustInTimeAccessPolicy = expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]interface{}))
 
 		if principalDisplayName := v["principal_display_name"].(string); principalDisplayName != "" {
 			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
@@ -438,9 +436,7 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *regi
 	}
 	result.MultiFactorAuthProvider = multiFactorAuthProvider
 
-	if approvers := justInTimeAccessPolicy["approver"]; approvers != nil {
-		result.ManagedByTenantApprovers = expandLighthouseDefinitionApprover(approvers.(*pluginsdk.Set).List())
-	}
+	result.ManagedByTenantApprovers = expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List())
 
 	return &result
 }
