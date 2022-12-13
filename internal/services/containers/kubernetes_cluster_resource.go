@@ -589,7 +589,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"ssh_key": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							ForceNew: true,
 							MaxItems: 1,
 
 							Elem: &pluginsdk.Resource{
@@ -597,7 +596,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"key_data": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
