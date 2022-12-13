@@ -11,13 +11,22 @@ description: |-
 
 Manages a Key Vault Certificate.
 
+~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information. 
+
 ## Example Usage (Importing a PFX)
 
 ~> **Note:** this example assumed the PFX file is located in the same directory at `certificate-to-import.pfx`.
 
-~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information.
-
 ```hcl
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_deleted_certificates_on_destroy = true
+      recover_soft_deleted_certificates          = true
+    }
+  }
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -237,12 +246,14 @@ The following arguments are supported:
 
 ---
 
-`certificate` supports the following:
+The `certificate` block supports the following:
 
 * `contents` - (Required) The base64-encoded certificate contents.
 * `password` - (Optional) The password associated with the certificate.
 
-`certificate_policy` supports the following:
+---
+
+The `certificate_policy` block supports the following:
 
 * `issuer_parameters` - (Required) A `issuer_parameters` block as defined below.
 * `key_properties` - (Required) A `key_properties` block as defined below.
@@ -250,11 +261,15 @@ The following arguments are supported:
 * `secret_properties` - (Required) A `secret_properties` block as defined below.
 * `x509_certificate_properties` - (Optional) A `x509_certificate_properties` block as defined below. Required when `certificate` block is not specified.
 
-`issuer_parameters` supports the following:
+---
+
+The `issuer_parameters` block supports the following:
 
 * `name` - (Required) The name of the Certificate Issuer. Possible values include `Self` (for self-signed certificate), or `Unknown` (for a certificate issuing authority like `Let's Encrypt` and Azure direct supported ones). Changing this forces a new resource to be created.
 
-`key_properties` supports the following:
+---
+
+The `key_properties` block supports the following:
 
 * `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`. Changing this forces a new resource to be created.
 * `exportable` - (Required) Is this certificate exportable? Changing this forces a new resource to be created.
@@ -262,25 +277,35 @@ The following arguments are supported:
 * `key_type` - (Required) Specifies the type of key, such as `RSA` or `EC`. Changing this forces a new resource to be created.
 * `reuse_key` - (Required) Is the key reusable? Changing this forces a new resource to be created.
 
-`lifetime_action` supports the following:
+---
+
+The `lifetime_action` block supports the following:
 
 * `action` - (Required) A `action` block as defined below.
 * `trigger` - (Required) A `trigger` block as defined below.
 
-`action` supports the following:
+---
+
+The `action` block supports the following:
 
 * `action_type` - (Required) The Type of action to be performed when the lifetime trigger is triggerec. Possible values include `AutoRenew` and `EmailContacts`. Changing this forces a new resource to be created.
 
-`trigger` supports the following:
+---
+
+The `trigger` block supports the following:
 
 * `days_before_expiry` - (Optional) The number of days before the Certificate expires that the action associated with this Trigger should run. Changing this forces a new resource to be created. Conflicts with `lifetime_percentage`.
 * `lifetime_percentage` - (Optional) The percentage at which during the Certificates Lifetime the action associated with this Trigger should run. Changing this forces a new resource to be created. Conflicts with `days_before_expiry`.
 
-`secret_properties` supports the following:
+---
+
+The `secret_properties` block supports the following:
 
 * `content_type` - (Required) The Content-Type of the Certificate, such as `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM. Changing this forces a new resource to be created.
 
-`x509_certificate_properties` supports the following:
+---
+
+The `x509_certificate_properties` block supports the following:
 
 * `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages. Changing this forces a new resource to be created.
 * `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive. Changing this forces a new resource to be created.
@@ -288,7 +313,9 @@ The following arguments are supported:
 * `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below.
 * `validity_in_months` - (Required) The Certificates Validity Period in Months. Changing this forces a new resource to be created.
 
-`subject_alternative_names` supports the following:
+---
+
+The `subject_alternative_names` block supports the following:
 
 * `dns_names` - (Optional) A list of alternative DNS names (FQDNs) identified by the Certificate. Changing this forces a new resource to be created.
 * `emails` - (Optional) A list of email addresses identified by this Certificate. Changing this forces a new resource to be created.

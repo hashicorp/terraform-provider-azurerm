@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
-* `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -166,7 +166,7 @@ The following arguments are supported:
 
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
 
-* `stfp_enabled` - (Optional) Boolean, enable SFTP for the storage account
+* `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
 -> **NOTE:** SFTP support requires `is_hns_enabled` set to `true`. [More information on SFTP support can be found here](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-support). Defaults to `false`
 

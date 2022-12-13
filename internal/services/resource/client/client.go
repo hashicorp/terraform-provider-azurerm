@@ -2,10 +2,10 @@ package client
 
 import (
 	providers "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"                         // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

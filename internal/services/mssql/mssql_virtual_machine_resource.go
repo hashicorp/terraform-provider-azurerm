@@ -117,6 +117,24 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.IntBetween(5, 60),
 									},
+
+									"days_of_week": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekMonday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekTuesday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekWednesday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekThursday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekFriday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekSaturday),
+												string(sqlvirtualmachines.AutoBackupDaysOfWeekSunday),
+											}, false),
+										},
+									},
 								},
 							},
 						},
@@ -478,11 +496,15 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	connectivityType := sqlvirtualmachines.ConnectivityType(d.Get("sql_connectivity_type").(string))
 	sqlManagement := sqlvirtualmachines.SqlManagementModeFull
 	sqlServerLicenseType := sqlvirtualmachines.SqlServerLicenseType(d.Get("sql_license_type").(string))
+	autoBackupSettings, err := expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `auto_backup`: %+v", err)
+	}
 
 	parameters := sqlvirtualmachines.SqlVirtualMachine{
 		Location: *respvm.Location,
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
-			AutoBackupSettings:         expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{})),
+			AutoBackupSettings:         autoBackupSettings,
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 			AssessmentSettings:         expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
@@ -583,7 +605,6 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("virtual_machine_id", props.VirtualMachineResourceId)
 			d.Set("sql_license_type", string(*props.SqlServerLicenseType))
 			if err := d.Set("auto_backup", flattenSqlVirtualMachineAutoBackup(props.AutoBackupSettings, d)); err != nil {
@@ -697,6 +718,28 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 									if !strings.EqualFold(v2.(string), val2.(string)) {
 										return resp, "Pending", nil
 									}
+								case "days_of_week":
+									daysOfWeekLocal := make(map[string]bool, 0)
+									if v2 != nil {
+										for _, item := range v2.(*pluginsdk.Set).List() {
+											daysOfWeekLocal[item.(string)] = true
+										}
+									}
+
+									daysOfWeekRemote := make([]interface{}, 0)
+									if val2 != nil {
+										daysOfWeekRemote = val2.([]interface{})
+									}
+
+									if len(daysOfWeekRemote) != len(daysOfWeekLocal) {
+										return resp, "Pending", nil
+									}
+
+									for _, item := range daysOfWeekRemote {
+										if _, ok := daysOfWeekLocal[item.(string)]; !ok {
+											return resp, "Pending", nil
+										}
+									}
 								default:
 									if v2 != val2 {
 										return resp, "Pending", nil
@@ -722,7 +765,7 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 	}
 }
 
-func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualmachines.AutoBackupSettings {
+func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtualmachines.AutoBackupSettings, error) {
 	ret := sqlvirtualmachines.AutoBackupSettings{
 		Enable: utils.Bool(false),
 	}
@@ -759,23 +802,24 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualm
 			backupScheduleTypeManual := sqlvirtualmachines.BackupScheduleTypeManual
 			ret.BackupScheduleType = &backupScheduleTypeManual
 
-			if v, ok := manualSchedule["full_backup_frequency"]; ok {
-				fullBackupFrequencyType := sqlvirtualmachines.FullBackupFrequencyType(v.(string))
-				ret.FullBackupFrequency = &fullBackupFrequencyType
+			fullBackupFrequency := sqlvirtualmachines.FullBackupFrequencyType(manualSchedule["full_backup_frequency"].(string))
+
+			daysOfWeek := manualSchedule["days_of_week"].(*pluginsdk.Set).List()
+			if len(daysOfWeek) > 0 {
+				if !strings.EqualFold(string(fullBackupFrequency), string(sqlvirtualmachines.FullBackupFrequencyTypeWeekly)) {
+					return nil, fmt.Errorf("`manual_schedule.0.days_of_week` can only be specified when `manual_schedule.0.full_backup_frequency` is set to `Weekly`")
+				}
+				ret.DaysOfWeek = expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(daysOfWeek)
 			}
-			if v, ok := manualSchedule["full_backup_start_hour"]; ok {
-				ret.FullBackupStartTime = utils.Int64(int64(v.(int)))
-			}
-			if v, ok := manualSchedule["full_backup_window_in_hours"]; ok {
-				ret.FullBackupWindowHours = utils.Int64(int64(v.(int)))
-			}
-			if v, ok := manualSchedule["log_backup_frequency_in_minutes"]; ok {
-				ret.LogBackupFrequency = utils.Int64(int64(v.(int)))
-			}
+
+			ret.FullBackupFrequency = &fullBackupFrequency
+			ret.FullBackupStartTime = utils.Int64(int64(manualSchedule["full_backup_start_hour"].(int)))
+			ret.FullBackupWindowHours = utils.Int64(int64(manualSchedule["full_backup_window_in_hours"].(int)))
+			ret.LogBackupFrequency = utils.Int64(int64(manualSchedule["log_backup_frequency_in_minutes"].(int)))
 		}
 	}
 
-	return &ret
+	return &ret, nil
 }
 
 func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBackupSettings, d *pluginsdk.ResourceData) []interface{} {
@@ -815,6 +859,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 				"full_backup_start_hour":          fullBackupStartHour,
 				"full_backup_window_in_hours":     fullBackupWindowHours,
 				"log_backup_frequency_in_minutes": logBackupFrequency,
+				"days_of_week":                    flattenSqlVirtualMachineAutoBackupDaysOfWeek(autoBackup.DaysOfWeek),
 			},
 		}
 	}
@@ -841,6 +886,26 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 			"system_databases_backup_enabled": autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
 		},
 	}
+}
+
+func expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(input []interface{}) *[]sqlvirtualmachines.AutoBackupDaysOfWeek {
+	result := make([]sqlvirtualmachines.AutoBackupDaysOfWeek, 0)
+	for _, item := range input {
+		result = append(result, sqlvirtualmachines.AutoBackupDaysOfWeek(item.(string)))
+	}
+	return &result
+}
+
+func flattenSqlVirtualMachineAutoBackupDaysOfWeek(daysOfWeek *[]sqlvirtualmachines.AutoBackupDaysOfWeek) []interface{} {
+	output := make([]interface{}, 0)
+
+	if daysOfWeek != nil {
+		for _, v := range *daysOfWeek {
+			output = append(output, string(v))
+		}
+	}
+
+	return output
 }
 
 func resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx context.Context, client *sqlvirtualmachines.SqlVirtualMachinesClient, d *pluginsdk.ResourceData) pluginsdk.StateRefreshFunc {

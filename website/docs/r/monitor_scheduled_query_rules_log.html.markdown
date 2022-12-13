@@ -86,7 +86,7 @@ resource "azurerm_monitor_scheduled_query_rules_log" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created. 
 * `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance. Changing this forces a new resource to be created.
 * `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `criteria` - (Required) A `criteria` block as defined below.
@@ -97,14 +97,14 @@ The following arguments are supported:
 
 ---
 
-`criteria` supports the following:
+The `criteria` block supports the following:
 
 * `dimension` - (Required) A `dimension` block as defined below.
 * `metric_name` - (Required) Name of the metric.  Supported metrics are listed in the Azure Monitor [Microsoft.OperationalInsights/workspaces](https://docs.microsoft.com/azure/azure-monitor/platform/metrics-supported#microsoftoperationalinsightsworkspaces) metrics namespace.
 
 ---
 
-`dimension` supports the following:
+The `dimension` block supports the following:
 
 * `name` - (Required) Name of the dimension. Changing this forces a new resource to be created.
 * `operator` - (Required) Operator for dimension values, - 'Include'.

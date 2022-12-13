@@ -56,7 +56,7 @@ resource "azurerm_spring_cloud_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) Specifies The name of the resource group in which to create the Spring Cloud Service. Changing this forces a new resource to be created.
 
@@ -172,7 +172,7 @@ The following attributes are exported:
 
 ---
 
-The `required_network_traffic_rules` supports the following:
+The `required_network_traffic_rules` block supports the following:
 
 * `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
 
@@ -198,5 +198,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/Spring/spring1
+terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/spring/spring1
 ```

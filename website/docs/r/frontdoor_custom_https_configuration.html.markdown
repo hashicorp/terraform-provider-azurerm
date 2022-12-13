@@ -127,6 +127,8 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `custom_https_configuration` - A `custom_https_configuration` block as defined below.
 
+---
+
 The `custom_https_configuration` block exports the following:
 
 * `minimum_tls_version` - Minimum client TLS version supported.
