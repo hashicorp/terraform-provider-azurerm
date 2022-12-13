@@ -307,6 +307,27 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"monitor_metrics": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"annotations_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"labels_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"default_node_pool": SchemaDefaultNodePool(),
 
 			"disk_encryption_set_id": {
@@ -1261,6 +1282,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
+	azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
+	azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
+
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
@@ -1321,6 +1345,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AddonProfiles:             addonProfiles,
 			AgentPoolProfiles:         agentProfiles,
 			AutoScalerProfile:         autoScalerProfile,
+			AzureMonitorProfile:       azureMonitorProfile,
 			DnsPrefix:                 utils.String(dnsPrefix),
 			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         utils.String(kubernetesVersion),
@@ -1588,6 +1613,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 		existing.Model.Properties.AutoScalerProfile = autoScalerProfile
+	}
+
+	if d.HasChange("monitor_metrics") {
+		updateCluster = true
+		azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
+
+		azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
+		existing.Model.Properties.AzureMonitorProfile = azureMonitorProfile
 	}
 
 	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
@@ -2068,6 +2101,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		if err := d.Set("auto_scaler_profile", autoScalerProfile); err != nil {
 			return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
+		}
+
+		azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
+		if err := d.Set("monitor_metrics", azureMonitorProfile); err != nil {
+			return fmt.Errorf("setting `monitor_metrics`: %+v", err)
 		}
 
 		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
@@ -3535,6 +3573,58 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 	return []interface{}{
 		map[string]interface{}{
 			"dns_zone_id": dnsZoneId,
+		},
+	}
+}
+
+func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclusters.ManagedClusterAzureMonitorProfile {
+	if len(input) == 0 {
+		return &managedclusters.ManagedClusterAzureMonitorProfile{
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+				Enabled: false,
+			},
+		}
+	}
+	if input[0] == nil {
+		return &managedclusters.ManagedClusterAzureMonitorProfile{
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+				Enabled: true,
+			},
+		}
+	}
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ManagedClusterAzureMonitorProfile{
+		Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+			Enabled: true,
+			KubeStateMetrics: &managedclusters.ManagedClusterAzureMonitorProfileKubeStateMetrics{
+				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
+				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
+			},
+		},
+	}
+}
+
+func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {
+	if input == nil || input.Metrics == nil || !input.Metrics.Enabled {
+		return nil
+	}
+	if input.Metrics.KubeStateMetrics == nil {
+		return []interface{}{
+			map[string]interface{}{},
+		}
+	}
+	annotationAllowList := ""
+	if input.Metrics.KubeStateMetrics.MetricAnnotationsAllowList != nil {
+		annotationAllowList = *input.Metrics.KubeStateMetrics.MetricAnnotationsAllowList
+	}
+	labelAllowList := ""
+	if input.Metrics.KubeStateMetrics.MetricLabelsAllowlist != nil {
+		labelAllowList = *input.Metrics.KubeStateMetrics.MetricLabelsAllowlist
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"annotations_allowed": annotationAllowList,
+			"labels_allowed":      labelAllowList,
 		},
 	}
 }
