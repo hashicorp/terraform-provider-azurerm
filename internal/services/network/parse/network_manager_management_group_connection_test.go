@@ -1,7 +1,5 @@
 package parse
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"testing"
 

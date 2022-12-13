@@ -28,10 +28,10 @@ func TestAccNetworkManager(t *testing.T) {
 			"requiresImport": testAccNetworkManager_requiresImport,
 		},
 		"ManagementGroupConnection": {
-			"basic":          testAccNetworkManagementGroupNetworkManagerConnection_basic,
-			"complete":       testAccNetworkManagementGroupNetworkManagerConnection_complete,
-			"update":         testAccNetworkManagementGroupNetworkManagerConnection_update,
-			"requiresImport": testAccNetworkManagementGroupNetworkManagerConnection_requiresImport,
+			"basic":          testAccNetworkManagerManagementGroupConnection_basic,
+			"complete":       testAccNetworkManagerManagementGroupConnection_complete,
+			"update":         testAccNetworkManagerManagementGroupConnection_update,
+			"requiresImport": testAccNetworkManagerManagementGroupConnection_requiresImport,
 		},
 	}
 

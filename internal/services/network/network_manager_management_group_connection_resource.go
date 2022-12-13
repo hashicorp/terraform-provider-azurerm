@@ -59,6 +59,7 @@ func (r ManagerManagementGroupConnectionResource) Arguments() map[string]*plugin
 		"network_manager_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.NetworkManagerID,
 		},
 
@@ -88,7 +89,7 @@ func (r ManagerManagementGroupConnectionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerManagementGrpConnectionsClient
+			client := metadata.Client.Network.ManagerManagementGroupConnectionsClient
 			managementGroupId, err := managementParse.ManagementGroupID(model.ManagementGroupId)
 			if err != nil {
 				return err
@@ -130,7 +131,7 @@ func (r ManagerManagementGroupConnectionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerManagementGrpConnectionsClient
+			client := metadata.Client.Network.ManagerManagementGroupConnectionsClient
 
 			id, err := parse.NetworkManagerManagementGroupConnectionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -155,20 +156,14 @@ func (r ManagerManagementGroupConnectionResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
 					properties.Description = &model.Description
-				} else {
-					properties.Description = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("network_manager_id") {
 				if model.NetworkManagerId != "" {
 					properties.NetworkManagerID = &model.NetworkManagerId
-				} else {
-					properties.NetworkManagerID = nil
 				}
 			}
-
-			existing.SystemData = nil
 
 			if _, err := client.CreateOrUpdate(ctx, existing, id.ManagementGroupName, id.NetworkManagerConnectionName); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -183,7 +178,7 @@ func (r ManagerManagementGroupConnectionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerManagementGrpConnectionsClient
+			client := metadata.Client.Network.ManagerManagementGroupConnectionsClient
 
 			id, err := parse.NetworkManagerManagementGroupConnectionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -228,7 +223,7 @@ func (r ManagerManagementGroupConnectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerManagementGrpConnectionsClient
+			client := metadata.Client.Network.ManagerManagementGroupConnectionsClient
 
 			id, err := parse.NetworkManagerManagementGroupConnectionID(metadata.ResourceData.Id())
 			if err != nil {

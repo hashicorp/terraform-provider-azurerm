@@ -16,7 +16,7 @@ import (
 
 type ManagerManagementGroupConnectionResource struct{}
 
-func testAccNetworkManagementGroupNetworkManagerConnection_basic(t *testing.T) {
+func testAccNetworkManagerManagementGroupConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_management_group_connection", "test")
 	r := ManagerManagementGroupConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -30,7 +30,7 @@ func testAccNetworkManagementGroupNetworkManagerConnection_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagementGroupNetworkManagerConnection_requiresImport(t *testing.T) {
+func testAccNetworkManagerManagementGroupConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_management_group_connection", "test")
 	r := ManagerManagementGroupConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -44,7 +44,7 @@ func testAccNetworkManagementGroupNetworkManagerConnection_requiresImport(t *tes
 	})
 }
 
-func testAccNetworkManagementGroupNetworkManagerConnection_complete(t *testing.T) {
+func testAccNetworkManagerManagementGroupConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_management_group_connection", "test")
 	r := ManagerManagementGroupConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -58,7 +58,7 @@ func testAccNetworkManagementGroupNetworkManagerConnection_complete(t *testing.T
 	})
 }
 
-func testAccNetworkManagementGroupNetworkManagerConnection_update(t *testing.T) {
+func testAccNetworkManagerManagementGroupConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_management_group_connection", "test")
 	r := ManagerManagementGroupConnectionResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -85,7 +85,7 @@ func (r ManagerManagementGroupConnectionResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	client := clients.Network.ManagerManagementGrpConnectionsClient
+	client := clients.Network.ManagerManagementGroupConnectionsClient
 	resp, err := client.Get(ctx, id.ManagementGroupName, id.NetworkManagerConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -122,6 +122,15 @@ data "azurerm_subscription" "alt" {
 data "azurerm_subscription" "current" {
 }
 
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_role_assignment" "network_contributor" {
+  scope                = azurerm_management_group.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 resource "azurerm_network_manager" "test" {
   name                = "acctest-networkmanager-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -130,6 +139,7 @@ resource "azurerm_network_manager" "test" {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
   scope_accesses = ["SecurityAdmin"]
+  depends_on     = [azurerm_role_assignment.network_contributor]
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"))
 }
