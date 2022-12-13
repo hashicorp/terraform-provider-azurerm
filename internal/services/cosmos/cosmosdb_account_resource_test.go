@@ -681,7 +681,7 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual, false),
+			Config: r.analyticalStorage(data, "MongoDB", documentdb.DefaultConsistencyLevelEventual, false),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("false"),
@@ -689,7 +689,7 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual, true),
+			Config: r.analyticalStorage(data, "MongoDB", documentdb.DefaultConsistencyLevelEventual, true),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
