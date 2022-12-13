@@ -322,9 +322,7 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := resp.RouteMapProperties; props != nil {
-				if props.Rules != nil {
-					state.Rules = flattenRules(props.Rules)
-				}
+				state.Rules = flattenRules(props.Rules)
 			}
 
 			return metadata.Encode(&state)
@@ -462,13 +460,8 @@ func flattenRules(input *[]network.RouteMapRule) []Rule {
 	for _, v := range *input {
 		rule := Rule{}
 
-		if v.Actions != nil {
-			rule.Actions = flattenActions(v.Actions)
-		}
-
-		if v.MatchCriteria != nil {
-			rule.MatchCriteria = flattenCriteria(v.MatchCriteria)
-		}
+		rule.Actions = flattenActions(v.Actions)
+		rule.MatchCriteria = flattenCriteria(v.MatchCriteria)
 
 		if v.Name != nil {
 			rule.Name = *v.Name
@@ -493,9 +486,7 @@ func flattenActions(input *[]network.Action) []Action {
 	for _, v := range *input {
 		action := Action{}
 
-		if v.Parameters != nil {
-			action.Parameters = flattenParameters(v.Parameters)
-		}
+		action.Parameters = flattenParameters(v.Parameters)
 
 		if v.Type != "" {
 			action.Type = v.Type
