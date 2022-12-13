@@ -43,6 +43,20 @@ The following attributes are exported:
 
 * `route` - A `route` block as defined below.
 
+---
+
+An `route` block exports the following:
+
+* `name` - The name which is used for this route.
+
+* `destinations` - A list of destination addresses for this route.
+
+* `destinations_type` - The type of destinations.
+
+* `next_hop` - The next hop's resource ID.
+
+* `next_hop_type` - The type of next hop.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

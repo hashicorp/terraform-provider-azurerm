@@ -66,8 +66,10 @@ func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interfac
 	term, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(term.Response) {
-			return fmt.Errorf("retrieving %s: %s", id, err)
+			return fmt.Errorf("%s was not found", id)
 		}
+
+		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())

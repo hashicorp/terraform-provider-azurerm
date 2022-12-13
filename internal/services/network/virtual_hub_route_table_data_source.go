@@ -55,7 +55,7 @@ func dataSourceVirtualHubRouteTable() *pluginsdk.Resource {
 			},
 
 			"route": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -65,7 +65,7 @@ func dataSourceVirtualHubRouteTable() *pluginsdk.Resource {
 						},
 
 						"destinations": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
@@ -106,7 +106,8 @@ func dataSourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interfac
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
