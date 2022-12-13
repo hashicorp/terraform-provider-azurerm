@@ -67,6 +67,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				return old.(string) == string(documentdb.TypeContinuous) && new.(string) == string(documentdb.TypePeriodic)
 			}),
 
+			pluginsdk.ForceNewIfChange("analytical_storage_enabled", func(ctx context.Context, old, new, _ interface{}) bool {
+				// analytical_storage_enabled can not be changed after being set to true
+				return old.(bool) == true && new.(bool) == false
+			}),
+
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				caps := diff.Get("capabilities")
 				mongo34found := false
@@ -231,7 +236,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 
 			"public_network_access_enabled": {

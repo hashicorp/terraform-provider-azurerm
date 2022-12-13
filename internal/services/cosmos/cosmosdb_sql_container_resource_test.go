@@ -336,7 +336,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_path     = "/definition/id"
   analytical_storage_ttl = 600
 }
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
+`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual, true), data.RandomInteger, data.RandomInteger)
 }
 
 func (CosmosSqlContainerResource) analyticalStorageTTL_removed(data acceptance.TestData) string {
@@ -356,7 +356,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_path  = "/definition/id"
 }
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
+`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual, true), data.RandomInteger, data.RandomInteger)
 }
 
 func (CosmosSqlContainerResource) update(data acceptance.TestData) string {
