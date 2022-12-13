@@ -148,6 +148,7 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice(
+							// Replace the string literal with enum once https://github.com/Azure/azure-rest-api-specs/pull/21845 is merged
 							[]string{"blob", "file"},
 							false,
 						),
@@ -310,7 +311,8 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 				StorageAccountId: parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 				// Password is only accessible during creation
 				Password: state.Password,
-				// SshAuthorizedKey is only accessible during creation
+				// SshAuthorizedKey is only accessible during creation, whilst this should be returned as it is not a secret.
+				// Opened API issue: https://github.com/Azure/azure-rest-api-specs/issues/21866
 				SshAuthorizedKey: state.SshAuthorizedKey,
 			}
 
@@ -387,6 +389,11 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 				_, isEnabled := metadata.ResourceData.GetChange("ssh_password_enabled")
 				state := plan
 				if isEnabled.(bool) {
+					// If this update is to change the `ssh_password_enabled` from false to true. We'll need to regenerate the password.
+					// The previously generated password will be useless, that can't be used to connect (sftp returns permission denied).
+					// Also, after `ssh_key_enabled` being set to back true, but without calling the RegeneratePassword(), then if you
+					// call GET on the local user again, it returns the `ssh_key_enabled` as false, which indicates that we shall always
+					// generate a password when enable the `ssh_key_enabled`.
 					resp, err := client.RegeneratePassword(ctx, *id)
 					if err != nil {
 						return fmt.Errorf("generating password for %s: %v", id.ID(), err)
