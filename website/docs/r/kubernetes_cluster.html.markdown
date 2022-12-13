@@ -95,7 +95,11 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
-* `azure_active_directory_role_based_access_control` - (Optional) - A `azure_active_directory_role_based_access_control` block as defined below.
+* `azure_active_directory_role_based_access_control` - (Optional) A `azure_active_directory_role_based_access_control` block as defined below.
+
+* `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-PrometheusAddonPreview` is enabled, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/prometheus-metrics-enable?tabs=azure-portal) for more information.
 
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
@@ -133,7 +137,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
-* `local_account_disabled` - (Optional) - If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/managed-aad#disable-local-accounts) for more information.
+* `local_account_disabled` - (Optional) If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/managed-aad#disable-local-accounts) for more information.
 
 -> **Note:** If `local_account_disabled` is set to `true`, it is required to enable Kubernetes RBAC and AKS-managed Azure AD integration. See [the documentation](https://docs.microsoft.com/azure/aks/managed-aad#azure-ad-authentication-overview) for more information.
 
@@ -219,7 +223,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 -> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
-* `role_based_access_control_enabled` (Optional) - Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
+* `role_based_access_control_enabled` - (Optional) Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `run_command_enabled` - (Optional) Whether to enable run command for the cluster or not. Defaults to `true`.
 
@@ -321,6 +325,14 @@ When `managed` is set to `false` the following properties can be specified:
 * `server_app_id` - (Optional) The Server ID of an Azure Active Directory Application.
 
 * `server_app_secret` - (Optional) The Server Secret of an Azure Active Directory Application.
+
+---
+
+An `monitor_metrics` block supports the following:
+
+* `annotations_allowed` - (Optional) Specifies a comma-separated list of Kubernetes annotation keys that will be used in the resource's labels metric.
+
+* `annotations_allowed` - (Optional) Specifies a Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.
 
 ---
 
@@ -490,7 +502,7 @@ A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
+* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this will update the key on all node pools. More information can be found in [the documentation](https://learn.microsoft.com/en-us/azure/aks/node-access#update-ssh-key-on-an-existing-aks-cluster-preview). 
 
 ---
 
@@ -648,7 +660,7 @@ A `service_principal` block supports the following:
 
 A `ssh_key` block supports the following:
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+* `key_data` - (Required) The Public SSH Key used to access the cluster.
 
 ---
 
@@ -736,7 +748,7 @@ A `web_app_routing` block supports the following:
 
 * `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled.
 
- ---
+---
 
 A `windows_profile` block supports the following:
 

@@ -106,7 +106,7 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
-			MaxItems: 3,
+			MaxItems: 4,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -117,6 +117,7 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 							"RedisBloom",
 							"RedisTimeSeries",
 							"RediSearch",
+							"RedisJSON",
 						}, false),
 					},
 

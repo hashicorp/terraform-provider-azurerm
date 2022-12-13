@@ -143,6 +143,8 @@ An `network_profile` block exports the following:
 
 * `subnet_id` - (Required) The ID of the subnet. Changing this forces a new Dedicated Hardware Security Module to be created.
 
+---
+
 A `management_network_profile` block exports the following:
 
 * `network_interface_private_ip_addresses` - (Required) The private IPv4 address of the network interface. Changing this forces a new Dedicated Hardware Security Module to be created.

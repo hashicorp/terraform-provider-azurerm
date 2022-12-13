@@ -71,7 +71,7 @@ The following arguments are supported:
 
 ---
 
-`sku` supports the following:
+The `sku` block supports the following:
 
 * `tier` - (Required) The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 
