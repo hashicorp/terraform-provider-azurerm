@@ -308,19 +308,19 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
-				return resp, "error", fmt.Errorf("retiring Log Analytics Workspace %q: %+v", id, err)
+				return resp, "error", fmt.Errorf("retiring %s: %+v", id, err)
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Features != nil && resp.Model.Properties.Features.EnableLogAccessUsingOnlyResourcePermissions != nil {
 				return resp, strconv.FormatBool(*resp.Model.Properties.Features.EnableLogAccessUsingOnlyResourcePermissions), nil
 			}
 
-			return resp, "false", fmt.Errorf("retiring Log Analytics Workspace %q: feature is nil", id)
+			return resp, "false", fmt.Errorf("retiring %s: feature is nil", id)
 		},
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for on update for Log Analytics Workspace %q: %+v", id, err)
+		return fmt.Errorf("waiting on update for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
