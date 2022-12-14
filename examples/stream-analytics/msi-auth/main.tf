@@ -59,7 +59,6 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
   stream_analytics_job_name    = "${azurerm_stream_analytics_job.example.name}"
   resource_group_name          = "${azurerm_stream_analytics_job.example.resource_group_name}"
   storage_account_name         = "${azurerm_storage_account.example.name}"
-  storage_account_key          = "${azurerm_storage_account.example.primary_access_key}"
   storage_container_name       = "${azurerm_storage_container.example.name}"
   authentication_mode          = "Msi"
   path_pattern                 = "some-random-pattern"
