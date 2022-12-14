@@ -10,11 +10,14 @@ ENHANCEMENTS:
 
 * `healthbot`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19433]
 * `azurerm_key_vault_managed_hardware_security_module` - support for the `public_network_access_enabled` and `network_acls` properties [GH-19640]
+* `azurerm_kubernetes_cluster` - support for the `monitor_metrics` block [GH-19530]
+* `azurerm_kubernetes_cluster` - `ssh_key` can now be updated [GH-19634]
 * `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
 * `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
 
 BUG FIXES:
 
+* `azurerm_cdn_frontdoor_firewall_policy` - allow `Log` as a valid value for managed rule override `action` in DRS 2.0 and above [GH-19637]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
 * `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
 
