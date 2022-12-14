@@ -254,7 +254,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 			if !response.WasNotFound(deleted.HttpResponse) {
 				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
 			}
-			//if the soft deleted is not found, skip the recovering
+			// if the soft deleted is not found, skip the recovering
 		} else {
 			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
 			recoverSoftDeleted = true
