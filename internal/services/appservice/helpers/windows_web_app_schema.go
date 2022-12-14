@@ -457,10 +457,10 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if winSiteConfig.AlwaysOn == true {
+			if winSiteConfig.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}
@@ -523,16 +523,18 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 			}
 			if winAppStack.JavaVersion != "" {
 				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
-				if winAppStack.JavaEmbeddedServer {
+				switch {
+				case winAppStack.JavaEmbeddedServer:
 					expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
 					expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
-				} else if winAppStack.TomcatVersion != "" {
+				case winAppStack.TomcatVersion != "":
 					expanded.JavaContainer = pointer.To(JavaContainerTomcat)
 					expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
-				} else if winAppStack.JavaContainer != "" {
+				case winAppStack.JavaContainer != "":
 					expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
 					expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
 				}
+
 				if currentStack == "" {
 					currentStack = CurrentStackJava
 				}

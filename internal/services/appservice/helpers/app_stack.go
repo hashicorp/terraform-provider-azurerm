@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -92,7 +90,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.python",
 						"site_config.0.application_stack.0.python_version",
 					},
-					Description: fmt.Sprintf(`The version of DotNetCore to use.`),
+					Description: "The version of DotNetCore to use.",
 				},
 
 				"php_version": {

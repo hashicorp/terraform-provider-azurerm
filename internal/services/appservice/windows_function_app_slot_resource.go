@@ -814,10 +814,6 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				existing.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-				//existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
-			}
-
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
 			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)

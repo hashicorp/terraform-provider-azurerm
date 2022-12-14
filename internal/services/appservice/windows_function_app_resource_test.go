@@ -2616,6 +2616,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
 }
 
+// nolint: unparam
 func (r WindowsFunctionAppResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -875,16 +875,20 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 			}
 			if winAppStack.JavaVersion != "" {
 				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
-				if winAppStack.JavaEmbeddedServer {
+				switch {
+				case winAppStack.JavaEmbeddedServer:
 					expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
 					expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
-				} else if winAppStack.TomcatVersion != "" {
+
+				case winAppStack.TomcatVersion != "":
 					expanded.JavaContainer = pointer.To(JavaContainerTomcat)
 					expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
-				} else if winAppStack.JavaContainer != "" {
+
+				case winAppStack.JavaContainer != "":
 					expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
 					expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
 				}
+
 				if currentStack == "" {
 					currentStack = CurrentStackJava
 				}
