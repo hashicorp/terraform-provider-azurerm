@@ -79,6 +79,8 @@ A `capture_description` block supports the following:
 
 * `destination` - (Required) A `destination` block as defined below.
 
+---
+
 A `destination` block supports the following:
 
 * `name` - (Required) The Name of the Destination where the capture should take place. At this time the only supported value is `EventHubArchive.AzureBlockBlob`.
@@ -99,12 +101,9 @@ The following attributes are exported:
 
 * `partition_ids` - The identifiers for partitions created for Event Hubs.
 
-
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub.
 * `update` - (Defaults to 30 minutes) Used when updating the EventHub.

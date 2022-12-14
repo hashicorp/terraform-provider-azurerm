@@ -24,38 +24,34 @@ func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.
 	})
 }
 
-// This is not a valid test case, so I am removing it. In order to make this work you need to
-// stop and deallocated all VMs in the VMSS in order to enable/disable accelerated networking
-// https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli#enable-accelerated-networking-on-existing-vms
+func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-// func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-// 	r := LinuxVirtualMachineScaleSetResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.networkAcceleratedNetworking(data, false),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep("admin_password"),
-// 		{
-// 			Config: r.networkAcceleratedNetworking(data, true),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep("admin_password"),
-// 		{
-// 			Config: r.networkAcceleratedNetworking(data, false),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep("admin_password"),
-// 	})
-// }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkAcceleratedNetworking(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.networkAcceleratedNetworking(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.networkAcceleratedNetworking(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
 
 func TestAccLinuxVirtualMachineScaleSet_networkApplicationGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
@@ -386,6 +382,23 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	t.Skip("Skipping test until api version is upgraded to 2022-03-01 with `network_interface.ip_configuration.public_ip_address.sku_name` added")
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkPublicIPVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -431,21 +444,6 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIPTags(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_RoutingPreferenceIPTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ilpip(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func (r LinuxVirtualMachineScaleSetResource) networkAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -454,7 +452,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F4"
+  sku                 = "Standard_D2s_v3" # intentional for accelerated networking
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -1587,7 +1585,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
+// skipped
+// nolint:unused
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1624,12 +1624,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
 
       public_ip_address {
-        name = "first"
+        name                    = "first"
+        idle_timeout_in_minutes = 4
+      }
+    }
 
-        ip_tag {
-          tag  = "/Sql"
-          type = "FirstPartyUsage"
-        }
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
+        idle_timeout_in_minutes = 4
+        version                 = "IPv6"
       }
     }
   }
@@ -1637,9 +1644,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) ilpip(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_public_ip" "test" {
   name                = "test-ip-%[2]d"

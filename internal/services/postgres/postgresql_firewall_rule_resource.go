@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -45,7 +45,7 @@ func resourcePostgreSQLFirewallRule() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"server_name": {
 				Type:         pluginsdk.TypeString,
@@ -91,8 +91,8 @@ func resourcePostgreSQLFirewallRuleCreate(d *pluginsdk.ResourceData, meta interf
 
 	properties := firewallrules.FirewallRule{
 		Properties: firewallrules.FirewallRuleProperties{
-			StartIpAddress: d.Get("start_ip_address").(string),
-			EndIpAddress:   d.Get("end_ip_address").(string),
+			StartIPAddress: d.Get("start_ip_address").(string),
+			EndIPAddress:   d.Get("end_ip_address").(string),
 		},
 	}
 
@@ -130,8 +130,8 @@ func resourcePostgreSQLFirewallRuleRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("server_name", id.ServerName)
 
 	if model := resp.Model; model != nil {
-		d.Set("start_ip_address", resp.Model.Properties.StartIpAddress)
-		d.Set("end_ip_address", resp.Model.Properties.EndIpAddress)
+		d.Set("start_ip_address", resp.Model.Properties.StartIPAddress)
+		d.Set("end_ip_address", resp.Model.Properties.EndIPAddress)
 	}
 
 	return nil

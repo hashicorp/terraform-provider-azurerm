@@ -75,7 +75,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application Redis Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application Redis Association.
@@ -87,5 +87,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Application Redis Association can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_app_redis_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.AppPlatform/Spring/myservice/apps/myapp/bindings/bind1
+terraform import azurerm_spring_cloud_app_redis_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.AppPlatform/spring/myservice/apps/myapp/bindings/bind1
 ```

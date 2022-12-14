@@ -58,7 +58,7 @@ The following supported arguments are specific to CosmosDB Linked Service:
 
 * `database` - (Optional) The name of the database.
 
-* `connection_string` - (Required) The connection string.
+* `connection_string` - (Optional) The connection string.
 
 * `server_version_is_32_or_higher` - (Optional) Whether API server version is 3.2 or higher. Defaults to `false`.
 
@@ -70,7 +70,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Linked Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Linked Service.

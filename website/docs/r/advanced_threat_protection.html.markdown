@@ -45,7 +45,6 @@ The following arguments are supported:
 
 * `enabled` - (Required) Should Advanced Threat Protection be enabled on this resource?
 
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -54,7 +53,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Advanced Threat Protection.
 * `update` - (Defaults to 30 minutes) Used when updating the Advanced Threat Protection.

@@ -223,7 +223,7 @@ A `test_configuration` block supports the following:
 
 * `icmp_configuration` - (Optional) A `icmp_configuration` block as defined below.
 
-* `preferred_ip_version` - (Optional) The preferred IP version which is used in the test evaluation. Possible values are `IPv4` and `IPv6`. 
+* `preferred_ip_version` - (Optional) The preferred IP version which is used in the test evaluation. Possible values are `IPv4` and `IPv6`.
 
 * `success_threshold` - (Optional) A `success_threshold` block as defined below.
 
@@ -299,7 +299,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Connection Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Connection Monitor.

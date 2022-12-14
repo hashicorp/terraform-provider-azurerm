@@ -55,15 +55,21 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Fluid Relay Server.
 
 * `frs_tenant_id` - The Fluid tenantId for this server.
 
+* `primary_key` - The primary key for this server.
+
+* `secondary_key` - The secondary key for this server.
+
 * `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints.
 
 * `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server.
+
+* `service_endpoints` - An array of service endpoints for this Fluid Relay Server.
 
 ---
 
@@ -75,7 +81,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Fluid Relay Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Fluid Relay Server.

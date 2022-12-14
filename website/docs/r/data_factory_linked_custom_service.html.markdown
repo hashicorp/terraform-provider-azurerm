@@ -66,7 +66,7 @@ JSON
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `type` - (Required) The type of data stores that will be connected to Data Factory. For full list of supported data stores, please refer to [Azure Data Factory connector](https://docs.microsoft.com/azure/data-factory/connector-overview).
+* `type` - (Required) The type of data stores that will be connected to Data Factory. For full list of supported data stores, please refer to [Azure Data Factory connector](https://docs.microsoft.com/azure/data-factory/connector-overview). Changing this forces a new resource to be created.
 
 * `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Linked Service.
 
@@ -82,7 +82,7 @@ JSON
 
 ---
 
-An `integration_runtime` supports the following:
+An `integration_runtime` block supports the following:
 
 * `name` - (Required) The integration runtime reference to associate with the Data Factory Linked Service.
 
@@ -96,7 +96,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Linked Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Linked Service.

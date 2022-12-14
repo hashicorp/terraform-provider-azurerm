@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account where this Storage Encryption Scope is created. Changing this forces a new Storage Encryption Scope to be created.
 
-* `infrastructure_encryption_required` - (Optional) Is a secondary layer of encryption with Platform Managed Keys for data applied?
+* `infrastructure_encryption_required` - (Optional) Is a secondary layer of encryption with Platform Managed Keys for data applied? Changing this forces a new resource to be created.
 
 ---
 
@@ -57,13 +57,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Encryption Scope.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Encryption Scope.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Encryption Scope.

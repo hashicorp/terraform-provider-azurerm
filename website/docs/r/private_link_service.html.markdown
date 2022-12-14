@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `nat_ip_configuration` - (Required) One or more (up to 8) `nat_ip_configuration` block as defined below.
 
-* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running.
+* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running. Changing this forces a new resource to be created.
 
 ---
 
@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource. 
 
 * `visibility_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service.
 
@@ -134,7 +134,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Private Link Service.
 * `update` - (Defaults to 60 minutes) Used when updating the Private Link Service.
@@ -146,5 +146,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Private Link Services can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_private_link_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateLinkServices/service1
+terraform import azurerm_private_link_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateLinkServices/service1
 ```

@@ -54,9 +54,9 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "work
 
 The following arguments are supported:
 
-* `workspace_id` - (Required) The resource ID for the Virtual Desktop Workspace.
+* `workspace_id` - (Required) The resource ID for the Virtual Desktop Workspace. Changing this forces a new resource to be created.
 
-* `application_group_id` - (Required) The resource ID for the Virtual Desktop Application Group.
+* `application_group_id` - (Required) The resource ID for the Virtual Desktop Application Group. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -66,7 +66,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Workspace.
 * `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Workspace.

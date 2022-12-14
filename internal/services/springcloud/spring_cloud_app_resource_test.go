@@ -78,6 +78,21 @@ func TestAccSpringCloudApp_addon(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudApp_vnetAddon(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vnetAddon(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudApp_customPersistentDisks(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 	r := SpringCloudAppResource{}
@@ -121,6 +136,28 @@ func TestAccSpringCloudApp_customPersistentDisksUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.noneCustomPersistentDisks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSpringCloudApp_ingressSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ingressSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressSettingsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -376,6 +413,19 @@ resource "azurerm_spring_cloud_app" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
+func (r SpringCloudAppResource) vnetAddon(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                    = "acctest-sca-%[2]d"
+  resource_group_name     = azurerm_spring_cloud_service.test.resource_group_name
+  service_name            = azurerm_spring_cloud_service.test.name
+  public_endpoint_enabled = true
+}
+`, SpringCloudServiceResource{}.virtualNetwork(data), data.RandomInteger)
+}
+
 func (r SpringCloudAppResource) customPersistentDisksWith(data acceptance.TestData, storageLabel string) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -442,6 +492,46 @@ resource "azurerm_spring_cloud_storage" "test2" {
   storage_account_key     = azurerm_storage_account.test2.primary_access_key
 }
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(10))
+}
+
+func (r SpringCloudAppResource) ingressSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "acctest-sca-%[2]d"
+  resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
+  service_name        = azurerm_spring_cloud_service.test.name
+
+  ingress_settings {
+    session_affinity        = "None"
+    read_timeout_in_seconds = 70
+    send_timeout_in_seconds = 70
+    session_cookie_max_age  = 0
+    backend_protocol        = "Default"
+  }
+}
+`, SpringCloudServiceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r SpringCloudAppResource) ingressSettingsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "acctest-sca-%[2]d"
+  resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
+  service_name        = azurerm_spring_cloud_service.test.name
+
+  ingress_settings {
+    session_affinity        = "Cookie"
+    read_timeout_in_seconds = 700
+    send_timeout_in_seconds = 700
+    session_cookie_max_age  = 700
+    backend_protocol        = "GRPC"
+  }
+}
+`, SpringCloudServiceResource{}.basic(data), data.RandomInteger)
 }
 
 func (SpringCloudAppResource) template(data acceptance.TestData) string {

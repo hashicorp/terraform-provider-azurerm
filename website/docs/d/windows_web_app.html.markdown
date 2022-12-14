@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Windows Web App.
 
@@ -48,6 +48,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `client_certificate_enabled` - Are Client Certificates enabled?
 
 * `client_certificate_mode` - The Client Certificate mode.
+
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
 * `connection_string` - A `connection_string` block as defined below.
 
@@ -86,6 +88,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `storage_account` - A `storage_account` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
+
+* `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
 
 ---
 
@@ -477,7 +481,6 @@ A `storage_account` block exports the following:
 
 * `type` - The Azure Storage Type.
 
-
 ---
 
 A `trigger` block exports the following:
@@ -522,6 +525,6 @@ A `virtual_directory` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.

@@ -164,11 +164,11 @@ resource "azurerm_active_directory_domain_service" "example" {
 
 The following arguments are supported:
 
-* `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.
+* `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations. Changing this forces a new resource to be created.
 
 * `domain_configuration_type` - (Optional)  The configuration type of this Active Directory Domain. Possible values are `FullySynced` and `ResourceTrusting`. Changing this forces a new resource to be created.
 
-* `filtered_sync_enabled` - Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
+* `filtered_sync_enabled` - (Optional) Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
 
 * `secure_ldap` - (Optional) A `secure_ldap` block as defined below.
 
@@ -214,11 +214,15 @@ A `notifications` block supports the following:
 
 An `initial_replica_set` block supports the following:
 
-* `subnet_id` - (Required) The ID of the subnet in which to place the initial replica set.
+* `subnet_id` - (Required) The ID of the subnet in which to place the initial replica set. Changing this forces a new resource to be created.
 
 ---
 
 A `security` block supports the following:
+
+* `kerberos_armoring_enabled` - (Optional) Whether to enable Kerberos Armoring. Defaults to `false`.
+
+* `kerberos_rc4_encryption_enabled` - (Optional) Whether to enable Kerberos RC4 Encryption. Defaults to `false`.
 
 * `ntlm_v1_enabled` - (Optional) Whether to enable legacy NTLM v1 support. Defaults to `false`.
 
@@ -262,7 +266,7 @@ An `initial_replica_set` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Domain Service.
 * `update` - (Defaults to 2 hours) Used when updating the Domain Service.

@@ -74,7 +74,7 @@ A `identity` block supports the following:
 
 ---
 
-A `input_mapping_fields` supports the following:
+A `input_mapping_fields` block supports the following:
 
 * `id` - (Optional) Specifies the id of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
@@ -90,7 +90,7 @@ A `input_mapping_fields` supports the following:
 
 ---
 
-A `input_mapping_default_values` supports the following:
+A `input_mapping_default_values` block supports the following:
 
 * `event_type` - (Optional) Specifies the default event type of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
@@ -132,7 +132,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Domain.
 * `update` - (Defaults to 30 minutes) Used when updating the EventGrid Domain.

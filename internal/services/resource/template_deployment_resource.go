@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/migration"
@@ -49,7 +49,7 @@ func resourceTemplateDeployment() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"template_body": {
 				Type:      pluginsdk.TypeString,
@@ -267,9 +267,12 @@ func resourceTemplateDeploymentDelete(d *pluginsdk.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.DeploymentName); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.DeploymentName)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	if err := waitForTemplateDeploymentToBeDeleted(ctx, client, *id); err != nil {

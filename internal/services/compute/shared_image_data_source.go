@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func dataSourceSharedImage() *pluginsdk.Resource {
@@ -40,6 +40,11 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"architecture": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
 			"os_type": {
 				Type:     pluginsdk.TypeString,
@@ -131,6 +136,7 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("architecture", string(props.Architecture))
 		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)

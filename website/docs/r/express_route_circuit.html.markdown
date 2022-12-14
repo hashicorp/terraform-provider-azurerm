@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources. Defaults to `false`.
 
-* `express_route_port_id` - (Optional) The ID of the Express Route Port this Express Route Circuit is based on.
+* `express_route_port_id` - (Optional) The ID of the Express Route Port this Express Route Circuit is based on. Changing this forces a new resource to be created.
 
 * `bandwidth_in_gbps` - (Optional) The bandwidth in Gbps of the circuit being created on the Express Route Port.
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 ---
 
-`sku` supports the following:
+The `sku` block supports the following:
 
 * `tier` - (Required) The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 
@@ -89,7 +89,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit.
 * `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit.

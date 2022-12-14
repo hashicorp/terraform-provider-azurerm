@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -127,18 +128,48 @@ func TestAccStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsStreamInputEventHub_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
+func TestAccStreamAnalyticsStreamInputEventHub_msiWithoutSharedAccessPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
+	r := StreamAnalyticsStreamInputEventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiWithoutSharedAccessPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func (r StreamAnalyticsStreamInputEventHubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StreamInputID(state.ID)
+	id, err := inputs.ParseInputID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
+	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -307,6 +338,52 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "import" {
 `, template)
 }
 
+func (r StreamAnalyticsStreamInputEventHubResource) authenticationMode(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
+  name                         = "acctestinput-%d"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+  eventhub_name                = azurerm_eventhub.test.name
+  servicebus_namespace         = azurerm_eventhub_namespace.test.name
+  shared_access_policy_key     = azurerm_eventhub_namespace.test.default_primary_key
+  shared_access_policy_name    = "RootManagedSharedAccessKey"
+  partition_key                = "partitionKey"
+  authentication_mode          = "ConnectionString"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsStreamInputEventHubResource) msiWithoutSharedAccessPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
+  name                         = "acctestinput-%d"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+  eventhub_name                = azurerm_eventhub.test.name
+  servicebus_namespace         = azurerm_eventhub_namespace.test.name
+  authentication_mode          = "Msi"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r StreamAnalyticsStreamInputEventHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -354,9 +431,9 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units                          = 3
 
   transformation_query = <<QUERY
-    SELECT *
-    INTO [YourOutputAlias]
-    FROM [YourInputAlias]
+   SELECT *
+   INTO [YourOutputAlias]
+   FROM [YourInputAlias]
 QUERY
 
 }

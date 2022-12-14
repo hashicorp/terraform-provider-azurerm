@@ -42,7 +42,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "example" {
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_cosmosdb_account.example.name
   name                = "acctestsqlrole"
-  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.example.name}/dbs/sales"]
+  assignable_scopes   = ["${azurerm_cosmosdb_account.example.id}/dbs/sales"]
 
   permissions {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
@@ -80,13 +80,13 @@ A `permissions` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cosmos DB SQL Role Definition.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cosmos DB SQL Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cosmos DB SQL Role Definition.

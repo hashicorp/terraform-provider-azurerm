@@ -92,5 +92,6 @@ func (c QueryKeysClient) responderForCreate(resp *http.Response) (result CreateO
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

@@ -61,6 +61,7 @@ output "service_key" {
 * `peering_type` - The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`. Changing this forces a new resource to be created.
 
 ~> **Note:** only one Peering of each Type can be created per ExpressRoute circuit.
+
 * `primary_peer_address_prefix` - A `/30` subnet for the primary link.
 * `secondary_peer_address_prefix` - A `/30` subnet for the secondary link.
 * `vlan_id` - A valid VLAN ID to establish this peering on.
@@ -75,6 +76,6 @@ output "service_key" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute circuit.

@@ -25,7 +25,6 @@ output "network_interface_id" {
 
 ## Argument Reference
 
-
 * `name` - Specifies the name of the Network Interface.
 * `resource_group_name` - Specifies the name of the resource group the Network Interface is located in.
 
@@ -63,6 +62,6 @@ A `ip_configuration` block contains:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Interface.

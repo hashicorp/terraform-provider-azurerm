@@ -36,25 +36,46 @@ resource "azurerm_lb_backend_address_pool_address" "example" {
   virtual_network_id      = data.azurerm_virtual_network.example.id
   ip_address              = "10.0.0.1"
 }
+
+data "azurerm_lb_backend_address_pool" "backend-pool-cr" {
+  name            = "globalLBBackendPool"
+  loadbalancer_id = data.azurerm_lb.example.id
+}
+
+resource "azurerm_lb_backend_address_pool_address" "example-1" {
+  name                                = "address1"
+  backend_address_pool_id             = data.azurerm_lb_backend_address_pool.backend-pool-cr.id
+  backend_address_ip_configuration_id = azurerm_lb.backend-lb-R1.frontend_ip_configuration[0].id
+}
+
+resource "azurerm_lb_backend_address_pool_address" "example-2" {
+  name                                = "address2"
+  backend_address_pool_id             = data.azurerm_lb_backend_address_pool.backend-pool-cr.id
+  backend_address_ip_configuration_id = azurerm_lb.backend-lb-R2.frontend_ip_configuration[0].id
+}
 ```
 
 ## Arguments Reference
 
--> **Note:** Backend Addresses can only be added to a `Standard` SKU Load Balancer.
+-> **Note:** Backend Addresses can only be added to a `Standard` SKU Load Balancer. Cross region load balancer is for Load Balancer with `Global` SKU.
 
 The following arguments are supported:
 
 * `backend_address_pool_id` - (Required) The ID of the Backend Address Pool. Changing this forces a new Backend Address Pool Address to be created.
 
-* `ip_address` - (Required) The Static IP Address which should be allocated to this Backend Address Pool.
+* `ip_address` - (Optional) The Static IP Address which should be allocated to this Backend Address Pool.
 
 * `name` - (Required) The name which should be used for this Backend Address Pool Address. Changing this forces a new Backend Address Pool Address to be created.
 
-* `virtual_network_id` - (Required) The ID of the Virtual Network within which the Backend Address Pool should exist.
+* `virtual_network_id` - (Optional) The ID of the Virtual Network within which the Backend Address Pool should exist.
+
+* `backend_address_ip_configuration_id` - (Optional) The ip config ID of the regional load balancer that's added to the global load balancer's backend address pool.
+
+-> **Note:** For cross-region load balancer, please append the name of the load balancers, virtual machines, and other resources in each region with a -R1 and -R2.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backend Address Pool Address.
 
@@ -72,7 +93,7 @@ A `inbound_nat_rule_port_mapping` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backend Address Pool Address.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backend Address Pool Address.

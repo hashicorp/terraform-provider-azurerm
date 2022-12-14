@@ -45,7 +45,7 @@ output "database_id" {
 
 ## Attributes Reference
 
-* `collation` - The collation of the database. 
+* `collation` - The collation of the database.
 
 * `elastic_pool_id` - The id of the elastic pool containing this database.
 
@@ -53,7 +53,7 @@ output "database_id" {
 
 * `max_size_gb` - The max size of the database in gigabytes.
 
-* `read_replica_count` - The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. 
+* `read_replica_count` - The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed.
 
 * `read_scale` - If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica.
 
@@ -67,6 +67,6 @@ output "database_id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL database.

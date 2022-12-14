@@ -5,9 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -46,9 +47,9 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				ValidateFunc: validate.ManagedHardwareSecurityModuleName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -95,6 +96,41 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				//Computed: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
+			"network_acls": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(keyvault.NetworkRuleActionAllow),
+								string(keyvault.NetworkRuleActionDeny),
+							}, false),
+						},
+						"bypass": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(keyvault.NetworkRuleBypassOptionsNone),
+								string(keyvault.NetworkRuleBypassOptionsAzureServices),
+							}, false),
+						},
+					},
+				},
+			},
+
 			// https://github.com/Azure/azure-rest-api-specs/issues/13365
 			"tags": tags.ForceNewSchema(),
 		},
@@ -131,12 +167,18 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 			EnableSoftDelete:          utils.Bool(true),
 			SoftDeleteRetentionInDays: utils.Int32(int32(d.Get("soft_delete_retention_days").(int))),
 			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
+			PublicNetworkAccess:       keyvault.PublicNetworkAccessEnabled, // default enabled
+			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
 		},
 		Sku: &keyvault.ManagedHsmSku{
 			Family: utils.String("B"),
 			Name:   keyvault.ManagedHsmSkuName(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if !d.Get("public_network_access_enabled").(bool) {
+		hsm.Properties.PublicNetworkAccess = keyvault.PublicNetworkAccessDisabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
@@ -193,6 +235,14 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 		d.Set("hsm_uri", props.HsmURI)
 		d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
+
+		var publicAccess = true
+		if props.PublicNetworkAccess == keyvault.PublicNetworkAccessDisabled {
+			publicAccess = false
+		}
+		d.Set("public_network_access_enabled", publicAccess)
+
+		d.Set("network_acls", flattenMHSMNetworkAcls(props.NetworkAcls))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -234,7 +284,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedHSMsOnDestroy
 	if shouldPurge && resp.Properties != nil && utils.NormaliseNilableBool(resp.Properties.EnablePurgeProtection) {
-		return fmt.Errorf("cannot purge %s because purge protection is enabled", id)
+		log.Printf("[DEBUG] cannot purge %s because purge protection is enabled", id)
+		return nil
 	}
 
 	purgeFuture, err := client.PurgeDeleted(ctx, id.Name, *resp.Location)
@@ -250,4 +301,30 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	}
 
 	return nil
+}
+
+func expandMHSMNetworkAcls(input []interface{}) *keyvault.MHSMNetworkRuleSet {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	res := &keyvault.MHSMNetworkRuleSet{
+		Bypass:        keyvault.NetworkRuleBypassOptions(v["bypass"].(string)),
+		DefaultAction: keyvault.NetworkRuleAction(v["default_action"].(string)),
+	}
+
+	return res
+}
+
+func flattenMHSMNetworkAcls(acl *keyvault.MHSMNetworkRuleSet) []interface{} {
+	res := map[string]interface{}{
+		"bypass":         string(keyvault.NetworkRuleBypassOptionsAzureServices),
+		"default_action": string(keyvault.NetworkRuleActionAllow),
+	}
+
+	if acl != nil {
+		res["bypass"] = string(acl.Bypass)
+		res["default_action"] = string(acl.DefaultAction)
+	}
+	return []interface{}{res}
 }

@@ -15,6 +15,7 @@ Manages a Blueprint Assignment resource
 ~> **NOTE:** Azure Blueprint Assignments can only be applied to Subscriptions.  Assignments to Management Groups is not currently supported by the service or by Terraform.
 
 ## Example Usage
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -103,14 +104,13 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ```
 
-
 ## Argument Reference
 
-* `name` - (Required) The name of the Blueprint Assignment
+* `name` - (Required) The name of the Blueprint Assignment. Changing this forces a new resource to be created.
 
-* `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to.
+* `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location of the Assignment.
+* `location` - (Required) The Azure location of the Assignment. Changing this forces a new resource to be created.
 
 * `identity` - (Required) An `identity` block as defined below.
 
@@ -138,7 +138,6 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Blueprint.
 
-
 ## Attributes Reference
 
 * `id` - The ID of the Blueprint Assignment
@@ -151,7 +150,7 @@ An `identity` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Blueprint Assignment.
 * `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.

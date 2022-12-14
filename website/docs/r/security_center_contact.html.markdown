@@ -16,6 +16,7 @@ Manages the subscription's Security Center Contact.
 
 ```hcl
 resource "azurerm_security_center_contact" "example" {
+  name  = "contact"
   email = "contact@example.com"
   phone = "+1-555-555-5555"
 
@@ -28,10 +29,15 @@ resource "azurerm_security_center_contact" "example" {
 
 The following arguments are supported:
 
-* `email` - (Required) The email of the Security Center Contact.
-* `phone` - (Optional) The phone number of the Security Center Contact.
 * `alert_notifications` - (Required) Whether to send security alerts notifications to the security contact.
+
 * `alerts_to_admins` - (Required) Whether to send security alerts notifications to subscription admins.
+
+* `email` - (Required) The email of the Security Center Contact.
+
+* `name` - (Optional) The name of the Security Center Contact. Defaults to `default1`.
+
+* `phone` - (Optional) The phone number of the Security Center Contact.
 
 ## Attributes Reference
 
@@ -41,13 +47,12 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Security Center Contact.
 * `update` - (Defaults to 60 minutes) Used when updating the Security Center Contact.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Contact.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Security Center Contact.
-
 
 ## Import
 

@@ -106,8 +106,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the template deployment. Changing this forces a
     new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the template deployment.
+* `resource_group_name` - (Required) The name of the resource group in which to create the template deployment. Changing this forces a new resource to be created.
 * `deployment_mode` - (Required) Specifies the mode that is used to deploy resources. This value could be either `Incremental` or `Complete`.
     Note that you will almost *always* want this to be set to `Incremental` otherwise the deployment will destroy all infrastructure not
     specified within the template, and Terraform will not be aware of this.
@@ -137,7 +136,7 @@ Terraform does not know about the individual resources created by Azure using a 
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Template Deployment.
 * `update` - (Defaults to 3 hours) Used when updating the Template Deployment.

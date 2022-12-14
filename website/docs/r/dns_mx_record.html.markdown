@@ -46,21 +46,24 @@ resource "azurerm_dns_mx_record" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Optional) The name of the DNS MX Record. Defaults to `@` (root). Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
-* `zone_name` - (Required) Specifies the DNS Zone where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
+* `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) A list of values that make up the MX record. Each `record` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
 
 The `record` block supports:
 
@@ -73,17 +76,19 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS MX Record ID.
+
 * `fqdn` - The FQDN of the DNS MX Record.
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS MX Record.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS MX Record.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS MX Record.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS MX Record.
 
 ## Import
@@ -91,5 +96,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 MX records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_mx_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/MX/myrecord1
+terraform import azurerm_dns_mx_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/MX/myrecord1
 ```

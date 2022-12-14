@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -129,20 +129,20 @@ func (DnsZoneV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		groupsClient := meta.(*clients.Client).Resource.GroupsClient
 		oldId := rawState["id"].(string)
-		id, err := parse.DnsZoneID(oldId)
+		id, err := zones.ParseDnsZoneID(oldId)
 		if err != nil {
 			return rawState, err
 		}
-		resGroup, err := groupsClient.Get(ctx, id.ResourceGroup)
+		resGroup, err := groupsClient.Get(ctx, id.ResourceGroupName)
 		if err != nil {
 			return rawState, err
 		}
 		if resGroup.Name == nil {
-			return rawState, fmt.Errorf("`name` was nil for Resource Group %q", id.ResourceGroup)
+			return rawState, fmt.Errorf("`name` was nil for Resource Group %q", id.ResourceGroupName)
 		}
 		resourceGroup := *resGroup.Name
 		name := rawState["name"].(string)
-		newId := parse.NewDnsZoneID(id.SubscriptionId, resourceGroup, name).ID()
+		newId := zones.NewDnsZoneID(id.SubscriptionId, resourceGroup, name).ID()
 		log.Printf("Updating `id` from %q to %q", oldId, newId)
 		rawState["id"] = newId
 		return rawState, nil

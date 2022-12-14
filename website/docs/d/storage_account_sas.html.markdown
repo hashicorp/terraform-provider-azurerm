@@ -118,7 +118,6 @@ A `services` block contains:
 
 A `permissions` block contains:
 
-
 * `read` - Should Read permissions be enabled for this SAS?
 * `write` - Should Write permissions be enabled for this SAS?
 * `delete` - Should Delete permissions be enabled for this SAS?
@@ -139,6 +138,6 @@ for additional details on the fields above.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the SAS Token.

@@ -5,12 +5,14 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
+	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -60,7 +62,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				ValidateFunc: validate.DataFactoryID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"node_size": {
 				Type:     pluginsdk.TypeString,
@@ -109,6 +111,21 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 					string(datafactory.IntegrationRuntimeEditionStandard),
 					string(datafactory.IntegrationRuntimeEditionEnterprise),
 				}, false),
+			},
+
+			"express_vnet_integration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.SubnetID,
+						},
+					},
+				},
 			},
 
 			"license_type": {
@@ -214,6 +231,13 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 								"BC_Gen5_2", "BC_Gen5_4", "BC_Gen5_6", "BC_Gen5_8", "BC_Gen5_10", "BC_Gen5_12", "BC_Gen5_14", "BC_Gen5_16", "BC_Gen5_18", "BC_Gen5_20", "BC_Gen5_24", "BC_Gen5_32", "BC_Gen5_40", "BC_Gen5_80",
 								"HS_Gen5_2", "HS_Gen5_4", "HS_Gen5_6", "HS_Gen5_8", "HS_Gen5_10", "HS_Gen5_12", "HS_Gen5_14", "HS_Gen5_16", "HS_Gen5_18", "HS_Gen5_20", "HS_Gen5_24", "HS_Gen5_32", "HS_Gen5_40", "HS_Gen5_80",
 							}, false),
+							ConflictsWith: []string{"catalog_info.0.elastic_pool_name"},
+						},
+						"elastic_pool_name": {
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  sqlValidate.ValidateMsSqlElasticPoolName,
+							ConflictsWith: []string{"catalog_info.0.pricing_tier"},
 						},
 						"dual_standby_pair_name": {
 							Type:         pluginsdk.TypeString,
@@ -450,8 +474,9 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 		Description: &description,
 		Type:        datafactory.TypeBasicIntegrationRuntimeTypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
-			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d),
-			SsisProperties:    expandDataFactoryIntegrationRuntimeAzureSsisProperties(d),
+			ComputeProperties:      expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d),
+			SsisProperties:         expandDataFactoryIntegrationRuntimeAzureSsisProperties(d),
+			CustomerVirtualNetwork: expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(d.Get("express_vnet_integration").([]interface{})),
 		},
 	}
 
@@ -552,6 +577,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		}
 	}
 
+	if err := d.Set("express_vnet_integration", flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(managedIntegrationRuntime.CustomerVirtualNetwork)); err != nil {
+		return fmt.Errorf("setting `express_vnet_integration`: %+v", err)
+	}
+
 	return nil
 }
 
@@ -618,9 +647,17 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
 		catalogInfo := catalogInfos.([]interface{})[0].(map[string]interface{})
 
+		// the property `elastic_pool_name` and `pricing_tier` share the same prop `CatalogPricingTier` in request and response.
+		var pricingTier datafactory.IntegrationRuntimeSsisCatalogPricingTier
+		if elasticPoolName := catalogInfo["elastic_pool_name"]; elasticPoolName != nil && elasticPoolName.(string) != "" {
+			pricingTier = datafactory.IntegrationRuntimeSsisCatalogPricingTier(formatDataFactoryIntegrationRuntimeElasticPool(elasticPoolName.(string)))
+		} else {
+			pricingTier = datafactory.IntegrationRuntimeSsisCatalogPricingTier(catalogInfo["pricing_tier"].(string))
+		}
+
 		ssisProperties.CatalogInfo = &datafactory.IntegrationRuntimeSsisCatalogInfo{
 			CatalogServerEndpoint: utils.String(catalogInfo["server_endpoint"].(string)),
-			CatalogPricingTier:    datafactory.IntegrationRuntimeSsisCatalogPricingTier(catalogInfo["pricing_tier"].(string)),
+			CatalogPricingTier:    pricingTier,
 		}
 
 		if adminUserName := catalogInfo["administrator_login"]; adminUserName.(string) != "" {
@@ -797,6 +834,16 @@ func expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input [
 	return reference
 }
 
+func expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(input []interface{}) *datafactory.IntegrationRuntimeCustomerVirtualNetwork {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+	return &datafactory.IntegrationRuntimeCustomerVirtualNetwork{
+		SubnetID: utils.String(raw["subnet_id"].(string)),
+	}
+}
+
 func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
 	if vnetProperties == nil {
 		return []interface{}{}
@@ -839,6 +886,12 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *da
 		dualStandbyPairName = *ssisProperties.DualStandbyPairName
 	}
 
+	var pricingTier, elasticPoolName string
+	elasticPoolName, elasticPoolNameMatched := parseDataFactoryIntegrationRuntimeElasticPool(string(ssisProperties.CatalogPricingTier))
+	if !elasticPoolNameMatched {
+		pricingTier = string(ssisProperties.CatalogPricingTier)
+	}
+
 	// read back
 	if adminPassword, ok := d.GetOk("catalog_info.0.administrator_password"); ok {
 		administratorPassword = adminPassword.(string)
@@ -847,7 +900,8 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *da
 	return []interface{}{
 		map[string]interface{}{
 			"server_endpoint":        serverEndpoint,
-			"pricing_tier":           string(ssisProperties.CatalogPricingTier),
+			"pricing_tier":           pricingTier,
+			"elastic_pool_name":      elasticPoolName,
 			"administrator_login":    catalogAdminUserName,
 			"administrator_password": administratorPassword,
 			"dual_standby_pair_name": dualStandbyPairName,
@@ -1047,6 +1101,21 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input 
 	}
 }
 
+func flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(input *datafactory.IntegrationRuntimeCustomerVirtualNetwork) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	subnetId := ""
+	if input.SubnetID != nil {
+		subnetId = *input.SubnetID
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"subnet_id": subnetId,
+		},
+	}
+}
+
 func readBackSensitiveValue(input []interface{}, propertyName string, filters map[string]string) string {
 	if len(input) == 0 {
 		return ""
@@ -1065,4 +1134,16 @@ func readBackSensitiveValue(input []interface{}, propertyName string, filters ma
 		}
 	}
 	return ""
+}
+
+func formatDataFactoryIntegrationRuntimeElasticPool(input string) string {
+	return fmt.Sprintf(`ELASTIC_POOL(name="%s")`, input)
+}
+
+func parseDataFactoryIntegrationRuntimeElasticPool(input string) (string, bool) {
+	matches := regexp.MustCompile(`^ELASTIC_POOL\(name="(.+)"\)$`).FindStringSubmatch(input)
+	if len(matches) != 2 {
+		return "", false
+	}
+	return matches[1], true
 }

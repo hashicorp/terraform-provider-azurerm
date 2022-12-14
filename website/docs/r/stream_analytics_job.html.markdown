@@ -79,9 +79,23 @@ The following arguments are supported:
 
 -> **NOTE:** `streaming_units` must be set when `type` is `Cloud`.
 
+* `content_storage_policy` - (Optional) The policy for storing stream analytics content. Possible values are `JobStorageAccount`, `SystemAccount`.
+
+* `job_storage_account` - (Optional) The details of the job storage account. A `job_storage_account` block as defined below. 
+
+---
+
+* `authentication_mode` - (Optional) The authentication mode of the storage account. The only supported value is `ConnectionString`. Defaults to `ConnectionString`.
+
+* `account_name` - (Required) The name of the Azure storage account.
+
+* `account_key` - (Required) The account key for the Azure storage account.
+
+---
+
 * `transformation_query` - (Required) Specifies the query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
 
-* `tags` - A mapping of tags assigned to the resource.
+* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 
@@ -109,7 +123,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Job.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Job.

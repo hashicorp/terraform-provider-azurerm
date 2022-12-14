@@ -50,7 +50,7 @@ resource "azurerm_network_security_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the network security group. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the network security group. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the network security group. Changing this forces a new resource to be created.
 
@@ -62,10 +62,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-
 Elements of `security_rule` support:
 
-* `name` - (Required) The name of the security rule.
+* `name` - (Required) The name of the security rule. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description for this rule. Restricted to 140 characters.
 
@@ -97,7 +96,6 @@ Elements of `security_rule` support:
 
 * `direction` - (Required) The direction specifies if rule will be evaluated on incoming or outgoing traffic. Possible values are `Inbound` and `Outbound`.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -106,7 +104,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Security Group.
 * `update` - (Defaults to 30 minutes) Used when updating the Network Security Group.

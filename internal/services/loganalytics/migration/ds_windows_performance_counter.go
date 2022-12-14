@@ -3,8 +3,8 @@ package migration
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/datasources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 )
@@ -15,7 +15,7 @@ type WindowsPerformanceCounterV0ToV1 struct{}
 
 func (WindowsPerformanceCounterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		oldId, err := parse.DataSourceIDInsensitively(rawState["id"].(string))
+		oldId, err := datasources.ParseDataSourceIDInsensitively(rawState["id"].(string))
 		if err != nil {
 			return rawState, err
 		}
@@ -33,7 +33,7 @@ func (WindowsPerformanceCounterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"workspace_name": {
 			Type:             pluginsdk.TypeString,

@@ -74,9 +74,11 @@ The following arguments are supported:
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this Bgp connection should be created. Changing this forces a new resource to be created.
 
-* `peer_asn` - (Optional) The peer autonomous system number for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
+* `peer_asn` - (Required) The peer autonomous system number for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
 
-* `peer_ip` - (Optional) The peer IP address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
+* `peer_ip` - (Required) The peer IP address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
+
+* `virtual_network_connection_id` - (Optional) The ID of virtual network connection.
 
 ## Attributes Reference
 
@@ -86,7 +88,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Hub Bgp Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Bgp Connection.

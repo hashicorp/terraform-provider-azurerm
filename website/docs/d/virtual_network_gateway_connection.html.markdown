@@ -87,6 +87,7 @@ output "virtual_network_gateway_connection_id" {
 * `tags` - A mapping of tags to assign to the resource.
 
 The `custom_bgp_addresses` block supports:
+
 * `primary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
 * `secondary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
 
@@ -126,6 +127,6 @@ The `traffic_selector_policy` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway Connection.

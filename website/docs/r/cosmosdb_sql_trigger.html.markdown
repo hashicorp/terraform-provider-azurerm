@@ -45,6 +45,7 @@ resource "azurerm_cosmosdb_sql_trigger" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this SQL Trigger. Changing this forces a new SQL Trigger to be created.
 
 * `container_id` - (Required) The id of the Cosmos DB SQL Container to create the SQL Trigger within. Changing this forces a new SQL Trigger to be created.
@@ -57,13 +58,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SQL Trigger.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Trigger.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Trigger.

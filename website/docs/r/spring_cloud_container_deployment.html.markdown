@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `spring_cloud_app_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Container Deployment to be created.
 
-* `image` - (Required) Container image of the custom container. This should be in the form of <repository>:<tag> without the server name of the registry.
+* `image` - (Required) Container image of the custom container. This should be in the form of `<repository>:<tag>` without the server name of the registry.
 
 * `server` - (Required) The name of the registry that contains the container image.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
-* `language_framework` - (Optional) Specifies the language framework of the container image.
+* `language_framework` - (Optional) Specifies the language framework of the container image. The only possible value is `springboot`.
 
 * `quota` - (Optional) A `quota` block as defined below.
 
@@ -93,13 +93,13 @@ A `quota` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Container Deployment.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Container Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Container Deployment.
@@ -111,5 +111,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Container Deployments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_container_deployment.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/deployments/deploy1
+terraform import azurerm_spring_cloud_container_deployment.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/deployments/deploy1
 ```

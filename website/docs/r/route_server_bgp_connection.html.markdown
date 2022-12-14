@@ -29,9 +29,9 @@ The following arguments are supported:
 
 * `route_server_id` - (Required) The ID of the Route Server within which this Bgp connection should be created. Changing this forces a new resource to be created.
 
-* `peer_asn` - (Optional) The peer autonomous system number for the Route Server Bgp Connection. Changing this forces a new resource to be created.
+* `peer_asn` - (Required) The peer autonomous system number for the Route Server Bgp Connection. Changing this forces a new resource to be created.
 
-* `peer_ip` - (Optional) The peer ip address for the Route Server Bgp Connection. Changing this forces a new resource to be created.
+* `peer_ip` - (Required) The peer ip address for the Route Server Bgp Connection. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -41,7 +41,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Route Server Bgp Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Route Server Bgp Connection.

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -32,6 +32,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var skuWeight = map[string]int8{
+	"Basic":    1,
+	"Standard": 2,
+	"Premium":  3,
+}
 
 func resourceRedisCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -330,6 +336,15 @@ func resourceRedisCache() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
+				// downgrade the SKU is not supported, recreate the resource
+				if old.(string) != "" && new.(string) != "" {
+					return skuWeight[old.(string)] > skuWeight[new.(string)]
+				}
+				return false
+			}),
+		),
 	}
 }
 
@@ -436,7 +451,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		zones := zones.Expand(v.(*schema.Set).List())
+		zones := zones.ExpandUntyped(v.(*schema.Set).List())
 		if len(zones) > 0 {
 			parameters.Zones = &zones
 		}
@@ -654,7 +669,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.RediName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("capacity", sku.Capacity)

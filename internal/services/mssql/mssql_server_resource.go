@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -52,9 +52,9 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"version": {
 				Type:     pluginsdk.TypeString,
@@ -149,6 +149,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 					"1.0",
 					"1.1",
 					"1.2",
+					"Disabled",
 				}, false),
 			},
 
@@ -256,7 +257,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.RestrictOutboundNetworkAccess = sql.ServerNetworkAccessFlagEnabled
 	}
 
-	if v := d.Get("minimum_tls_version"); v.(string) != "" {
+	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
@@ -292,7 +293,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
-	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
+	aadOnlyAuthenticationsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -346,7 +347,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
-	if v := d.Get("minimum_tls_version"); v.(string) != "" {
+	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
@@ -366,7 +367,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.SetId(id.ID())
 
 	if d.HasChange("azuread_administrator") {
-		aadOnlyDeleteFuture, err := aadOnlyAuthentictionsClient.Delete(ctx, id.ResourceGroup, id.Name)
+		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
 				return fmt.Errorf("deleting AD Only Authentications %s: %+v", id.String(), err)
@@ -403,7 +404,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
 			},
 		}
-		aadOnlyEnabledFuture, err := aadOnlyAuthentictionsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+		aadOnlyEnabledFuture, err := aadOnlyAuthenticationsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
 		if err != nil {
 			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
 		}
@@ -466,7 +467,11 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
-		d.Set("minimum_tls_version", props.MinimalTLSVersion)
+		if v := props.MinimalTLSVersion; v == nil {
+			d.Set("minimum_tls_version", "Disabled")
+		} else {
+			d.Set("minimum_tls_version", props.MinimalTLSVersion)
+		}
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		d.Set("outbound_network_restriction_enabled", props.RestrictOutboundNetworkAccess == sql.ServerNetworkAccessFlagEnabled)
 		primaryUserAssignedIdentityID := ""
@@ -681,7 +686,7 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 
 func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
-	if old != "" && new == "" {
+	if old != "" && old != "Disabled" && new == "Disabled" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
 	}
 	return

@@ -28,7 +28,6 @@ output "location" {
 * `name` - Specifies the Name of the Network Security Group.
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Network Security Group exists
 
-
 ## Attributes Reference
 
 * `id` - The ID of the Network Security Group.
@@ -38,7 +37,6 @@ output "location" {
 * `security_rule` - One or more `security_rule` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the resource.
-
 
 The `security_rule` block supports:
 
@@ -72,6 +70,6 @@ The `security_rule` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Group.

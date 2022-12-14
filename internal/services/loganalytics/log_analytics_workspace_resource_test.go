@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -221,18 +221,18 @@ func TestAccLogAnalyticsWorkspace_withCapacityReservation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withCapacityReservation(data, 2300),
+			Config: r.withCapacityReservation(data, 2000),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("2300"),
+				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("2000"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withCapacityReservationTypo(data, 2300),
+			Config: r.withCapacityReservationTypo(data, 5000),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("2300"),
+				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("5000"),
 			),
 		},
 		data.ImportStep(),
@@ -254,18 +254,66 @@ func TestAccLogAnalyticsWorkspace_negativeOne(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_cmkForQueryForced(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkForQueryForced(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cmkForQueryForced(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_ToggleAllowOnlyResourcePermission(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUseResourceOnlyPermission(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withUseResourceOnlyPermission(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withUseResourceOnlyPermission(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsWorkspaceID(state.ID)
+	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.WorkspacesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+	resp, err := clients.LogAnalytics.SharedKeyWorkspacesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Workspace (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogAnalyticsWorkspaceResource) basic(data acceptance.TestData) string {
@@ -549,4 +597,48 @@ resource "azurerm_log_analytics_workspace" "test" {
   reservation_capacity_in_gb_per_day = %d
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacityReservation)
+}
+
+func (LogAnalyticsWorkspaceResource) cmkForQueryForced(data acceptance.TestData, cmkForQueryForced bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                 = "acctestLAW-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  sku                  = "PerGB2018"
+  retention_in_days    = 30
+  cmk_for_query_forced = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, cmkForQueryForced)
+}
+
+func (LogAnalyticsWorkspaceResource) withUseResourceOnlyPermission(data acceptance.TestData, useResourceOnlyPermission bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                            = "acctestLAW-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  sku                             = "PerGB2018"
+  retention_in_days               = 30
+  allow_resource_only_permissions = %[4]t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, useResourceOnlyPermission)
 }

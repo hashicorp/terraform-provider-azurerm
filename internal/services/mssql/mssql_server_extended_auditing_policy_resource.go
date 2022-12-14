@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,10 +51,12 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			},
 
 			"storage_endpoint": {
+				// TODO 4.0: rename to `blob_storage_endpoint`
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
+
 			"storage_account_access_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -80,6 +82,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
 			"storage_account_subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,

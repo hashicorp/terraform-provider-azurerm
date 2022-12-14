@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Web App.
 
@@ -50,6 +50,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `client_certificate_enabled` - Are Client Certificates enabled?
 
 * `client_certificate_mode` - The Client Certificate mode.
+
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
 * `connection_string` - A `connection_string` block as defined below.
 
@@ -385,7 +387,7 @@ A `site_config` block exports the following:
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
 
-* `remote_debugging` - Is Remote Debugging enabled.
+* `remote_debugging_enabled` - Is Remote Debugging enabled.
 
 * `remote_debugging_version` - The Remote Debugging Version.
 
@@ -487,6 +489,6 @@ A `twitter` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Web App.

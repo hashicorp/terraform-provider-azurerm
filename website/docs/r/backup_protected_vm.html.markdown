@@ -57,9 +57,9 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
-* `source_vm_id` - (Required) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
+* `source_vm_id` - (Optional) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
 
-~> **NOTE:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource. 
+~> **NOTE:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource.
 This allows the source vm to be deleted without having to remove the backup.
 
 * `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
@@ -76,7 +76,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 80 minutes) Used when creating the Backup Protected Virtual Machine.
 * `update` - (Defaults to 80 minutes) Used when updating the Backup Protected Virtual Machine.

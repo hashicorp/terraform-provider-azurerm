@@ -1,6 +1,5 @@
 TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
-PKG_NAME=azurerm
 TESTTIMEOUT=180m
 
 .EXPORT_ALL_VARIABLES:
@@ -17,7 +16,7 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.45.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.50.1
 
 build: fmtcheck generate
 	go install
@@ -88,7 +87,7 @@ test: fmtcheck
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./$(PKG_NAME)"; \
+		echo "  make test-compile TEST=./internal"; \
 		exit 1; \
 	fi
 	go test -c $(TEST) $(TESTARGS)
@@ -101,6 +100,12 @@ acctests: fmtcheck
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
+
+prepare:
+	@echo "==> Preparing the repository (removing all '*_gen.go' files)..."
+	@find . -iname \*_gen.go -type f -delete
+	@echo "==> Preparing the repository (removing all '*_gen_test.go' files)..."
+	@find . -iname \*_gen_test.go -type f -delete
 
 website-lint:
 	@echo "==> Checking documentation for .html.markdown extension present"
@@ -120,7 +125,7 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
 	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
 endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
+	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=azurerm
 
 scaffold-website:
 	./scripts/scaffold-website.sh
@@ -132,6 +137,12 @@ teamcity-test:
 validate-examples: build
 	./scripts/validate-examples.sh
 
+schemagen:
+	go run ./internal/tools/generator-schema-snapshot $(RESOURCE_TYPE)
+
+resource-counts:
+	go test -v ./internal/provider -run=TestProvider_counts
+
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts

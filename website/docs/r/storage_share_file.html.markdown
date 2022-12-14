@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `path` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created.
 
-* `source` - (Optional) An absolute path to a file on the local system.
+* `source` - (Optional) An absolute path to a file on the local system. Changing this forces a new resource to be created.
 
 * `content_type` - (Optional) The content type of the share file. Defaults to `application/octet-stream`.
 
@@ -70,7 +70,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Share File.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Share File.

@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location where the Network Interface should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Network Interface. Changing this forces a new resource to be created.
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Required) A name used for this IP Configuration.
+* `name` - (Required) A name used for this IP Configuration. Changing this forces a new resource to be created.
 
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 
@@ -94,7 +94,7 @@ The `ip_configuration` block supports the following:
 
 * `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
 
-~> **Note:** Azure does not assign a Dynamic IP Address until the Network Interface is attached to a running Virtual Machine (or other resource)
+~> **Note:** `Dynamic` means "An IP is automatically assigned during creation of this Network Interface"; `Static` means "User supplied IP address will be used"
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
@@ -122,17 +122,17 @@ The following attributes are exported:
 
 * `private_ip_address` - The first private IP address of the network interface.
 
-~> **Note:** If a `Dynamic` allocation method is used Azure will not allocate an IP Address until the Network Interface is attached to a running resource (such as a Virtual Machine).
+~> **Note:** If a `Dynamic` allocation method is used Azure will allocate an IP Address on Network Interface creation.
 
 * `private_ip_addresses` - The private IP addresses of the network interface.
 
-~> **Note:** If a `Dynamic` allocation method is used Azure will not allocate an IP Address until the Network Interface is attached to a running resource (such as a Virtual Machine).
+~> **Note:** If a `Dynamic` allocation method is used Azure will allocate an IP Address on Network Interface creation.
 
 * `virtual_machine_id` - The ID of the Virtual Machine which this Network Interface is connected to.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Interface.
 * `update` - (Defaults to 30 minutes) Used when updating the Network Interface.

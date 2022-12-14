@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -205,6 +205,8 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if policyRuleStr := flattenJSON(props.PolicyRule); policyRuleStr != "" {
 			d.Set("policy_rule", policyRuleStr)
+			roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
+			d.Set("role_definition_ids", roleIDs)
 		}
 
 		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
@@ -345,6 +347,14 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
+
+		"role_definition_ids": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"metadata": metadataSchema(),

@@ -80,12 +80,11 @@ An `event_handler` block supports the following:
   comes in. Example: `http://example.com/api/{hub}/{event}`.
 
 * `user_event_pattern` - (Optional) Specify the matching event names. There are 3 kind of patterns supported:
-    - `*` matches any event name
-    - `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
-    - The single event name, for example `event1`, it matches `event1`.
+  * `*` matches any event name
+  * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
+  * The single event name, for example `event1`, it matches `event1`.
 
-* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected`
-  and `disconnected`.
+* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
 
 * `auth` - (Optional) An `auth` block as defined below.
 
@@ -107,7 +106,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Resource.
 * `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Resource.

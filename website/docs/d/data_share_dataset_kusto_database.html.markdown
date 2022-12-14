@@ -37,11 +37,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The resource ID of the Data Share Kusto Database Dataset.
 
-* `kusto_database_id` - The resource ID of the Kusto Cluster Database to be shared with the receiver. 
+* `kusto_database_id` - The resource ID of the Kusto Cluster Database to be shared with the receiver.
 
 * `display_name` - The name of the Data Share Dataset.
 
@@ -49,6 +49,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Share Kusto Database Dataset.

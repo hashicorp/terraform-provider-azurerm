@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the MySQL Flexible Server exists. Changing this forces a new resource to be created.
 
-* `value` - (Required) Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values.
+* `value` - (Required) Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -63,7 +63,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MySQL Flexible Server Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the MySQL Flexible Server Configuration.

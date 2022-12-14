@@ -92,5 +92,6 @@ func (c AdminKeysClient) responderForRegenerate(resp *http.Response) (result Reg
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

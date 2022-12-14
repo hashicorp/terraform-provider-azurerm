@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Connection is created. Changing this forces a new resource to be created.
 
-* `automation_certificate_name` - (Required) The name of the automation certificate. 
+* `automation_certificate_name` - (Required) The name of the automation certificate.
 
 * `subscription_id` - (Required) The id of subscription where the automation certificate exists.
 
@@ -71,7 +71,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Connection.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Connection.

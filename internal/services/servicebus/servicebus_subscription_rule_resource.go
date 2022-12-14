@@ -79,6 +79,12 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.SqlFilter,
 		},
 
+		// Reserved for future use, currently hard-coded to 20
+		"sql_filter_compatibility_level": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
 		"correlation_filter": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
@@ -284,6 +290,9 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 
 			if props.SqlFilter != nil {
 				d.Set("sql_filter", props.SqlFilter.SqlExpression)
+				if props.SqlFilter.CompatibilityLevel != nil {
+					d.Set("sql_filter_compatibility_level", props.SqlFilter.CompatibilityLevel)
+				}
 			}
 
 			if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(props.CorrelationFilter)); err != nil {
@@ -321,6 +330,9 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
 
+	if configs[0] == nil {
+		return nil, fmt.Errorf("at least one property must not be empty in the `correlation_filter` block")
+	}
 	config := configs[0].(map[string]interface{})
 
 	contentType := config["content_type"].(string)

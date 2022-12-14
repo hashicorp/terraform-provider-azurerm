@@ -118,17 +118,17 @@ The following arguments are supported:
 
 * `customer_managed_key_name` - (Required) Specifies the name of the workspace key. Should match the name of the key in the synapse workspace.
 
-* `customer_managed_key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption 
+* `customer_managed_key_versionless_id` - (Optional) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the encryption key should be configured. 
+* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the encryption key should be configured.
 
-* `active` - (Required) Specifies if the workspace should be encrypted with this key. 
+* `active` - (Required) Specifies if the workspace should be encrypted with this key.
 
 -> **Note:** Only one key can actively encrypt a workspace. When performing a key rotation, setting a new key as the active key will disable existing keys.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Workspace.

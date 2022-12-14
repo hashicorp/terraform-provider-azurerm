@@ -110,7 +110,7 @@ A `rule` block supports the following:
 
 * `description` - (Optional) Specifies a description for the rule.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+* `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
 
 * `source_ip_groups` - (Optional) A list of IP Group IDs for the rule.
 
@@ -132,9 +132,7 @@ A `rule` block supports the following:
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Network Rule Collection.
 * `update` - (Defaults to 30 minutes) Used when updating the Firewall Network Rule Collection.

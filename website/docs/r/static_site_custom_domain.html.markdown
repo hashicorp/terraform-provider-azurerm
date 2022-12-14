@@ -12,7 +12,7 @@ Manages a Static Site Custom Domain.
 
 !> DNS validation polling is only done for CNAME records, terraform will not validate TXT validation records are complete.
 
-## Example Usage 
+## Example Usage
 
 ### CNAME validation
 
@@ -82,11 +82,11 @@ The following arguments are supported:
 
 * `static_site_id` - (Required) The ID of the Static Site. Changing this forces a new Static Site Custom Domain to be created.
 
-* `validation_type` - (Required) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
+* `validation_type` - (Optional) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Static Site Custom Domain.
 
@@ -94,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Site Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Site Custom Domain.

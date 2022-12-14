@@ -83,50 +83,6 @@ func (c QueryKeysClient) ListBySearchService(ctx context.Context, id SearchServi
 	return
 }
 
-// ListBySearchServiceComplete retrieves all of the results into a single object
-func (c QueryKeysClient) ListBySearchServiceComplete(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions) (ListBySearchServiceCompleteResult, error) {
-	return c.ListBySearchServiceCompleteMatchingPredicate(ctx, id, options, QueryKeyOperationPredicate{})
-}
-
-// ListBySearchServiceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c QueryKeysClient) ListBySearchServiceCompleteMatchingPredicate(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions, predicate QueryKeyOperationPredicate) (resp ListBySearchServiceCompleteResult, err error) {
-	items := make([]QueryKey, 0)
-
-	page, err := c.ListBySearchService(ctx, id, options)
-	if err != nil {
-		err = fmt.Errorf("loading the initial page: %+v", err)
-		return
-	}
-	if page.Model != nil {
-		for _, v := range *page.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
-		}
-	}
-
-	for page.HasMore() {
-		page, err = page.LoadMore(ctx)
-		if err != nil {
-			err = fmt.Errorf("loading the next page: %+v", err)
-			return
-		}
-
-		if page.Model != nil {
-			for _, v := range *page.Model {
-				if predicate.Matches(v) {
-					items = append(items, v)
-				}
-			}
-		}
-	}
-
-	out := ListBySearchServiceCompleteResult{
-		Items: items,
-	}
-	return out, nil
-}
-
 // preparerForListBySearchService prepares the ListBySearchService request.
 func (c QueryKeysClient) preparerForListBySearchService(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
@@ -212,4 +168,48 @@ func (c QueryKeysClient) responderForListBySearchService(resp *http.Response) (r
 		}
 	}
 	return
+}
+
+// ListBySearchServiceComplete retrieves all of the results into a single object
+func (c QueryKeysClient) ListBySearchServiceComplete(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions) (ListBySearchServiceCompleteResult, error) {
+	return c.ListBySearchServiceCompleteMatchingPredicate(ctx, id, options, QueryKeyOperationPredicate{})
+}
+
+// ListBySearchServiceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c QueryKeysClient) ListBySearchServiceCompleteMatchingPredicate(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions, predicate QueryKeyOperationPredicate) (resp ListBySearchServiceCompleteResult, err error) {
+	items := make([]QueryKey, 0)
+
+	page, err := c.ListBySearchService(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading the initial page: %+v", err)
+		return
+	}
+	if page.Model != nil {
+		for _, v := range *page.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	for page.HasMore() {
+		page, err = page.LoadMore(ctx)
+		if err != nil {
+			err = fmt.Errorf("loading the next page: %+v", err)
+			return
+		}
+
+		if page.Model != nil {
+			for _, v := range *page.Model {
+				if predicate.Matches(v) {
+					items = append(items, v)
+				}
+			}
+		}
+	}
+
+	out := ListBySearchServiceCompleteResult{
+		Items: items,
+	}
+	return out, nil
 }

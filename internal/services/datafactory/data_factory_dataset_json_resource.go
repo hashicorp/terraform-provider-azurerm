@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -114,9 +114,8 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"path": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -124,9 +123,8 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"filename": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,

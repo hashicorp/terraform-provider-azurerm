@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,6 +38,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	BuiltinLogging            bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode            string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths  string                                 `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings         []helpers.ConnectionString             `tfschema:"connection_string"`
 	DailyMemoryTimeQuota      int                                    `tfschema:"daily_memory_time_quota"`
 	Enabled                   bool                                   `tfschema:"enabled"`
@@ -47,6 +48,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings               `tfschema:"sticky_settings"`
 	Tags                      map[string]string                      `tfschema:"tags"`
+	VirtualNetworkSubnetId    string                                 `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -138,6 +140,12 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"daily_memory_time_quota": {
@@ -216,6 +224,11 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"tags": tags.SchemaDataSource(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -252,11 +265,23 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.Location = location.NormalizeNilable(existing.Location)
 			functionApp.Enabled = utils.NormaliseNilableBool(existing.Enabled)
 			functionApp.ClientCertMode = string(existing.ClientCertMode)
+			functionApp.ClientCertExclusionPaths = utils.NormalizeNilableString(existing.ClientCertExclusionPaths)
 			functionApp.DailyMemoryTimeQuota = int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota))
 			functionApp.Tags = tags.ToTypedObject(existing.Tags)
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
+			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
+
+			if v := props.OutboundIPAddresses; v != nil {
+				functionApp.OutboundIPAddresses = *v
+				functionApp.OutboundIPAddressList = strings.Split(*v, ",")
+			}
+
+			if v := props.PossibleOutboundIPAddresses; v != nil {
+				functionApp.PossibleOutboundIPAddresses = *v
+				functionApp.PossibleOutboundIPAddressList = strings.Split(*v, ",")
+			}
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {

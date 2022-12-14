@@ -86,16 +86,15 @@ The following arguments are supported:
 
 * `time_to_live_min` - (Optional) Time to live (in minutes) setting of the cluster which will execute data flow job. Defaults to `0`.
 
-
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Synapse Azure Integration Runtime.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Azure Integration Runtime.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Azure Integration Runtime.
@@ -107,5 +106,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Synapse Azure Integration Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_synapse_integration_runtime_azure.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/integrationruntimes/IntegrationRuntime1
+terraform import azurerm_synapse_integration_runtime_azure.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/integrationRuntimes/IntegrationRuntime1
 ```

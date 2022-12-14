@@ -42,7 +42,8 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			// TODO: Change this back to 5min, once https://github.com/hashicorp/terraform-provider-azurerm/issues/11059 is addressed.
+			Read:   pluginsdk.DefaultTimeout(30 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
@@ -69,8 +70,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					// TODO: add `oct` back in once this is fixed
-					// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 					string(keyvault.EC),
 					string(keyvault.ECHSM),
 					string(keyvault.RSA),
@@ -298,7 +297,14 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	d.SetId(*read.Key.Kid)
+	if read.Key == nil || read.Key.Kid == nil {
+		return fmt.Errorf("cannot read KeyVault Key '%s' (in key vault '%s')", name, *keyVaultBaseUri)
+	}
+	keyId, err := parse.ParseNestedItemID(*read.Key.Kid)
+	if err != nil {
+		return err
+	}
+	d.SetId(keyId.ID())
 
 	return resourceKeyVaultKeyRead(d, meta)
 }
@@ -537,7 +543,8 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
 	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
-		return fmt.Errorf("cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		shouldPurge = false
 	}
 
 	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)

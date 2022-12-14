@@ -8,7 +8,6 @@ type FrontDoorPredicate struct {
 }
 
 func (p FrontDoorPredicate) Matches(input FrontDoor) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
@@ -35,7 +34,6 @@ type FrontendEndpointPredicate struct {
 }
 
 func (p FrontendEndpointPredicate) Matches(input FrontendEndpoint) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
@@ -58,7 +56,6 @@ type RulesEnginePredicate struct {
 }
 
 func (p RulesEnginePredicate) Matches(input RulesEngine) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}

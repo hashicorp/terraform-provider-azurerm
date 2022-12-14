@@ -8,6 +8,8 @@ description: |-
 
 # azurerm_spring_cloud_gateway
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 Manages a Spring Cloud Gateway.
 
 ## Example Usage
@@ -72,7 +74,7 @@ resource "azurerm_spring_cloud_gateway" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway to be created.
+* `name` - (Required) The name which should be used for this Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway to be created. The only possible value is `default`.
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Gateway to be created.
 
@@ -114,7 +116,7 @@ A `cors` block supports the following:
 
 * `allowed_headers` - (Optional) Allowed headers in cross-site requests. The special value `*` allows actual requests to send any header.
 
-* `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default.
+* `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
 
 * `allowed_origins` - (Optional) Allowed origins to make cross-site requests. The special value `*` allows all domains.
 
@@ -148,7 +150,7 @@ A `sso` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Gateway.
 
@@ -156,7 +158,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Gateway.
@@ -168,5 +170,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Gateways can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_gateway.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/gateways/gateway1
+terraform import azurerm_spring_cloud_gateway.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1
 ```

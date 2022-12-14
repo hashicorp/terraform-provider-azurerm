@@ -88,9 +88,9 @@ The following arguments are supported:
 
 * `managed_instance_name` - (Required) The name of the SQL Managed Instance which will be replicated using a SQL Instance Failover Group. Changing this forces a new SQL Instance Failover Group to be created.
 
-* `location` - The Azure Region where the SQL Instance Failover Group exists.
+* `location` - The Azure Region where the SQL Instance Failover Group exists. Changing this forces a new resource to be created.
 
-* `partner_managed_instance_id` - (Required) ID of the SQL Managed Instance which will be replicated to.
+* `partner_managed_instance_id` - (Required) ID of the SQL Managed Instance which will be replicated to. Changing this forces a new resource to be created.
 
 * `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as defined below.
 
@@ -108,7 +108,7 @@ A `read_write_endpoint_failover_policy` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SQL Instance Failover Group.
 
@@ -126,7 +126,7 @@ A `partner_region` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Instance Failover Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Instance Failover Group.

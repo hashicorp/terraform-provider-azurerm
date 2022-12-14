@@ -78,13 +78,13 @@ The following arguments are supported:
 
 An `identity` block exports the following:
 
-* `type` - The type of Managed Service Identity that is configured on this Workbook.
+* `type` - The type of Managed Service Identity that is configured on this Workbook. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`. Changing this forces a new resource to be created.
 
 * `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Workbook.
 
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Workbook.
 
-* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Workbook.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Workbook. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -94,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Workbook.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Workbook.

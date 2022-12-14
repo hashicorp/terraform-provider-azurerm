@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `app_id` - (Required) The ID of the Windows or Linux Web App. Changing this forces a new resource to be created.
 
-~> **NOTE:** Function apps are not supported at this time. 
+~> **NOTE:** Function apps are not supported at this time.
 
 * `branch` - (Optional) The branch name to use for deployments. Changing this forces a new resource to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `rollback_enabled` - (Optional) Should the Deployment Rollback be enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **NOTE:** Azure can typically set this value automatically based on the `repo_url` value. 
+~> **NOTE:** Azure can typically set this value automatically based on the `repo_url` value.
 
 * `use_local_git` - (Optional) Should the App use local Git configuration. Changing this forces a new resource to be created.
 
@@ -102,7 +102,7 @@ A `github_action_configuration` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the App Service Source Control.
 
@@ -112,7 +112,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control.

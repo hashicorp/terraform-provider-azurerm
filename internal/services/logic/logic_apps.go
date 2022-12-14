@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
+	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -102,10 +102,11 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	properties := logic.Workflow{
 		Location: read.Location,
 		WorkflowProperties: &logic.WorkflowProperties{
-			Definition:         definition,
-			Parameters:         read.WorkflowProperties.Parameters,
-			AccessControl:      read.WorkflowProperties.AccessControl,
-			IntegrationAccount: read.WorkflowProperties.IntegrationAccount,
+			Definition:                    definition,
+			Parameters:                    read.WorkflowProperties.Parameters,
+			AccessControl:                 read.WorkflowProperties.AccessControl,
+			IntegrationAccount:            read.WorkflowProperties.IntegrationAccount,
+			IntegrationServiceEnvironment: read.IntegrationServiceEnvironment,
 		},
 		Identity: read.Identity,
 		Tags:     read.Tags,
@@ -166,8 +167,11 @@ func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}
 	properties := logic.Workflow{
 		Location: read.Location,
 		WorkflowProperties: &logic.WorkflowProperties{
-			Definition: definition,
-			Parameters: read.WorkflowProperties.Parameters,
+			Definition:                    definition,
+			Parameters:                    read.WorkflowProperties.Parameters,
+			AccessControl:                 read.WorkflowProperties.AccessControl,
+			IntegrationAccount:            read.WorkflowProperties.IntegrationAccount,
+			IntegrationServiceEnvironment: read.IntegrationServiceEnvironment,
 		},
 		Tags: read.Tags,
 	}

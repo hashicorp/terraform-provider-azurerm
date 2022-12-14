@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,6 +39,7 @@ type WindowsFunctionAppSlotModel struct {
 	BuiltinLogging                bool                                       `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled             bool                                       `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                                     `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings             []helpers.ConnectionString                 `tfschema:"connection_string"`
 	DailyMemoryTimeQuota          int                                        `tfschema:"daily_memory_time_quota"`
 	Enabled                       bool                                       `tfschema:"enabled"`
@@ -55,6 +57,8 @@ type WindowsFunctionAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential                   `tfschema:"site_credential"`
+	StorageAccounts               []helpers.StorageAccount                   `tfschema:"storage_account"`
+	VirtualNetworkSubnetID        string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -173,6 +177,12 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Description: "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"daily_memory_time_quota": {
@@ -223,7 +233,15 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
 
+		"storage_account": helpers.StorageAccountSchemaWindows(),
+
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
 	}
 }
 
@@ -324,21 +342,14 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
-			sendContentSettings := !functionAppSlot.ForceDisableContentShare
-			if planSku := servicePlan.Sku; planSku != nil && planSku.Tier != nil {
-				switch tier := *planSku.Tier; strings.ToLower(tier) {
-				case "dynamic":
-				case "elastic":
-				case "basic":
-					sendContentSettings = false
-				case "standard":
-					sendContentSettings = false
-				case "premiumv2", "premiumv3":
-					sendContentSettings = false
-				}
+			var planSKU *string
+			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+				planSKU = sku.Name
 			} else {
-				return fmt.Errorf("determining plan type for Windows %s: %v", id, err)
+				return fmt.Errorf("could not determine Service Plan SKU type")
 			}
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -414,12 +425,18 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				if functionAppSlot.AppSettings == nil {
 					functionAppSlot.AppSettings = make(map[string]string)
 				}
-				suffix := uuid.New().String()[0:4]
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
-				}
-				if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
-					functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if !functionAppSlot.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionAppSlot.Name), suffix)
+					}
+					if _, present := functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+						functionAppSlot.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						functionAppSlot.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
 				}
 			}
 
@@ -447,8 +464,16 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if functionAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionAppSlot.VirtualNetworkSubnetID)
+			}
+
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionAppSlot.KeyVaultReferenceIdentityID)
+			}
+
+			if functionAppSlot.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(functionAppSlot.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -482,6 +507,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
+					}
+				}
+			}
+
 			connectionStrings := helpers.ExpandConnectionStrings(functionAppSlot.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStrings, id.SlotName); err != nil {
@@ -511,18 +545,18 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			functionAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			functionApp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
-				if utils.ResponseWasNotFound(functionAppSlot.Response) {
+				if utils.ResponseWasNotFound(functionApp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if functionAppSlot.SiteProperties == nil {
+			if functionApp.SiteProperties == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
-			props := *functionAppSlot.SiteProperties
+			props := *functionApp.SiteProperties
 
 			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
@@ -532,6 +566,11 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			connectionStrings, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
+			}
+
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -567,11 +606,12 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state := WindowsFunctionAppSlotModel{
 				Name:                        id.SlotName,
 				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:                     utils.NormaliseNilableBool(functionAppSlot.Enabled),
-				ClientCertMode:              string(functionAppSlot.ClientCertMode),
+				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:              string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
-				Kind:                        utils.NormalizeNilableString(functionAppSlot.Kind),
+				Tags:                        tags.ToTypedObject(functionApp.Tags),
+				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
@@ -600,14 +640,20 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 
-			state.HttpsOnly = utils.NormaliseNilableBool(functionAppSlot.HTTPSOnly)
-			state.ClientCertEnabled = utils.NormaliseNilableBool(functionAppSlot.ClientCertEnabled)
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
+
+			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
+			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
+			}
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
 			}
 
-			flattenedIdentity, err := flattenIdentity(functionAppSlot.Identity)
+			flattenedIdentity, err := flattenIdentity(functionApp.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -667,7 +713,9 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			sendContentSettings := !helpers.PlanIsAppPlan(planSKU)
+
+			// Only send for Dynamic and ElasticPremium
+			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("enabled") {
@@ -686,6 +734,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
+			}
+
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
@@ -702,6 +754,26 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
+					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
+					existing.SiteProperties.VirtualNetworkSubnetID = empty
+				} else {
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
+				}
+			}
+
 			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {
@@ -712,7 +784,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 				if err != nil {
 					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 				}
@@ -872,6 +944,9 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
+
+		case "WEBSITE_VNET_ROUTE_ALL":
+			// Filter out - handled by site_config setting `vnet_route_all_enabled`
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)

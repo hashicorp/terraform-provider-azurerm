@@ -8,10 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -71,9 +72,9 @@ func resourceKeyVault() *pluginsdk.Resource {
 				ValidateFunc: validate.VaultName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -185,6 +186,12 @@ func resourceKeyVault() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"purge_protection_enabled": {
@@ -315,6 +322,12 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnableSoftDelete: utils.Bool(true),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if d.Get("public_network_access_enabled").(bool) {
+		parameters.Properties.PublicNetworkAccess = utils.String("Enabled")
+	} else {
+		parameters.Properties.PublicNetworkAccess = utils.String("Disabled")
 	}
 
 	if purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool); purgeProtectionEnabled {
@@ -523,6 +536,18 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		if update.Properties == nil {
+			update.Properties = &keyvault.VaultPatchProperties{}
+		}
+
+		if d.Get("public_network_access_enabled").(bool) {
+			update.Properties.PublicNetworkAccess = utils.String("Enabled")
+		} else {
+			update.Properties.PublicNetworkAccess = utils.String("Disabled")
+		}
+	}
+
 	if d.HasChange("sku_name") {
 		if update.Properties == nil {
 			update.Properties = &keyvault.VaultPatchProperties{}
@@ -638,6 +663,9 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 	d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 	d.Set("purge_protection_enabled", props.EnablePurgeProtection)
+	if v := props.PublicNetworkAccess; v != nil {
+		d.Set("public_network_access_enabled", *v == "Enabled")
+	}
 	d.Set("vault_uri", props.VaultURI)
 
 	// @tombuildsstuff: the API doesn't return this field if it's not configured

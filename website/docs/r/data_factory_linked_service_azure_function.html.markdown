@@ -61,7 +61,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to Azure Function Linked Service:
 
-* `url` - (Required) The url of the Azure Function. 
+* `url` - (Required) The url of the Azure Function.
 
 * `key` - (Optional) The system key of the Azure Function. Exactly one of either `key` or `key_vault_key` is required
 
@@ -85,7 +85,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Linked Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Linked Service.

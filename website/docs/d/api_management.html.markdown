@@ -69,6 +69,8 @@ output "api_management_id" {
 
 * `sku` - A `sku` block as documented below.
 
+* `tenant_access` - A `tenant_access` block as defined below.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ---
@@ -167,7 +169,6 @@ A `scm` block exports the following:
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 
-
 ---
 
 A `sku` block exports the following:
@@ -178,9 +179,20 @@ A `sku` block exports the following:
 
 ---
 
+A `tenant_access` block exports the following:
+
+* `enabled` - Is access to the Management API enabled (presumably "for this Tenant")?
+
+* `tenant_id` - The ID of the Tenant which has access to this API Management instance.
+
+* `primary_key` - Primary access key for the tenant access information contract.
+
+* `secondary_key` - Secondary access key for the tenant access information contract.
+
+---
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.

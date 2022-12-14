@@ -36,11 +36,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Notification Hub Namespace should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region in which this Notification Hub Namespace should be created.
+* `location` - (Required) The Azure Region in which this Notification Hub Namespace should be created. Changing this forces a new resource to be created.
 
-* `namespace_type` - (Required) The Type of Namespace - possible values are `Messaging` or `NotificationHub`. Changing this forces a new resource to be created.
+* `namespace_type` - (Required) The Type of Namespace - possible values are `Messaging` or `NotificationHub`. 
 
-* `sku_name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. 
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
 
@@ -56,7 +56,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Notification Hub Namespace.
 * `update` - (Defaults to 30 minutes) Used when updating the Notification Hub Namespace.

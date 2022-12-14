@@ -1,3 +1,4 @@
+---
 name: 'Lock Threads'
 
 on:
@@ -6,6 +7,9 @@ on:
 
 jobs:
   lock:
+    permissions:
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: dessant/lock-threads@v2

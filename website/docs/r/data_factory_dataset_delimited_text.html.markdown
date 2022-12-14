@@ -98,7 +98,7 @@ The following supported arguments are specific to Delimited Text Dataset:
 
 * `null_value` - (Optional) The null value string. Defaults to an empty string.
 
-* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case sensitive.
+* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `None`, `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy` and `lz4`. Please note these values are case sensitive.
 
 * `compression_level` - (Optional) The compression ratio for the Data Factory Dataset. Valid values are `Fastest` or `Optimal`. Please note these values are case sensitive.
 
@@ -118,9 +118,9 @@ An `azure_blob_fs_location` block supports the following:
 
 * `file_system` - (Required) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
 
-* `path` - (Required) The folder path to the file.
+* `path` - (Optional) The folder path to the file.
 
-* `filename` - (Required) The filename of the file.
+* `filename` - (Optional) The filename of the file.
 
 ---
 
@@ -160,7 +160,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Dataset.

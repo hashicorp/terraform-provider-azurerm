@@ -43,7 +43,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "example" {
         port = 443
       }
       source_addresses  = ["10.0.0.1"]
-      destination_fqdns = [".microsoft.com"]
+      destination_fqdns = ["*.microsoft.com"]
     }
   }
 
@@ -69,7 +69,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "example" {
       protocols           = ["TCP", "UDP"]
       source_addresses    = ["10.0.0.1", "10.0.0.2"]
       destination_address = "192.168.1.1"
-      destination_ports   = ["80", "1000-2000"]
+      destination_ports   = ["80"]
       translated_address  = "192.168.0.1"
       translated_port     = "8080"
     }
@@ -157,7 +157,6 @@ A `rule` (application rule) block supports the following:
 
 * `web_categories` - (Optional) Specifies a list of web categories to which access is denied or allowed depending on the value of `action` above. Needs Premium SKU for Firewall Policy.
 
-
 ---
 
 A `rule` (network rule) block supports the following:
@@ -192,10 +191,10 @@ A `rule` (NAT rule) block supports the following:
 
 * `destination_address` - (Optional) The destination IP address (including CIDR).
 
-* `destination_ports` - (Optional) Specifies a list of destination ports.
+* `destination_ports` - (Optional) Specifies a list of destination ports. Only one destination port is supported in a NAT rule.
 
 * `translated_address` - (Optional) Specifies the translated address.
- 
+
 * `translated_fqdn` - (Optional) Specifies the translated FQDN.
 
 ~> **NOTE:** Exactly one of `translated_address` and `translated_fqdn` should be set.
@@ -212,13 +211,13 @@ A `protocols` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Firewall Policy Rule Collection Group.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Policy Rule Collection Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Policy Rule Collection Group.

@@ -50,7 +50,7 @@ func (c ServerSecurityAlertPoliciesClient) preparerForGet(ctx context.Context, i
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/securityAlertPolicies/Default", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/securityAlertPolicies/default", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -64,5 +64,6 @@ func (c ServerSecurityAlertPoliciesClient) responderForGet(resp *http.Response) 
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+
 	return
 }

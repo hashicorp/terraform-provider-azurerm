@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Gateway Route Config.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 ## Example Usage
 
 ```hcl
@@ -44,6 +46,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "example" {
   name                    = "example"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.example.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.example.id
+  protocol                = "HTTPS"
   route {
     description            = "example description"
     filters                = ["StripPrefix=2", "RateLimit=1,1s"]
@@ -66,9 +69,21 @@ The following arguments are supported:
 
 * `spring_cloud_gateway_id` - (Required) The ID of the Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway Route Config to be created.
 
+* `filters` - (Optional) Specifies a list of filters which are used to modify the request before sending it to the target endpoint, or the received response in app level.
+
+* `predicates` - (Optional) Specifies a list of conditions to evaluate a route for each request in app level. Each predicate may be evaluated against request headers and parameter values. All of the predicates associated with a route must evaluate to true for the route to be matched to the request.
+
+* `sso_validation_enabled` - (Optional) Should the sso validation be enabled in app level?
+
 ---
 
 * `route` - (Optional) One or more `route` blocks as defined below.
+
+* `open_api` - (Optional) One or more `open_api` blocks as defined below.
+
+* `protocol` - (Optional) Specifies the protocol of routed Spring Cloud App. Allowed values are `HTTP` and `HTTPS`. Defaults to `HTTP`. 
+
+~> **Note:** You likely want to use `HTTPS` in a production environment, since `HTTP` offers no encryption.
 
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 
@@ -76,11 +91,11 @@ The following arguments are supported:
 
 A `route` block supports the following:
 
+* `order` - (Required) Specifies the route processing order.
+
 * `description` - (Optional) Specifies the description which will be applied to methods in the generated OpenAPI documentation.
 
 * `filters` - (Optional) Specifies a list of filters which are used to modify the request before sending it to the target endpoint, or the received response.
-
-* `order` - (Optional) Specifies the route processing order.
 
 * `predicates` - (Optional) Specifies a list of conditions to evaluate a route for each request. Each predicate may be evaluated against request headers and parameter values. All of the predicates associated with a route must evaluate to true for the route to be matched to the request.
 
@@ -94,15 +109,21 @@ A `route` block supports the following:
 
 * `uri` - (Optional) Specifies the full uri which will override `appName`.
 
+---
+
+A `open_api` block supports the following:
+
+* `uri` - (Optional) The URI of OpenAPI specification.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Gateway Route Config.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Gateway Route Config.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Gateway Route Config.
@@ -114,5 +135,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Gateway Route Configs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_gateway_route_config.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/gateways/gateway1/routeConfigs/routeConfig1
+terraform import azurerm_spring_cloud_gateway_route_config.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1/routeConfigs/routeConfig1
 ```

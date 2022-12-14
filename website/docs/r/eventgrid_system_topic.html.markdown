@@ -71,14 +71,13 @@ A `identity` block supports the following:
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid System Topic has been created. More details are available below.
 
-
 ---
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Event Grid System Topic.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Event Grid System Topic.
 
@@ -98,7 +97,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Event Grid System Topic.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid System Topic.

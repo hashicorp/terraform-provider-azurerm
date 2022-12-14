@@ -59,6 +59,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
     operator  = "GreaterThan"
     threshold = 3
   }
+  tags = {
+    foo = "bar"
+  }
 }
 
 # Example: Alerting Action Cross-Resource
@@ -92,6 +95,9 @@ QUERY
     operator  = "GreaterThan"
     threshold = 3
   }
+  tags = {
+    foo = "bar"
+  }
 }
 ```
 
@@ -100,7 +106,8 @@ QUERY
 The following arguments are supported:
 
 * `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
 * `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated.  Values must be between 5 and 1440 (inclusive).
 * `query` - (Required) Log search query.
@@ -114,10 +121,11 @@ The following arguments are supported:
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
 * `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (inclusive).
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-`action` supports the following:
+The `action` block supports the following:
 
 * `action_group` - (Required) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
@@ -125,7 +133,7 @@ The following arguments are supported:
 
 ---
 
-`metric_trigger` supports the following:
+The `metric_trigger` block supports the following:
 
 * `metric_column` - (Required) Evaluation of metric on a particular column.
 * `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
@@ -134,7 +142,7 @@ The following arguments are supported:
 
 ---
 
-`trigger` supports the following:
+The `trigger` block supports the following:
 
 * `metric_trigger` - (Optional) A `metric_trigger` block as defined above. Trigger condition for metric query rule.
 * `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.
@@ -148,7 +156,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Scheduled Query Rule Alert.
 * `update` - (Defaults to 30 minutes) Used when updating the Scheduled Query Rule Alert.
@@ -160,5 +168,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Scheduled Query Rule Alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledqueryrules/myrulename
+terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
 ```

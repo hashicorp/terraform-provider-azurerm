@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -113,6 +114,21 @@ func TestAccStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputServiceBusTopic_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+	r := StreamAnalyticsOutputServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.json(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
+	})
+}
+
 func TestAccStreamAnalyticsOutputServiceBusTopic_systemPropertyColumns(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
 	r := StreamAnalyticsOutputServiceBusTopicResource{}
@@ -150,14 +166,14 @@ func TestAccStreamAnalyticsOutputServiceBusTopic_systemPropertyColumns(t *testin
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.OutputID(state.ID)
+	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)

@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 type SharedImageVersionResource struct{}
@@ -96,6 +97,21 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImageVersion_blobURI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.imageVersionBlobURI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -259,15 +275,13 @@ func (r SharedImageVersionResource) Exists(ctx context.Context, clients *clients
 }
 
 func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	subscriptionId := client.Account.SubscriptionId
 	snapShotName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 
-	future, err := client.Compute.SnapshotsClient.RevokeAccess(ctx, resourceGroup, snapShotName)
-	if err != nil {
-		return fmt.Errorf("bad: cannot revoke SAS on the snapshot: %+v", err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Compute.SnapshotsClient.Client); err != nil {
-		return fmt.Errorf("bad: waiting the revoke of SAS on the snapshot: %+v", err)
+	snapshotId := snapshots.NewSnapshotID(subscriptionId, resourceGroup, snapShotName)
+	if err := client.Compute.SnapshotsClient.RevokeAccessThenPoll(ctx, snapshotId); err != nil {
+		return fmt.Errorf("revoking SAS on %s: %+v", snapshotId, err)
 	}
 
 	return nil
@@ -328,6 +342,49 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 `, template)
+}
+
+func (r SharedImageVersionResource) imageVersionBlobURI(data acceptance.TestData) string {
+	template := r.setup(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%[2]d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+
+  identifier {
+    publisher = "AccTesPublisher%[2]d"
+    offer     = "AccTesOffer%[2]d"
+    sku       = "AccTesSku%[2]d"
+  }
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  blob_uri           = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+  storage_account_id = azurerm_storage_account.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {

@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -867,6 +868,7 @@ type ApplicationStackWindows struct {
 }
 
 // Version information for the below validations was taken in part from - https://github.com/Azure/app-service-linux-docs/tree/master/Runtime_Support
+// There is no 3.0 version of .netFramework, setting the property to this value causing app to be broke.
 func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -878,12 +880,26 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"v3.0",
-						"v4.0",
-						"v5.0",
-						"v6.0",
-					}, false),
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						if !features.FourPointOh() {
+							return validation.StringInSlice([]string{
+								"v2.0",
+								"v3.0",
+								"core3.1",
+								"v4.0",
+								"v5.0",
+								"v6.0",
+								"v7.0"}, false)
+						}
+						return validation.StringInSlice([]string{
+							"v2.0",
+							"core3.1",
+							"v4.0",
+							"v5.0",
+							"v6.0",
+							"v7.0",
+						}, false)
+					}(),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
@@ -953,6 +969,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.8",
 						"11",
+						"17",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
@@ -1128,6 +1145,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.1",
 						"5.0",
 						"6.0",
+						"7.0",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -1153,6 +1171,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 						"8.0",
+						"8.1",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -1179,6 +1198,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.7",
 						"3.8",
 						"3.9",
+						"3.10",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -2866,16 +2886,20 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded = existing
 	}
 
-	currentStack := ""
-
 	winSiteConfig := siteConfig[0]
+
+	currentStack := ""
+	if len(winSiteConfig.ApplicationStack) == 1 {
+		winAppStack := winSiteConfig.ApplicationStack[0]
+		currentStack = winAppStack.CurrentStack
+	}
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if winSiteConfig.AlwaysOn == true {
+			if winSiteConfig.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}
@@ -2902,6 +2926,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		if len(winSiteConfig.ApplicationStack) == 1 {
 			winAppStack := winSiteConfig.ApplicationStack[0]
 			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
+			if winAppStack.CurrentStack == "dotnetcore" {
+				expanded.NetFrameworkVersion = nil
+			}
 			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
 			expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
 			expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
@@ -3035,10 +3062,10 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if linuxSiteConfig.AlwaysOn == true {
+			if linuxSiteConfig.AlwaysOn {
 				return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
 				return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}
@@ -3612,11 +3639,12 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		if len(parts) == 2 {
 			winAppStack.DockerContainerTag = parts[1]
 			path := strings.Split(parts[0], "/")
-			if len(path) > 2 {
+			if len(path) > 1 {
 				winAppStack.DockerContainerRegistry = path[0]
 				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+			} else {
+				winAppStack.DockerContainerName = path[0]
 			}
-			winAppStack.DockerContainerName = path[0]
 		}
 	}
 	winAppStack.CurrentStack = currentStack
@@ -3632,8 +3660,8 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigWindows{siteConfig}
@@ -3702,8 +3730,8 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigLinux{siteConfig}
@@ -3793,6 +3821,9 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
 		"WEBSITE_VNET_ROUTE_ALL",
+		"spring.datasource.password",
+		"spring.datasource.url",
+		"spring.datasource.username",
 		maxPingFailures,
 	}
 

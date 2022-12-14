@@ -76,6 +76,9 @@ resource "azurerm_monitor_scheduled_query_rules_log" "example" {
   data_source_id = azurerm_log_analytics_workspace.example.id
   description    = "Scheduled query rule LogToMetric example"
   enabled        = true
+  tags = {
+    foo = "bar"
+  }
 }
 ```
 
@@ -83,25 +86,27 @@ resource "azurerm_monitor_scheduled_query_rules_log" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance.
+* `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created. 
+* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `criteria` - (Required) A `criteria` block as defined below.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
 * `description` - (Optional) The description of the scheduled query rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-`criteria` supports the following:
+The `criteria` block supports the following:
 
 * `dimension` - (Required) A `dimension` block as defined below.
 * `metric_name` - (Required) Name of the metric.  Supported metrics are listed in the Azure Monitor [Microsoft.OperationalInsights/workspaces](https://docs.microsoft.com/azure/azure-monitor/platform/metrics-supported#microsoftoperationalinsightsworkspaces) metrics namespace.
 
 ---
 
-`dimension` supports the following:
+The `dimension` block supports the following:
 
-* `name` - (Required) Name of the dimension.
+* `name` - (Required) Name of the dimension. Changing this forces a new resource to be created.
 * `operator` - (Required) Operator for dimension values, - 'Include'.
 * `values` - (Required) List of dimension values.
 
@@ -113,7 +118,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Scheduled Query Rule Log.
 * `update` - (Defaults to 30 minutes) Used when updating the Scheduled Query Rule Log.

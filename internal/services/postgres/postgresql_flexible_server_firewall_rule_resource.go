@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -77,6 +78,9 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 
 	id := firewallrules.NewFirewallRuleID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
 
+	locks.ByName(id.ServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.ServerName, postgresqlFlexibleServerResourceName)
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -91,8 +95,8 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 
 	properties := firewallrules.FirewallRule{
 		Properties: firewallrules.FirewallRuleProperties{
-			EndIpAddress:   d.Get("end_ip_address").(string),
-			StartIpAddress: d.Get("start_ip_address").(string),
+			EndIPAddress:   d.Get("end_ip_address").(string),
+			StartIPAddress: d.Get("start_ip_address").(string),
 		},
 	}
 
@@ -128,8 +132,8 @@ func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData,
 	d.Set("server_id", firewallrules.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
 
 	if model := resp.Model; model != nil {
-		d.Set("end_ip_address", model.Properties.EndIpAddress)
-		d.Set("start_ip_address", model.Properties.StartIpAddress)
+		d.Set("end_ip_address", model.Properties.EndIPAddress)
+		d.Set("start_ip_address", model.Properties.StartIPAddress)
 	}
 	return nil
 }
@@ -143,6 +147,9 @@ func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceDat
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.ServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.ServerName, postgresqlFlexibleServerResourceName)
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)

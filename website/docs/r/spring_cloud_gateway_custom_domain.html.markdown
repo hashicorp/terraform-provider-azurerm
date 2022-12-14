@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Gateway Custom Domain.
 
+-> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
 ## Example Usage
 
 ```hcl
@@ -54,13 +56,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Gateway Custom Domain.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Gateway Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Gateway Custom Domain.
@@ -72,5 +74,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Gateway Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_gateway_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/gateways/gateway1/domains/domain1
+terraform import azurerm_spring_cloud_gateway_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1/domains/domain1
 ```

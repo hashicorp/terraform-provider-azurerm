@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
 )
 
 func resourceSpringCloudService() *pluginsdk.Resource {
@@ -29,6 +31,11 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 		Read:   resourceSpringCloudServiceRead,
 		Update: resourceSpringCloudServiceUpdate,
 		Delete: resourceSpringCloudServiceDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -52,9 +59,9 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 
 			// Spring Cloud Service only supports following locations, we are still supporting more locations (Wednesday, November 20, 2019 4:20 PM):
 			// `East US`, `Southeast Asia`, `West Europe`, `West US 2`
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -78,6 +85,11 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 					"S4",
 					"S5",
 				}, false),
+			},
+
+			"log_stream_public_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"network": {
@@ -116,6 +128,12 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
+						},
+
+						"read_timeout_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"service_runtime_network_resource_group": {
@@ -335,6 +353,12 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if enabled := d.Get("log_stream_public_endpoint_enabled").(bool); enabled {
+		resource.Properties.VnetAddons = &appplatform.ServiceVNetAddons{
+			LogStreamPublicEndpoint: utils.Bool(enabled),
+		}
+	}
+
 	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
 	if err != nil {
 		return err
@@ -351,11 +375,18 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	d.SetId(id.ID())
 
-	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
-	if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
-		return err
+	skuName := d.Get("sku_name").(string)
+	if skuName == "E0" && gitProperty != nil {
+		return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 	}
-	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
+
+	if skuName != "E0" {
+		log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
+		if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
+	}
 
 	log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 	monitorSettings := appplatform.MonitoringSettingResource{
@@ -439,12 +470,17 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
-
-		log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
-		if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
-			return err
+		skuName := d.Get("sku_name").(string)
+		if skuName == "E0" && gitProperty != nil {
+			return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 		}
-		log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
+		if skuName != "E0" {
+			log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
+			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
+				return err
+			}
+			log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
+		}
 	}
 
 	if d.HasChange("trace") {
@@ -529,11 +565,6 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 	}
 
-	configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
-	if err != nil {
-		return fmt.Errorf("retrieving config server settings for %s: %+v", id, err)
-	}
-
 	monitoringSettings, err := monitoringSettingsClient.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("retrieving monitoring settings for %s: %+v", id, err)
@@ -574,8 +605,14 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("service_registry_id", "")
 	}
 
-	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
-		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+	if resp.Sku != nil && resp.Sku.Name != nil && *resp.Sku.Name != "E0" {
+		configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
+		if err != nil {
+			return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
+		}
+		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
+			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+		}
 	}
 
 	if err := d.Set("trace", flattenSpringCloudTrace(monitoringSettings.Properties)); err != nil {
@@ -594,6 +631,12 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if err := d.Set("required_network_traffic_rules", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `required_network_traffic_rules`: %+v", err)
+		}
+
+		if vnetAddons := props.VnetAddons; vnetAddons != nil {
+			if err := d.Set("log_stream_public_endpoint_enabled", utils.Bool(*vnetAddons.LogStreamPublicEndpoint)); err != nil {
+				return fmt.Errorf("setting `log_stream_public_endpoint_enabled`: %+v", err)
+			}
 		}
 
 		d.Set("zone_redundant", props.ZoneRedundant)
@@ -667,6 +710,11 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 		ServiceRuntimeSubnetID: utils.String(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            utils.String(v["app_subnet_id"].(string)),
 		ServiceCidr:            utils.String(strings.Join(*cidrRanges, ",")),
+	}
+	if readTimeoutInSeconds := v["read_timeout_seconds"].(int); readTimeoutInSeconds != 0 {
+		network.IngressConfig = &appplatform.IngressConfig{
+			ReadTimeoutInSeconds: utils.Int32(int32(readTimeoutInSeconds)),
+		}
 	}
 	if serviceRuntimeNetworkResourceGroup := v["service_runtime_network_resource_group"].(string); serviceRuntimeNetworkResourceGroup != "" {
 		network.ServiceRuntimeNetworkResourceGroup = utils.String(serviceRuntimeNetworkResourceGroup)
@@ -1035,6 +1083,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 
 	var serviceRuntimeSubnetID, appSubnetID, serviceRuntimeNetworkResourceGroup, appNetworkResourceGroup string
+	var readTimeoutInSeconds int32
 	var cidrRanges []interface{}
 	if input.ServiceRuntimeSubnetID != nil {
 		serviceRuntimeSubnetID = *input.ServiceRuntimeSubnetID
@@ -1053,6 +1102,12 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 		appNetworkResourceGroup = *input.AppNetworkResourceGroup
 	}
 
+	if ingressConfig := input.IngressConfig; ingressConfig != nil {
+		if ingressConfig.ReadTimeoutInSeconds != nil {
+			readTimeoutInSeconds = *ingressConfig.ReadTimeoutInSeconds
+		}
+	}
+
 	if serviceRuntimeSubnetID == "" && appSubnetID == "" && serviceRuntimeNetworkResourceGroup == "" && appNetworkResourceGroup == "" && len(cidrRanges) == 0 {
 		return []interface{}{}
 	}
@@ -1063,6 +1118,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 			"service_runtime_subnet_id":              serviceRuntimeSubnetID,
 			"cidr_ranges":                            cidrRanges,
 			"app_network_resource_group":             appNetworkResourceGroup,
+			"read_timeout_seconds":                   readTimeoutInSeconds,
 			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
 		},
 	}

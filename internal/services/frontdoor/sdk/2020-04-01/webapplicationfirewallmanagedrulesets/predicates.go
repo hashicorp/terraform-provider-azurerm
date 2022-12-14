@@ -8,7 +8,6 @@ type ManagedRuleSetDefinitionPredicate struct {
 }
 
 func (p ManagedRuleSetDefinitionPredicate) Matches(input ManagedRuleSetDefinition) bool {
-
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
