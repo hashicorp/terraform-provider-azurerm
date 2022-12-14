@@ -3,6 +3,8 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot"                   // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice" // nolint: staticcheck
+	"github.com/Azure/go-autorest/autorest"
+	healthbot_2020_12_08 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -10,7 +12,7 @@ type Client struct {
 	BotClient        *botservice.BotsClient
 	ConnectionClient *botservice.BotConnectionClient
 	ChannelClient    *botservice.ChannelsClient
-	HealthbotClient  *healthbot.BotsClient
+	HealthBotClient  *healthbot_2020_12_08.Client
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -26,10 +28,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	healthBotClient := healthbot.NewBotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&healthBotClient.Client, o.ResourceManagerAuthorizer)
 
+	healthBotsClient := healthbot_2020_12_08.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		c.Authorizer = o.ResourceManagerAuthorizer
+	})
+
 	return &Client{
 		BotClient:        &botClient,
 		ChannelClient:    &channelClient,
 		ConnectionClient: &connectionClient,
-		HealthbotClient:  &healthBotClient,
+		HealthBotClient:  &healthBotsClient,
 	}
 }

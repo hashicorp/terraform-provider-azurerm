@@ -83,7 +83,7 @@ The following arguments are supported:
 
 ---
 
-`sku` supports the following:
+The `sku` block supports the following:
 
 * `name` - (Required) Specifies the SKU Name for this Elasticpool. The name of the SKU, will be either `vCore` based `tier` + `family` pattern (e.g. GP_Gen4, BC_Gen5) or the `DTU` based `BasicPool`, `StandardPool`, or `PremiumPool` pattern. Changing this forces a new resource to be created.
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 ---
 
-`per_database_settings` supports the following:
+The `per_database_settings` block supports the following:
 
 * `min_capacity` - (Required) The minimum capacity all databases are guaranteed.
 

@@ -901,16 +901,17 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 		if rule["enabled"].(bool) {
 			enabled = frontdoor.ManagedRuleEnabledStateEnabled
 		}
+
 		ruleId := rule["rule_id"].(string)
 		actionTypeRaw := rule["action"].(string)
 		action := frontdoor.ActionType(actionTypeRaw)
 
-		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring'
+		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring' or 'Log'. Issues 19088 and 19561
 		// This will still work for bot rules as well since it will be the default value of 1.0
 		if version < 2.0 && actionTypeRaw == "AnomalyScoring" {
 			return nil, fmt.Errorf("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above, got %q", versionRaw)
-		} else if version >= 2.0 && actionTypeRaw != "AnomalyScoring" {
-			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' if the managed rule is DRS 2.0 or above, got %q", action)
+		} else if version >= 2.0 && actionTypeRaw != "AnomalyScoring" && actionTypeRaw != "Log" {
+			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above, got %q", action)
 		}
 
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{}))
