@@ -765,7 +765,7 @@ A `http_listener` block exports the following:
 
 * `ssl_certificate_id` - The ID of the associated SSL Certificate.
 
-* `ssl_profile_id` - The ID of the associated SSL Certificate.
+* `ssl_profile_id` - The ID of the associated SSL Profile.
 
 ---
 

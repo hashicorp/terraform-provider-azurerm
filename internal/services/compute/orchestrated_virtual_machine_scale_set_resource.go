@@ -380,10 +380,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
 	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-		sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-		if err != nil {
-			return err
-		}
+		sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 	}
 
@@ -936,10 +933,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				sourceImageId := d.Get("source_image_id").(string)
 
 				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-					sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-					if err != nil {
-						return err
-					}
+					sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 				}
 

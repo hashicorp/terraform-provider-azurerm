@@ -45,7 +45,6 @@ func TestAccServerVulnerabilityAssessment(t *testing.T) {
 			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
 		},
 	})
-
 }
 
 func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
@@ -119,7 +118,7 @@ resource "azurerm_security_center_subscription_pricing" "test" {
 }
 
 func (SecurityCenterSubscriptionPricingResource) storageAccountSubplan() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -129,5 +128,5 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
 }
-`)
+`
 }

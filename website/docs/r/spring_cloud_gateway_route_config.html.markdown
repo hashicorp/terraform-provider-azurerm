@@ -91,11 +91,11 @@ The following arguments are supported:
 
 A `route` block supports the following:
 
+* `order` - (Required) Specifies the route processing order.
+
 * `description` - (Optional) Specifies the description which will be applied to methods in the generated OpenAPI documentation.
 
 * `filters` - (Optional) Specifies a list of filters which are used to modify the request before sending it to the target endpoint, or the received response.
-
-* `order` - (Optional) Specifies the route processing order.
 
 * `predicates` - (Optional) Specifies a list of conditions to evaluate a route for each request. Each predicate may be evaluated against request headers and parameter values. All of the predicates associated with a route must evaluate to true for the route to be matched to the request.
 

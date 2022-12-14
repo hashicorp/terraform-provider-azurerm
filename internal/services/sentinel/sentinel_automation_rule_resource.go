@@ -433,7 +433,6 @@ func expandAutomationRuleConditions(input []interface{}) *[]securityinsight.Basi
 			},
 			ConditionType: securityinsight.ConditionTypeBasicAutomationRuleConditionConditionTypeProperty,
 		})
-
 	}
 	return &out
 }

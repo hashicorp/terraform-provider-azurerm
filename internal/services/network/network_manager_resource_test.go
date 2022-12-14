@@ -169,7 +169,6 @@ resource "azurerm_network_manager" "import" {
 }
 
 func (r ManagerResource) complete(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 %s
 resource "azurerm_network_manager" "test" {

@@ -245,7 +245,7 @@ A `request_header_action` block supports the following:
 
 ---
 
-* A `response_header_action` block supports the following:
+A `response_header_action` block supports the following:
 
 * `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
 

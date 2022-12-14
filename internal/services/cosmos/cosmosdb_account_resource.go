@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -65,6 +65,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("backup.0.type", func(ctx context.Context, old, new, _ interface{}) bool {
 				// backup type can only change from Periodic to Continuous
 				return old.(string) == string(documentdb.TypeContinuous) && new.(string) == string(documentdb.TypePeriodic)
+			}),
+
+			pluginsdk.ForceNewIfChange("analytical_storage_enabled", func(ctx context.Context, old, new, _ interface{}) bool {
+				// analytical_storage_enabled can not be changed after being set to true
+				return old.(bool) && !new.(bool)
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
@@ -231,7 +236,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 
 			"public_network_access_enabled": {
@@ -1216,7 +1220,6 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-
 				var locations []documentdb.Location
 
 				if props.ReadLocations != nil {
@@ -1593,7 +1596,6 @@ func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdent
 		}
 	}
 	return &out, nil
-
 }
 
 func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) (*[]interface{}, error) {
