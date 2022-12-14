@@ -510,13 +510,29 @@ func TestAccMsSqlDatabase_threatDetectionPolicyNoStorage(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("15"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.disabled_alerts.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsEmpty(),
 			),
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		{
+			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsSet(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsSet(),
+			),
+		},
+		{
+			Config: r.threatDetectionPolicyNoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsEmpty(),
+			),
+		},
 	})
 }
 
