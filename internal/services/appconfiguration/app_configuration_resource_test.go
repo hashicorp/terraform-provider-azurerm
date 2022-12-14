@@ -255,7 +255,7 @@ func TestAccAppConfiguration_softDeleteRecoveryDisabled(t *testing.T) {
 		{
 			// attempting to re-create without recovery the soft-deleted
 			Config:      r.softDeleteRecoveryDisabled(data),
-			ExpectError: regexp.MustCompile("An existing soft-deleted App Configuration exists with the Name"),
+			ExpectError: regexp.MustCompile("creating Configuration Store"),
 		},
 	})
 }

@@ -3,7 +3,6 @@ package appconfiguration
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -246,21 +245,20 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
-	deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
-	if err != nil {
-		log.Printf("[DEBUG] checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
-		if !response.WasNotFound(deleted.HttpResponse) && !response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-			return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
-		}
-	}
 
 	recoverSoftDeleted := false
-	if !response.WasNotFound(deleted.HttpResponse) && !response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-		if !meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedAppConfigurationErrorFmt(name, location))
+	if meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
+		deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
+		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
+		if err != nil {
+			if !response.WasNotFound(deleted.HttpResponse) {
+				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
+			}
+			//if the soft deleted is not found, skip the recovering
+		} else {
+			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
+			recoverSoftDeleted = true
 		}
-		recoverSoftDeleted = true
 	}
 
 	parameters := configurationstores.ConfigurationStore{
@@ -538,8 +536,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		if purgeProtectionEnabled {
 			deletedInfo, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedId)
 			if err != nil {
-				log.Printf("[DEBUG] While purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
-				return nil
+				return fmt.Errorf("while purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
 			}
 
 			if deletedInfo.Model != nil && deletedInfo.Model.Properties != nil && deletedInfo.Model.Properties.DeletionDate != nil && deletedInfo.Model.Properties.ScheduledPurgeDate != nil {
@@ -650,22 +647,6 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 			"secret":            secret,
 		},
 	}
-}
-
-func optedOutOfRecoveringSoftDeletedAppConfigurationErrorFmt(name, location string) string {
-	return fmt.Sprintf(`
-An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
-automatically recovering this App Configuration has been disabled via the "features" block.
-
-Terraform can automatically recover the soft-deleted App Configuration when this behaviour is
-enabled within the "features" block (located within the "provider" block) - more information
-can be found here:
-
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
-
-Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
-this into Terraform via "terraform import", or pick a different name/location.
-`, name, location)
 }
 
 func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAccess {
