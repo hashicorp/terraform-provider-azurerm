@@ -30,6 +30,7 @@ func Validate(v interface{}, _ string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
+// nolint: staticcheck
 func ValidateWithMax(max int) schema.SchemaValidateFunc {
 	return func(v interface{}, _ string) (warnings []string, errors []error) {
 		tagsMap := v.(map[string]interface{})

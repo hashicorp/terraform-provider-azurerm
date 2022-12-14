@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -227,6 +227,14 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			ZoneRedundant:              utils.Bool(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationID: utils.String(maintenanceConfigId.ID()),
 		},
+	}
+
+	if _, ok := d.GetOk("license_type"); ok {
+		if sku.Tier != nil && (*sku.Tier == "GeneralPurpose" || *sku.Tier == "BusinessCritical") {
+			elasticPool.ElasticPoolProperties.LicenseType = sql.ElasticPoolLicenseType(d.Get("license_type").(string))
+		} else {
+			return fmt.Errorf("`license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`")
+		}
 	}
 
 	if d.HasChange("max_size_gb") {

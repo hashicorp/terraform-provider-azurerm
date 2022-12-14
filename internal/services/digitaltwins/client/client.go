@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins"
+	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2022-10-31/timeseriesdatabaseconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

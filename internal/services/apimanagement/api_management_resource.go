@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -452,7 +452,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"policy": {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
@@ -882,7 +882,6 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("deleting %s: %+v", productId, err)
 			}
 		}
-
 	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
@@ -953,7 +952,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1026,8 +1024,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		apimHostNameSuffix := environment.APIManagementHostNameSuffix
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d, id.ServiceName, apimHostNameSuffix)
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
@@ -1052,7 +1049,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			minApiVersion = *props.APIVersionConstraint.MinAPIVersion
 		}
 		d.Set("min_api_version", minApiVersion)
-
 	}
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
@@ -1262,7 +1258,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	return output
 }
 
-func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
+func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1974,7 +1970,6 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 
 	if input.SecondaryKey != nil {
 		result["secondary_key"] = *input.SecondaryKey
-
 	}
 
 	return []interface{}{result}

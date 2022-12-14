@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,7 +99,7 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"policy_definition_reference": {
 			Type:     pluginsdk.TypeList,
 			Required: true,

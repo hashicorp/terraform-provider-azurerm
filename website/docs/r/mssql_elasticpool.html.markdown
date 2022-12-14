@@ -79,9 +79,11 @@ The following arguments are supported:
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
+-> **Note:** `license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`
+
 ---
 
-`sku` supports the following:
+The `sku` block supports the following:
 
 * `name` - (Required) Specifies the SKU Name for this Elasticpool. The name of the SKU, will be either `vCore` based `tier` + `family` pattern (e.g. GP_Gen4, BC_Gen5) or the `DTU` based `BasicPool`, `StandardPool`, or `PremiumPool` pattern. Changing this forces a new resource to be created.
 
@@ -93,7 +95,7 @@ The following arguments are supported:
 
 ---
 
-`per_database_settings` supports the following:
+The `per_database_settings` block supports the following:
 
 * `min_capacity` - (Required) The minimum capacity all databases are guaranteed.
 
