@@ -742,10 +742,10 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 		if v, ok := securityAlert["retention_days"]; ok {
 			properties.RetentionDays = utils.Int32(int32(v.(int)))
 		}
-		if v, ok := securityAlert["storage_account_access_key"]; ok {
+		if v, ok := securityAlert["storage_account_access_key"]; ok && v.(string) != "" {
 			properties.StorageAccountAccessKey = utils.String(v.(string))
 		}
-		if v, ok := securityAlert["storage_endpoint"]; ok {
+		if v, ok := securityAlert["storage_endpoint"]; ok && v.(string) != "" {
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 
