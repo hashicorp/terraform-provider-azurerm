@@ -151,6 +151,10 @@ A `routing` block supports the following:
 
 * `propagated_route_table` - (Required) A `propagated_route_table` block as defined below.
 
+* `inbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for inbound learned routes.
+
+* `outbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for outbound advertised routes.
+
 ---
 
 A `traffic_selector_policy` block supports the following:
