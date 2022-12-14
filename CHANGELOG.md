@@ -14,10 +14,12 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - `ssh_key` can now be updated [GH-19634]
 * `azurerm_kubernetes_cluster_node_pool` - support for the `outbound_nat_enabled` property [GH-19663]
 * `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
+* `azurerm_log_analytics_workspace` - support for the `allow_resource_only_permissions` property [GH-19346]
 * `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
 
 BUG FIXES:
 
+* Data Source: `azurerm_api_management` - prevent failure when retrieving tenant access properties when permissions are missing [GH-19626]
 * `azurerm_cdn_frontdoor_firewall_policy` - allow `Log` as a valid value for managed rule override `action` in DRS 2.0 and above [GH-19637]
 * `azurerm_cosmosdb_account` - enabling `analytical_storage_enabled` no longer forces recreation [GH-19659]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
