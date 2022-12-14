@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_cdn_frontdoor_firewall_policy` - allow `Log` as a valid value for managed rule override `action` in DRS 2.0 and above [GH-19637]
 * `azurerm_cosmosdb_account` - enabling `analytical_storage_enabled` no longer forces recreation [GH-19659]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
+* `azurerm_mssql_database` - `threat_detection_policy.0.storage_*` can now be correctly set as empty [GH-19670]
 * `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
 
 ## 3.35.0 (December 09, 2022)
