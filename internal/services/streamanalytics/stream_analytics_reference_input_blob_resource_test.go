@@ -85,11 +85,10 @@ func TestAccStreamAnalyticsReferenceInputBlob_update(t *testing.T) {
 func TestAccStreamAnalyticsReferenceInputBlob_authenticationMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 	r := StreamAnalyticsReferenceInputBlobResource{}
-  debug := r.authenticationMode(data)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: debug,
+			Config: r.authenticationMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
