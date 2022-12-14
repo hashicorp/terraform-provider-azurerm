@@ -16,6 +16,8 @@ ENHANCEMENTS:
 * `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
 * `azurerm_log_analytics_workspace` - support for the `allow_resource_only_permissions` property [GH-19346]
 * `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
+* `azurerm_storage_account` - support for the `blob_properties.restore_policy` property [GH-19644]
+
 
 BUG FIXES:
 
