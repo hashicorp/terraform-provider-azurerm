@@ -58,7 +58,9 @@ const (
 	databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36 databaseAccountCapabilities = "AllowSelfServeUpgradeToMongo36"
 )
 
-/* The mapping of capabilities and kinds of cosmosdb account confirmed by service team is as follows:
+/*
+	The mapping of capabilities and kinds of cosmosdb account confirmed by service team is as follows:
+
 EnableMongo :                    MongoDB
 EnableCassandra :                GlobalDocumentDB, Parse
 EnableGremlin :                  GlobalDocumentDB, Parse
@@ -112,6 +114,13 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("analytical_storage_enabled", func(ctx context.Context, old, new, _ interface{}) bool {
 				// analytical_storage_enabled can not be changed after being set to true
 				return old.(bool) && !new.(bool)
+			}),
+
+			pluginsdk.ForceNewIf("capabilities", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				kind := d.Get("kind").(string)
+				old, new := d.GetChange("capabilities")
+
+				return !checkCapabilitiesCanBeUpdated(kind, prepareCapabilities(old), prepareCapabilities(new))
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
@@ -857,11 +866,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	if d.HasChange("capabilities") {
 
 		newCapabilities := expandAzureRmCosmosDBAccountCapabilities(d)
-
-		err := checkCapabilitiesCanBeUpdated(kind, &capabilities, newCapabilities)
-		if err != nil {
-			return fmt.Errorf("updating CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
 
 		updateParameters := documentdb.DatabaseAccountUpdateParameters{
 			DatabaseAccountUpdateProperties: &documentdb.DatabaseAccountUpdateProperties{
@@ -1846,7 +1850,7 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]documentdb.DatabaseRestor
 	return results
 }
 
-func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Capability, newCapabilities *[]documentdb.Capability) error {
+func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Capability, newCapabilities *[]documentdb.Capability) bool {
 	// The feedback from service team : "DisableRateLimitingResponses", "AllowSelfServeUpgradeToMongo36","EnableAggregationPipeline","MongoDBv3.4"
 	// , "mongoEnableDocLevelTTL" and "EnableMongo16MBDocumentSupport" of capabilities can be added to an existing account, others can not.
 	canBeAddedCaps := []string{
@@ -1881,17 +1885,17 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Ca
 		// retrieve a list of capabilities for this DB type
 		supportedKindsForCapability, ok := capabilitiesToKindMap[strings.ToLower(*capability.Name)]
 		if !ok {
-			return fmt.Errorf("internal-error: missing mapping between Kind %q and Capabilities for %q", kind, *capability.Name)
+			return false
 		}
 
 		// first check if this is supported
 		if isSupported := utils.SliceContainsValue(supportedKindsForCapability.([]string), strings.ToLower(kind)); !isSupported {
-			return fmt.Errorf("the Capability %q was not supported for the Kind %q - only the following Kinds support updating this Capability: %+v", *capability.Name, kind, strings.Join(supportedKindsForCapability.([]string), " / "))
+			return false
 		}
 
 		// then check if it can be added via an update
 		if !utils.SliceContainsValue(canBeAddedCaps, strings.ToLower(*capability.Name)) {
-			return fmt.Errorf("the Capability %q for the Kind %q cannot be updated it must be set at creation", *capability.Name, kind)
+			return false
 		}
 	}
 	// then check if we're removing any that they can be removed
@@ -1908,9 +1912,23 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Ca
 		}
 
 		if !utils.SliceContainsValue(canBeRemovedCaps, strings.ToLower(*capability.Name)) {
-			return fmt.Errorf("the Capability %q for the Kind %q cannot be removed it must be omitted at creation", *capability.Name, kind)
+			return false
 		}
 	}
 
-	return nil
+	return true
+}
+
+func prepareCapabilities(capabilities interface{}) *[]documentdb.Capability {
+	output := make([]documentdb.Capability, 0)
+	for _, v := range capabilities.(*pluginsdk.Set).List() {
+		m := v.(map[string]interface{})
+		if c, ok := m["name"].(string); ok {
+			cap := documentdb.Capability{
+				Name: utils.String(c),
+			}
+			output = append(output, cap)
+		}
+	}
+	return &output
 }
