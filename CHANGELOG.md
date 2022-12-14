@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_key_vault_managed_hardware_security_module` - support for the `public_network_access_enabled` and `network_acls` properties [GH-19640]
 * `azurerm_kubernetes_cluster` - support for the `monitor_metrics` block [GH-19530]
 * `azurerm_kubernetes_cluster` - `ssh_key` can now be updated [GH-19634]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `outbound_nat_enabled` property [GH-19663]
 * `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
 * `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
 
