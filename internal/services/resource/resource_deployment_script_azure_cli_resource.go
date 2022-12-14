@@ -63,10 +63,13 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 			properties := &deploymentscripts.AzureCliScript{
 				Location: location.Normalize(model.Location),
 				Properties: deploymentscripts.AzureCliScriptProperties{
-					AzCliVersion:         model.Version,
-					CleanupPreference:    &model.CleanupPreference,
-					RetentionInterval:    model.RetentionInterval,
-					SupportingScriptUris: &model.SupportingScriptUris,
+					AzCliVersion:           model.Version,
+					CleanupPreference:      &model.CleanupPreference,
+					RetentionInterval:      model.RetentionInterval,
+					SupportingScriptUris:   &model.SupportingScriptUris,
+					ContainerSettings:      expandContainerConfigurationModel(model.ContainerSettings),
+					EnvironmentVariables:   expandEnvironmentVariableModelArray(model.EnvironmentVariables),
+					StorageAccountSettings: expandStorageAccountConfigurationModel(model.StorageAccountSettings),
 				},
 			}
 
@@ -81,20 +84,6 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 				properties.Properties.Arguments = &model.Arguments
 			}
 
-			containerSettingsValue, err := expandContainerConfigurationModel(model.ContainerSettings)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.ContainerSettings = containerSettingsValue
-
-			environmentVariablesValue, err := expandEnvironmentVariableModelArray(model.EnvironmentVariables)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.EnvironmentVariables = environmentVariablesValue
-
 			if model.ForceUpdateTag != "" {
 				properties.Properties.ForceUpdateTag = &model.ForceUpdateTag
 			}
@@ -106,13 +95,6 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 			if model.ScriptContent != "" {
 				properties.Properties.ScriptContent = &model.ScriptContent
 			}
-
-			storageAccountSettingsValue, err := expandStorageAccountConfigurationModel(model.StorageAccountSettings)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.StorageAccountSettings = storageAccountSettingsValue
 
 			if model.Timeout != "" {
 				properties.Properties.Timeout = &model.Timeout
@@ -187,24 +169,14 @@ func (r ResourceDeploymentScriptAzureCliResource) Read() sdk.ResourceFunc {
 				state.CleanupPreference = *properties.CleanupPreference
 			}
 
-			containerSettingsValue, err := flattenContainerConfigurationModel(properties.ContainerSettings)
-			if err != nil {
-				return err
-			}
-
-			state.ContainerSettings = containerSettingsValue
+			state.ContainerSettings = flattenContainerConfigurationModel(properties.ContainerSettings)
 
 			var originalModel ResourceDeploymentScriptAzureCliModel
 			if err := metadata.Decode(&originalModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			environmentVariablesValue, err := flattenEnvironmentVariableModelArray(properties.EnvironmentVariables, originalModel.EnvironmentVariables)
-			if err != nil {
-				return err
-			}
-
-			state.EnvironmentVariables = environmentVariablesValue
+			state.EnvironmentVariables = flattenEnvironmentVariableModelArray(properties.EnvironmentVariables, originalModel.EnvironmentVariables)
 
 			if properties.ForceUpdateTag != nil {
 				state.ForceUpdateTag = *properties.ForceUpdateTag
@@ -229,12 +201,7 @@ func (r ResourceDeploymentScriptAzureCliResource) Read() sdk.ResourceFunc {
 				state.ScriptContent = *properties.ScriptContent
 			}
 
-			storageAccountSettingsValue, err := flattenStorageAccountConfigurationModel(properties.StorageAccountSettings, originalModel.StorageAccountSettings)
-			if err != nil {
-				return err
-			}
-
-			state.StorageAccountSettings = storageAccountSettingsValue
+			state.StorageAccountSettings = flattenStorageAccountConfigurationModel(properties.StorageAccountSettings, originalModel.StorageAccountSettings)
 
 			if properties.SupportingScriptUris != nil {
 				state.SupportingScriptUris = *properties.SupportingScriptUris

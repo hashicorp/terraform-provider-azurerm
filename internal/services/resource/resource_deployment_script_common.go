@@ -420,9 +420,9 @@ func deleteDeploymentScript() sdk.ResourceFunc {
 	}
 }
 
-func expandContainerConfigurationModel(inputList []ContainerConfigurationModel) (*deploymentscripts.ContainerConfiguration, error) {
+func expandContainerConfigurationModel(inputList []ContainerConfigurationModel) *deploymentscripts.ContainerConfiguration {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -432,10 +432,10 @@ func expandContainerConfigurationModel(inputList []ContainerConfigurationModel) 
 		output.ContainerGroupName = &input.ContainerGroupName
 	}
 
-	return &output, nil
+	return &output
 }
 
-func expandEnvironmentVariableModelArray(inputList []EnvironmentVariableModel) (*[]deploymentscripts.EnvironmentVariable, error) {
+func expandEnvironmentVariableModelArray(inputList []EnvironmentVariableModel) *[]deploymentscripts.EnvironmentVariable {
 	var outputList []deploymentscripts.EnvironmentVariable
 	for _, v := range inputList {
 		input := v
@@ -454,7 +454,7 @@ func expandEnvironmentVariableModelArray(inputList []EnvironmentVariableModel) (
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
 func expandManagedServiceIdentityModel(inputList []interface{}) (*deploymentscripts.ManagedServiceIdentity, error) {
@@ -484,9 +484,9 @@ func expandManagedServiceIdentityModel(inputList []interface{}) (*deploymentscri
 	return &output, nil
 }
 
-func expandStorageAccountConfigurationModel(inputList []StorageAccountConfigurationModel) (*deploymentscripts.StorageAccountConfiguration, error) {
+func expandStorageAccountConfigurationModel(inputList []StorageAccountConfigurationModel) *deploymentscripts.StorageAccountConfiguration {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -500,13 +500,13 @@ func expandStorageAccountConfigurationModel(inputList []StorageAccountConfigurat
 		output.StorageAccountName = &input.StorageAccountName
 	}
 
-	return &output, nil
+	return &output
 }
 
-func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfiguration) ([]ContainerConfigurationModel, error) {
+func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfiguration) []ContainerConfigurationModel {
 	var outputList []ContainerConfigurationModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	if input.ContainerGroupName != nil {
@@ -516,13 +516,13 @@ func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfig
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.EnvironmentVariable, originalList []EnvironmentVariableModel) ([]EnvironmentVariableModel, error) {
+func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.EnvironmentVariable, originalList []EnvironmentVariableModel) []EnvironmentVariableModel {
 	var outputList []EnvironmentVariableModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -550,7 +550,7 @@ func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.Environ
 		}
 	}
 
-	return outputList, nil
+	return outputList
 }
 
 func flattenManagedServiceIdentityModel(input *deploymentscripts.ManagedServiceIdentity) (*[]interface{}, error) {
@@ -579,10 +579,10 @@ func flattenManagedServiceIdentityModel(input *deploymentscripts.ManagedServiceI
 	return identity.FlattenUserAssignedMap(transform)
 }
 
-func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAccountConfiguration, originalList []StorageAccountConfigurationModel) ([]StorageAccountConfigurationModel, error) {
+func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAccountConfiguration, originalList []StorageAccountConfigurationModel) []StorageAccountConfigurationModel {
 	var outputList []StorageAccountConfigurationModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := StorageAccountConfigurationModel{}
@@ -595,7 +595,7 @@ func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAcc
 		output.StorageAccountKey = originalList[0].StorageAccountKey
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
 func hashEnvironmentVariables(v interface{}) int {
