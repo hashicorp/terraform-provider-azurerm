@@ -81,9 +81,9 @@ The following arguments are supported:
 
 A `delegation` block supports the following:
 
-* `name` (Required) A name for this delegation.
+* `name` - (Required) A name for this delegation.
 
-* `service_delegation` (Required) A `service_delegation` block as defined below.
+* `service_delegation` - (Required) A `service_delegation` block as defined below.
 
 ---
 

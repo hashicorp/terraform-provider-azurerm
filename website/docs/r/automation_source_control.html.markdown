@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Automation Source Control. Changing this forces a new Automation Source Control to be created.
 
-* `automation_account_id` (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
+* `automation_account_id` - (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
 * `folder_path` - (Required) The folder path of the source control. This Path must be relative.
 
