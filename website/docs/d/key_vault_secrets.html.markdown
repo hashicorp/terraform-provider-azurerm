@@ -1,7 +1,7 @@
 ---
 subcategory: "Key Vault"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_key_vault_secrets"
+page_title: "Azure Resource Manager: Data Source: azurerm_key_vault_secrets"
 description: |-
   Gets a list of secret names from an existing Key Vault Secret.
 ---
@@ -29,16 +29,15 @@ data "azurerm_key_vault_secret" "example" {
 
 The following arguments are supported:
 
-* `key_vault_id` - Specifies the ID of the Key Vault instance to fetch secret names from, available on the `azurerm_key_vault` Data Source / Resource.
+* `key_vault_id` - (Required) Specifies the ID of the Key Vault instance to fetch secret names from, available on the `azurerm_key_vault` Data Source / Resource.
 
 **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Argument listed above - the following Attributes are exported:
 
 * `names` - List containing names of secrets that exist in this Key Vault.
-* `key_vault_id` - The Key Vault ID.
 
 ## Timeouts
 

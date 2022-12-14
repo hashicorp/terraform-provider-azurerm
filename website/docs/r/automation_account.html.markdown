@@ -64,7 +64,7 @@ An `identity` block supports the following:
 
 -> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
---
+---
 
 An `encryption` block supports the following:
 

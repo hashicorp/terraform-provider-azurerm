@@ -223,7 +223,7 @@ A `ports` block supports:
 
 ~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
---
+---
 
 A `gpu` block supports:
 
