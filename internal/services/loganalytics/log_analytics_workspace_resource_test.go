@@ -221,18 +221,18 @@ func TestAccLogAnalyticsWorkspace_withCapacityReservation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withCapacityReservation(data, 2300),
+			Config: r.withCapacityReservation(data, 2000),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("2300"),
+				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("2000"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withCapacityReservationTypo(data, 2300),
+			Config: r.withCapacityReservationTypo(data, 5000),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("2300"),
+				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("5000"),
 			),
 		},
 		data.ImportStep(),
