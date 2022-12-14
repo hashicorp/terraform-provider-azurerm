@@ -471,7 +471,7 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
+func TestAccMsSqlDatabase_threatDetectionPolicy1(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -494,6 +494,26 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+	})
+}
+
+func TestAccMsSqlDatabase_threatDetectionPolicyNoStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.threatDetectionPolicyNoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("15"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.disabled_alerts.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("Enabled"),
 			),
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
@@ -1292,6 +1312,33 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, state)
+}
+
+func (r MsSqlDatabaseResource) threatDetectionPolicyNoStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name         = "acctest-db-%[2]d"
+  server_id    = azurerm_mssql_server.test.id
+  collation    = "SQL_AltDiction_CP850_CI_AI"
+  license_type = "BasePrice"
+  max_size_gb  = 1
+  sample_name  = "AdventureWorksLT"
+  sku_name     = "GP_Gen5_2"
+
+  threat_detection_policy {
+    retention_days             = 15
+    state                      = "Enabled"
+    disabled_alerts            = ["Sql_Injection"]
+    email_account_admins       = "Enabled"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MsSqlDatabaseResource) updateSku(data acceptance.TestData) string {
