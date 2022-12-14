@@ -471,7 +471,7 @@ func TestAccMsSqlDatabase_storageAccountType(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_threatDetectionPolicy1(t *testing.T) {
+func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
