@@ -96,8 +96,8 @@ The `rule` block supports the following:
 
 * `name` - (Required) The name of the rule. Rule name is case-sensitive. It must be unique within a policy.
 * `enabled` - (Required)  Boolean to specify whether the rule is enabled.
-* `filters` - A `filter` block as documented below.
-* `actions` - An `actions` block as documented below.
+* `filters` - (Optional) A `filter` block as documented below.
+* `actions` - (Required) An `actions` block as documented below.
 
 ---
 
@@ -113,9 +113,9 @@ The `filters` block supports the following:
 
 The `actions` block supports the following:
 
-* `base_blob` - A `base_blob` block as documented below.
-* `snapshot` - A `snapshot` block as documented below.
-* `version` - A `version` block as documented below.
+* `base_blob` - (Optional) A `base_blob` block as documented below.
+* `snapshot` - (Optional) A `snapshot` block as documented below.
+* `version` - (Optional) A `version` block as documented below.
 
 ---
 

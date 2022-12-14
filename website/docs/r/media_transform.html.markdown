@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `description` - (Optional) An optional verbose description of the Transform.
 
-* `output` - (Required) One or more `output` blocks as defined below. At least one `output` must be defined.
+* `output` - (Optional) One or more `output` blocks as defined below. At least one `output` must be defined.
 
 ---
 
