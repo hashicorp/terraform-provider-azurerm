@@ -906,14 +906,16 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
-			if m.SiteConfig[0].ApplicationStack != nil {
-				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
-			}
-
 			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
 			}
+			switch *v {
+			case "dotnet-isolated":
+				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
+			case "custom":
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
 
+			}
 		case "DOCKER_REGISTRY_SERVER_URL":
 			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
 

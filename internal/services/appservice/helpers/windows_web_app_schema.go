@@ -714,10 +714,12 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 	winAppStack.NodeVersion = pointer.From(appSiteConfig.NodeVersion)     // TODO - Get from app_settings
 	winAppStack.PythonVersion = pointer.From(appSiteConfig.PythonVersion) // This _should_ always be `""`
+	winAppStack.Python = currentStack == CurrentStackPython
 	winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
-	winAppStack.JavaContainer = pointer.From(appSiteConfig.JavaContainer)
-	winAppStack.JavaContainerVersion = pointer.From(appSiteConfig.JavaContainerVersion)
-	if strings.EqualFold(winAppStack.JavaContainer, JavaContainerEmbeddedServer) {
+	switch pointer.From(appSiteConfig.JavaContainer) {
+	case JavaContainerTomcat:
+		winAppStack.TomcatVersion = *appSiteConfig.JavaContainerVersion
+	case JavaContainerEmbeddedServer:
 		winAppStack.JavaEmbeddedServer = true
 	}
 

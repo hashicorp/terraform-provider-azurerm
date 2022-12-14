@@ -2286,7 +2286,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
   }
 }
