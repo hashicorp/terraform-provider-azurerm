@@ -27,8 +27,8 @@ type Client struct {
 	SolutionsClient            *solution.SolutionClient
 	StorageInsightsClient      *storageinsights.StorageInsightsClient
 	QueryPackQueriesClient     *querypackqueries.QueryPackQueriesClient
-	WorkspacesClient           *workspaces.WorkspacesClient
-	FeatureWorkspaceClient     *featureWorkspaces.WorkspacesClient // 2022-10-01 API version does not contain sharedkeys related API, so we keep two versions SDK of this API
+	SharedKeyWorkspacesClient  *workspaces.WorkspacesClient
+	WorkspaceClient            *featureWorkspaces.WorkspacesClient // 2022-10-01 API version does not contain sharedkeys related API, so we keep two versions SDK of this API
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -79,7 +79,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SavedSearchesClient:        &SavedSearchesClient,
 		SolutionsClient:            &SolutionsClient,
 		StorageInsightsClient:      &StorageInsightsClient,
-		WorkspacesClient:           &WorkspacesClient,
-		FeatureWorkspaceClient:     &featureWorkspaceClient,
+		SharedKeyWorkspacesClient:  &WorkspacesClient,
+		WorkspaceClient:            &featureWorkspaceClient,
 	}
 }

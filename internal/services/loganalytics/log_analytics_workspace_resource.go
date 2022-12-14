@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	featureWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -103,12 +103,20 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// TODO 4.0: 2022-10-01 API version will limit the sku to the following values: 100,200,300,400,500,1000,2000,5000
 			"reservation_capacity_in_gb_per_day": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					int(workspaces.CapacityReservationLevelOneHundred),
+					int(workspaces.CapacityReservationLevelTwoHundred),
+					int(workspaces.CapacityReservationLevelThreeHundred),
+					int(workspaces.CapacityReservationLevelFourHundred),
+					int(workspaces.CapacityReservationLevelFiveHundred),
+					int(workspaces.CapacityReservationLevelOneThousand),
+					int(workspaces.CapacityReservationLevelTwoThousand),
+					int(workspaces.CapacityReservationLevelFiveThousand),
+				}),
 			},
 
 			"retention_in_days": {
@@ -169,7 +177,7 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 }
 
 func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,13 +244,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		sku.Name = workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight
 	}
 
-	// convert features to interface{} to use 2020-08-01 version API, the 2022-10-01 version API will limit `reservation_capacity_in_gb_per_day` to 100,200,300,400,500,1000,2000,5000, which will cause a breaking change .
-	var featuresInterface interface{}
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
-	features := &featureWorkspaces.WorkspaceFeatures{
-		EnableLogAccessUsingOnlyResourcePermissions: utils.Bool(allowResourceOnlyPermission),
-	}
-	featuresInterface = features
 
 	parameters := workspaces.Workspace{
 		Name:     &name,
@@ -253,7 +255,9 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 			PublicNetworkAccessForIngestion: &internetIngestionEnabled,
 			PublicNetworkAccessForQuery:     &internetQueryEnabled,
 			RetentionInDays:                 &retentionInDays,
-			Features:                        &featuresInterface,
+			Features: &workspaces.WorkspaceFeatures{
+				EnableLogAccessUsingOnlyResourcePermissions: utils.Bool(allowResourceOnlyPermission),
+			},
 		},
 	}
 
@@ -274,7 +278,8 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	capacityReservationLevel, ok := d.GetOk(propName)
 	if ok {
 		if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-			parameters.Properties.Sku.CapacityReservationLevel = utils.Int64((int64(capacityReservationLevel.(int))))
+			capacityReservationLevelValue := workspaces.CapacityReservationLevel(int64(capacityReservationLevel.(int)))
+			parameters.Properties.Sku.CapacityReservationLevel = &capacityReservationLevelValue
 		} else {
 			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
 		}
@@ -306,12 +311,8 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 				return resp, "error", fmt.Errorf("retiring Log Analytics Workspace %q: %+v", id, err)
 			}
 
-			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Features != nil {
-				features := resp.Model.Properties.Features
-				v, ok := (*features).(map[string]interface{})["enableLogAccessUsingOnlyResourcePermissions"]
-				if ok {
-					return resp, strconv.FormatBool(v.(bool)), nil
-				}
+			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Features != nil && resp.Model.Properties.Features.EnableLogAccessUsingOnlyResourcePermissions != nil {
+				return resp, strconv.FormatBool(*resp.Model.Properties.Features.EnableLogAccessUsingOnlyResourcePermissions), nil
 			}
 
 			return resp, "false", fmt.Errorf("retiring Log Analytics Workspace %q: feature is nil", id)
@@ -328,10 +329,16 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	sharedKeyClient := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
+	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := workspaces.ParseWorkspaceID(d.Id())
+	sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		WorkspaceName:     id.WorkspaceName,
+	}
 	if err != nil {
 		return err
 	}
@@ -408,14 +415,14 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 			allowResourceOnlyPermissions := true
 			if features := props.Features; features != nil {
-				v, ok := (*features).(map[string]interface{})["enableLogAccessUsingOnlyResourcePermissions"]
-				if ok {
-					allowResourceOnlyPermissions = v.(bool)
+				v := features.EnableLogAccessUsingOnlyResourcePermissions
+				if v != nil {
+					allowResourceOnlyPermissions = *v
 				}
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 
-			sharedKeysResp, err := client.SharedKeysGetSharedKeys(ctx, *id)
+			sharedKeysResp, err := sharedKeyClient.SharedKeysGetSharedKeys(ctx, sharedKeyId)
 			if err != nil {
 				log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)
 			} else {
@@ -445,17 +452,22 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	client := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
+	sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroupName,
+		WorkspaceName:     id.WorkspaceName,
+	}
 	if err != nil {
 		return err
 	}
 
 	PermanentlyDeleteOnDestroy := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy
-	err = client.DeleteThenPoll(ctx, *id, workspaces.DeleteOperationOptions{Force: utils.Bool(PermanentlyDeleteOnDestroy)})
+	err = client.DeleteThenPoll(ctx, sharedKeyId, sharedKeyWorkspaces.DeleteOperationOptions{Force: utils.Bool(PermanentlyDeleteOnDestroy)})
 	if err != nil {
 		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.WorkspaceName, err)
 	}

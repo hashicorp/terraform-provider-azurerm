@@ -308,7 +308,7 @@ func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.WorkspacesClient.Get(ctx, *id)
+	resp, err := clients.LogAnalytics.SharedKeyWorkspacesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Workspace (%s): %+v", id.String(), err)
 	}
