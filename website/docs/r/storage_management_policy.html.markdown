@@ -86,13 +86,13 @@ resource "azurerm_storage_management_policy" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the id of the storage account to apply the management policy to.
+* `storage_account_id` - (Required) Specifies the id of the storage account to apply the management policy to. Changing this forces a new resource to be created.
 
 * `rule` - (Optional) A `rule` block as documented below.
 
 ---
 
-* `rule` supports the following:
+The `rule` block supports the following:
 
 * `name` - (Required) The name of the rule. Rule name is case-sensitive. It must be unique within a policy.
 * `enabled` - (Required)  Boolean to specify whether the rule is enabled.
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 ---
 
-`filters` supports the following:
+The `filters` block supports the following:
 
 * `blob_types` - (Required) An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
 * `prefix_match` - (Optional) An array of strings for prefixes to be matched.
@@ -111,7 +111,7 @@ The following arguments are supported:
 
 ---
 
-`actions` supports the following:
+The `actions` block supports the following:
 
 * `base_blob` - A `base_blob` block as documented below.
 * `snapshot` - A `snapshot` block as documented below.
@@ -119,30 +119,33 @@ The following arguments are supported:
 
 ---
 
-`base_blob` supports the following:
+The `base_blob` block supports the following:
 
 * `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between 0 and 99999.
 * `tier_to_cool_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between `0` and `99999`.
+* `tier_to_cool_after_days_since_creation_greater_than` - The age in days after creation to cool storage. Supports blob currently at Hot tier. Must be between `0` and `99999`.
 
-~> **Note:** The `tier_to_cool_after_days_since_modification_greater_than` and `tier_to_cool_after_days_since_last_access_time_greater_than` can not be set at the same time.
+~> **Note:** The `tier_to_cool_after_days_since_modification_greater_than`, `tier_to_cool_after_days_since_last_access_time_greater_than` and `tier_to_cool_after_days_since_creation_greater_than` can not be set at the same time.
 
 * `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between 0 and 99999.
-* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0 and`99999`.
+* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0` and`99999`.
+* `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to archive storage. Supports blob currently at Hot or Cool tier. Must be between `0` and`99999`.
 
-~> **Note:** The `tier_to_archive_after_days_since_modification_greater_than` and `tier_to_archive_after_days_since_last_access_time_greater_than` can not be set at the same time.
+~> **Note:** The `tier_to_archive_after_days_since_modification_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than` and `tier_to_archive_after_days_since_creation_greater_than` can not be set at the same time.
 
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
 
 * `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be between 0 and 99999.
 * `delete_after_days_since_last_access_time_greater_than` - The age in days after last access time to delete the blob. Must be between `0` and `99999`.
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob. Must be between `0` and `99999`.
 
-~> **Note:** The `delete_after_days_since_modification_greater_than` and `delete_after_days_since_last_access_time_greater_than` can not be set at the same time.
+~> **Note:** The `delete_after_days_since_modification_greater_than`, `delete_after_days_since_last_access_time_greater_than` and `delete_after_days_since_creation_greater_than` can not be set at the same time.
 
 ~> **Note:** The [`last_access_time_enabled`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account#last_access_time_enabled) must be set to `true` in the `azurerm_storage_account` in order to use `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than` and `delete_after_days_since_last_access_time_greater_than`.
 
 ---
 
-`snapshot` supports the following:
+The `snapshot` block supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob snapshot to archive storage. Must be between 0 and 99999.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
@@ -151,7 +154,7 @@ The following arguments are supported:
 
 ---
 
-`version` supports the following:
+The `version` block supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage. Must be between 0 and 99999.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
@@ -160,7 +163,7 @@ The following arguments are supported:
 
 ---
 
-`match_blob_index_tag` supports the following:
+The `match_blob_index_tag` block supports the following:
 
 * `name` - The filter tag name used for tag based filtering for blob objects.
 * `operation` - The comparison operator which is used for object comparison and filtering. Possible value is `==`. Defaults to `==`.

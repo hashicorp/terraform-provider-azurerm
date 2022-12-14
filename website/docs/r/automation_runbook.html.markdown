@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
 
-* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `Python3`, `Python2` or `Script`.
+* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `Python3`, `Python2` or `Script`. Changing this forces a new resource to be created.
 
 * `log_progress` - (Required) Progress log option.
 
@@ -104,14 +104,13 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks.
-Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
+* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
 
 * `draft` - (Required) A `draft` block as defined below .
 
 ---
 
-The `publish_content_link` supports the following:
+The `publish_content_link` block supports the following:
 
 * `uri` - (Required) The URI of the runbook content.
 
@@ -137,21 +136,21 @@ The `draft` block supports:
 
 * `output_types` (Optioinal) Specifies the output types of the runbook.
 
-* `parameter` (Optional) A list of `parameter` block as define below.
+* `parameter` - (Optional) A list of `parameter` block as define below.
 
---
+---
 
 The `parameter` block supports:
 
-* `key` (Required) The name of the parameter.
+* `key` - (Required) The name of the parameter.
 
-* `type` (Optional) Specifies the type of this parameter.
+* `type` - (Optional) Specifies the type of this parameter.
 
-* `mandatory` (Optional) Whether this parameter is mandatory.
+* `mandatory` - (Optional) Whether this parameter is mandatory.
 
-* `positioin` (Optional) Specifies the position of the parameter.
+* `positioin` - (Optional) Specifies the position of the parameter.
 
-* `default_value` (Optional) Specifies the default value of the parameter.
+* `default_value` - (Optional) Specifies the default value of the parameter.
 
 ## Attributes Reference
 

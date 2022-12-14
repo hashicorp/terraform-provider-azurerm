@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) Map of input parameters passed to runbook.
 
-* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation. Changing this forces a new resource to be created.
+* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation. Changing this forces a new resource to be created. 
 
 ## Attributes Reference
 
@@ -98,5 +98,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Automation Webhooks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_webhook.TestRunbook_webhook /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/webhooks/TestRunbook_webhook
+terraform import azurerm_automation_webhook.TestRunbook_webhook /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/webHooks/TestRunbook_webhook
 ```

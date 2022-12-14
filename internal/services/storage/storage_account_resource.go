@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -647,6 +647,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"share_properties": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// (@jackofallops) TODO - This should not be computed, however, this would be a breaking change with unknown implications for user data so needs to be addressed for 4.0
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -784,6 +785,37 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
+			},
+
+			"sas_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"expiration_period": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"expiration_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "Log",
+							ValidateFunc: validation.StringInSlice([]string{
+								// There is no definition of this enum in the Track1 SDK due to: https://github.com/Azure/azure-sdk-for-go/issues/14589
+								"Log",
+							}, false),
+						},
+					},
+				},
+			},
+
+			"sftp_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"large_file_share_enabled": {
@@ -1046,6 +1078,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 	publicNetworkAccess := storage.PublicNetworkAccessDisabled
+	isSftpEnabled := d.Get("sftp_enabled").(bool)
 	if d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = storage.PublicNetworkAccessEnabled
 	}
@@ -1071,6 +1104,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowSharedKeyAccess:         &allowSharedKeyAccess,
 			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
 			AllowCrossTenantReplication:  &crossTenantReplication,
+			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
+			IsSftpEnabled:                &isSftpEnabled,
 		},
 	}
 
@@ -1270,6 +1305,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}))
 		}
 
+		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
+		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && isHnsEnabled {
+			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+		}
+
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
 			return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", id.Name, err)
 		}
@@ -1310,17 +1350,20 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 		shareProperties := expandShareProperties(val.([]interface{}))
+
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
-		if accountTier != string(storage.SkuTierPremium) {
-
+		if accountTier != string(storage.SkuTierPremium) && shareProperties.FileServicePropertiesProperties != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings != nil {
 			// Error if the user has tried to enable multichannel on a standard tier storage account
-			if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
-				if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
-					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+			smb := shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb
+			if smb != nil && smb.Multichannel != nil {
+				if smb.Multichannel.Enabled != nil {
+					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+					}
 				}
-			}
 
-			shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			}
 		}
 
 		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, shareProperties); err != nil {
@@ -1523,7 +1566,20 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
 			return fmt.Errorf("updating %s Customer Managed Key: %+v", *id, err)
 		}
+	}
 
+	if d.HasChange("sftp_enabled") {
+		sftpEnabled := d.Get("sftp_enabled").(bool)
+
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				IsSftpEnabled: &sftpEnabled,
+			},
+		}
+
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating `sftp_enabled` for %s: %+v", *id, err)
+		}
 	}
 
 	if d.HasChange("enable_https_traffic_only") {
@@ -1677,6 +1733,18 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("sas_policy") {
+		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				SasPolicy: expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
+			},
+		}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account sas_policy %q: %+v", id.Name, err)
+		}
+	}
+
 	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
 
 	if d.HasChange("blob_properties") {
@@ -1701,6 +1769,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if d.HasChange("blob_properties.0.container_delete_retention_policy") {
 			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
+		}
+
+		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
+			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -1747,7 +1819,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
 		if accountTier != string(storage.SkuTierPremium) {
-
 			// Error if the user has tried to enable multichannel on a standard tier storage account
 			if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
 				if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
@@ -2004,6 +2075,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
 		}
 		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+
+		if err := d.Set("sas_policy", flattenStorageAccountSASPolicy(props.SasPolicy)); err != nil {
+			return fmt.Errorf("setting `sas_policy`: %+v", err)
+		}
+
+		d.Set("sftp_enabled", props.IsSftpEnabled)
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
@@ -2303,7 +2380,6 @@ func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAcc
 			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
 		},
 	}
-
 }
 
 func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
@@ -3465,4 +3541,40 @@ func flattenEdgeZone(input *storage.ExtendedLocation) string {
 		return ""
 	}
 	return edgezones.NormalizeNilable(input.Name)
+}
+
+func expandStorageAccountSASPolicy(input []interface{}) *storage.SasPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	e := input[0].(map[string]interface{})
+
+	return &storage.SasPolicy{
+		ExpirationAction:    utils.String(e["expiration_action"].(string)),
+		SasExpirationPeriod: utils.String(e["expiration_period"].(string)),
+	}
+}
+
+func flattenStorageAccountSASPolicy(input *storage.SasPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var expirationAction string
+	if input.ExpirationAction != nil {
+		expirationAction = *input.ExpirationAction
+	}
+
+	var expirationPeriod string
+	if input.SasExpirationPeriod != nil {
+		expirationPeriod = *input.SasExpirationPeriod
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"expiration_action": expirationAction,
+			"expiration_period": expirationPeriod,
+		},
+	}
 }

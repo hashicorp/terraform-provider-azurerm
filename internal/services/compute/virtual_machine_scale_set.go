@@ -2167,7 +2167,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 
 		if v, ok := m["protected_settings_from_key_vault"]; ok {
 			protectedSettingsFromKeyVault := v.([]interface{})
-			if protectedSettingsFromKeyVault != nil && len(protectedSettingsFromKeyVault) > 0 {
+			if len(protectedSettingsFromKeyVault) > 0 {
 				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string)))
 				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string)))
 			}

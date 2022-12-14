@@ -106,7 +106,7 @@ QUERY
 The following arguments are supported:
 
 * `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance. Changing this forces a new resource to be created.
 * `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
 * `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated.  Values must be between 5 and 1440 (inclusive).
@@ -125,7 +125,7 @@ The following arguments are supported:
 
 ---
 
-`action` supports the following:
+The `action` block supports the following:
 
 * `action_group` - (Required) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
@@ -133,7 +133,7 @@ The following arguments are supported:
 
 ---
 
-`metric_trigger` supports the following:
+The `metric_trigger` block supports the following:
 
 * `metric_column` - (Required) Evaluation of metric on a particular column.
 * `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
@@ -142,7 +142,7 @@ The following arguments are supported:
 
 ---
 
-`trigger` supports the following:
+The `trigger` block supports the following:
 
 * `metric_trigger` - (Optional) A `metric_trigger` block as defined above. Trigger condition for metric query rule.
 * `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.

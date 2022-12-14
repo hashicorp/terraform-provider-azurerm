@@ -84,8 +84,7 @@ An `event_handler` block supports the following:
   * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
   * The single event name, for example `event1`, it matches `event1`.
 
-* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected`
-  and `disconnected`.
+* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
 
 * `auth` - (Optional) An `auth` block as defined below.
 

@@ -1738,7 +1738,6 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-
 }
 
 func (r HDInsightSparkClusterResource) allMetastores(data acceptance.TestData) string {

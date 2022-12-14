@@ -129,7 +129,7 @@ A `certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
-* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+* `thumbprint_secondary` - (Optional) The Secondary Thumbprint of the Certificate.
 
 * `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
 
@@ -139,7 +139,7 @@ A `reverse_proxy_certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
-* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+* `thumbprint_secondary` - (Optional) The Secondary Thumbprint of the Certificate.
 
 * `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
 
@@ -197,7 +197,7 @@ A `fabric_settings` block supports the following:
 
 A `node_type` block supports the following:
 
-* `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Node Type. 
 
 * `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
 
@@ -205,17 +205,17 @@ A `node_type` block supports the following:
 
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
-* `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
+* `is_primary` - (Required) Is this the Primary Node Type? 
 
 * `is_stateless` - (Optional) Should this node type run only stateless services?
 
 * `multiple_availability_zones` - (Optional) Does this node type span availability zones?
 
-* `client_endpoint_port` - (Required) The Port used for the Client Endpoint for this Node Type. Changing this forces a new resource to be created.
+* `client_endpoint_port` - (Required) The Port used for the Client Endpoint for this Node Type. 
 
-* `http_endpoint_port` - (Required) The Port used for the HTTP Endpoint for this Node Type. Changing this forces a new resource to be created.
+* `http_endpoint_port` - (Required) The Port used for the HTTP Endpoint for this Node Type. 
 
-* `durability_level` - (Optional) The Durability Level for this Node Type. Possible values include `Bronze`, `Gold` and `Silver`. Defaults to `Bronze`. Changing this forces a new resource to be created.
+* `durability_level` - (Optional) The Durability Level for this Node Type. Possible values include `Bronze`, `Gold` and `Silver`. Defaults to `Bronze`. 
 
 * `application_ports` - (Optional) A `application_ports` block as defined below.
 

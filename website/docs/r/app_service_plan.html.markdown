@@ -103,15 +103,15 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the App Service Plan component. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Plan component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Plan component. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption) and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
+* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption), `xenon` and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`, and when creating a `Windows`/`app` App Service Plan the `reserved` field must be set to `false`.
 
-* `maximum_elastic_worker_count` - The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
+* `maximum_elastic_worker_count` - (Optional) The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
 
 * `sku` - (Required) A `sku` block as documented below.
 
@@ -129,7 +129,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`sku` supports the following:
+---
+
+The `sku` block supports the following:
 
 * `tier` - (Required) Specifies the plan's pricing tier.
 

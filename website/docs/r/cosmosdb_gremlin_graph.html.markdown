@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
-* `unique_key` (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
+* `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -124,7 +124,7 @@ An `conflict_resolution_policy` block supports the following:
 
 An `unique_key` block supports the following:
 
-* `paths` - (Required) A list of paths to use for this unique key.
+* `paths` - (Required) A list of paths to use for this unique key. Changing this forces a new resource to be created.
 
 ---
 

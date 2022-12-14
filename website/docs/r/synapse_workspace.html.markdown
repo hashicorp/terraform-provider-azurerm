@@ -187,7 +187,7 @@ The following arguments are supported:
 
 * `aad_admin` - (Optional) An `aad_admin` block as defined below. Conflicts with `customer_managed_key`.
 
-* `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace
+* `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace Changing this forces a new resource to be created.
 
 * `azure_devops_repo` - (Optional) An `azure_devops_repo` block as defined below.
 
@@ -199,7 +199,7 @@ The following arguments are supported:
 
 * `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed AAD Tenant Ids For Linking.
 
-* `managed_resource_group_name` - (Optional) Workspace managed resource group.
+* `managed_resource_group_name` - (Optional) Workspace managed resource group. Changing this forces a new resource to be created.
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
 

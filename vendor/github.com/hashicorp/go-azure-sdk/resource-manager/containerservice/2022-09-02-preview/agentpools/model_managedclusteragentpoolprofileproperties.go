@@ -50,7 +50,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	Tags                       *map[string]string        `json:"tags,omitempty"`
 	Type                       *AgentPoolType            `json:"type,omitempty"`
 	UpgradeSettings            *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
-	VmSize                     *string                   `json:"vmSize,omitempty"`
+	VMSize                     *string                   `json:"vmSize,omitempty"`
 	VnetSubnetID               *string                   `json:"vnetSubnetID,omitempty"`
 	WindowsProfile             *AgentPoolWindowsProfile  `json:"windowsProfile,omitempty"`
 	WorkloadRuntime            *WorkloadRuntime          `json:"workloadRuntime,omitempty"`

@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Automation. Changing this forces a new Automation to be created.
 
-* `automation_account_id` (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
+* `automation_account_id` - (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
 * `operating_system` - (Required) The Operating system of target machines. Possible values are `Windows` and `Linux`.
 
@@ -91,7 +91,7 @@ A `linux` block supports the following:
 
 A `windows` block supports the following:
 
-* `classification_included` - (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+* `classification_included` - (Optional) (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
@@ -159,7 +159,7 @@ A `schedule` block supports the following:
 
 * `is_enabled` - (Optional) Whether the schedule is enabled.
 
-* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+* `frequency` - (Optional) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
 * `description` -  (Optional) A description for this Schedule.
 

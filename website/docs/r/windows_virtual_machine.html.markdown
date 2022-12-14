@@ -277,7 +277,7 @@ A `os_disk` block supports the following:
 
 * `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
 
-* `diff_disk_settings` (Optional) A `diff_disk_settings` block as defined above. Changing this forces a new resource to be created.
+* `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above. Changing this forces a new resource to be created.
 
 -> **NOTE:** `diff_disk_settings` can only be set when `caching` is set to `ReadOnly`. More information can be found [here](https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment)
 
@@ -327,7 +327,7 @@ A `secret` block supports the following:
 
 ---
 
-`source_image_reference` supports the following:
+The `source_image_reference` block supports the following:
 
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 
@@ -353,7 +353,7 @@ A `winrm_listener` block supports the following:
 
 * `Protocol` - (Required) Specifies Specifies the protocol of listener. Possible values are `Http` or `Https`
 
-* `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`.
+* `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

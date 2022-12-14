@@ -79,6 +79,8 @@ A `capture_description` block supports the following:
 
 * `destination` - (Required) A `destination` block as defined below.
 
+---
+
 A `destination` block supports the following:
 
 * `name` - (Required) The Name of the Destination where the capture should take place. At this time the only supported value is `EventHubArchive.AzureBlockBlob`.

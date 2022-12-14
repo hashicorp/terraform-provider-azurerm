@@ -104,20 +104,16 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` (Required) One, two or three `ip_configuration` blocks documented below.
+* `ip_configuration` - (Required) One, two or three `ip_configuration` blocks documented below.
   An active-standby gateway requires exactly one `ip_configuration` block,
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
-* `location` - (Required) The location/region where the Virtual Network Gateway is
-  located. Changing the location/region forces a new resource to be created.
+* `location` - (Required) The location/region where the Virtual Network Gateway is located. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Virtual Network Gateway. Changing the name
-  forces a new resource to be created.
+* `name` - (Required) The name of the Virtual Network Gateway. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-  create the Virtual Network Gateway. Changing the resource group name forces
-  a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Virtual Network Gateway. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
   gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
@@ -131,8 +127,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
-* `type` - (Required) The type of the Virtual Network Gateway. Valid options are
-  `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
+* `type` - (Required) The type of the Virtual Network Gateway. Valid options are `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
 
 ---
 
@@ -154,7 +149,7 @@ The following arguments are supported:
 
 * `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 
-* `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
+* `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`. Changing this forces a new resource to be created.
 
 -> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
 
@@ -162,19 +157,17 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which
   is documented below. In this block the Virtual Network Gateway can be configured
   to accept IPSec point-to-site connections.
 
-* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid
-  options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
+* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
 ---
 
 The `ip_configuration` block supports:
 
-* `name` - (Optional) A user-defined name of the IP configuration. Defaults to
-    `vnetGatewayConfig`.
+* `name` - (Optional) A user-defined name of the IP configuration. Defaults to `vnetGatewayConfig`. Changing this forces a new resource to be created.
 
 * `private_ip_address_allocation` - (Optional) Defines how the private IP address
     of the gateways virtual interface is assigned. Valid options are `Static` or
@@ -243,7 +236,7 @@ A `custom_route` block supports the following:
 
 ---
 
-A `peering_addresses` supports the following:
+A `peering_addresses` block supports the following:
 
 * `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
 
@@ -255,7 +248,7 @@ A `peering_addresses` supports the following:
 
 The `root_certificate` block supports:
 
-* `name` - (Required) A user-defined name of the root certificate.
+* `name` - (Required) A user-defined name of the root certificate. Changing this forces a new resource to be created.
 
 * `public_cert_data` - (Required) The public certificate of the root certificate
     authority. The certificate must be provided in Base-64 encoded X.509 format
@@ -266,7 +259,7 @@ The `root_certificate` block supports:
 
 The `root_revoked_certificate` block supports:
 
-* `name` - (Required) A user-defined name of the revoked certificate.
+* `name` - (Required) A user-defined name of the revoked certificate. Changing this forces a new resource to be created.
 
 * `public_cert_data` - (Required) The SHA1 thumbprint of the certificate to be
     revoked.
@@ -287,7 +280,7 @@ The `bgp_settings` block supports:
 
 ---
 
-The `peering_addresses` supports:
+The `peering_addresses` block supports:
 
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 

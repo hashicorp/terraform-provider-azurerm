@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -129,6 +130,7 @@ resource "azurerm_sentinel_automation_rule" "test" {
 
 func (r SentinelAutomationRuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
+	expDate := time.Now().AddDate(0, 1, 0).UTC().Format(time.RFC3339)
 	return fmt.Sprintf(`
 %s
 
@@ -140,7 +142,7 @@ resource "azurerm_sentinel_automation_rule" "test" {
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 2
   enabled                    = false
-  expiration                 = "2022-11-20T15:44:52Z"
+  expiration                 = "%s"
   condition {
     property = "IncidentTitle"
     operator = "Contains"
@@ -175,7 +177,7 @@ resource "azurerm_sentinel_automation_rule" "test" {
     owner_id = data.azurerm_client_config.current.object_id
   }
 }
-`, template, r.uuid, data.RandomInteger)
+`, template, r.uuid, data.RandomInteger, expDate)
 }
 
 func (r SentinelAutomationRuleResource) requiresImport(data acceptance.TestData) string {

@@ -95,7 +95,7 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 }
 
 func bootDiagnosticsSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -379,6 +379,43 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
+func sourceImageReferenceSchemaOrchestratedVMSS() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		ConflictsWith: []string{
+			"source_image_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"offer": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"sku": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
 func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId string) bool {
 	if imageId != "" {
 		return false
@@ -400,14 +437,14 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 	return false
 }
 
-func expandSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
+func expandSourceImageReference(referenceInput []interface{}, imageId string) *compute.ImageReference {
 	if imageId != "" {
 		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
 		if _, errors := validation.Any(validate.CommunityGalleryImageID, validate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
 			return &compute.ImageReference{
 				CommunityGalleryImageID: utils.String(imageId),
-			}, nil
+			}
 		}
 
 		// With Version            : "/sharedGalleries/galleryUniqueName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
@@ -415,12 +452,12 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 		if _, errors := validation.Any(validate.SharedGalleryImageID, validate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
 			return &compute.ImageReference{
 				SharedGalleryImageID: utils.String(imageId),
-			}, nil
+			}
 		}
 
 		return &compute.ImageReference{
 			ID: utils.String(imageId),
-		}, nil
+		}
 	}
 
 	raw := referenceInput[0].(map[string]interface{})
@@ -429,7 +466,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 		Offer:     utils.String(raw["offer"].(string)),
 		Sku:       utils.String(raw["sku"].(string)),
 		Version:   utils.String(raw["version"].(string)),
-	}, nil
+	}
 }
 
 func flattenSourceImageReference(input *compute.ImageReference, hasImageId bool) []interface{} {
