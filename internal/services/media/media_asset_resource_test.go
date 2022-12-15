@@ -45,7 +45,7 @@ func TestAccMediaAsset_requiresImport(t *testing.T) {
 	})
 }
 
-func TestMediaAccAsset_complete(t *testing.T) {
+func TestAccMediaAsset_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := MediaAssetResource{}
 
