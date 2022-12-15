@@ -273,7 +273,7 @@ The following arguments are supported:
 
 * `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
 
-* `os_profile_windows_config` - (Optional) (Required, when a windows machine) A Windows config block as documented below.
+* `os_profile_windows_config` - (Optional) A Windows config block as documented below.
 
 * `os_profile_linux_config` - (Optional) (Required, when a Linux machine) A Linux config block as documented below.
 
