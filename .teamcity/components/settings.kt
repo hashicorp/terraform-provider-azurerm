@@ -43,7 +43,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true)),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
-        "cognitive" to testConfiguration(daysOfWeek = "2,4,6"),
+        // cognitive is only available in certain locations
+        "cognitive" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus", "southcentralus", true)),
 
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
