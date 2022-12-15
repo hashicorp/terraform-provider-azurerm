@@ -665,7 +665,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
    %[5]s
   }
 
-depends_on = [azuread_service_principal.postgresql]
 }
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }

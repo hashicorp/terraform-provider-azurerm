@@ -101,7 +101,6 @@ data "azuread_service_principal" "test" {
   object_id = data.azurerm_client_config.current.object_id
 }
 
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%[1]d"
   location = "%[2]s"
@@ -123,7 +122,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
 
-  depends_on = [azuread_service_principal.postgresql]
 }
 
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "test" {
