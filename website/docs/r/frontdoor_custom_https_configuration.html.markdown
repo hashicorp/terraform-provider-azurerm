@@ -113,9 +113,9 @@ The `custom_https_configuration` block supports the following:
 
 The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
 
-* `azure_key_vault_certificate_vault_id` - (Required) The ID of the Key Vault containing the SSL certificate.
+* `azure_key_vault_certificate_vault_id` - (Optional) The ID of the Key Vault containing the SSL certificate.
 
-* `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
+* `azure_key_vault_certificate_secret_name` - (Optional) The name of the Key Vault secret representing the full certificate PFX.
 
 * `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX. Defaults to `Latest`.
 

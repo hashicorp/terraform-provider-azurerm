@@ -321,7 +321,7 @@ A `host_name_condition` block supports the following:
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `match_values` - (Required) A list of one or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
+* `match_values` - (Optional) A list of one or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
 
 * `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
@@ -373,7 +373,7 @@ A `remote_address_condition` block supports the following:
 
 ->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
-* `operator` - (Required) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`.
+* `operator` - (Optional) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`.
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 

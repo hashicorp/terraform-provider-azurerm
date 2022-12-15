@@ -272,7 +272,7 @@ A `managed_disk` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `source_network_interface_id` - (Required if the network_interface block is specified) Id source network interface.
+* `source_network_interface_id` - (Optional) (Required if the network_interface block is specified) Id source network interface.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 

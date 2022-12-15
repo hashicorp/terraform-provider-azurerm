@@ -363,7 +363,7 @@ An `ip_configuration` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - A snippet from the Response Body which must be present in the Response.
+* `body` - (Optional) A snippet from the Response Body which must be present in the Response.
 
 * `status_code` - (Required) A list of allowed status codes for this Health Probe.
 

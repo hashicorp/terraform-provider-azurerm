@@ -219,7 +219,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ```
 
-`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
 
 -> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
@@ -476,11 +476,11 @@ A `kubelet_config` block supports the following:
 
 The `kubelet_identity` block supports the following:
 
-* `client_id` - (Required) The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically.
+* `client_id` - (Optional) The Client ID of the user-defined Managed Identity to be assigned to the Kubelets. If not specified a Managed Identity is created automatically.
 
-* `object_id` - (Required) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically.
+* `object_id` - (Optional) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically.
 
-* `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.
+* `user_assigned_identity_id` - (Optional) The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically.
 
 -> **NOTE:** When `kubelet_identity` is enabled - The `type` field in the `identity` block must be set to `UserAssigned` and `identity_ids` must be set.
 
@@ -826,7 +826,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
-* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
+* `node_resource_group` - (Optional) The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 ---
 

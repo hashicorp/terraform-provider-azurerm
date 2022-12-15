@@ -121,13 +121,13 @@ A `spatial_index` block supports the following:
 
 An `included_path` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
 ---
 
 An `excluded_path` block supports the following:
 
-* `path` - Path that is excluded from indexing.
+* `path` - (Required) Path that is excluded from indexing.
 
 ---
 
@@ -139,9 +139,9 @@ A `composite_index` block supports the following:
 
 An `index` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
-* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+* `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
 ---
 

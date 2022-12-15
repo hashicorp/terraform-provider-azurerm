@@ -130,15 +130,15 @@ The following attributes are exported:
 
 * `id` - The ID of the NetApp Snapshot.
   
-* `name` - The name of the NetApp Snapshot Policy.
+* `name` - (Required) The name of the NetApp Snapshot Policy.
 
-* `resource_group_name` - The name of the resource group where the NetApp Snapshot Policy should be created.
+* `resource_group_name` - (Required) The name of the resource group where the NetApp Snapshot Policy should be created.
   
-* `location` - Specifies the supported Azure location where the resource exists.
+* `location` - (Required) Specifies the supported Azure location where the resource exists.
 
-* `account_name` - The name of the NetApp Account in which the NetApp Snapshot Policy was created.
+* `account_name` - (Required) The name of the NetApp Account in which the NetApp Snapshot Policy was created.
 
-* `enabled` - Defines that the NetApp Snapshot Policy is enabled or not.
+* `enabled` - (Required) Defines that the NetApp Snapshot Policy is enabled or not.
 
 * `hourly_schedule` - Hourly snapshot schedule.
 
@@ -146,7 +146,7 @@ The following attributes are exported:
   
 * `weekly_schedule` - Weekly snapshot schedule.
 
-* `monthly_schedule` - Monthly snapshot schedule.
+* `monthly_schedule` - (Optional) Monthly snapshot schedule.
 
 ## Timeouts
 

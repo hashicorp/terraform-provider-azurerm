@@ -124,7 +124,7 @@ The `import` block supports the following:
 
 The `threat_detection_policy` block supports the following:
 
-* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `state` - (Optional) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
 * `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.

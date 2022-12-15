@@ -293,7 +293,7 @@ Additional examples of how to run Containers via the `azurerm_app_service_slot` 
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 * `support_credentials` - (Optional) Are credentials supported?
 
@@ -463,7 +463,7 @@ A `file_system` block supports the following:
 
 A `ip_restriction` block (attribute as block) support:
 
-* `ip_address` - (Required) The IP Address used for this IP Restriction.
+* `ip_address` - (Optional) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 

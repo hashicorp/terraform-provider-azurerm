@@ -88,7 +88,7 @@ The following arguments are supported:
 ---
 An `identity` block exports the following:
 
-* `type` - The type of identity used for the Healthcare Med Tech service.
+* `type` - (Required) The type of identity used for the Healthcare Med Tech service.
 
 * `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
 

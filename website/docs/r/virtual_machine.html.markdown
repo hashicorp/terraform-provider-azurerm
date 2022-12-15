@@ -169,7 +169,7 @@ An `additional_unattend_config` block supports the following:
 
 * `setting_name` - (Required) Specifies the name of the setting to which the content applies. Possible values are: `FirstLogonCommands` and `AutoLogon`.
 
-* `content` - (Optional) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
+* `content` - (Required) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
 
 ---
 
@@ -211,7 +211,7 @@ A `os_profile` block supports the following:
 
 * `admin_username` - (Required) Specifies the name of the local administrator account.
 
-* `admin_password` - (Optional for Windows, Optional for Linux) The password associated with the local administrator account.
+* `admin_password` - (Optional) (Optional for Windows, Optional for Linux) The password associated with the local administrator account.
 
 -> **NOTE:** If using Linux, it may be preferable to use SSH Key authentication (available in the `os_profile_linux_config` block) instead of password authentication.
 
@@ -378,7 +378,7 @@ A `vault_certificates` block supports the following:
 
 -> **NOTE:** If your certificate is stored in Azure Key Vault - this can be sourced from the `secret_id` property on the `azurerm_key_vault_certificate` resource.
 
-* `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to, such as `My`.
+* `certificate_store` - (Optional) (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to, such as `My`.
 
 ---
 

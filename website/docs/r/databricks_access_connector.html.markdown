@@ -64,7 +64,7 @@ The following attributes are exported:
 ---
 
 An `identity` block exports the following:
-* `type` - The type of identity.
+* `type` - (Required) The type of identity.
 * `principal_id` - The Principal Id associated with this system-assigned managed identity.
 * `tenant_id` - The Tenant Id associated with this system-assigned managed identity.
 

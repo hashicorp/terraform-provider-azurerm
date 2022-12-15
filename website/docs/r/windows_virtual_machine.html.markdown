@@ -329,13 +329,13 @@ A `secret` block supports the following:
 
 The `source_image_reference` block supports the following:
 
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines.
 
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
 
-* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
 
-* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+* `version` - (Required) Specifies the version of the image used to create the virtual machines.
 
 ---
 

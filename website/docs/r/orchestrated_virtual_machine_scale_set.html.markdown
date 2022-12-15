@@ -339,9 +339,9 @@ An `ip_configuration` block supports the following:
 
 An `ip_tag` block supports the following:
 
-* `tag` - The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
+* `tag` - (Required) The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
 
-* `type` - The Type of IP Tag, such as `FirstPartyUsage`.
+* `type` - (Required) The Type of IP Tag, such as `FirstPartyUsage`.
 
 ---
 
@@ -435,9 +435,9 @@ A `termination_notification` block supports the following:
 
 A `source_image_reference` block supports the following:
 
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
 

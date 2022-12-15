@@ -183,7 +183,7 @@ A `rule` (NAT rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
-* `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `TCP`, `UDP`.
+* `protocols` - (Optional) Specifies a list of network protocols this rule applies to. Possible values are `TCP`, `UDP`.
 
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
 
@@ -191,7 +191,7 @@ A `rule` (NAT rule) block supports the following:
 
 * `destination_address` - (Optional) The destination IP address (including CIDR).
 
-* `destination_ports` - (Optional) Specifies a list of destination ports. Only one destination port is supported in a NAT rule.
+* `destination_ports` - (Required) Specifies a list of destination ports. Only one destination port is supported in a NAT rule.
 
 * `translated_address` - (Optional) Specifies the translated address.
 

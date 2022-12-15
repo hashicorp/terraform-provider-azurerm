@@ -172,7 +172,7 @@ A `short_term_retention_policy` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the MS SQL Database.
-* `name` - The Name of the MS SQL Database.
+* `name` - (Required) The Name of the MS SQL Database.
 
 ## Timeouts
 

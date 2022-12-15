@@ -261,11 +261,11 @@ A `private_service_connection` block exports:
 
 An `ip_configuration` block exports:
 
-* `name` - The Name of the IP Configuration.
+* `name` - (Required) The Name of the IP Configuration.
 
-* `private_ip_address` - The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
+* `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
 
-* `subresource_name` - The subresource this IP address applies to, which corresponds to the `group_id`.
+* `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 

@@ -134,7 +134,7 @@ The following arguments are supported:
 
 The `custom_rules` block supports the following:
 
-* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
+* `name` - (Optional) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
 
@@ -194,7 +194,7 @@ The `exclusion` block supports the following:
 
 * `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames`, `RequestHeaderValues`.
 
-* `selector` - (Optional) Describes field of the matchVariable collection.
+* `selector` - (Required) Describes field of the matchVariable collection.
 
 * `selector_match_operator` - (Required) Describes operator to be matched. Possible values: `Contains`, `EndsWith`, `Equals`, `EqualsAny`, `StartsWith`.
 
