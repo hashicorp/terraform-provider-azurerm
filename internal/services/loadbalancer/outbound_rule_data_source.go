@@ -16,7 +16,7 @@ import (
 
 func dataSourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: resourceArmLoadBalancerOutboundRuleRead,
+		Read: dataSourceArmLoadBalancerOutboundRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
