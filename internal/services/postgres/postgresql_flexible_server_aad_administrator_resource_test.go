@@ -101,10 +101,6 @@ data "azuread_service_principal" "test" {
   object_id = data.azurerm_client_config.current.object_id
 }
 
-resource "azuread_service_principal" "postgresql" {
-  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
-  use_existing   = true
-}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%[1]d"
