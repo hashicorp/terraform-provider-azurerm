@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
 * **New Resource:** `azurerm_spring_cloud_dev_tool_portal` [GH-19568]
 * **New Resource:** `azurerm_route_map` [GH-19402]
+* **New Data Source:** `azurerm_lb_outbound_rule` [GH-19345]
 
 ENHANCEMENTS:
 
