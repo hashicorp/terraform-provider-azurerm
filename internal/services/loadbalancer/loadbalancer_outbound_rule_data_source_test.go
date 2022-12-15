@@ -17,10 +17,8 @@ func TestAccAzureRMDataSourceLoadBalancerOutboundRule_basic(t *testing.T) {
 			Config: r.basicDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("frontend_ip_configuration_name").Exists(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.name").Exists(),
 				check.That(data.ResourceName).Key("protocol").Exists(),
-				check.That(data.ResourceName).Key("frontend_port").Exists(),
-				check.That(data.ResourceName).Key("backend_port").Exists(),
 			),
 		},
 	})
@@ -35,17 +33,11 @@ func TestAccAzureRMDataSourceLoadBalancerOutboundRule_complete(t *testing.T) {
 			Config: r.completeDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("frontend_ip_configuration_name").Exists(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration.0.name").Exists(),
 				check.That(data.ResourceName).Key("protocol").Exists(),
-				check.That(data.ResourceName).Key("frontend_port").Exists(),
-				check.That(data.ResourceName).Key("backend_port").Exists(),
 				check.That(data.ResourceName).Key("backend_address_pool_id").Exists(),
-				check.That(data.ResourceName).Key("probe_id").Exists(),
-				check.That(data.ResourceName).Key("enable_floating_ip").Exists(),
-				check.That(data.ResourceName).Key("enable_tcp_reset").Exists(),
-				check.That(data.ResourceName).Key("disable_outbound_snat").Exists(),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").Exists(),
-				check.That(data.ResourceName).Key("load_distribution").Exists(),
+				check.That(data.ResourceName).Key("tcp_reset_enabled").Exists(),
 			),
 		},
 	})
@@ -64,43 +56,105 @@ data "azurerm_lb_outbound_rule" "test" {
 }
 
 func (r LoadBalancerOutboundRule) completeDataSource(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
-%s
-resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "LbPool-%s"
-  loadbalancer_id = azurerm_lb.test.id
-}
+	provider "azurerm" {
+		features {}
+	}
+	
+	resource "azurerm_resource_group" "test" {
+		name     = "acctestRG-%d"
+		location = "%s"
+	}
+	
+	resource "azurerm_public_ip" "test1" {
+		name                = "test-ip-1-%d"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+		allocation_method   = "Static"
+		sku                 = "Standard"
+	}
+	
+	resource "azurerm_public_ip" "test2" {
+		name                = "test-ip-2-%d"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+		allocation_method   = "Static"
+		sku                 = "Standard"
+	}
+	
+	resource "azurerm_public_ip" "test3" {
+		name                = "test-ip-3-%d"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+		allocation_method   = "Static"
+		sku                 = "Standard"
+	}
+	
+	resource "azurerm_lb" "test" {
+		name                = "arm-test-loadbalancer-%d"
+		location            = azurerm_resource_group.test.location
+		resource_group_name = azurerm_resource_group.test.name
+		sku                 = "Standard"
+	
+		frontend_ip_configuration {
+			name                 = "fe1-%d"
+			public_ip_address_id = azurerm_public_ip.test1.id
+		}
+	
+		frontend_ip_configuration {
+			name                 = "fe2-%d"
+			public_ip_address_id = azurerm_public_ip.test2.id
+		}
 
-resource "azurerm_lb_probe" "test" {
-  name            = "LbProbe-%s"
-  loadbalancer_id = azurerm_lb.test.id
-  protocol        = "Tcp"
-  port            = 443
-}
+		frontend_ip_configuration {
+			name                 = "fe3-%d"
+			public_ip_address_id = azurerm_public_ip.test3.id
+		}
+	}
+	
+	resource "azurerm_lb_backend_address_pool" "test" {
+		loadbalancer_id = azurerm_lb.test.id
+		name            = "be-%d"
+	}
 
-resource "azurerm_lb_outbound_rule" "test" {
-  name            = "LbRule-%s"
-  loadbalancer_id = azurerm_lb.test.id
+	resource "azurerm_lb_outbound_rule" "test" {
+		loadbalancer_id          = azurerm_lb.test.id
+		name                     = "OutboundRule1-%d"
+		protocol                 = "All"
+		backend_address_pool_id  = azurerm_lb_backend_address_pool.test.id
+	
+		frontend_ip_configuration {
+			name = "fe1-%d"
+		}
+	}
+	
+	resource "azurerm_lb_outbound_rule" "test2" {
+		loadbalancer_id          = azurerm_lb.test.id
+		name                     = "OutboundRule2-%d"
+		protocol                 = "Tcp"
+		backend_address_pool_id  = azurerm_lb_backend_address_pool.test.id
+		enable_tcp_reset         = true
+		idle_timeout_in_minutes  = 5
+	
+		frontend_ip_configuration {
+			name = "fe2-%d"
+		}
+	}
+	
+	resource "azurerm_lb_outbound_rule" "test3" {
+		loadbalancer_id         = azurerm_lb.test.id
+		name                    = "OutboundRule3-%d"
+		protocol                = "Udp"
+		backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+	
+		frontend_ip_configuration {
+			name = "fe3-%d"
+		}
+	}
 
-  protocol      = "Tcp"
-  frontend_port = 3389
-  backend_port  = 3389
-
-  disable_outbound_snat   = true
-  enable_floating_ip      = true
-  enable_tcp_reset        = true
-  idle_timeout_in_minutes = 10
-
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-  probe_id                 = azurerm_lb_probe.test.id
-
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
-}
-
-data "azurerm_lb_outbound_rule" "test" {
-  name            = azurerm_lb_outbound_rule.test.name
-  loadbalancer_id = azurerm_lb_outbound_rule.test.loadbalancer_id
-}
-`, template, data.RandomStringOfLength(8), data.RandomStringOfLength(8), data.RandomStringOfLength(8))
+	data "azurerm_lb_outbound_rule" "test" {
+		name            = azurerm_lb_outbound_rule.test2.name
+		loadbalancer_id = azurerm_lb_outbound_rule.test.loadbalancer_id
+	}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
