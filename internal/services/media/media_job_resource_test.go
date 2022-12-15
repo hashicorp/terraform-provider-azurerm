@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/encodings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -109,7 +109,7 @@ func (MediaJobResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.Encodings.JobsGet(ctx, *id)
+	resp, err := clients.Media.V20211101Client.Encodings.JobsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
