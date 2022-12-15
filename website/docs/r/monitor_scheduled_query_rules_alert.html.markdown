@@ -125,7 +125,7 @@ The following arguments are supported:
 
 ---
 
-`action` supports the following:
+The `action` block supports the following:
 
 * `action_group` - (Required) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
@@ -133,7 +133,7 @@ The following arguments are supported:
 
 ---
 
-`metric_trigger` supports the following:
+The `metric_trigger` block supports the following:
 
 * `metric_column` - (Required) Evaluation of metric on a particular column.
 * `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
@@ -142,7 +142,7 @@ The following arguments are supported:
 
 ---
 
-`trigger` supports the following:
+The `trigger` block supports the following:
 
 * `metric_trigger` - (Optional) A `metric_trigger` block as defined above. Trigger condition for metric query rule.
 * `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.

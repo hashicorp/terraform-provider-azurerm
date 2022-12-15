@@ -1,4 +1,34 @@
-## 3.35.0 (December 08, 2022)
+## 3.36.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
+* **New Resource:** `azurerm_spring_cloud_dev_tool_portal` [GH-19568]
+* **New Resource:** `azurerm_route_map` [GH-19402]
+
+ENHANCEMENTS:
+
+* `healthbot`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19433]
+* `azurerm_key_vault_managed_hardware_security_module` - support for the `public_network_access_enabled` and `network_acls` properties [GH-19640]
+* `azurerm_kubernetes_cluster` - support for the `monitor_metrics` block [GH-19530]
+* `azurerm_kubernetes_cluster` - `ssh_key` can now be updated [GH-19634]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `outbound_nat_enabled` property [GH-19663]
+* `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
+* `azurerm_log_analytics_workspace` - support for the `allow_resource_only_permissions` property [GH-19346]
+* `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
+* `azurerm_storage_account` - support for the `blob_properties.restore_policy` property [GH-19644]
+* `azurerm_web_application_firewall_policy` - support the `rule` property in the `rule_group_override` block [GH-19497]
+
+BUG FIXES:
+
+* Data Source: `azurerm_api_management` - prevent failure when retrieving tenant access properties when permissions are missing [GH-19626]
+* `azurerm_cdn_frontdoor_firewall_policy` - allow `Log` as a valid value for managed rule override `action` in DRS 2.0 and above [GH-19637]
+* `azurerm_cosmosdb_account` - enabling `analytical_storage_enabled` no longer forces recreation [GH-19659]
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
+* `azurerm_mssql_database` - `threat_detection_policy.0.storage_*` can now be correctly set as empty [GH-19670]
+* `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
+
+## 3.35.0 (December 09, 2022)
 
 BREAKING CHANGES
 
@@ -19,8 +49,9 @@ ENHANCEMENTS:
 * `proximityplacementgroups`: updating to API Version `2022-03-01` ([#19537](https://github.com/hashicorp/terraform-provider-azurerm/issues/19537))
 * Data Source: `azurerm_kubernetes_cluster` - support for the `storage_profile` block ([#19396](https://github.com/hashicorp/terraform-provider-azurerm/issues/19396))
 * `azurerm_firewall_policy` - support for the `explicit_proxy` block and `auto_learn_private_ranges_mode` property ([#19313](https://github.com/hashicorp/terraform-provider-azurerm/issues/19313))
-* `azurerm_kubernetes_cluster` - support for the `storage_profile` block ([#19396](https://github.com/hashicorp/terraform-provider-azurerm/issues/19396))
 * `azurerm_kubernetes_cluster` - support for the `custom_ca_trust_enabled` property ([#19546](https://github.com/hashicorp/terraform-provider-azurerm/issues/19546))
+* `azurerm_kubernetes_cluster` - support for the `storage_profile` block ([#19396](https://github.com/hashicorp/terraform-provider-azurerm/issues/19396))
+* `azurerm_kubernetes_cluster` - support for the `image_cleaner` block ([#19368](https://github.com/hashicorp/terraform-provider-azurerm/issues/19368))
 * `azurerm_kubernetes_cluster` - support for the `network_plugin_mode` and `ebpf_data_plane` properties ([#19527](https://github.com/hashicorp/terraform-provider-azurerm/issues/19527))
 * `azurerm_kubernetes_cluster_node_pool` - support for the `custom_ca_trust_enabled` property ([#19546](https://github.com/hashicorp/terraform-provider-azurerm/issues/19546))
 * `azurerm_lb_probe` - support for the `probe_threshold` property ([#19573](https://github.com/hashicorp/terraform-provider-azurerm/issues/19573))

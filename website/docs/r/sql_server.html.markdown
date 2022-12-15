@@ -77,7 +77,9 @@ An `identity` block supports the following:
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Microsoft SQL Server has been created. More details are available below.
 
-`threat_detection_policy` supports the following:
+---
+
+The `threat_detection_policy` block supports the following:
 
 * `state` - (Required) The State of the Policy. Possible values are `Enabled` or `Disabled`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.

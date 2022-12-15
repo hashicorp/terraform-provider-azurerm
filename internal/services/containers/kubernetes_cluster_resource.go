@@ -307,6 +307,27 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"monitor_metrics": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"annotations_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"labels_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"default_node_pool": SchemaDefaultNodePool(),
 
 			"disk_encryption_set_id": {
@@ -378,6 +399,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
+			"image_cleaner_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"image_cleaner_interval_hours": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      48,
+				ValidateFunc: validation.IntBetween(24, 2160),
+			},
 
 			"web_app_routing": {
 				Type:     pluginsdk.TypeList,
@@ -555,7 +589,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"ssh_key": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							ForceNew: true,
 							MaxItems: 1,
 
 							Elem: &pluginsdk.Resource{
@@ -563,7 +596,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"key_data": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
@@ -1302,6 +1334,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
+	azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
+	azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
+
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
@@ -1339,6 +1374,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Enabled: &workloadIdentity,
 		}
 	}
+	if securityProfile == nil {
+		securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+	}
+
+	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+		Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+	}
 
 	parameters := managedclusters.ManagedCluster{
 		Name:             utils.String(id.ResourceName),
@@ -1354,6 +1397,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AddonProfiles:             addonProfiles,
 			AgentPoolProfiles:         agentProfiles,
 			AutoScalerProfile:         autoScalerProfile,
+			AzureMonitorProfile:       azureMonitorProfile,
 			DnsPrefix:                 utils.String(dnsPrefix),
 			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         utils.String(kubernetesVersion),
@@ -1623,6 +1667,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AutoScalerProfile = autoScalerProfile
 	}
 
+	if d.HasChange("monitor_metrics") {
+		updateCluster = true
+		azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
+
+		azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
+		existing.Model.Properties.AzureMonitorProfile = azureMonitorProfile
+	}
+
 	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
 		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
 	}
@@ -1867,6 +1919,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_hours") {
+		updateCluster = true
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		existing.Model.Properties.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+		}
+	}
+
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
@@ -2094,6 +2157,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
 		}
 
+		azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
+		if err := d.Set("monitor_metrics", azureMonitorProfile); err != nil {
+			return fmt.Errorf("setting `monitor_metrics`: %+v", err)
+		}
+
 		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
 		if err != nil {
 			return fmt.Errorf("flattening `default_node_pool`: %+v", err)
@@ -2148,6 +2216,15 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile, d)
 		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+		}
+
+		if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+			if props.SecurityProfile.ImageCleaner.Enabled != nil {
+				d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
+			}
+			if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
+				d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
+			}
 		}
 
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
@@ -3602,6 +3679,33 @@ func flattenKubernetesClusterKubeProxyConfig(input *managedclusters.ContainerSer
 	}
 }
 
+func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclusters.ManagedClusterAzureMonitorProfile {
+	if len(input) == 0 {
+		return &managedclusters.ManagedClusterAzureMonitorProfile{
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+				Enabled: false,
+			},
+		}
+	}
+	if input[0] == nil {
+		return &managedclusters.ManagedClusterAzureMonitorProfile{
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+				Enabled: true,
+			},
+		}
+	}
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ManagedClusterAzureMonitorProfile{
+		Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+			Enabled: true,
+			KubeStateMetrics: &managedclusters.ManagedClusterAzureMonitorProfileKubeStateMetrics{
+				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
+				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
+			},
+		},
+	}
+}
+
 func flattenKubernetesClusterKubeProxyIPvsConfig(input *managedclusters.ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -3626,6 +3730,31 @@ func flattenKubernetesClusterKubeProxyIPvsConfig(input *managedclusters.Containe
 			"tcp_fin_timeout_in_seconds": tcpFinTimeout,
 			"tcp_timeout_in_seconds":     tcpTimeout,
 			"udp_timeout_in_seconds":     udpTimeout,
+		},
+	}
+}
+
+func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {
+	if input == nil || input.Metrics == nil || !input.Metrics.Enabled {
+		return nil
+	}
+	if input.Metrics.KubeStateMetrics == nil {
+		return []interface{}{
+			map[string]interface{}{},
+		}
+	}
+	annotationAllowList := ""
+	if input.Metrics.KubeStateMetrics.MetricAnnotationsAllowList != nil {
+		annotationAllowList = *input.Metrics.KubeStateMetrics.MetricAnnotationsAllowList
+	}
+	labelAllowList := ""
+	if input.Metrics.KubeStateMetrics.MetricLabelsAllowlist != nil {
+		labelAllowList = *input.Metrics.KubeStateMetrics.MetricLabelsAllowlist
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"annotations_allowed": annotationAllowList,
+			"labels_allowed":      labelAllowList,
 		},
 	}
 }

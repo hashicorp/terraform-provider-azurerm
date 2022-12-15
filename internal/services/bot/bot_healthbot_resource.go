@@ -5,18 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08/healthbots"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthbotService() *pluginsdk.Resource {
@@ -34,7 +33,7 @@ func resourceHealthbotService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotHealthbotID(id)
+			_, err := healthbots.ParseHealthBotID(id)
 			return err
 		}),
 
@@ -51,12 +50,9 @@ func resourceHealthbotService() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(healthbot.F0),
-					string(healthbot.S1),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(healthbots.PossibleValuesForSkuName(), false),
 			},
 
 			"bot_management_portal_url": {
@@ -64,49 +60,41 @@ func resourceHealthbotService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Bot.HealthbotClient
+	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := parse.NewBotHealthbotID(subscriptionId, resourceGroup, name)
+	id := healthbots.NewHealthBotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.HealthBotName)
+		existing, err := client.BotsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_healthbot", id.ID())
 		}
 	}
 
-	parameters := healthbot.HealthBot{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Sku: &healthbot.Sku{
-			Name: healthbot.SkuName(d.Get("sku_name").(string)),
+	payload := healthbots.HealthBot{
+		Location: location.Normalize(d.Get("location").(string)),
+		Sku: healthbots.Sku{
+			Name: healthbots.SkuName(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, parameters)
-	if err != nil {
+	if err := client.BotsCreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -115,83 +103,83 @@ func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.HealthbotClient
+	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotHealthbotID(d.Id())
+	id, err := healthbots.ParseHealthBotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.HealthBotName)
+	resp, err := client.BotsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] healthbot %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.HealthBotName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.BotName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("sku_name", string(model.Sku.Name))
+		if props := model.Properties; props != nil {
+			d.Set("bot_management_portal_url", props.BotManagementPortalLink)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
-	if props := resp.Properties; props != nil {
-		d.Set("bot_management_portal_url", props.BotManagementPortalLink)
-	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.HealthbotClient
+	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotHealthbotID(d.Id())
+	id, err := healthbots.ParseHealthBotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := healthbot.UpdateParameters{}
+	payload := healthbots.HealthBotUpdateParameters{}
 	if d.HasChange("sku_name") {
-		parameters.Sku = &healthbot.Sku{
-			Name: healthbot.SkuName(d.Get("sku_name").(string)),
+		payload.Sku = &healthbots.Sku{
+			Name: healthbots.SkuName(d.Get("sku_name").(string)),
 		}
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.HealthBotName, parameters); err != nil {
+	if _, err := client.BotsUpdate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 	return resourceHealthbotServiceRead(d, meta)
 }
 
 func resourceHealthbotServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.HealthbotClient
+	client := meta.(*clients.Client).Bot.HealthBotClient.Healthbots
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotHealthbotID(d.Id())
+	id, err := healthbots.ParseHealthBotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.HealthBotName)
-	if err != nil {
+	if err := client.BotsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
-	}
 	return nil
 }

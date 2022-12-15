@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
-* `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -179,6 +179,8 @@ A `blob_properties` block supports the following:
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
+
+* `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set and `versioning_enabled` set to `true`.
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
@@ -230,6 +232,12 @@ A `customer_managed_key` block supports the following:
 A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `restore_policy` block supports the following:
+
+* `days` - (Required) Specifies the number of days that the blob can be restored, between `1` and `365` days. This must be less than the `days` specified for `delete_retention_policy`.
 
 ---
 
