@@ -1344,10 +1344,10 @@ resource "azurerm_mssql_database" "test" {
   sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
-    retention_days             = 15
-    state                      = "Enabled"
-    disabled_alerts            = ["Sql_Injection"]
-    email_account_admins       = "Enabled"
+    retention_days       = 15
+    state                = "Enabled"
+    disabled_alerts      = ["Sql_Injection"]
+    email_account_admins = "Enabled"
   }
 
   tags = {
