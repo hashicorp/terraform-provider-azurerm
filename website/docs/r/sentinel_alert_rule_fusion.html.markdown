@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 
-* `source` (Optional) One or more `source` blocks as defined below.
+* `source` - (Optional) One or more `source` blocks as defined below.
 
 ---
 

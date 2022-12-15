@@ -133,7 +133,7 @@ An `excluded_path` block supports the following:
 
 A `composite_index` block supports the following:
 
-* `index` - One or more `index` blocks as defined below.
+* `index` - (Required) One or more `index` blocks as defined below.
 
 ---
 

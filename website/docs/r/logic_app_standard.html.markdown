@@ -123,7 +123,7 @@ The following arguments are supported:
 
 ~> **NOTE:** There are a number of application settings that will be managed for you by this resource type and *shouldn't* be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `WEBSITE_CONTENTSHARE` is detailed below. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
 
-* `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Default true
+* `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Defaults to `true`.
 
 * `bundle_version` - (Optional) If `use_extension_bundle` then controls the allowed range for bundle versions. Default `[1.*, 2.0.0)`
 
@@ -151,7 +151,7 @@ The following arguments are supported:
 
 ~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
-* `version` - (Optional) The runtime version associated with the Logic App Defaults to `~1`.
+* `version` - (Optional) The runtime version associated with the Logic App Defaults to `~3`.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
@@ -163,7 +163,7 @@ The following arguments are supported:
 
 ---
 
-`connection_string` supports the following:
+The `connection_string` block supports the following:
 
 * `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 
@@ -173,7 +173,7 @@ The following arguments are supported:
 
 ---
 
-`site_config` supports the following:
+The `site_config` block supports the following:
 
 * `always_on` - (Optional) Should the Logic App be loaded at all times? Defaults to `false`.
 
@@ -195,7 +195,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_ip_restriction` - A [List of objects](/docs/configuration/attr-as-blocks.html) representing SCM IP restrictions as defined below.
+* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing SCM IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 

@@ -125,7 +125,9 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `id` - The ID of the Azure Front Door Custom HTTPS Configuration.
 
-* `custom_https_configuration` - A `custom_https_configuration` block as defined below.
+* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
+
+---
 
 The `custom_https_configuration` block exports the following:
 

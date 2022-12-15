@@ -92,16 +92,16 @@ The following arguments are supported:
 
 ---
 
-* `rule` supports the following:
+The `rule` block supports the following:
 
 * `name` - (Required) The name of the rule. Rule name is case-sensitive. It must be unique within a policy.
 * `enabled` - (Required)  Boolean to specify whether the rule is enabled.
-* `filters` - A `filter` block as documented below.
-* `actions` - An `actions` block as documented below.
+* `filters` - (Optional) A `filter` block as documented below.
+* `actions` - (Required) An `actions` block as documented below.
 
 ---
 
-`filters` supports the following:
+The `filters` block supports the following:
 
 * `blob_types` - (Required) An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
 * `prefix_match` - (Optional) An array of strings for prefixes to be matched.
@@ -111,15 +111,15 @@ The following arguments are supported:
 
 ---
 
-`actions` supports the following:
+The `actions` block supports the following:
 
-* `base_blob` - A `base_blob` block as documented below.
-* `snapshot` - A `snapshot` block as documented below.
-* `version` - A `version` block as documented below.
+* `base_blob` - (Optional) A `base_blob` block as documented below.
+* `snapshot` - (Optional) A `snapshot` block as documented below.
+* `version` - (Optional) A `version` block as documented below.
 
 ---
 
-`base_blob` supports the following:
+The `base_blob` block supports the following:
 
 * `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between 0 and 99999.
 * `tier_to_cool_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between `0` and `99999`.
@@ -145,7 +145,7 @@ The following arguments are supported:
 
 ---
 
-`snapshot` supports the following:
+The `snapshot` block supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob snapshot to archive storage. Must be between 0 and 99999.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
@@ -154,7 +154,7 @@ The following arguments are supported:
 
 ---
 
-`version` supports the following:
+The `version` block supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage. Must be between 0 and 99999.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999.
@@ -163,7 +163,7 @@ The following arguments are supported:
 
 ---
 
-`match_blob_index_tag` supports the following:
+The `match_blob_index_tag` block supports the following:
 
 * `name` - The filter tag name used for tag based filtering for blob objects.
 * `operation` - The comparison operator which is used for object comparison and filtering. Possible value is `==`. Defaults to `==`.

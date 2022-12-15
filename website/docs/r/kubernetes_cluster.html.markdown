@@ -95,7 +95,11 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
-* `azure_active_directory_role_based_access_control` - (Optional) - A `azure_active_directory_role_based_access_control` block as defined below.
+* `azure_active_directory_role_based_access_control` - (Optional) A `azure_active_directory_role_based_access_control` block as defined below.
+
+* `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-PrometheusAddonPreview` is enabled, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/prometheus-metrics-enable?tabs=azure-portal) for more information.
 
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
@@ -115,11 +119,17 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
 
+* `image_cleaner_enabled` - (Optional) Specifies whether Image Cleaner is enabled.
+
+* `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableImageCleanerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/image-cleaner) for more information.
+
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
 * `key_vault_secrets_provider` - (Optional) A `key_vault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver).
 
-* `kubelet_identity` - A `kubelet_identity` block as defined below. Changing this forces a new resource to be created.
+* `kubelet_identity` - (Optional) A `kubelet_identity` block as defined below. Changing this forces a new resource to be created.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade). AKS does not require an exact patch version to be specified, minor version aliases such as `1.22` are also supported. - The minor version's latest GA patch is automatically chosen in that case. More details can be found in [the documentation](https://docs.microsoft.com/en-us/azure/aks/supported-kubernetes-versions?tabs=azure-cli#alias-minor-version).
 
@@ -127,7 +137,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
-* `local_account_disabled` - (Optional) - If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/managed-aad#disable-local-accounts) for more information.
+* `local_account_disabled` - (Optional) If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/managed-aad#disable-local-accounts) for more information.
 
 -> **Note:** If `local_account_disabled` is set to `true`, it is required to enable Kubernetes RBAC and AKS-managed Azure AD integration. See [the documentation](https://docs.microsoft.com/azure/aks/managed-aad#azure-ad-authentication-overview) for more information.
 
@@ -213,7 +223,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 -> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
-* `role_based_access_control_enabled` (Optional) - Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
+* `role_based_access_control_enabled` - (Optional) Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `run_command_enabled` - (Optional) Whether to enable run command for the cluster or not. Defaults to `true`.
 
@@ -315,6 +325,14 @@ When `managed` is set to `false` the following properties can be specified:
 * `server_app_id` - (Optional) The Server ID of an Azure Active Directory Application.
 
 * `server_app_secret` - (Optional) The Server Secret of an Azure Active Directory Application.
+
+---
+
+An `monitor_metrics` block supports the following:
+
+* `annotations_allowed` - (Optional) Specifies a comma-separated list of Kubernetes annotation keys that will be used in the resource's labels metric.
+
+* `annotations_allowed` - (Optional) Specifies a Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.
 
 ---
 
@@ -484,7 +502,7 @@ A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
+* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this will update the key on all node pools. More information can be found in [the documentation](https://learn.microsoft.com/en-us/azure/aks/node-access#update-ssh-key-on-an-existing-aks-cluster-preview). 
 
 ---
 
@@ -540,9 +558,15 @@ A `network_profile` block supports the following:
 
 * `ebpf_data_plane` - (Optional) Specifies the eBPF data plane used for building the Kubernetes network. Possible value is `cilium`. Changing this forces a new resource to be created.
 
+~> **Note:** When `ebpf_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
+
+~> **Note:** When `ebpf_data_plane` is set to `cilium`, one of either `network_plugin_mode = "Overlay"` or `pod_subnet_id` must be specified.
+
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CiliumDataplanePreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-powered-by-cilium) for more information.
 
-* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`. Changing this forces a new resource to be created.
+* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `Overlay`. Changing this forces a new resource to be created.
+
+~> **Note:** When `network_plugin_mode` is set to `Overlay`, the `network_plugin` field can only be set to `azure`.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureOverlayPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-overlay) for more information.
 
@@ -636,7 +660,7 @@ A `service_principal` block supports the following:
 
 A `ssh_key` block supports the following:
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+* `key_data` - (Required) The Public SSH Key used to access the cluster.
 
 ---
 
@@ -724,7 +748,7 @@ A `web_app_routing` block supports the following:
 
 * `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled.
 
- ---
+---
 
 A `windows_profile` block supports the following:
 
@@ -747,6 +771,7 @@ A `gmsa` block supports the following:
 -> **Note:** The properties `dns_server` and `root_domain` must both either be set or unset, i.e. empty.
 
 ---
+
 A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.

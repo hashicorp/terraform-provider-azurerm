@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `rule` - (Required) A `rule` block as defined below.
+* `rule` - (Optional) A `rule` block as defined below.
 
 ---
 
@@ -125,17 +125,17 @@ The `rule` block supports the following:
 
 * `priority` - (Required) Priority of the rule, must be unique per rules engine definition.
 
-* `action` - (Required) A `rule_action` block as defined below.
+* `action` - (Optional) A `rule_action` block as defined below.
 
-* `match_condition` - One or more `match_condition` block as defined below.
+* `match_condition` - (Optional) One or more `match_condition` block as defined below.
 
 ---
 
 The `action` block supports the following:
 
-* `request_header` - A `request_header` block as defined below.
+* `request_header` - (Optional) A `request_header` block as defined below.
 
-* `response_header` - A `response_header` block as defined below.
+* `response_header` - (Optional) A `response_header` block as defined below.
 
 ---
 

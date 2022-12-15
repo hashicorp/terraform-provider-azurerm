@@ -130,7 +130,7 @@ A `incident` block supports the following:
 
 * `create_incident_enabled` - (Required) Whether to create an incident from alerts triggered by this Sentinel NRT Alert Rule?
 
-* `grouping` - (Optional) A `grouping` block as defined below.
+* `grouping` - (Required) A `grouping` block as defined below.
 
 ---
 

@@ -175,7 +175,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the synapse Workspace should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 

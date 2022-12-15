@@ -129,7 +129,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`sku` supports the following:
+---
+
+The `sku` block supports the following:
 
 * `tier` - (Required) Specifies the plan's pricing tier.
 

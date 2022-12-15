@@ -172,7 +172,7 @@ The following attributes are exported:
 
 ---
 
-The `required_network_traffic_rules` supports the following:
+The `required_network_traffic_rules` block supports the following:
 
 * `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
 
