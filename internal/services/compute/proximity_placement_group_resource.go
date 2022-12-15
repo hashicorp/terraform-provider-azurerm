@@ -8,12 +8,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -56,7 +57,7 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotWhiteSpace,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForVirtualMachineSizeTypes(), false),
 				},
 			},
 
@@ -115,9 +116,8 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("zone"); ok {
-		payload.Zones = &[]string{
-			v.(string),
-		}
+		zones := zones.Expand([]string{v.(string)})
+		payload.Zones = &zones
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
@@ -154,18 +154,19 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 
 		d.Set("location", location.Normalize(model.Location))
 
+		intentVmSizes := make([]string, 0)
 		if props := model.Properties; props != nil {
 			if intent := props.Intent; intent != nil {
 				if intent.VMSizes != nil {
-					d.Set("intent_vm_sizes", set.FromStringSlice(*intent.VMSizes))
+					intentVmSizes = *intent.VMSizes
 				}
 			}
 		}
+		d.Set("intent_vm_sizes", intentVmSizes)
 
 		zone := ""
-		if model.Zones != nil && len(*model.Zones) > 0 {
-			z := *model.Zones
-			zone = z[0]
+		if v := zones.Flatten(model.Zones); len(v) != 0 {
+			zone = v[0]
 		}
 		d.Set("zone", zone)
 
