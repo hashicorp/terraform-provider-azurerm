@@ -539,7 +539,7 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported. Possible values are `OWASP` and `Microsoft_BotManagerRuleSet`.
+* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Possible values are `OWASP` and `Microsoft_BotManagerRuleSet`.
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
