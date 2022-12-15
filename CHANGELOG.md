@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_log_analytics_workspace` - support for the `allow_resource_only_permissions` property [GH-19346]
 * `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
 * `azurerm_storage_account` - support for the `blob_properties.restore_policy` property [GH-19644]
+* `azurerm_vpn_gateway_connection` - support for the `inbound_route_map_id` and `outbound_route_map_id` properties [GH-19681]
 * `azurerm_web_application_firewall_policy` - support the `rule` property in the `rule_group_override` block [GH-19497]
 
 BUG FIXES:
