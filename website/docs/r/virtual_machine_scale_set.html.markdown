@@ -275,7 +275,7 @@ The following arguments are supported:
 
 * `os_profile_windows_config` - (Optional) A Windows config block as documented below.
 
-* `os_profile_linux_config` - (Optional) (Required, when a Linux machine) A Linux config block as documented below.
+* `os_profile_linux_config` - (Optional) A Linux config block as documented below.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
