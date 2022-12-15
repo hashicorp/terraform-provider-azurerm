@@ -118,7 +118,9 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				ConflictsWith: []string{"restore"},
 				ValidateFunc: validation.Any(
 					validate.SqlPoolID,
+					validate.SqlPoolRecoverableDatabaseID,
 					mssqlValidate.DatabaseID,
+					mssqlValidate.RecoverableDatabaseID,
 				),
 			},
 
@@ -164,6 +166,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
+	// geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -242,6 +245,17 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `data_encrypted`: %+v", err)
 		}
 	}
+
+	/*	geoBackupParams := synapse.GeoBackupPolicy{
+			Response: autorest.Response{},
+			GeoBackupPolicyProperties: &synapse.GeoBackupPolicyProperties{
+				State: synapse.GeoBackupPolicyStateEnabled,
+			},
+		}
+
+		if _, err := geoBackUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, geoBackupParams); err != nil {
+			return err
+		}*/
 
 	d.SetId(id.ID())
 	return resourceSynapseSqlPoolRead(d, meta)
@@ -348,6 +362,19 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	if props := resp.SQLPoolResourceProperties; props != nil {
 		d.Set("collation", props.Collation)
+
+		if props.RecoverableDatabaseID != nil {
+			recoverableDatabaseId := *props.RecoverableDatabaseID
+			if recoverableDatabaseId != "" {
+				id, err := parse.SqlPoolRecoverableDatabaseID(*props.RecoverableDatabaseID)
+				recoverableDatabaseId = id.ID()
+				if err != nil {
+					return err
+				}
+			}
+			d.Set("recoverable_database_id", recoverableDatabaseId)
+		}
+
 	}
 	if props := transparentDataEncryption.TransparentDataEncryptionProperties; props != nil {
 		d.Set("data_encrypted", props.Status == synapse.TransparentDataEncryptionStatusEnabled)
