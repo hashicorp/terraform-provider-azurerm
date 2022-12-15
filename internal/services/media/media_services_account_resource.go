@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -177,7 +178,7 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 		payload.Properties.StorageAuthentication = pointer.To(accounts.StorageAuthentication(v.(string)))
 	}
 
-	if _, err := client.MediaservicesCreateOrUpdate(ctx, id, payload); err != nil {
+	if err := client.MediaservicesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -324,8 +325,12 @@ func expandMediaAccountIdentity(input []interface{}) (*accounts.MediaServiceIden
 		return nil, err
 	}
 
+	identityType := string(expanded.Type)
+	if identityType == string(identity.TypeSystemAssignedUserAssigned) {
+		identityType = "SystemAssigned,UserAssigned"
+	}
 	out := accounts.MediaServiceIdentity{
-		Type: string(expanded.Type),
+		Type: identityType,
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
 		userAssignedIdentities := make(map[string]accounts.UserAssignedManagedIdentity)
@@ -343,8 +348,12 @@ func flattenMediaAccountIdentity(input *accounts.MediaServiceIdentity) (*[]inter
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
+		identityType := identity.Type(input.Type)
+		if strings.EqualFold(input.Type, "SystemAssigned,UserAssigned") {
+			identityType = identity.TypeSystemAssignedUserAssigned
+		}
 		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(input.Type),
+			Type:        identityType,
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		if input.PrincipalId != nil {
