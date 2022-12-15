@@ -146,11 +146,11 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 
 	systemPropertyColumns := d.Get("system_property_columns").(map[string]interface{})
 	dataSourceProperties := &outputs.ServiceBusTopicOutputDataSourceProperties{
-		TopicName:              utils.String(d.Get("topic_name").(string)),
-		ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
-		PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
-		SystemPropertyColumns:  expandSystemPropertyColumns(systemPropertyColumns),
-		AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		TopicName:             utils.String(d.Get("topic_name").(string)),
+		ServiceBusNamespace:   utils.String(d.Get("servicebus_namespace").(string)),
+		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		SystemPropertyColumns: expandSystemPropertyColumns(systemPropertyColumns),
+		AuthenticationMode:    utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode
