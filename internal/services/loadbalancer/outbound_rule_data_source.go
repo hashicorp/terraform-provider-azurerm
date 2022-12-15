@@ -38,7 +38,6 @@ func dataSourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 			"frontend_ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				MinItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
