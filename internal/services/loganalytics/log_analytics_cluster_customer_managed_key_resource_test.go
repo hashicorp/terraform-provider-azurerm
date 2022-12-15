@@ -221,5 +221,6 @@ resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
 
   depends_on = [azurerm_key_vault_access_policy.test]
 }
+
 `, r.template(data), data.RandomString)
 }
