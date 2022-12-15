@@ -149,7 +149,7 @@ A `routing` block supports the following:
 
 * `associated_route_table` - (Required) The ID of the Route Table associated with this VPN Connection.
 
-* `propagated_route_table` - (Required) A `propagated_route_table` block as defined below.
+* `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 
 ---
 

@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the SignalR service exists. Changing this forces a new resource to be created.
 
-* `sku` - A `sku` block as documented below.
+* `sku` - (Required) A `sku` block as documented below.
 
 * `cors` - (Optional) A `cors` block as documented below.
 

@@ -210,9 +210,9 @@ A `auth_settings` block supports the following:
 
 A `auto_heal_setting` block supports the following:
 
-* `action` - (Optional) A `action` block as defined above.
+* `action` - (Required) A `action` block as defined above.
 
-* `trigger` - (Optional) A `trigger` block as defined below.
+* `trigger` - (Required) A `trigger` block as defined below.
 
 ---
 

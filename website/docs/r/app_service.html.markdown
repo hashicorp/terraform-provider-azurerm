@@ -413,7 +413,7 @@ A `backup` block supports the following:
 
 * `storage_account_url` - (Required) The SAS URL to a Storage Container where Backups should be saved.
 
-* `schedule` - (Optional) A `schedule` block as defined below.
+* `schedule` - (Required) A `schedule` block as defined below.
 
 ---
 
