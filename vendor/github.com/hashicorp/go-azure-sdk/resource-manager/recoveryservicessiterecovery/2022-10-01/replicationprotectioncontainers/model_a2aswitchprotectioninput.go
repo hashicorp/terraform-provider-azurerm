@@ -22,8 +22,8 @@ type A2ASwitchProtectionInput struct {
 	RecoveryProximityPlacementGroupId  *string                         `json:"recoveryProximityPlacementGroupId,omitempty"`
 	RecoveryResourceGroupId            *string                         `json:"recoveryResourceGroupId,omitempty"`
 	RecoveryVirtualMachineScaleSetId   *string                         `json:"recoveryVirtualMachineScaleSetId,omitempty"`
-	VmDisks                            *[]A2AVmDiskInputDetails        `json:"vmDisks,omitempty"`
-	VmManagedDisks                     *[]A2AVmManagedDiskInputDetails `json:"vmManagedDisks,omitempty"`
+	VMDisks                            *[]A2AVMDiskInputDetails        `json:"vmDisks,omitempty"`
+	VMManagedDisks                     *[]A2AVMManagedDiskInputDetails `json:"vmManagedDisks,omitempty"`
 
 	// Fields inherited from SwitchProtectionProviderSpecificInput
 }

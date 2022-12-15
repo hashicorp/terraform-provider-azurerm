@@ -13,7 +13,7 @@ var _ FabricSpecificCreationInput = VMwareV2FabricCreationInput{}
 type VMwareV2FabricCreationInput struct {
 	MigrationSolutionId string  `json:"migrationSolutionId"`
 	PhysicalSiteId      *string `json:"physicalSiteId,omitempty"`
-	VmwareSiteId        *string `json:"vmwareSiteId,omitempty"`
+	VMwareSiteId        *string `json:"vmwareSiteId,omitempty"`
 
 	// Fields inherited from FabricSpecificCreationInput
 }

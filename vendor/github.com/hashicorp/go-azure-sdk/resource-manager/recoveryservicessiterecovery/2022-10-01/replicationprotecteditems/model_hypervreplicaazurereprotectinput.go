@@ -11,7 +11,7 @@ import (
 var _ ReverseReplicationProviderSpecificInput = HyperVReplicaAzureReprotectInput{}
 
 type HyperVReplicaAzureReprotectInput struct {
-	HvHostVmId          *string `json:"hvHostVmId,omitempty"`
+	HvHostVMId          *string `json:"hvHostVmId,omitempty"`
 	LogStorageAccountId *string `json:"logStorageAccountId,omitempty"`
 	OsType              *string `json:"osType,omitempty"`
 	StorageAccountId    *string `json:"storageAccountId,omitempty"`

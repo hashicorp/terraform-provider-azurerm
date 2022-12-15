@@ -16,7 +16,7 @@ type HyperVReplicaAzureEnableProtectionInput struct {
 	DisksToInclude                  *[]string                             `json:"disksToInclude,omitempty"`
 	DisksToIncludeForManagedDisks   *[]HyperVReplicaAzureDiskInputDetails `json:"disksToIncludeForManagedDisks,omitempty"`
 	EnableRdpOnTargetOption         *string                               `json:"enableRdpOnTargetOption,omitempty"`
-	HvHostVmId                      *string                               `json:"hvHostVmId,omitempty"`
+	HvHostVMId                      *string                               `json:"hvHostVmId,omitempty"`
 	LicenseType                     *LicenseType                          `json:"licenseType,omitempty"`
 	LogStorageAccountId             *string                               `json:"logStorageAccountId,omitempty"`
 	OsType                          *string                               `json:"osType,omitempty"`
@@ -28,13 +28,13 @@ type HyperVReplicaAzureEnableProtectionInput struct {
 	TargetAzureSubnetId             *string                               `json:"targetAzureSubnetId,omitempty"`
 	TargetAzureV1ResourceGroupId    *string                               `json:"targetAzureV1ResourceGroupId,omitempty"`
 	TargetAzureV2ResourceGroupId    *string                               `json:"targetAzureV2ResourceGroupId,omitempty"`
-	TargetAzureVmName               *string                               `json:"targetAzureVmName,omitempty"`
+	TargetAzureVMName               *string                               `json:"targetAzureVmName,omitempty"`
 	TargetManagedDiskTags           *map[string]string                    `json:"targetManagedDiskTags,omitempty"`
 	TargetNicTags                   *map[string]string                    `json:"targetNicTags,omitempty"`
 	TargetProximityPlacementGroupId *string                               `json:"targetProximityPlacementGroupId,omitempty"`
 	TargetStorageAccountId          *string                               `json:"targetStorageAccountId,omitempty"`
-	TargetVmSize                    *string                               `json:"targetVmSize,omitempty"`
-	TargetVmTags                    *map[string]string                    `json:"targetVmTags,omitempty"`
+	TargetVMSize                    *string                               `json:"targetVmSize,omitempty"`
+	TargetVMTags                    *map[string]string                    `json:"targetVmTags,omitempty"`
 	UseManagedDisks                 *string                               `json:"useManagedDisks,omitempty"`
 	UseManagedDisksForReplication   *string                               `json:"useManagedDisksForReplication,omitempty"`
 	VhdId                           *string                               `json:"vhdId,omitempty"`

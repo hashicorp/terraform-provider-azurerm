@@ -13,7 +13,7 @@ var _ FabricSpecificCreationInput = InMageRcmFabricCreationInput{}
 type InMageRcmFabricCreationInput struct {
 	PhysicalSiteId      string                `json:"physicalSiteId"`
 	SourceAgentIdentity IdentityProviderInput `json:"sourceAgentIdentity"`
-	VmwareSiteId        string                `json:"vmwareSiteId"`
+	VMwareSiteId        string                `json:"vmwareSiteId"`
 
 	// Fields inherited from FabricSpecificCreationInput
 }

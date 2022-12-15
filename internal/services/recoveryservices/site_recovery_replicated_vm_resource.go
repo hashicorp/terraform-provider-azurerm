@@ -342,7 +342,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	var managedDisks []replicationprotecteditems.A2AVmManagedDiskInputDetails
+	var managedDisks []replicationprotecteditems.A2AVMManagedDiskInputDetails
 
 	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
 		diskInput := raw.(map[string]interface{})
@@ -353,7 +353,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		targetDiskType := diskInput["target_disk_type"].(string)
 		targetEncryptionDiskSetID := diskInput["target_disk_encryption_set_id"].(string)
 
-		managedDisks = append(managedDisks, replicationprotecteditems.A2AVmManagedDiskInputDetails{
+		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskInputDetails{
 			DiskId:                              diskId,
 			PrimaryStagingAzureStorageAccountId: primaryStagingAzureStorageAccountID,
 			RecoveryResourceGroupId:             recoveryResourceGroupId,
@@ -373,7 +373,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryResourceGroupId:   &targetResourceGroupId,
 				RecoveryAvailabilitySetId: targetAvailabilitySetID,
 				RecoveryAvailabilityZone:  targetAvailabilityZone,
-				VmManagedDisks:            &managedDisks,
+				VMManagedDisks:            &managedDisks,
 			},
 		},
 	}
@@ -447,14 +447,14 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		})
 	}
 
-	var managedDisks []replicationprotecteditems.A2AVmManagedDiskUpdateDetails
+	var managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails
 	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
 		diskInput := raw.(map[string]interface{})
 		diskId := diskInput["disk_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
 		targetDiskType := diskInput["target_disk_type"].(string)
 
-		managedDisks = append(managedDisks, replicationprotecteditems.A2AVmManagedDiskUpdateDetails{
+		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskUpdateDetails{
 			DiskId:                         &diskId,
 			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:  &targetDiskType,
@@ -479,7 +479,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		Properties: &replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
 			RecoveryAzureVMName:            &name,
 			SelectedRecoveryAzureNetworkId: &targetNetworkId,
-			VmNics:                         &vmNics,
+			VMNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
 				ManagedDiskUpdateDetails: &managedDisks,
@@ -497,8 +497,8 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 
 func findNicId(state *replicationprotecteditems.ReplicationProtectedItem, sourceNicId string) *string {
 	if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
-		if a2aDetails.VmNics != nil {
-			for _, nic := range *a2aDetails.VmNics {
+		if a2aDetails.VMNics != nil {
+			for _, nic := range *a2aDetails.VMNics {
 				if nic.SourceNicArmId != nil && *nic.SourceNicArmId == sourceNicId {
 					return nic.NicId
 				}
@@ -598,9 +598,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("managed_disk", pluginsdk.NewSet(resourceSiteRecoveryReplicatedVMDiskHash, disksOutput))
 			}
 
-			if a2aDetails.VmNics != nil {
+			if a2aDetails.VMNics != nil {
 				nicsOutput := make([]interface{}, 0)
-				for _, nic := range *a2aDetails.VmNics {
+				for _, nic := range *a2aDetails.VMNics {
 					nicOutput := make(map[string]interface{})
 					if nic.SourceNicArmId != nil {
 						nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
@@ -730,8 +730,8 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 			if a2aDetails.MonitoringPercentageCompletion != nil {
 				log.Printf("Waiting for Site Recover to replicate VM, %d%% complete.", *a2aDetails.MonitoringPercentageCompletion)
 			}
-			if a2aDetails.VmProtectionState != nil {
-				return *resp.Model, *a2aDetails.VmProtectionState, nil
+			if a2aDetails.VMProtectionState != nil {
+				return *resp.Model, *a2aDetails.VMProtectionState, nil
 			}
 		}
 

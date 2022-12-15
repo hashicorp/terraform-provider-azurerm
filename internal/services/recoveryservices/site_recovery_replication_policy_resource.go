@@ -103,7 +103,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 			ProviderSpecificInput: &replicationpolicies.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
 				AppConsistentFrequencyInMinutes: &appConsistency,
-				MultiVmSyncStatus:               replicationpolicies.SetMultiVmSyncStatusEnable,
+				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
 			},
 		},
 	}
@@ -140,7 +140,7 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 			ReplicationProviderSettings: &replicationpolicies.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
 				AppConsistentFrequencyInMinutes: &appConsistency,
-				MultiVmSyncStatus:               replicationpolicies.SetMultiVmSyncStatusEnable,
+				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
 			},
 		},
 	}

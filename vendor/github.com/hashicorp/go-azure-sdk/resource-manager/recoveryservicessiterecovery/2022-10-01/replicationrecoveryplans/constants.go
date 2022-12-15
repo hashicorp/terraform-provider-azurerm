@@ -42,20 +42,20 @@ func parseA2ARpRecoveryPointType(input string) (*A2ARpRecoveryPointType, error) 
 type AlternateLocationRecoveryOption string
 
 const (
-	AlternateLocationRecoveryOptionCreateVmIfNotFound AlternateLocationRecoveryOption = "CreateVmIfNotFound"
+	AlternateLocationRecoveryOptionCreateVMIfNotFound AlternateLocationRecoveryOption = "CreateVmIfNotFound"
 	AlternateLocationRecoveryOptionNoAction           AlternateLocationRecoveryOption = "NoAction"
 )
 
 func PossibleValuesForAlternateLocationRecoveryOption() []string {
 	return []string{
-		string(AlternateLocationRecoveryOptionCreateVmIfNotFound),
+		string(AlternateLocationRecoveryOptionCreateVMIfNotFound),
 		string(AlternateLocationRecoveryOptionNoAction),
 	}
 }
 
 func parseAlternateLocationRecoveryOption(input string) (*AlternateLocationRecoveryOption, error) {
 	vals := map[string]AlternateLocationRecoveryOption{
-		"createvmifnotfound": AlternateLocationRecoveryOptionCreateVmIfNotFound,
+		"createvmifnotfound": AlternateLocationRecoveryOptionCreateVMIfNotFound,
 		"noaction":           AlternateLocationRecoveryOptionNoAction,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -219,31 +219,31 @@ func parseInMageV2RpRecoveryPointType(input string) (*InMageV2RpRecoveryPointTyp
 	return &out, nil
 }
 
-type MultiVmSyncPointOption string
+type MultiVMSyncPointOption string
 
 const (
-	MultiVmSyncPointOptionUseMultiVmSyncRecoveryPoint MultiVmSyncPointOption = "UseMultiVmSyncRecoveryPoint"
-	MultiVmSyncPointOptionUsePerVmRecoveryPoint       MultiVmSyncPointOption = "UsePerVmRecoveryPoint"
+	MultiVMSyncPointOptionUseMultiVMSyncRecoveryPoint MultiVMSyncPointOption = "UseMultiVmSyncRecoveryPoint"
+	MultiVMSyncPointOptionUsePerVMRecoveryPoint       MultiVMSyncPointOption = "UsePerVmRecoveryPoint"
 )
 
-func PossibleValuesForMultiVmSyncPointOption() []string {
+func PossibleValuesForMultiVMSyncPointOption() []string {
 	return []string{
-		string(MultiVmSyncPointOptionUseMultiVmSyncRecoveryPoint),
-		string(MultiVmSyncPointOptionUsePerVmRecoveryPoint),
+		string(MultiVMSyncPointOptionUseMultiVMSyncRecoveryPoint),
+		string(MultiVMSyncPointOptionUsePerVMRecoveryPoint),
 	}
 }
 
-func parseMultiVmSyncPointOption(input string) (*MultiVmSyncPointOption, error) {
-	vals := map[string]MultiVmSyncPointOption{
-		"usemultivmsyncrecoverypoint": MultiVmSyncPointOptionUseMultiVmSyncRecoveryPoint,
-		"usepervmrecoverypoint":       MultiVmSyncPointOptionUsePerVmRecoveryPoint,
+func parseMultiVMSyncPointOption(input string) (*MultiVMSyncPointOption, error) {
+	vals := map[string]MultiVMSyncPointOption{
+		"usemultivmsyncrecoverypoint": MultiVMSyncPointOptionUseMultiVMSyncRecoveryPoint,
+		"usepervmrecoverypoint":       MultiVMSyncPointOptionUsePerVMRecoveryPoint,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := MultiVmSyncPointOption(input)
+	out := MultiVMSyncPointOption(input)
 	return &out, nil
 }
 

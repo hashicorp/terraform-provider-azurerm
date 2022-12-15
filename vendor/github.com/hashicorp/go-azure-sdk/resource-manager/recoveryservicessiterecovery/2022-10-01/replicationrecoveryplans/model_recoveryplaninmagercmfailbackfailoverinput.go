@@ -12,7 +12,7 @@ var _ RecoveryPlanProviderSpecificFailoverInput = RecoveryPlanInMageRcmFailbackF
 
 type RecoveryPlanInMageRcmFailbackFailoverInput struct {
 	RecoveryPointType   InMageRcmFailbackRecoveryPointType `json:"recoveryPointType"`
-	UseMultiVmSyncPoint *string                            `json:"useMultiVmSyncPoint,omitempty"`
+	UseMultiVMSyncPoint *string                            `json:"useMultiVmSyncPoint,omitempty"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificFailoverInput
 }

@@ -32,9 +32,9 @@ type A2AReplicationDetails struct {
 	ManagementId                                *string                            `json:"managementId,omitempty"`
 	MonitoringJobType                           *string                            `json:"monitoringJobType,omitempty"`
 	MonitoringPercentageCompletion              *int64                             `json:"monitoringPercentageCompletion,omitempty"`
-	MultiVmGroupCreateOption                    *MultiVmGroupCreateOption          `json:"multiVmGroupCreateOption,omitempty"`
-	MultiVmGroupId                              *string                            `json:"multiVmGroupId,omitempty"`
-	MultiVmGroupName                            *string                            `json:"multiVmGroupName,omitempty"`
+	MultiVMGroupCreateOption                    *MultiVMGroupCreateOption          `json:"multiVmGroupCreateOption,omitempty"`
+	MultiVMGroupId                              *string                            `json:"multiVmGroupId,omitempty"`
+	MultiVMGroupName                            *string                            `json:"multiVmGroupName,omitempty"`
 	OsType                                      *string                            `json:"osType,omitempty"`
 	PrimaryAvailabilityZone                     *string                            `json:"primaryAvailabilityZone,omitempty"`
 	PrimaryExtendedLocation                     *edgezones.Model                   `json:"primaryExtendedLocation,omitempty"`
@@ -61,11 +61,11 @@ type A2AReplicationDetails struct {
 	TestFailoverRecoveryFabricObjectId          *string                            `json:"testFailoverRecoveryFabricObjectId,omitempty"`
 	TfoAzureVMName                              *string                            `json:"tfoAzureVMName,omitempty"`
 	UnprotectedDisks                            *[]A2AUnprotectedDiskDetails       `json:"unprotectedDisks,omitempty"`
-	VmEncryptionType                            *VmEncryptionType                  `json:"vmEncryptionType,omitempty"`
-	VmNics                                      *[]VMNicDetails                    `json:"vmNics,omitempty"`
-	VmProtectionState                           *string                            `json:"vmProtectionState,omitempty"`
-	VmProtectionStateDescription                *string                            `json:"vmProtectionStateDescription,omitempty"`
-	VmSyncedConfigDetails                       *AzureToAzureVmSyncedConfigDetails `json:"vmSyncedConfigDetails,omitempty"`
+	VMEncryptionType                            *VMEncryptionType                  `json:"vmEncryptionType,omitempty"`
+	VMNics                                      *[]VMNicDetails                    `json:"vmNics,omitempty"`
+	VMProtectionState                           *string                            `json:"vmProtectionState,omitempty"`
+	VMProtectionStateDescription                *string                            `json:"vmProtectionStateDescription,omitempty"`
+	VMSyncedConfigDetails                       *AzureToAzureVMSyncedConfigDetails `json:"vmSyncedConfigDetails,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }
