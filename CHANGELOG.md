@@ -16,6 +16,8 @@ ENHANCEMENTS:
 * `azurerm_lighthouse_definition` - support for the `eligible_authorization` property [GH-19569]
 * `azurerm_log_analytics_workspace` - support for the `allow_resource_only_permissions` property [GH-19346]
 * `azurerm_private_endpoint` - support for the `member_name` property in the `ip_configuration` block and support for multiple `ip_configuration` blocks [GH-19389]
+* `azurerm_storage_account` - support for the `blob_properties.restore_policy` property [GH-19644]
+* `azurerm_web_application_firewall_policy` - support the `rule` property in the `rule_group_override` block [GH-19497]
 
 BUG FIXES:
 
@@ -23,6 +25,7 @@ BUG FIXES:
 * `azurerm_cdn_frontdoor_firewall_policy` - allow `Log` as a valid value for managed rule override `action` in DRS 2.0 and above [GH-19637]
 * `azurerm_cosmosdb_account` - enabling `analytical_storage_enabled` no longer forces recreation [GH-19659]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - use the correct alue `Equals` for operator [GH-19594]
+* `azurerm_mssql_database` - `threat_detection_policy.0.storage_*` can now be correctly set as empty [GH-19670]
 * `azurerm_synapse_linked_service` - add validation for `type` [GH-19636]
 
 ## 3.35.0 (December 09, 2022)
