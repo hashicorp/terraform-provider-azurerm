@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_virtual_machine_packet_capture` [GH-19385]
+* **New Resource:** `azurerm_virtual_machine_scale_set_packet_capture` [GH-19385]
 * **New Resource:** `azurerm_spring_cloud_accelerator` [GH-19572]
 * **New Resource:** `azurerm_spring_cloud_dev_tool_portal` [GH-19568]
 * **New Resource:** `azurerm_route_map` [GH-19402]
