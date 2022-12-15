@@ -1,6 +1,6 @@
 package network
 
-import "github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+import "github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 
 func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfiguration, name string) *network.InterfaceIPConfiguration {
 	if input == nil {
