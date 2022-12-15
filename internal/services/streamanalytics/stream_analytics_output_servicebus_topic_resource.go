@@ -72,14 +72,14 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 
 			"shared_access_policy_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -145,20 +145,25 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	}
 
 	systemPropertyColumns := d.Get("system_property_columns").(map[string]interface{})
+	dataSourceProperties := &outputs.ServiceBusTopicOutputDataSourceProperties{
+		TopicName:              utils.String(d.Get("topic_name").(string)),
+		ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
+		PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		SystemPropertyColumns:  expandSystemPropertyColumns(systemPropertyColumns),
+		AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	}
+
+	// Add shared access policy key/name only if required by authentication mode
+	if *dataSourceProperties.AuthenticationMode == outputs.AuthenticationModeConnectionString {
+		dataSourceProperties.SharedAccessPolicyKey = utils.String(d.Get("shared_access_policy_key").(string))
+		dataSourceProperties.SharedAccessPolicyName = utils.String(d.Get("shared_access_policy_name").(string))
+	}
+
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.ServiceBusTopicOutputDataSource{
-				Properties: &outputs.ServiceBusTopicOutputDataSourceProperties{
-					TopicName:              utils.String(d.Get("topic_name").(string)),
-					ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
-					SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
-					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
-					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
-					SystemPropertyColumns:  expandSystemPropertyColumns(systemPropertyColumns),
-					//SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
-					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-				},
+				Properties: dataSourceProperties,
 			},
 			Serialization: serialization,
 		},
