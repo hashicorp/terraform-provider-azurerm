@@ -128,7 +128,7 @@ func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta i
 			backendAddressPoolId = bapid.ID()
 		}
 		d.Set("backend_address_pool_id", backendAddressPoolId)
-		d.Set("enable_tcp_reset", props.EnableTCPReset)
+		d.Set("tcp_reset_enabled", props.EnableTCPReset)
 
 		frontendIpConfigurations := make([]interface{}, 0)
 		if configs := props.FrontendIPConfigurations; configs != nil {
