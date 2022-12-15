@@ -5,11 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
+	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -17,49 +19,45 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
-func resourceNetworkPacketCapture() *pluginsdk.Resource {
+func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:             resourceNetworkPacketCaptureCreate,
-		Read:               resourceNetworkPacketCaptureRead,
-		Delete:             resourceNetworkPacketCaptureDelete,
-		DeprecationMessage: "The \"azurerm_network_packet_capture\" resource is deprecated and will be removed in favour of the `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` resources in version 4.0 of the AzureRM Provider.",
+		Create: resourceVirtualMachineScaleSetPacketCaptureCreate,
+		Read:   resourceVirtualMachineScaleSetPacketCaptureRead,
+		Delete: resourceVirtualMachineScaleSetPacketCaptureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PacketCaptureID(id)
 			return err
 		}),
 
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.NetworkPacketCaptureV0ToV1{},
-		}),
-
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
-
-			"network_watcher_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+			"network_watcher_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: networkValidate.NetworkWatcherID,
 			},
 
-			"target_resource_id": {
+			"virtual_machine_scale_set_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.Any(
+					computeValidate.VirtualMachineScaleSetID,
+				),
 			},
 
 			"maximum_bytes_per_packet": {
@@ -76,7 +74,7 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 				Default:  1073741824,
 			},
 
-			"maximum_capture_duration": {
+			"maximum_capture_duration_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
@@ -94,11 +92,13 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 						"file_path": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ValidateFunc: networkValidate.FilePath,
 							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ValidateFunc: storageValidate.StorageAccountID,
 							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_path": {
@@ -148,22 +148,57 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"machine_scope": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"exclude_instance_ids": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"include_instance_ids": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPacketCaptureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
+	watcherId, err := parse.NetworkWatcherID(d.Get("network_watcher_id").(string))
+	if err != nil {
+		return err
+	}
 
-	targetResourceId := d.Get("target_resource_id").(string)
+	id := parse.NewPacketCaptureID(subscriptionId, watcherId.ResourceGroup, watcherId.Name, d.Get("name").(string))
+
+	targetResourceId := d.Get("virtual_machine_scale_set_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
-	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
+	timeLimitInSeconds := d.Get("maximum_capture_duration_in_seconds").(int)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
@@ -173,10 +208,10 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_network_packet_capture", id.ID())
+		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_packet_capture", id.ID())
 	}
 
-	storageLocation, err := expandNetworkPacketCaptureStorageLocation(d)
+	storageLocation, err := expandVirtualMachineScaleSetPacketCaptureStorageLocation(d)
 	if err != nil {
 		return err
 	}
@@ -184,12 +219,17 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 	properties := network.PacketCapture{
 		PacketCaptureParameters: &network.PacketCaptureParameters{
 			Target:                  utils.String(targetResourceId),
+			TargetType:              network.PacketCaptureTargetTypeAzureVMSS,
 			StorageLocation:         storageLocation,
 			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
 			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
-			Filters:                 expandNetworkPacketCaptureFilters(d),
+			Filters:                 expandVirtualMachineScaleSetPacketCaptureFilters(d),
 		},
+	}
+
+	if v, ok := d.GetOk("machine_scope"); ok {
+		properties.PacketCaptureParameters.Scope = expandVirtualMachineScaleSetPacketCaptureMachineScope(v.([]interface{}))
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name, properties)
@@ -203,10 +243,10 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 
 	d.SetId(id.ID())
 
-	return resourceNetworkPacketCaptureRead(d, meta)
+	return resourceVirtualMachineScaleSetPacketCaptureRead(d, meta)
 }
 
-func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,30 +268,39 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("network_watcher_name", id.NetworkWatcherName)
-	d.Set("resource_group_name", id.ResourceGroup)
+
+	networkWatcherId := parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName)
+	d.Set("network_watcher_id", networkWatcherId.ID())
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
-		d.Set("target_resource_id", props.Target)
+		d.Set("virtual_machine_scale_set_id", props.Target)
 		d.Set("maximum_bytes_per_packet", int(*props.BytesToCapturePerPacket))
 		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
-		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
+		d.Set("maximum_capture_duration_in_seconds", int(*props.TimeLimitInSeconds))
 
-		location := flattenNetworkPacketCaptureStorageLocation(props.StorageLocation)
+		location := flattenVirtualMachineScaleSetPacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
 			return fmt.Errorf("setting `storage_location`: %+v", err)
 		}
 
-		filters := flattenNetworkPacketCaptureFilters(props.Filters)
+		filters := flattenVirtualMachineScaleSetPacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
 			return fmt.Errorf("setting `filter`: %+v", err)
+		}
+
+		scope, err := flattenVirtualMachineScaleSetPacketCaptureMachineScope(props.Scope)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("machine_scope", scope); err != nil {
+			return fmt.Errorf(`setting "machine_scope": %+v`, err)
 		}
 	}
 
 	return nil
 }
 
-func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetPacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -273,7 +322,7 @@ func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandNetworkPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
+func expandVirtualMachineScaleSetPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
 	locations := d.Get("storage_location").([]interface{})
 	if len(locations) == 0 {
 		return nil, fmt.Errorf("expandng `storage_location`: not found")
@@ -293,7 +342,7 @@ func expandNetworkPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*netw
 	return &storageLocation, nil
 }
 
-func flattenNetworkPacketCaptureStorageLocation(input *network.PacketCaptureStorageLocation) []interface{} {
+func flattenVirtualMachineScaleSetPacketCaptureStorageLocation(input *network.PacketCaptureStorageLocation) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -315,7 +364,7 @@ func flattenNetworkPacketCaptureStorageLocation(input *network.PacketCaptureStor
 	return []interface{}{output}
 }
 
-func expandNetworkPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.PacketCaptureFilter {
+func expandVirtualMachineScaleSetPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.PacketCaptureFilter {
 	inputFilters := d.Get("filter").([]interface{})
 	if len(inputFilters) == 0 {
 		return nil
@@ -345,7 +394,7 @@ func expandNetworkPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.Pac
 	return &filters
 }
 
-func flattenNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {
+func flattenVirtualMachineScaleSetPacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {
 	filters := make([]interface{}, 0)
 
 	if inFilter := input; inFilter != nil {
@@ -375,4 +424,66 @@ func flattenNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []
 	}
 
 	return filters
+}
+
+func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []interface{}) *network.PacketCaptureMachineScope {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	output := &network.PacketCaptureMachineScope{}
+
+	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
+		output.Exclude = utils.ExpandStringSlice(exclude)
+	}
+
+	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
+		output.Include = utils.ExpandStringSlice(include)
+	}
+
+	return output
+}
+
+func flattenVirtualMachineScaleSetPacketCaptureMachineScope(input *network.PacketCaptureMachineScope) ([]interface{}, error) {
+	outputs := make([]interface{}, 0)
+	if input == nil || (input.Exclude == nil && input.Include == nil) || (len(*input.Exclude) == 0 && len(*input.Include) == 0) {
+		return outputs, nil
+	}
+
+	output := make(map[string]interface{}, 0)
+
+	excludedInstanceIds, err := flattenVirtualMachineScaleSetPacketCaptureScopeInstanceIds(input.Exclude)
+	if err != nil {
+		return nil, err
+	}
+	output["exclude_instance_ids"] = excludedInstanceIds
+
+	includedInstanceIds, err := flattenVirtualMachineScaleSetPacketCaptureScopeInstanceIds(input.Include)
+	if err != nil {
+		return nil, err
+	}
+	output["include_instance_ids"] = includedInstanceIds
+
+	outputs = append(outputs, output)
+
+	return outputs, nil
+}
+
+func flattenVirtualMachineScaleSetPacketCaptureScopeInstanceIds(input *[]string) ([]string, error) {
+	instances := make([]string, 0)
+	if input == nil {
+		return instances, nil
+	}
+
+	for _, instance := range *input {
+		instance, err := computeParse.VMSSInstanceID(instance)
+		if err != nil {
+			return nil, err
+		}
+
+		instances = append(instances, instance.VirtualMachineName)
+	}
+
+	return instances, nil
 }

@@ -8,21 +8,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkPacketCaptureResource struct{}
+type VirtualMachinePacketCaptureResource struct{}
 
-// todo remove for 4.0
-func testAccNetworkPacketCapture_localDisk(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
-	r := NetworkPacketCaptureResource{}
+func testAccVirtualMachinePacketCapture_localDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_packet_capture", "test")
+	r := VirtualMachinePacketCaptureResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -35,13 +30,9 @@ func testAccNetworkPacketCapture_localDisk(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
-func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
-	r := NetworkPacketCaptureResource{}
+func testAccVirtualMachinePacketCapture_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_packet_capture", "test")
+	r := VirtualMachinePacketCaptureResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -50,20 +41,13 @@ func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.localDiskConfig_requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_network_packet_capture"),
-		},
+		data.RequiresImportErrorStep(r.localDiskConfig_requiresImport),
 	})
 }
 
-// todo remove for 4.0
-func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
-	r := NetworkPacketCaptureResource{}
+func testAccVirtualMachinePacketCapture_storageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_packet_capture", "test")
+	r := VirtualMachinePacketCaptureResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -76,13 +60,9 @@ func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
-func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
-	r := NetworkPacketCaptureResource{}
+func testAccVirtualMachinePacketCapture_storageAccountAndLocalDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_packet_capture", "test")
+	r := VirtualMachinePacketCaptureResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -95,13 +75,9 @@ func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
-func testAccNetworkPacketCapture_withFilters(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
-	r := NetworkPacketCaptureResource{}
+func testAccVirtualMachinePacketCapture_withFilters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_packet_capture", "test")
+	r := VirtualMachinePacketCaptureResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +90,7 @@ func testAccNetworkPacketCapture_withFilters(t *testing.T) {
 	})
 }
 
-func (t NetworkPacketCaptureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VirtualMachinePacketCaptureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PacketCaptureID(state.ID)
 	if err != nil {
 		return nil, err
@@ -122,13 +98,13 @@ func (t NetworkPacketCaptureResource) Exists(ctx context.Context, clients *clien
 
 	resp, err := clients.Network.PacketCapturesClient.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Network Packet Capture (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (NetworkPacketCaptureResource) base(data acceptance.TestData) string {
+func (VirtualMachinePacketCaptureResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -216,15 +192,14 @@ resource "azurerm_virtual_machine_extension" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetworkPacketCaptureResource) localDiskConfig(data acceptance.TestData) string {
+func (r VirtualMachinePacketCaptureResource) localDiskConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_virtual_machine.test.id
+resource "azurerm_virtual_machine_packet_capture" "test" {
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -232,18 +207,17 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, r.base(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r NetworkPacketCaptureResource) localDiskConfig_requiresImport(data acceptance.TestData) string {
+func (r VirtualMachinePacketCaptureResource) localDiskConfig_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_packet_capture" "import" {
-  name                 = azurerm_network_packet_capture.test.name
-  network_watcher_name = azurerm_network_packet_capture.test.network_watcher_name
-  resource_group_name  = azurerm_network_packet_capture.test.resource_group_name
-  target_resource_id   = azurerm_network_packet_capture.test.target_resource_id
+resource "azurerm_virtual_machine_packet_capture" "import" {
+  name               = azurerm_virtual_machine_packet_capture.test.name
+  network_watcher_id = azurerm_virtual_machine_packet_capture.test.network_watcher_id
+  virtual_machine_id = azurerm_virtual_machine_packet_capture.test.virtual_machine_id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -254,15 +228,14 @@ resource "azurerm_network_packet_capture" "import" {
 `, r.localDiskConfig(data))
 }
 
-func (r NetworkPacketCaptureResource) localDiskConfigWithFilters(data acceptance.TestData) string {
+func (r VirtualMachinePacketCaptureResource) localDiskConfigWithFilters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_virtual_machine.test.id
+resource "azurerm_virtual_machine_packet_capture" "test" {
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -282,10 +255,10 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, r.base(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r NetworkPacketCaptureResource) storageAccountConfig(data acceptance.TestData) string {
+func (r VirtualMachinePacketCaptureResource) storageAccountConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -297,11 +270,10 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_network_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_virtual_machine.test.id
+resource "azurerm_virtual_machine_packet_capture" "test" {
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     storage_account_id = azurerm_storage_account.test.id
@@ -309,10 +281,10 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, r.base(data), data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
-func (r NetworkPacketCaptureResource) storageAccountAndLocalDiskConfig(data acceptance.TestData) string {
+func (r VirtualMachinePacketCaptureResource) storageAccountAndLocalDiskConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -324,11 +296,10 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_network_packet_capture" "test" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  target_resource_id   = azurerm_virtual_machine.test.id
+resource "azurerm_virtual_machine_packet_capture" "test" {
+  name               = "acctestpc-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path          = "/var/captures/packet.cap"
@@ -337,5 +308,5 @@ resource "azurerm_network_packet_capture" "test" {
 
   depends_on = [azurerm_virtual_machine_extension.test]
 }
-`, r.base(data), data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
