@@ -299,7 +299,7 @@ The following arguments are supported:
 
 * `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
 
-* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
+* `license_type` - (Optional) (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 
@@ -385,7 +385,7 @@ The `os_profile` block supports the following:
 
 * `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for Linux. Changing this forces a new resource to be created.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
-* `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
+* `admin_password` - (Optional) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
 * `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 ---
@@ -393,7 +393,7 @@ The `os_profile` block supports the following:
 The `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the key vault to use.
-* `vault_certificates` - (Required, on windows machines) A collection of Vault Certificates as documented below
+* `vault_certificates` - (Optional) (Required, on windows machines) A collection of Vault Certificates as documented below
 
 `vault_certificates` support the following:
 
@@ -423,7 +423,7 @@ The `additional_unattend_config` block supports the following:
 * `pass` - (Required) Specifies the name of the pass that the content applies to. The only allowable value is `oobeSystem`.
 * `component` - (Required) Specifies the name of the component to configure with the added content. The only allowable value is `Microsoft-Windows-Shell-Setup`.
 * `setting_name` - (Required) Specifies the name of the setting to which the content applies. Possible values are: `FirstLogonCommands` and `AutoLogon`.
-* `content` - (Optional) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
+* `content` - (Required) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
 
 ---
 
@@ -498,7 +498,7 @@ The `storage_profile_os_disk` block supports the following:
 The `storage_profile_data_disk` block supports the following:
 
 * `lun` - (Required) Specifies the Logical Unit Number of the disk in each virtual machine in the scale set.
-* `create_option` - (Optional) Specifies how the data disk should be created. The only possible options are `FromImage` and `Empty`.
+* `create_option` - (Required) Specifies how the data disk should be created. The only possible options are `FromImage` and `Empty`.
 * `caching` - (Optional) Specifies the caching requirements. Possible values include: `None` (default), `ReadOnly`, `ReadWrite`.
 * `disk_size_gb` - (Optional) Specifies the size of the disk in GB. This element is required when creating an empty disk.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
@@ -518,8 +518,9 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 
 The `boot_diagnostics` block supports the following:
 
-* `enabled`: - (Required) Whether to enable boot diagnostics for the virtual machine.
-* `storage_uri`: - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+* `enabled` - (Optional) Whether to enable boot diagnostics for the virtual machine.
+
+* `storage_uri` - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
 
 ---
 
@@ -531,7 +532,7 @@ The `extension` block supports the following:
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
 * `provision_after_extensions` - (Optional) Specifies a dependency array of extensions required to be executed before, the array stores the name of each extension.
-* `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
+* `settings` - (Optional) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 
 ---

@@ -154,7 +154,7 @@ The `ssh_auth` block supports the following:
 
 The `trace` block supports the following:
 
-* `connection_string` - (Required) The connection string used for Application Insights.
+* `connection_string` - (Optional) The connection string used for Application Insights.
 
 * `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
 

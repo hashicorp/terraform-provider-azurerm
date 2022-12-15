@@ -46,7 +46,7 @@ resource "azurerm_public_ip" "example" {
   allocation_method   = "Dynamic"
 }
 
-# since these variables are re-used - a locals block makes this more maintainable
+# since these variables are re-used - a locals block makes this more maintainable
 locals {
   backend_address_pool_name      = "${azurerm_virtual_network.example.name}-beap"
   frontend_port_name             = "${azurerm_virtual_network.example.name}-feport"
@@ -237,11 +237,11 @@ A `backend_http_settings` block supports the following:
 
 * `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
 
-* `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
+* `port` - (Required) The port which should be used for this Backend HTTP Settings Collection.
 
 * `probe_name` - (Optional) The name of an associated HTTP Probe.
 
-* `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
+* `protocol` - (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
 * `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
@@ -249,7 +249,7 @@ A `backend_http_settings` block supports the following:
 
 * `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
+* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
@@ -363,7 +363,7 @@ An `ip_configuration` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - A snippet from the Response Body which must be present in the Response.
+* `body` - (Optional) A snippet from the Response Body which must be present in the Response.
 
 * `status_code` - (Required) A list of allowed status codes for this Health Probe.
 
