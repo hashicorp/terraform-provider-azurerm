@@ -63,6 +63,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.root_domain", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			pluginsdk.ForceNewIfChange("api_server_subnet_id", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
