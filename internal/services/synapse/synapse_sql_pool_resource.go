@@ -363,8 +363,9 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := resp.SQLPoolResourceProperties; props != nil {
 		d.Set("collation", props.Collation)
 
+		recoverableDatabaseId := ""
 		if props.RecoverableDatabaseID != nil {
-			recoverableDatabaseId := *props.RecoverableDatabaseID
+			recoverableDatabaseId = *props.RecoverableDatabaseID
 			if recoverableDatabaseId != "" {
 				id, err := parse.SqlPoolRecoverableDatabaseID(*props.RecoverableDatabaseID)
 				recoverableDatabaseId = id.ID()
@@ -372,9 +373,8 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 					return err
 				}
 			}
-			d.Set("recoverable_database_id", recoverableDatabaseId)
 		}
-
+		d.Set("recoverable_database_id", recoverableDatabaseId)
 	}
 	if props := transparentDataEncryption.TransparentDataEncryptionProperties; props != nil {
 		d.Set("data_encrypted", props.Status == synapse.TransparentDataEncryptionStatusEnabled)
