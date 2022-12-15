@@ -265,7 +265,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
 
-* `bgp_settings` - A block of `bgp_settings`.
+* `bgp_settings` - (Optional) A block of `bgp_settings`.
 
 ---
 

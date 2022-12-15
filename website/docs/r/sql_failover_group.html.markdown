@@ -112,7 +112,7 @@ The following attributes are exported:
 * `server_name` - (Required) the name of the primary SQL Database Server.
 * `role` - local replication role of the failover group instance.
 * `databases` - (Optional) list of databases in the failover group.
-* `partner_servers` - list of partner server information for the failover group.
+* `partner_servers` - (Required) list of partner server information for the failover group.
 
 ## Timeouts
 

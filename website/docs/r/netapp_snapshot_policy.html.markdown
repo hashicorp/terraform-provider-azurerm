@@ -140,11 +140,11 @@ The following attributes are exported:
 
 * `enabled` - (Required) Defines that the NetApp Snapshot Policy is enabled or not.
 
-* `hourly_schedule` - Hourly snapshot schedule.
+* `hourly_schedule` - (Optional) Hourly snapshot schedule.
 
-* `daily_schedule` - Daily snapshot schedule.
+* `daily_schedule` - (Optional) Daily snapshot schedule.
   
-* `weekly_schedule` - Weekly snapshot schedule.
+* `weekly_schedule` - (Optional) Weekly snapshot schedule.
 
 * `monthly_schedule` - (Optional) Monthly snapshot schedule.
 
