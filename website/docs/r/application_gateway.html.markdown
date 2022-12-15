@@ -539,9 +539,9 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
+* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported. Possible values are `OWASP` and `Microsoft_BotManagerRuleSet`.
 
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, `3.1`,  and `3.2`.
+* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
@@ -557,7 +557,7 @@ A `waf_configuration` block supports the following:
 
 A `disabled_rule_group` block supports the following:
 
-* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Accepted values are:  `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `General`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`
+* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Possible values are `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `General`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION` and `REQUEST-944-APPLICATION-ATTACK-JAVA`.
 
 * `rules` - (Optional) A list of rules which should be disabled in that group. Disables all rules in the specified group if `rules` is not specified.
 

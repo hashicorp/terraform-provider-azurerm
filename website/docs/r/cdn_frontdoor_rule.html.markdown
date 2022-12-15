@@ -307,7 +307,7 @@ A `ssl_protocol_condition` block supports the following:
 
 ->The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
 
-* `match_values` - (Required) A list of one or more HTTP methods. Possible values include `TLSv1.0`, `TLSv1.1` or `TLS1.2`. If multiple values are specified, they're evaluated using `OR` logic.
+* `match_values` - (Required) A list of one or more HTTP methods. Possible values are `TLSv1`, `TLSv1.1` and `TLSv1.2` logic.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
