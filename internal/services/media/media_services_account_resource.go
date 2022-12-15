@@ -326,6 +326,7 @@ func expandMediaAccountIdentity(input []interface{}) (*accounts.MediaServiceIden
 	}
 
 	identityType := string(expanded.Type)
+	// https://github.com/Azure/azure-rest-api-specs/issues/21905
 	if identityType == string(identity.TypeSystemAssignedUserAssigned) {
 		identityType = "SystemAssigned,UserAssigned"
 	}
