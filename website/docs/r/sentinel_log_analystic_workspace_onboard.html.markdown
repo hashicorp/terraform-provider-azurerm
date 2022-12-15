@@ -1,5 +1,5 @@
 ---
-subcategory: "Security Insights"
+subcategory: "Sentinel"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sentinel_log_analytics_workspace_onboard"
 description: |-
