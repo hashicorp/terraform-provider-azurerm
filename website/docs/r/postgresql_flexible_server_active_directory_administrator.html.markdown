@@ -13,8 +13,20 @@ Allows you to set a user or group as the AD administrator for a PostgreSQL Flexi
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {
+
+}
+
 data "azurerm_client_config" "current" {}
 
+resource "azuread_service_principal" "postgresql" {
+  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
+  use_existing   = true
+}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -34,6 +46,8 @@ resource "azurerm_postgresql_flexible_server" "example" {
     active_directory_auth_enabled = true
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
+
+  depends_on = [azuread_service_principal.postgresql]
 }
 
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "example" {

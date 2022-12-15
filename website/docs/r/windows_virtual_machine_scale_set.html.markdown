@@ -408,9 +408,9 @@ An `ip_configuration` block supports the following:
 
 An `ip_tag` block supports the following:
 
-* `tag` - The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
+* `tag` - (Required) The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
 
-* `type` - The Type of IP Tag, such as `FirstPartyUsage`.
+* `type` - (Required) The Type of IP Tag, such as `FirstPartyUsage`.
 
 ---
 

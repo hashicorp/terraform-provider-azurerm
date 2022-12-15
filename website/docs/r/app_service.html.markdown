@@ -273,7 +273,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 * `support_credentials` - (Optional) Are credentials supported?
 
@@ -413,7 +413,7 @@ A `backup` block supports the following:
 
 * `storage_account_url` - (Required) The SAS URL to a Storage Container where Backups should be saved.
 
-* `schedule` - (Optional) A `schedule` block as defined below.
+* `schedule` - (Required) A `schedule` block as defined below.
 
 ---
 
@@ -421,7 +421,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) Sets how often the backup should be executed.
 
-* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
+* `frequency_unit` - (Required) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
 
 * `keep_at_least_one_backup` - (Optional) Should at least one backup always be kept in the Storage Account by the Retention Policy, regardless of how old it is?
 
@@ -491,8 +491,8 @@ A `site_credential` block exports the following:
 
 A `source_control` block exports the following:
 
-* `repo_url` - URL of the Git repository for this App Service.
-* `branch` - Branch name of the Git repository for this App Service.
+* `repo_url` - (Optional) URL of the Git repository for this App Service.
+* `branch` - (Optional) Branch name of the Git repository for this App Service.
 
 ## Timeouts
 

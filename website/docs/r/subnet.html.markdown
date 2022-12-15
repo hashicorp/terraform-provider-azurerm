@@ -102,11 +102,11 @@ A `service_delegation` block supports the following:
 The following attributes are exported:
 
 * `id` - The subnet ID.
-* `name` - The name of the subnet.
-* `resource_group_name` - The name of the resource group in which the subnet is created in.
-* `virtual_network_name` - The name of the virtual network in which the subnet is created in
+* `name` - (Required) The name of the subnet.
+* `resource_group_name` - (Required) The name of the resource group in which the subnet is created in.
+* `virtual_network_name` - (Required) The name of the virtual network in which the subnet is created in
 * `address_prefix` - (Deprecated) The address prefix for the subnet
-* `address_prefixes` - The address prefixes for the subnet
+* `address_prefixes` - (Required) The address prefixes for the subnet
 
 ## Timeouts
 

@@ -180,7 +180,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Subscription Consumption Budget.
 
-* `etag` - The ETag of the Subscription Consumption Budget.
+* `etag` - (Optional) The ETag of the Subscription Consumption Budget.
 
 ## Timeouts
 

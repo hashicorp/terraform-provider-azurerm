@@ -95,13 +95,13 @@ The following arguments are supported:
 
 * `roles` - (Required) A `roles` block as defined below.
 
-* `storage_account` - (Required) One or more `storage_account` block as defined below.
+* `storage_account` - (Optional) One or more `storage_account` block as defined below.
 
 * `network` - (Optional) A `network` block as defined below.
 
 * `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
 
-* `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
+* `storage_account_gen2` - (Optional) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
@@ -249,7 +249,7 @@ A `worker_node` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `target_instance_count` - (Optional) The number of instances which should be run for the Worker Nodes.
+* `target_instance_count` - (Required) The number of instances which should be run for the Worker Nodes.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
@@ -293,7 +293,7 @@ A `edge_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Edge Nodes. Changing this forces a new resource to be created.
 
-* `install_script_action` - A `install_script_action` block as defined below.
+* `install_script_action` - (Required) A `install_script_action` block as defined below.
 
 ---
 

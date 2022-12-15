@@ -150,7 +150,7 @@ A `incident_configuration` block supports the following:
 
 * `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule?
 
-* `grouping` - (Optional) A `grouping` block as defined below.
+* `grouping` - (Required) A `grouping` block as defined below.
 
 ---
 

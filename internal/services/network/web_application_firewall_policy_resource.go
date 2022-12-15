@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -20,7 +22,7 @@ import (
 )
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceWebApplicationFirewallPolicyCreateUpdate,
 		Read:   resourceWebApplicationFirewallPolicyRead,
 		Update: resourceWebApplicationFirewallPolicyCreateUpdate,
@@ -272,11 +274,41 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Required:     true,
 													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
 												},
-												"disabled_rules": {
+												"rule": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Elem: &pluginsdk.Schema{
-														Type: pluginsdk.TypeString,
+													Computed: !features.FourPointOhBeta(),
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"id": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+
+															"enabled": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+																Default: func() interface{} {
+																	if !features.FourPointOhBeta() {
+																		return nil
+																	}
+
+																	return false
+																}(),
+															},
+
+															"action": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(network.ActionTypeAllow),
+																	string(network.ActionTypeAnomalyScoring),
+																	string(network.ActionTypeBlock),
+																	string(network.ActionTypeLog),
+																}, false),
+															},
+														},
 													},
 												},
 											},
@@ -344,7 +376,40 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			if !features.FourPointOhBeta() {
+				// Since ConflictsWith cannot be used on these properties and the properties are optional and computed, diff.GetOK may still return value even the property is not configured. Have to check the configuration with GetRawConfig
+				managedRuleSetList := diff.GetRawConfig().AsValueMap()["managed_rules"].AsValueSlice()[0].AsValueMap()["managed_rule_set"].AsValueSlice()
+				for _, managedRuleSetVal := range managedRuleSetList {
+					ruleGroupOverrideList := managedRuleSetVal.AsValueMap()["rule_group_override"].AsValueSlice()
+					for _, ruleGroupOverrideVal := range ruleGroupOverrideList {
+						disabledRules := ruleGroupOverrideVal.AsValueMap()["disabled_rules"]
+						ruleList := ruleGroupOverrideVal.AsValueMap()["rule"].AsValueSlice()
+						if !disabledRules.IsNull() && len(ruleList) != 0 {
+							return fmt.Errorf("`disabled_rules` cannot be set when `rule` is set under `rule_group_override`")
+						}
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["managed_rules"].Elem.(*pluginsdk.Resource).Schema["managed_rule_set"].Elem.(*pluginsdk.Resource).Schema["rule_group_override"].Elem.(*pluginsdk.Resource).Schema["disabled_rules"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`disabled_rules` will be removed in favour of the `rule` property in version 4.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -634,12 +699,19 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}) *
 			RuleGroupName: utils.String(ruleGroupName),
 		}
 
-		if disabledRules := v["disabled_rules"].([]interface{}); len(disabledRules) > 0 {
-			result.Rules = expandWebApplicationFirewallPolicyRules(disabledRules)
+		if !features.FourPointOhBeta() {
+			if disabledRules := v["disabled_rules"].([]interface{}); len(disabledRules) > 0 {
+				result.Rules = expandWebApplicationFirewallPolicyRules(disabledRules)
+			}
+		}
+
+		if rules := v["rule"].([]interface{}); len(rules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyOverrideRules(rules)
 		}
 
 		results = append(results, result)
 	}
+
 	return &results
 }
 
@@ -655,6 +727,31 @@ func expandWebApplicationFirewallPolicyRules(input []interface{}) *[]network.Man
 
 		results = append(results, result)
 	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]network.ManagedRuleOverride {
+	results := make([]network.ManagedRuleOverride, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		state := network.ManagedRuleEnabledStateDisabled
+		if v["enabled"].(bool) {
+			state = network.ManagedRuleEnabledStateEnabled
+		}
+
+		result := network.ManagedRuleOverride{
+			RuleID: utils.String(v["id"].(string)),
+			State:  state,
+		}
+
+		action := v["action"].(string)
+		if action != "" {
+			result.Action = network.ActionType(action)
+		}
+
+		results = append(results, result)
+	}
+
 	return &results
 }
 
@@ -862,14 +959,19 @@ func flattenWebApplicationFirewallPolicyRuleGroupOverrides(input *[]network.Mana
 		v := make(map[string]interface{})
 
 		v["rule_group_name"] = item.RuleGroupName
-		v["disabled_rules"] = flattenWebApplicationFirewallPolicyManagedRuleOverrides(item.Rules)
+
+		if !features.FourPointOhBeta() {
+			v["disabled_rules"] = flattenWebApplicationFirewallPolicyRules(item.Rules)
+		}
+
+		v["rule"] = flattenWebApplicationFirewallPolicyOverrideRules(item.Rules)
 
 		results = append(results, v)
 	}
 	return results
 }
 
-func flattenWebApplicationFirewallPolicyManagedRuleOverrides(input *[]network.ManagedRuleOverride) []string {
+func flattenWebApplicationFirewallPolicyRules(input *[]network.ManagedRuleOverride) []string {
 	results := make([]string, 0)
 	if input == nil || len(*input) == 0 {
 		return results
@@ -881,6 +983,28 @@ func flattenWebApplicationFirewallPolicyManagedRuleOverrides(input *[]network.Ma
 
 			results = append(results, v)
 		}
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyOverrideRules(input *[]network.ManagedRuleOverride) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+		if item.RuleID != nil {
+			v["id"] = *item.RuleID
+		}
+
+		v["enabled"] = item.State == network.ManagedRuleEnabledStateEnabled
+
+		v["action"] = string(item.Action)
+
+		results = append(results, v)
 	}
 
 	return results

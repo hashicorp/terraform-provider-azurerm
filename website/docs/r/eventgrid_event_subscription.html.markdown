@@ -147,25 +147,25 @@ A `subject_filter` block supports the following:
 
 A `advanced_filter` supports the following nested blocks:
 
-* `bool_equals` - Compares a value of an event using a single boolean value.
-* `number_greater_than` - Compares a value of an event using a single floating point number.
-* `number_greater_than_or_equals` - Compares a value of an event using a single floating point number.
-* `number_less_than` - Compares a value of an event using a single floating point number.
-* `number_less_than_or_equals` - Compares a value of an event using a single floating point number.
-* `number_in` - Compares a value of an event using multiple floating point numbers.
-* `number_not_in` - Compares a value of an event using multiple floating point numbers.
-* `number_in_range` - Compares a value of an event using multiple floating point number ranges.
-* `number_not_in_range` - Compares a value of an event using multiple floating point number ranges.
-* `string_begins_with` - Compares a value of an event using multiple string values.
-* `string_not_begins_with` - Compares a value of an event using multiple string values.
-* `string_ends_with` - Compares a value of an event using multiple string values.
-* `string_not_ends_with` - Compares a value of an event using multiple string values.
-* `string_contains` - Compares a value of an event using multiple string values.
-* `string_not_contains` - Compares a value of an event using multiple string values.
-* `string_in` - Compares a value of an event using multiple string values.
-* `string_not_in` - Compares a value of an event using multiple string values.
-* `is_not_null` - Evaluates if a value of an event isn't NULL or undefined.
-* `is_null_or_undefined` - Evaluates if a value of an event is NULL or undefined.
+* `bool_equals` - (Optional) Compares a value of an event using a single boolean value.
+* `number_greater_than` - (Optional) Compares a value of an event using a single floating point number.
+* `number_greater_than_or_equals` - (Optional) Compares a value of an event using a single floating point number.
+* `number_less_than` - (Optional) Compares a value of an event using a single floating point number.
+* `number_less_than_or_equals` - (Optional) Compares a value of an event using a single floating point number.
+* `number_in` - (Optional) Compares a value of an event using multiple floating point numbers.
+* `number_not_in` - (Optional) Compares a value of an event using multiple floating point numbers.
+* `number_in_range` - (Optional) Compares a value of an event using multiple floating point number ranges.
+* `number_not_in_range` - (Optional) Compares a value of an event using multiple floating point number ranges.
+* `string_begins_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_begins_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_ends_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_ends_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_contains` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_contains` - (Optional) Compares a value of an event using multiple string values.
+* `string_in` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_in` - (Optional) Compares a value of an event using multiple string values.
+* `is_not_null` - (Optional) Evaluates if a value of an event isn't NULL or undefined.
+* `is_null_or_undefined` - (Optional) Evaluates if a value of an event is NULL or undefined.
 
 Each nested block consists of a key and a value(s) element.
 

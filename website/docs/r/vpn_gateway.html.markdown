@@ -103,9 +103,9 @@ A `bgp_settings` block exports the following:
 
 * `bgp_peering_address` - The Address which should be used for the BGP Peering.
 
-* `instance_0_bgp_peering_address` - an `instance_bgp_peering_address` block as defined below.
+* `instance_0_bgp_peering_address` - (Optional) an `instance_bgp_peering_address` block as defined below.
 
-* `instance_1_bgp_peering_address` - an `instance_bgp_peering_address` block as defined below.
+* `instance_1_bgp_peering_address` - (Optional) an `instance_bgp_peering_address` block as defined below.
 
 ---
 

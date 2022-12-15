@@ -174,9 +174,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `is_online` - Is this API Revision online/accessible via the Gateway?
 
-* `version` - The Version number of this API, if this API is versioned.
+* `version` - (Optional) The Version number of this API, if this API is versioned.
 
-* `version_set_id` - The ID of the Version Set which this API is associated with.
+* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
 
 ## Timeouts
 
