@@ -170,6 +170,7 @@ resource "azurerm_log_analytics_workspace" "test" {
     ]
   }
 }
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
