@@ -131,15 +131,15 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			appCfgKeyResourceID := parse.AppConfigurationKeyId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
-				Key:                  url.QueryEscape(model.Key),
-				Label:                url.QueryEscape(model.Label),
+				Key:                  model.Key,
+				Label:                model.Label,
 			}
 
 			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, model.Key, v.Error())
+						return fmt.Errorf("checking for presence of existing %s: %+v", appCfgKeyResourceID, err)
 					}
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
@@ -213,26 +213,16 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			decodedKey, err := url.QueryUnescape(resourceID.Key)
-			if err != nil {
-				return fmt.Errorf("while decoding key of resource ID: %+v", err)
-			}
-
-			decodedLabel, err := url.QueryUnescape(resourceID.Label)
-			if err != nil {
-				return fmt.Errorf("while decoding label of resource ID: %+v", err)
-			}
-
-			kv, err := client.GetKeyValue(ctx, decodedKey, decodedLabel, "", "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, resourceID.Key, resourceID.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(resourceID)
 					}
 				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+					return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+				return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Label, err)
 			}
 
 			model := KeyResourceModel{

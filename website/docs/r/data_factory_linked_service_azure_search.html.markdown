@@ -60,7 +60,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to Azure Search Linked Service:
 
-* `url` - (Required) The URL of the Search Service endpoint (e.g. https://{searchServiceName}.search.windows.net).
+* `url` - (Required) The URL of the Search Service endpoint (e.g. <https://{searchServiceName}.search.windows.net>).
 
 * `search_service_key` - (Required) The key of the Azure Search Service.
 

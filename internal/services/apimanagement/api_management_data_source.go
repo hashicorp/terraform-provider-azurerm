@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -194,6 +194,33 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
+			"tenant_access": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"primary_key": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secondary_key": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -201,6 +228,7 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 
 func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -262,6 +290,21 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku))
+
+	tenantAccess := make([]interface{}, 0)
+	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
+		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName, "access")
+		if err != nil {
+			if !utils.ResponseWasForbidden(tenantAccessInformationContract.Response) {
+				return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
+			}
+		} else {
+			tenantAccess = flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)
+		}
+	}
+	if err := d.Set("tenant_access", tenantAccess); err != nil {
+		return fmt.Errorf("setting `tenant_access`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -365,7 +408,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 			"private_ip_addresses": privateIpAddresses,
 			"public_ip_address_id": publicIpAddressId,
 			"public_ip_addresses":  publicIpAddresses,
-			"zones":                zones.Flatten(prop.Zones),
+			"zones":                zones.FlattenUntyped(prop.Zones),
 		})
 	}
 

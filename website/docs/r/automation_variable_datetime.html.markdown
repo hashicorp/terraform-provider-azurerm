@@ -10,7 +10,6 @@ description: |-
 
 Manages a DateTime variable in Azure Automation
 
-
 ## Example Usage
 
 ```hcl
@@ -70,5 +69,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Automation DateTime Variable can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_automation_variable_datetime.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
+terraform import azurerm_automation_variable_datetime.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
 ```

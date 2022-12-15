@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -86,20 +86,17 @@ func TestAccIotHubDPSCertificate_isVerified(t *testing.T) {
 }
 
 func (t IotHubDPSCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DpsCertificateID(state.ID)
+	id, err := dpscertificate.ParseCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	iotDPSName := id.ProvisioningServiceName
-	name := id.CertificateName
 
-	resp, err := clients.IoTHub.DPSCertificateClient.Get(ctx, name, resourceGroup, iotDPSName, "")
+	resp, err := clients.IoTHub.DPSCertificateClient.Get(ctx, *id, dpscertificate.GetOperationOptions{IfMatch: utils.String("")})
 	if err != nil {
 		return nil, fmt.Errorf("reading IotHuB DPS Certificate (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (IotHubDPSCertificateResource) basic(data acceptance.TestData) string {

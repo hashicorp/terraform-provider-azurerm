@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceSharedImage() *pluginsdk.Resource {
@@ -56,9 +57,9 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"architecture": {
 				Type:     pluginsdk.TypeString,
@@ -121,19 +122,19 @@ func resourceSharedImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Required:     true,
-							ValidateFunc: validate.SharedImageIdentifierAttribute,
+							ValidateFunc: validate.SharedImageIdentifierAttribute(128),
 						},
 						"offer": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Required:     true,
-							ValidateFunc: validate.SharedImageIdentifierAttribute,
+							ValidateFunc: validate.SharedImageIdentifierAttribute(64),
 						},
 						"sku": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Required:     true,
-							ValidateFunc: validate.SharedImageIdentifierAttribute,
+							ValidateFunc: validate.SharedImageIdentifierAttribute(64),
 						},
 					},
 				},
@@ -366,9 +367,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		diskTypesNotAllowed := make([]string, 0)
 		if disallowed := props.Disallowed; disallowed != nil {
 			if disallowed.DiskTypes != nil {
-				for _, v := range *disallowed.DiskTypes {
-					diskTypesNotAllowed = append(diskTypesNotAllowed, v)
-				}
+				diskTypesNotAllowed = append(diskTypesNotAllowed, *disallowed.DiskTypes...)
 			}
 		}
 		d.Set("disk_types_not_allowed", diskTypesNotAllowed)
@@ -407,7 +406,13 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("min_recommended_memory_in_gb", minRecommendedMemoryInGB)
 
 		d.Set("os_type", string(props.OsType))
-		d.Set("architecture", string(props.Architecture))
+
+		architecture := string((compute.ArchitectureTypesX64))
+		if props.Architecture != "" {
+			architecture = string(props.Architecture)
+		}
+		d.Set("architecture", architecture)
+
 		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)

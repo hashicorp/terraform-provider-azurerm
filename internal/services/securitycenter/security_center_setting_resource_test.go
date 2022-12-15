@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,11 +17,21 @@ import (
 
 type SecurityCenterSettingResource struct{}
 
-func TestAccSecurityCenterSetting_update(t *testing.T) {
+func TestAccSecurityCenterSetting(t *testing.T) {
+	// there is only one workspace with the same name could exist, so run the tests in sequence.
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"setting": {
+			"update":         testAccSecurityCenterSetting_update,
+			"requiresImport": testAccSecurityCenterSetting_requiresImport,
+		},
+	})
+}
+
+func testAccSecurityCenterSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
@@ -57,10 +67,20 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.cfg("SENTINEL", true),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cfg("SENTINEL", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccSecurityCenterSetting_requiresImport(t *testing.T) {
+func testAccSecurityCenterSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
 
@@ -72,6 +92,11 @@ func TestAccSecurityCenterSetting_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+		// reset
+		{
+			Config: r.cfg("MCAS", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
 	})
 }
 

@@ -70,10 +70,9 @@ A `identity` block supports the following:
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid Topic has been created. More details are available below.
 
-
 ---
 
-A `input_mapping_fields` supports the following:
+A `input_mapping_fields` block supports the following:
 
 * `id` - (Optional) Specifies the id of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
@@ -89,7 +88,7 @@ A `input_mapping_fields` supports the following:
 
 ---
 
-A `input_mapping_default_values` supports the following:
+A `input_mapping_default_values` block supports the following:
 
 * `event_type` - (Optional) Specifies the default event type of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 

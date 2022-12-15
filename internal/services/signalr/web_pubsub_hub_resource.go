@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -19,15 +19,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceWebPubsubHub() *pluginsdk.Resource {
+func resourceWebPubSubHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceWebPubsubHubCreateUpdate,
+		Create: resourceWebPubSubHubCreateUpdate,
 		Read:   resourceWebPubSubHubRead,
-		Update: resourceWebPubsubHubCreateUpdate,
-		Delete: resourceWebPubsubHubDelete,
+		Update: resourceWebPubSubHubCreateUpdate,
+		Delete: resourceWebPubSubHubDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebPubsubHubID(id)
+			_, err := webpubsub.ParseHubID(id)
 			return err
 		}),
 
@@ -48,15 +48,10 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateWebPubsbHubName(),
+				ValidateFunc: validate.WebPubSubHubName(),
 			},
 
-			"web_pubsub_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.WebPubsubID,
-			},
+			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
 
 			"event_handler": {
 				Type:     pluginsdk.TypeSet,
@@ -119,26 +114,27 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
+func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	webPubsubID, err := parse.WebPubsubID(d.Get("web_pubsub_id").(string))
+	webPubSubIdRaw := d.Get("web_pubsub_id").(string)
+	webPubSubId, err := webpubsub.ParseWebPubSubID(webPubSubIdRaw)
 	if err != nil {
-		return fmt.Errorf("parsing ID of %q: %+v", webPubsubID, err)
+		return fmt.Errorf("parsing ID of %q: %+v", webPubSubIdRaw, err)
 	}
-	id := parse.NewWebPubsubHubID(subscriptionId, webPubsubID.ResourceGroup, webPubsubID.WebPubSubName, d.Get("name").(string))
 
+	id := webpubsub.NewHubID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.ResourceName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
+		existing, err := client.HubsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %q: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_web_pubsub_hub", id.ID())
 		}
 	}
@@ -148,76 +144,67 @@ func resourceWebPubsubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		anonymousPolicyEnabled = "Allow"
 	}
 
-	parameters := webpubsub.Hub{
-		Properties: &webpubsub.HubProperties{
+	parameters := webpubsub.WebPubSubHub{
+		Properties: webpubsub.WebPubSubHubProperties{
 			EventHandlers:          expandEventHandler(d.Get("event_handler").(*pluginsdk.Set).List()),
 			AnonymousConnectPolicy: &anonymousPolicyEnabled,
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.HubName, parameters, id.ResourceGroup, id.WebPubSubName)
-	if err != nil {
-		return err
+	if err := client.HubsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
-	}
+
 	d.SetId(id.ID())
 
 	return resourceWebPubSubHubRead(d, meta)
 }
 
 func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubsubHubID(d.Id())
+	id, err := webpubsub.ParseHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
+	resp, err := client.HubsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return fmt.Errorf("%q was not found", id)
 		}
-		return fmt.Errorf("making request on %q: %+v", id, err)
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_id", parse.NewWebPubsubID(id.SubscriptionId, id.ResourceGroup, id.WebPubSubName).ID())
+	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
 
-	if props := resp.Properties; props != nil {
-		if err := d.Set("event_handler", flattenEventHandler(props.EventHandlers)); err != nil {
+	if model := resp.Model; model != nil {
+		if err := d.Set("event_handler", flattenEventHandler(model.Properties.EventHandlers)); err != nil {
 			return fmt.Errorf("setting `event_handler`: %+v", err)
 		}
-		d.Set("anonymous_connections_enabled", strings.EqualFold(*props.AnonymousConnectPolicy, "Allow"))
+		d.Set("anonymous_connections_enabled", strings.EqualFold(*model.Properties.AnonymousConnectPolicy, "Allow"))
 	}
 
 	return nil
 }
 
-func resourceWebPubsubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubsubHubsClient
+func resourceWebPubSubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebPubsubHubID(d.Id())
+	id, err := webpubsub.ParseHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
-	if err != nil {
+	if err := client.HubsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting %q: %+v", id, err)
-		}
 	}
 
 	return nil
@@ -233,7 +220,7 @@ func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
 	for _, eventHandlerItem := range input {
 		block := eventHandlerItem.(map[string]interface{})
 		eventHandlerSettings := webpubsub.EventHandler{
-			URLTemplate: utils.String(block["url_template"].(string)),
+			UrlTemplate: block["url_template"].(string),
 		}
 
 		if v, ok := block["user_event_pattern"]; ok {
@@ -266,11 +253,6 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 	}
 
 	for _, item := range *input {
-		urlTemplate := ""
-		if item.URLTemplate != nil {
-			urlTemplate = *item.URLTemplate
-		}
-
 		userEventPatten := ""
 		if item.UserEventPattern != nil {
 			userEventPatten = *item.UserEventPattern
@@ -287,7 +269,7 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 		}
 
 		eventHandlerBlock = append(eventHandlerBlock, map[string]interface{}{
-			"url_template":       urlTemplate,
+			"url_template":       item.UrlTemplate,
 			"user_event_pattern": userEventPatten,
 			"system_events":      sysEvents,
 			"auth":               authBlock,
@@ -298,16 +280,17 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 
 func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
 	if len(input) == 0 || input[0] == nil {
+		authType := webpubsub.UpstreamAuthTypeNone
 		return &webpubsub.UpstreamAuthSettings{
-			Type: webpubsub.UpstreamAuthTypeNone,
+			Type: &authType,
 		}
 	}
 
 	authRaw := input[0].(map[string]interface{})
 	authId := authRaw["managed_identity_id"].(string)
-
+	authType := webpubsub.UpstreamAuthTypeManagedIdentity
 	return &webpubsub.UpstreamAuthSettings{
-		Type: webpubsub.UpstreamAuthTypeManagedIdentity,
+		Type: &authType,
 		ManagedIdentity: &webpubsub.ManagedIdentitySettings{
 			Resource: &authId,
 		},
@@ -315,11 +298,11 @@ func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
 }
 
 func flattenAuth(input *webpubsub.UpstreamAuthSettings) []interface{} {
-	if input == nil || input.Type == webpubsub.UpstreamAuthTypeNone {
+	if input == nil || input.Type == nil || *input.Type == webpubsub.UpstreamAuthTypeNone || input.ManagedIdentity == nil || input.ManagedIdentity.Resource == nil {
 		return make([]interface{}, 0)
 	}
 
-	authId := input.ManagedIdentity.Resource
+	authId := *input.ManagedIdentity.Resource
 
 	return []interface{}{
 		map[string]interface{}{

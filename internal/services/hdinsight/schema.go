@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
@@ -114,6 +115,29 @@ func SchemaHDInsightsGateway() *pluginsdk.Schema {
 	}
 }
 
+func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"compute_isolation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"host_sku": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
 func SchemaHDInsightsExternalMetastore() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -187,6 +211,32 @@ func SchemaHDInsightsMonitor() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					// Azure doesn't return the key
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsExtension() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"log_analytics_workspace_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
+				"primary_key": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
 					},
 				},
@@ -372,6 +422,46 @@ type HttpEndpointModel struct {
 	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
 }
 
+func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]hdinsight.ScriptAction {
+	if len(input) == 0 {
+		return nil
+	}
+
+	scriptActions := make([]hdinsight.ScriptAction, 0)
+
+	for _, vs := range input {
+		v := vs.(map[string]interface{})
+
+		name := v["name"].(string)
+		uri := v["uri"].(string)
+		parameters := v["parameters"].(string)
+
+		scriptAction := hdinsight.ScriptAction{
+			Name:       utils.String(name),
+			URI:        utils.String(uri),
+			Parameters: utils.String(parameters),
+		}
+		scriptActions = append(scriptActions, scriptAction)
+	}
+
+	return &scriptActions
+}
+
+func ExpandHDInsightComputeIsolationProperties(input []interface{}) *hdinsight.ComputeIsolationProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
+	hostSku := v["host_sku"].(string)
+
+	return &hdinsight.ComputeIsolationProperties{
+		EnableComputeIsolation: &enableComputeIsolation,
+		HostSku:                &hostSku,
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
@@ -502,6 +592,29 @@ func ExpandHDInsightsNetwork(input []interface{}) *hdinsight.NetworkProperties {
 	return &hdinsight.NetworkProperties{
 		ResourceProviderConnection: connDir,
 		PrivateLink:                privateLink,
+	}
+}
+
+func FlattenHDInsightComputeIsolationProperties(input hdinsight.ComputeIsolationProperties) []interface{} {
+	var hostSku string
+	var enableComputeIsolation bool
+
+	if input.EnableComputeIsolation != nil {
+		enableComputeIsolation = *input.EnableComputeIsolation
+	}
+	if input.HostSku != nil {
+		hostSku = *input.HostSku
+	}
+
+	if !enableComputeIsolation {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"compute_isolation_enabled": enableComputeIsolation,
+			"host_sku":                  hostSku,
+		},
 	}
 }
 
@@ -951,6 +1064,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceIDOrEmpty,
 		},
+
+		"script_actions": SchemaHDInsightsScriptActions(),
 	}
 
 	if definition.CanSpecifyInstanceCount {
@@ -1097,6 +1212,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	password := v["password"].(string)
 	virtualNetworkId := v["virtual_network_id"].(string)
 	subnetId := v["subnet_id"].(string)
+	scriptActions := v["script_actions"].([]interface{})
 
 	role := hdinsight.Role{
 		Name: utils.String(name),
@@ -1108,6 +1224,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 				Username: utils.String(username),
 			},
 		},
+		ScriptActions: ExpandHDInsightsRolesScriptActions(scriptActions),
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""
@@ -1288,6 +1405,7 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		"ssh_keys":           pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 		"subnet_id":          "",
 		"virtual_network_id": "",
+		"script_actions":     make([]interface{}, 0),
 	}
 
 	if profile := input.OsProfile; profile != nil {
@@ -1313,6 +1431,9 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		// we should be "safe" to try and pull it from the state instead, but clearly this isn't ideal
 		vmSize := existingV["vm_size"].(string)
 		output["vm_size"] = vmSize
+
+		scriptActions := existingV["script_actions"].([]interface{})
+		output["script_actions"] = scriptActions
 	}
 
 	if profile := input.VirtualNetworkProfile; profile != nil {

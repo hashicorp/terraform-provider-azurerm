@@ -17,7 +17,7 @@ type SnapshotPoliciesCreateOperationResponse struct {
 }
 
 // SnapshotPoliciesCreate ...
-func (c SnapshotPolicyClient) SnapshotPoliciesCreate(ctx context.Context, id SnapshotPoliciesId, input SnapshotPolicy) (result SnapshotPoliciesCreateOperationResponse, err error) {
+func (c SnapshotPolicyClient) SnapshotPoliciesCreate(ctx context.Context, id SnapshotPolicyId, input SnapshotPolicy) (result SnapshotPoliciesCreateOperationResponse, err error) {
 	req, err := c.preparerForSnapshotPoliciesCreate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "snapshotpolicy.SnapshotPolicyClient", "SnapshotPoliciesCreate", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c SnapshotPolicyClient) SnapshotPoliciesCreate(ctx context.Context, id Sna
 }
 
 // preparerForSnapshotPoliciesCreate prepares the SnapshotPoliciesCreate request.
-func (c SnapshotPolicyClient) preparerForSnapshotPoliciesCreate(ctx context.Context, id SnapshotPoliciesId, input SnapshotPolicy) (*http.Request, error) {
+func (c SnapshotPolicyClient) preparerForSnapshotPoliciesCreate(ctx context.Context, id SnapshotPolicyId, input SnapshotPolicy) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -52,9 +52,9 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: netAppValidate.VolumeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -240,7 +240,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"remote_volume_location": azure.SchemaLocation(),
+						"remote_volume_location": commonschema.Location(),
 
 						"remote_volume_resource_id": {
 							Type:         pluginsdk.TypeString,
@@ -274,6 +274,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"azure_vmware_data_store_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
 			},
 		},
 	}
@@ -366,9 +373,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient
-		_, err = snapshotClient.Get(ctx, *parsedSnapshotResourceID)
+		snapshotResponse, err := snapshotClient.Get(ctx, *parsedSnapshotResourceID)
 		if err != nil {
 			return fmt.Errorf("getting snapshot from %s: %+v", id, err)
+		}
+		if model := snapshotResponse.Model; model != nil && model.Id != nil {
+			snapshotID = *model.Id
 		}
 
 		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.AccountName, parsedSnapshotResourceID.PoolName, parsedSnapshotResourceID.VolumeName)
@@ -410,6 +420,11 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	avsDataStoreEnabled := volumes.AvsDataStoreDisabled
+	if d.Get("azure_vmware_data_store_enabled").(bool) {
+		avsDataStoreEnabled = volumes.AvsDataStoreEnabled
+	}
+
 	parameters := volumes.Volume{
 		Location: location,
 		Properties: volumes.VolumeProperties{
@@ -427,6 +442,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 			},
+			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -579,6 +595,9 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+		if props.AvsDataStore != nil {
+			d.Set("azure_vmware_data_store_enabled", strings.EqualFold(string(*props.AvsDataStore), string(volumes.AvsDataStoreEnabled)))
+		}
 		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("setting `export_policy_rule`: %+v", err)
 		}
@@ -607,16 +626,18 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	// Removing replication if present
-	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
-	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+	netApp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("fetching netapp error: %+v", err)
+	}
 
-	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+	if netApp.Model != nil && netApp.Model.Properties.DataProtection != nil {
+		dataProtectionReplication := netApp.Model.Properties.DataProtection
 		replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
 		if err != nil {
 			return err
 		}
-		if dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
+		if dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
 			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
 			if err != nil {
@@ -625,7 +646,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
-		// Checking replication status before deletion, it need to be broken before proceeding with deletion
+		// Checking replication status before deletion, it needs to be broken before proceeding with deletion
 		if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
 			// Wait for replication state = "mirrored"
 			if model := res.Model; model != nil {
@@ -651,7 +672,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if err = replicationClient.VolumesDeleteReplicationThenPoll(ctx, *replicaVolumeId); err != nil {
+		if _, err = replicationClient.VolumesDeleteReplication(ctx, *replicaVolumeId); err != nil {
 			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
 		}
 
@@ -1117,7 +1138,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *volumes.VolumePropertie
 }
 
 func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Snapshot == nil {
+	if input == nil || input.Snapshot == nil || *input.Snapshot.SnapshotPolicyId == "" {
 		return []interface{}{}
 	}
 

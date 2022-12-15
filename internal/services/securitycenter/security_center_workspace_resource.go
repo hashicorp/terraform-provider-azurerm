@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -159,7 +159,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("scope", properties.Scope)
 		workspaceId := ""
 		if properties.WorkspaceID != nil {
-			id, err := workspaces.ParseWorkspaceID(*properties.WorkspaceID)
+			id, err := workspaces.ParseWorkspaceIDInsensitively(*properties.WorkspaceID)
 			if err != nil {
 				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
 			}

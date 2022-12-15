@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -50,7 +50,6 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 			"response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      120,
 				ValidateFunc: validation.IntBetween(16, 240),
 			},
@@ -167,7 +166,12 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	props := cdn.ProfileUpdateParameters{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:                              tags.Expand(d.Get("tags").(map[string]interface{})),
+		ProfilePropertiesUpdateParameters: &cdn.ProfilePropertiesUpdateParameters{},
+	}
+
+	if d.HasChange("response_timeout_seconds") {
+		props.OriginResponseTimeoutSeconds = utils.Int32(int32(d.Get("response_timeout_seconds").(int)))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, props)

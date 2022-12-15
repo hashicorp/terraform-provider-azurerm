@@ -44,7 +44,7 @@ func (r LogAnalyticsQueryPackQueryResource) ModelObject() interface{} {
 }
 
 func (r LogAnalyticsQueryPackQueryResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return querypackqueries.ValidateQueriesID
+	return querypackqueries.ValidateQueryID
 }
 
 func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Schema {
@@ -356,7 +356,7 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 				model.Name = uuid
 			}
 
-			id := querypackqueries.NewQueriesID(subscriptionId, queryPackId.ResourceGroupName, queryPackId.QueryPackName, model.Name)
+			id := querypackqueries.NewQueryID(subscriptionId, queryPackId.ResourceGroupName, queryPackId.QueryPackName, model.Name)
 
 			existing, err := client.QueriesGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -419,7 +419,7 @@ func (r LogAnalyticsQueryPackQueryResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.QueryPackQueriesClient
 
-			id, err := querypackqueries.ParseQueriesID(metadata.ResourceData.Id())
+			id, err := querypackqueries.ParseQueryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -480,7 +480,7 @@ func (r LogAnalyticsQueryPackQueryResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.QueryPackQueriesClient
 
-			id, err := querypackqueries.ParseQueriesID(metadata.ResourceData.Id())
+			id, err := querypackqueries.ParseQueryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -552,7 +552,7 @@ func (r LogAnalyticsQueryPackQueryResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.QueryPackQueriesClient
 
-			id, err := querypackqueries.ParseQueriesID(metadata.ResourceData.Id())
+			id, err := querypackqueries.ParseQueryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

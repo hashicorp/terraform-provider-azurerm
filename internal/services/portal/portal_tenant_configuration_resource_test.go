@@ -82,7 +82,7 @@ func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *c
 		return nil, err
 	}
 
-	resp, err := client.Portal.TenantConfigurationsClient.TenantConfigurationsGet(ctx)
+	resp, err := client.Portal.TenantConfigurationsClient.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

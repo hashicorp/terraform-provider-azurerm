@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `virtual_wan_id` - (Required) The ID of the Virtual Wan where this VPN site resides in. Changing this forces a new VPN Site to be created.
 
-* `link` - (Required) One or more `link` blocks as defined below.
+* `link` - (Optional) One or more `link` blocks as defined below.
 
 ---
 
@@ -76,7 +76,7 @@ A `bgp` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
-* `peering_address` - (Required) The BGP peering IP address. 
+* `peering_address` - (Required) The BGP peering IP address.
 
 ---
 
@@ -116,7 +116,7 @@ A `traffic_category` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the VPN Site.
 

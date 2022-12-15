@@ -38,15 +38,17 @@ resource "azurerm_site_recovery_replication_policy" "policy" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the replication policy.
+* `name` - (Required) The name of the replication policy. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
+* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located. Changing this forces a new resource to be created.
 
-* `recovery_vault_name` - (Required) The name of the vault that should be updated.
+* `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
 * `recovery_point_retention_in_minutes` - (Required) The duration in minutes for which the recovery points need to be stored.
 
 * `application_consistent_snapshot_frequency_in_minutes` - (Required) Specifies the frequency(in minutes) at which to create application consistent recovery points.
+
+-> **Note:** The value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`.
 
 ## Attributes Reference
 

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. Changing this forces a new resource to be created.
+* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. 
 
 ~> **Note:** One of `source_uri`, `source_resource_id` or `storage_account_id` must be specified.
 
@@ -59,7 +59,35 @@ The following arguments are supported:
 
 * `disk_size_gb` - (Optional) The size of the Snapshotted Disk in GB.
 
+* `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
+
+~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `encryption_settings` block supports:
+
+* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined below.
+
+* `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
+
+---
+
+The `disk_encryption_key` block supports:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
+
+---
+
+The `key_encryption_key` block supports:
+
+* `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
 
 ## Attributes Reference
 
@@ -67,7 +95,7 @@ The following attributes are exported:
 
 * `id` - The Snapshot ID.
 
-* `disk_size_gb` - The Size of the Snapshotted Disk in GB.
+* `disk_size_gb` - (Optional) The Size of the Snapshotted Disk in GB.
 
 * `trusted_launch_enabled` - Whether Trusted Launch is enabled for the Snapshot.
 

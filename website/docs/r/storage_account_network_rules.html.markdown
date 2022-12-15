@@ -65,7 +65,7 @@ resource "azurerm_storage_account_network_rules" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Optional) Specifies the ID of the storage account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) Specifies the ID of the storage account. Changing this forces a new resource to be created.
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 
@@ -94,7 +94,6 @@ A `private_link_access` block supports the following:
 * `endpoint_resource_id` - (Required) The resource id of the resource access rule to be granted access.
 
 * `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
-
 
 ## Attributes Reference
 

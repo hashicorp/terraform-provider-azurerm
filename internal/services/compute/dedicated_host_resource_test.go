@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -202,7 +201,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DCSv2-Type1"
+  sku_name                = "FSv2-Type2"
   platform_fault_domain   = 1
 }
 `, r.template(data), data.RandomInteger)

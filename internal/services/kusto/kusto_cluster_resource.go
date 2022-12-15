@@ -6,17 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -32,6 +34,11 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		Read:   resourceKustoClusterRead,
 		Update: resourceKustoClusterCreateUpdate,
 		Delete: resourceKustoClusterDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KustoAttachedClusterV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
@@ -68,52 +75,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(kusto.AzureSkuNameDevNoSLAStandardD11V2),
-								string(kusto.AzureSkuNameDevNoSLAStandardE2aV4),
-								string(kusto.AzureSkuNameStandardD11V2),
-								string(kusto.AzureSkuNameStandardD12V2),
-								string(kusto.AzureSkuNameStandardD13V2),
-								string(kusto.AzureSkuNameStandardD14V2),
-								string(kusto.AzureSkuNameStandardD16dV5),
-								string(kusto.AzureSkuNameStandardD32dV4),
-								string(kusto.AzureSkuNameStandardD32dV5),
-								string(kusto.AzureSkuNameStandardDS13V21TBPS),
-								string(kusto.AzureSkuNameStandardDS13V22TBPS),
-								string(kusto.AzureSkuNameStandardDS14V23TBPS),
-								string(kusto.AzureSkuNameStandardDS14V24TBPS),
-								string(kusto.AzureSkuNameStandardE16aV4),
-								string(kusto.AzureSkuNameStandardE16adsV5),
-								string(kusto.AzureSkuNameStandardE16asV43TBPS),
-								string(kusto.AzureSkuNameStandardE16asV44TBPS),
-								string(kusto.AzureSkuNameStandardE16asV53TBPS),
-								string(kusto.AzureSkuNameStandardE16asV54TBPS),
-								string(kusto.AzureSkuNameStandardE16sV43TBPS),
-								string(kusto.AzureSkuNameStandardE16sV44TBPS),
-								string(kusto.AzureSkuNameStandardE16sV53TBPS),
-								string(kusto.AzureSkuNameStandardE16sV54TBPS),
-								string(kusto.AzureSkuNameStandardE2aV4),
-								string(kusto.AzureSkuNameStandardE2adsV5),
-								string(kusto.AzureSkuNameStandardE4aV4),
-								string(kusto.AzureSkuNameStandardE4adsV5),
-								string(kusto.AzureSkuNameStandardE64iV3),
-								string(kusto.AzureSkuNameStandardE80idsV4),
-								string(kusto.AzureSkuNameStandardE8aV4),
-								string(kusto.AzureSkuNameStandardE8adsV5),
-								string(kusto.AzureSkuNameStandardE8asV41TBPS),
-								string(kusto.AzureSkuNameStandardE8asV42TBPS),
-								string(kusto.AzureSkuNameStandardE8asV51TBPS),
-								string(kusto.AzureSkuNameStandardE8asV52TBPS),
-								string(kusto.AzureSkuNameStandardE8sV41TBPS),
-								string(kusto.AzureSkuNameStandardE8sV42TBPS),
-								string(kusto.AzureSkuNameStandardE8sV51TBPS),
-								string(kusto.AzureSkuNameStandardE8sV52TBPS),
-								string(kusto.AzureSkuNameStandardL16s),
-								string(kusto.AzureSkuNameStandardL16sV2),
-								string(kusto.AzureSkuNameStandardL4s),
-								string(kusto.AzureSkuNameStandardL8s),
-								string(kusto.AzureSkuNameStandardL8sV2),
-							}, false),
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForAzureSkuName(),
+								false),
 						},
 
 						"capacity": {
@@ -405,7 +368,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Tags:              tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		kustoCluster.Zones = &zones
 	}
@@ -487,7 +450,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == kusto.PublicNetworkAccessEnabled)
 
@@ -590,7 +553,7 @@ func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []i
 }
 
 func expandKustoListString(input []interface{}) (*[]string, error) {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil, fmt.Errorf("list of string is empty")
 	}
 

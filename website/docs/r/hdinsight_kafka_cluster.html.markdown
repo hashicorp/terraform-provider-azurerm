@@ -98,11 +98,13 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below.
 
-* `storage_account` - (Required) One or more `storage_account` block as defined below.
+* `storage_account` - (Optional) One or more `storage_account` block as defined below.
 
-* `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
+* `storage_account_gen2` - (Optional) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Kafka Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
+
+* `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
 
 * `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are `1.0`, `1.1` or `1.2`. Changing this forces a new resource to be created.
 
@@ -117,6 +119,8 @@ The following arguments are supported:
 * `metastores` - (Optional) A `metastores` block as defined below.
 
 * `monitor` - (Optional) A `monitor` block as defined below.
+
+* `extension` - (Optional) An `extension` block as defined below.
 
 * `rest_proxy` - (Optional) A `rest_proxy` block as defined below.
 
@@ -137,6 +141,14 @@ A `gateway` block supports the following:
 -> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
 * `username` - (Required) The username used for the Ambari Portal. Changing this forces a new resource to be created.
+
+---
+
+A `compute_isolation` block supports the following:
+
+* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+
+* `host_sku` - (Optional) The name of the host SKU.
 
 ---
 
@@ -230,7 +242,7 @@ A `worker_node` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `target_instance_count` - (Optional) The number of instances which should be run for the Worker Nodes.
+* `target_instance_count` - (Required) The number of instances which should be run for the Worker Nodes.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
@@ -286,7 +298,7 @@ A `kafka_management_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Kafka Management Nodes should be provisioned within. Changing this forces a new resource to be created.
 
---- 
+---
 
 A `metastores` block supports the following:
 
@@ -307,7 +319,6 @@ A `hive` block supports the following:
 * `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
-
 
 ---
 
@@ -343,11 +354,19 @@ A `monitor` block supports the following:
 
 ---
 
+A `extension` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The workspace ID of the log analytics extension.
+
+* `primary_key` - (Required) The workspace key of the log analytics extension.
+
+---
+
 A `rest_proxy` block supports the following:
 
 * `security_group_id` - (Required) The Azure Active Directory Security Group ID. Changing this forces a new resource to be created.
 
-* `security_group_name` - (Optional) The Azure Active Directory Security Group name. Changing this forces a new resource to be created.
+* `security_group_name` - (Required) The Azure Active Directory Security Group name. Changing this forces a new resource to be created.
 
 -> **Note:** The `security_group_name` property will be Required in version 3.0 of the AzureRM Provider.
 

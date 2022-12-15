@@ -43,6 +43,14 @@ func unmarshalAzureBackupRestoreRequestImplementation(input []byte) (AzureBackup
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "AzureBackupRestoreWithRehydrationRequest") {
+		var out AzureBackupRestoreWithRehydrationRequest
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AzureBackupRestoreWithRehydrationRequest: %+v", err)
+		}
+		return out, nil
+	}
+
 	type RawAzureBackupRestoreRequestImpl struct {
 		Type   string                 `json:"-"`
 		Values map[string]interface{} `json:"-"`

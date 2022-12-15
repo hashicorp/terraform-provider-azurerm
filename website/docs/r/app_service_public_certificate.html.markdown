@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `certificate_name` - (Required) The name of the public certificate. Changing this forces a new App Service Public Certificate to be created.
 
-* `certificate_location` - (Required) The location of the certificate. Possible values are `CurrentUserMy`, `LocalMachineMy` and `Unknown`.
+* `certificate_location` - (Required) The location of the certificate. Possible values are `CurrentUserMy`, `LocalMachineMy` and `Unknown`. Changing this forces a new App Service Public Certificate to be created.
 
 * `blob` - (Required) The base64-encoded contents of the certificate. Changing this forces a new App Service Public Certificate to be created.
 

@@ -105,6 +105,8 @@ The following arguments are supported:
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers for the Point-to-Site VPN Gateway.
 
+* `routing_preference_internet_enabled` - (Optional) Is the Routing Preference for the Public IP Interface of the VPN Gateway enabled? Defaults to `false`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the Point-to-Site VPN Gateway.
 
 ---
@@ -130,6 +132,10 @@ A `vpn_client_address_pool` block supports the following:
 A `route` block supports the following:
 
 * `associated_route_table_id` - (Required) The Virtual Hub Route Table resource id associated with this Routing Configuration.
+
+* `inbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for inbound learned routes.
+
+* `outbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for outbound advertised routes.
 
 * `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 

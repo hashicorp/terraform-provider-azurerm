@@ -9,19 +9,19 @@ import (
 
 var _ resourceids.ResourceId = VirtualWANP2SVPNGatewayId{}
 
-// VirtualWANP2SVPNGatewayId is a struct representing the Resource ID for a Virtual W A N P 2 S V P N Gateway
+// VirtualWANP2SVPNGatewayId is a struct representing the Resource ID for a Virtual WAN P2S VPN Gateway
 type VirtualWANP2SVPNGatewayId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	GatewayName    string
+	SubscriptionId    string
+	ResourceGroupName string
+	GatewayName       string
 }
 
 // NewVirtualWANP2SVPNGatewayID returns a new VirtualWANP2SVPNGatewayId struct
-func NewVirtualWANP2SVPNGatewayID(subscriptionId string, resourceGroup string, gatewayName string) VirtualWANP2SVPNGatewayId {
+func NewVirtualWANP2SVPNGatewayID(subscriptionId string, resourceGroupName string, gatewayName string) VirtualWANP2SVPNGatewayId {
 	return VirtualWANP2SVPNGatewayId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		GatewayName:    gatewayName,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		GatewayName:       gatewayName,
 	}
 }
 
@@ -40,8 +40,8 @@ func ParseVirtualWANP2SVPNGatewayID(input string) (*VirtualWANP2SVPNGatewayId, e
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.GatewayName, ok = parsed.Parsed["gatewayName"]; !ok {
@@ -67,8 +67,8 @@ func ParseVirtualWANP2SVPNGatewayIDInsensitively(input string) (*VirtualWANP2SVP
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.GatewayName, ok = parsed.Parsed["gatewayName"]; !ok {
@@ -78,7 +78,7 @@ func ParseVirtualWANP2SVPNGatewayIDInsensitively(input string) (*VirtualWANP2SVP
 	return &id, nil
 }
 
-// ValidateVirtualWANP2SVPNGatewayID checks that 'input' can be parsed as a Virtual W A N P 2 S V P N Gateway ID
+// ValidateVirtualWANP2SVPNGatewayID checks that 'input' can be parsed as a Virtual WAN P2S VPN Gateway ID
 func ValidateVirtualWANP2SVPNGatewayID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -93,19 +93,19 @@ func ValidateVirtualWANP2SVPNGatewayID(input interface{}, key string) (warnings 
 	return
 }
 
-// ID returns the formatted Virtual W A N P 2 S V P N Gateway ID
+// ID returns the formatted Virtual WAN P2S VPN Gateway ID
 func (id VirtualWANP2SVPNGatewayId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/p2sVpnGateways/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GatewayName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.GatewayName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Virtual W A N P 2 S V P N Gateway ID
+// Segments returns a slice of Resource ID Segments which comprise this Virtual WAN P2S VPN Gateway ID
 func (id VirtualWANP2SVPNGatewayId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.ResourceGroupSegment("resourceGroup", "example-resource-group"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("providers", "providers", "providers"),
 		resourceids.ResourceProviderSegment("resourceProvider", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("p2sVpnGateways", "p2sVpnGateways", "p2sVpnGateways"),
@@ -113,11 +113,11 @@ func (id VirtualWANP2SVPNGatewayId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Virtual W A N P 2 S V P N Gateway ID
+// String returns a human-readable description of this Virtual WAN P2S VPN Gateway ID
 func (id VirtualWANP2SVPNGatewayId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Resource Group: %q", id.ResourceGroup),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Gateway Name: %q", id.GatewayName),
 	}
 	return fmt.Sprintf("Virtual WAN P2S VPN Gateway (%s)", strings.Join(components, "\n"))

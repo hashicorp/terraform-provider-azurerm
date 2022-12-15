@@ -92,14 +92,22 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 				},
 			},
 
-			"policy_definition_id": {
+			"policy_definition_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.PolicyDefinitionID,
 			},
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["policy_definition_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validate.PolicyDefinitionID,
+			Deprecated:       "`policy_definition_id` will be removed in version 4.0 of the AzureRM Provider in favour of `policy_definition_reference_id`.",
+		}
 	}
 
 	if !features.FourPointOhBeta() {
@@ -200,7 +208,7 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.RemediationsCancelAtManagementGroup(ctx, *id)
 			return err
@@ -217,7 +225,6 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 
 func managementGroupPolicyRemediationCancellationRefreshFunc(ctx context.Context,
 	client *remediations.RemediationsClient, id remediations.Providers2RemediationId) pluginsdk.StateRefreshFunc {
-
 	return func() (interface{}, string, error) {
 		resp, err := client.RemediationsGetAtManagementGroup(ctx, id)
 		if err != nil {

@@ -49,9 +49,9 @@ func resourceSearchService() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -289,7 +289,6 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err == nil {
 		if model := queryKeysResp.Model; model != nil {
 			d.Set("query_keys", flattenSearchQueryKeys(*model))
-
 		}
 	}
 

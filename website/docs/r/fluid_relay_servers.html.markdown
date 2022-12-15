@@ -55,15 +55,21 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Fluid Relay Server.
 
 * `frs_tenant_id` - The Fluid tenantId for this server.
 
+* `primary_key` - The primary key for this server.
+
+* `secondary_key` - The secondary key for this server.
+
 * `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints.
 
 * `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server.
+
+* `service_endpoints` - An array of service endpoints for this Fluid Relay Server.
 
 ---
 

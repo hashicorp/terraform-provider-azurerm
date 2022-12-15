@@ -99,9 +99,11 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below.
 
-* `storage_account` - (Required) One or more `storage_account` block as defined below.
+* `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
 
-* `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
+* `storage_account` - (Optional) One or more `storage_account` block as defined below.
+
+* `storage_account_gen2` - (Optional) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Spark Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
@@ -116,6 +118,8 @@ The following arguments are supported:
 * `metastores` - (Optional) A `metastores` block as defined below.
 
 * `monitor` - (Optional) A `monitor` block as defined below.
+
+* `extension` - (Optional) An `extension` block as defined below.
 
 * `security_profile` - (Optional) A `security_profile` block as defined below.
 
@@ -155,6 +159,18 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `script_actions` - (Optional)  The script action which will run on the cluster.
+
+---
+
+A `script_action` block supports the following:
+
+* `name` - (Required) The name of the script action.
+
+* `uri` - (Required) The URI to the script.
+
+* `parameters` - (Required) The parameters for the script provided.
+
 ---
 
 A `roles` block supports the following:
@@ -174,6 +190,14 @@ A `network` block supports the following:
 -> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
 
 * `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+
+---
+
+A `compute_isolation` block supports the following:
+
+* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+
+* `host_sku` - (Optional) The name of the host SKU.
 
 ---
 
@@ -225,7 +249,7 @@ A `worker_node` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `target_instance_count` - (Optional) The number of instances which should be run for the Worker Nodes.
+* `target_instance_count` - (Required) The number of instances which should be run for the Worker Nodes.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
@@ -285,7 +309,6 @@ A `hive` block supports the following:
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
-
 ---
 
 An `oozie` block supports the following:
@@ -317,6 +340,14 @@ A `monitor` block supports the following:
 * `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
 
 * `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
+
+---
+
+A `extension` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The workspace ID of the log analytics extension.
+
+* `primary_key` - (Required) The workspace key of the log analytics extension.
 
 ---
 

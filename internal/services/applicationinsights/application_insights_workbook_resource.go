@@ -298,10 +298,7 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 
 			if model.Tags != nil {
 				// The backend returns a tags with key `hidden-title` by default. Since it has the same value with `display_name` and will cause inconsistency with user's configuration, remove it as a workaround.
-				if _, ok := (*model.Tags)["hidden-title"]; ok {
-					delete(*model.Tags, "hidden-title")
-				}
-
+				delete(*model.Tags, "hidden-title")
 				state.Tags = *model.Tags
 			}
 

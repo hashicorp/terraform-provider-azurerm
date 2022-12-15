@@ -3,21 +3,24 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor"
 description: |-
-  Manages an Azure Front Door instance.
+  Manages an Azure Front Door (classic) instance.
 ---
 
 # azurerm_frontdoor
 
-Manages an Azure Front Door instance.
+!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain). The service team has [announced](https://azure.microsoft.com/blog/zero-downtime-migration-for-azure-front-door-now-in-preview/) the release of their `Front Door Classic` to `Front Door Standard/Premium` [migration tool](https://learn.microsoft.com/azure/frontdoor/tier-migration) to allow you to migrate your existing `Front Door Classic` instances to the new `Front Door Standard/Premium` product tiers.
+
+Manages an Azure Front Door (classic) instance.
 
 Azure Front Door Service is Microsoft's highly available and scalable web application acceleration platform and global HTTP(S) load balancer. It provides built-in DDoS protection and application layer security and caching. Front Door enables you to build applications that maximize and automate high-availability and performance for your end-users. Use Front Door with Azure services including Web/Mobile Apps, Cloud Services and Virtual Machines – or combine it with on-premises services for hybrid deployments and smooth cloud migration.
 
 Below are some of the key scenarios that Azure Front Door Service addresses:
+
 * Use Front Door to improve application scale and availability with instant multi-region failover
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
 
-!> **Be Aware:** Microsoft rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Be Aware:** Microsoft rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and Front Door resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 !> **BREAKING CHANGE:** The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been removed from the `azurerm_frontdoor` resource in the `v2.58.0` provider due to changes made by the service team. If you wish to enable the custom HTTPS configuration functionality within your `azurerm_frontdoor` resource moving forward you will need to define a separate `azurerm_frontdoor_custom_https_configuration` block in your configuration file.
 
@@ -78,7 +81,7 @@ resource "azurerm_frontdoor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
@@ -122,7 +125,7 @@ The `backend` block supports the following:
 
 The `backend_pool` block supports the following:
 
-* `name` - (Required) Specifies the name of the Backend Pool.
+* `name` - (Required) Specifies the name of the Backend Pool. Changing this forces a new resource to be created.
 
 * `backend` - (Required) A `backend` block as defined below.
 
@@ -144,7 +147,7 @@ The `backend_pool_settings` block supports the following:
 
 The `frontend_endpoint` block supports the following:
 
-* `name` - (Required) Specifies the name of the `frontend_endpoint`.
+* `name` - (Required) Specifies the name of the `frontend_endpoint`. Changing this forces a new resource to be created.
 
 * `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name. In order to use a name.azurefd.net domain, the name value must match the Front Door name.
 
@@ -158,13 +161,13 @@ The `frontend_endpoint` block supports the following:
 
 The `backend_pool_health_probe` block supports the following:
 
-* `name` - (Required) Specifies the name of the Health Probe.
+* `name` - (Required) Specifies the name of the Health Probe. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is this health probe enabled? Defaults to `true`.
 
 * `path` - (Optional) The path to use for the Health Probe. Default is `/`.
 
-* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Defaults to `Http`.
+* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Possible values are `Http` and `Https`. Defaults to `Http`.
 
 * `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `Get`.
 
@@ -176,7 +179,7 @@ The `backend_pool_health_probe` block supports the following:
 
 The `backend_pool_load_balancing` block supports the following:
 
-* `name` - (Required) Specifies the name of the Load Balancer.
+* `name` - (Required) Specifies the name of the Load Balancer. Changing this forces a new resource to be created.
 
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
 
@@ -188,13 +191,13 @@ The `backend_pool_load_balancing` block supports the following:
 
 The `routing_rule` block supports the following:
 
-* `name` - (Required) Specifies the name of the Routing Rule.
+* `name` - (Required) Specifies the name of the Routing Rule. Changing this forces a new resource to be created.
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
-* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
+* `accepted_protocols` - (Required) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`. Defaults to `Http`.
 
-* `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
+* `patterns_to_match` - (Required) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 
 * `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
 
@@ -228,7 +231,7 @@ The `redirect_configuration` block supports the following:
 
 * `custom_host` - (Optional)  Set this to change the URL for the redirection.
 
-* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
+* `redirect_protocol` - (Required) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
 
 * `redirect_type` - (Required) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`.
 
@@ -284,7 +287,7 @@ The `redirect_configuration` block supports the following:
 
 * `provisioning_substate` - Provisioning substate of the Front Door
 
-[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+[//]: *"* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
 ---
 
