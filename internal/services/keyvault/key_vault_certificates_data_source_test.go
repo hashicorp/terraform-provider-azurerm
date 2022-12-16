@@ -29,7 +29,7 @@ func (KeyVaultCertificatesDataSource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault_certificate" "test2" {
-  count = 10
+  count = 30
   name  = "certificate-${count.index}"
   certificate_policy {
     issuer_parameters {
