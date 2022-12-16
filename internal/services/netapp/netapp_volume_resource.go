@@ -524,12 +524,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
 	}
 
-	if d.HasChange("storage_quota_in_gb") {
-		shouldUpdate = true
-		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-		update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
-	}
-
 	if d.HasChange("export_policy_rule") {
 		shouldUpdate = true
 		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})

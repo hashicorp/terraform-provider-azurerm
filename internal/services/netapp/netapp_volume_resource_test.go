@@ -941,9 +941,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true",
-    "SkipNRMSNSG"      = "true"
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z"
   }
 }
 
