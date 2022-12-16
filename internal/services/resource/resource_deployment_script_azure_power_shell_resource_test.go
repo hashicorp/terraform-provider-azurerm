@@ -188,7 +188,7 @@ resource "azurerm_resource_deployment_script_azure_power_shell" "test" {
   location            = "%[3]s"
   version             = "8.3"
   retention_interval  = "P1D"
-  arguments           = "-name \"John Dole\""
+  command_line        = "-name \"John Dole\""
   cleanup_preference  = "OnSuccess"
   force_update_tag    = "1"
   timeout             = "PT30M"
@@ -264,7 +264,7 @@ resource "azurerm_resource_deployment_script_azure_power_shell" "test" {
   location            = "%[3]s"
   version             = "8.3"
   retention_interval  = "P1D"
-  arguments           = "-name \"John Dole\""
+  command_line        = "-name \"John Dole\""
   cleanup_preference  = "OnSuccess"
   force_update_tag    = "1"
   timeout             = "PT30M"
@@ -324,7 +324,7 @@ resource "azurerm_resource_deployment_script_azure_power_shell" "test" {
   location            = "%[3]s"
   version             = "8.3"
   retention_interval  = "P1D"
-  arguments           = "-name \"John Dole\""
+  command_line        = "-name \"John Dole\""
   primary_script_uri  = "https://raw.githubusercontent.com/Azure/azure-docs-json-samples/master/deployment-script/deploymentscript-helloworld.ps1"
 }
 `, template, data.RandomInteger, data.Locations.Primary, data.RandomString)

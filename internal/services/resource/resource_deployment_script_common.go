@@ -29,7 +29,7 @@ const (
 type ResourceDeploymentScriptModel struct {
 	Name                   string                             `tfschema:"name"`
 	ResourceGroupName      string                             `tfschema:"resource_group_name"`
-	Arguments              string                             `tfschema:"arguments"`
+	Arguments              string                             `tfschema:"command_line"`
 	Version                string                             `tfschema:"version"`
 	CleanupPreference      deploymentscripts.CleanupOptions   `tfschema:"cleanup_preference"`
 	ContainerSettings      []ContainerConfigurationModel      `tfschema:"container"`
@@ -88,7 +88,7 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			ValidateFunc: validate.ISO8601DurationBetween("PT1H", "P1DT2H"),
 		},
 
-		"arguments": {
+		"command_line": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

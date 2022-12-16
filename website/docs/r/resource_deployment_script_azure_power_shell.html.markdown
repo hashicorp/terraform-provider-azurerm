@@ -30,7 +30,7 @@ resource "azurerm_resource_deployment_script_azure_power_shell" "example" {
   location            = "West Europe"
   version             = "8.3"
   retention_interval  = "P1D"
-  arguments           = "-name \"John Dole\""
+  command_line        = "-name \"John Dole\""
   cleanup_preference  = "OnSuccess"
   force_update_tag    = "1"
   timeout             = "PT30M"
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `retention_interval` - (Required) Interval for which the service retains the script resource after it reaches a terminal state. Resource will be deleted when this duration expires. The time duration should be between `1` hour and `26` hours (inclusive) and should be specified in ISO 8601 format. Changing this forces a new Resource Deployment Script to be created.
 
-* `arguments` - (Optional) Command line arguments to pass to the script. Arguments are separated by spaces. ex: `-Location 'West US 2'`. Changing this forces a new Resource Deployment Script to be created.
+* `command_line` - (Optional) Command line arguments to pass to the script. Changing this forces a new Resource Deployment Script to be created.
 
 * `cleanup_preference` - (Optional) Specifies the cleanup preference when the script execution gets in a terminal state. Possible values are `Always`, `OnExpiration`, `OnSuccess`. Defaults to `Always`. Changing this forces a new Resource Deployment Script to be created.
 
