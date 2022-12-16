@@ -1,6 +1,9 @@
 ## 3.37.0 (Unreleased)
 
+FEATURES:
+
 * **New Resource:** `azurerm_lab_service_plan` [GH-19312]
+* **New Resource:** `azurerm_netapp_volume` [GH-19669]
 
 ## 3.36.0 (December 15, 2022)
 
