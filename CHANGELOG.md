@@ -36,6 +36,7 @@ BUG FIXES:
 * `azurerm_resource_policy_exemption` - changing the `policy_assignment_id` property not created a new resource [GH-19674]
 * `azurerm_resource_group_policy_exemption` - changing the `policy_assignment_id` property not created a new resource [GH-19674]
 * `azurerm_subscription_policy_exemption` - changing the `policy_assignment_id` property not created a new resource [GH-19674]
+* `azurerm_stream_analytics_output_mssql` - the `user` and `password` properties are not optional when using MSI authentication [GH-19696]
 
 ## 3.35.0 (December 09, 2022)
 
