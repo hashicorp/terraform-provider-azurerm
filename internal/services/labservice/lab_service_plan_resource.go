@@ -33,12 +33,10 @@ type LabServicePlanModel struct {
 }
 
 type DefaultAutoShutdown struct {
-	DisconnectDelay                 string                     `tfschema:"disconnect_delay"`
-	IdleDelay                       string                     `tfschema:"idle_delay"`
-	NoConnectDelay                  string                     `tfschema:"no_connect_delay"`
-	ShutdownOnDisconnectEnabled     bool                       `tfschema:"shutdown_on_disconnect_enabled"`
-	ShutdownOnIdle                  labplan.ShutdownOnIdleMode `tfschema:"shutdown_on_idle"`
-	ShutdownWhenNotConnectedEnabled bool                       `tfschema:"shutdown_when_not_connected_enabled"`
+	DisconnectDelay string                     `tfschema:"disconnect_delay"`
+	IdleDelay       string                     `tfschema:"idle_delay"`
+	NoConnectDelay  string                     `tfschema:"no_connect_delay"`
+	ShutdownOnIdle  labplan.ShutdownOnIdleMode `tfschema:"shutdown_on_idle"`
 }
 
 type DefaultConnection struct {
@@ -105,30 +103,20 @@ func (r LabServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"disconnect_delay": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: azValidate.ISO8601Duration,
 					},
 
 					"idle_delay": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: azValidate.ISO8601Duration,
 					},
 
 					"no_connect_delay": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: azValidate.ISO8601Duration,
-					},
-
-					"shutdown_on_disconnect_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-
-					"shutdown_when_not_connected_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
 					},
 
 					"shutdown_on_idle": {
@@ -438,35 +426,29 @@ func expandDefaultAutoShutdown(input []DefaultAutoShutdown) *labplan.AutoShutdow
 	defaultAutoShutdownProfile := &input[0]
 	result := labplan.AutoShutdownProfile{}
 
+	shutdownOnDisconnectEnabled := labplan.EnableStateDisabled
 	if defaultAutoShutdownProfile.DisconnectDelay != "" {
 		result.DisconnectDelay = &defaultAutoShutdownProfile.DisconnectDelay
+		shutdownOnDisconnectEnabled = labplan.EnableStateEnabled
 	}
+	result.ShutdownOnDisconnect = &shutdownOnDisconnectEnabled
 
 	if defaultAutoShutdownProfile.IdleDelay != "" {
 		result.IdleDelay = &defaultAutoShutdownProfile.IdleDelay
 	}
 
+	shutdownWhenNotConnectedEnabled := labplan.EnableStateDisabled
 	if defaultAutoShutdownProfile.NoConnectDelay != "" {
 		result.NoConnectDelay = &defaultAutoShutdownProfile.NoConnectDelay
+		shutdownWhenNotConnectedEnabled = labplan.EnableStateEnabled
 	}
-
-	shutdownOnDisconnectEnabled := labplan.EnableStateEnabled
-	if !defaultAutoShutdownProfile.ShutdownOnDisconnectEnabled {
-		shutdownOnDisconnectEnabled = labplan.EnableStateDisabled
-	}
-	result.ShutdownOnDisconnect = &shutdownOnDisconnectEnabled
+	result.ShutdownWhenNotConnected = &shutdownWhenNotConnectedEnabled
 
 	shutdownOnIdle := labplan.ShutdownOnIdleModeNone
 	if defaultAutoShutdownProfile.ShutdownOnIdle != "" {
 		shutdownOnIdle = defaultAutoShutdownProfile.ShutdownOnIdle
 	}
 	result.ShutdownOnIdle = &shutdownOnIdle
-
-	shutdownWhenNotConnectedEnabled := labplan.EnableStateEnabled
-	if !defaultAutoShutdownProfile.ShutdownWhenNotConnectedEnabled {
-		shutdownWhenNotConnectedEnabled = labplan.EnableStateDisabled
-	}
-	result.ShutdownWhenNotConnected = &shutdownWhenNotConnectedEnabled
 
 	return &result
 }
@@ -491,16 +473,8 @@ func flattenDefaultAutoShutdown(input *labplan.AutoShutdownProfile) []DefaultAut
 		defaultAutoShutdownProfile.NoConnectDelay = *input.NoConnectDelay
 	}
 
-	if input.ShutdownOnDisconnect != nil {
-		defaultAutoShutdownProfile.ShutdownOnDisconnectEnabled = *input.ShutdownOnDisconnect == labplan.EnableStateEnabled
-	}
-
 	if shutdownOnIdle := input.ShutdownOnIdle; shutdownOnIdle != nil && *shutdownOnIdle != labplan.ShutdownOnIdleModeNone {
 		defaultAutoShutdownProfile.ShutdownOnIdle = *shutdownOnIdle
-	}
-
-	if input.ShutdownWhenNotConnected != nil {
-		defaultAutoShutdownProfile.ShutdownWhenNotConnectedEnabled = *input.ShutdownWhenNotConnected == labplan.EnableStateEnabled
 	}
 
 	return append(defaultAutoShutdownProfiles, defaultAutoShutdownProfile)

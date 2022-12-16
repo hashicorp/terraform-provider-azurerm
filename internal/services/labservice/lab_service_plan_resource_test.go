@@ -194,12 +194,10 @@ resource "azurerm_lab_service_plan" "test" {
   shared_gallery_id         = azurerm_shared_image_gallery.test.id
 
   default_auto_shutdown {
-    disconnect_delay                    = "PT15M"
-    idle_delay                          = "PT15M"
-    no_connect_delay                    = "PT15M"
-    shutdown_on_disconnect_enabled      = false
-    shutdown_on_idle                    = "LowUsage"
-    shutdown_when_not_connected_enabled = false
+    disconnect_delay = "PT15M"
+    idle_delay       = "PT15M"
+    no_connect_delay = "PT15M"
+    shutdown_on_idle = "LowUsage"
   }
 
   default_connection {
@@ -280,12 +278,10 @@ resource "azurerm_lab_service_plan" "test" {
   default_network_subnet_id = azurerm_subnet.test2.id
 
   default_auto_shutdown {
-    disconnect_delay                    = "PT16M"
-    idle_delay                          = "PT16M"
-    no_connect_delay                    = "PT16M"
-    shutdown_on_disconnect_enabled      = true
-    shutdown_on_idle                    = "UserAbsence"
-    shutdown_when_not_connected_enabled = true
+    disconnect_delay = "PT16M"
+    idle_delay       = "PT16M"
+    no_connect_delay = "PT16M"
+    shutdown_on_idle = "UserAbsence"
   }
 
   default_connection {

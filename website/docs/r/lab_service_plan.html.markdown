@@ -58,19 +58,15 @@ The following arguments are supported:
 
 A `default_auto_shutdown` block supports the following:
 
-* `disconnect_delay` - (Required) The amount of time a VM will stay running after a user disconnects if this behavior is enabled. This value must be formatted as an ISO 8601 string.
+* `disconnect_delay` - (Optional) The amount of time a VM will stay running after a user disconnects if this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
-* `idle_delay` - (Required) The amount of time a VM will idle before it is shutdown if this behavior is enabled. This value must be formatted as an ISO 8601 string.
+* `idle_delay` - (Optional) The amount of time a VM will idle before it is shutdown if this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
-* `no_connect_delay` - (Required) The amount of time a VM will stay running before it is shutdown if no connection is made and this behavior is enabled. This value must be formatted as an ISO 8601 string.
-
-* `shutdown_on_disconnect_enabled` - (Required) Is shutdown on disconnect enabled? Possible values are `true` and `false`.
-
-* `shutdown_when_not_connected_enabled` - (Required) Will a VM get shutdown when it hasn't been connected to after a period of time? Possible values are `true` and `false`.
+* `no_connect_delay` - (Optional) The amount of time a VM will stay running before it is shutdown if no connection is made and this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
 * `shutdown_on_idle` - (Optional) Will a VM get shutdown when it has idled for a period of time? Possible values are `LowUsage` and `UserAbsence`.
 
-~> **NOTE:** This property is `None` when it isn't specified.
+~> **NOTE:** This property is `None` when it isn't specified. No need to set `idle_delay` when `shutdown_on_idle` isn't specified.
 
 ---
 
