@@ -1,3 +1,7 @@
+## 3.37.0 (Unreleased)
+
+* **New Resource:** `azurerm_lab_service_plan` [GH-19312]
+
 ## 3.36.0 (December 15, 2022)
 
 FEATURES:
