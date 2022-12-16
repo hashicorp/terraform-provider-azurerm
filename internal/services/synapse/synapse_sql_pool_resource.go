@@ -157,6 +157,12 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"geo_backup_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Default:  true,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -166,7 +172,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
-	// geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
+	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -246,16 +252,17 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	/*	geoBackupParams := synapse.GeoBackupPolicy{
-			Response: autorest.Response{},
+	if !d.Get("geo_backup_policy_enabled").(bool) {
+		geoBackupParams := synapse.GeoBackupPolicy{
 			GeoBackupPolicyProperties: &synapse.GeoBackupPolicyProperties{
-				State: synapse.GeoBackupPolicyStateEnabled,
+				State: synapse.GeoBackupPolicyStateDisabled,
 			},
 		}
 
 		if _, err := geoBackUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, geoBackupParams); err != nil {
-			return err
-		}*/
+			return fmt.Errorf("setting `geo_backup_policy_enabled`: %+v", err)
+		}
+	}
 
 	d.SetId(id.ID())
 	return resourceSynapseSqlPoolRead(d, meta)
@@ -264,6 +271,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -285,6 +293,22 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		if _, err := sqlPTDEClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameter); err != nil {
 			return fmt.Errorf("updating `data_encrypted`: %+v", err)
+		}
+	}
+
+	if d.HasChange("geo_backup_policy_enabled") {
+		state := synapse.GeoBackupPolicyStateEnabled
+		if !d.Get("geo_backup_policy_enabled").(bool) {
+			state = synapse.GeoBackupPolicyStateDisabled
+		}
+
+		geoBackupParams := synapse.GeoBackupPolicy{
+			GeoBackupPolicyProperties: &synapse.GeoBackupPolicyProperties{
+				State: state,
+			},
+		}
+		if _, err := geoBackUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, geoBackupParams); err != nil {
+			return fmt.Errorf("updating `geo_backup_policy_enabled`: %+v", err)
 		}
 	}
 
@@ -330,6 +354,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -351,7 +376,12 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	transparentDataEncryption, err := sqlPTDEClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Transparent Data Encryption settings of %s: %+v", *id, err)
+	}
+
+	geoBackupPolicy, err := geoBackUpClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving Geo Backup Policy of %s: %+v", *id, err)
 	}
 
 	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
@@ -364,20 +394,24 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("collation", props.Collation)
 
 		recoverableDatabaseId := ""
-		if props.RecoverableDatabaseID != nil {
-			recoverableDatabaseId = *props.RecoverableDatabaseID
-			if recoverableDatabaseId != "" {
-				id, err := parse.SqlPoolRecoverableDatabaseID(*props.RecoverableDatabaseID)
-				recoverableDatabaseId = id.ID()
-				if err != nil {
-					return err
-				}
+		if props.RecoverableDatabaseID != nil && *props.RecoverableDatabaseID != "" {
+			id, err := parse.SqlPoolRecoverableDatabaseID(*props.RecoverableDatabaseID)
+			if err != nil {
+				return err
 			}
+			recoverableDatabaseId = id.ID()
 		}
-		d.Set("recoverable_database_id", recoverableDatabaseId)
+		d.Set("recovery_database_id", recoverableDatabaseId)
 	}
-	if props := transparentDataEncryption.TransparentDataEncryptionProperties; props != nil {
-		d.Set("data_encrypted", props.Status == synapse.TransparentDataEncryptionStatusEnabled)
+
+	geoBackupEnabled := true
+	if geoBackupProps := geoBackupPolicy.GeoBackupPolicyProperties; geoBackupProps != nil {
+		geoBackupEnabled = geoBackupProps.State == synapse.GeoBackupPolicyStateEnabled
+	}
+	d.Set("geo_backup_policy_enabled", geoBackupEnabled)
+
+	if tdeProps := transparentDataEncryption.TransparentDataEncryptionProperties; tdeProps != nil {
+		d.Set("data_encrypted", tdeProps.Status == synapse.TransparentDataEncryptionStatusEnabled)
 	}
 
 	// whole "restore" block is not returned. to avoid conflict, so set it from the old state
