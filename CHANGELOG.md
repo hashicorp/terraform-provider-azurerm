@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 * `healthbot`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19433]
 * `media`: updating to API version `2021-11-01 `and `2022-08-01` [GH-19623]
+* `azurerm_cosmosdb_account` - support  for updating `capabilities`  [GH-14991]
 * `azurerm_key_vault_managed_hardware_security_module` - support for the `public_network_access_enabled` and `network_acls` properties [GH-19640]
 * `azurerm_kubernetes_cluster` - support for the `monitor_metrics` block [GH-19530]
 * `azurerm_kubernetes_cluster` - `ssh_key` can now be updated [GH-19634]
