@@ -127,6 +127,9 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread"{
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -244,7 +247,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
-  lifecycler {
+  lifecycle {
     ignore_changes = [sku]
   }
 }
@@ -273,8 +276,7 @@ func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acc
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_sentinel_log_analytics_workspace_onboard" "import" {
-  name                = azurerm_sentinel_log_analytics_workspace_onboard.test.name
+resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
 }
