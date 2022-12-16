@@ -45,7 +45,7 @@ func TestAccManagedApplication_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccManagedApplication(t *testing.T) {
+func TestAccManagedApplication_sequential(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"complete": testAccManagedApplication_complete,
