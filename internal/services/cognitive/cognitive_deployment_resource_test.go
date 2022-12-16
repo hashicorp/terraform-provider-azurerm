@@ -126,8 +126,8 @@ resource "azurerm_cognitive_deployment" "test" {
     version = "1"
   }
 
-  scale_settings {
-    scale_type = "Standard"
+  scale {
+    type = "Standard"
   }
 }
 `, template, data.RandomInteger)
@@ -146,8 +146,8 @@ resource "azurerm_cognitive_deployment" "import" {
     name    = "text-curie-001"
     version = "1"
   }
-  scale_settings {
-    scale_type = "Standard"
+  scale {
+    type = "Standard"
   }
 }
 `, config)
@@ -168,8 +168,8 @@ resource "azurerm_cognitive_deployment" "test" {
     version = "1"
   }
 
-  scale_settings {
-    scale_type = "Standard"
+  scale {
+    type = "Standard"
   }
 
   rai_policy_name = "RAI policy"

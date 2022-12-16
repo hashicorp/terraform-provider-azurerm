@@ -18,7 +18,7 @@ type cognitiveDeploymentModel struct {
 	CognitiveAccountId string                         `tfschema:"cognitive_account_id"`
 	Model              []DeploymentModelModel         `tfschema:"model"`
 	RaiPolicyName      string                         `tfschema:"rai_policy_name"`
-	ScaleSettings      []DeploymentScaleSettingsModel `tfschema:"scale_settings"`
+	ScaleSettings      []DeploymentScaleSettingsModel `tfschema:"scale"`
 }
 
 type DeploymentModelModel struct {
@@ -28,7 +28,7 @@ type DeploymentModelModel struct {
 }
 
 type DeploymentScaleSettingsModel struct {
-	ScaleType deployments.DeploymentScaleType `tfschema:"scale_type"`
+	ScaleType deployments.DeploymentScaleType `tfschema:"type"`
 }
 
 type CognitiveDeploymentResource struct{}
@@ -94,14 +94,14 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"scale_settings": {
+		"scale": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"scale_type": {
+					"type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,

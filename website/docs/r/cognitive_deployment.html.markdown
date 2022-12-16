@@ -35,8 +35,8 @@ resource "azurerm_cognitive_deployment" "example" {
     version = "1"
   }
 
-  scale_settings {
-    scale_type = "Standard"
+  scale {
+    type = "Standard"
   }
 }
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `model` - (Required) A `model` block as defined below.
 
-* `scale_settings` - (Required) A `scale_settings` block as defined below.
+* `scale` - (Required) A `scale` block as defined below.
 
 * `rai_policy_name` - (Optional) The name of RAI policy. Changing this forces a new resource to be created.
 
@@ -68,9 +68,9 @@ A `model` block supports the following:
 
 ---
 
-A `scale_settings` block supports the following:
+A `scale` block supports the following:
 
-* `scale_type` - (Required) Deployment scale type. Possible value is `Standard`. Changing this forces a new resource to be created.
+* `type` - (Required) Deployment scale type. Possible value is `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
