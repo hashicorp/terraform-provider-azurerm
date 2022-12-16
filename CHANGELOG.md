@@ -5,6 +5,10 @@ FEATURES:
 * **New Resource:** `azurerm_lab_service_plan` [GH-19312]
 * **New Resource:** `azurerm_netapp_volume` [GH-19669]
 
+BUG FIXES: 
+
+* `azurerm_virtual_network_gateway_connection`:  can now be created with a `azurerm_virtual_network_gateway` in another resource group [GH-19699]
+
 ## 3.36.0 (December 15, 2022)
 
 FEATURES:
