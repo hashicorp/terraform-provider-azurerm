@@ -22,7 +22,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryContainerMappingCreate,
 		Read:   resourceSiteRecoveryContainerMappingRead,
-		Update: nil,
+		Update: resourceSiteRecoveryContainerMappingUpdate,
 		Delete: resourceSiteRecoveryServicesContainerMappingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ReplicationProtectionContainerMappingsID(id)
@@ -77,6 +77,18 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+			"automatic_update_extensions_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"automation_account_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"automatic_update_extensions_enabled"},
+				ValidateFunc: azure.ValidateResourceID,
+			},
 		},
 	}
 }
@@ -111,9 +123,24 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		Properties: &siterecovery.CreateProtectionContainerMappingInputProperties{
 			TargetProtectionContainerID: &targetContainerId,
 			PolicyID:                    &policyId,
-			ProviderSpecificInput:       siterecovery.ReplicationProviderSpecificContainerMappingInput{},
 		},
 	}
+
+	autoUpdateEnabledValue := siterecovery.Disabled
+	if d.Get("automatic_update_extensions_enabled").(bool) {
+		autoUpdateEnabledValue = siterecovery.Enabled
+	}
+
+	if autoUpdateEnabledValue == siterecovery.Enabled {
+		parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
+			InstanceType:           siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A,
+			AgentAutoUpdateStatus:  autoUpdateEnabledValue,
+			AutomationAccountArmID: utils.String(d.Get("automation_account_id").(string)),
+		}
+	} else {
+		parameters.Properties.ProviderSpecificInput = siterecovery.ReplicationProviderSpecificContainerMappingInput{}
+	}
+
 	future, err := client.Create(ctx, fabricName, protectionContainerName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
@@ -128,6 +155,75 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
+
+	return resourceSiteRecoveryContainerMappingRead(d, meta)
+}
+
+func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	resGroup := d.Get("resource_group_name").(string)
+	vaultName := d.Get("recovery_vault_name").(string)
+
+	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ReplicationProtectionContainerMappingsID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.ReplicationProtectionContainerMappingName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("making Read request on site recovery protection container mapping %s : %+v", id.String(), err)
+	}
+
+	if resp.Properties == nil {
+		return fmt.Errorf("making Read request on site recovery protection container mapping %s : `Properties` is nil", id.String())
+	}
+
+	detail, ok := resp.Properties.ProviderSpecificDetails.AsA2AProtectionContainerMappingDetails()
+	if !ok {
+		return fmt.Errorf("update %s: type mismatch", id)
+	}
+
+	updateInput := siterecovery.A2AUpdateContainerMappingInput{
+		AgentAutoUpdateStatus:  detail.AgentAutoUpdateStatus,
+		AutomationAccountArmID: detail.AutomationAccountArmID,
+	}
+
+	if d.HasChange("automatic_update_extensions_enabled") {
+		if d.Get("automatic_update_extensions_enabled").(bool) {
+			updateInput.AgentAutoUpdateStatus = siterecovery.Enabled
+		} else {
+			updateInput.AgentAutoUpdateStatus = siterecovery.Disabled
+		}
+	}
+
+	if d.HasChange("automation_account_id") {
+		if v, ok := d.GetOk("automation_account_id"); ok {
+			updateInput.AutomationAccountArmID = utils.String(v.(string))
+		} else {
+			updateInput.AutomationAccountArmID = nil
+		}
+	}
+
+	update := siterecovery.UpdateProtectionContainerMappingInput{
+		Properties: &siterecovery.UpdateProtectionContainerMappingInputProperties{
+			ProviderSpecificInput: updateInput,
+		},
+	}
+
+	future, err := client.Update(ctx, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.ReplicationProtectionContainerMappingName, update)
+	if err != nil {
+		return fmt.Errorf("update %s: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("update %s: %+v", id, err)
+	}
 
 	return resourceSiteRecoveryContainerMappingRead(d, meta)
 }
@@ -158,6 +254,12 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", resp.Name)
 	d.Set("recovery_replication_policy_id", resp.Properties.PolicyID)
 	d.Set("recovery_target_protection_container_id", resp.Properties.TargetProtectionContainerID)
+
+	if detail, ok := resp.Properties.ProviderSpecificDetails.AsA2AProtectionContainerMappingDetails(); ok {
+		d.Set("automatic_update_extensions_enabled", detail.AgentAutoUpdateStatus == siterecovery.Enabled)
+		d.Set("automation_account_id", detail.AutomationAccountArmID)
+	}
+
 	return nil
 }
 
