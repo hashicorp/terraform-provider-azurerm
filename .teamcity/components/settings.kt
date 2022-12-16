@@ -138,7 +138,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false), useDevTestSubscription = true),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false))
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // moved to alt subsription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),
@@ -149,5 +149,5 @@ var serviceTestConfigurationOverrides = mapOf(
         "keyvault" to testConfiguration(useDevTestSubscription = true),
         "postgres" to testConfiguration(useDevTestSubscription = true),
         "privatedns" to testConfiguration(useDevTestSubscription = true),
-        "redis" to testConfiguration(useDevTestSubscription = true),
+        "redis" to testConfiguration(useDevTestSubscription = true)
 )
