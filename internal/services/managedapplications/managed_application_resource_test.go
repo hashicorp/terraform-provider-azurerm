@@ -45,7 +45,28 @@ func TestAccManagedApplication_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccManagedApplication_complete(t *testing.T) {
+func TestAccManagedApplication(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"Resource": {
+			"complete": testAccManagedApplication_complete,
+			"update":   testAccManagedApplication_update,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccManagedApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
@@ -60,7 +81,7 @@ func TestAccManagedApplication_complete(t *testing.T) {
 	})
 }
 
-func TestAccManagedApplication_update(t *testing.T) {
+func testAccManagedApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
