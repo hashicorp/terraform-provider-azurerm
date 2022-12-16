@@ -51,7 +51,7 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"intent_vm_sizes": {
+			"allowed_vm_sizes": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
@@ -64,7 +64,7 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 			"zone": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				RequiredWith: []string{"intent_vm_sizes"},
+				RequiredWith: []string{"allowed_vm_sizes"},
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -101,7 +101,7 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("intent_vm_sizes"); ok {
+	if v, ok := d.GetOk("allowed_vm_sizes"); ok {
 		if payload.Properties.Intent == nil {
 			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
 		}
@@ -162,7 +162,7 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 				}
 			}
 		}
-		d.Set("intent_vm_sizes", intentVmSizes)
+		d.Set("allowed_vm_sizes", intentVmSizes)
 
 		zone := ""
 		if v := zones.Flatten(model.Zones); len(v) != 0 {
