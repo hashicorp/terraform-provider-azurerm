@@ -91,7 +91,7 @@ The following attributes are exported:
 
 A `frontend_ip_configuration` block exports the following:
 
-* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The id of the Frontend IP Configuration of a Gateway Load Balancer that this Load Balancer points to.
+* `gateway_load_balancer_frontend_ip_configuration_id` - The id of the Frontend IP Configuration of a Gateway Load Balancer that this Load Balancer points to.
 * `id` - The id of the Frontend IP Configuration.
 * `inbound_nat_rules` - The list of IDs of inbound rules that use this frontend IP.
 * `load_balancer_rules` - The list of IDs of load balancing rules that use this frontend IP.
