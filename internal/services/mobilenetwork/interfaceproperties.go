@@ -16,7 +16,8 @@ type InterfacePropertiesModel struct {
 func interfacePropertiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Required: true,
+		Optional: true,
+		Computed: true, // set it to computed, because the service always return it even if it's empty.
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -26,17 +27,17 @@ func interfacePropertiesSchema() *pluginsdk.Schema {
 				},
 				"ipv4_address": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.IsIPv4Address,
 				},
 				"ipv4_subnet": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validate.CIDR,
 				},
 				"ipv4_gateway": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.IsIPv6Address,
 				},
 			},

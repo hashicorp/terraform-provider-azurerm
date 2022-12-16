@@ -253,11 +253,7 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 				props.CoreNetworkTechnology = &value
 			}
 
-			controlPlaneAccessInterfaceValue, err := expandPacketCoreControlPlaneInterfacePropertiesModel(model.ControlPlaneAccessInterface)
-			if err != nil {
-				return err
-			}
-			props.ControlPlaneAccessInterface = *controlPlaneAccessInterfaceValue
+			props.ControlPlaneAccessInterface = expandPacketCoreControlPlaneInterfacePropertiesModel(model.ControlPlaneAccessInterface)
 
 			if model.InteropSettings != "" {
 				var interopSettingsValue interface{}
@@ -326,14 +322,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("control_plane_access_interface") {
-				controlPlaneAccessInterfaceValue, err := expandPacketCoreControlPlaneInterfacePropertiesModel(model.ControlPlaneAccessInterface)
-				if err != nil {
-					return err
-				}
-
-				if controlPlaneAccessInterfaceValue != nil {
-					properties.Properties.ControlPlaneAccessInterface = *controlPlaneAccessInterfaceValue
-				}
+				properties.Properties.ControlPlaneAccessInterface = expandPacketCoreControlPlaneInterfacePropertiesModel(model.ControlPlaneAccessInterface)
 			}
 
 			if metadata.ResourceData.HasChange("core_network_technology") {
@@ -440,12 +429,7 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
-			controlPlaneAccessInterfaceValue, err := flattenPacketCoreControlPlaneInterfacePropertiesModel(&properties.ControlPlaneAccessInterface)
-			if err != nil {
-				return err
-			}
-
-			state.ControlPlaneAccessInterface = controlPlaneAccessInterfaceValue
+			state.ControlPlaneAccessInterface = flattenPacketCoreControlPlaneInterfacePropertiesModel(properties.ControlPlaneAccessInterface)
 
 			if properties.CoreNetworkTechnology != nil {
 				state.CoreNetworkTechnology = string(*properties.CoreNetworkTechnology)
@@ -545,13 +529,13 @@ func flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(input pack
 	return outputs
 }
 
-func expandPacketCoreControlPlaneInterfacePropertiesModel(inputList []InterfacePropertiesModel) (*packetcorecontrolplane.InterfaceProperties, error) {
+func expandPacketCoreControlPlaneInterfacePropertiesModel(inputList []InterfacePropertiesModel) packetcorecontrolplane.InterfaceProperties {
+	output := packetcorecontrolplane.InterfaceProperties{}
 	if len(inputList) == 0 {
-		return nil, nil
+		return output
 	}
 
-	input := &inputList[0]
-	output := packetcorecontrolplane.InterfaceProperties{}
+	input := inputList[0]
 
 	if input.IPv4Address != "" {
 		output.IPv4Address = &input.IPv4Address
@@ -569,7 +553,7 @@ func expandPacketCoreControlPlaneInterfacePropertiesModel(inputList []InterfaceP
 		output.Name = &input.Name
 	}
 
-	return &output, nil
+	return output
 }
 
 func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (packetcorecontrolplane.PlatformConfiguration, error) {
@@ -638,11 +622,8 @@ func vertifyPlatformConfigurationModel(input PlatformConfigurationModel) (bool, 
 	return true, nil
 }
 
-func flattenPacketCoreControlPlaneInterfacePropertiesModel(input *packetcorecontrolplane.InterfaceProperties) ([]InterfacePropertiesModel, error) {
+func flattenPacketCoreControlPlaneInterfacePropertiesModel(input packetcorecontrolplane.InterfaceProperties) []InterfacePropertiesModel {
 	var outputList []InterfacePropertiesModel
-	if input == nil {
-		return outputList, nil
-	}
 
 	output := InterfacePropertiesModel{}
 
@@ -662,7 +643,8 @@ func flattenPacketCoreControlPlaneInterfacePropertiesModel(input *packetcorecont
 		output.Name = *input.Name
 	}
 
-	return append(outputList, output), nil
+	outputList = append(outputList, output)
+	return outputList
 }
 
 func flattenPlatformConfigurationModel(input packetcorecontrolplane.PlatformConfiguration) []PlatformConfigurationModel {

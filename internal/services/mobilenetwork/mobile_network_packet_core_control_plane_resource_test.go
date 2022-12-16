@@ -30,6 +30,20 @@ func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
 	})
 }
 
+func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+	r := MobileNetworkPacketCoreControlPlaneResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAccessInterface(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMobileNetworkPacketCoreControlPlane_with3PSTACKHCI(t *testing.T) {
 	t.Skip("service is still in progress")
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
@@ -156,6 +170,31 @@ resource "azurerm_databox_edge_device" "test" {
 }
 
 func (r MobileNetworkPacketCoreControlPlaneResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_mobile_network_packet_core_control_plane" "test" {
+  name                = "acctest-mnpccp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+  sku                 = "G0"
+  site_ids            = [azurerm_mobile_network_site.test.id]
+
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
+
+  platform {
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.test.id
+  }
+
+  depends_on = [azurerm_mobile_network.test]
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MobileNetworkPacketCoreControlPlaneResource) withAccessInterface(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 				%s
 

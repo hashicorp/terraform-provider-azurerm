@@ -98,14 +98,7 @@ func (r PacketCoreDataPlaneResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			userPlaneAccessInterfaceValue, err := expandPacketCoreDataPlaneInterfacePropertiesModel(model.UserPlaneAccessInterface)
-			if err != nil {
-				return err
-			}
-
-			if userPlaneAccessInterfaceValue != nil {
-				properties.Properties.UserPlaneAccessInterface = *userPlaneAccessInterfaceValue
-			}
+			properties.Properties.UserPlaneAccessInterface = expandPacketCoreDataPlaneInterfacePropertiesModel(model.UserPlaneAccessInterface)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -144,15 +137,7 @@ func (r PacketCoreDataPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("user_plane_access_interface") {
-				userPlaneAccessInterfaceValue, err := expandPacketCoreDataPlaneInterfacePropertiesModel(model.UserPlaneAccessInterface)
-				//userPlaneAccessInterfaceValue, err := expandPacketCoreDataPlaneInterfacePropertiesModel(model.UserPlaneAccessInterface)
-				if err != nil {
-					return err
-				}
-
-				if userPlaneAccessInterfaceValue != nil {
-					properties.Properties.UserPlaneAccessInterface = *userPlaneAccessInterfaceValue
-				}
+				properties.Properties.UserPlaneAccessInterface = expandPacketCoreDataPlaneInterfacePropertiesModel(model.UserPlaneAccessInterface)
 			}
 
 			properties.SystemData = nil
@@ -202,12 +187,8 @@ func (r PacketCoreDataPlaneResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
-			userPlaneAccessInterfaceValue, err := flattenPacketCoreDataPlaneInterfacePropertiesModel(&properties.UserPlaneAccessInterface)
-			if err != nil {
-				return err
-			}
+			state.UserPlaneAccessInterface = flattenPacketCoreDataPlaneInterfacePropertiesModel(properties.UserPlaneAccessInterface)
 
-			state.UserPlaneAccessInterface = userPlaneAccessInterfaceValue
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -237,13 +218,12 @@ func (r PacketCoreDataPlaneResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPacketCoreDataPlaneInterfacePropertiesModel(inputList []InterfacePropertiesModel) (*packetcoredataplane.InterfaceProperties, error) {
-	if len(inputList) == 0 {
-		return nil, nil
-	}
-
-	input := &inputList[0]
+func expandPacketCoreDataPlaneInterfacePropertiesModel(inputList []InterfacePropertiesModel) packetcoredataplane.InterfaceProperties {
 	output := packetcoredataplane.InterfaceProperties{}
+	if len(inputList) == 0 {
+		return output
+	}
+	input := inputList[0]
 
 	if input.IPv4Address != "" {
 		output.IPv4Address = &input.IPv4Address
@@ -261,15 +241,11 @@ func expandPacketCoreDataPlaneInterfacePropertiesModel(inputList []InterfaceProp
 		output.Name = &input.Name
 	}
 
-	return &output, nil
+	return output
 }
 
-func flattenPacketCoreDataPlaneInterfacePropertiesModel(input *packetcoredataplane.InterfaceProperties) ([]InterfacePropertiesModel, error) {
+func flattenPacketCoreDataPlaneInterfacePropertiesModel(input packetcoredataplane.InterfaceProperties) []InterfacePropertiesModel {
 	var outputList []InterfacePropertiesModel
-	if input == nil {
-		return outputList, nil
-	}
-
 	output := InterfacePropertiesModel{}
 
 	if input.IPv4Address != nil {
@@ -288,5 +264,5 @@ func flattenPacketCoreDataPlaneInterfacePropertiesModel(input *packetcoredatapla
 		output.Name = *input.Name
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

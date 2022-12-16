@@ -30,6 +30,20 @@ func TestAccMobileNetworkAttachedDataNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccMobileNetworkAttachedDataNetwork_withDataInterface(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
+	r := MobileNetworkAttachedDataNetworkResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDataInterface(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMobileNetworkAttachedDataNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
 	r := MobileNetworkAttachedDataNetworkResource{}
@@ -110,6 +124,22 @@ resource "azurerm_mobile_network_data_network" "test" {
 }
 
 func (r MobileNetworkAttachedDataNetworkResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_mobile_network_attached_data_network" "test" {
+  name                                     = "acctest-mnadn-%d"
+  mobile_network_packet_core_data_plane_id = azurerm_mobile_network_packet_core_data_plane.test.id
+  location                                 = "%s"
+  dns_addresses                            = ["1.1.1.1"]
+
+  depends_on = [azurerm_mobile_network_data_network.test]
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MobileNetworkAttachedDataNetworkResource) withDataInterface(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s

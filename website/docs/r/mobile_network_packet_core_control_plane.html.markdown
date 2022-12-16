@@ -81,13 +81,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Packet Core Control Plane should exist. Changing this forces a new Mobile Network Packet Core Control Plane to be created.
 
-* `control_plane_access_interface` - (Required) A `control_plane_access_interface` block as defined below. The control plane interface on the access network. For 5G networks, this is the N2 interface. For 4G networks, this is the S1-MME interface.
-
 * `site_ids` - (Required) A list of IDs of Mobile Network Sites in which this packet core control plane should be deployed. The Sites must be in the same location as the packet core control plane.
 
 * `sku` - (Required) The SKU defining the throughput and SIM allowances for this packet core control plane deployment. Possible values are `G0`, `G1`, `G2`, `G3`, `G4`, `G5` and `G10`.
 
 * `local_diagnostics_access_setting` - (Required) One or more `local_diagnostics_access_setting` block as defined below. The kubernetes ingress configuration to control access to packet core diagnostics over local APIs.
+
+* `control_plane_access_interface` - (Optional) A `control_plane_access_interface` block as defined below. The control plane interface on the access network. For 5G networks, this is the N2 interface. For 4G networks, this is the S1-MME interface.
 
 * `user_equipment_mtu_in_bytes` - (Optional) Specifies the MTU (in bytes) signaled to the UE. The same MTU is set on the user plane data links for all data networks. The MTU set on the user plane access link is calculated to be 60 bytes greater than this value to allow for GTP encapsulation.
 

@@ -120,7 +120,7 @@ The following arguments are supported:
 
 * `network_address_port_translation_configuration` - (Optional) A `network_address_port_translation_configuration` block as defined below.
 
-* `user_plane_data_interface` - (Required) A `user_plane_data_interface` block as defined below.
+* `user_plane_data_interface` - (Optinal) A `user_plane_data_interface` block as defined below.
 
 * `user_equipment_address_pool_prefix` - (Optional) Specifies the user equipment (UE) address pool prefixes for the attached data network from which the packet core instance will dynamically assign IP addresses to UEs. The packet core instance assigns an IP address to a UE when the UE sets up a PDU session. At least one of `user_equipment_address_pool_prefix` and `user_equipment_static_address_pool_prefix`. If you define both, they must be of the same size.
 

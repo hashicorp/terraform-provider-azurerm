@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Packet Core Data Plane should exist. Changing this forces a new Mobile Network Packet Core Data Plane to be created.
 
-* `user_plane_access_interface` - (Required) A `user_plane_access_interface` block as defined below.
+* `user_plane_access_interface` - (Optional) A `user_plane_access_interface` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Packet Core Data Plane.
 

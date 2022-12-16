@@ -262,14 +262,7 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 
 			properties.Properties.NaptConfiguration = naptConfigurationValue
 
-			userPlaneDataInterfaceValue, err := expandAttachedDataNetworkInterfacePropertiesModel(model.UserPlaneDataInterface)
-			if err != nil {
-				return err
-			}
-
-			if userPlaneDataInterfaceValue != nil {
-				properties.Properties.UserPlaneDataInterface = *userPlaneDataInterfaceValue
-			}
+			properties.Properties.UserPlaneDataInterface = expandAttachedDataNetworkInterfacePropertiesModel(model.UserPlaneDataInterface)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -329,14 +322,7 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("user_plane_data_interface") {
-				userPlaneDataInterfaceValue, err := expandAttachedDataNetworkInterfacePropertiesModel(model.UserPlaneDataInterface)
-				if err != nil {
-					return err
-				}
-
-				if userPlaneDataInterfaceValue != nil {
-					properties.Properties.UserPlaneDataInterface = *userPlaneDataInterfaceValue
-				}
+				properties.Properties.UserPlaneDataInterface = expandAttachedDataNetworkInterfacePropertiesModel(model.UserPlaneDataInterface)
 			}
 
 			properties.SystemData = nil
@@ -405,12 +391,8 @@ func (r AttachedDataNetworkResource) Read() sdk.ResourceFunc {
 				state.UserEquipmentStaticAddressPoolPrefix = *properties.UserEquipmentStaticAddressPoolPrefix
 			}
 
-			userPlaneDataInterfaceValue, err := flattenAttachedDataNetworkInterfacePropertiesModel(&properties.UserPlaneDataInterface)
-			if err != nil {
-				return err
-			}
+			state.UserPlaneDataInterface = flattenAttachedDataNetworkInterfacePropertiesModel(properties.UserPlaneDataInterface)
 
-			state.UserPlaneDataInterface = userPlaneDataInterfaceValue
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -523,12 +505,12 @@ func expandPortReuseHoldTimesModel(inputList []PortReuseHoldTimesModel) (*attach
 	return &output, nil
 }
 
-func expandAttachedDataNetworkInterfacePropertiesModel(inputList []InterfacePropertiesModel) (*attacheddatanetwork.InterfaceProperties, error) {
-	if len(inputList) == 0 {
-		return nil, nil
-	}
-	input := &inputList[0]
+func expandAttachedDataNetworkInterfacePropertiesModel(inputList []InterfacePropertiesModel) attacheddatanetwork.InterfaceProperties {
 	output := attacheddatanetwork.InterfaceProperties{}
+	if len(inputList) == 0 {
+		return output
+	}
+	input := inputList[0]
 
 	if input.IPv4Address != "" {
 		output.IPv4Address = &input.IPv4Address
@@ -546,7 +528,7 @@ func expandAttachedDataNetworkInterfacePropertiesModel(inputList []InterfaceProp
 		output.Name = &input.Name
 	}
 
-	return &output, nil
+	return output
 }
 
 func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration) ([]NaptConfigurationModel, error) {
@@ -650,12 +632,8 @@ func flattenPortReuseHoldTimesModel(input *attacheddatanetwork.PortReuseHoldTime
 	return append(outputList, output), nil
 }
 
-func flattenAttachedDataNetworkInterfacePropertiesModel(input *attacheddatanetwork.InterfaceProperties) ([]InterfacePropertiesModel, error) {
+func flattenAttachedDataNetworkInterfacePropertiesModel(input attacheddatanetwork.InterfaceProperties) []InterfacePropertiesModel {
 	var outputList []InterfacePropertiesModel
-	if input == nil {
-		return outputList, nil
-	}
-
 	output := InterfacePropertiesModel{}
 
 	if input.IPv4Address != nil {
@@ -674,5 +652,6 @@ func flattenAttachedDataNetworkInterfacePropertiesModel(input *attacheddatanetwo
 		output.Name = *input.Name
 	}
 
-	return append(outputList, output), nil
+	outputList = append(outputList, output)
+	return outputList
 }

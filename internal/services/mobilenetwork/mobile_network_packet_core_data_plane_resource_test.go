@@ -30,6 +30,20 @@ func TestAccMobileNetworkPacketCoreDataPlane_basic(t *testing.T) {
 	})
 }
 
+func TestAccMobileNetworkPacketCoreDataPlane_withAccessInterface(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
+	r := MobileNetworkPacketCoreDataPlaneResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAccessInterface(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMobileNetworkPacketCoreDataPlane_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
 	r := MobileNetworkPacketCoreDataPlaneResource{}
@@ -97,6 +111,18 @@ func (r MobileNetworkPacketCoreDataPlaneResource) Exists(ctx context.Context, cl
 }
 
 func (r MobileNetworkPacketCoreDataPlaneResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_mobile_network_packet_core_data_plane" "test" {
+  name                                        = "acctest-mnpcdp-%d"
+  mobile_network_packet_core_control_plane_id = azurerm_mobile_network_packet_core_control_plane.test.id
+  location                                    = "%s"
+}
+`, MobileNetworkPacketCoreControlPlaneResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MobileNetworkPacketCoreDataPlaneResource) withAccessInterface(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 				%s
 
