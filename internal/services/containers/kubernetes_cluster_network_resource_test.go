@@ -853,8 +853,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  api_server_vnet_integration_enabled = true
-  api_server_subnet_id                = azurerm_subnet.test.id
+  api_server_access_profile {
+    vnet_integration_enabled = true
+    subnet_id                = azurerm_subnet.test.id
+  }
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -904,7 +906,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  api_server_vnet_integration_enabled = true
+  api_server_access_profile {
+    vnet_integration_enabled = true
+  }
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -3256,7 +3260,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 func (KubernetesClusterResource) publicNetworkAccess(data acceptance.TestData, enabled bool) string {
 	authorizedIPConfig := ""
 	if !enabled {
-		authorizedIPConfig = `api_server_authorized_ip_ranges = ["0.0.0.0/32"]`
+		authorizedIPConfig = `api_server_access_profile {
+	authorized_ip_ranges = ["0.0.0.0/32"]
+  }`
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
