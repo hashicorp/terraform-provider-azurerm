@@ -2065,10 +2065,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		enablePrivateClusterPublicFQDN := false
 		runCommandEnabled := true
 		if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-			flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)
-
-			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
+			apiServerAccessProfile := flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)
+			if err := d.Set("api_server_access_profile", apiServerAccessProfile); err != nil {
+				return fmt.Errorf("setting `api_server_access_profile`: %+v", err)
+			}
 			if !features.FourPointOhBeta() {
+				apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 				if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
 					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 				}
