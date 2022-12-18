@@ -467,12 +467,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   api_server_access_profile {
-		authorized_ip_ranges = [
-			"8.8.8.8/32",
-			"8.8.4.4/32",
-			"8.8.2.0/24",
-		]
-	}
+    authorized_ip_ranges = [
+      "8.8.8.8/32",
+      "8.8.4.4/32",
+      "8.8.2.0/24",
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
