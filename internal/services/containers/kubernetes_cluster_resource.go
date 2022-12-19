@@ -98,6 +98,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"api_server_access_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: !features.FourPointOhBeta(),
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -2064,11 +2065,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		enablePrivateCluster := false
 		enablePrivateClusterPublicFQDN := false
 		runCommandEnabled := true
+
+		apiServerAccessProfile := flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)
+		if err := d.Set("api_server_access_profile", apiServerAccessProfile); err != nil {
+			return fmt.Errorf("setting `api_server_access_profile`: %+v", err)
+		}
 		if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-			apiServerAccessProfile := flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)
-			if err := d.Set("api_server_access_profile", apiServerAccessProfile); err != nil {
-				return fmt.Errorf("setting `api_server_access_profile`: %+v", err)
-			}
 			if !features.FourPointOhBeta() {
 				apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 				if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
@@ -2093,8 +2095,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 			}
 		}
-
-		d.Set("private_cluster_enabled", enablePrivateCluster)
+		if !features.FourPointOhBeta() {
+			d.Set("private_cluster_enabled", enablePrivateCluster)
+		}
 		d.Set("private_cluster_public_fqdn_enabled", enablePrivateClusterPublicFQDN)
 		d.Set("run_command_enabled", runCommandEnabled)
 
