@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_cognitive_deployment` [GH-19526]
 * **New Resource:** `azurerm_lab_service_plan` [GH-19312]
 
 ENHANCEMENTS:
