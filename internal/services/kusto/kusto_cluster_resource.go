@@ -2,6 +2,7 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"log"
 	"strings"
 	"time"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -240,7 +240,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 
@@ -356,7 +356,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Identity:   expandedIdentity,
 		Sku:        *sku,
 		Properties: &clusterProperties,
-		Tags:       expandClusterTags(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -431,51 +431,52 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	model := resp.Model
-
 	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("location", location.NormalizeNilable(&model.Location))
-	d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-	d.Set("public_network_access_enabled", *model.Properties.PublicNetworkAccess == clusters.PublicNetworkAccessEnabled)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-	identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %s", err)
-	}
+		d.Set("public_network_access_enabled", *model.Properties.PublicNetworkAccess == clusters.PublicNetworkAccessEnabled)
 
-	if err := d.Set("sku", flattenKustoClusterSku(&model.Sku)); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
-	}
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
+		}
 
-	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(model.Properties.OptimizedAutoscale)); err != nil {
-		return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
-	}
+		if err := d.Set("sku", flattenKustoClusterSku(&model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
+		}
 
-	if props := model.Properties; props != nil {
-		d.Set("allowed_fqdns", props.AllowedFqdnList)
-		d.Set("allowed_ip_ranges", props.AllowedIPRangeList)
-		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
-		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
-		d.Set("auto_stop_enabled", props.EnableAutoStop)
-		d.Set("disk_encryption_enabled", props.EnableDiskEncryption)
-		d.Set("streaming_ingestion_enabled", props.EnableStreamingIngest)
-		d.Set("purge_enabled", props.EnablePurge)
-		d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
-		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
-		d.Set("uri", props.Uri)
-		d.Set("data_ingestion_uri", props.DataIngestionUri)
-		d.Set("engine", props.EngineType)
-		d.Set("public_ip_type", props.PublicIPType)
-		d.Set("outbound_network_access_restricted", *props.RestrictOutboundNetworkAccess == clusters.ClusterNetworkAccessFlagEnabled)
-	}
+		if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(model.Properties.OptimizedAutoscale)); err != nil {
+			return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
+		}
 
-	if err := d.Set("tags", *(model.Tags)); err != nil {
-		return fmt.Errorf("setting `tags`: %s", err)
+		if props := model.Properties; props != nil {
+			d.Set("allowed_fqdns", props.AllowedFqdnList)
+			d.Set("allowed_ip_ranges", props.AllowedIPRangeList)
+			d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
+			d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
+			d.Set("auto_stop_enabled", props.EnableAutoStop)
+			d.Set("disk_encryption_enabled", props.EnableDiskEncryption)
+			d.Set("streaming_ingestion_enabled", props.EnableStreamingIngest)
+			d.Set("purge_enabled", props.EnablePurge)
+			d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
+			d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
+			d.Set("uri", props.Uri)
+			d.Set("data_ingestion_uri", props.DataIngestionUri)
+			d.Set("engine", props.EngineType)
+			d.Set("public_ip_type", props.PublicIPType)
+			d.Set("outbound_network_access_restricted", *props.RestrictOutboundNetworkAccess == clusters.ClusterNetworkAccessFlagEnabled)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

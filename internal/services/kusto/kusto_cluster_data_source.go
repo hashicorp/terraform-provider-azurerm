@@ -2,6 +2,7 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -44,7 +44,7 @@ func dataSourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -71,13 +71,14 @@ func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(&resp.Model.Location))
 
-	if clusterProperties := resp.Model.Properties; clusterProperties != nil {
-		d.Set("uri", clusterProperties.Uri)
-		d.Set("data_ingestion_uri", clusterProperties.DataIngestionUri)
-	}
-
-	if err := d.Set("tags", *(resp.Model.Tags)); err != nil {
-		return fmt.Errorf("setting `tags`: %s", err)
+	if model := resp.Model; model != nil {
+		if clusterProperties := model.Properties; clusterProperties != nil {
+			d.Set("uri", clusterProperties.Uri)
+			d.Set("data_ingestion_uri", clusterProperties.DataIngestionUri)
+		}
+		if err := tags.FlattenAndSet(d, resp.Model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %s", err)
+		}
 	}
 
 	return nil
