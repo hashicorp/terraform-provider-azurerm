@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
-* `shared_access_policy_key` - (Required) The shared access policy key for the specified shared access policy.
+* `shared_access_policy_key` - (Required) The shared access policy key for the specified shared access policy. Changing this forces a new resource to be created.
 
 * `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
 

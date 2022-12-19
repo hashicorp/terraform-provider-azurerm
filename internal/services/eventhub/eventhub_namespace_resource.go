@@ -91,10 +91,12 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// zone redundant is computed by service based on the availability of availability zone feature.
+			// for premium namespace, zone redundant is computed by service based on the availability of availability zone feature.
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
+				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
 			"dedicated_cluster_id": {
@@ -343,7 +345,8 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	if !features.FourPointOhBeta() {
+	// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
+	if sku != string(namespaces.SkuNamePremium) {
 		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 

@@ -41,7 +41,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the ServiceBus Namespace resource . Changing this forces a
     new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the namespace.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum supported TLS version for this Service Bus Namespace. Valid values are: `1.0`, `1.1` and `1.2`. The current default minimum TLS version is `1.2`.
 
-* `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`.
+* `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -78,13 +78,15 @@ An `identity` block supports the following:
 
 -> **Note:** Once customer-managed key encryption has been enabled, it cannot be disabled.
 
+---
+
 A `customer_managed_key` block supports the following:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this ServiceBus Namespace.
 
 * `identity_id` - (Required) The ID of the User Assigned Identity that has access to the key.
 
-* `infrastructure_encryption_enabled` - (Optional) Used to specify whether enable Infrastructure Encryption (Double Encryption).
+* `infrastructure_encryption_enabled` - (Optional) Used to specify whether enable Infrastructure Encryption (Double Encryption). Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

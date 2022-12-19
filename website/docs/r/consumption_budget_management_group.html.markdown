@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
-* `time_grain` - (Required) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `Monthly`, `Quarterly`, `Annually`, `BillingMonth`, `BillingQuarter`, or `BillingYear`. Defaults to `Monthly`.
+* `time_grain` - (Optional) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `BillingAnnual`, `BillingMonth`, `BillingQuarter`, `Annually`, `Monthly` and `Quarterly`. Defaults to `Monthly`.
 
 * `time_period` - (Required) A `time_period` block as defined below.
 
@@ -160,7 +160,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Management Group Consumption Budget.
 
-* `etag` - The ETag of the Management Group Consumption Budget.
+* `etag` - (Optional) The ETag of the Management Group Consumption Budget.
 
 ## Timeouts
 

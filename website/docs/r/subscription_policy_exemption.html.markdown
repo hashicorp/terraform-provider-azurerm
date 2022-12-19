@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `exemption_category` - (Required) The category of this policy exemption. Possible values are `Waiver` and `Mitigated`.
 
-* `policy_assignment_id` - (Required) The ID of the Policy Assignment to be exempted at the specified Scope.
+* `policy_assignment_id` - (Required) The ID of the Policy Assignment to be exempted at the specified Scope. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description to use for this Policy Exemption.
 

@@ -64,17 +64,17 @@ resource "azurerm_function_app_slot" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Function App Slot.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Function App Slot. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot.
+* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot. Changing this forces a new resource to be created.
 
 * `function_app_name` - (Required) The name of the Function App within which to create the Function App Slot. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by the Function App (such as the dashboard, logs).
+* `storage_account_name` - (Required) The backend storage account name which will be used by the Function App (such as the dashboard, logs). Changing this forces a new resource to be created.
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) A `connection_string` block as defined below.
 
-* `os_type` - (Optional) A string indicating the Operating System type for this function app.
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. The only possible value is `linux`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default).
 
@@ -112,15 +112,15 @@ The following arguments are supported:
 
 ---
 
-`connection_string` supports the following:
+The `connection_string` block supports the following:
 
-* `name` - (Required) The name of the Connection String.
+* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
 * `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
 * `value` - (Required) The value for the Connection String.
 
 ---
 
-`site_config` supports the following:
+The `site_config` block supports the following:
 
 * `always_on` - (Optional) Should the Function App be loaded at all times? Defaults to `false`.
 
@@ -158,7 +158,7 @@ The following arguments are supported:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 * `support_credentials` - (Optional) Are credentials supported?
 
@@ -214,7 +214,7 @@ An `active_directory` block supports the following:
 
 * `client_secret` - (Optional) The Client Secret of this relying party application. If no secret is provided, implicit flow will be used.
 
-* `allowed_audiences` (Optional) Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
+* `allowed_audiences` - (Optional) Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
 
 ---
 
@@ -224,7 +224,7 @@ A `facebook` block supports the following:
 
 * `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. <https://developers.facebook.com/docs/facebook-login>
+* `oauth_scopes` - (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. <https://developers.facebook.com/docs/facebook-login>
 
 ---
 
@@ -234,7 +234,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Required) The client secret associated with the Google web application.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. <https://developers.google.com/identity/sign-in/web/>
+* `oauth_scopes` - (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. <https://developers.google.com/identity/sign-in/web/>
 
 ---
 
@@ -244,7 +244,7 @@ A `microsoft` block supports the following:
 
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. <https://msdn.microsoft.com/en-us/library/dn631845.aspx>
+* `oauth_scopes` - (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. <https://msdn.microsoft.com/en-us/library/dn631845.aspx>
 
 ---
 
@@ -252,7 +252,7 @@ A `twitter` block supports the following:
 
 * `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
 
-* `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+* `consumer_secret` - (Required) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 ---
 
@@ -311,6 +311,8 @@ The `identity` block exports the following:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+---
 
 The `site_credential` block exports the following:
 

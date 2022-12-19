@@ -3,12 +3,12 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_build_pack_binding"
 description: |-
-  Manages a Spring Cloud Buildpack Binding.
+  Manages a Spring Cloud Build Pack Binding.
 ---
 
 # azurerm_spring_cloud_build_pack_binding
 
-Manages a Spring Cloud Buildpack Binding.
+Manages a Spring Cloud Build Pack Binding.
 
 -> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
 
@@ -37,11 +37,11 @@ resource "azurerm_spring_cloud_builder" "example" {
 
   build_pack_group {
     name           = "mix"
-    build_pack_ids = ["tanzu-buildpacks/java-azure"]
+    build_pack_ids = ["tanzu-Build Packs/java-azure"]
   }
 
   stack {
-    id      = "io.buildpacks.stacks.bionic"
+    id      = "io.Build Packs.stacks.bionic"
     version = "base"
   }
 }
@@ -68,13 +68,13 @@ resource "azurerm_spring_cloud_build_pack_binding" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Spring Cloud Buildpack Binding. Changing this forces a new Spring Cloud Buildpack Binding to be created.
+* `name` - (Required) The name which should be used for this Spring Cloud Build Pack Binding. Changing this forces a new Spring Cloud Build Pack Binding to be created.
 
-* `spring_cloud_builder_id` - (Required) The ID of the Spring Cloud Builder. Changing this forces a new Spring Cloud Buildpack Binding to be created.
+* `spring_cloud_builder_id` - (Required) The ID of the Spring Cloud Builder. Changing this forces a new Spring Cloud Build Pack Binding to be created.
 
 ---
 
-* `binding_type` - (Optional) Specifies the Buildpack Binding Type. Allowed values are `ApacheSkyWalking`, `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
+* `binding_type` - (Optional) Specifies the Build Pack Binding Type. Allowed values are `ApacheSkyWalking`, `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
 
 * `launch` - (Optional) A `launch` block as defined below.
 
@@ -90,21 +90,21 @@ A `launch` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Spring Cloud Buildpack Binding.
+* `id` - The ID of the Spring Cloud Build Pack Binding.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Buildpack Binding.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Buildpack Binding.
-* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Buildpack Binding.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Buildpack Binding.
+* `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Build Pack Binding.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Build Pack Binding.
+* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Build Pack Binding.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Build Pack Binding.
 
 ## Import
 
-Spring Cloud Buildpack Bindings can be imported using the `resource id`, e.g.
+Spring Cloud Build Pack Bindings can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_build_pack_binding.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/buildServices/buildService1/builders/builder1/buildpackBindings/buildpackBinding1
+terraform import azurerm_spring_cloud_build_pack_binding.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/buildServices/buildService1/builders/builder1/buildPackBindings/binding1
 ```

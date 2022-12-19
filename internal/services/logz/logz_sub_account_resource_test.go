@@ -132,7 +132,6 @@ resource "azurerm_logz_monitor" "test" {
   plan {
     billing_cycle  = "MONTHLY"
     effective_date = "%s"
-    plan_id        = "100gb14days"
     usage_type     = "COMMITTED"
   }
 

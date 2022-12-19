@@ -217,7 +217,7 @@ A `route_configuration_override_action` block supports the following:
 
 ->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
-* `cache_behavior` - (Optional) `HonorOrigin` the Front Door will always honor origin response header directive. If the origin directive is missing, Front Door will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. `Disabled` the Front Door will not cache the response contents, irrespective of Front Door Origin response directives. Possible values include `HonorOrigin`, `OverrideAlways`, `OverrideIfOriginMissing` or `Disabled`. Defaults to `HonorOrigin`.
+* `cache_behavior` - (Optional) `HonorOrigin` the Front Door will always honor origin response header directive. If the origin directive is missing, Front Door will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. `Disabled` the Front Door will not cache the response contents, irrespective of Front Door Origin response directives. Possible values include `HonorOrigin`, `OverrideAlways`, `OverrideIfOriginMissing` or `Disabled`. Defaults to `HonorOrigin`.
 
 ---
 
@@ -245,7 +245,7 @@ A `request_header_action` block supports the following:
 
 ---
 
-* A `response_header_action` block supports the following:
+A `response_header_action` block supports the following:
 
 * `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
 
@@ -321,7 +321,7 @@ A `host_name_condition` block supports the following:
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
-* `match_values` - (Required) A list of one or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
+* `match_values` - (Optional) A list of one or more string values representing the value of the request hostname to match. If multiple values are specified, they're evaluated using `OR` logic.
 
 * `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Defaults to `Lowercase`. Details can be found in the `Condition Transform List` below.
 
@@ -353,7 +353,7 @@ A `client_port_condition` block supports the following:
 
 A `socket_address_condition` block supports the following:
 
-->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
+->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
 
 ->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
@@ -373,7 +373,7 @@ A `remote_address_condition` block supports the following:
 
 ->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
-* `operator` - (Required) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`.
+* `operator` - (Optional) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`.
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 

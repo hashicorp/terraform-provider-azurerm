@@ -289,7 +289,6 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err == nil {
 		if model := queryKeysResp.Model; model != nil {
 			d.Set("query_keys", flattenSearchQueryKeys(*model))
-
 		}
 	}
 

@@ -210,9 +210,9 @@ A `auth_settings` block supports the following:
 
 A `auto_heal_setting` block supports the following:
 
-* `action` - (Optional) A `action` block as defined above.
+* `action` - (Required) A `action` block as defined above.
 
-* `trigger` - (Optional) A `trigger` block as defined below.
+* `trigger` - (Required) A `trigger` block as defined below.
 
 ---
 
@@ -220,7 +220,7 @@ A `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
+* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 

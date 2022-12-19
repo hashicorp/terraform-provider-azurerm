@@ -70,11 +70,11 @@ resource "azurerm_cosmosdb_account" "db" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the CosmosDB Account. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which the CosmosDB Account is created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `default_identity_type` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or start with `UserAssignedIdentity`. Defaults to `FirstPartyIdentity`.
 
-* `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
+* `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB`, `MongoDB` and `Parse`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
 * `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
 
@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
+* `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Enabling and then disabling analytical storage forces a new resource to be created.
 
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
@@ -146,7 +146,7 @@ The following arguments are supported:
 
 ---
 
-`consistency_policy` Configures the database consistency and supports the following:
+The `consistency_policy` block Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.
 * `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is `5` - `86400` (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
@@ -156,9 +156,9 @@ The following arguments are supported:
 
 ---
 
-`geo_location` Configures the geographic locations the data is replicated to and supports the following:
+The `geo_location` block Configures the geographic locations the data is replicated to and supports the following:
 
-* `location` - (Required) The name of the Azure region to host replicated data.
+* `location` - (Required) The name of the Azure region to host replicated data. Changing this forces a new resource to be created.
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
 * `zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
 
@@ -166,13 +166,17 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`. Changing this forces a new resource to be created in certain cases as defined below.
 
-**NOTE:**  Setting `MongoDBv3.4` also requires setting `EnableMongo`.
+~> **NOTE:** Setting `MongoDBv3.4` also requires setting `EnableMongo`. 
+
+~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongo16MBDocumentSupport` and `mongoEnableDocLevelTTL` can be added to an existing Cosmos DB account.
+
+~> **NOTE:** Only `DisableRateLimitingResponses` can be removed from an existing Cosmos DB account.
 
 ---
 
-`virtual_network_rule` Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
+The `virtual_network_rule` block Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
 
 * `id` - (Required) The ID of the virtual network subnet.
 * `ignore_missing_vnet_service_endpoint` - (Optional) If set to true, the specified subnet will be added as a virtual network rule even if its CosmosDB service endpoint is not active. Defaults to `false`.
@@ -229,7 +233,7 @@ A `restore` block supports the following:
 
 * `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
 
-**NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) are the restorable database accounts and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and be retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
+~> **NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) are the restorable database accounts and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and be retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
 
 * `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
 

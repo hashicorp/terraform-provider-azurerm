@@ -182,7 +182,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); localAuth == false {
+	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
 		parameters.Properties.DisableLocalAuth = utils.Bool(true)
 	}
 	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
@@ -232,7 +232,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); localAuth == false {
+	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
 		parameters.Properties.DisableLocalAuth = utils.Bool(true)
 	}
 
@@ -308,7 +308,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("sku_name", skuName)
 
 	localAuthEnabled := true
-	if val := prop.DisableLocalAuth; val != nil && *val == true {
+	if val := prop.DisableLocalAuth; val != nil && *val {
 		localAuthEnabled = false
 	}
 	d.Set("local_authentication_enabled", localAuthEnabled)
