@@ -20,54 +20,49 @@ import (
 )
 
 type LabServiceLabModel struct {
-	Name                  string                  `tfschema:"name"`
-	ResourceGroupName     string                  `tfschema:"resource_group_name"`
-	Location              string                  `tfschema:"location"`
-	AutoShutdownProfile   []AutoShutdownProfile   `tfschema:"auto_shutdown_profile"`
-	ConnectionProfile     []ConnectionProfile     `tfschema:"connection_profile"`
-	SecurityProfile       []SecurityProfile       `tfschema:"security_profile"`
-	Title                 string                  `tfschema:"title"`
-	VirtualMachineProfile []VirtualMachineProfile `tfschema:"virtual_machine_profile"`
-	NetworkProfile        []NetworkProfile        `tfschema:"network_profile"`
-	RosterProfile         []RosterProfile         `tfschema:"roster_profile"`
-	Description           string                  `tfschema:"description"`
-	LabPlanId             string                  `tfschema:"lab_plan_id"`
-	Tags                  map[string]string       `tfschema:"tags"`
+	Name              string              `tfschema:"name"`
+	ResourceGroupName string              `tfschema:"resource_group_name"`
+	Location          string              `tfschema:"location"`
+	AutoShutdown      []AutoShutdown      `tfschema:"auto_shutdown"`
+	ConnectionSetting []ConnectionSetting `tfschema:"connection_setting"`
+	Security          []Security          `tfschema:"security"`
+	Title             string              `tfschema:"title"`
+	VirtualMachine    []VirtualMachine    `tfschema:"virtual_machine"`
+	Network           []Network           `tfschema:"network"`
+	Roster            []Roster            `tfschema:"roster"`
+	Description       string              `tfschema:"description"`
+	LabPlanId         string              `tfschema:"lab_plan_id"`
+	Tags              map[string]string   `tfschema:"tags"`
 }
 
-type AutoShutdownProfile struct {
-	DisconnectDelay                 string                 `tfschema:"disconnect_delay"`
-	IdleDelay                       string                 `tfschema:"idle_delay"`
-	NoConnectDelay                  string                 `tfschema:"no_connect_delay"`
-	ShutdownOnDisconnectEnabled     bool                   `tfschema:"shutdown_on_disconnect_enabled"`
-	ShutdownOnIdle                  lab.ShutdownOnIdleMode `tfschema:"shutdown_on_idle"`
-	ShutdownEnabledWhenNotConnected bool                   `tfschema:"shutdown_enabled_when_not_connected"`
+type AutoShutdown struct {
+	DisconnectDelay string                 `tfschema:"disconnect_delay"`
+	IdleDelay       string                 `tfschema:"idle_delay"`
+	NoConnectDelay  string                 `tfschema:"no_connect_delay"`
+	ShutdownOnIdle  lab.ShutdownOnIdleMode `tfschema:"shutdown_on_idle"`
 }
 
-type ConnectionProfile struct {
+type ConnectionSetting struct {
 	ClientRdpAccess lab.ConnectionType `tfschema:"client_rdp_access"`
 	ClientSshAccess lab.ConnectionType `tfschema:"client_ssh_access"`
 	WebRdpAccess    lab.ConnectionType `tfschema:"web_rdp_access"`
 	WebSshAccess    lab.ConnectionType `tfschema:"web_ssh_access"`
 }
 
-type SecurityProfile struct {
-	OpenAccessEnabled bool `tfschema:"open_access_enabled"`
+type Security struct {
+	OpenAccessEnabled bool   `tfschema:"open_access_enabled"`
+	RegistrationCode  string `tfschema:"registration_code"`
 }
 
-type VirtualMachineProfile struct {
-	AdditionalCapability  []AdditionalCapability `tfschema:"additional_capability"`
-	AdminUser             []Credential           `tfschema:"admin_user"`
-	CreateOption          lab.CreateOption       `tfschema:"create_option"`
-	ImageReference        []ImageReference       `tfschema:"image_reference"`
-	NonAdminUser          []Credential           `tfschema:"non_admin_user"`
-	Sku                   []Sku                  `tfschema:"sku"`
-	UsageQuota            string                 `tfschema:"usage_quota"`
-	SharedPasswordEnabled bool                   `tfschema:"shared_password_enabled"`
-}
-
-type AdditionalCapability struct {
-	GpuDriversInstalled bool `tfschema:"gpu_drivers_installed"`
+type VirtualMachine struct {
+	AdditionalCapabilityGpuDriversInstalled bool             `tfschema:"additional_capability_gpu_drivers_installed"`
+	AdminUser                               []Credential     `tfschema:"admin_user"`
+	CreateOption                            lab.CreateOption `tfschema:"create_option"`
+	ImageReference                          []ImageReference `tfschema:"image_reference"`
+	NonAdminUser                            []Credential     `tfschema:"non_admin_user"`
+	Sku                                     []Sku            `tfschema:"sku"`
+	UsageQuota                              string           `tfschema:"usage_quota"`
+	SharedPasswordEnabled                   bool             `tfschema:"shared_password_enabled"`
 }
 
 type Credential struct {
@@ -88,11 +83,13 @@ type Sku struct {
 	Name     string `tfschema:"name"`
 }
 
-type NetworkProfile struct {
-	SubnetId string `tfschema:"subnet_id"`
+type Network struct {
+	SubnetId       string `tfschema:"subnet_id"`
+	LoadBalancerId string `tfschema:"load_balancer_id"`
+	PublicIPId     string `tfschema:"public_ip_id"`
 }
 
-type RosterProfile struct {
+type Roster struct {
 	ActiveDirectoryGroupId string `tfschema:"active_directory_group_id"`
 	LmsInstance            string `tfschema:"lms_instance"`
 	LtiClientId            string `tfschema:"lti_client_id"`
@@ -129,103 +126,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"auto_shutdown_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"disconnect_delay": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azValidate.ISO8601Duration,
-					},
-
-					"idle_delay": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azValidate.ISO8601Duration,
-					},
-
-					"no_connect_delay": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azValidate.ISO8601Duration,
-					},
-
-					"shutdown_on_disconnect_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-
-					"shutdown_on_idle": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ShutdownOnIdleModeUserAbsence),
-							string(lab.ShutdownOnIdleModeLowUsage),
-							string(lab.ShutdownOnIdleModeNone),
-						}, false),
-					},
-
-					"shutdown_enabled_when_not_connected": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-				},
-			},
-		},
-
-		"connection_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_rdp_access": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypeNone),
-							string(lab.ConnectionTypePrivate),
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-
-					"client_ssh_access": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypeNone),
-							string(lab.ConnectionTypePrivate),
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-
-					"web_rdp_access": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypeNone),
-							string(lab.ConnectionTypePrivate),
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-
-					"web_ssh_access": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypeNone),
-							string(lab.ConnectionTypePrivate),
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-				},
-			},
-		},
-
-		"security_profile": {
+		"security": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -234,6 +135,11 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"open_access_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
+					},
+
+					"registration_code": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
@@ -245,7 +151,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.LabTitle,
 		},
 
-		"virtual_machine_profile": {
+		"virtual_machine": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -287,6 +193,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"image_reference": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
+						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -296,10 +203,10 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 									ForceNew:     true,
 									ValidateFunc: computeValidate.SharedImageID,
 									ConflictsWith: []string{
-										"virtual_machine_profile.0.image_reference.0.offer",
-										"virtual_machine_profile.0.image_reference.0.publisher",
-										"virtual_machine_profile.0.image_reference.0.sku",
-										"virtual_machine_profile.0.image_reference.0.version",
+										"virtual_machine.0.image_reference.0.offer",
+										"virtual_machine.0.image_reference.0.publisher",
+										"virtual_machine.0.image_reference.0.sku",
+										"virtual_machine.0.image_reference.0.version",
 									},
 								},
 
@@ -308,7 +215,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 									Optional:      true,
 									ForceNew:      true,
 									ValidateFunc:  validation.StringIsNotEmpty,
-									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+									ConflictsWith: []string{"virtual_machine.0.image_reference.0.id"},
 								},
 
 								"publisher": {
@@ -316,7 +223,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 									Optional:      true,
 									ForceNew:      true,
 									ValidateFunc:  validation.StringIsNotEmpty,
-									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+									ConflictsWith: []string{"virtual_machine.0.image_reference.0.id"},
 								},
 
 								"sku": {
@@ -324,7 +231,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 									Optional:      true,
 									ForceNew:      true,
 									ValidateFunc:  validation.StringIsNotEmpty,
-									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+									ConflictsWith: []string{"virtual_machine.0.image_reference.0.id"},
 								},
 
 								"version": {
@@ -332,7 +239,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 									Optional:      true,
 									ForceNew:      true,
 									ValidateFunc:  validate.LabImageVersion,
-									ConflictsWith: []string{"virtual_machine_profile.0.image_reference.0.id"},
+									ConflictsWith: []string{"virtual_machine.0.image_reference.0.id"},
 								},
 							},
 						},
@@ -341,6 +248,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"sku": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
+						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -366,27 +274,11 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: azValidate.ISO8601Duration,
 					},
 
-					"shared_password_enabled": {
+					"additional_capability_gpu_drivers_installed": {
 						Type:     pluginsdk.TypeBool,
-						Required: true,
-						ForceNew: true,
-					},
-
-					"additional_capability": {
-						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"gpu_drivers_installed": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									ForceNew: true,
-									Default:  false,
-								},
-							},
-						},
+						ForceNew: true,
+						Default:  false,
 					},
 
 					"non_admin_user": {
@@ -411,11 +303,111 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
+					"shared_password_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
 				},
 			},
 		},
 
-		"network_profile": {
+		"auto_shutdown": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disconnect_delay": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
+					},
+
+					"idle_delay": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
+					},
+
+					"no_connect_delay": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
+					},
+
+					"shutdown_on_idle": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ShutdownOnIdleModeLowUsage),
+							string(lab.ShutdownOnIdleModeUserAbsence),
+						}, false),
+					},
+				},
+			},
+		},
+
+		"connection_setting": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_rdp_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+
+					"client_ssh_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+
+					"web_rdp_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+
+					"web_ssh_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePrivate),
+							string(lab.ConnectionTypePublic),
+						}, false),
+					},
+				},
+			},
+		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.LabDescription,
+		},
+
+		"lab_plan_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: labplan.ValidateLabPlanID,
+		},
+
+		"network": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -427,11 +419,21 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: networkValidate.SubnetID,
 					},
+
+					"load_balancer_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"public_ip_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
 
-		"roster_profile": {
+		"roster": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -468,18 +470,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.LabDescription,
-		},
-
-		"lab_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: labplan.ValidateLabPlanID,
 		},
 
 		"tags": commonschema.Tags(),
@@ -520,41 +510,29 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			autoShutdownProfile, err := expandAutoShutdownProfile(model.AutoShutdownProfile)
-			if err != nil {
-				return err
+			if model.AutoShutdown != nil {
+				props.Properties.AutoShutdownProfile = *expandAutoShutdownProfile(model.AutoShutdown)
 			}
-			props.Properties.AutoShutdownProfile = *autoShutdownProfile
 
-			connectionProfile, err := expandConnectionProfile(model.ConnectionProfile)
-			if err != nil {
-				return err
+			if model.ConnectionSetting != nil {
+				props.Properties.ConnectionProfile = *expandConnectionProfile(model.ConnectionSetting)
 			}
-			props.Properties.ConnectionProfile = *connectionProfile
 
-			securityProfile, err := expandSecurityProfile(model.SecurityProfile)
-			if err != nil {
-				return err
+			if model.Security != nil {
+				props.Properties.SecurityProfile = *expandSecurityProfile(model.Security)
 			}
-			props.Properties.SecurityProfile = *securityProfile
 
-			virtualMachineProfile, err := expandVirtualMachineProfile(model.VirtualMachineProfile, true)
-			if err != nil {
-				return err
+			if model.VirtualMachine != nil {
+				props.Properties.VirtualMachineProfile = *expandVirtualMachineProfile(model.VirtualMachine, true)
 			}
-			props.Properties.VirtualMachineProfile = *virtualMachineProfile
 
-			networkProfile, err := expandNetworkProfile(model.NetworkProfile)
-			if err != nil {
-				return err
+			if model.Network != nil {
+				props.Properties.NetworkProfile = expandNetworkProfile(model.Network, false, nil)
 			}
-			props.Properties.NetworkProfile = networkProfile
 
-			rosterProfile, err := expandRosterProfile(model.RosterProfile)
-			if err != nil {
-				return err
+			if model.Roster != nil {
+				props.Properties.RosterProfile = expandRosterProfile(model.Roster)
 			}
-			props.Properties.RosterProfile = rosterProfile
 
 			if model.Description != "" {
 				props.Properties.Description = &model.Description
@@ -600,28 +578,16 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("auto_shutdown_profile") {
-				autoShutdownProfile, err := expandAutoShutdownProfile(model.AutoShutdownProfile)
-				if err != nil {
-					return err
-				}
-				props.Properties.AutoShutdownProfile = *autoShutdownProfile
+			if metadata.ResourceData.HasChange("auto_shutdown") {
+				props.Properties.AutoShutdownProfile = *expandAutoShutdownProfile(model.AutoShutdown)
 			}
 
-			if metadata.ResourceData.HasChange("connection_profile") {
-				connectionProfile, err := expandConnectionProfile(model.ConnectionProfile)
-				if err != nil {
-					return err
-				}
-				props.Properties.ConnectionProfile = *connectionProfile
+			if metadata.ResourceData.HasChange("connection") {
+				props.Properties.ConnectionProfile = *expandConnectionProfile(model.ConnectionSetting)
 			}
 
-			if metadata.ResourceData.HasChange("security_profile") {
-				securityProfile, err := expandSecurityProfile(model.SecurityProfile)
-				if err != nil {
-					return err
-				}
-				props.Properties.SecurityProfile = *securityProfile
+			if metadata.ResourceData.HasChange("security") {
+				props.Properties.SecurityProfile = *expandSecurityProfile(model.Security)
 			}
 
 			if metadata.ResourceData.HasChange("title") {
@@ -632,28 +598,16 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("virtual_machine_profile") {
-				virtualMachineProfile, err := expandVirtualMachineProfile(model.VirtualMachineProfile, false)
-				if err != nil {
-					return err
-				}
-				props.Properties.VirtualMachineProfile = *virtualMachineProfile
+			if metadata.ResourceData.HasChange("virtual_machine") {
+				props.Properties.VirtualMachineProfile = *expandVirtualMachineProfile(model.VirtualMachine, false)
 			}
 
-			if metadata.ResourceData.HasChange("network_profile") {
-				networkProfile, err := expandNetworkProfile(model.NetworkProfile)
-				if err != nil {
-					return err
-				}
-				props.Properties.NetworkProfile = networkProfile
+			if metadata.ResourceData.HasChange("network") {
+				props.Properties.NetworkProfile = expandNetworkProfile(model.Network, true, props.Properties.NetworkProfile)
 			}
 
-			if metadata.ResourceData.HasChange("roster_profile") {
-				rosterProfile, err := expandRosterProfile(model.RosterProfile)
-				if err != nil {
-					return err
-				}
-				props.Properties.RosterProfile = rosterProfile
+			if metadata.ResourceData.HasChange("roster") {
+				props.Properties.RosterProfile = expandRosterProfile(model.Roster)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -710,53 +664,29 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
+			properties := &model.Properties
+
 			state := LabServiceLabModel{
 				Name:              id.LabName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
+				AutoShutdown:      flattenAutoShutdownProfile(&properties.AutoShutdownProfile),
+				ConnectionSetting: flattenConnectionProfile(&properties.ConnectionProfile),
+				Security:          flattenSecurityProfile(&properties.SecurityProfile),
+				VirtualMachine:    flattenVirtualMachineProfile(&properties.VirtualMachineProfile, metadata.ResourceData),
 			}
-
-			properties := &model.Properties
-
-			autoShutdownProfile, err := flattenAutoShutdownProfile(&properties.AutoShutdownProfile)
-			if err != nil {
-				return err
-			}
-			state.AutoShutdownProfile = autoShutdownProfile
-
-			connectionProfile, err := flattenConnectionProfile(&properties.ConnectionProfile)
-			if err != nil {
-				return err
-			}
-			state.ConnectionProfile = connectionProfile
-
-			securityProfile, err := flattenSecurityProfile(&properties.SecurityProfile)
-			if err != nil {
-				return err
-			}
-			state.SecurityProfile = securityProfile
 
 			if properties.Title != nil {
 				state.Title = *properties.Title
 			}
 
-			virtualMachineProfile, err := flattenVirtualMachineProfile(&properties.VirtualMachineProfile, metadata.ResourceData)
-			if err != nil {
-				return err
+			if properties.NetworkProfile != nil {
+				state.Network = flattenNetworkProfile(properties.NetworkProfile)
 			}
-			state.VirtualMachineProfile = virtualMachineProfile
 
-			networkProfile, err := flattenNetworkProfile(properties.NetworkProfile)
-			if err != nil {
-				return err
+			if properties.RosterProfile != nil {
+				state.Roster = flattenRosterProfile(properties.RosterProfile)
 			}
-			state.NetworkProfile = networkProfile
-
-			rosterProfile, err := flattenRosterProfile(properties.RosterProfile)
-			if err != nil {
-				return err
-			}
-			state.RosterProfile = rosterProfile
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
@@ -801,14 +731,14 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
-			if oldVal, newVal := rd.GetChange("virtual_machine_profile.0.non_admin_user"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
-				if err := rd.ForceNew("virtual_machine_profile.0.non_admin_user"); err != nil {
+			if oldVal, newVal := rd.GetChange("virtual_machine.0.non_admin_user"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
+				if err := rd.ForceNew("virtual_machine.0.non_admin_user"); err != nil {
 					return err
 				}
 			}
 
-			if oldVal, newVal := rd.GetChange("network_profile.0.subnet_id"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
-				if err := rd.ForceNew("network_profile.0.subnet_id"); err != nil {
+			if oldVal, newVal := rd.GetChange("network.0.subnet_id"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
+				if err := rd.ForceNew("network.0.subnet_id"); err != nil {
 					return err
 				}
 			}
@@ -818,52 +748,48 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func expandAutoShutdownProfile(input []AutoShutdownProfile) (*lab.AutoShutdownProfile, error) {
+func expandAutoShutdownProfile(input []AutoShutdown) *lab.AutoShutdownProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	autoShutdownProfile := &input[0]
 	result := lab.AutoShutdownProfile{}
 
+	shutdownOnDisconnectEnabled := lab.EnableStateDisabled
 	if autoShutdownProfile.DisconnectDelay != "" {
+		shutdownOnDisconnectEnabled = lab.EnableStateEnabled
 		result.DisconnectDelay = &autoShutdownProfile.DisconnectDelay
 	}
+	result.ShutdownOnDisconnect = &shutdownOnDisconnectEnabled
 
 	if autoShutdownProfile.IdleDelay != "" {
 		result.IdleDelay = &autoShutdownProfile.IdleDelay
 	}
 
+	shutdownWhenNotConnectedEnabled := lab.EnableStateDisabled
 	if autoShutdownProfile.NoConnectDelay != "" {
+		shutdownWhenNotConnectedEnabled = lab.EnableStateEnabled
 		result.NoConnectDelay = &autoShutdownProfile.NoConnectDelay
 	}
+	result.ShutdownWhenNotConnected = &shutdownWhenNotConnectedEnabled
 
-	shutdownOnDisconnectEnabled := lab.EnableStateEnabled
-	if !autoShutdownProfile.ShutdownOnDisconnectEnabled {
-		shutdownOnDisconnectEnabled = lab.EnableStateDisabled
-	}
-	result.ShutdownOnDisconnect = &shutdownOnDisconnectEnabled
-
+	shutdownOnIdle := lab.ShutdownOnIdleModeNone
 	if autoShutdownProfile.ShutdownOnIdle != "" {
-		result.ShutdownOnIdle = &autoShutdownProfile.ShutdownOnIdle
+		shutdownOnIdle = autoShutdownProfile.ShutdownOnIdle
 	}
+	result.ShutdownOnIdle = &shutdownOnIdle
 
-	shutdownEnabledWhenNotConnected := lab.EnableStateEnabled
-	if !autoShutdownProfile.ShutdownEnabledWhenNotConnected {
-		shutdownEnabledWhenNotConnected = lab.EnableStateDisabled
-	}
-	result.ShutdownWhenNotConnected = &shutdownEnabledWhenNotConnected
-
-	return &result, nil
+	return &result
 }
 
-func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) ([]AutoShutdownProfile, error) {
-	var autoShutdownProfiles []AutoShutdownProfile
+func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) []AutoShutdown {
+	var autoShutdownProfiles []AutoShutdown
 	if input == nil {
-		return autoShutdownProfiles, nil
+		return autoShutdownProfiles
 	}
 
-	autoShutdownProfile := AutoShutdownProfile{}
+	autoShutdownProfile := AutoShutdown{}
 
 	if input.DisconnectDelay != nil {
 		autoShutdownProfile.DisconnectDelay = *input.DisconnectDelay
@@ -877,78 +803,78 @@ func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) ([]AutoShutdownP
 		autoShutdownProfile.NoConnectDelay = *input.NoConnectDelay
 	}
 
-	if input.ShutdownOnDisconnect != nil {
-		autoShutdownProfile.ShutdownOnDisconnectEnabled = *input.ShutdownOnDisconnect == lab.EnableStateEnabled
+	if shutdownOnIdle := input.ShutdownOnIdle; shutdownOnIdle != nil && *shutdownOnIdle != lab.ShutdownOnIdleModeNone {
+		autoShutdownProfile.ShutdownOnIdle = *shutdownOnIdle
 	}
 
-	if input.ShutdownOnIdle != nil {
-		autoShutdownProfile.ShutdownOnIdle = *input.ShutdownOnIdle
-	}
-
-	if input.ShutdownWhenNotConnected != nil {
-		autoShutdownProfile.ShutdownEnabledWhenNotConnected = *input.ShutdownWhenNotConnected == lab.EnableStateEnabled
-	}
-
-	return append(autoShutdownProfiles, autoShutdownProfile), nil
+	return append(autoShutdownProfiles, autoShutdownProfile)
 }
 
-func expandConnectionProfile(input []ConnectionProfile) (*lab.ConnectionProfile, error) {
+func expandConnectionProfile(input []ConnectionSetting) *lab.ConnectionProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	connectionProfile := &input[0]
 	result := lab.ConnectionProfile{}
 
+	clientRdpAccess := lab.ConnectionTypeNone
 	if connectionProfile.ClientRdpAccess != "" {
-		result.ClientRdpAccess = &connectionProfile.ClientRdpAccess
+		clientRdpAccess = connectionProfile.ClientRdpAccess
 	}
+	result.ClientRdpAccess = &clientRdpAccess
 
+	clientSshAccess := lab.ConnectionTypeNone
 	if connectionProfile.ClientSshAccess != "" {
-		result.ClientSshAccess = &connectionProfile.ClientSshAccess
+		clientSshAccess = connectionProfile.ClientSshAccess
 	}
+	result.ClientSshAccess = &clientSshAccess
 
+	webRdpAccess := lab.ConnectionTypeNone
 	if connectionProfile.WebRdpAccess != "" {
-		result.WebRdpAccess = &connectionProfile.WebRdpAccess
+		webRdpAccess = connectionProfile.WebRdpAccess
 	}
+	result.WebRdpAccess = &webRdpAccess
 
+	webSshAccess := lab.ConnectionTypeNone
 	if connectionProfile.WebSshAccess != "" {
-		result.WebSshAccess = &connectionProfile.WebSshAccess
+		webSshAccess = connectionProfile.WebSshAccess
 	}
+	result.WebSshAccess = &webSshAccess
 
-	return &result, nil
+	return &result
 }
 
-func flattenConnectionProfile(input *lab.ConnectionProfile) ([]ConnectionProfile, error) {
-	var connectionProfiles []ConnectionProfile
+func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting {
+	var connectionProfiles []ConnectionSetting
 	if input == nil {
-		return connectionProfiles, nil
+		return connectionProfiles
 	}
 
-	connectionProfile := ConnectionProfile{}
+	connectionProfile := ConnectionSetting{}
 
-	if input.ClientRdpAccess != nil {
-		connectionProfile.ClientRdpAccess = *input.ClientRdpAccess
+	if clientRdpAccess := input.ClientRdpAccess; clientRdpAccess != nil && *clientRdpAccess != lab.ConnectionTypeNone {
+		connectionProfile.ClientRdpAccess = *clientRdpAccess
 	}
 
-	if input.ClientSshAccess != nil {
-		connectionProfile.ClientSshAccess = *input.ClientSshAccess
+	if clientSshAccess := input.ClientSshAccess; clientSshAccess != nil && *clientSshAccess != lab.ConnectionTypeNone {
+		connectionProfile.ClientSshAccess = *clientSshAccess
 	}
 
-	if input.WebRdpAccess != nil {
-		connectionProfile.WebRdpAccess = *input.WebRdpAccess
+	if webRdpAccess := input.WebRdpAccess; webRdpAccess != nil && *webRdpAccess != lab.ConnectionTypeNone {
+		connectionProfile.WebRdpAccess = *webRdpAccess
 	}
 
-	if input.WebSshAccess != nil {
-		connectionProfile.WebSshAccess = *input.WebSshAccess
+	if webSshAccess := input.WebSshAccess; webSshAccess != nil && *webSshAccess != lab.ConnectionTypeNone {
+		connectionProfile.WebSshAccess = *webSshAccess
 	}
 
-	return append(connectionProfiles, connectionProfile), nil
+	return append(connectionProfiles, connectionProfile)
 }
 
-func expandSecurityProfile(input []SecurityProfile) (*lab.SecurityProfile, error) {
+func expandSecurityProfile(input []Security) *lab.SecurityProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	securityProfile := &input[0]
@@ -960,27 +886,31 @@ func expandSecurityProfile(input []SecurityProfile) (*lab.SecurityProfile, error
 	}
 	result.OpenAccess = &openAccessEnabled
 
-	return &result, nil
+	return &result
 }
 
-func flattenSecurityProfile(input *lab.SecurityProfile) ([]SecurityProfile, error) {
-	var securityProfiles []SecurityProfile
+func flattenSecurityProfile(input *lab.SecurityProfile) []Security {
+	var securityProfiles []Security
 	if input == nil {
-		return securityProfiles, nil
+		return securityProfiles
 	}
 
-	securityProfile := SecurityProfile{}
+	securityProfile := Security{}
 
 	if input.OpenAccess != nil {
 		securityProfile.OpenAccessEnabled = *input.OpenAccess == lab.EnableStateEnabled
 	}
 
-	return append(securityProfiles, securityProfile), nil
+	if input.RegistrationCode != nil {
+		securityProfile.RegistrationCode = *input.RegistrationCode
+	}
+
+	return append(securityProfiles, securityProfile)
 }
 
-func expandVirtualMachineProfile(input []VirtualMachineProfile, includePassword bool) (*lab.VirtualMachineProfile, error) {
+func expandVirtualMachineProfile(input []VirtualMachine, isUpdate bool) *lab.VirtualMachineProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	virtualMachineProfile := &input[0]
@@ -995,59 +925,36 @@ func expandVirtualMachineProfile(input []VirtualMachineProfile, includePassword 
 	}
 	result.UseSharedPassword = &sharedPasswordEnabled
 
-	additionalCapability, err := expandAdditionalCapability(virtualMachineProfile.AdditionalCapability)
-	if err != nil {
-		return nil, err
+	additionalCapabilityGpuDriversInstalled := lab.EnableStateDisabled
+	if virtualMachineProfile.AdditionalCapabilityGpuDriversInstalled {
+		additionalCapabilityGpuDriversInstalled = lab.EnableStateEnabled
 	}
-	result.AdditionalCapabilities = additionalCapability
-
-	adminUserValue, err := expandCredential(virtualMachineProfile.AdminUser, includePassword)
-	if err != nil {
-		return nil, err
+	result.AdditionalCapabilities = &lab.VirtualMachineAdditionalCapabilities{
+		InstallGpuDrivers: &additionalCapabilityGpuDriversInstalled,
 	}
-	result.AdminUser = *adminUserValue
 
-	imageReferenceValue, err := expandImageReference(virtualMachineProfile.ImageReference)
-	if err != nil {
-		return nil, err
+	if virtualMachineProfile.AdminUser != nil {
+		result.AdminUser = *expandCredential(virtualMachineProfile.AdminUser, isUpdate)
 	}
-	result.ImageReference = *imageReferenceValue
 
-	nonAdminUserValue, err := expandCredential(virtualMachineProfile.NonAdminUser, includePassword)
-	if err != nil {
-		return nil, err
+	if virtualMachineProfile.ImageReference != nil {
+		result.ImageReference = *expandImageReference(virtualMachineProfile.ImageReference)
 	}
-	result.NonAdminUser = nonAdminUserValue
 
-	sku, err := expandSku(virtualMachineProfile.Sku)
-	if err != nil {
-		return nil, err
+	if virtualMachineProfile.NonAdminUser != nil {
+		result.NonAdminUser = expandCredential(virtualMachineProfile.NonAdminUser, isUpdate)
 	}
-	result.Sku = *sku
 
-	return &result, nil
+	if virtualMachineProfile.Sku != nil {
+		result.Sku = *expandSku(virtualMachineProfile.Sku)
+	}
+
+	return &result
 }
 
-func expandAdditionalCapability(input []AdditionalCapability) (*lab.VirtualMachineAdditionalCapabilities, error) {
+func expandCredential(input []Credential, isUpdate bool) *lab.Credentials {
 	if len(input) == 0 {
-		return nil, nil
-	}
-
-	additionalCapability := &input[0]
-	result := lab.VirtualMachineAdditionalCapabilities{}
-
-	gpuDriversInstalled := lab.EnableStateEnabled
-	if !additionalCapability.GpuDriversInstalled {
-		gpuDriversInstalled = lab.EnableStateDisabled
-	}
-	result.InstallGpuDrivers = &gpuDriversInstalled
-
-	return &result, nil
-}
-
-func expandCredential(input []Credential, includePassword bool) (*lab.Credentials, error) {
-	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	credential := &input[0]
@@ -1055,16 +962,16 @@ func expandCredential(input []Credential, includePassword bool) (*lab.Credential
 		Username: credential.Username,
 	}
 
-	if includePassword && credential.Password != "" {
+	if !isUpdate && credential.Password != "" {
 		result.Password = &credential.Password
 	}
 
-	return &result, nil
+	return &result
 }
 
-func expandImageReference(input []ImageReference) (*lab.ImageReference, error) {
+func expandImageReference(input []ImageReference) *lab.ImageReference {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	imageReference := &input[0]
@@ -1090,12 +997,12 @@ func expandImageReference(input []ImageReference) (*lab.ImageReference, error) {
 		result.Version = &imageReference.Version
 	}
 
-	return &result, nil
+	return &result
 }
 
-func expandSku(input []Sku) (*lab.Sku, error) {
+func expandSku(input []Sku) *lab.Sku {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	sku := &input[0]
@@ -1104,76 +1011,42 @@ func expandSku(input []Sku) (*lab.Sku, error) {
 		Capacity: &sku.Capacity,
 	}
 
-	return &result, nil
+	return &result
 }
 
-func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *pluginsdk.ResourceData) ([]VirtualMachineProfile, error) {
-	var virtualMachineProfiles []VirtualMachineProfile
+func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *pluginsdk.ResourceData) []VirtualMachine {
+	var virtualMachineProfiles []VirtualMachine
 	if input == nil {
-		return virtualMachineProfiles, nil
+		return virtualMachineProfiles
 	}
 
-	virtualMachineProfile := VirtualMachineProfile{
-		CreateOption: input.CreateOption,
-		UsageQuota:   input.UsageQuota,
+	virtualMachineProfile := VirtualMachine{
+		AdminUser:      flattenCredential(&input.AdminUser, d.Get("virtual_machine.0.admin_user.0.password").(string)),
+		CreateOption:   input.CreateOption,
+		ImageReference: flattenImageReference(&input.ImageReference),
+		Sku:            flattenSku(&input.Sku),
+		UsageQuota:     input.UsageQuota,
 	}
 
-	additionalCapability, err := flattenAdditionalCapability(input.AdditionalCapabilities)
-	if err != nil {
-		return nil, err
+	if input.AdditionalCapabilities != nil && *input.AdditionalCapabilities.InstallGpuDrivers != "" {
+		virtualMachineProfile.AdditionalCapabilityGpuDriversInstalled = *input.AdditionalCapabilities.InstallGpuDrivers == lab.EnableStateEnabled
 	}
-	virtualMachineProfile.AdditionalCapability = additionalCapability
 
-	adminUser, err := flattenCredential(&input.AdminUser, d.Get("virtual_machine_profile.0.admin_user.0.password").(string))
-	if err != nil {
-		return nil, err
+	if input.NonAdminUser != nil {
+		virtualMachineProfile.NonAdminUser = flattenCredential(input.NonAdminUser, d.Get("virtual_machine.0.non_admin_user.0.password").(string))
 	}
-	virtualMachineProfile.AdminUser = adminUser
-
-	imageReference, err := flattenImageReference(&input.ImageReference)
-	if err != nil {
-		return nil, err
-	}
-	virtualMachineProfile.ImageReference = imageReference
-
-	nonAdminUser, err := flattenCredential(input.NonAdminUser, d.Get("virtual_machine_profile.0.non_admin_user.0.password").(string))
-	if err != nil {
-		return nil, err
-	}
-	virtualMachineProfile.NonAdminUser = nonAdminUser
-
-	sku, err := flattenSku(&input.Sku)
-	if err != nil {
-		return nil, err
-	}
-	virtualMachineProfile.Sku = sku
 
 	if input.UseSharedPassword != nil {
 		virtualMachineProfile.SharedPasswordEnabled = *input.UseSharedPassword == lab.EnableStateEnabled
 	}
 
-	return append(virtualMachineProfiles, virtualMachineProfile), nil
+	return append(virtualMachineProfiles, virtualMachineProfile)
 }
 
-func flattenAdditionalCapability(input *lab.VirtualMachineAdditionalCapabilities) ([]AdditionalCapability, error) {
-	var additionalCapabilities []AdditionalCapability
-	if input == nil {
-		return additionalCapabilities, nil
-	}
-
-	additionalCapability := AdditionalCapability{}
-
-	if input.InstallGpuDrivers != nil {
-		additionalCapability.GpuDriversInstalled = *input.InstallGpuDrivers == lab.EnableStateEnabled
-	}
-
-	return append(additionalCapabilities, additionalCapability), nil
-}
-
-func flattenCredential(input *lab.Credentials, originalPassword string) ([]Credential, error) {
+func flattenCredential(input *lab.Credentials, originalPassword string) []Credential {
 	var credentials []Credential
 	if input == nil {
-		return credentials, nil
+		return credentials
 	}
 
 	credential := Credential{
@@ -1181,13 +1054,13 @@ func flattenCredential(input *lab.Credentials, originalPassword string) ([]Crede
 		Password: originalPassword,
 	}
 
-	return append(credentials, credential), nil
+	return append(credentials, credential)
 }
 
-func flattenImageReference(input *lab.ImageReference) ([]ImageReference, error) {
+func flattenImageReference(input *lab.ImageReference) []ImageReference {
 	var imageReferences []ImageReference
 	if input == nil {
-		return imageReferences, nil
+		return imageReferences
 	}
 
 	imageReference := ImageReference{}
@@ -1212,13 +1085,13 @@ func flattenImageReference(input *lab.ImageReference) ([]ImageReference, error) 
 		imageReference.Version = *input.Version
 	}
 
-	return append(imageReferences, imageReference), nil
+	return append(imageReferences, imageReference)
 }
 
-func flattenSku(input *lab.Sku) ([]Sku, error) {
+func flattenSku(input *lab.Sku) []Sku {
 	var skus []Sku
 	if input == nil {
-		return skus, nil
+		return skus
 	}
 
 	sku := Sku{
@@ -1229,12 +1102,12 @@ func flattenSku(input *lab.Sku) ([]Sku, error) {
 		sku.Capacity = *input.Capacity
 	}
 
-	return append(skus, sku), nil
+	return append(skus, sku)
 }
 
-func expandNetworkProfile(input []NetworkProfile) (*lab.LabNetworkProfile, error) {
+func expandNetworkProfile(input []Network, isUpdate bool, existingNetwork *lab.LabNetworkProfile) *lab.LabNetworkProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	networkProfile := &input[0]
@@ -1242,29 +1115,42 @@ func expandNetworkProfile(input []NetworkProfile) (*lab.LabNetworkProfile, error
 
 	if networkProfile.SubnetId != "" {
 		result.SubnetId = &networkProfile.SubnetId
+
+		if isUpdate && existingNetwork != nil {
+			result.LoadBalancerId = existingNetwork.LoadBalancerId
+			result.PublicIPId = existingNetwork.PublicIPId
+		}
 	}
 
-	return &result, nil
+	return &result
 }
 
-func flattenNetworkProfile(input *lab.LabNetworkProfile) ([]NetworkProfile, error) {
-	var networkProfiles []NetworkProfile
+func flattenNetworkProfile(input *lab.LabNetworkProfile) []Network {
+	var networkProfiles []Network
 	if input == nil {
-		return networkProfiles, nil
+		return networkProfiles
 	}
 
-	networkProfile := NetworkProfile{}
+	networkProfile := Network{}
 
 	if input.SubnetId != nil {
 		networkProfile.SubnetId = *input.SubnetId
 	}
 
-	return append(networkProfiles, networkProfile), nil
+	if input.LoadBalancerId != nil {
+		networkProfile.LoadBalancerId = *input.LoadBalancerId
+	}
+
+	if input.PublicIPId != nil {
+		networkProfile.PublicIPId = *input.PublicIPId
+	}
+
+	return append(networkProfiles, networkProfile)
 }
 
-func expandRosterProfile(input []RosterProfile) (*lab.RosterProfile, error) {
+func expandRosterProfile(input []Roster) *lab.RosterProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	rosterProfile := &input[0]
@@ -1290,16 +1176,16 @@ func expandRosterProfile(input []RosterProfile) (*lab.RosterProfile, error) {
 		result.LtiRosterEndpoint = &rosterProfile.LtiRosterEndpoint
 	}
 
-	return &result, nil
+	return &result
 }
 
-func flattenRosterProfile(input *lab.RosterProfile) ([]RosterProfile, error) {
-	var rosterProfiles []RosterProfile
+func flattenRosterProfile(input *lab.RosterProfile) []Roster {
+	var rosterProfiles []Roster
 	if input == nil {
-		return rosterProfiles, nil
+		return rosterProfiles
 	}
 
-	rosterProfile := RosterProfile{}
+	rosterProfile := Roster{}
 
 	if input.ActiveDirectoryGroupId != nil {
 		rosterProfile.ActiveDirectoryGroupId = *input.ActiveDirectoryGroupId
@@ -1321,5 +1207,5 @@ func flattenRosterProfile(input *lab.RosterProfile) ([]RosterProfile, error) {
 		rosterProfile.LtiRosterEndpoint = *input.LtiRosterEndpoint
 	}
 
-	return append(rosterProfiles, rosterProfile), nil
+	return append(rosterProfiles, rosterProfile)
 }

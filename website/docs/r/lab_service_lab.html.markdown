@@ -36,63 +36,69 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Lab Service Lab should exist. Changing this forces a new resource to be created.
 
+* `security` - (Required) A `security` block as defined below.
+
 * `title` - (Required) The title of the Lab Service Lab.
 
-* `auto_shutdown_profile` - (Required) An `auto_shutdown_profile` block as defined below.
+* `virtual_machine` - (Required) A `virtual_machine` block as defined below.
 
-* `connection_profile` - (Required) A `connection_profile` block as defined below.
+* `auto_shutdown` - (Optional) An `auto_shutdown` block as defined below.
 
-* `security_profile` - (Required) A `security_profile` block as defined below.
-
-* `virtual_machine_profile` - (Required) A `virtual_machine_profile` block as defined below.
+* `connection_setting` - (Optional) A `connection_setting` block as defined below.
 
 * `description` - (Optional) The description of the Lab Service Lab.
 
 * `lab_plan_id` - (Optional) The resource ID of the Lab Plan that is used during resource creation to provide defaults and acts as a permission container when creating a Lab Service Lab via `labs.azure.com`.
 
-* `network_profile` - (Optional) A `network_profile` block as defined below.
+* `network` - (Optional) A `network` block as defined below.
 
-* `roster_profile` - (Optional) A `roster_profile` block as defined below.
+* `roster` - (Optional) A `roster` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Lab Service Lab.
 
 ---
 
-An `auto_shutdown_profile` block supports the following:
+An `auto_shutdown` block supports the following:
 
-* `disconnect_delay` - (Required) The amount of time a VM will stay running after a user disconnects if this behavior is enabled. This value must be formatted as an ISO 8601 string.
+* `disconnect_delay` - (Optional) The amount of time a VM will stay running after a user disconnects if this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
-* `idle_delay` - (Required) The amount of time a VM will idle before it is shutdown if this behavior is enabled. This value must be formatted as an ISO 8601 string.
+* `idle_delay` - (Optional) The amount of time a VM will idle before it is shutdown if this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
-* `no_connect_delay` - (Required) The amount of time a VM will stay running before it is shutdown if no connection is made and this behavior is enabled. This value must be formatted as an ISO 8601 string.
+* `no_connect_delay` - (Optional) The amount of time a VM will stay running before it is shutdown if no connection is made and this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
-* `shutdown_on_disconnect_enabled` - (Required) Is shutdown on disconnect is enabled?
+* `shutdown_on_idle` - (Optional) A VM will get shutdown when it has idled for a period of time. Possible values are `LowUsage` and `UserAbsence`.
 
-* `shutdown_on_idle` - (Required) A VM will get shutdown when it has idled for a period of time. Possible values are `LowUsage`, `None` and `UserAbsence`.
-
-* `shutdown_enabled_when_not_connected` - (Required) Is a VM shutdown when it hasn't been connected to after a period of time?
+~> **NOTE:** This property is `None` when it isn't specified. No need to set `idle_delay` when `shutdown_on_idle` isn't specified.
 
 ---
 
-A `connection_profile` block supports the following:
+A `connection_setting` block supports the following:
 
-* `client_rdp_access` - (Required) The enabled access level for Client Access over RDP. Possible values are `None`, `Private` and `Public`.
+* `client_rdp_access` - (Optional) The enabled access level for Client Access over RDP. Possible values are `Private` and `Public`.
 
-* `client_ssh_access` - (Required) The enabled access level for Client Access over SSH. Possible values are `None`, `Private` and `Public`.
+~> **NOTE:** This property is `None` when it isn't specified.
 
-* `web_rdp_access` - (Required) The enabled access level for Web Access over RDP. Possible values are `None`, `Private` and `Public`.
+* `client_ssh_access` - (Optional) The enabled access level for Client Access over SSH. Possible values are `Private` and `Public`.
 
-* `web_ssh_access` - (Required) The enabled access level for Web Access over SSH. Possible values are `None`, `Private` and `Public`.
+~> **NOTE:** This property is `None` when it isn't specified.
+
+* `web_rdp_access` - (Optional) The enabled access level for Web Access over RDP. Possible values are `Private` and `Public`.
+
+~> **NOTE:** This property is `None` when it isn't specified.
+
+* `web_ssh_access` - (Optional) The enabled access level for Web Access over SSH. Possible values are `Private` and `Public`.
+
+~> **NOTE:** This property is `None` when it isn't specified.
 
 ---
 
-A `security_profile` block supports the following:
+A `security` block supports the following:
 
 * `open_access` - (Required) Is open access enabled to allow any user or only specified users to register to a Lab Service Lab?
 
 ---
 
-A `virtual_machine_profile` block supports the following:
+A `virtual_machine` block supports the following:
 
 * `admin_user` - (Required) An `admin_user` block as defined below.
 
@@ -100,23 +106,15 @@ A `virtual_machine_profile` block supports the following:
 
 * `image_reference` - (Required) An `image_reference` block as defined below.
 
-* `os_type` - (Optional) .
-
 * `sku` - (Required) A `sku` block as defined below.
 
 * `usage_quota` - (Required) The initial quota allocated to each Lab Service Lab user. This value must be formatted as an ISO 8601 string.
 
-* `shared_password_enabled` - (Required) Is the shared password enabled with the same password for all user VMs? Changing this forces a new resource to be created.
-
-* `additional_capability` - (Optional) An `additional_capability` block as defined below.
+* `additional_capability_gpu_drivers_installed` - (Optional) Is flagged to pre-install dedicated GPU drivers? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `non_admin_user` - (Optional) A `non_admin_user` block as defined below.
 
----
-
-An `additional_capability` block supports the following:
-
-* `gpu_drivers_installed` - (Optional) Is flagged to pre-install dedicated GPU drivers? Defaults to `false`. Changing this forces a new resource to be created.
+* `shared_password_enabled` - (Optional) Is the shared password enabled with the same password for all user VMs? Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -158,13 +156,13 @@ A `sku` block supports the following:
 
 ---
 
-A `network_profile` block supports the following:
+A `network` block supports the following:
 
 * `subnet_id` - (Optional) The resource ID of the Subnet for the network profile of the Lab Service Lab. Changing this forces a new resource to be created.
 
 ---
 
-A `roster_profile` block supports the following:
+A `roster` block supports the following:
 
 * `active_directory_group_id` - (Optional) The AAD group ID which this Lab Service Lab roster is populated from.
 
@@ -181,6 +179,24 @@ A `roster_profile` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Lab Service Lab.
+
+* `security` - A `security` block as defined below.
+
+* `network` - A `network` block as defined below.
+
+---
+
+A `security` block supports the following:
+
+* `registration_code` - The registration code for the Lab Service Lab.
+
+---
+
+A `network` block supports the following:
+
+* `load_balancer_id` - The resource ID of the Load Balancer for the network profile of the Lab Service Lab.
+
+* `public_ip_id` - The resource ID of the Public IP for the network profile of the Lab Service Lab.
 
 ## Timeouts
 
