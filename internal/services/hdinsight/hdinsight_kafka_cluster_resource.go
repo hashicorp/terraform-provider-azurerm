@@ -206,6 +206,7 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 					"kafka_management_node": SchemaHDInsightNodeDefinition("roles.0.kafka_management_node", hdInsightKafkaClusterKafkaManagementNodeDefinition, false),
 				},
 			},
+			Deprecated: "`kafka_management_node` will be removed in version 4.0 of the AzureRM Provider since it no longer support configurations from the user",
 		}
 	} else {
 		resource.Schema["roles"] = &pluginsdk.Schema{
