@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -479,6 +480,13 @@ func (r PacketCoreControlPlaneResource) Delete() sdk.ResourceFunc {
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			if err := resourceMobileNetworkChildWaitForDeletion(ctx, id.ID(), func() (*http.Response, error) {
+				resp, err := client.Get(ctx, *id)
+				return resp.HttpResponse, err
+			}); err != nil {
+				return err
 			}
 
 			return nil

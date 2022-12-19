@@ -48,6 +48,10 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
 
   site_ids = [azurerm_mobile_network_site.example.id]
 
+  local_diagnostics_access_setting {
+    authentication_type = "AAD"
+  }
+
   control_plane_access_interface {
     name         = "default-interface"
     ipv4_address = "192.168.1.199"

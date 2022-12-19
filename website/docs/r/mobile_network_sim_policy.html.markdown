@@ -69,11 +69,6 @@ resource "azurerm_mobile_network_sim_policy" "example" {
   registration_timer_in_seconds = 3240
   default_slice_id              = azurerm_mobile_network_slice.example.id
 
-  user_equipment_aggregate_maximum_bit_rate {
-    downlink = "1 Gbps"
-    uplink   = "500 Mbps"
-  }
-
   slice_configurations {
     default_data_network_id = azurerm_mobile_network_data_network.example.id
     slice_id                = azurerm_mobile_network_slice.example.id

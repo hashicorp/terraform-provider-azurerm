@@ -30,21 +30,20 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
   name                = "example-mnpccp"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku                 = "EvaluationPackage"
-  mobile_network_id   = azurerm_mobile_network.example.id
+  sku                 = "G0"
 
-  control_plane_access_interface {
-    name         = "default-interface"
-    ipv4_address = "192.168.1.199"
-    ipv4_gateway = "192.168.1.1"
-    ipv4_subnet  = "192.168.1.0/25"
-  }
+  site_ids = [azurerm_mobile_network_site.example.id]
 
   platform {
-    type = "BaseVM"
+    type           = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.example.id
   }
-}
 
+  tags = {
+    key = "value"
+  }
+
+}
 resource "azurerm_mobile_network_packet_core_data_plane" "example" {
   name                                        = "example-mnpcdp"
   mobile_network_packet_core_control_plane_id = azurerm_mobile_network_packet_core_control_plane.example.id

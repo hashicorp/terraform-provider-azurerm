@@ -3,6 +3,7 @@ package mobilenetwork
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -496,6 +497,13 @@ func (r SimPolicyResource) Delete() sdk.ResourceFunc {
 
 			if err := client.SimPoliciesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			if err := resourceMobileNetworkChildWaitForDeletion(ctx, id.ID(), func() (*http.Response, error) {
+				resp, err := client.SimPoliciesGet(ctx, *id)
+				return resp.HttpResponse, err
+			}); err != nil {
+				return err
 			}
 
 			return nil
