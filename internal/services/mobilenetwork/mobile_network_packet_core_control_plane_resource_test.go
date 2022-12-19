@@ -417,7 +417,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "import" {
   name                = azurerm_mobile_network_packet_core_control_plane.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  sku                 = "EvaluationPackage"
+  sku                 = "G0"
   site_ids            = [azurerm_mobile_network_site.test.id]
 
   control_plane_access_interface {
