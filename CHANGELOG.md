@@ -3,7 +3,10 @@
 FEATURES:
 
 * **New Resource:** `azurerm_lab_service_plan` [GH-19312]
-* **New Resource:** `azurerm_netapp_volume` [GH-19669]
+
+ENHANCEMENTS:
+
+* `azurerm_netapp_volume` - support for the `zone` property [GH-19669]
 
 BUG FIXES: 
 
