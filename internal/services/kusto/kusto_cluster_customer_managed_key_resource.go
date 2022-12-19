@@ -27,7 +27,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 		Delete: resourceKustoClusterCustomerManagedKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := clusters.ParseClusterIDInsensitively(id)
+			_, err := clusters.ParseClusterID(id)
 			return err
 		}),
 
@@ -81,7 +81,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	defer cancel()
 
 	clusterIDRaw := d.Get("cluster_id").(string)
-	clusterID, err := clusters.ParseClusterIDInsensitively(clusterIDRaw)
+	clusterID, err := clusters.ParseClusterID(clusterIDRaw)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := clusters.ParseClusterIDInsensitively(d.Id())
+	clusterID, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := clusters.ParseClusterIDInsensitively(d.Id())
+	clusterID, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}

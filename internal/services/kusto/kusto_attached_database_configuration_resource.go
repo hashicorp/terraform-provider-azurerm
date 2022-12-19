@@ -33,7 +33,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationIDInsensitively(id)
+			_, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationID(id)
 			return err
 		}),
 
@@ -193,7 +193,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationIDInsensitively(d.Id())
+	id, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
