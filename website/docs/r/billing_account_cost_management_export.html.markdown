@@ -3,7 +3,7 @@ subcategory: "Cost Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_billing_account_cost_management_export"
 description: |-
-Manages an Azure Cost Management Export for a Billing Account.
+  Manages an Azure Cost Management Export for a Billing Account.
 ---
 
 # azurerm_billing_account_cost_management_export
