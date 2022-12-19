@@ -298,7 +298,6 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 }
 
 func expandAutoUpdateSettings(input []interface{}) (enabled siterecovery.AgentAutoUpdateStatus, automationAccountId *string) {
-	//automatic_update_extension_settings
 	if len(input) == 0 {
 		return siterecovery.Disabled, nil
 	}
