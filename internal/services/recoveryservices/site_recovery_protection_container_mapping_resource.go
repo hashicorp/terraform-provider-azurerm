@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -77,17 +78,28 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-			"automatic_update_extensions_enabled": {
-				Type:     pluginsdk.TypeBool,
+			"automatic_update_extension_settings": {
+				Type:     pluginsdk.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
 				Optional: true,
-				Default:  false,
-			},
-			"automation_account_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				RequiredWith: []string{"automatic_update_extensions_enabled"},
-				ValidateFunc: azure.ValidateResourceID,
+				Computed: true, // set it to computed because the service will return it no matter if we have passed it.
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"automation_account_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"automatic_update_extension_settings.0.enabled"},
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -126,19 +138,21 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	autoUpdateEnabledValue := siterecovery.Disabled
-	if d.Get("automatic_update_extensions_enabled").(bool) {
-		autoUpdateEnabledValue = siterecovery.Enabled
+	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension_settings").([]interface{}))
+
+	parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
+		InstanceType: siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A,
 	}
 
 	if autoUpdateEnabledValue == siterecovery.Enabled {
 		parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
-			InstanceType:           siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A,
 			AgentAutoUpdateStatus:  autoUpdateEnabledValue,
-			AutomationAccountArmID: utils.String(d.Get("automation_account_id").(string)),
+			AutomationAccountArmID: automationAccountArmId,
 		}
 	} else {
-		parameters.Properties.ProviderSpecificInput = siterecovery.ReplicationProviderSpecificContainerMappingInput{}
+		parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
+			AgentAutoUpdateStatus: autoUpdateEnabledValue,
+		}
 	}
 
 	future, err := client.Create(ctx, fabricName, protectionContainerName, name, parameters)
@@ -195,20 +209,10 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 		AutomationAccountArmID: detail.AutomationAccountArmID,
 	}
 
-	if d.HasChange("automatic_update_extensions_enabled") {
-		if d.Get("automatic_update_extensions_enabled").(bool) {
-			updateInput.AgentAutoUpdateStatus = siterecovery.Enabled
-		} else {
-			updateInput.AgentAutoUpdateStatus = siterecovery.Disabled
-		}
-	}
-
-	if d.HasChange("automation_account_id") {
-		if v, ok := d.GetOk("automation_account_id"); ok {
-			updateInput.AutomationAccountArmID = utils.String(v.(string))
-		} else {
-			updateInput.AutomationAccountArmID = nil
-		}
+	if d.HasChange("automatic_update_extension_settings") {
+		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension_settings").([]interface{}))
+		updateInput.AgentAutoUpdateStatus = autoUpdateEnabledValue
+		updateInput.AutomationAccountArmID = automationAccountArmId
 	}
 
 	update := siterecovery.UpdateProtectionContainerMappingInput{
@@ -256,8 +260,7 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 	d.Set("recovery_target_protection_container_id", resp.Properties.TargetProtectionContainerID)
 
 	if detail, ok := resp.Properties.ProviderSpecificDetails.AsA2AProtectionContainerMappingDetails(); ok {
-		d.Set("automatic_update_extensions_enabled", detail.AgentAutoUpdateStatus == siterecovery.Enabled)
-		d.Set("automation_account_id", detail.AutomationAccountArmID)
+		d.Set("automatic_update_extension_settings", flattenAutoUpdateSettings(detail))
 	}
 
 	return nil
@@ -293,4 +296,34 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 	}
 
 	return nil
+}
+
+func expandAutoUpdateSettings(input []interface{}) (enabled siterecovery.AgentAutoUpdateStatus, automationAccountId *string) {
+	//automatic_update_extension_settings
+	if len(input) == 0 {
+		return siterecovery.Disabled, nil
+	}
+	autoUpdateSettingMap := input[0].(map[string]interface{})
+
+	autoUpdateEnabledValue := siterecovery.Disabled
+	if autoUpdateSettingMap["enabled"].(bool) {
+		autoUpdateEnabledValue = siterecovery.Enabled
+	}
+
+	var accountIdOutput *string
+	accountId := autoUpdateSettingMap["automation_account_id"].(string)
+	if accountId == "" {
+		accountIdOutput = nil
+	} else {
+		accountIdOutput = &accountId
+	}
+
+	return autoUpdateEnabledValue, accountIdOutput
+}
+
+func flattenAutoUpdateSettings(input *siterecovery.A2AProtectionContainerMappingDetails) []interface{} {
+	output := map[string]interface{}{}
+	output["enabled"] = input.AgentAutoUpdateStatus == siterecovery.Enabled
+	output["automation_account_id"] = input.AutomationAccountArmID
+	return []interface{}{output}
 }
