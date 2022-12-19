@@ -95,7 +95,6 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							RequiredWith: []string{"automatic_update_extension_settings.0.enabled"},
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},

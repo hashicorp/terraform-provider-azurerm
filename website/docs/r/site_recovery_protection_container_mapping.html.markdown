@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `automation_account_id` - (Optional) The automation account ID which holds the automatic update runbook and authenticates to Azure resources.
 
-~> **Note:** `automation_account_id` is required when `enabled` is specified.
+~> **Note:** `automation_account_id` is required when `enabled` is set to `true`.
 
 ## Attributes Reference
 
