@@ -491,8 +491,8 @@ A `site_credential` block exports the following:
 
 A `source_control` block exports the following:
 
-* `repo_url` - (Optional) URL of the Git repository for this App Service.
-* `branch` - (Optional) Branch name of the Git repository for this App Service.
+* `repo_url` - URL of the Git repository for this App Service.
+* `branch` - Branch name of the Git repository for this App Service.
 
 ## Timeouts
 
