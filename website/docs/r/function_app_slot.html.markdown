@@ -158,7 +158,7 @@ The `site_config` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 * `support_credentials` - (Optional) Are credentials supported?
 
@@ -252,7 +252,7 @@ A `twitter` block supports the following:
 
 * `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
 
-* `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+* `consumer_secret` - (Required) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 ---
 

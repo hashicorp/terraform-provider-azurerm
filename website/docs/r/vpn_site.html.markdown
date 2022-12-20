@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `virtual_wan_id` - (Required) The ID of the Virtual Wan where this VPN site resides in. Changing this forces a new VPN Site to be created.
 
-* `link` - (Required) One or more `link` blocks as defined below.
+* `link` - (Optional) One or more `link` blocks as defined below.
 
 ---
 

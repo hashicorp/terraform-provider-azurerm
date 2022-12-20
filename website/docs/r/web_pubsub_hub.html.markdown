@@ -102,7 +102,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Web Pubsub Hub resource.
 
-* `name` - The name of the Web Pubsub Hub resource
+* `name` - (Required) The name of the Web Pubsub Hub resource
 
 ## Timeouts
 

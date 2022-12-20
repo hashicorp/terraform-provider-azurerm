@@ -63,6 +63,7 @@ resource "azurerm_netapp_volume" "example" {
 
   name                       = "example-netappvolume"
   location                   = azurerm_resource_group.example.location
+  zone                       = "1"
   resource_group_name        = azurerm_resource_group.example.name
   account_name               = azurerm_netapp_account.example.name
   pool_name                  = azurerm_netapp_pool.example.name
@@ -104,6 +105,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group where the NetApp Volume should be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `zone` - (Optional) Specifies the Availability Zone in which the Volume should be located. Possible values are `1`, `2` and `3`. This feature is currently in preview, for more information on how to enable it, please refer to [Manage availability zone volume placement for Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/manage-availability-zone-volume-placement#register-the-feature) 
 
 * `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created. Changing this forces a new resource to be created.
 

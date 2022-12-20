@@ -119,8 +119,8 @@ The following arguments are supported:
 
 The `os_disk` block supports the following:
 
-* `os_type` - (Required) Specifies the type of operating system contained in the virtual machine image. Possible values are: Windows or Linux.
-* `os_state` - (Required) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized.
+* `os_type` - (Optional) Specifies the type of operating system contained in the virtual machine image. Possible values are: `Windows` or `Linux`.
+* `os_state` - (Optional) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized. Possible values are `Generalized` and `Specialized`.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
@@ -130,7 +130,7 @@ The `os_disk` block supports the following:
 
 The `data_disk` block supports the following:
 
-* `lun` - (Required) Specifies the logical unit number of the data disk.
+* `lun` - (Optional) Specifies the logical unit number of the data disk.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.

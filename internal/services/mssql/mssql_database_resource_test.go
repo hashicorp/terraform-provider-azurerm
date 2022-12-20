@@ -500,6 +500,42 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_threatDetectionPolicyNoStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.threatDetectionPolicyNoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsEmpty(),
+			),
+		},
+		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		{
+			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsSet(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsSet(),
+			),
+		},
+		{
+			Config: r.threatDetectionPolicyNoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsEmpty(),
+			),
+		},
+	})
+}
+
 func TestAccMsSqlDatabase_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
@@ -565,6 +601,13 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withLongTermRetentionPolicyUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withLongTermRetentionPolicyNoWeekOfYear(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1294,6 +1337,33 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger, state)
 }
 
+func (r MsSqlDatabaseResource) threatDetectionPolicyNoStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name         = "acctest-db-%[2]d"
+  server_id    = azurerm_mssql_server.test.id
+  collation    = "SQL_AltDiction_CP850_CI_AI"
+  license_type = "BasePrice"
+  max_size_gb  = 1
+  sample_name  = "AdventureWorksLT"
+  sku_name     = "GP_Gen5_2"
+
+  threat_detection_policy {
+    retention_days       = 15
+    state                = "Enabled"
+    disabled_alerts      = ["Sql_Injection"]
+    email_account_admins = "Enabled"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r MsSqlDatabaseResource) updateSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1391,6 +1461,36 @@ resource "azurerm_mssql_database" "test" {
     weekly_retention = "P1W"
     yearly_retention = "P1Y"
     week_of_year     = 2
+  }
+}
+`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withLongTermRetentionPolicyNoWeekOfYear(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_mssql_server.test.id
+  long_term_retention_policy {
+    weekly_retention = "P10D"
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)

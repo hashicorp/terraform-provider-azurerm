@@ -157,9 +157,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which
-  is documented below. In this block the Virtual Network Gateway can be configured
-  to accept IPSec point-to-site connections.
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is documented below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
 
 * `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
@@ -196,12 +194,9 @@ The `vpn_client_configuration` block supports:
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 
-* `root_certificate` - (Optional) One or more `root_certificate` blocks which are
-    defined below. These root certificates are used to sign the client certificate
-    used by the VPN clients to connect to the gateway.
+* `root_certificate` - (Optional) One or more `root_certificate` blocks which are defined below. These root certificates are used to sign the client certificate used by the VPN clients to connect to the gateway.
 
-* `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which
-    are defined below.
+* `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which are defined below.
 
 * `radius_server_address` - (Optional) The address of the Radius server.
 
@@ -232,7 +227,7 @@ The `bgp_settings` block supports:
 
 A `custom_route` block supports the following:
 
-* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation.
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation as defined below.
 
 ---
 
@@ -270,7 +265,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
 
-* `bgp_settings` - A block of `bgp_settings`.
+* `bgp_settings` - (Optional) A block of `bgp_settings`.
 
 ---
 

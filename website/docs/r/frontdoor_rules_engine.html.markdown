@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `rule` - (Required) A `rule` block as defined below.
+* `rule` - (Optional) A `rule` block as defined below.
 
 ---
 
@@ -125,53 +125,53 @@ The `rule` block supports the following:
 
 * `priority` - (Required) Priority of the rule, must be unique per rules engine definition.
 
-* `action` - (Required) A `rule_action` block as defined below.
+* `action` - (Optional) A `rule_action` block as defined below.
 
-* `match_condition` - One or more `match_condition` block as defined below.
+* `match_condition` - (Optional) One or more `match_condition` block as defined below.
 
 ---
 
 The `action` block supports the following:
 
-* `request_header` - A `request_header` block as defined below.
+* `request_header` - (Optional) A `request_header` block as defined below.
 
-* `response_header` - A `response_header` block as defined below.
+* `response_header` - (Optional) A `response_header` block as defined below.
 
 ---
 
 The `request_header` block supports the following:
 
-* `header_action_type` can be set to `Overwrite`, `Append` or `Delete`.
+* `header_action_type` - (Optional) can be set to `Overwrite`, `Append` or `Delete`.
 
-* `header_name` header name (string).
+* `header_name` - (Optional) header name (string).
 
-* `value` value name (string).
+* `value` - (Optional) value name (string).
 
 ---
 
 The `response_header` block supports the following:
 
-* `header_action_type` can be set to `Overwrite`, `Append` or `Delete`.
+* `header_action_type` - (Optional) can be set to `Overwrite`, `Append` or `Delete`.
 
-* `header_name` header name (string).
+* `header_name` - (Optional) header name (string).
 
-* `value` value name (string).
+* `value` - (Optional) value name (string).
 
 ---
 
 The `match_condition` block supports the following:
 
-* `variable` can be set to `IsMobile`, `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestURI`, `RequestPath`, `RequestFilename`, `RequestFilenameExtension`,`RequestHeader`,`RequestBody` or `RequestScheme`.
+* `variable` - (Optional) can be set to `IsMobile`, `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestURI`, `RequestPath`, `RequestFilename`, `RequestFilenameExtension`,`RequestHeader`,`RequestBody` or `RequestScheme`.
 
-* `selector` match against a specific key when `variable` is set to `PostArgs` or `RequestHeader`. It cannot be used with `QueryString` and `RequestMethod`. Defaults to `null`.
+* `selector` - (Optional) match against a specific key when `variable` is set to `PostArgs` or `RequestHeader`. It cannot be used with `QueryString` and `RequestMethod`. Defaults to `null`.
 
-* `operator` can be set to `Any`, `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith` or `EndsWith`
+* `operator` - (Required) can be set to `Any`, `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith` or `EndsWith`
 
-* `transform` can be set to one or more values out of `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` and `UrlEncode`
+* `transform` - (Optional) can be set to one or more values out of `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` and `UrlEncode`
 
-* `negate_condition` can be set to `true` or `false` to negate the given condition. Defaults to `true`.
+* `negate_condition` - (Optional) can be set to `true` or `false` to negate the given condition. Defaults to `true`.
 
-* `value` (array) can contain one or more strings.
+* `value` - (Optional) (array) can contain one or more strings.
 
 ## Import
 

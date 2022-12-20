@@ -345,7 +345,7 @@ A `terms_of_service` block supports the following:
 
 * `enabled` - (Required) Should Terms of Service be displayed during sign up?.
 
-* `text` - (Required) The Terms of Service which users are required to agree to in order to sign up.
+* `text` - (Optional) The Terms of Service which users are required to agree to in order to sign up.
 
 ## Attributes Reference
 

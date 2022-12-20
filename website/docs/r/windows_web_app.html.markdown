@@ -216,7 +216,7 @@ A `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
+* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
@@ -310,7 +310,7 @@ A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
-* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected.
+* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected. The only possible value is `1`.
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 

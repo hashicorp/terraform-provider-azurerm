@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Outbound Rule. Changing this forces a new resource to be created.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Outbound Rule. Changing this forces a new resource to be created.
-* `frontend_ip_configuration` - (Required) One or more `frontend_ip_configuration` blocks as defined below.
+* `frontend_ip_configuration` - (Optional) One or more `frontend_ip_configuration` blocks as defined below.
 * `backend_address_pool_id` - (Required) The ID of the Backend Address Pool. Outbound traffic is randomly load balanced across IPs in the backend IPs.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
 * `enable_tcp_reset` - (Optional) Receive bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination. This element is only used when the protocol is set to TCP.
