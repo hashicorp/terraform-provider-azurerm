@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `lab_plan_id` - (Optional) The resource ID of the Lab Plan that is used during resource creation to provide defaults and acts as a permission container when creating a Lab Service Lab via `labs.azure.com`.
 
-* `network` - (Optional) A `network` block as defined below.
+* `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
 * `roster` - (Optional) A `roster` block as defined below.
 

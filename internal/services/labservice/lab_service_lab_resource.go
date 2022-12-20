@@ -442,7 +442,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"active_directory_group_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsUUID,
 					},
 
 					"lms_instance": {
@@ -454,13 +454,13 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"lti_client_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsUUID,
 					},
 
 					"lti_context_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsUUID,
 					},
 
 					"lti_roster_endpoint": {
@@ -737,8 +737,8 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if oldVal, newVal := rd.GetChange("network.0.subnet_id"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
-				if err := rd.ForceNew("network.0.subnet_id"); err != nil {
+			if oldVal, newVal := rd.GetChange("network"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
+				if err := rd.ForceNew("network"); err != nil {
 					return err
 				}
 			}
