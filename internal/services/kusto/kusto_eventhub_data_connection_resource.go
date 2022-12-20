@@ -205,9 +205,9 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	connectionModel, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(connectionModel.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -219,21 +219,23 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 	d.Set("cluster_name", id.ClusterName)
 	d.Set("database_name", id.DatabaseName)
 
-	if dataConnection, ok := (*connectionModel.Model).(dataconnections.EventHubDataConnection); ok {
-		if location := dataConnection.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
+	if resp.Model != nil {
+		if dataConnection, ok := (*resp.Model).(dataconnections.EventHubDataConnection); ok {
+			if location := dataConnection.Location; location != nil {
+				d.Set("location", azure.NormalizeLocation(*location))
+			}
 
-		if props := dataConnection.Properties; props != nil {
-			d.Set("eventhub_id", props.EventHubResourceId)
-			d.Set("consumer_group", props.ConsumerGroup)
-			d.Set("table_name", props.TableName)
-			d.Set("mapping_rule_name", props.MappingRuleName)
-			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing_type", props.DatabaseRouting)
-			d.Set("compression", props.Compression)
-			d.Set("event_system_properties", props.EventSystemProperties)
-			d.Set("identity_id", props.ManagedIdentityResourceId)
+			if props := dataConnection.Properties; props != nil {
+				d.Set("eventhub_id", props.EventHubResourceId)
+				d.Set("consumer_group", props.ConsumerGroup)
+				d.Set("table_name", props.TableName)
+				d.Set("mapping_rule_name", props.MappingRuleName)
+				d.Set("data_format", props.DataFormat)
+				d.Set("database_routing_type", props.DatabaseRouting)
+				d.Set("compression", props.Compression)
+				d.Set("event_system_properties", props.EventSystemProperties)
+				d.Set("identity_id", props.ManagedIdentityResourceId)
+			}
 		}
 	}
 

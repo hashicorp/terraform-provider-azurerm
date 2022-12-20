@@ -164,29 +164,34 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 	d.Set("cluster_name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	props := resp.Model.Properties
-	d.Set("principal_id", props.PrincipalId)
+	if resp.Model != nil {
+		props := resp.Model.Properties
 
-	principalName := ""
-	if props.PrincipalName != nil {
-		principalName = *props.PrincipalName
+		if props != nil {
+			d.Set("principal_id", props.PrincipalId)
+
+			principalName := ""
+			if props.PrincipalName != nil {
+				principalName = *props.PrincipalName
+			}
+			d.Set("principal_name", principalName)
+
+			d.Set("principal_type", string(props.PrincipalType))
+			d.Set("role", string(props.Role))
+
+			tenantID := ""
+			if props.TenantId != nil {
+				tenantID = *props.TenantId
+			}
+			d.Set("tenant_id", tenantID)
+
+			tenantName := ""
+			if props.TenantName != nil {
+				tenantName = *props.TenantName
+			}
+			d.Set("tenant_name", tenantName)
+		}
 	}
-	d.Set("principal_name", principalName)
-
-	d.Set("principal_type", string(props.PrincipalType))
-	d.Set("role", string(props.Role))
-
-	tenantID := ""
-	if props.TenantId != nil {
-		tenantID = *props.TenantId
-	}
-	d.Set("tenant_id", tenantID)
-
-	tenantName := ""
-	if props.TenantName != nil {
-		tenantName = *props.TenantName
-	}
-	d.Set("tenant_name", tenantName)
 
 	return nil
 }

@@ -157,18 +157,20 @@ func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta
 	d.Set("cluster_name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	props := resp.Model.Properties
+	if resp.Model != nil {
+		props := resp.Model.Properties
 
-	if props != nil {
-		d.Set("private_link_resource_id", props.PrivateLinkResourceId)
-		d.Set("group_id", props.GroupId)
+		if props != nil {
+			d.Set("private_link_resource_id", props.PrivateLinkResourceId)
+			d.Set("group_id", props.GroupId)
 
-		if props.PrivateLinkResourceRegion != nil {
-			d.Set("private_link_resource_region", props.PrivateLinkResourceRegion)
-		}
+			if props.PrivateLinkResourceRegion != nil {
+				d.Set("private_link_resource_region", props.PrivateLinkResourceRegion)
+			}
 
-		if props.RequestMessage != nil {
-			d.Set("request_message", props.RequestMessage)
+			if props.RequestMessage != nil {
+				d.Set("request_message", props.RequestMessage)
+			}
 		}
 	}
 

@@ -186,7 +186,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 
 		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
 	}
-	if cluster.Model.Properties == nil {
+	if cluster.Model == nil || cluster.Model.Properties == nil {
 		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.ClusterName, clusterID.ResourceGroupName)
 	}
 	if cluster.Model.Properties.KeyVaultProperties == nil {

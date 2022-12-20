@@ -2,13 +2,13 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/dataconnections"
@@ -249,20 +249,22 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 	d.Set("cluster_name", id.ClusterName)
 	d.Set("database_name", id.DatabaseName)
 
-	dataConnection := (*resp.Model).(dataconnections.EventGridDataConnection)
-	d.Set("location", location.NormalizeNilable(dataConnection.Location))
-	if props := dataConnection.Properties; props != nil {
-		d.Set("storage_account_id", props.StorageAccountResourceId)
-		d.Set("eventhub_id", props.EventHubResourceId)
-		d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
-		d.Set("skip_first_record", props.IgnoreFirstRecord)
-		d.Set("blob_storage_event_type", props.BlobStorageEventType)
-		d.Set("table_name", props.TableName)
-		d.Set("mapping_rule_name", props.MappingRuleName)
-		d.Set("data_format", props.DataFormat)
-		d.Set("database_routing_type", props.DatabaseRouting)
-		d.Set("eventgrid_resource_id", props.EventGridResourceId)
-		d.Set("managed_identity_resource_id", props.ManagedIdentityResourceId)
+	if resp.Model != nil {
+		dataConnection := (*resp.Model).(dataconnections.EventGridDataConnection)
+		d.Set("location", location.NormalizeNilable(dataConnection.Location))
+		if props := dataConnection.Properties; props != nil {
+			d.Set("storage_account_id", props.StorageAccountResourceId)
+			d.Set("eventhub_id", props.EventHubResourceId)
+			d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
+			d.Set("skip_first_record", props.IgnoreFirstRecord)
+			d.Set("blob_storage_event_type", props.BlobStorageEventType)
+			d.Set("table_name", props.TableName)
+			d.Set("mapping_rule_name", props.MappingRuleName)
+			d.Set("data_format", props.DataFormat)
+			d.Set("database_routing_type", props.DatabaseRouting)
+			d.Set("eventgrid_resource_id", props.EventGridResourceId)
+			d.Set("managed_identity_resource_id", props.ManagedIdentityResourceId)
+		}
 	}
 
 	return nil

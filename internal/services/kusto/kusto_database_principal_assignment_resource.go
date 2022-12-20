@@ -170,11 +170,20 @@ func resourceKustoDatabasePrincipalAssignmentRead(d *pluginsdk.ResourceData, met
 		props := model.Properties
 		if props != nil {
 			d.Set("principal_id", props.PrincipalId)
-			d.Set("principal_name", *props.PrincipalName)
+			if props.PrincipalName != nil {
+				d.Set("principal_name", *props.PrincipalName)
+			}
+
 			d.Set("principal_type", string(props.PrincipalType))
 			d.Set("role", string(props.Role))
-			d.Set("tenant_id", *props.TenantId)
-			d.Set("tenant_name", *props.TenantName)
+
+			if props.TenantId != nil {
+				d.Set("tenant_id", *props.TenantId)
+			}
+
+			if props.TenantName != nil {
+				d.Set("tenant_name", *props.TenantName)
+			}
 		}
 
 	}

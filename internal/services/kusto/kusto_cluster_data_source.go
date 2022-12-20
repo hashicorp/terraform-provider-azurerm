@@ -2,12 +2,12 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -69,9 +69,10 @@ func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("location", location.NormalizeNilable(&resp.Model.Location))
 
 	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&resp.Model.Location))
+
 		if clusterProperties := model.Properties; clusterProperties != nil {
 			d.Set("uri", clusterProperties.Uri)
 			d.Set("data_ingestion_uri", clusterProperties.DataIngestionUri)

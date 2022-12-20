@@ -210,14 +210,16 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cluster_name", id.ClusterName)
 
-	d.Set("location", location.NormalizeNilable(resp.Model.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.Model.Properties; props != nil {
-		d.Set("cluster_resource_id", props.ClusterResourceId)
-		d.Set("database_name", props.DatabaseName)
-		d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
-		d.Set("attached_database_names", props.AttachedDatabaseNames)
-		d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
+		if props := model.Properties; props != nil {
+			d.Set("cluster_resource_id", props.ClusterResourceId)
+			d.Set("database_name", props.DatabaseName)
+			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
+			d.Set("attached_database_names", props.AttachedDatabaseNames)
+			d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
+		}
 	}
 
 	return nil

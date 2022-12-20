@@ -284,6 +284,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
 	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
+		if sku.Capacity == nil {
+			return fmt.Errorf("sku.capacity could not be empty")
+		}
 		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
 		if *sku.Capacity < optimizedAutoScale.Minimum {
 			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
@@ -438,8 +441,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", location.NormalizeNilable(&model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-		d.Set("public_network_access_enabled", *model.Properties.PublicNetworkAccess == clusters.PublicNetworkAccessEnabled)
-
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
@@ -452,11 +453,18 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
-		if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(model.Properties.OptimizedAutoscale)); err != nil {
-			return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
-		}
-
 		if props := model.Properties; props != nil {
+			if props.PublicNetworkAccess != nil {
+				d.Set("public_network_access_enabled", *props.PublicNetworkAccess == clusters.PublicNetworkAccessEnabled)
+			}
+
+			if props.RestrictOutboundNetworkAccess != nil {
+				d.Set("outbound_network_access_restricted", *props.RestrictOutboundNetworkAccess == clusters.ClusterNetworkAccessFlagEnabled)
+			}
+
+			if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(props.OptimizedAutoscale)); err != nil {
+				return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
+			}
 			d.Set("allowed_fqdns", props.AllowedFqdnList)
 			d.Set("allowed_ip_ranges", props.AllowedIPRangeList)
 			d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
@@ -471,7 +479,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("engine", props.EngineType)
 			d.Set("public_ip_type", props.PublicIPType)
-			d.Set("outbound_network_access_restricted", *props.RestrictOutboundNetworkAccess == clusters.ClusterNetworkAccessFlagEnabled)
+
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -649,8 +657,10 @@ func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensio
 	}
 
 	output := make([]interface{}, 0)
-	for _, v := range *extensions.Value {
-		output = append(output, v.LanguageExtensionName)
+	if extensions.Value != nil {
+		for _, v := range *extensions.Value {
+			output = append(output, v.LanguageExtensionName)
+		}
 	}
 
 	return output
@@ -659,13 +669,17 @@ func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensio
 func diffLanguageExtensions(a, b []clusters.LanguageExtension) []clusters.LanguageExtension {
 	target := make(map[string]bool)
 	for _, x := range b {
-		target[string(*x.LanguageExtensionName)] = true
+		if x.LanguageExtensionName != nil {
+			target[string(*x.LanguageExtensionName)] = true
+		}
 	}
 
 	diff := make([]clusters.LanguageExtension, 0)
 	for _, x := range a {
-		if _, ok := target[string(*x.LanguageExtensionName)]; !ok {
-			diff = append(diff, x)
+		if x.LanguageExtensionName != nil {
+			if _, ok := target[string(*x.LanguageExtensionName)]; !ok {
+				diff = append(diff, x)
+			}
 		}
 	}
 

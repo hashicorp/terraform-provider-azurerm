@@ -2,12 +2,12 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -195,9 +195,9 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	connectionModel, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(connectionModel.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -209,17 +209,19 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("cluster_name", id.ClusterName)
 	d.Set("database_name", id.DatabaseName)
 
-	if dataConnection, ok := (*connectionModel.Model).(dataconnections.IotHubDataConnection); ok {
-		d.Set("location", location.NormalizeNilable(dataConnection.Location))
-		if props := dataConnection.Properties; props != nil {
-			d.Set("iothub_id", props.IotHubResourceId)
-			d.Set("consumer_group", props.ConsumerGroup)
-			d.Set("table_name", props.TableName)
-			d.Set("mapping_rule_name", props.MappingRuleName)
-			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing_type", props.DatabaseRouting)
-			d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
-			d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
+	if resp.Model != nil {
+		if dataConnection, ok := (*resp.Model).(dataconnections.IotHubDataConnection); ok {
+			d.Set("location", location.NormalizeNilable(dataConnection.Location))
+			if props := dataConnection.Properties; props != nil {
+				d.Set("iothub_id", props.IotHubResourceId)
+				d.Set("consumer_group", props.ConsumerGroup)
+				d.Set("table_name", props.TableName)
+				d.Set("mapping_rule_name", props.MappingRuleName)
+				d.Set("data_format", props.DataFormat)
+				d.Set("database_routing_type", props.DatabaseRouting)
+				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
+				d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
+			}
 		}
 	}
 
