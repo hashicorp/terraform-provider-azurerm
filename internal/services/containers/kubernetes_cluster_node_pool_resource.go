@@ -189,6 +189,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
+			"network_profile": schemaNodePoolNetworkProfile(),
+
 			"node_labels": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -557,6 +559,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
+	if networkProfile := d.Get("network_profile").([]interface{}); len(networkProfile) > 0 {
+		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
+	}
+
 	parameters := agentpools.AgentPool{
 		Name:       utils.String(id.AgentPoolName),
 		Properties: &profile,
@@ -690,6 +696,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_labels") {
 		props.NodeLabels = expandNodeLabels(d.Get("node_labels").(map[string]interface{}))
+	}
+
+	if d.HasChange("network_profile") {
+		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("network_profile").([]interface{}))
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
@@ -914,6 +924,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
+
+		if err := d.Set("network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `network_profile`: %+v", err)
 		}
 	}
 
@@ -1373,4 +1387,57 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 			"vm_vfs_cache_pressure":              vmVfsCachePressure,
 		},
 	}, nil
+}
+
+func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &agentpools.AgentPoolNetworkProfile{
+		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+	}
+}
+
+func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]agentpools.IPTag, 0)
+
+	for key, val := range input {
+		ipTag := agentpools.IPTag{
+			IPTagType: utils.String(key),
+			Tag:       utils.String(val.(string)),
+		}
+		out = append(out, ipTag)
+	}
+	return &out
+}
+
+func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+		},
+	}
+}
+
+func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+	out := make(map[string]interface{})
+
+	for _, tag := range *input {
+		if tag.IPTagType != nil {
+			out[*tag.IPTagType] = tag.Tag
+		}
+	}
+
+	return out
 }
