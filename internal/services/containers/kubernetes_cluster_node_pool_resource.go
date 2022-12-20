@@ -944,12 +944,12 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 		}
 
+		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
+			return fmt.Errorf("setting `windows_profile`: %+v", err)
+		}
+
 		if err := d.Set("network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network_profile`: %+v", err)
-
-			if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
-				return fmt.Errorf("setting `windows_profile`: %+v", err)
-			}
 		}
 	}
 
