@@ -690,6 +690,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"namespace_resources_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"network_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1345,6 +1350,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AutoScalerProfile:         autoScalerProfile,
 			AzureMonitorProfile:       azureMonitorProfile,
 			DnsPrefix:                 utils.String(dnsPrefix),
+			EnableNamespaceResources:  utils.Bool(d.Get("namespace_resources_enabled").(bool)),
 			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         utils.String(kubernetesVersion),
 			LinuxProfile:              linuxProfile,
@@ -1536,6 +1542,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		} else {
 			updateCluster = true
 		}
+	}
+
+	if d.HasChange("namespace_resources_enabled") {
+		updateCluster = true
+		props.EnableNamespaceResources = utils.Bool(d.Get("namespace_resources_enabled").(bool))
 	}
 
 	if d.HasChange("azure_active_directory_role_based_access_control") {
@@ -2141,6 +2152,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			rbacEnabled = *props.EnableRBAC
 		}
 		d.Set("role_based_access_control_enabled", rbacEnabled)
+		d.Set("namespace_resources_enabled", props.EnableNamespaceResources)
 
 		aadRbac := flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(props, d)
 		if err := d.Set("azure_active_directory_role_based_access_control", aadRbac); err != nil {
