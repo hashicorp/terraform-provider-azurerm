@@ -146,12 +146,17 @@ func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients 
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	value, ok := (*resp.Model).(dataconnections.EventGridDataConnection)
-	if !ok {
-		return nil, fmt.Errorf("%s is not an Event Grid Data Connection", id.String())
+	if resp.Model != nil {
+		value, ok := (*resp.Model).(dataconnections.EventGridDataConnection)
+		if !ok {
+			return nil, fmt.Errorf("%s is not an Event Grid Data Connection", id.String())
+		}
+
+		return utils.Bool(value.Properties != nil), nil
+	} else {
+		return nil, fmt.Errorf("response model is empty")
 	}
 
-	return utils.Bool(value.Properties != nil), nil
 }
 
 func (r KustoEventGridDataConnectionResource) basic(data acceptance.TestData) string {

@@ -387,6 +387,10 @@ func (KustoClusterResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
+	if resp.Model == nil {
+		return nil, fmt.Errorf("response model is empty")
+	}
+
 	return utils.Bool(resp.Model.Properties != nil), nil
 }
 

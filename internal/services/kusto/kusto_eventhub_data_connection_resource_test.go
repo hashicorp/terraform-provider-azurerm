@@ -132,12 +132,15 @@ func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	value, ok := (*resp.Model).(dataconnections.EventHubDataConnection)
-	if !ok {
-		return nil, fmt.Errorf("%s is not an EventHubDataConnection", id.String())
+	if resp.Model != nil {
+		value, ok := (*resp.Model).(dataconnections.EventHubDataConnection)
+		if !ok {
+			return nil, fmt.Errorf("%s is not an EventHubDataConnection", id.String())
+		}
+		return utils.Bool(value.Properties != nil), nil
+	} else {
+		return nil, fmt.Errorf("response model is empty")
 	}
-
-	return utils.Bool(value.Properties != nil), nil
 }
 
 func (r KustoEventHubDataConnectionResource) basic(data acceptance.TestData) string {

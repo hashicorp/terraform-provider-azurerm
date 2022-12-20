@@ -111,6 +111,10 @@ func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, client
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
+	if resp.Model == nil {
+		return nil, fmt.Errorf("response model is empty")
+	}
+
 	if resp.Model.Properties == nil || resp.Model.Properties.KeyVaultProperties == nil {
 		return utils.Bool(false), nil
 	}

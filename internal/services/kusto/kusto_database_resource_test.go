@@ -342,10 +342,15 @@ func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	value, ok := (*resp.Model).(databases.ReadWriteDatabase)
-	if !ok {
-		return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
+	if resp.Model != nil {
+		value, ok := (*resp.Model).(databases.ReadWriteDatabase)
+		if !ok {
+			return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
+		}
+
+		return utils.Bool(value.Properties != nil), nil
+	} else {
+		return nil, fmt.Errorf("response model is empty")
 	}
 
-	return utils.Bool(value.Properties != nil), nil
 }

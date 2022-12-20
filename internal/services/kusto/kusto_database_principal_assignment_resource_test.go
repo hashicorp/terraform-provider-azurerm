@@ -56,7 +56,12 @@ func (KustoDatabasePrincipalAssignmentResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	if resp.Model != nil {
+		return utils.Bool(resp.Model.Properties != nil), nil
+	} else {
+		return nil, fmt.Errorf("response model is empty")
+	}
+
 }
 
 func (KustoDatabasePrincipalAssignmentResource) basic(data acceptance.TestData) string {
