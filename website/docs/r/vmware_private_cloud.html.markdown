@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new VMware Private Cloud to be created.
 
-* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new VMware Private Cloud to be created.
+* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36`, `av36t`, `av36p` and `av52`. Changing this forces a new VMware Private Cloud to be created.
 
 * `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet? This field can not updated with `management_cluster.0.size` together.
 ~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.

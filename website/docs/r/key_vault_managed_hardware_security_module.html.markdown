@@ -66,7 +66,19 @@ The following arguments are supported:
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` days. Defaults to `90`. Changing this forces a new resource to be created.
 
+* `public_network_access_enabled` - (Optional) Whether traffic from public networks is permitted. Defaults to `True`. Changing this forces a new resource to be created.
+
+* `network_acls` - (Optional) A `network_acls` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+
+---
+
+A `network_acls` block supports the following:
+
+* `bypass` - (Required) Specifies which traffic can bypass the network rules. Possible values are `AzureServices` and `None`.
+
+* `default_action` - (Required) The Default Action to use. Possible values are `Allow` and `Deny`.
 
 ## Attributes Reference
 

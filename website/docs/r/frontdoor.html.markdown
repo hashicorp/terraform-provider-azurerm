@@ -195,9 +195,9 @@ The `routing_rule` block supports the following:
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
-* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`. Defaults to `Http`.
+* `accepted_protocols` - (Required) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`. Defaults to `Http`.
 
-* `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
+* `patterns_to_match` - (Required) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 
 * `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
 
@@ -231,7 +231,7 @@ The `redirect_configuration` block supports the following:
 
 * `custom_host` - (Optional)  Set this to change the URL for the redirection.
 
-* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
+* `redirect_protocol` - (Required) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
 
 * `redirect_type` - (Required) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`.
 

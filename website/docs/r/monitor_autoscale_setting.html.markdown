@@ -522,13 +522,13 @@ A `fixed_date` block supports the following:
 
 * `start` - (Required) Specifies the start date for the profile, formatted as an RFC3339 date string.
 
-* `timezone` (Optional) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
+* `timezone` - (Optional) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
 
 ---
 
 A `recurrence` block supports the following:
 
-* `timezone` - (Required) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
+* `timezone` - (Optional) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
 
 * `days` - (Required) A list of days that this profile takes effect on. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 
@@ -540,7 +540,7 @@ A `recurrence` block supports the following:
 
 A `notification` block supports the following:
 
-* `email` - (Required) A `email` block as defined below.
+* `email` - (Optional) A `email` block as defined below.
 
 * `webhook` - (Optional) One or more `webhook` blocks as defined below.
 

@@ -106,17 +106,17 @@ The following arguments are supported:
 
 * `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
 
-* `draft` - (Required) A `draft` block as defined below .
+* `draft` - (Optional) A `draft` block as defined below .
 
 ---
 
-The `publish_content_link` supports the following:
+The `publish_content_link` block supports the following:
 
 * `uri` - (Required) The URI of the runbook content.
 
 * `version` - (Optional) Specifies the version of the content
 
-* `hash` - (Optional) A `hash` block as defined blow.
+* `hash` - (Optional) A `hash` block as defined below.
 
 ---
 
@@ -132,25 +132,25 @@ The `draft` block supports:
 
 * `edit_mode_enabled` - (Optional) Whether the draft in edit mode.
 
-* `content_link` (Optioinal) The Draft Content Link defined as `publish_content_link` above.
+* `content_link` - (Optioinal) The Draft Content Link defined as `publish_content_link` above.
 
-* `output_types` (Optioinal) Specifies the output types of the runbook.
+* `output_types` - (Optioinal) Specifies the output types of the runbook.
 
-* `parameter` (Optional) A list of `parameter` block as define below.
+* `parameter` - (Optional) A list of `parameter` block as define below.
 
---
+---
 
 The `parameter` block supports:
 
-* `key` (Required) The name of the parameter.
+* `key` - (Required) The name of the parameter.
 
-* `type` (Optional) Specifies the type of this parameter.
+* `type` - (Optional) Specifies the type of this parameter.
 
-* `mandatory` (Optional) Whether this parameter is mandatory.
+* `mandatory` - (Optional) Whether this parameter is mandatory.
 
-* `positioin` (Optional) Specifies the position of the parameter.
+* `positioin` - (Optional) Specifies the position of the parameter.
 
-* `default_value` (Optional) Specifies the default value of the parameter.
+* `default_value` - (Optional) Specifies the default value of the parameter.
 
 ## Attributes Reference
 

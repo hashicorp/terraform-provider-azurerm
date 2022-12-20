@@ -140,7 +140,7 @@ A `configuration` block supports the following:
 
 ~> **NOTE:** When deploying a Custom Guest Configuration package the `content_hash` and `content_uri` fields must be defined. For Built-in Guest Configuration packages, such as the `AzureWindowsBaseline` package, the `content_hash` and `content_uri` should not be defined, rather these fields will be returned after the Built-in Guest Configuration package has been provisioned. For more information on guest configuration assignments please see the [product documentation](https://docs.microsoft.com/azure/governance/policy/concepts/guest-configuration-assignments).
 
-* `parameter` - (Optional) One or more `parameter` blocks which define what configuration parameters and values against.
+* `parameter` - (Optional) One or more `parameter` blocks as defined below which define what configuration parameters and values against.
 
 * `version` - (Optional) The version of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
 

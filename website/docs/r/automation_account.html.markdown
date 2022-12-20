@@ -64,13 +64,13 @@ An `identity` block supports the following:
 
 -> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
---
+---
 
 An `encryption` block supports the following:
 
 * `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
 
-* `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`.
+* `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Automation` and `Microsoft.Keyvault`.
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
 

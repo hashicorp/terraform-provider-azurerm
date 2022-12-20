@@ -328,6 +328,23 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			"upgrade_settings": upgradeSettingsSchema(),
 
+			"windows_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"outbound_nat_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  true,
+						},
+					},
+				},
+			},
+
 			"workload_runtime": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -417,6 +434,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Type:                   utils.ToPtr(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
+		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int64(int64(count)),
@@ -928,6 +946,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network_profile`: %+v", err)
+
+		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
+			return fmt.Errorf("setting `windows_profile`: %+v", err)
+
 		}
 	}
 
@@ -1389,55 +1411,86 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 	}, nil
 }
 
-func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+
+func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWindowsProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
 	v := input[0].(map[string]interface{})
-	return &agentpools.AgentPoolNetworkProfile{
-		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+	outboundNatEnabled := v["outbound_nat_enabled"].(bool)
+	return &agentpools.AgentPoolWindowsProfile{
+		DisableOutboundNat: utils.Bool(!outboundNatEnabled),
 	}
 }
 
-func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
-	if len(input) == 0 {
-		return nil
-	}
-	out := make([]agentpools.IPTag, 0)
-
-	for key, val := range input {
-		ipTag := agentpools.IPTag{
-			IPTagType: utils.String(key),
-			Tag:       utils.String(val.(string)),
-		}
-		out = append(out, ipTag)
-	}
-	return &out
-}
-
-func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
+	outboundNatEnabled := true
+	if input.DisableOutboundNat != nil {
+		outboundNatEnabled = !*input.DisableOutboundNat
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+			"outbound_nat_enabled": outboundNatEnabled,
 		},
 	}
 }
 
-func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
-	if input == nil {
-		return map[string]interface{}{}
-	}
-	out := make(map[string]interface{})
 
-	for _, tag := range *input {
-		if tag.IPTagType != nil {
-			out[*tag.IPTagType] = tag.Tag
-		}
-	}
+ func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+ 	if len(input) == 0 || input[0] == nil {
+ 		return nil
+ 	}
+ 	v := input[0].(map[string]interface{})
+ 	return &agentpools.AgentPoolNetworkProfile{
+ 		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+ 	}
+ }
 
-	return out
-}
+ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
+ 	if len(input) == 0 {
+ 		return nil
+ 	}
+ 	out := make([]agentpools.IPTag, 0)
+
+ 	for key, val := range input {
+ 		ipTag := agentpools.IPTag{
+ 			IPTagType: utils.String(key),
+ 			Tag:       utils.String(val.(string)),
+ 		}
+ 		out = append(out, ipTag)
+ 	}
+ 	return &out
+ }
+
+ func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+ 	if input == nil {
+ 		return []interface{}{}
+ 	}
+
+ 	return []interface{}{
+ 		map[string]interface{}{
+ 			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+ 		},
+ 	}
+ }
+
+ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
+ 	if input == nil {
+ 		return map[string]interface{}{}
+ 	}
+ 	out := make(map[string]interface{})
+
+ 	for _, tag := range *input {
+ 		if tag.IPTagType != nil {
+ 			out[*tag.IPTagType] = tag.Tag
+ 		}
+ 	}
+
+ 	return out
+ }

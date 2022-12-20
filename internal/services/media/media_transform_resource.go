@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/encodings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -206,7 +206,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 }
 
 func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +248,7 @@ func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -287,7 +287,7 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -97,17 +97,17 @@ The following arguments are supported:
 
 ---
 
-`criteria` supports the following:
+The `criteria` block supports the following:
 
 * `dimension` - (Required) A `dimension` block as defined below.
 * `metric_name` - (Required) Name of the metric.  Supported metrics are listed in the Azure Monitor [Microsoft.OperationalInsights/workspaces](https://docs.microsoft.com/azure/azure-monitor/platform/metrics-supported#microsoftoperationalinsightsworkspaces) metrics namespace.
 
 ---
 
-`dimension` supports the following:
+The `dimension` block supports the following:
 
 * `name` - (Required) Name of the dimension. Changing this forces a new resource to be created.
-* `operator` - (Required) Operator for dimension values, - 'Include'.
+* `operator` - (Optional) Operator for dimension values, - 'Include'.
 * `values` - (Required) List of dimension values.
 
 ## Attributes Reference

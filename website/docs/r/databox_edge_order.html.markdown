@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `contact` - (Required)  A `contact` block as defined below.
 
-* `shipment_address` - (Required)  A `shipment_address block as defined below.
+* `shipment_address` - (Required)  A `shipment_address` block as defined below.
 
 ---
 

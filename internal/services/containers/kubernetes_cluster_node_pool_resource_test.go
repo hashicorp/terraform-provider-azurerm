@@ -903,6 +903,21 @@ func TestAccKubernetesClusterNodePool_customCATrustEnabled(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileOutboundNatEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_nodeIPTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -2400,7 +2415,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2424,18 +2439,62 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+  network_profile {
+    network_plugin = "azure"
+    outbound_type  = "managedNATGateway"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
+  name                  = "user"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
-  enable_node_public_ip = true
-  network_profile {
-    node_public_ip_tags = {
-      RoutingPreference = "Internet"
-    }
+  os_type               = "Windows"
+  os_sku                = "Windows2019"
+  windows_profile {
+    outbound_nat_enabled = true
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
+
+
+ func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {
+ 	return fmt.Sprintf(`
+ provider "azurerm" {
+   features {}
+ }
+
+ resource "azurerm_resource_group" "test" {
+   name     = "acctestRG-aks-%[2]d"
+   location = "%[1]s"
+ }
+
+ resource "azurerm_kubernetes_cluster" "test" {
+   name                = "acctestaks%[2]d"
+   location            = azurerm_resource_group.test.location
+   resource_group_name = azurerm_resource_group.test.name
+   dns_prefix          = "acctestaks%[2]d"
+   default_node_pool {
+     name       = "default"
+     node_count = 1
+     vm_size    = "Standard_D2s_v3"
+   }
+   identity {
+     type = "SystemAssigned"
+   }
+ }
+
+ resource "azurerm_kubernetes_cluster_node_pool" "test" {
+   name                  = "internal"
+   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+   vm_size               = "Standard_D2s_v3"
+   enable_node_public_ip = true
+   network_profile {
+     node_public_ip_tags = {
+       RoutingPreference = "Internet"
+     }
+   }
+ }
+ `, data.Locations.Primary, data.RandomInteger)
+ }

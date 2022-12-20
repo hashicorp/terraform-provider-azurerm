@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `sql_license_type` - (Required) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
 
-* `auto_backup` (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
+* `auto_backup` - (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
 
 * `auto_patching` - (Optional) An `auto_patching` block as defined below.
 
@@ -101,7 +101,7 @@ The `manual_schedule` block supports the following:
 
 * `days_of_week` - (Optional) A list of days on which backup can take place. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`
 
-* ~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
+~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
 
 ---
 
@@ -207,9 +207,9 @@ The `schedule` block supports the following:
 
 ~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
-* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
+* `day_of_week` - (Required) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
-* `start_time` - (Optional) What time the assessment will be run. Must be in the format `HH:mm`.
+* `start_time` - (Required) What time the assessment will be run. Must be in the format `HH:mm`.
 
 ## Attributes Reference
 

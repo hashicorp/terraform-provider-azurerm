@@ -76,11 +76,11 @@ The following attributes are exported:
 
 * `intermediate_thumbprint` - Certificate thumbprint intermediate certificate.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-`certificates` supports the following:
+The `certificates` block supports the following:
 
 * `certificate_name` - The name of the App Service Certificate.
 

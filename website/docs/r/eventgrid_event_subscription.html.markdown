@@ -99,7 +99,7 @@ The following arguments are supported:
 
 ---
 
-A `storage_queue_endpoint` supports the following:
+A `storage_queue_endpoint` block supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
@@ -109,7 +109,7 @@ A `storage_queue_endpoint` supports the following:
 
 ---
 
-An `azure_function_endpoint` supports the following:
+An `azure_function_endpoint` block supports the following:
 
 * `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events. This must be the functions ID in format {function_app.id}/functions/{name}.
 
@@ -119,7 +119,7 @@ An `azure_function_endpoint` supports the following:
 
 ---
 
-A `webhook_endpoint` supports the following:
+A `webhook_endpoint` block supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 
@@ -135,7 +135,7 @@ A `webhook_endpoint` supports the following:
 
 ---
 
-A `subject_filter` supports the following:
+A `subject_filter` block supports the following:
 
 * `subject_begins_with` - (Optional) A string to filter events for an event subscription based on a resource path prefix.
 
@@ -147,25 +147,25 @@ A `subject_filter` supports the following:
 
 A `advanced_filter` supports the following nested blocks:
 
-* `bool_equals` - Compares a value of an event using a single boolean value.
-* `number_greater_than` - Compares a value of an event using a single floating point number.
-* `number_greater_than_or_equals` - Compares a value of an event using a single floating point number.
-* `number_less_than` - Compares a value of an event using a single floating point number.
-* `number_less_than_or_equals` - Compares a value of an event using a single floating point number.
-* `number_in` - Compares a value of an event using multiple floating point numbers.
-* `number_not_in` - Compares a value of an event using multiple floating point numbers.
-* `number_in_range` - Compares a value of an event using multiple floating point number ranges.
-* `number_not_in_range` - Compares a value of an event using multiple floating point number ranges.
-* `string_begins_with` - Compares a value of an event using multiple string values.
-* `string_not_begins_with` - Compares a value of an event using multiple string values.
-* `string_ends_with` - Compares a value of an event using multiple string values.
-* `string_not_ends_with` - Compares a value of an event using multiple string values.
-* `string_contains` - Compares a value of an event using multiple string values.
-* `string_not_contains` - Compares a value of an event using multiple string values.
-* `string_in` - Compares a value of an event using multiple string values.
-* `string_not_in` - Compares a value of an event using multiple string values.
-* `is_not_null` - Evaluates if a value of an event isn't NULL or undefined.
-* `is_null_or_undefined` - Evaluates if a value of an event is NULL or undefined.
+* `bool_equals` - (Optional) Compares a value of an event using a single boolean value.
+* `number_greater_than` - (Optional) Compares a value of an event using a single floating point number.
+* `number_greater_than_or_equals` - (Optional) Compares a value of an event using a single floating point number.
+* `number_less_than` - (Optional) Compares a value of an event using a single floating point number.
+* `number_less_than_or_equals` - (Optional) Compares a value of an event using a single floating point number.
+* `number_in` - (Optional) Compares a value of an event using multiple floating point numbers.
+* `number_not_in` - (Optional) Compares a value of an event using multiple floating point numbers.
+* `number_in_range` - (Optional) Compares a value of an event using multiple floating point number ranges.
+* `number_not_in_range` - (Optional) Compares a value of an event using multiple floating point number ranges.
+* `string_begins_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_begins_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_ends_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_ends_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_contains` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_contains` - (Optional) Compares a value of an event using multiple string values.
+* `string_in` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_in` - (Optional) Compares a value of an event using multiple string values.
+* `is_not_null` - (Optional) Evaluates if a value of an event isn't NULL or undefined.
+* `is_null_or_undefined` - (Optional) Evaluates if a value of an event is NULL or undefined.
 
 Each nested block consists of a key and a value(s) element.
 
@@ -181,7 +181,7 @@ OR
 
 ---
 
-A `delivery_identity` supports the following:
+A `delivery_identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`, `UserAssigned`.
 
@@ -189,7 +189,7 @@ A `delivery_identity` supports the following:
 
 ---
 
-A `delivery_property` supports the following:
+A `delivery_property` block supports the following:
 
 * `header_name` - (Required) The name of the header to send on to the destination
 
@@ -203,7 +203,7 @@ A `delivery_property` supports the following:
 
 ---
 
-A `dead_letter_identity` supports the following:
+A `dead_letter_identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`, `UserAssigned`.
 
@@ -211,7 +211,7 @@ A `dead_letter_identity` supports the following:
 
 ---
 
-A `storage_blob_dead_letter_destination` supports the following:
+A `storage_blob_dead_letter_destination` block supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage blob is located.
 
@@ -219,7 +219,7 @@ A `storage_blob_dead_letter_destination` supports the following:
 
 ---
 
-A `retry_policy` supports the following:
+A `retry_policy` block supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 

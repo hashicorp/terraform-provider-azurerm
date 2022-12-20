@@ -162,7 +162,7 @@ A `application_stack` block supports the following:
 
 An `app_service_logs` block supports the following:
 
-* `disk_quota_mb` - (Required) The amount of disk space to use for logs. Valid values are between `25` and `100`.
+* `disk_quota_mb` - (Optional) The amount of disk space to use for logs. Valid values are between `25` and `100`.
 
 * `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).
 
@@ -280,7 +280,7 @@ A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
-* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected.
+* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected. The only possible value is `1`.
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 

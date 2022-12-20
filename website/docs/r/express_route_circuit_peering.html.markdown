@@ -170,7 +170,7 @@ A `ipv6` block contains:
 
 A `microsoft_peering` block contains:
 
-* `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes.
+* `advertised_public_prefixes` - (Optional) A list of Advertised Public Prefixes.
 
 * `customer_asn` - (Optional) The CustomerASN of the peering.
 

@@ -48,7 +48,9 @@ The following arguments are supported:
 
 * `module_link` - (Required) The published Module link.
 
-`module_link` supports the following:
+---
+
+The `module_link` block supports the following:
 
 * `uri` - (Required) The URI of the module content (zip or nupkg).
 

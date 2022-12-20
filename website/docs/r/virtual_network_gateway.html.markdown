@@ -104,7 +104,7 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` (Required) One, two or three `ip_configuration` blocks documented below.
+* `ip_configuration` - (Required) One, two or three `ip_configuration` blocks documented below.
   An active-standby gateway requires exactly one `ip_configuration` block,
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
@@ -157,9 +157,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
-  is documented below. In this block the Virtual Network Gateway can be configured
-  to accept IPSec point-to-site connections.
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is documented below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
 
 * `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
@@ -196,12 +194,9 @@ The `vpn_client_configuration` block supports:
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 
-* `root_certificate` - (Optional) One or more `root_certificate` blocks which are
-    defined below. These root certificates are used to sign the client certificate
-    used by the VPN clients to connect to the gateway.
+* `root_certificate` - (Optional) One or more `root_certificate` blocks which are defined below. These root certificates are used to sign the client certificate used by the VPN clients to connect to the gateway.
 
-* `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which
-    are defined below.
+* `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which are defined below.
 
 * `radius_server_address` - (Optional) The address of the Radius server.
 
@@ -232,11 +227,11 @@ The `bgp_settings` block supports:
 
 A `custom_route` block supports the following:
 
-* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation.
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation as defined below.
 
 ---
 
-A `peering_addresses` supports the following:
+A `peering_addresses` block supports the following:
 
 * `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
 
@@ -270,17 +265,17 @@ The following attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
 
-* `bgp_settings` - A block of `bgp_settings`.
+* `bgp_settings` - (Optional) A block of `bgp_settings`.
 
 ---
 
 The `bgp_settings` block supports:
 
-* `peering_addresses` - A list of `peering_addresses` as defined below.
+* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below.
 
 ---
 
-The `peering_addresses` supports:
+The `peering_addresses` block supports:
 
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 
