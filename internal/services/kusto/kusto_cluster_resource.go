@@ -611,16 +611,6 @@ func expandKustoClusterLanguageExtensions(input []interface{}) *clusters.Languag
 	}
 }
 
-func expandClusterTags(tagsMap map[string]interface{}) *map[string]string {
-	output := make(map[string]string, len(tagsMap))
-
-	for i, v := range tagsMap {
-		output[i] = v.(string)
-	}
-
-	return &output
-}
-
 func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {
 	if sku == nil {
 		return []interface{}{}
