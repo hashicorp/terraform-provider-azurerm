@@ -62,9 +62,13 @@ An `auto_shutdown` block supports the following:
 
 * `disconnect_delay` - (Optional) The amount of time a VM will stay running after a user disconnects if this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
+~> **NOTE:** The `shutdownOnDisconnect` is `Disabled` when `disconnect_delay` isn't specified.
+
 * `idle_delay` - (Optional) The amount of time a VM will idle before it is shutdown if this behavior is enabled. This value must be formatted as an ISO 8601 string.
 
 * `no_connect_delay` - (Optional) The amount of time a VM will stay running before it is shutdown if no connection is made and this behavior is enabled. This value must be formatted as an ISO 8601 string.
+
+~> **NOTE:** The `shutdownWhenNotConnected` is `Disabled` when `no_connect_delay` isn't specified.
 
 * `shutdown_on_idle` - (Optional) A VM will get shutdown when it has idled for a period of time. Possible values are `LowUsage` and `UserAbsence`.
 
@@ -102,19 +106,19 @@ A `virtual_machine` block supports the following:
 
 * `admin_user` - (Required) An `admin_user` block as defined below.
 
-* `create_option` - (Required) The create option to indicate what Lab Service Lab VMs are created from. Possible values are `Image` and `TemplateVM`. Changing this forces a new resource to be created.
-
 * `image_reference` - (Required) An `image_reference` block as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `usage_quota` - (Required) The initial quota allocated to each Lab Service Lab user. This value must be formatted as an ISO 8601 string.
-
 * `additional_capability_gpu_drivers_installed` - (Optional) Is flagged to pre-install dedicated GPU drivers? Defaults to `false`. Changing this forces a new resource to be created.
+
+* `create_option` - (Optional) The create option to indicate what Lab Service Lab VMs are created from. Possible values are `Image` and `TemplateVM`. Defaults to `Image`. Changing this forces a new resource to be created.
 
 * `non_admin_user` - (Optional) A `non_admin_user` block as defined below.
 
 * `shared_password_enabled` - (Optional) Is the shared password enabled with the same password for all user VMs? Defaults to `false`. Changing this forces a new resource to be created.
+
+* `usage_quota` - (Optional) The initial quota allocated to each Lab Service Lab user. Defaults to `PT0S`. This value must be formatted as an ISO 8601 string.
 
 ---
 
@@ -122,7 +126,7 @@ An `admin_user` block supports the following:
 
 * `username` - (Required) The username to use when signing in to Lab Service Lab VMs. Changing this forces a new resource to be created.
 
-* `password` - (Optional) The password for the Lab user. Changing this forces a new resource to be created.
+* `password` - (Required) The password for the Lab user. Changing this forces a new resource to be created.
 
 ---
 
@@ -144,7 +148,7 @@ A `non_admin_user` block supports the following:
 
 * `username` - (Required) The username to use when signing in to Lab Service Lab VMs. Changing this forces a new resource to be created.
 
-* `password` - (Optional) The password for the user. Changing this forces a new resource to be created.
+* `password` - (Required) The password for the user. Changing this forces a new resource to be created.
 
 ---
 

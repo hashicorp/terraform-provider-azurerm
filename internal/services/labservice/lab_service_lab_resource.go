@@ -172,7 +172,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 								"password": {
 									Type:         pluginsdk.TypeString,
-									Optional:     true,
+									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validate.LabPassword,
 								},
@@ -180,20 +180,9 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"create_option": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.CreateOptionImage),
-							string(lab.CreateOptionTemplateVM),
-						}, false),
-					},
-
 					"image_reference": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -248,7 +237,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"sku": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -270,7 +258,8 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"usage_quota": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
+						Default:      "PT0S",
 						ValidateFunc: azValidate.ISO8601Duration,
 					},
 
@@ -279,6 +268,17 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						ForceNew: true,
 						Default:  false,
+					},
+
+					"create_option": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(lab.CreateOptionImage),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.CreateOptionImage),
+							string(lab.CreateOptionTemplateVM),
+						}, false),
 					},
 
 					"non_admin_user": {
@@ -296,7 +296,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 								"password": {
 									Type:         pluginsdk.TypeString,
-									Optional:     true,
+									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validate.LabPassword,
 								},
