@@ -110,7 +110,7 @@ An `environment_variable` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Optional) Type of the managed identity.
+* `type` - (Required) Type of the managed identity.
 
 * `user_assigned_identities` - (Optional) Specifies the list of user-assigned managed identities associated with the resource. Key is the Azure resource Id of the managed identity.
 
