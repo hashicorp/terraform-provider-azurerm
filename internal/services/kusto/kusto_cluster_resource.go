@@ -2,7 +2,6 @@ package kusto
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"log"
 	"strings"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
