@@ -947,9 +947,9 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network_profile`: %+v", err)
 
-		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
-			return fmt.Errorf("setting `windows_profile`: %+v", err)
-
+			if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
+				return fmt.Errorf("setting `windows_profile`: %+v", err)
+			}
 		}
 	}
 
@@ -1411,7 +1411,6 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 	}, nil
 }
 
-
 func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWindowsProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -1441,56 +1440,55 @@ func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) [
 	}
 }
 
+func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &agentpools.AgentPoolNetworkProfile{
+		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+	}
+}
 
- func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
- 	if len(input) == 0 || input[0] == nil {
- 		return nil
- 	}
- 	v := input[0].(map[string]interface{})
- 	return &agentpools.AgentPoolNetworkProfile{
- 		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
- 	}
- }
+func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]agentpools.IPTag, 0)
 
- func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
- 	if len(input) == 0 {
- 		return nil
- 	}
- 	out := make([]agentpools.IPTag, 0)
+	for key, val := range input {
+		ipTag := agentpools.IPTag{
+			IPTagType: utils.String(key),
+			Tag:       utils.String(val.(string)),
+		}
+		out = append(out, ipTag)
+	}
+	return &out
+}
 
- 	for key, val := range input {
- 		ipTag := agentpools.IPTag{
- 			IPTagType: utils.String(key),
- 			Tag:       utils.String(val.(string)),
- 		}
- 		out = append(out, ipTag)
- 	}
- 	return &out
- }
+func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
 
- func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
- 	if input == nil {
- 		return []interface{}{}
- 	}
+	return []interface{}{
+		map[string]interface{}{
+			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+		},
+	}
+}
 
- 	return []interface{}{
- 		map[string]interface{}{
- 			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
- 		},
- 	}
- }
+func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+	out := make(map[string]interface{})
 
- func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
- 	if input == nil {
- 		return map[string]interface{}{}
- 	}
- 	out := make(map[string]interface{})
+	for _, tag := range *input {
+		if tag.IPTagType != nil {
+			out[*tag.IPTagType] = tag.Tag
+		}
+	}
 
- 	for _, tag := range *input {
- 		if tag.IPTagType != nil {
- 			out[*tag.IPTagType] = tag.Tag
- 		}
- 	}
-
- 	return out
- }
+	return out
+}
