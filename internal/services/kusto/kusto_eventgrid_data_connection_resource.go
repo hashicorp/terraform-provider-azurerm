@@ -40,7 +40,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := dataconnections.ParseDataConnectionID(id)
 			return err
-		}, importDataConnection(dataconnections.EventGridDataConnection{})),
+		}, importDataConnection("EventGrid")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
