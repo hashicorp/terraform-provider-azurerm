@@ -710,13 +710,13 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
-			if oldVal, newVal := rd.GetChange("virtual_machine.0.non_admin_user"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
+			if oldVal, newVal := rd.GetChange("virtual_machine.0.non_admin_user"); oldVal != nil && newVal != nil && (len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1) {
 				if err := rd.ForceNew("virtual_machine.0.non_admin_user"); err != nil {
 					return err
 				}
 			}
 
-			if oldVal, newVal := rd.GetChange("network"); len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1 {
+			if oldVal, newVal := rd.GetChange("network"); oldVal != nil && newVal != nil && (len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1) {
 				if err := rd.ForceNew("network"); err != nil {
 					return err
 				}

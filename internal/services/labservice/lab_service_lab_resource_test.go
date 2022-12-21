@@ -124,7 +124,7 @@ resource "azurerm_lab_service_lab" "test" {
   title               = "Test Title"
 
   security {
-    open_access_enabled = "Disabled"
+    open_access_enabled = false
   }
 
   virtual_machine {
@@ -160,7 +160,7 @@ resource "azurerm_lab_service_lab" "import" {
   title               = azurerm_lab_service_lab.test.title
 
   security {
-    open_access_enabled = "Disabled"
+    open_access_enabled = false
   }
 
   virtual_machine {
@@ -231,7 +231,7 @@ resource "azurerm_lab_service_lab" "test" {
   lab_plan_id         = azurerm_lab_service_plan.test.id
 
   security {
-    open_access_enabled = "Disabled"
+    open_access_enabled = false
   }
 
   virtual_machine {
@@ -272,9 +272,6 @@ resource "azurerm_lab_service_lab" "test" {
 
   connection_setting {
     client_rdp_access = "Public"
-    client_ssh_access = "None"
-    web_rdp_access    = "None"
-    web_ssh_access    = "None"
   }
 
   network {
@@ -339,7 +336,7 @@ resource "azurerm_lab_service_lab" "test" {
   description         = "Test Description2"
 
   security {
-    open_access_enabled = "Enabled"
+    open_access_enabled = true
   }
 
   virtual_machine {
@@ -371,13 +368,6 @@ resource "azurerm_lab_service_lab" "test" {
     idle_delay       = "PT16M"
     no_connect_delay = "PT16M"
     shutdown_on_idle = "LowUsage"
-  }
-
-  connection_setting {
-    client_rdp_access = "None"
-    client_ssh_access = "None"
-    web_rdp_access    = "None"
-    web_ssh_access    = "None"
   }
 
   roster {
