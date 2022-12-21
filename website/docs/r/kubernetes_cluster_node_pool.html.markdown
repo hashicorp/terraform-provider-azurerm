@@ -72,17 +72,17 @@ The following arguments are supported:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
 
-* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA. Defaults to `false`.
+* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
 
-* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler). Defaults to `false`.
+* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
 
-* `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
+* `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled?  Changing this forces a new resource to be created.
 
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
-* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Defaults to `false`.  Changing this forces a new resource to be created.
+* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address?   Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 

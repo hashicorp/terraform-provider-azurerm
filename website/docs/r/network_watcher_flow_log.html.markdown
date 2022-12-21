@@ -116,7 +116,7 @@ The `traffic_analytics` block supports the following:
 * `workspace_id` - (Required) The resource GUID of the attached workspace.
 * `workspace_region` - (Required) The location of the attached workspace.
 * `workspace_resource_id` - (Required) The resource ID of the attached workspace.
-* `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes.
+* `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes. Defaults to `60`.
 
 ## Attributes Reference
 

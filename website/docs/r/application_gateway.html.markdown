@@ -313,7 +313,7 @@ A `http_listener` block supports the following:
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
-* `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.
+* `require_sni` - (Optional) Should Server Name Indication be Required? 
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
@@ -687,7 +687,7 @@ The following attributes are exported:
 
 * `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
 
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? 
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 

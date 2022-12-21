@@ -114,7 +114,7 @@ A `retry` block supports the following:
 
 * `count` - (Required) The maximum retry attempts if the pipeline run failed.
 
-* `interval` - (Optional) The Interval in seconds between each retry if the pipeline run failed.
+* `interval` - (Optional) The Interval in seconds between each retry if the pipeline run failed. Defaults to `30`.
 
 ---
 

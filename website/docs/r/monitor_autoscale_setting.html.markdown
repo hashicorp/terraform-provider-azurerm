@@ -488,7 +488,7 @@ A `metric_trigger` block supports the following:
 
 * `statistic` - (Required) Specifies how the metrics from multiple instances are combined. Possible values are `Average`, `Max`, `Min` and `Sum`.
 
-* `time_aggregation` - (Required) Specifies how the data that's collected should be combined over time. Possible values include `Average`, `Count`, `Maximum`, `Minimum`, `Last` and `Total`. Defaults to `Average`.
+* `time_aggregation` - (Required) Specifies how the data that's collected should be combined over time. Possible values include `Average`, `Count`, `Maximum`, `Minimum`, `Last` and `Total`.
 
 * `time_grain` - (Required) Specifies the granularity of metrics that the rule monitors, which must be one of the pre-defined values returned from the metric definitions for the metric. This value must be between 1 minute and 12 hours an be formatted as an ISO 8601 string.
 
@@ -512,7 +512,7 @@ A `scale_action` block supports the following:
 
 * `type` - (Required) The type of action that should occur. Possible values are `ChangeCount`, `ExactCount`, `PercentChangeCount` and `ServiceAllowedNextValue`.
 
-* `value` - (Required) The number of instances involved in the scaling action. Defaults to `1`.
+* `value` - (Required) The number of instances involved in the scaling action.
 
 ---
 

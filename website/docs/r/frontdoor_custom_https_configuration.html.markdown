@@ -117,7 +117,7 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `azure_key_vault_certificate_secret_name` - (Optional) The name of the Key Vault secret representing the full certificate PFX.
 
-* `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX. Defaults to `Latest`.
+* `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX.
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instructions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
