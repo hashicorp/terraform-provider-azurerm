@@ -24,8 +24,9 @@ provider "azuread" {
 data "azurerm_client_config" "current" {}
 
 resource "azuread_service_principal" "postgresql" {
-  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
-  use_existing   = true
+  application_id        = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
+  application_tenant_id = data.azurerm_client_config.current.tenant_id
+  use_existing          = true
 }
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
