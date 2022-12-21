@@ -18,6 +18,14 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_databox_edge_device" "example" {
+  name                = "example-device"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  sku_name = "EdgeP_Base-Standard"
+}
+
 resource "azurerm_mobile_network" "example" {
   name                = "example-mn"
   resource_group_name = azurerm_resource_group.example.name
@@ -30,7 +38,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
   name                = "example-mnpccp"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
-  sku                 = "EvaluationPackage"
+  sku                 = "G0"
   mobile_network_id   = azurerm_mobile_network.example.id
 
   control_plane_access_interface {
@@ -41,7 +49,8 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
   }
 
   platform {
-    type = "BaseVM"
+    type = "AKS-HCI"
+    edge_device_id = azurerm_databox_edge_device.example.id
   }
 }
 
