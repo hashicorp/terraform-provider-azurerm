@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_cognitive_deployment` [GH-19526]
+* **New resource:** `azurerm_key_vault_certificate_contacts` [GH-19743]
 * **New Resource:** `azurerm_lab_service_plan` [GH-19312]
 * **New Resource:** `azurerm_resource_deployment_script` [GH-19436]
 
