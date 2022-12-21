@@ -52,7 +52,7 @@ resource "azurerm_spring_cloud_dev_tool_portal" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Spring Cloud Dev Tool Portal. Changing this forces a new Spring Cloud Dev Tool Portal to be created.
+* `name` - (Required) The name which should be used for this Spring Cloud Dev Tool Portal. The only possible value is `default`. Changing this forces a new Spring Cloud Dev Tool Portal to be created.
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Dev Tool Portal to be created.
 

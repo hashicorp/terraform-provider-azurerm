@@ -132,9 +132,9 @@ The `draft` block supports:
 
 * `edit_mode_enabled` - (Optional) Whether the draft in edit mode.
 
-* `content_link` - (Optioinal) The Draft Content Link defined as `publish_content_link` above.
+* `content_link` - (Optional) The Draft Content Link defined as `publish_content_link` above.
 
-* `output_types` - (Optioinal) Specifies the output types of the runbook.
+* `output_types` - (Optional) Specifies the output types of the runbook.
 
 * `parameter` - (Optional) A list of `parameter` block as define below.
 

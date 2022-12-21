@@ -24,6 +24,7 @@ var runNightly = mapOf(
 
 // specifies a list of services which should be run with a custom test configuration
 var serviceTestConfigurationOverrides = mapOf(
+
         // Server is only available in certain locations
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
@@ -43,7 +44,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true), useDevTestSubscription = true),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
-        "cognitive" to testConfiguration(daysOfWeek = "2,4,6", useDevTestSubscription = true),
+        // cognitive is only available in certain locations
+        "cognitive" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus", "southcentralus", true), useDevTestSubscription = true),
 
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
@@ -66,9 +68,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // Data Lake has a low quota
         "datalake" to testConfiguration(parallelism = 2, useDevTestSubscription = true),
 
-        "eventgrid" to testConfiguration(useDevTestSubscription = true),
-        "eventhub" to testConfiguration(useDevTestSubscription = true),
-
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), useDevTestSubscription = true),
 
@@ -86,6 +85,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // IoT Hub Device Update is only available in certain locations
         "iothub" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "eastus2", "westus2", false), useDevTestSubscription = true),
+
+        // Lab Service is only available in certain locations
+        "labservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1, useDevTestSubscription = true),
@@ -109,8 +111,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Private DNS Resolver is only available in certain locations
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
-
-        "redis" to testConfiguration(useDevTestSubscription = true),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6", useDevTestSubscription = true),
@@ -139,5 +139,16 @@ var serviceTestConfigurationOverrides = mapOf(
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false), useDevTestSubscription = true),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false))
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // moved to alt subsription
+        "appconfiguration" to testConfiguration(useDevTestSubscription = true),
+        "dns" to testConfiguration(useDevTestSubscription = true),
+        "eventgrid" to testConfiguration(useDevTestSubscription = true),
+        "eventhub" to testConfiguration(useDevTestSubscription = true),
+        "firewall" to testConfiguration(useDevTestSubscription = true),
+        "keyvault" to testConfiguration(useDevTestSubscription = true),
+        "postgres" to testConfiguration(useDevTestSubscription = true),
+        "privatedns" to testConfiguration(useDevTestSubscription = true),
+        "redis" to testConfiguration(useDevTestSubscription = true)
 )

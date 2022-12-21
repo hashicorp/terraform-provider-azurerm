@@ -197,6 +197,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridr
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-09-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/deployments
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets
@@ -286,6 +287,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/d
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules
 github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests
 github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes
@@ -335,12 +337,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingend
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators
 github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/capacitypools
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/netappaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshotpolicy
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumesreplication
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxcertificate
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxconfiguration
@@ -390,6 +392,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/da
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services

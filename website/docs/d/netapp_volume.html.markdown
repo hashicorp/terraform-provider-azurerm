@@ -42,6 +42,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Volume exists.
+  
+* `zone` - The Availability Zone in which the Volume is located.
 
 * `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
 

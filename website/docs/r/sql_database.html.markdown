@@ -126,7 +126,7 @@ The `threat_detection_policy` block supports the following:
 
 * `state` - (Optional) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
-* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered? Possible values are `Disabled` and `Enabled`.
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
