@@ -350,7 +350,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw)
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 	}
 
 	if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
@@ -515,7 +515,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("authentication") {
-		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication"))
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
 	if d.HasChange("storage_mb") {
@@ -757,8 +757,12 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 	}
 }
 
-func expandFlexibleServerAuthConfig(authRaw interface{}) *servers.AuthConfig {
-	authConfigs := authRaw.([]interface{})[0].(map[string]interface{})
+func expandFlexibleServerAuthConfig(authRaw []interface{}) *servers.AuthConfig {
+	if len(authRaw) == 0 || authRaw[0] == nil {
+		return nil
+	}
+
+	authConfigs := authRaw[0].(map[string]interface{})
 	out := servers.AuthConfig{
 		ActiveDirectoryAuthEnabled: utils.Bool(authConfigs["active_directory_auth_enabled"].(bool)),
 		PasswordAuthEnabled:        utils.Bool(authConfigs["password_auth_enabled"].(bool)),
