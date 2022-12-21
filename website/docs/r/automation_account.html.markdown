@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the account. Possible values are `Basic` and `Free`.
 
-* `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked.
+* `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked. Defaults to `true`.
 
 ---
 

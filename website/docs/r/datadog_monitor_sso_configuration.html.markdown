@@ -37,7 +37,7 @@ The following arguments are supported:
 
 --- 
 
-* `name` - (Optional) The name of the SingleSignOn configuration.
+* `name` - (Optional) The name of the SingleSignOn configuration. Defaults to `0xc000543690`.
 
 ## Attributes Reference
 

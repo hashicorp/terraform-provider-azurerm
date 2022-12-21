@@ -77,13 +77,13 @@ The following arguments are supported:
 
 * `storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
 
-* `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
+* `retention_in_days` - (Optional) The number of days to retain logs for in the storage account. Defaults to `0`.
 
 * `storage_account_access_key` - (Optional) The access key to use for the auditing storage account.
 
 * `storage_account_access_key_is_secondary` - (Optional) Is `storage_account_access_key` value the storage's secondary key?
 
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its master database audit events to Azure Monitor.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its master database audit events to Azure Monitor. Defaults to `true`.
 
 ## Attributes Reference
 
