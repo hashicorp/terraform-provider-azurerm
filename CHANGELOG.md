@@ -1,22 +1,22 @@
-## 3.37.0 (Unreleased)
+## 3.37.0 (December 21, 2022)
 
 FEATURES:
 
-* **New Resource:** `azurerm_cognitive_deployment` [GH-19526]
-* **New Resource:** `azurerm_billing_account_cost_management_export` [GH-19723]
-* **New resource:** `azurerm_key_vault_certificate_contacts` [GH-19743]
-* **New Resource:** `azurerm_lab_service_plan` [GH-19312]
-* **New Resource:** `azurerm_resource_deployment_script` [GH-19436]
-* **New Resource:** `azurerm_spring_cloud_customized_accelerator` [GH-19736]
+* **New Resource:** `azurerm_cognitive_deployment` ([#19526](https://github.com/hashicorp/terraform-provider-azurerm/issues/19526))
+* **New Resource:** `azurerm_billing_account_cost_management_export` ([#19723](https://github.com/hashicorp/terraform-provider-azurerm/issues/19723))
+* **New resource:** `azurerm_key_vault_certificate_contacts` ([#19743](https://github.com/hashicorp/terraform-provider-azurerm/issues/19743))
+* **New Resource:** `azurerm_lab_service_plan` ([#19312](https://github.com/hashicorp/terraform-provider-azurerm/issues/19312))
+* **New Resource:** `azurerm_resource_deployment_script` ([#19436](https://github.com/hashicorp/terraform-provider-azurerm/issues/19436))
+* **New Resource:** `azurerm_spring_cloud_customized_accelerator` ([#19736](https://github.com/hashicorp/terraform-provider-azurerm/issues/19736))
 
 ENHANCEMENTS:
 
-* `azurerm_netapp_volume` - support for the `zone` property [GH-19669]
+* `azurerm_netapp_volume` - support for the `zone` property ([#19669](https://github.com/hashicorp/terraform-provider-azurerm/issues/19669))
 
 BUG FIXES: 
 
-* `azurerm_app_configuration_key` - fix a regression when handling IDs containing a `:` [GH-19722]
-* `azurerm_virtual_network_gateway_connection` -  can now be created with a `azurerm_virtual_network_gateway` in another resource group [GH-19699]
+* `azurerm_app_configuration_key` - fix a regression when handling IDs containing a `:` ([#19722](https://github.com/hashicorp/terraform-provider-azurerm/issues/19722))
+* `azurerm_virtual_network_gateway_connection` -  can now be created with a `azurerm_virtual_network_gateway` in another resource group ([#19699](https://github.com/hashicorp/terraform-provider-azurerm/issues/19699))
 
 ## 3.36.0 (December 15, 2022)
 
