@@ -379,6 +379,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 45 minutes) Used when creating the Linux Virtual Machine.
 * `update` - (Defaults to 45 minutes) Used when updating the Linux Virtual Machine.
 * `delete` - (Defaults to 45 minutes) Used when deleting the Linux Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Virtual Machine.
 
 ## Import
 

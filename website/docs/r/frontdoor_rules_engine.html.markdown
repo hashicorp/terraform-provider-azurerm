@@ -173,6 +173,15 @@ The `match_condition` block supports the following:
 
 * `value` - (Optional) (array) can contain one or more strings.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Rules Engine.
+* `create` - (Defaults to 6 hours) Used when creating the Frontdoor Rules Engine.
+* `update` - (Defaults to 6 hours) Used when updating the Frontdoor Rules Engine.
+* `delete` - (Defaults to 6 hours) Used when deleting the Frontdoor Rules Engine.
+
 ## Import
 
 Azure Front Door Rules Engine's can be imported using the `resource id`, e.g.

@@ -388,6 +388,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 45 minutes) Used when creating the Windows Virtual Machine.
 * `update` - (Defaults to 45 minutes) Used when updating the Windows Virtual Machine.
 * `delete` - (Defaults to 45 minutes) Used when deleting the Windows Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Virtual Machine.
 
 ## Import
 
