@@ -505,7 +505,9 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 			props := &lab.Lab{
 				Location: location.Normalize(model.Location),
 				Properties: lab.LabProperties{
-					Title: &model.Title,
+					SecurityProfile:       *expandSecurityProfile(model.Security),
+					Title:                 &model.Title,
+					VirtualMachineProfile: *expandVirtualMachineProfile(model.VirtualMachine, true),
 				},
 				Tags: &model.Tags,
 			}
@@ -516,14 +518,6 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 
 			if model.ConnectionSetting != nil {
 				props.Properties.ConnectionProfile = *expandConnectionProfile(model.ConnectionSetting)
-			}
-
-			if model.Security != nil {
-				props.Properties.SecurityProfile = *expandSecurityProfile(model.Security)
-			}
-
-			if model.VirtualMachine != nil {
-				props.Properties.VirtualMachineProfile = *expandVirtualMachineProfile(model.VirtualMachine, true)
 			}
 
 			if model.Network != nil {
@@ -591,11 +585,7 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("title") {
-				if model.Title != "" {
-					props.Properties.Title = &model.Title
-				} else {
-					props.Properties.Title = nil
-				}
+				props.Properties.Title = &model.Title
 			}
 
 			if metadata.ResourceData.HasChange("virtual_machine") {
@@ -611,19 +601,11 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				if model.Description != "" {
-					props.Properties.Description = &model.Description
-				} else {
-					props.Properties.Description = nil
-				}
+				props.Properties.Description = &model.Description
 			}
 
 			if metadata.ResourceData.HasChange("lab_plan_id") {
-				if model.LabPlanId != "" {
-					props.Properties.LabPlanId = &model.LabPlanId
-				} else {
-					props.Properties.LabPlanId = nil
-				}
+				props.Properties.LabPlanId = &model.LabPlanId
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -673,11 +655,8 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 				AutoShutdown:      flattenAutoShutdownProfile(&properties.AutoShutdownProfile),
 				ConnectionSetting: flattenConnectionProfile(&properties.ConnectionProfile),
 				Security:          flattenSecurityProfile(&properties.SecurityProfile),
+				Title:             *properties.Title,
 				VirtualMachine:    flattenVirtualMachineProfile(&properties.VirtualMachineProfile, metadata.ResourceData),
-			}
-
-			if properties.Title != nil {
-				state.Title = *properties.Title
 			}
 
 			if properties.NetworkProfile != nil {
@@ -1095,11 +1074,8 @@ func flattenSku(input *lab.Sku) []Sku {
 	}
 
 	sku := Sku{
-		Name: input.Name,
-	}
-
-	if input.Capacity != nil {
-		sku.Capacity = *input.Capacity
+		Name:     input.Name,
+		Capacity: *input.Capacity,
 	}
 
 	return append(skus, sku)
