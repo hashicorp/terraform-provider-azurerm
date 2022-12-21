@@ -457,10 +457,10 @@ In addition to all arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Orchestrated Virtual Machine Scale Set.
-* `update` - (Defaults to 30 minutes) Used when updating the Orchestrated Virtual Machine Scale Set.
+* `create` - (Defaults to 60 minutes) Used when creating the Orchestrated Virtual Machine Scale Set.
+* `update` - (Defaults to 60 minutes) Used when updating the Orchestrated Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Orchestrated Virtual Machine Scale Set.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Orchestrated Virtual Machine Scale Set.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Orchestrated Virtual Machine Scale Set.
 
 ## Import
 
