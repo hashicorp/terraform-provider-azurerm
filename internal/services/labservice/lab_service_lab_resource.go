@@ -507,7 +507,7 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 				Properties: lab.LabProperties{
 					SecurityProfile:       *expandSecurityProfile(model.Security),
 					Title:                 &model.Title,
-					VirtualMachineProfile: *expandVirtualMachineProfile(model.VirtualMachine, true),
+					VirtualMachineProfile: *expandVirtualMachineProfile(model.VirtualMachine, false),
 				},
 				Tags: &model.Tags,
 			}
@@ -589,7 +589,7 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("virtual_machine") {
-				props.Properties.VirtualMachineProfile = *expandVirtualMachineProfile(model.VirtualMachine, false)
+				props.Properties.VirtualMachineProfile = *expandVirtualMachineProfile(model.VirtualMachine, true)
 			}
 
 			if metadata.ResourceData.HasChange("network") {
@@ -710,13 +710,13 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
-			if oldVal, newVal := rd.GetChange("virtual_machine.0.non_admin_user"); oldVal != nil && newVal != nil && (len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1) {
+			if oldVal, newVal := rd.GetChange("virtual_machine.0.non_admin_user"); oldVal != nil && newVal != nil && (len(oldVal.([]interface{})) == 0 && len(newVal.([]interface{})) == 1) {
 				if err := rd.ForceNew("virtual_machine.0.non_admin_user"); err != nil {
 					return err
 				}
 			}
 
-			if oldVal, newVal := rd.GetChange("network"); oldVal != nil && newVal != nil && (len(oldVal.(*pluginsdk.Set).List()) == 0 && len(newVal.(*pluginsdk.Set).List()) == 1) {
+			if oldVal, newVal := rd.GetChange("network"); oldVal != nil && newVal != nil && (len(oldVal.([]interface{})) == 0 && len(newVal.([]interface{})) == 1) {
 				if err := rd.ForceNew("network"); err != nil {
 					return err
 				}

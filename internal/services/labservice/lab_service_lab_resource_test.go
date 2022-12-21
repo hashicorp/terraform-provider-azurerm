@@ -236,7 +236,7 @@ resource "azurerm_lab_service_lab" "test" {
 
   virtual_machine {
     usage_quota                                 = "PT10H"
-    additional_capability_gpu_drivers_installed = true
+    additional_capability_gpu_drivers_installed = false
     create_option                               = "Image"
     shared_password_enabled                     = true
 
@@ -279,9 +279,9 @@ resource "azurerm_lab_service_lab" "test" {
   }
 
   roster {
-    lms_instance        = "https://terraform.io"
+    lms_instance        = "https://terraform.io/"
     lti_context_id      = "b0a538ec-1b9d-4e00-b3c3-f689cb34a30c"
-    lti_roster_endpoint = "https://terraform.io"
+    lti_roster_endpoint = "https://terraform.io/"
   }
 
   tags = {
@@ -341,7 +341,7 @@ resource "azurerm_lab_service_lab" "test" {
 
   virtual_machine {
     usage_quota                                 = "PT11H"
-    additional_capability_gpu_drivers_installed = true
+    additional_capability_gpu_drivers_installed = false
     create_option                               = "Image"
     shared_password_enabled                     = true
 
@@ -371,9 +371,9 @@ resource "azurerm_lab_service_lab" "test" {
   }
 
   roster {
-    lms_instance        = "https://registry.terraform.io"
+    lms_instance        = "https://registry.terraform.io/"
     lti_context_id      = "72fa88e9-e65a-44f3-91ac-008226ae91dc"
-    lti_roster_endpoint = "https://registry.terraform.io"
+    lti_roster_endpoint = "https://registry.terraform.io/"
   }
 
   tags = {
