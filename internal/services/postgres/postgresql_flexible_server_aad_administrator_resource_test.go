@@ -95,6 +95,11 @@ provider "azurerm" {
 
 provider "azuread" {}
 
+resource "azuread_service_principal" "postgresql" {
+  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
+  use_existing   = true
+}
+
 data "azurerm_client_config" "current" {}
 
 data "azuread_service_principal" "test" {
@@ -121,7 +126,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
     active_directory_auth_enabled = true
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
-
+  depends_on = [azuread_service_principal.postgresql]
 }
 
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "test" {

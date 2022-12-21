@@ -288,6 +288,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-postgresql-%d"
   location = "%s"
@@ -645,6 +647,11 @@ func (r PostgresqlFlexibleServerResource) authConfig(data acceptance.TestData, a
 	return fmt.Sprintf(`
 %s
 
+resource "azuread_service_principal" "postgresql" {
+  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
+  use_existing   = true
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -664,7 +671,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
     password_auth_enabled         = %[4]t
    %[5]s
   }
-
+  depends_on = [azuread_service_principal.postgresql]
 }
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }
