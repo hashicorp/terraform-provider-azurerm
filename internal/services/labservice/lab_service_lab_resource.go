@@ -290,14 +290,12 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 								"username": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ForceNew:     true,
 									ValidateFunc: validate.LabUsername,
 								},
 
 								"password": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ForceNew:     true,
 									ValidateFunc: validate.LabPassword,
 								},
 							},
@@ -416,7 +414,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
 						ValidateFunc: networkValidate.SubnetID,
 					},
 
@@ -505,27 +502,15 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 			props := &lab.Lab{
 				Location: location.Normalize(model.Location),
 				Properties: lab.LabProperties{
-					SecurityProfile:       *expandSecurityProfile(model.Security),
+					AutoShutdownProfile:   expandAutoShutdownProfile(model.AutoShutdown),
+					ConnectionProfile:     expandConnectionProfile(model.ConnectionSetting),
+					NetworkProfile:        expandNetworkProfile(model.Network, false, nil),
+					RosterProfile:         expandRosterProfile(model.Roster),
+					SecurityProfile:       expandSecurityProfile(model.Security),
 					Title:                 &model.Title,
-					VirtualMachineProfile: *expandVirtualMachineProfile(model.VirtualMachine, false),
+					VirtualMachineProfile: expandVirtualMachineProfile(model.VirtualMachine, false),
 				},
 				Tags: &model.Tags,
-			}
-
-			if model.AutoShutdown != nil {
-				props.Properties.AutoShutdownProfile = *expandAutoShutdownProfile(model.AutoShutdown)
-			}
-
-			if model.ConnectionSetting != nil {
-				props.Properties.ConnectionProfile = *expandConnectionProfile(model.ConnectionSetting)
-			}
-
-			if model.Network != nil {
-				props.Properties.NetworkProfile = expandNetworkProfile(model.Network, false, nil)
-			}
-
-			if model.Roster != nil {
-				props.Properties.RosterProfile = expandRosterProfile(model.Roster)
 			}
 
 			if model.Description != "" {
@@ -573,15 +558,15 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("auto_shutdown") {
-				props.Properties.AutoShutdownProfile = *expandAutoShutdownProfile(model.AutoShutdown)
+				props.Properties.AutoShutdownProfile = expandAutoShutdownProfile(model.AutoShutdown)
 			}
 
-			if metadata.ResourceData.HasChange("connection") {
-				props.Properties.ConnectionProfile = *expandConnectionProfile(model.ConnectionSetting)
+			if metadata.ResourceData.HasChange("connection_setting") {
+				props.Properties.ConnectionProfile = expandConnectionProfile(model.ConnectionSetting)
 			}
 
 			if metadata.ResourceData.HasChange("security") {
-				props.Properties.SecurityProfile = *expandSecurityProfile(model.Security)
+				props.Properties.SecurityProfile = expandSecurityProfile(model.Security)
 			}
 
 			if metadata.ResourceData.HasChange("title") {
@@ -589,7 +574,7 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("virtual_machine") {
-				props.Properties.VirtualMachineProfile = *expandVirtualMachineProfile(model.VirtualMachine, true)
+				props.Properties.VirtualMachineProfile = expandVirtualMachineProfile(model.VirtualMachine, true)
 			}
 
 			if metadata.ResourceData.HasChange("network") {
@@ -605,7 +590,11 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("lab_plan_id") {
-				props.Properties.LabPlanId = &model.LabPlanId
+				if model.LabPlanId != "" {
+					props.Properties.LabPlanId = &model.LabPlanId
+				} else {
+					props.Properties.LabPlanId = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -716,9 +705,31 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			if oldVal, newVal := rd.GetChange("virtual_machine.0.non_admin_user"); oldVal != nil && newVal != nil && (len(oldVal.([]interface{})) == 1 && len(newVal.([]interface{})) == 1) {
+				if ok := rd.HasChange("virtual_machine.0.non_admin_user.0.username"); ok {
+					if err := rd.ForceNew("virtual_machine.0.non_admin_user.0.username"); err != nil {
+						return err
+					}
+				}
+
+				if ok := rd.HasChange("virtual_machine.0.non_admin_user.0.password"); ok {
+					if err := rd.ForceNew("virtual_machine.0.non_admin_user.0.password"); err != nil {
+						return err
+					}
+				}
+			}
+
 			if oldVal, newVal := rd.GetChange("network"); oldVal != nil && newVal != nil && (len(oldVal.([]interface{})) == 0 && len(newVal.([]interface{})) == 1) {
 				if err := rd.ForceNew("network"); err != nil {
 					return err
+				}
+			}
+
+			if oldVal, newVal := rd.GetChange("network"); oldVal != nil && newVal != nil && (len(oldVal.([]interface{})) == 1 && len(newVal.([]interface{})) == 1) {
+				if ok := rd.HasChange("network.0.subnet_id"); ok {
+					if err := rd.ForceNew("network.0.subnet_id"); err != nil {
+						return err
+					}
 				}
 			}
 
@@ -727,15 +738,22 @@ func (r LabServiceLabResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func expandAutoShutdownProfile(input []AutoShutdown) *lab.AutoShutdownProfile {
-	if len(input) == 0 {
-		return nil
+func expandAutoShutdownProfile(input []AutoShutdown) lab.AutoShutdownProfile {
+	shutdownOnDisconnectEnabled := lab.EnableStateDisabled
+	shutdownWhenNotConnectedEnabled := lab.EnableStateDisabled
+	shutdownOnIdle := lab.ShutdownOnIdleModeNone
+
+	if input == nil || len(input) == 0 {
+		return lab.AutoShutdownProfile{
+			ShutdownOnDisconnect:     &shutdownOnDisconnectEnabled,
+			ShutdownWhenNotConnected: &shutdownWhenNotConnectedEnabled,
+			ShutdownOnIdle:           &shutdownOnIdle,
+		}
 	}
 
-	autoShutdownProfile := &input[0]
+	autoShutdownProfile := input[0]
 	result := lab.AutoShutdownProfile{}
 
-	shutdownOnDisconnectEnabled := lab.EnableStateDisabled
 	if autoShutdownProfile.DisconnectDelay != "" {
 		shutdownOnDisconnectEnabled = lab.EnableStateEnabled
 		result.DisconnectDelay = &autoShutdownProfile.DisconnectDelay
@@ -746,28 +764,26 @@ func expandAutoShutdownProfile(input []AutoShutdown) *lab.AutoShutdownProfile {
 		result.IdleDelay = &autoShutdownProfile.IdleDelay
 	}
 
-	shutdownWhenNotConnectedEnabled := lab.EnableStateDisabled
 	if autoShutdownProfile.NoConnectDelay != "" {
 		shutdownWhenNotConnectedEnabled = lab.EnableStateEnabled
 		result.NoConnectDelay = &autoShutdownProfile.NoConnectDelay
 	}
 	result.ShutdownWhenNotConnected = &shutdownWhenNotConnectedEnabled
 
-	shutdownOnIdle := lab.ShutdownOnIdleModeNone
 	if autoShutdownProfile.ShutdownOnIdle != "" {
 		shutdownOnIdle = autoShutdownProfile.ShutdownOnIdle
 	}
 	result.ShutdownOnIdle = &shutdownOnIdle
 
-	return &result
+	return result
 }
 
 func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) []AutoShutdown {
-	var autoShutdownProfiles []AutoShutdown
-	if input == nil {
-		return autoShutdownProfiles
+	if input == nil || (*input.ShutdownOnDisconnect == lab.EnableStateDisabled && *input.ShutdownWhenNotConnected == lab.EnableStateDisabled && *input.ShutdownOnIdle == lab.ShutdownOnIdleModeNone && input.IdleDelay == nil) {
+		return nil
 	}
 
+	var autoShutdownProfiles []AutoShutdown
 	autoShutdownProfile := AutoShutdown{}
 
 	if input.DisconnectDelay != nil {
@@ -789,47 +805,53 @@ func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) []AutoShutdown {
 	return append(autoShutdownProfiles, autoShutdownProfile)
 }
 
-func expandConnectionProfile(input []ConnectionSetting) *lab.ConnectionProfile {
-	if len(input) == 0 {
-		return nil
+func expandConnectionProfile(input []ConnectionSetting) lab.ConnectionProfile {
+	clientRdpAccess := lab.ConnectionTypeNone
+	clientSshAccess := lab.ConnectionTypeNone
+	webRdpAccess := lab.ConnectionTypeNone
+	webSshAccess := lab.ConnectionTypeNone
+
+	if input == nil || len(input) == 0 {
+		return lab.ConnectionProfile{
+			ClientRdpAccess: &clientRdpAccess,
+			ClientSshAccess: &clientSshAccess,
+			WebRdpAccess:    &webRdpAccess,
+			WebSshAccess:    &webSshAccess,
+		}
 	}
 
-	connectionProfile := &input[0]
+	connectionProfile := input[0]
 	result := lab.ConnectionProfile{}
 
-	clientRdpAccess := lab.ConnectionTypeNone
 	if connectionProfile.ClientRdpAccess != "" {
 		clientRdpAccess = connectionProfile.ClientRdpAccess
 	}
 	result.ClientRdpAccess = &clientRdpAccess
 
-	clientSshAccess := lab.ConnectionTypeNone
 	if connectionProfile.ClientSshAccess != "" {
 		clientSshAccess = connectionProfile.ClientSshAccess
 	}
 	result.ClientSshAccess = &clientSshAccess
 
-	webRdpAccess := lab.ConnectionTypeNone
 	if connectionProfile.WebRdpAccess != "" {
 		webRdpAccess = connectionProfile.WebRdpAccess
 	}
 	result.WebRdpAccess = &webRdpAccess
 
-	webSshAccess := lab.ConnectionTypeNone
 	if connectionProfile.WebSshAccess != "" {
 		webSshAccess = connectionProfile.WebSshAccess
 	}
 	result.WebSshAccess = &webSshAccess
 
-	return &result
+	return result
 }
 
 func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting {
-	var connectionProfiles []ConnectionSetting
-	if input == nil {
-		return connectionProfiles
+	if input == nil || (*input.ClientRdpAccess == lab.ConnectionTypeNone && *input.ClientSshAccess == lab.ConnectionTypeNone && *input.WebRdpAccess == lab.ConnectionTypeNone && *input.WebSshAccess == lab.ConnectionTypeNone) {
+		return nil
 	}
 
+	var connectionProfiles []ConnectionSetting
 	connectionProfile := ConnectionSetting{}
 
 	if clientRdpAccess := input.ClientRdpAccess; clientRdpAccess != nil && *clientRdpAccess != lab.ConnectionTypeNone {
@@ -851,13 +873,14 @@ func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting 
 	return append(connectionProfiles, connectionProfile)
 }
 
-func expandSecurityProfile(input []Security) *lab.SecurityProfile {
-	if len(input) == 0 {
-		return nil
+func expandSecurityProfile(input []Security) lab.SecurityProfile {
+	result := lab.SecurityProfile{}
+
+	if input == nil || len(input) == 0 {
+		return result
 	}
 
-	securityProfile := &input[0]
-	result := lab.SecurityProfile{}
+	securityProfile := input[0]
 
 	openAccessEnabled := lab.EnableStateEnabled
 	if !securityProfile.OpenAccessEnabled {
@@ -865,15 +888,15 @@ func expandSecurityProfile(input []Security) *lab.SecurityProfile {
 	}
 	result.OpenAccess = &openAccessEnabled
 
-	return &result
+	return result
 }
 
 func flattenSecurityProfile(input *lab.SecurityProfile) []Security {
-	var securityProfiles []Security
 	if input == nil {
-		return securityProfiles
+		return nil
 	}
 
+	var securityProfiles []Security
 	securityProfile := Security{}
 
 	if input.OpenAccess != nil {
@@ -887,20 +910,24 @@ func flattenSecurityProfile(input *lab.SecurityProfile) []Security {
 	return append(securityProfiles, securityProfile)
 }
 
-func expandVirtualMachineProfile(input []VirtualMachine, isUpdate bool) *lab.VirtualMachineProfile {
-	if len(input) == 0 {
-		return nil
+func expandVirtualMachineProfile(input []VirtualMachine, isUpdate bool) lab.VirtualMachineProfile {
+	result := lab.VirtualMachineProfile{}
+
+	if input == nil || len(input) == 0 {
+		return result
 	}
 
-	virtualMachineProfile := &input[0]
-	result := lab.VirtualMachineProfile{
-		CreateOption: virtualMachineProfile.CreateOption,
-		UsageQuota:   virtualMachineProfile.UsageQuota,
-	}
+	virtualMachineProfile := input[0]
+	result.AdminUser = *expandCredential(virtualMachineProfile.AdminUser, isUpdate)
+	result.CreateOption = virtualMachineProfile.CreateOption
+	result.UsageQuota = virtualMachineProfile.UsageQuota
+	result.Sku = expandSku(virtualMachineProfile.Sku)
+	result.NonAdminUser = expandCredential(virtualMachineProfile.NonAdminUser, isUpdate)
+	result.ImageReference = expandImageReference(virtualMachineProfile.ImageReference)
 
-	sharedPasswordEnabled := lab.EnableStateEnabled
-	if !virtualMachineProfile.SharedPasswordEnabled {
-		sharedPasswordEnabled = lab.EnableStateDisabled
+	sharedPasswordEnabled := lab.EnableStateDisabled
+	if virtualMachineProfile.SharedPasswordEnabled {
+		sharedPasswordEnabled = lab.EnableStateEnabled
 	}
 	result.UseSharedPassword = &sharedPasswordEnabled
 
@@ -912,31 +939,15 @@ func expandVirtualMachineProfile(input []VirtualMachine, isUpdate bool) *lab.Vir
 		InstallGpuDrivers: &additionalCapabilityGpuDriversInstalled,
 	}
 
-	if virtualMachineProfile.AdminUser != nil {
-		result.AdminUser = *expandCredential(virtualMachineProfile.AdminUser, isUpdate)
-	}
-
-	if virtualMachineProfile.ImageReference != nil {
-		result.ImageReference = *expandImageReference(virtualMachineProfile.ImageReference)
-	}
-
-	if virtualMachineProfile.NonAdminUser != nil {
-		result.NonAdminUser = expandCredential(virtualMachineProfile.NonAdminUser, isUpdate)
-	}
-
-	if virtualMachineProfile.Sku != nil {
-		result.Sku = *expandSku(virtualMachineProfile.Sku)
-	}
-
-	return &result
+	return result
 }
 
 func expandCredential(input []Credential, isUpdate bool) *lab.Credentials {
-	if len(input) == 0 {
+	if input == nil || len(input) == 0 {
 		return nil
 	}
 
-	credential := &input[0]
+	credential := input[0]
 	result := lab.Credentials{
 		Username: credential.Username,
 	}
@@ -948,13 +959,14 @@ func expandCredential(input []Credential, isUpdate bool) *lab.Credentials {
 	return &result
 }
 
-func expandImageReference(input []ImageReference) *lab.ImageReference {
-	if len(input) == 0 {
-		return nil
+func expandImageReference(input []ImageReference) lab.ImageReference {
+	result := lab.ImageReference{}
+
+	if input == nil || len(input) == 0 {
+		return result
 	}
 
-	imageReference := &input[0]
-	result := lab.ImageReference{}
+	imageReference := input[0]
 
 	if imageReference.Id != "" {
 		result.Id = &imageReference.Id
@@ -976,28 +988,29 @@ func expandImageReference(input []ImageReference) *lab.ImageReference {
 		result.Version = &imageReference.Version
 	}
 
-	return &result
+	return result
 }
 
-func expandSku(input []Sku) *lab.Sku {
-	if len(input) == 0 {
-		return nil
+func expandSku(input []Sku) lab.Sku {
+	result := lab.Sku{}
+
+	if input == nil || len(input) == 0 {
+		return result
 	}
 
-	sku := &input[0]
-	result := lab.Sku{
-		Name:     sku.Name,
-		Capacity: &sku.Capacity,
-	}
+	sku := input[0]
+	result.Name = sku.Name
+	result.Capacity = &sku.Capacity
 
-	return &result
+	return result
 }
 
 func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *pluginsdk.ResourceData) []VirtualMachine {
-	var virtualMachineProfiles []VirtualMachine
 	if input == nil {
-		return virtualMachineProfiles
+		return nil
 	}
+
+	var virtualMachineProfiles []VirtualMachine
 
 	virtualMachineProfile := VirtualMachine{
 		AdminUser:      flattenCredential(&input.AdminUser, d.Get("virtual_machine.0.admin_user.0.password").(string)),
@@ -1023,10 +1036,11 @@ func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *pluginsdk
 }
 
 func flattenCredential(input *lab.Credentials, originalPassword string) []Credential {
-	var credentials []Credential
 	if input == nil {
-		return credentials
+		return nil
 	}
+
+	var credentials []Credential
 
 	credential := Credential{
 		Username: input.Username,
@@ -1037,11 +1051,11 @@ func flattenCredential(input *lab.Credentials, originalPassword string) []Creden
 }
 
 func flattenImageReference(input *lab.ImageReference) []ImageReference {
-	var imageReferences []ImageReference
 	if input == nil {
-		return imageReferences
+		return nil
 	}
 
+	var imageReferences []ImageReference
 	imageReference := ImageReference{}
 
 	if input.Id != nil {
@@ -1068,11 +1082,11 @@ func flattenImageReference(input *lab.ImageReference) []ImageReference {
 }
 
 func flattenSku(input *lab.Sku) []Sku {
-	var skus []Sku
 	if input == nil {
-		return skus
+		return nil
 	}
 
+	var skus []Sku
 	sku := Sku{
 		Name:     input.Name,
 		Capacity: *input.Capacity,
@@ -1082,11 +1096,11 @@ func flattenSku(input *lab.Sku) []Sku {
 }
 
 func expandNetworkProfile(input []Network, isUpdate bool, existingNetwork *lab.LabNetworkProfile) *lab.LabNetworkProfile {
-	if len(input) == 0 {
+	if input == nil || len(input) == 0 {
 		return nil
 	}
 
-	networkProfile := &input[0]
+	networkProfile := input[0]
 	result := lab.LabNetworkProfile{}
 
 	if networkProfile.SubnetId != "" {
@@ -1102,11 +1116,11 @@ func expandNetworkProfile(input []Network, isUpdate bool, existingNetwork *lab.L
 }
 
 func flattenNetworkProfile(input *lab.LabNetworkProfile) []Network {
-	var networkProfiles []Network
 	if input == nil {
-		return networkProfiles
+		return nil
 	}
 
+	var networkProfiles []Network
 	networkProfile := Network{}
 
 	if input.SubnetId != nil {
@@ -1125,11 +1139,11 @@ func flattenNetworkProfile(input *lab.LabNetworkProfile) []Network {
 }
 
 func expandRosterProfile(input []Roster) *lab.RosterProfile {
-	if len(input) == 0 {
+	if input == nil || len(input) == 0 {
 		return nil
 	}
 
-	rosterProfile := &input[0]
+	rosterProfile := input[0]
 	result := lab.RosterProfile{}
 
 	if rosterProfile.ActiveDirectoryGroupId != "" {
@@ -1156,11 +1170,11 @@ func expandRosterProfile(input []Roster) *lab.RosterProfile {
 }
 
 func flattenRosterProfile(input *lab.RosterProfile) []Roster {
-	var rosterProfiles []Roster
 	if input == nil {
-		return rosterProfiles
+		return nil
 	}
 
+	var rosterProfiles []Roster
 	rosterProfile := Roster{}
 
 	if input.ActiveDirectoryGroupId != nil {

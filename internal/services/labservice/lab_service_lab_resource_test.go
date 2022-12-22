@@ -16,7 +16,7 @@ import (
 
 type LabServiceLabResource struct{}
 
-func TestAccLabServicesLab_basic(t *testing.T) {
+func TestAccLabServiceLab_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_lab", "test")
 	r := LabServiceLabResource{}
 
@@ -27,7 +27,7 @@ func TestAccLabServicesLab_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_machine.0.admin_user.0.password"),
 	})
 }
 
@@ -57,7 +57,7 @@ func TestAccLabServiceLab_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_machine.0.admin_user.0.password", "virtual_machine.0.non_admin_user.0.password"),
 	})
 }
 
@@ -72,14 +72,14 @@ func TestAccLabServiceLab_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_machine.0.admin_user.0.password", "virtual_machine.0.non_admin_user.0.password"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("virtual_machine.0.admin_user.0.password"),
 	})
 }
 
@@ -216,10 +216,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_lab_service_plan" "test" {
-  name                = "acctest-lslp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allowed_regions     = [azurerm_resource_group.test.location]
+  name                      = "acctest-lslp-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  allowed_regions           = [azurerm_resource_group.test.location]
+  default_network_subnet_id = azurerm_subnet.test.id
 }
 
 resource "azurerm_lab_service_lab" "test" {
@@ -270,16 +271,11 @@ resource "azurerm_lab_service_lab" "test" {
     shutdown_on_idle = "UserAbsence"
   }
 
-  connection_setting {
-    client_rdp_access = "Public"
-  }
-
   network {
     subnet_id = azurerm_subnet.test.id
   }
 
   roster {
-    lms_instance        = "https://terraform.io/"
     lti_context_id      = "b0a538ec-1b9d-4e00-b3c3-f689cb34a30c"
     lti_roster_endpoint = "https://terraform.io/"
   }
@@ -322,10 +318,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_lab_service_plan" "test" {
-  name                = "acctest-lslp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allowed_regions     = [azurerm_resource_group.test.location]
+  name                      = "acctest-lslp-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  allowed_regions           = [azurerm_resource_group.test.location]
+  default_network_subnet_id = azurerm_subnet.test.id
 }
 
 resource "azurerm_lab_service_lab" "test" {
@@ -370,8 +367,12 @@ resource "azurerm_lab_service_lab" "test" {
     shutdown_on_idle = "LowUsage"
   }
 
+  connection_setting {
+    client_rdp_access = "Public"
+  }
+
   roster {
-    lms_instance        = "https://registry.terraform.io/"
+    lms_instance        = "https://terraform.io/"
     lti_context_id      = "72fa88e9-e65a-44f3-91ac-008226ae91dc"
     lti_roster_endpoint = "https://registry.terraform.io/"
   }
