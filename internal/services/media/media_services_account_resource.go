@@ -9,12 +9,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -79,11 +81,67 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+
+						"user_assigned_identity": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+
+						"use_system_assigned_identity": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				MinItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(accounts.AccountEncryptionKeyTypeSystemKey),
+							ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForAccountEncryptionKeyType(), false),
+						},
+
+						"key_vault_key_identifier": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+
+						"current_key_identifier": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"user_assigned_identity": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+
+						"use_system_assigned_identity": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"storage_authentication_type": {
 				Type:     pluginsdk.TypeString,
@@ -156,22 +214,36 @@ func resourceMediaServicesAccountCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	identity, err := expandMediaAccountIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandMediaServicesAccountIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	publicNetworkAccess := accounts.PublicNetworkAccessDisabled
+	if d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = accounts.PublicNetworkAccessEnabled
 	}
 
 	payload := accounts.MediaService{
 		Location: location.Normalize(d.Get("location").(string)),
 		Identity: identity,
 		Properties: &accounts.MediaServiceProperties{
-			StorageAccounts: storageAccounts,
+			StorageAccounts:     storageAccounts,
+			PublicNetworkAccess: &publicNetworkAccess,
 		},
 		Tags: tags.Expand(t),
 	}
 
+	if encryptionRaw, ok := d.GetOk("encryption"); ok {
+		encryption, err := expandMediaServicesAccountEncryption(encryptionRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
+		payload.Properties.Encryption = encryption
+	}
+
 	if keyDelivery, ok := d.GetOk("key_delivery_access_control"); ok {
-		payload.Properties.KeyDelivery = expandKeyDelivery(keyDelivery.([]interface{}))
+		payload.Properties.KeyDelivery = expandMediaServicesAccountKeyDelivery(keyDelivery.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("storage_authentication_type"); ok {
@@ -213,22 +285,36 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
-		identity, err := flattenMediaAccountIdentity(model.Identity)
+		accountIdentity, err := flattenMediaServicesAccountIdentity(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %s", err)
 		}
-		if err := d.Set("identity", identity); err != nil {
+		if err := d.Set("identity", accountIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
 		if props := model.Properties; props != nil {
-			accounts, err := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
+			storageAccounts, err := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
 			if err != nil {
 				return fmt.Errorf("flattening `storage_account`: %s", err)
 			}
-			if err := d.Set("storage_account", accounts); err != nil {
+			if err := d.Set("storage_account", storageAccounts); err != nil {
 				return fmt.Errorf("setting `storage_account`: %s", err)
 			}
+
+			encryption, err := flattenMediaServicesAccountEncryption(props.Encryption)
+			if err != nil {
+				return fmt.Errorf("flattening `encryption`: %s", err)
+			}
+			if err := d.Set("storage_account", encryption); err != nil {
+				return fmt.Errorf("setting `encryption`: %s", err)
+			}
+
+			publicNetworkAccess := false
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == accounts.PublicNetworkAccessEnabled {
+				publicNetworkAccess = true
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
 
 			storageAuthenticationType := ""
 			if props.StorageAuthentication != nil {
@@ -236,7 +322,7 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 			}
 			d.Set("storage_authentication_type", storageAuthenticationType)
 
-			if err := d.Set("key_delivery_access_control", flattenKeyDelivery(props.KeyDelivery)); err != nil {
+			if err := d.Set("key_delivery_access_control", flattenMediaServicesAccountKeyDelivery(props.KeyDelivery)); err != nil {
 				return fmt.Errorf("flattening `key_delivery_access_control`: %s", err)
 			}
 		}
@@ -285,9 +371,20 @@ func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]accounts
 			foundPrimary = true
 		}
 
+		resourceIdentity := accounts.ResourceIdentity{
+			UseSystemAssignedIdentity: accountMap["use_system_assigned_identity"].(bool),
+		}
+		if userAssignedIdentityId := accountMap["user_assigned_identity_id"].(string); userAssignedIdentityId != "" {
+			if resourceIdentity.UseSystemAssignedIdentity {
+				return nil, fmt.Errorf("use either of user assigned identity or system assigned identity for storage account")
+			}
+			resourceIdentity.UserAssignedIdentity = &userAssignedIdentityId
+		}
+
 		results = append(results, accounts.StorageAccount{
-			Id:   utils.String(id),
-			Type: storageType,
+			Id:       utils.String(id),
+			Type:     storageType,
+			Identity: &resourceIdentity,
 		})
 	}
 
@@ -310,16 +407,88 @@ func flattenMediaServicesAccountStorageAccounts(input *[]accounts.StorageAccount
 			storageAccountId = id.ID()
 		}
 
+		useSystemAssignedIdentity := false
+		userAssignedIdentityId := ""
+		if storageAccount.Identity != nil {
+			useSystemAssignedIdentity = storageAccount.Identity.UseSystemAssignedIdentity
+			if storageAccount.Identity.UserAssignedIdentity != nil {
+				userAssignedIdentityId = *storageAccount.Identity.UserAssignedIdentity
+			}
+		}
+
 		results = append(results, map[string]interface{}{
-			"id":         storageAccountId,
-			"is_primary": storageAccount.Type == accounts.StorageAccountTypePrimary,
+			"id":                           storageAccountId,
+			"is_primary":                   storageAccount.Type == accounts.StorageAccountTypePrimary,
+			"use_system_assigned_identity": useSystemAssignedIdentity,
+			"user_assigned_identity_id":    userAssignedIdentityId,
 		})
 	}
 
 	return &results, nil
 }
+func expandMediaServicesAccountEncryption(input []interface{}) (*accounts.AccountEncryption, error) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+	val := input[0].(map[string]interface{})
 
-func expandMediaAccountIdentity(input []interface{}) (*accounts.MediaServiceIdentity, error) {
+	resourceIdentity := accounts.ResourceIdentity{
+		UseSystemAssignedIdentity: val["use_system_assigned_identity"].(bool),
+	}
+	if userAssignedIdentityId := val["user_assigned_identity_id"].(string); userAssignedIdentityId != "" {
+		if resourceIdentity.UseSystemAssignedIdentity {
+			return nil, fmt.Errorf("use either of user assigned identity or system assigned identity for ecryption")
+		}
+		resourceIdentity.UserAssignedIdentity = &userAssignedIdentityId
+	}
+
+	var keyVaultProperty accounts.KeyVaultProperties
+	if keyIdentifierRaw, ok := val["key_vault_key_identifier"]; ok {
+		keyIdentifier := keyIdentifierRaw.(string)
+		keyVaultProperty.KeyIdentifier = &keyIdentifier
+	}
+
+	return &accounts.AccountEncryption{
+		Type:               accounts.AccountEncryptionKeyType(val["type"].(string)),
+		Identity:           &resourceIdentity,
+		KeyVaultProperties: &keyVaultProperty,
+	}, nil
+}
+
+func flattenMediaServicesAccountEncryption(input *accounts.AccountEncryption) (*[]interface{}, error) {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	var useSystemAssignedIdentity bool
+	var userAssignedIdentityId, keyIdentifier, currentKeyIdentifier string
+	if input.Identity != nil {
+		useSystemAssignedIdentity = input.Identity.UseSystemAssignedIdentity
+		if input.Identity.UserAssignedIdentity != nil {
+			userAssignedIdentityId = *input.Identity.UserAssignedIdentity
+		}
+	}
+
+	if input.KeyVaultProperties != nil {
+		if input.KeyVaultProperties.KeyIdentifier != nil {
+			keyIdentifier = *input.KeyVaultProperties.KeyIdentifier
+		}
+		if input.KeyVaultProperties.CurrentKeyIdentifier != nil {
+			currentKeyIdentifier = *input.KeyVaultProperties.CurrentKeyIdentifier
+		}
+	}
+
+	return &[]interface{}{map[string]interface{}{
+		"type":                         string(input.Type),
+		"use_system_assigned_identity": useSystemAssignedIdentity,
+		"user_assigned_identity_id":    userAssignedIdentityId,
+		"key_vault_key_identifier":     keyIdentifier,
+		"current_key_identifier":       currentKeyIdentifier,
+	}}, nil
+
+}
+
+func expandMediaServicesAccountIdentity(input []interface{}) (*accounts.MediaServiceIdentity, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -345,7 +514,7 @@ func expandMediaAccountIdentity(input []interface{}) (*accounts.MediaServiceIden
 	return &out, nil
 }
 
-func flattenMediaAccountIdentity(input *accounts.MediaServiceIdentity) (*[]interface{}, error) {
+func flattenMediaServicesAccountIdentity(input *accounts.MediaServiceIdentity) (*[]interface{}, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
@@ -375,7 +544,8 @@ func flattenMediaAccountIdentity(input *accounts.MediaServiceIdentity) (*[]inter
 
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
-func expandKeyDelivery(input []interface{}) *accounts.KeyDelivery {
+
+func expandMediaServicesAccountKeyDelivery(input []interface{}) *accounts.KeyDelivery {
 	if len(input) == 0 {
 		return nil
 	}
@@ -397,7 +567,7 @@ func expandKeyDelivery(input []interface{}) *accounts.KeyDelivery {
 	}
 }
 
-func flattenKeyDelivery(input *accounts.KeyDelivery) []interface{} {
+func flattenMediaServicesAccountKeyDelivery(input *accounts.KeyDelivery) []interface{} {
 	if input == nil && input.AccessControl != nil {
 		return make([]interface{}, 0)
 	}
