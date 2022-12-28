@@ -365,7 +365,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	updateProperties := servers.ServerPropertiesForUpdate{}
 	if authRaw, ok := d.GetOk("authentication"); ok {
 		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		if *authConfig.PasswordAuthEnabled == false {
+		if !*authConfig.PasswordAuthEnabled {
 			requireAdditionalUpdate = true
 			updateProperties.AuthConfig = authConfig
 		}
