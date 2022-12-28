@@ -19,7 +19,7 @@ var locations = mapOf(
 
 // specifies the list of Azure Environments where tests should be run nightly
 var runNightly = mapOf(
-        "public" to true
+        "public" to false
 )
 
 // specifies a list of services which should be run with a custom test configuration
@@ -44,7 +44,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true), useDevTestSubscription = true),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
-        "cognitive" to testConfiguration(daysOfWeek = "2,4,6", useDevTestSubscription = true),
+        // cognitive is only available in certain locations
+        "cognitive" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus", "southcentralus", true), useDevTestSubscription = true),
 
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
@@ -147,7 +148,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "eventhub" to testConfiguration(useDevTestSubscription = true),
         "firewall" to testConfiguration(useDevTestSubscription = true),
         "keyvault" to testConfiguration(useDevTestSubscription = true),
-        "postgres" to testConfiguration(useDevTestSubscription = true),
+        "postgres" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "centralus", "eastus", false), useDevTestSubscription = true),
         "privatedns" to testConfiguration(useDevTestSubscription = true),
         "redis" to testConfiguration(useDevTestSubscription = true)
 )

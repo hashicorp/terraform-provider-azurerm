@@ -163,7 +163,7 @@ The `match_condition` block supports the following:
 
 * `variable` - (Optional) can be set to `IsMobile`, `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestURI`, `RequestPath`, `RequestFilename`, `RequestFilenameExtension`,`RequestHeader`,`RequestBody` or `RequestScheme`.
 
-* `selector` - (Optional) match against a specific key when `variable` is set to `PostArgs` or `RequestHeader`. It cannot be used with `QueryString` and `RequestMethod`. Defaults to `null`.
+* `selector` - (Optional) match against a specific key when `variable` is set to `PostArgs` or `RequestHeader`. It cannot be used with `QueryString` and `RequestMethod`.
 
 * `operator` - (Required) can be set to `Any`, `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith` or `EndsWith`
 
@@ -172,6 +172,15 @@ The `match_condition` block supports the following:
 * `negate_condition` - (Optional) can be set to `true` or `false` to negate the given condition. Defaults to `true`.
 
 * `value` - (Optional) (array) can contain one or more strings.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Rules Engine.
+* `create` - (Defaults to 6 hours) Used when creating the Frontdoor Rules Engine.
+* `update` - (Defaults to 6 hours) Used when updating the Frontdoor Rules Engine.
+* `delete` - (Defaults to 6 hours) Used when deleting the Frontdoor Rules Engine.
 
 ## Import
 

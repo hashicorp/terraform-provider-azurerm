@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A short description of the Source Control.
 
-* `publish_runbook_enabled` - (Optional) Whether auto publish the Source Control.
+* `publish_runbook_enabled` - (Optional) Whether auto publish the Source Control. Defaults to `true`.
 
 ---
 

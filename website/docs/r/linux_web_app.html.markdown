@@ -155,7 +155,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values include `7.4`, and `8.0`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0` and `8.1`.
 
 ~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
 
@@ -229,7 +229,7 @@ A `backup` block supports the following:
 
 * `storage_account_url` - (Required) The SAS URL to the container.
 
-* `enabled` - (Optional) Should this backup job be enabled?
+* `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
 
 ---
 
@@ -301,7 +301,7 @@ A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
-* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected.
+* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected. The only possible value is `1`.
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 
@@ -337,7 +337,7 @@ An `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -389,7 +389,7 @@ A `schedule` block supports the following:
 
 * `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of the age of backup? Defaults to `false`.
 
-* `retention_period_days` - (Optional) After how many days backups should be deleted.
+* `retention_period_days` - (Optional) After how many days backups should be deleted. Defaults to `30`.
 
 * `start_time` - (Optional) When the schedule should start working in RFC-3339 format.
 
@@ -405,7 +405,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 

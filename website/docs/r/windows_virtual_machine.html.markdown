@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Defaults to `true`.
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Windows Virtual Machine should exist. Changing this forces a new Windows Virtual Machine to be created.
 
-* `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
+* `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created. Defaults to `true`.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
@@ -341,9 +341,9 @@ The `source_image_reference` block supports the following:
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? Defaults to `false`.
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? 
 
-* `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+* `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
 
 ~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
@@ -388,6 +388,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 45 minutes) Used when creating the Windows Virtual Machine.
 * `update` - (Defaults to 45 minutes) Used when updating the Windows Virtual Machine.
 * `delete` - (Defaults to 45 minutes) Used when deleting the Windows Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Virtual Machine.
 
 ## Import
 

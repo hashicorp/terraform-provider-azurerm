@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Policy Exemption. Changing this forces a new resource to be created.
 
-* `resource_group_id`- (Required) The Resource Group ID where the Policy Exemption should be applied. Changing this forces a new resource to be created.
+* `resource_group_id` - (Required) The Resource Group ID where the Policy Exemption should be applied. Changing this forces a new resource to be created.
 
 * `exemption_category` - (Required) The category of this policy exemption. Possible values are `Waiver` and `Mitigated`.
 

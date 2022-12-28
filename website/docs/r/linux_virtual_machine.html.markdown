@@ -120,7 +120,7 @@ The following arguments are supported:
 
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Defaults to `true`.
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
@@ -340,9 +340,9 @@ The `source_image_reference` block supports the following:
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? Defaults to `false`.
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? 
 
-* `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+* `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
 
 ~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
@@ -379,6 +379,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 45 minutes) Used when creating the Linux Virtual Machine.
 * `update` - (Defaults to 45 minutes) Used when updating the Linux Virtual Machine.
 * `delete` - (Defaults to 45 minutes) Used when deleting the Linux Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Virtual Machine.
 
 ## Import
 

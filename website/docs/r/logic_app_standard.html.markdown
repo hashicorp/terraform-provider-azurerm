@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 
-* `enabled` - (Optional) Is the Logic App enabled?
+* `enabled` - (Optional) Is the Logic App enabled? Defaults to `true`.
 
 * `https_only` - (Optional) Can the Logic App only be accessed via HTTPS? Defaults to `false`.
 
@@ -201,7 +201,7 @@ The `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 
-* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site.
+* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1` and `1.2`.
 
 * `scm_type` - (Optional) The type of Source Control used by the Logic App in use by the Windows Function App. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 

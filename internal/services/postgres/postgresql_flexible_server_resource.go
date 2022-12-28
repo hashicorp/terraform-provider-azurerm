@@ -352,7 +352,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	// if create with `password_auth_enabled` set to `false`, the service will not accept `administrator_login`.
 	// so we create it with  `password_auth_enabled` set to `true`, then set it to `false` in an additional update.
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw)
+		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 		authConfig.PasswordAuthEnabled = utils.Bool(true)
 		parameters.Properties.AuthConfig = authConfig
 	}
@@ -364,7 +364,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	requireAdditionalUpdate := false
 	updateProperties := servers.ServerPropertiesForUpdate{}
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw)
+		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 		if *authConfig.PasswordAuthEnabled == false {
 			requireAdditionalUpdate = true
 			updateProperties.AuthConfig = authConfig
@@ -532,7 +532,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("authentication") {
-		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication"))
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
 	if d.HasChange("storage_mb") {
@@ -774,8 +774,12 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 	}
 }
 
-func expandFlexibleServerAuthConfig(authRaw interface{}) *servers.AuthConfig {
-	authConfigs := authRaw.([]interface{})[0].(map[string]interface{})
+func expandFlexibleServerAuthConfig(authRaw []interface{}) *servers.AuthConfig {
+	if len(authRaw) == 0 || authRaw[0] == nil {
+		return nil
+	}
+
+	authConfigs := authRaw[0].(map[string]interface{})
 	out := servers.AuthConfig{
 		ActiveDirectoryAuthEnabled: utils.Bool(authConfigs["active_directory_auth_enabled"].(bool)),
 		PasswordAuthEnabled:        utils.Bool(authConfigs["password_auth_enabled"].(bool)),

@@ -45,7 +45,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_server" "example" {
-  # ...
+  # ...
 }
 
 resource "azurerm_mysql_firewall_rule" "example" {
@@ -66,7 +66,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_server" "example" {
-  # ...
+  # ...
 }
 
 resource "azurerm_mysql_firewall_rule" "example" {

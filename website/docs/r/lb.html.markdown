@@ -91,16 +91,16 @@ The following attributes are exported:
 
 A `frontend_ip_configuration` block exports the following:
 
-* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The id of the Frontend IP Configuration of a Gateway Load Balancer that this Load Balancer points to.
+* `gateway_load_balancer_frontend_ip_configuration_id` - The id of the Frontend IP Configuration of a Gateway Load Balancer that this Load Balancer points to.
 * `id` - The id of the Frontend IP Configuration.
 * `inbound_nat_rules` - The list of IDs of inbound rules that use this frontend IP.
 * `load_balancer_rules` - The list of IDs of load balancing rules that use this frontend IP.
 * `outbound_rules` - The list of IDs outbound rules that use this frontend IP.
-* `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer.
-* `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values are `Dynamic` and `Static`.
-* `public_ip_address_id` - (Optional) The ID of a  Public IP Address which is associated with this Load Balancer.
-* `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which is associated with the Load Balancer.
-* `subnet_id` - (Optional) The ID of the Subnet which is associated with the IP Configuration.
+* `private_ip_address` - Private IP Address to assign to the Load Balancer.
+* `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer. Possible values are `Dynamic` and `Static`.
+* `public_ip_address_id` - The ID of a  Public IP Address which is associated with this Load Balancer.
+* `public_ip_prefix_id` - The ID of a Public IP Prefix which is associated with the Load Balancer.
+* `subnet_id` - The ID of the Subnet which is associated with the IP Configuration.
 
 ## Timeouts
 
