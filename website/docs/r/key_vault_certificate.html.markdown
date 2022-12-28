@@ -274,7 +274,7 @@ The `key_properties` block supports the following:
 * `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`. Changing this forces a new resource to be created.
 * `exportable` - (Required) Is this certificate exportable? Changing this forces a new resource to be created.
 * `key_size` - (Optional) The size of the key used in the certificate. Possible values include `2048`, `3072`, and `4096` for `RSA` keys, or `256`, `384`, and `521` for `EC` keys. This property is required when using RSA keys. Changing this forces a new resource to be created.
-* `key_type` - (Required) Specifies the type of key, such as `RSA` or `EC`. Changing this forces a new resource to be created.
+* `key_type` - (Required) Specifies the type of key. Possible values are `EC`, `EC-HSM`, `RSA`, `RSA-HSM` and `oct`. Changing this forces a new resource to be created.
 * `reuse_key` - (Required) Is the key reusable? Changing this forces a new resource to be created.
 
 ---
@@ -350,7 +350,7 @@ A `certificate_attribute` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate.
+* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate.

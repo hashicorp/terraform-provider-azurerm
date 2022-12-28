@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `backup` - (Optional) a `backup` block as detailed below.
 
-* `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.
+* `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
 
 * `client_certificate_enabled` - (Optional) Should the Function App Slot use Client Certificates.
 
@@ -88,11 +88,11 @@ The following arguments are supported:
 
 * `content_share_force_disabled` - (Optional) Force disable the content share settings.
 
-* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps in Consumption Plans.
+* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps in Consumption Plans. Defaults to `0`.
 
-* `enabled` - (Optional) Is the Linux Function App Slot enabled.
+* `enabled` - (Optional) Is the Linux Function App Slot enabled. Defaults to `true`.
 
-* `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot.
+* `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.
 
 * `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
 
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 an `auth_settings` block supports the following:
 
-* `enabled` - (Optional) Should the Authentication / Authorization feature be enabled?
+* `enabled` - (Required) Should the Authentication / Authorization feature be enabled?
 
 * `active_directory` - (Optional) an `active_directory` block as detailed below.
 
@@ -172,7 +172,7 @@ A `backup` block supports the following:
 
 * `storage_account_url` - (Required) The SAS URL to the container.
 
-* `enabled` - (Optional) Should this backup job be enabled?
+* `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
 
 ---
 
@@ -366,7 +366,7 @@ A `schedule` block supports the following:
 
 * `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.
 
-* `retention_period_days` - (Optional) After how many days backups should be deleted.
+* `retention_period_days` - (Optional) After how many days backups should be deleted. Defaults to `30`.
 
 * `start_time` - (Optional) When the schedule should start working in RFC-3339 format.
 
@@ -376,9 +376,9 @@ A `schedule` block supports the following:
 
 An `app_service_logs` block supports the following:
 
-* `disk_quota_mb` - (Optional) The amount of disk space to use for logs. Valid values are between `25` and `100`.
+* `disk_quota_mb` - (Optional) The amount of disk space to use for logs. Valid values are between `25` and `100`. Defaults to `35`.
 
-* `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`. Defaults to `0` (never delete).
+* `retention_period_days` - (Optional) The retention period for logs in days. Valid values are between `0` and `99999`.(never delete).
 
 ~> **NOTE:** This block is not supported on Consumption plans.
 
@@ -436,7 +436,7 @@ A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
-* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected.
+* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected. The only possible value is `1`.
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 
@@ -454,7 +454,7 @@ An `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -474,7 +474,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 

@@ -307,9 +307,9 @@ The `ipsec_policy` block supports:
 
 The `traffic_selector_policy` block supports:
 
-* `local_address_cidrs` - List of local CIDRs.
+* `local_address_cidrs` - (Required) List of local CIDRs.
 
-* `remote_address_cidrs` - List of remote CIDRs.
+* `remote_address_cidrs` - (Required) List of remote CIDRs.
 
 ## Attributes Reference
 

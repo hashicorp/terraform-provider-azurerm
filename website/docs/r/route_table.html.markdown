@@ -59,7 +59,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Elements of `route` support:
+---
+
+A `route` block support:
 
 * `name` - (Required) The name of the route. Changing this forces a new resource to be created.
 

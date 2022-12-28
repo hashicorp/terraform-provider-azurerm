@@ -186,7 +186,7 @@ A `instance_pool` block supports the following:
 
 * `cluster_version` - (Required) Spark version of a the cluster.
 
-* `min_number_of_workers` - (Optional) The minimum number of worker nodes. Defaults to 1.
+* `min_number_of_workers` - (Optional) The minimum number of worker nodes. Defaults to `1`.
 
 * `max_number_of_workers` - (Optional) The max number of worker nodes. Set this value if you want to enable autoscaling between the `min_number_of_workers` and this value. Omit this value to use a fixed number of workers defined in the `min_number_of_workers` property.
 

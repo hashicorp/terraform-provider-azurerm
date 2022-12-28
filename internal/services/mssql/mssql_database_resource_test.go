@@ -606,6 +606,13 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.withLongTermRetentionPolicyNoWeekOfYear(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1344,10 +1351,10 @@ resource "azurerm_mssql_database" "test" {
   sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
-    retention_days             = 15
-    state                      = "Enabled"
-    disabled_alerts            = ["Sql_Injection"]
-    email_account_admins       = "Enabled"
+    retention_days       = 15
+    state                = "Enabled"
+    disabled_alerts      = ["Sql_Injection"]
+    email_account_admins = "Enabled"
   }
 
   tags = {
@@ -1454,6 +1461,36 @@ resource "azurerm_mssql_database" "test" {
     weekly_retention = "P1W"
     yearly_retention = "P1Y"
     week_of_year     = 2
+  }
+}
+`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withLongTermRetentionPolicyNoWeekOfYear(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_mssql_server.test.id
+  long_term_retention_policy {
+    weekly_retention = "P10D"
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)

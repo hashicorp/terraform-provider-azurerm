@@ -53,6 +53,12 @@ resource "azurerm_synapse_firewall_rule" "example" {
   end_ip_address       = "255.255.255.255"
 }
 
+resource "azurerm_synapse_integration_runtime_azure" "example" {
+  name                 = "example"
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
+  location             = azurerm_resource_group.example.location
+}
+
 resource "azurerm_synapse_linked_service" "example" {
   name                 = "example"
   synapse_workspace_id = azurerm_synapse_workspace.example.id
@@ -62,6 +68,9 @@ resource "azurerm_synapse_linked_service" "example" {
   "connectionString": "${azurerm_storage_account.example.primary_connection_string}"
 }
 JSON
+  integration_runtime {
+    name = azurerm_synapse_integration_runtime_azure.example.name
+  }
 
   depends_on = [
     azurerm_synapse_firewall_rule.example,
