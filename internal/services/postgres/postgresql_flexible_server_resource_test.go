@@ -651,7 +651,12 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azuread_service_principal" "postgresql" {
-  application_id        = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
+  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
+  use_existing   = true
+}
+
+data "azuread_service_principal" "postgresql_validate" { # new service principal needs time to be avaiable, add a workaround to fix
+  object_id = azuread_service_principal.postgresql.object_id
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -670,7 +675,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
     password_auth_enabled         = %[4]t
    %[5]s
   }
-  depends_on = [azuread_service_principal.postgresql]
+  depends_on = [azuread_service_principal.postgresql_validate]
 }
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }
