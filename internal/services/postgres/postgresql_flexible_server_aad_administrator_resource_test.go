@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/administrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -21,7 +22,11 @@ func TestAccPostgresqlFlexibleServerAdministrator_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.aadConfig(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(5 * time.Minute) }, // needs time to configure service principal
+			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -36,7 +41,11 @@ func TestAccPostgresqlFlexibleServerAdministrator_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.aadConfig(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(5 * time.Minute) }, // needs time to configure service principal
+			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -53,6 +62,12 @@ func TestAccPostgresqlFlexibleServerAdministrator_disappears(t *testing.T) {
 	r := PostgresqlFlexibleServerAdministratorResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadConfig(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(5 * time.Minute) }, // needs time to configure service principal
+		},
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -87,6 +102,17 @@ func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Conte
 	return utils.Bool(true), nil
 }
 
+func (PostgresqlFlexibleServerAdministratorResource) aadConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azuread" {}
+
+resource "azuread_service_principal" "postgresql" {
+  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
+  use_existing   = true
+}
+`)
+}
+
 func (PostgresqlFlexibleServerAdministratorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -98,10 +124,6 @@ provider "azuread" {}
 resource "azuread_service_principal" "postgresql" {
   application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
   use_existing   = true
-}
-
-data "azuread_service_principal" "postgresql_validate" { # new service principal needs time to be avaiable, add a workaround to fix
-  object_id = azuread_service_principal.postgresql.object_id
 }
 
 data "azurerm_client_config" "current" {}
@@ -131,7 +153,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
 
-  depends_on = [data.azuread_service_principal.postgresql_validate]
+  depends_on = [azuread_service_principal.postgresql]
 }
 
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "test" {

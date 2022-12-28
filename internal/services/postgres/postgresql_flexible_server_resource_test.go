@@ -245,7 +245,11 @@ func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authConfig(data, true, false),
+			Config: PostgresqlFlexibleServerAdministratorResource{}.aadConfig(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(5 * time.Minute) }, // needs time to configure service principal
+			Config:    r.authConfig(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -675,7 +679,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
     password_auth_enabled         = %[4]t
    %[5]s
   }
-  depends_on = [azuread_service_principal.postgresql_validate]
+  depends_on = [azuread_service_principal.postgresql]
 }
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }
