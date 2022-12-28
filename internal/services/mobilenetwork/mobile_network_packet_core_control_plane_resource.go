@@ -128,9 +128,15 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"edge_device_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: edgedevicevalidate.DeviceID,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: func(i interface{}, s string) ([]string, []error) {
+							// a workaround, sometimes the id from user is with `DataBoxEdgeDevices` instead of `dataBoxEdgeDevices`.
+							if v, ok := i.(string); ok {
+								i = strings.ReplaceAll(v, "DataBoxEdgeDevices", "dataBoxEdgeDevices")
+							}
+							return edgedevicevalidate.DeviceID(i, s)
+						},
 					},
 
 					"azure_stack_hci_cluster_id": {
@@ -164,6 +170,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
+
 		// it's still in progress, And will only support user assigned identity.
 
 		"interop_settings": {
@@ -235,6 +242,12 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
+
+			if identityValue != nil {
+				return fmt.Errorf("do not spciify `identity`, there is an ongoing issue may cause an ICM")
+				// todo: remove this check when the issue is fixed. before PR submit.
+			}
+
 			properties := packetcorecontrolplane.PacketCoreControlPlane{
 				Name:     &model.Name,
 				Identity: identityValue,
