@@ -32,6 +32,10 @@ func TestAccPostgresqlFlexibleServerAdministrator_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:  r.aadConfig(data),
+			Destroy: false,
+		},
 	})
 }
 
@@ -53,6 +57,10 @@ func TestAccPostgresqlFlexibleServerAdministrator_requiresImport(t *testing.T) {
 		{
 			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_postgresql_flexible_server_active_directory_administrator"),
+		},
+		{
+			Config:  r.aadConfig(data),
+			Destroy: false,
 		},
 	})
 }
@@ -102,7 +110,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Conte
 	return utils.Bool(true), nil
 }
 
-func (PostgresqlFlexibleServerAdministratorResource) aadConfig(data acceptance.TestData) string {
+func (PostgresqlFlexibleServerAdministratorResource) aadConfig(_ acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azuread" {}
 
