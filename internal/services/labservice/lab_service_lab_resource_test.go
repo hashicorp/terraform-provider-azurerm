@@ -129,14 +129,14 @@ resource "azurerm_lab_service_lab" "test" {
 
   virtual_machine {
     admin_user {
-      username = "testAdmin"
+      username = "testadmin"
       password = "Password1234!"
     }
 
     image_reference {
-      offer     = "WindowsServer"
-      publisher = "MicrosoftWindowsServer"
-      sku       = "2022-datacenter-g2"
+      offer     = "0001-com-ubuntu-server-focal"
+      publisher = "canonical"
+      sku       = "20_04-lts"
       version   = "latest"
     }
 
@@ -165,14 +165,14 @@ resource "azurerm_lab_service_lab" "import" {
 
   virtual_machine {
     admin_user {
-      username = "testAdmin"
+      username = "testadmin"
       password = "Password1234!"
     }
 
     image_reference {
-      offer     = "WindowsServer"
-      publisher = "MicrosoftWindowsServer"
-      sku       = "2022-datacenter-g2"
+      offer     = "0001-com-ubuntu-server-focal"
+      publisher = "canonical"
+      sku       = "20_04-lts"
       version   = "latest"
     }
 
@@ -188,6 +188,41 @@ resource "azurerm_lab_service_lab" "import" {
 func (r LabServiceLabResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  specialized         = true
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+
+data "azuread_service_principal" "test" {
+  application_id = "c7bb12bf-0b39-4f7f-9171-f418ff39b76a"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_shared_image_gallery.test.id
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+locals {
+  first_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+}
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
@@ -215,12 +250,71 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-linux-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 30
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_linux_virtual_machine.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+}
+
 resource "azurerm_lab_service_plan" "test" {
   name                      = "acctest-lslp-%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
   allowed_regions           = [azurerm_resource_group.test.location]
   default_network_subnet_id = azurerm_subnet.test.id
+  shared_gallery_id         = azurerm_shared_image_gallery.test.id
+
+  depends_on = [azurerm_role_assignment.test, azurerm_shared_image_version.test]
 }
 
 resource "azurerm_lab_service_lab" "test" {
@@ -238,24 +332,21 @@ resource "azurerm_lab_service_lab" "test" {
   virtual_machine {
     usage_quota                                 = "PT10H"
     additional_capability_gpu_drivers_installed = false
-    create_option                               = "Image"
+    create_option                               = "TemplateVM"
     shared_password_enabled                     = true
 
     admin_user {
-      username = "testAdmin"
+      username = "testadmin"
       password = "Password1234!"
     }
 
     non_admin_user {
-      username = "testNonAdmin"
+      username = "testnonadmin"
       password = "Password1234!"
     }
 
     image_reference {
-      offer     = "WindowsServer"
-      publisher = "MicrosoftWindowsServer"
-      sku       = "2022-datacenter-g2"
-      version   = "latest"
+      id = azurerm_shared_image.test.id
     }
 
     sku {
@@ -271,25 +362,60 @@ resource "azurerm_lab_service_lab" "test" {
     shutdown_on_idle = "UserAbsence"
   }
 
-  network {
-    subnet_id = azurerm_subnet.test.id
+  connection_setting {
+    client_rdp_access = "Public"
+    client_ssh_access = "Public"
   }
 
-  roster {
-    lti_context_id      = "b0a538ec-1b9d-4e00-b3c3-f689cb34a30c"
-    lti_roster_endpoint = "https://terraform.io/"
+  network {
+    subnet_id = azurerm_subnet.test.id
   }
 
   tags = {
     Env = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LabServiceLabResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  specialized         = true
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+
+data "azuread_service_principal" "test" {
+  application_id = "c7bb12bf-0b39-4f7f-9171-f418ff39b76a"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_shared_image_gallery.test.id
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+locals {
+  first_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+}
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
@@ -317,12 +443,71 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-linux-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 30
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_linux_virtual_machine.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+}
+
 resource "azurerm_lab_service_plan" "test" {
   name                      = "acctest-lslp-%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
   allowed_regions           = [azurerm_resource_group.test.location]
   default_network_subnet_id = azurerm_subnet.test.id
+  shared_gallery_id         = azurerm_shared_image_gallery.test.id
+
+  depends_on = [azurerm_role_assignment.test, azurerm_shared_image_version.test]
 }
 
 resource "azurerm_lab_service_lab" "test" {
@@ -331,6 +516,7 @@ resource "azurerm_lab_service_lab" "test" {
   location            = azurerm_resource_group.test.location
   title               = "Test Title2"
   description         = "Test Description2"
+  lab_plan_id         = azurerm_lab_service_plan.test.id
 
   security {
     open_access_enabled = true
@@ -339,19 +525,16 @@ resource "azurerm_lab_service_lab" "test" {
   virtual_machine {
     usage_quota                                 = "PT11H"
     additional_capability_gpu_drivers_installed = false
-    create_option                               = "Image"
+    create_option                               = "TemplateVM"
     shared_password_enabled                     = true
 
     admin_user {
-      username = "testAdmin"
+      username = "testadmin"
       password = "Password1234!"
     }
 
     image_reference {
-      offer     = "WindowsServer"
-      publisher = "MicrosoftWindowsServer"
-      sku       = "2022-datacenter-g2"
-      version   = "latest"
+      id = azurerm_shared_image.test.id
     }
 
     sku {
@@ -371,15 +554,13 @@ resource "azurerm_lab_service_lab" "test" {
     client_rdp_access = "Public"
   }
 
-  roster {
-    lms_instance        = "https://terraform.io/"
-    lti_context_id      = "72fa88e9-e65a-44f3-91ac-008226ae91dc"
-    lti_roster_endpoint = "https://registry.terraform.io/"
+  network {
+    subnet_id = azurerm_subnet.test.id
   }
 
   tags = {
     Env = "Test2"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
