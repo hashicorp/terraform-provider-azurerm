@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -2454,4 +2455,56 @@ resource "azurerm_container_group" "test" {
   depends_on       = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func TestExpandContainerEnvironmentVariables(t *testing.T) {
+	input := map[string]interface{}{
+		"foo": "bar",
+		"bar": "baz",
+		"baz": "foo",
+	}
+	expectedOutput := containers.ExpandContainerEnvironmentVariables(input, true)
+
+	for counter := 0; counter < 100; counter++ {
+		output := containers.ExpandContainerEnvironmentVariables(input, true)
+		for i, expectedValue := range *expectedOutput {
+			if !testEnvironmentVariablesEqual(t, expectedValue, (*output)[i]) {
+				t.Fatalf("Iteration #%d failed", i)
+			}
+		}
+	}
+}
+
+func testEnvironmentVariablesEqual(t *testing.T, expected containerinstance.EnvironmentVariable, actual containerinstance.EnvironmentVariable) bool {
+	result := true
+	if expected.Name != actual.Name {
+		t.Logf("Expected name: %s, Actual name: %s", expected.Name, actual.Name)
+		result = false
+	}
+
+	if expected.SecureValue == nil || actual.SecureValue == nil {
+		if expected.SecureValue != actual.SecureValue {
+			t.Logf("Expected secure value: %v, Actual secure value: %v", expected.SecureValue, actual.SecureValue)
+			result = false
+		}
+	} else {
+		if *expected.SecureValue != *actual.SecureValue {
+			t.Logf("Expected secure value: %s, Actual secure value: %s", *expected.SecureValue, *actual.SecureValue)
+			result = false
+		}
+	}
+
+	if expected.Value == nil || actual.Value == nil {
+		if expected.Value != actual.Value {
+			t.Logf("Expected value: %v, Actual value: %v", expected.Value, actual.Value)
+			result = false
+		}
+	} else {
+		if *expected.Value != *actual.Value {
+			t.Logf("Expected value: %s, Actual value: %s", *expected.Value, *actual.Value)
+			result = false
+		}
+	}
+
+	return result
 }

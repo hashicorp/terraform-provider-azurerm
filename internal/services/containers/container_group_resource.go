@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -1003,12 +1004,12 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 
 		// Expand environment_variables into slice
 		if v, ok := data["environment_variables"]; ok {
-			envVars = expandContainerEnvironmentVariables(v, false)
+			envVars = ExpandContainerEnvironmentVariables(v, false)
 		}
 
 		// Expand secure_environment_variables into slice
 		if v, ok := data["secure_environment_variables"]; ok {
-			secEnvVars = expandContainerEnvironmentVariables(v, true)
+			secEnvVars = ExpandContainerEnvironmentVariables(v, true)
 		}
 
 		// Combine environment variable slices
@@ -1146,12 +1147,12 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 
 		// Expand environment_variables into slice
 		if v, ok := data["environment_variables"]; ok {
-			envVars = expandContainerEnvironmentVariables(v, false)
+			envVars = ExpandContainerEnvironmentVariables(v, false)
 		}
 
 		// Expand secure_environment_variables into slice
 		if v, ok := data["secure_environment_variables"]; ok {
-			secEnvVars = expandContainerEnvironmentVariables(v, true)
+			secEnvVars = ExpandContainerEnvironmentVariables(v, true)
 		}
 
 		// Combine environment variable slices
@@ -1258,7 +1259,7 @@ func expandContainerVolume(v interface{}, addedEmptyDirs map[string]bool, contai
 	return containerGroupVolumes, nil
 }
 
-func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
+func ExpandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
 	envVars := input.(map[string]interface{})
 	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
 
@@ -1281,7 +1282,31 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 			output = append(output, ev)
 		}
 	}
-	return &output
+
+	return sortContainerEnvironmentVariables(&output)
+}
+
+func sortContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) *[]containerinstance.EnvironmentVariable {
+	if input == nil {
+		return nil
+	}
+
+	keys := []string{}
+	for i := range *input {
+		keys = append(keys, (*input)[i].Name)
+	}
+	sort.Strings(keys)
+
+	sorted := []containerinstance.EnvironmentVariable{}
+	for _, k := range keys {
+		for i := range *input {
+			if (*input)[i].Name == k {
+				sorted = append(sorted, (*input)[i])
+			}
+		}
+	}
+
+	return &sorted
 }
 
 func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]containerinstance.ImageRegistryCredential {
