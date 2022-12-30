@@ -451,7 +451,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"lti_client_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsUUID,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"lti_context_id": {
