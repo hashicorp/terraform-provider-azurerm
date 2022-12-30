@@ -105,7 +105,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx c
 	ASGList := existingPrivateEndpoint.ApplicationSecurityGroups
 	if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
 		for _, value := range *ASGList {
-			if value.Name != nil && *value.Name == securityGroupId.Name {
+			if value.ID != nil && *value.ID == securityGroupId.ID() {
 				exists = true
 				break
 			}
@@ -176,7 +176,7 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelink-%d"
+  name     = "acctestRG-PEASGAsso-%d"
   location = "%s"
 }
 
@@ -229,7 +229,14 @@ resource "azurerm_lb" "test" {
 }
 
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) requiresImport(data acceptance.TestData) string {
-	return r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint_application_security_group_association" "import" {
+  private_endpoint_id = azurerm_private_endpoint.test.id
+  application_security_group_id = azurerm_application_security_group.test.id
+}
+`, r.basic(data))
 }
 
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
@@ -262,7 +269,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx 
 		ASGList := *input.PrivateEndpointProperties.ApplicationSecurityGroups
 		newASGList := make([]network.ApplicationSecurityGroup, 0)
 		for idx, value := range ASGList {
-			if value.ID != nil && *value.Name == securityGroupId.Name {
+			if value.ID != nil && *value.ID == securityGroupId.ID() {
 				newASGList = append(newASGList, ASGList[:idx]...)
 				newASGList = append(newASGList, ASGList[idx+1:]...)
 				ASGInPE = true

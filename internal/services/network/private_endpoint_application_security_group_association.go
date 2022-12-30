@@ -109,7 +109,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 
 			if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
 				for _, value := range *ASGList {
-					if value.Name != nil && *value.Name == ASGId.Name {
+					if value.ID != nil && *value.ID == ASGId.ID() {
 						ASGInPE = true
 						break
 					}
@@ -199,7 +199,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
 				ASGList := *input.PrivateEndpointProperties.ApplicationSecurityGroups
 				for _, value := range ASGList {
-					if value.ID != nil && *value.Name == ASGId.Name {
+					if value.ID != nil && *value.ID == ASGId.ID() {
 						ASGInPE = true
 						break
 					}
@@ -214,7 +214,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				PrivateEndpointId:          privateEndpointId.ID(),
 			}
 
-			return metadata.Encode(state)
+			return metadata.Encode(&state)
 		},
 		Timeout: 5 * time.Minute,
 	}
@@ -276,7 +276,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				ASGList := *input.PrivateEndpointProperties.ApplicationSecurityGroups
 				newASGList := make([]network.ApplicationSecurityGroup, 0)
 				for idx, value := range ASGList {
-					if value.ID != nil && *value.Name == ASGId.Name {
+					if value.ID != nil && *value.ID == ASGId.ID() {
 						newASGList = append(newASGList, ASGList[:idx]...)
 						newASGList = append(newASGList, ASGList[idx+1:]...)
 						ASGInPE = true
