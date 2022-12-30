@@ -2,8 +2,9 @@ package parse
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 var _ resourceids.Id = PrivateEndpointApplicationSecurityGroupAssociationId{}

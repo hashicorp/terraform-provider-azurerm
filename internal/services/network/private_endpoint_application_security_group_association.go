@@ -64,7 +64,6 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
-
 			privateEndpointId, err := parse.PrivateEndpointID(state.PrivateEndpointId)
 			if err != nil {
 				return err
@@ -74,7 +73,6 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			defer locks.UnlockByName(privateEndpointId.Name, "azurerm_private_endpoint")
 
 			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
-
 			ASGId, err := parse.ApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
 			if err != nil {
 				return err
@@ -105,6 +103,22 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 
 			input := existingPrivateEndpoint
 			ASGList := existingPrivateEndpoint.ApplicationSecurityGroups
+
+			// flag: application security group exists in private endpoint configuration
+			ASGInPE := false
+
+			if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
+				for _, value := range *ASGList {
+					if value.Name != nil && *value.Name == ASGId.Name {
+						ASGInPE = true
+						break
+					}
+				}
+			}
+
+			if ASGInPE {
+				return fmt.Errorf("ApplicationSecurityGroup %q already linked with with Private Endpoint, duplicated resource creation is not allowed", ASGId)
+			}
 
 			if ASGList != nil {
 				*ASGList = append(*ASGList, existingASG)
@@ -185,8 +199,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
 				ASGList := *input.PrivateEndpointProperties.ApplicationSecurityGroups
 				for _, value := range ASGList {
-					// TODO: name or id to compare? A little afraid of backend change
-					if value.ID != nil && *value.ID == ASGId.ID() {
+					if value.ID != nil && *value.Name == ASGId.Name {
 						ASGInPE = true
 						break
 					}
@@ -255,21 +268,26 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 
 			resourceId := parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId)
 
+			// flag: application security group exists in private endpoint configuration
+			ASGInPE := false
+
 			input := existingPrivateEndpoint
 			if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
 				ASGList := *input.PrivateEndpointProperties.ApplicationSecurityGroups
-				var newASGList []network.ApplicationSecurityGroup
+				newASGList := make([]network.ApplicationSecurityGroup, 0)
 				for idx, value := range ASGList {
-					if value.ID != nil && *value.ID == ASGId.ID() {
-						if idx < len(ASGList) {
-							newASGList = append(ASGList[:idx], ASGList[idx+1:]...)
-						} else {
-							newASGList = ASGList[:idx]
-						}
+					if value.ID != nil && *value.Name == ASGId.Name {
+						newASGList = append(newASGList, ASGList[:idx]...)
+						newASGList = append(newASGList, ASGList[idx+1:]...)
+						ASGInPE = true
 						break
 					}
 				}
-				input.PrivateEndpointProperties.ApplicationSecurityGroups = &newASGList
+				if ASGInPE {
+					input.PrivateEndpointProperties.ApplicationSecurityGroups = &newASGList
+				} else {
+					return fmt.Errorf("deletion failed, ApplicationSecurityGroup %q does not linked with PrivateEndpoint %q", ASGId, privateEndpointId)
+				}
 			}
 
 			future, err := privateEndpointClient.CreateOrUpdate(ctx, privateEndpointId.ResourceGroup, privateEndpointId.Name, input)
