@@ -91,6 +91,7 @@ The following arguments are supported:
 * `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `criteria` - (Required) A `criteria` block as defined below.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
+* `authorized_resource_ids` - (Optional) A list of IDs of Resources referred into query.
 * `description` - (Optional) The description of the scheduled query rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
