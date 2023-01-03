@@ -112,7 +112,7 @@ The following arguments are supported:
 * `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated.  Values must be between 5 and 1440 (inclusive).
 * `query` - (Required) Log search query.
 * `time_window` - (Required) Time window for which data needs to be fetched for query (must be greater than or equal to `frequency`).  Values must be between 5 and 2880 (inclusive).
-* `trigger` - (Required) A `trigger` block as defined below. The condition that results in the alert rule being run.
+* `trigger` - (Required) A `trigger` block as defined below.
 * `action` - (Required) An `action` block as defined below.
 * `authorized_resource_ids` - (Optional) List of Resource IDs referred into query.
 * `auto_mitigation_enabled` - (Optional) Should the alerts in this Metric Alert be auto resolved? Defaults to `false`.
