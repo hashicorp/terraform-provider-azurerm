@@ -1,5 +1,10 @@
 ## 3.38.0 (Unreleased)
 
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20221215.1122558` of `github.com/hashicorp/go-azure-sdk` [GH-19698]
+* dependencies: updating to `v0.20221207.1110610` of `github.com/tombuildsstuff/kermit` [GH-19698]
+
 BUG FIXES
 
 * `azurerm_app_service_connection` - polling until the resource is fully created, updated and deleted [GH-19792]
