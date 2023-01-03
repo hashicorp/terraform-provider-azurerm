@@ -215,7 +215,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 									},
 								},
 							},
-							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name", "criteria.0.service_health"},
+							ConflictsWith: []string{"criteria.0.caller", "criteria.0.service_health"},
 						},
 						// lintignore:XS003
 						"service_health": {
@@ -261,7 +261,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 									},
 								},
 							},
-							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name", "criteria.0.resource_health"},
+							ConflictsWith: []string{"criteria.0.caller", "criteria.0.resource_health"},
 						},
 					},
 				},
