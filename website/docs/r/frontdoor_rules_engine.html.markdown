@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
+* `enabled` - (Optional) Whether this Rules engine configuration is enabled? Defaults to `true`.
+
 * `rule` - (Optional) A `rule` block as defined below.
 
 ---
@@ -125,7 +127,7 @@ The `rule` block supports the following:
 
 * `priority` - (Required) Priority of the rule, must be unique per rules engine definition.
 
-* `action` - (Optional) A `rule_action` block as defined below.
+* `action` - (Optional) An `action` block as defined below.
 
 * `match_condition` - (Optional) One or more `match_condition` block as defined below.
 
