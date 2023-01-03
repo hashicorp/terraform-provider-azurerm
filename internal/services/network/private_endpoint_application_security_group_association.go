@@ -3,6 +3,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -206,7 +207,11 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				}
 			}
 			if !ASGInPE {
-				return fmt.Errorf("ApplicationSecurityGroup %q does not exsits in %q", ASGId, privateEndpointId)
+				log.Printf("ApplicationSecurityGroup %q does not exsits in %q, removing from state.", ASGId, privateEndpointId)
+				err := metadata.MarkAsGone(resourceId)
+				if err != nil {
+					return err
+				}
 			}
 
 			state := PrivateEndpointApplicationSecurityGroupAssociationModel{
