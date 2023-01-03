@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -208,14 +209,25 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	for _, fw := range d.Get("firewall_ids").(*pluginsdk.Set).List() {
-		id, _ := firewallParse.FirewallID(fw.(string))
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(read.Response) {
+			// deleted outside of TF
+			log.Printf("[DEBUG] IP Group %q was not found in Resource Group %q - assuming removed!", id.Name, id.ResourceGroup)
+			return nil
+		}
+
+		return fmt.Errorf("retrieving ip group %s : %+v", *id, err)
+	}
+
+	for _, fw := range *read.Firewalls {
+		id, _ := firewallParse.FirewallID(*fw.ID)
 		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 	}
 
-	for _, fwpol := range d.Get("firewall_policy_ids").(*pluginsdk.Set).List() {
-		id, _ := firewallParse.FirewallPolicyID(fwpol.(string))
+	for _, fwpol := range *read.FirewallPolicies {
+		id, _ := firewallParse.FirewallPolicyID(*fwpol.ID)
 		locks.ByName(id.Name, firewall.AzureFirewallPolicyResourceName)
 		defer locks.UnlockByName(id.Name, firewall.AzureFirewallPolicyResourceName)
 	}
