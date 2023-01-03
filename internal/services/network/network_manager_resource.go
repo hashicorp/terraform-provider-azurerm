@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	managementGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -173,6 +174,21 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 			}
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			if len(state.Scope[0].ManagementGroups) > 0 {
+				metadata.Logger.Info("try to register 'Microsoft.Network' provider to the Management Group scope")
+				resourceProvidersClient := metadata.Client.Resource.ResourceProvidersClient
+				for _, group := range state.Scope[0].ManagementGroups {
+					groupId, err := managementGroupParse.ManagementGroupID(group)
+					if err != nil {
+						return err
+					}
+					_, err = resourceProvidersClient.RegisterAtManagementGroupScope(ctx, "Microsoft.Network", groupId.Name)
+					if err != nil {
+						return fmt.Errorf("registering the 'Microsoft.Network' provider with Management Group %s: %+v", groupId, err)
+					}
+				}
 			}
 
 			input := network.Manager{

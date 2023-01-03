@@ -15,17 +15,14 @@ import (
 
 type ManagerResource struct{}
 
-func TestAccNetworkManager(t *testing.T) {
+func TestAccNetworkManager_SubscriptionScope(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one network manager per subscription at once
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]map[string]func(t *testing.T){
 		"Manager": {
-			"basic":          testAccNetworkManager_basic,
-			"complete":       testAccNetworkManager_complete,
-			"update":         testAccNetworkManager_update,
-			"requiresImport": testAccNetworkManager_requiresImport,
+			"basic": testAccNetworkManager_basicSubscriptionScope,
 		},
 	}
 
@@ -42,7 +39,22 @@ func TestAccNetworkManager(t *testing.T) {
 	}
 }
 
-func testAccNetworkManager_basic(t *testing.T) {
+func testAccNetworkManager_basicSubscriptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
+	r := ManagerResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicSubscriptionScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkManager_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
 	r := ManagerResource{}
 
@@ -57,7 +69,7 @@ func testAccNetworkManager_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManager_complete(t *testing.T) {
+func TestAccNetworkManager_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
 	r := ManagerResource{}
 
@@ -72,7 +84,7 @@ func testAccNetworkManager_complete(t *testing.T) {
 	})
 }
 
-func testAccNetworkManager_update(t *testing.T) {
+func TestAccNetworkManager_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
 	r := ManagerResource{}
 
@@ -101,7 +113,7 @@ func testAccNetworkManager_update(t *testing.T) {
 	})
 }
 
-func testAccNetworkManager_requiresImport(t *testing.T) {
+func TestAccNetworkManager_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
 	r := ManagerResource{}
 
@@ -132,17 +144,36 @@ func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, st
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r ManagerResource) basic(data acceptance.TestData) string {
+func (r ManagerResource) basicSubscriptionScope(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_network_manager" "test" {
   name                = "acctest-networkmanager-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  scope_accesses = ["SecurityAdmin"]
+
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ManagerResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-networkmanager-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   scope_accesses = ["SecurityAdmin"]
+
+  scope {
+    management_group_ids = [azurerm_management_group.test.id]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -154,10 +185,11 @@ resource "azurerm_network_manager" "import" {
   name                = azurerm_network_manager.test.name
   location            = azurerm_network_manager.test.location
   resource_group_name = azurerm_network_manager.test.resource_group_name
-  scope {
-    subscription_ids = azurerm_network_manager.test.scope.0.subscription_ids
-  }
   scope_accesses = azurerm_network_manager.test.scope_accesses
+
+  scope {
+    management_group_ids = azurerm_network_manager.test.scope.0.management_group_ids
+  }
 }
 `, r.basic(data))
 }
@@ -168,12 +200,13 @@ func (r ManagerResource) complete(data acceptance.TestData) string {
 resource "azurerm_network_manager" "test" {
   name                = "acctest-networkmanager-%d"
   location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+   scope_accesses = ["Connectivity", "SecurityAdmin"]
+  description    = "test network manager" resource_group_name = azurerm_resource_group.test.name
+
   scope {
-    subscription_ids = [data.azurerm_subscription.current.id]
+    management_group_ids = [azurerm_management_group.test.id]
   }
-  scope_accesses = ["Connectivity", "SecurityAdmin"]
-  description    = "test network manager"
+
   tags = {
     foo = "bar"
   }
@@ -186,11 +219,16 @@ func (ManagerResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-manager-%d"
   location = "%s"
 }
+
 data "azurerm_subscription" "current" {
+}
+
+resource "azurerm_management_group" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
