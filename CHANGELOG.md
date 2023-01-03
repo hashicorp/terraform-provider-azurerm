@@ -1,5 +1,10 @@
 ## 3.38.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_virtual_hub_route_table` [GH-19628]
+* **New Data Source:** `azurerm_marketplace_agreement` [GH-19628]
+
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20221215.1122558` of `github.com/hashicorp/go-azure-sdk` [GH-19698]
