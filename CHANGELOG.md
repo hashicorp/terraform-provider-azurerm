@@ -20,6 +20,7 @@ BUG FIXES
 * `azurerm_spring_cloud_connection` - polling until the resource is fully updated and deleted [GH-19792]
 * `azurerm_stack_hci_cluster` - polling until the resource is fully deleted [GH-19792]
 * `azurerm_stream_analytics_cluster` - polling until the resource is fully deleted [GH-19792]
+* `azurerm_virtual_desktop_application_group` - changing the `host_pool_id` now creates a new resource [GH-19689]
 
 ## 3.37.0 (December 21, 2022)
 
