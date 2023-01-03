@@ -228,7 +228,9 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
-* `source_recovery_fabric_name` - (Required) Name of fabric that should contains this replication. Changing this forces a new resource to be created.
+* `recovery_replication_policy_id` - (Required) Id of the policy to use for this replicated vm. Changing this forces a new resource to be created.
+
+* `source_recovery_fabric_name` - (Required) Name of fabric that should contain this replication. Changing this forces a new resource to be created.
 
 * `source_vm_id` - (Required) Id of the VM to replicate Changing this forces a new resource to be created.
 
