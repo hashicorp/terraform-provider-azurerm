@@ -44,7 +44,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  utils.String("default"),
+				Default:  "default",
 			},
 
 			"enterprise_application_id": {
