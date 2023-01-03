@@ -31,6 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -709,6 +710,37 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"key_vault_kms": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: false,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+						"key_vault_network_access": {
+							Type:         pluginsdk.TypeString,
+							Default:      string(managedclusters.KeyVaultNetworkAccessTypesPublic),
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKeyVaultNetworkAccessTypes(), false),
+						},
+						"key_vault_resource_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: keyVaultValidate.VaultID,
+						},
+					},
+				},
+			},
+
 			"microsoft_defender": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1363,6 +1395,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
 	}
 
+	azureKeyVaultKmsRaw := d.Get("key_vault_kms").([]interface{})
+	securityProfile.AzureKeyVaultKms = expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
+
 	parameters := managedclusters.ManagedCluster{
 		Name:             utils.String(id.ResourceName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -1834,6 +1869,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.OidcIssuerProfile = oidcIssuerProfile
 	}
 
+	if d.HasChanges("key_vault_kms") {
+		updateCluster = true
+		azureKeyVaultKmsRaw := d.Get("key_vault_kms").([]interface{})
+		azureKeyVaultKms := expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
+		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
+	}
+
 	if d.HasChanges("microsoft_defender") {
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
@@ -2222,6 +2264,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			workloadIdentity = *props.SecurityProfile.WorkloadIdentity.Enabled
 		}
 		d.Set("workload_identity_enabled", workloadIdentity)
+
+		azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
+		if err := d.Set("key_vault_kms", azureKeyVaultKms); err != nil {
+			return fmt.Errorf("setting `key_vault_kms`: %+v", err)
+		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
@@ -3372,6 +3419,26 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 		ScanInterval:                  utils.String(scanInterval),
 		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
+	}
+}
+
+func expandKubernetesClusterAzureKeyVaultKms(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.AzureKeyVaultKms {
+	if ((input == nil) || len(input) == 0) && d.HasChanges("key_vault_kms") {
+		return &managedclusters.AzureKeyVaultKms{
+			Enabled: utils.Bool(false),
+		}
+	} else if (input == nil) || len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	kvAccess := managedclusters.KeyVaultNetworkAccessTypes(*utils.String(raw["key_vault_network_access"].(string)))
+
+	return &managedclusters.AzureKeyVaultKms{
+		Enabled:               utils.Bool(raw["enabled"].(bool)),
+		KeyId:                 utils.String(raw["key_id"].(string)),
+		KeyVaultNetworkAccess: &kvAccess,
+		KeyVaultResourceId:    utils.String(raw["key_vault_resource_id"].(string)),
 	}
 }
 

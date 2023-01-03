@@ -380,6 +380,31 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
+			"key_vault_kms": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"key_vault_network_access": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"key_vault_resource_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"kubernetes_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -718,6 +743,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
 			}
 
+			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
+			if err := d.Set("key_vault_kms", azureKeyVaultKms); err != nil {
+				return fmt.Errorf("setting `key_vault_kms`: %+v", err)
+			}
+
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
 			if err != nil {
 				return err
@@ -825,6 +855,21 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.AzureKeyVaultKms) []interface{} {
+	azureKeyVaultKms := make([]interface{}, 0)
+
+	if input != nil {
+		azureKeyVaultKms = append(azureKeyVaultKms, map[string]interface{}{
+			"enabled":                  input.Enabled,
+			"key_id":                   input.KeyId,
+			"key_vault_network_access": input.KeyVaultNetworkAccess,
+			"key_vault_resource_id":    input.KeyVaultResourceId,
+		})
+	}
+
+	return azureKeyVaultKms
 }
 
 func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {
