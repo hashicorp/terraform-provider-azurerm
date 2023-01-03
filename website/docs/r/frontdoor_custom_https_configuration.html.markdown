@@ -1,4 +1,4 @@
----
+-frontdoor_custom_https_configuration--
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_custom_https_configuration"
@@ -96,8 +96,6 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 ```
 
 ## Argument Reference
-
-The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments:
 
 * `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to. Changing this forces a new resource to be created.
 
