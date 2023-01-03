@@ -354,7 +354,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_pod_security_policy": {
 				Type:       pluginsdk.TypeBool,
 				Deprecated: "The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy.",
