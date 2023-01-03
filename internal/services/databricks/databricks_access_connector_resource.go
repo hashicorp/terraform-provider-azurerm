@@ -96,8 +96,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id, accessConnector)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -131,8 +130,7 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = &state.Tags
 			}
 
-			_, err = client.CreateOrUpdate(ctx, *id, *existing.Model)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -192,8 +190,7 @@ func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.DataBricks.AccessConnectorClient
 
-			_, err = client.Delete(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
