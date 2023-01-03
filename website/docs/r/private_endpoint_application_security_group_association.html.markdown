@@ -3,7 +3,8 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_endpoint_application_security_group_association"
 description: |-
-Manages an association between Private Endpoint and Application Security Group.
+  Manages an association between Private Endpoint and Application Security Group.
+
 ---
 
 # azurerm_private_endpoint_application_security_group_association
