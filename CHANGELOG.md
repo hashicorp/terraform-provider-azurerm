@@ -14,6 +14,7 @@ BUG FIXES
 
 * `azurerm_automation_software_update_configuration` - correctly handle empty `expiry_time` api values [GH-19774]
 * `azurerm_app_service_connection` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_batch_pool` - correctly handle the resource being deleted outside of terraform [GH-19780]
 * `azurerm_databricks_access_connector` - polling until the resource is fully created, updated and deleted [GH-19792]
 * `azurerm_datadog_monitor_sso_configuration` - polling until the resource is fully created and deleted [GH-19792]
 * `azurerm_orbital_contact_profile` - polling until the resource is fully created, updated and deleted [GH-19792]
