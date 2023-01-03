@@ -503,8 +503,8 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if policyId, ok := d.GetOk("firewall_policy_id"); ok {
-		id, _ := parse.FirewallPolicyID(policyId.(string))
+	if read.FirewallPolicy != nil && read.FirewallPolicy.ID != nil {
+		id, _ := parse.FirewallPolicyID(*read.FirewallPolicy.ID)
 		locks.ByName(id.Name, AzureFirewallPolicyResourceName)
 		defer locks.UnlockByName(id.Name, AzureFirewallPolicyResourceName)
 	}
