@@ -29,6 +29,7 @@ website/node_modules
 .terraform.lock.hcl
 
 website/vendor
+vendor/
 
 .vscode/
 
