@@ -45,8 +45,6 @@ type AutoShutdown struct {
 type ConnectionSetting struct {
 	ClientRdpAccess lab.ConnectionType `tfschema:"client_rdp_access"`
 	ClientSshAccess lab.ConnectionType `tfschema:"client_ssh_access"`
-	WebRdpAccess    lab.ConnectionType `tfschema:"web_rdp_access"`
-	WebSshAccess    lab.ConnectionType `tfschema:"web_ssh_access"`
 }
 
 type Security struct {
@@ -358,7 +356,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePrivate),
 							string(lab.ConnectionTypePublic),
 						}, false),
 					},
@@ -367,25 +364,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePrivate),
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-
-					"web_rdp_access": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePrivate),
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-
-					"web_ssh_access": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePrivate),
 							string(lab.ConnectionTypePublic),
 						}, false),
 					},
@@ -821,7 +799,10 @@ func expandConnectionProfile(input []ConnectionSetting) lab.ConnectionProfile {
 	}
 
 	connectionProfile := input[0]
-	result := lab.ConnectionProfile{}
+	result := lab.ConnectionProfile{
+		WebRdpAccess: &webRdpAccess,
+		WebSshAccess: &webSshAccess,
+	}
 
 	if connectionProfile.ClientRdpAccess != "" {
 		clientRdpAccess = connectionProfile.ClientRdpAccess
@@ -833,21 +814,11 @@ func expandConnectionProfile(input []ConnectionSetting) lab.ConnectionProfile {
 	}
 	result.ClientSshAccess = &clientSshAccess
 
-	if connectionProfile.WebRdpAccess != "" {
-		webRdpAccess = connectionProfile.WebRdpAccess
-	}
-	result.WebRdpAccess = &webRdpAccess
-
-	if connectionProfile.WebSshAccess != "" {
-		webSshAccess = connectionProfile.WebSshAccess
-	}
-	result.WebSshAccess = &webSshAccess
-
 	return result
 }
 
 func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting {
-	if input == nil || (*input.ClientRdpAccess == lab.ConnectionTypeNone && *input.ClientSshAccess == lab.ConnectionTypeNone && *input.WebRdpAccess == lab.ConnectionTypeNone && *input.WebSshAccess == lab.ConnectionTypeNone) {
+	if input == nil || (*input.ClientRdpAccess == lab.ConnectionTypeNone && *input.ClientSshAccess == lab.ConnectionTypeNone) {
 		return nil
 	}
 
@@ -860,14 +831,6 @@ func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting 
 
 	if clientSshAccess := input.ClientSshAccess; clientSshAccess != nil && *clientSshAccess != lab.ConnectionTypeNone {
 		connectionProfile.ClientSshAccess = *clientSshAccess
-	}
-
-	if webRdpAccess := input.WebRdpAccess; webRdpAccess != nil && *webRdpAccess != lab.ConnectionTypeNone {
-		connectionProfile.WebRdpAccess = *webRdpAccess
-	}
-
-	if webSshAccess := input.WebSshAccess; webSshAccess != nil && *webSshAccess != lab.ConnectionTypeNone {
-		connectionProfile.WebSshAccess = *webSshAccess
 	}
 
 	return append(connectionProfiles, connectionProfile)

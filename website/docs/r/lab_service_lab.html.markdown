@@ -78,19 +78,11 @@ An `auto_shutdown` block supports the following:
 
 A `connection_setting` block supports the following:
 
-* `client_rdp_access` - (Optional) The enabled access level for Client Access over RDP. Possible values are `Private` and `Public`.
+* `client_rdp_access` - (Optional) The enabled access level for Client Access over RDP. Possible value is `Public`.
 
 ~> **NOTE:** This property is `None` when it isn't specified.
 
-* `client_ssh_access` - (Optional) The enabled access level for Client Access over SSH. Possible values are `Private` and `Public`.
-
-~> **NOTE:** This property is `None` when it isn't specified.
-
-* `web_rdp_access` - (Optional) The enabled access level for Web Access over RDP. Possible values are `Private` and `Public`.
-
-~> **NOTE:** This property is `None` when it isn't specified.
-
-* `web_ssh_access` - (Optional) The enabled access level for Web Access over SSH. Possible values are `Private` and `Public`.
+* `client_ssh_access` - (Optional) The enabled access level for Client Access over SSH. Possible value is `Public`.
 
 ~> **NOTE:** This property is `None` when it isn't specified.
 
