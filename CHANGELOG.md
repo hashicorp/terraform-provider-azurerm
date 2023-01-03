@@ -9,6 +9,7 @@ ENHANCEMENTS
 
 * dependencies: updating to `v0.20221215.1122558` of `github.com/hashicorp/go-azure-sdk` [GH-19698]
 * dependencies: updating to `v0.20221207.1110610` of `github.com/tombuildsstuff/kermit` [GH-19698]
+* `azurerm_proximity_placement_group` - support for the `allowed_vm_sizes` and `zone` properties [GH-19675]
 
 BUG FIXES
 
