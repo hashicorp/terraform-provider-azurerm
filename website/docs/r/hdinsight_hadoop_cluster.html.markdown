@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
-* `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
+* `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
 
 ~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
 
@@ -161,7 +161,7 @@ A `head_node` block supports the following:
 
 ---
 
-A `script_action` block supports the following:
+A `script_actions` block supports the following:
 
 * `name` - (Required) The name of the script action.
 
@@ -195,7 +195,7 @@ A `network` block supports the following:
 
 A `compute_isolation` block supports the following:
 
-* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+* `compute_isolation_enabled` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
 
 * `host_sku` - (Optional) The name of the host SKU.
 
@@ -257,7 +257,7 @@ A `worker_node` block supports the following:
 
 ---
 
-A `display_encryption_properties` block supports the following:
+A `disk_encryption` block supports the following:
 
 * `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
 

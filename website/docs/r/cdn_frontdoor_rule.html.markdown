@@ -325,6 +325,8 @@ A `host_name_condition` block supports the following:
 
 * `transforms` - (Optional) A Conditional operator. Possible values include `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` or `UrlEncode`. Details can be found in the `Condition Transform List` below.
 
+* `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
+
 ---
 
 A `server_port_condition` block supports the following:

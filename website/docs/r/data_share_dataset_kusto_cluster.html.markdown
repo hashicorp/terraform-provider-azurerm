@@ -74,8 +74,6 @@ The following arguments are supported:
 
 * `kusto_cluster_id` - (Required) The resource ID of the Kusto Cluster to be shared with the receiver. Changing this forces a new Data Share Kusto Cluster Dataset to be created.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
