@@ -1,3 +1,16 @@
+## 3.38.0 (Unreleased)
+
+BUG FIXES
+
+* `azurerm_app_service_connection` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_databricks_access_connector` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_datadog_monitor_sso_configuration` - polling until the resource is fully created and deleted [GH-19792]
+* `azurerm_orbital_contact_profile` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_orbital_spacecraft` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_spring_cloud_connection` - polling until the resource is fully updated and deleted [GH-19792]
+* `azurerm_stack_hci_cluster` - polling until the resource is fully deleted [GH-19792]
+* `azurerm_stream_analytics_cluster` - polling until the resource is fully deleted [GH-19792]
+
 ## 3.37.0 (December 21, 2022)
 
 FEATURES:
