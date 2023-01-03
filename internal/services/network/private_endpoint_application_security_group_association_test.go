@@ -3,17 +3,17 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
 type PrivateEndpointApplicationSecurityGroupAssociationResource struct {
@@ -138,7 +138,7 @@ resource "azurerm_application_security_group" "test" {
 }
 
 resource "azurerm_private_endpoint_application_security_group_association" "test" {
-  private_endpoint_id = azurerm_private_endpoint.test.id
+  private_endpoint_id           = azurerm_private_endpoint.test.id
   application_security_group_id = azurerm_application_security_group.test.id
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger)
@@ -233,7 +233,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) requiresImpo
 %s
 
 resource "azurerm_private_endpoint_application_security_group_association" "import" {
-  private_endpoint_id = azurerm_private_endpoint.test.id
+  private_endpoint_id           = azurerm_private_endpoint.test.id
   application_security_group_id = azurerm_application_security_group.test.id
 }
 `, r.basic(data))
