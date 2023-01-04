@@ -432,11 +432,11 @@ func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := sqlClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse Sql Pool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, sqlClient.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Synapse Sql Pool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 	return nil
 }
