@@ -105,23 +105,6 @@ func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, st
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r ManagerResource) basicSubscriptionScope(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_network_manager" "test" {
-  name                = "acctest-networkmanager-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  scope_accesses      = ["SecurityAdmin"]
-
-  scope {
-    subscription_ids = [data.azurerm_subscription.current.id]
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r ManagerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
