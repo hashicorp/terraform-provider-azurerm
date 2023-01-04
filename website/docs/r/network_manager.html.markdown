@@ -61,6 +61,8 @@ A `scope` block supports the following:
 
 * `management_group_ids` - (Optional) A list of management group IDs.
 
+-> **NOTE:** Network Manager provisioned using Management Group as scope will try to register the `Microsoft.Network` provider to the Management Group. 
+
 * `subscription_ids` - (Optional) A list of subscription IDs.
 
 ## Attributes Reference
