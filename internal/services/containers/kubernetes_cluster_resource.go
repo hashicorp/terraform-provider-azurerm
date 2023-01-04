@@ -1364,11 +1364,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = managedclusters.PublicNetworkAccessDisabled
 	}
 
-	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
-	securityProfile := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
-
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
+
+	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms)
+	securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
+
+	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
+	securityProfile.Defender = expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 
 	workloadIdentity := false
 	if v, ok := d.GetOk("workload_identity_enabled"); ok {
@@ -1378,16 +1381,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
 		}
 
-		if securityProfile == nil {
-			securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
-		}
-
 		securityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{
 			Enabled: &workloadIdentity,
 		}
-	}
-	if securityProfile == nil {
-		securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 	}
 
 	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
@@ -1880,7 +1876,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
-		existing.Model.Properties.SecurityProfile = microsoftDefender
+		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
 	}
 
 	if d.HasChanges("storage_profile") {
@@ -2249,7 +2245,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
 		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
-		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
+		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile.Defender)
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 		}
@@ -3596,13 +3592,11 @@ func flattenKubernetesClusterHttpProxyConfig(props *managedclusters.ManagedClust
 	})
 }
 
-func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterSecurityProfile {
+func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterSecurityProfileDefender {
 	if (len(input) == 0 || input[0] == nil) && d.HasChange("microsoft_defender") {
-		return &managedclusters.ManagedClusterSecurityProfile{
-			Defender: &managedclusters.ManagedClusterSecurityProfileDefender{
-				SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
-					Enabled: utils.Bool(false),
-				},
+		return &managedclusters.ManagedClusterSecurityProfileDefender{
+			SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
+				Enabled: utils.Bool(false),
 			},
 		}
 	} else if len(input) == 0 || input[0] == nil {
@@ -3610,23 +3604,21 @@ func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input [
 	}
 
 	config := input[0].(map[string]interface{})
-	return &managedclusters.ManagedClusterSecurityProfile{
-		Defender: &managedclusters.ManagedClusterSecurityProfileDefender{
-			SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
-				Enabled: utils.Bool(true),
-			},
-			LogAnalyticsWorkspaceResourceId: utils.String(config["log_analytics_workspace_id"].(string)),
+	return &managedclusters.ManagedClusterSecurityProfileDefender{
+		SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
+			Enabled: utils.Bool(true),
 		},
+		LogAnalyticsWorkspaceResourceId: utils.String(config["log_analytics_workspace_id"].(string)),
 	}
 }
 
-func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
-	if input == nil || input.Defender == nil || (input.Defender.SecurityMonitoring != nil && input.Defender.SecurityMonitoring.Enabled != nil && !*input.Defender.SecurityMonitoring.Enabled) {
+func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfileDefender) []interface{} {
+	if input == nil || (input.SecurityMonitoring != nil && input.SecurityMonitoring.Enabled != nil && !*input.SecurityMonitoring.Enabled) {
 		return []interface{}{}
 	}
 
 	logAnalyticsWorkspace := ""
-	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
+	if v := input.LogAnalyticsWorkspaceResourceId; v != nil {
 		logAnalyticsWorkspace = *v
 	}
 
