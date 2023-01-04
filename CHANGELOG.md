@@ -2,8 +2,8 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_virtual_hub_route_table` [GH-19628]
 * **New Data Source:** `azurerm_marketplace_agreement` [GH-19628]
+* **New Data Source:** `azurerm_virtual_hub_route_table` [GH-19628]
 
 ENHANCEMENTS
 
@@ -26,6 +26,7 @@ BUG FIXES
 * `azurerm_spring_cloud_connection` - polling until the resource is fully updated and deleted [GH-19792]
 * `azurerm_stack_hci_cluster` - polling until the resource is fully deleted [GH-19792]
 * `azurerm_stream_analytics_cluster` - polling until the resource is fully deleted [GH-19792]
+* `azurerm_storage_account_network_rules` - the requires import check no longer checks the `bypass` field to workaround an issue within the Azure API [GH-19719]
 * `azurerm_virtual_desktop_application_group` - changing the `host_pool_id` now creates a new resource [GH-19689]
 
 ## 3.37.0 (December 21, 2022)
