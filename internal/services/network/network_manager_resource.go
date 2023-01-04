@@ -189,6 +189,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 						return fmt.Errorf("registering the 'Microsoft.Network' provider with Management Group %s: %+v", groupId, err)
 					}
 				}
+				// https://github.com/Azure/azure-rest-api-specs/issues/22041
 				time.Sleep(10 * time.Second)
 			}
 

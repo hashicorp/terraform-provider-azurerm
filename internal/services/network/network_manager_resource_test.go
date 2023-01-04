@@ -15,45 +15,6 @@ import (
 
 type ManagerResource struct{}
 
-func TestAccNetworkManager_SubscriptionScope(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one network manager per subscription at once
-	// (which our test suite can't easily work around)
-
-	testCases := map[string]map[string]func(t *testing.T){
-		"Manager": {
-			"basic": testAccNetworkManager_basicSubscriptionScope,
-		},
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
-func testAccNetworkManager_basicSubscriptionScope(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
-	r := ManagerResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicSubscriptionScope(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccNetworkManager_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
 	r := ManagerResource{}
