@@ -8,12 +8,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceProximityPlacementGroup() *pluginsdk.Resource {
@@ -47,6 +51,24 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
+			"allowed_vm_sizes": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForVirtualMachineSizeTypes(), false),
+				},
+			},
+
+			"zone": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"allowed_vm_sizes"},
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -74,8 +96,28 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	payload := proximityplacementgroups.ProximityPlacementGroup{
-		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location:   location.Normalize(d.Get("location").(string)),
+		Properties: &proximityplacementgroups.ProximityPlacementGroupProperties{},
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("allowed_vm_sizes"); ok {
+		if payload.Properties.Intent == nil {
+			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
+		}
+		payload.Properties.Intent.VMSizes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+	} else if !d.IsNewResource() {
+		// Need to explicitly set an empty slice when updating to empty vm sizes
+		if payload.Properties.Intent == nil {
+			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
+		}
+		vmSizes := make([]string, 0)
+		payload.Properties.Intent.VMSizes = &vmSizes
+	}
+
+	if v, ok := d.GetOk("zone"); ok {
+		zones := zones.Expand([]string{v.(string)})
+		payload.Zones = &zones
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
@@ -111,6 +153,23 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		d.Set("location", location.Normalize(model.Location))
+
+		intentVmSizes := make([]string, 0)
+		if props := model.Properties; props != nil {
+			if intent := props.Intent; intent != nil {
+				if intent.VMSizes != nil {
+					intentVmSizes = *intent.VMSizes
+				}
+			}
+		}
+		d.Set("allowed_vm_sizes", intentVmSizes)
+
+		zone := ""
+		if v := zones.Flatten(model.Zones); len(v) != 0 {
+			zone = v[0]
+		}
+		d.Set("zone", zone)
+
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}

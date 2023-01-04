@@ -349,22 +349,39 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
 	}
 
+	// if create with `password_auth_enabled` set to `false`, the service will not accept `administrator_login`.
+	// so we create it with  `password_auth_enabled` set to `true`, then set it to `false` in an additional update.
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+		authConfig.PasswordAuthEnabled = utils.Bool(true)
+		parameters.Properties.AuthConfig = authConfig
 	}
 
 	if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	requireAdditionalUpdate := false
+	updateProperties := servers.ServerPropertiesForUpdate{}
+	if authRaw, ok := d.GetOk("authentication"); ok {
+		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+		if !*authConfig.PasswordAuthEnabled {
+			requireAdditionalUpdate = true
+			updateProperties.AuthConfig = authConfig
+		}
+	}
+
 	// `maintenance_window` could only be updated with, could not be created with
 	if v, ok := d.GetOk("maintenance_window"); ok {
-		mwParams := servers.ServerForUpdate{
-			Properties: &servers.ServerPropertiesForUpdate{
-				MaintenanceWindow: expandArmServerMaintenanceWindow(v.([]interface{})),
-			},
+		requireAdditionalUpdate = true
+		updateProperties.MaintenanceWindow = expandArmServerMaintenanceWindow(v.([]interface{}))
+	}
+
+	if requireAdditionalUpdate {
+		update := servers.ServerForUpdate{
+			Properties: &updateProperties,
 		}
-		if err = client.UpdateThenPoll(ctx, id, mwParams); err != nil {
+		if err = client.UpdateThenPoll(ctx, id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -401,7 +418,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("location", location.NormalizeNilable(&model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("administrator_login", props.AdministratorLogin) // if pwdEnabled is set to false, then the service does not return the value of AdministratorLogin
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", props.Version)
 			d.Set("fqdn", props.FullyQualifiedDomainName)
