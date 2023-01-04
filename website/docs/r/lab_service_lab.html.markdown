@@ -23,6 +23,29 @@ resource "azurerm_lab_services_lab" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   title               = "Test Title"
+
+  security {
+    open_access_enabled = false
+  }
+
+  virtual_machine {
+    admin_user {
+      username = "testadmin"
+      password = "Password1234!"
+    }
+
+    image_reference {
+      offer     = "0001-com-ubuntu-server-focal"
+      publisher = "canonical"
+      sku       = "20_04-lts"
+      version   = "latest"
+    }
+
+    sku {
+      name     = "Classic_Fsv2_2_4GB_128_S_SSD"
+      capacity = 0
+    }
+  }
 }
 ```
 
@@ -90,7 +113,7 @@ A `connection_setting` block supports the following:
 
 A `security` block supports the following:
 
-* `open_access` - (Required) Is open access enabled to allow any user or only specified users to register to a Lab Service Lab?
+* `open_access_enabled` - (Required) Is open access enabled to allow any user or only specified users to register to a Lab Service Lab?
 
 ---
 

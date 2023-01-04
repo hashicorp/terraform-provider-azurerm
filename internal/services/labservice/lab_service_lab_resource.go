@@ -723,7 +723,7 @@ func expandAutoShutdownProfile(input []AutoShutdown) lab.AutoShutdownProfile {
 	shutdownWhenNotConnectedEnabled := lab.EnableStateDisabled
 	shutdownOnIdle := lab.ShutdownOnIdleModeNone
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return lab.AutoShutdownProfile{
 			ShutdownOnDisconnect:     &shutdownOnDisconnectEnabled,
 			ShutdownWhenNotConnected: &shutdownWhenNotConnectedEnabled,
@@ -791,7 +791,7 @@ func expandConnectionProfile(input []ConnectionSetting) lab.ConnectionProfile {
 	webRdpAccess := lab.ConnectionTypeNone
 	webSshAccess := lab.ConnectionTypeNone
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return lab.ConnectionProfile{
 			ClientRdpAccess: &clientRdpAccess,
 			ClientSshAccess: &clientSshAccess,
@@ -841,7 +841,7 @@ func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting 
 func expandSecurityProfile(input []Security) lab.SecurityProfile {
 	result := lab.SecurityProfile{}
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return result
 	}
 
@@ -878,7 +878,7 @@ func flattenSecurityProfile(input *lab.SecurityProfile) []Security {
 func expandVirtualMachineProfile(input []VirtualMachine, isUpdate bool) lab.VirtualMachineProfile {
 	result := lab.VirtualMachineProfile{}
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return result
 	}
 
@@ -908,7 +908,7 @@ func expandVirtualMachineProfile(input []VirtualMachine, isUpdate bool) lab.Virt
 }
 
 func expandCredential(input []Credential, isUpdate bool) *lab.Credentials {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -927,7 +927,7 @@ func expandCredential(input []Credential, isUpdate bool) *lab.Credentials {
 func expandImageReference(input []ImageReference) lab.ImageReference {
 	result := lab.ImageReference{}
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return result
 	}
 
@@ -959,7 +959,7 @@ func expandImageReference(input []ImageReference) lab.ImageReference {
 func expandSku(input []Sku) lab.Sku {
 	result := lab.Sku{}
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return result
 	}
 
@@ -1061,7 +1061,7 @@ func flattenSku(input *lab.Sku) []Sku {
 }
 
 func expandNetworkProfile(input []Network, isUpdate bool, existingNetwork *lab.LabNetworkProfile) *lab.LabNetworkProfile {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -1104,7 +1104,7 @@ func flattenNetworkProfile(input *lab.LabNetworkProfile) []Network {
 }
 
 func expandRosterProfile(input []Roster) *lab.RosterProfile {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
