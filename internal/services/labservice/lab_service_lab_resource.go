@@ -245,6 +245,8 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validate.LabSkuName,
 								},
 
+								// Once `active_directory_group_id` is enabled, `capacity` wouldn't take effect, and it would be automatically set to the number of members in AAD Group by service API. So it has to use `ignore_changes` to avoid the difference of tf plan.
+								// Service team confirmed they will fix this validation bug (https://github.com/Azure/azure-rest-api-specs/issues/22037) to allow `capacity` to be empty. Once the issue is fixed, `capacity` will be marked as `Optional`.
 								"capacity": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
