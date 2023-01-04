@@ -19,6 +19,7 @@ BUG FIXES
 * `azurerm_databricks_access_connector` - polling until the resource is fully created, updated and deleted [GH-19792]
 * `azurerm_datadog_monitor_sso_configuration` - polling until the resource is fully created and deleted [GH-19792]
 * `azurerm_hdinsight_kafka_cluster` - the `kafka_management_node` property has been deprecated and will be removed in `v4.0` [GH-19423]
+* `azurerm_kubernetes_cluster` - `scale_down_mode` of the default node pool can now be updated without rebuilding the entire cluster [GH-19823]
 * `azurerm_orbital_contact_profile` - polling until the resource is fully created, updated and deleted [GH-19792]
 * `azurerm_orbital_spacecraft` - polling until the resource is fully created, updated and deleted [GH-19792]
 * `azurerm_postgresql_flexible_server` - correctly handle password authentication [GH-19800]
