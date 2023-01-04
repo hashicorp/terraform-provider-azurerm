@@ -73,6 +73,9 @@ func resourcePublicIp() *pluginsdk.Resource {
 					string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
 				}, false),
 				Default: string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
+				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+					return old == "" && new == string(network.DdosSettingsProtectionModeVirtualNetworkInherited)
+				},
 			},
 
 			"ddos_protection_plan_id": {
