@@ -145,6 +145,8 @@ A `storage_location` block contains:
 
 ~> **NOTE:** At least one of `file_path` or `storage_account_id` must be specified.
 
+---
+
 A `filter` block contains:
 
 * `local_ip_address` - (Optional) The local IP Address to be filtered on. Specify `127.0.0.1` for a single address entry, `127.0.0.1-127.0.0.255` for a range and `127.0.0.1;127.0.0.5` for multiple entries. Multiple ranges and mixing ranges with multiple entries are currently not supported. Changing this forces a new resource to be created.

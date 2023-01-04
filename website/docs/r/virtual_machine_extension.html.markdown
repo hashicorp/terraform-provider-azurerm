@@ -149,7 +149,7 @@ az vm extension image list --location westus -o table
 * `auto_upgrade_minor_version` - (Optional) Specifies if the platform deploys
     the latest minor version update to the `type_handler_version` specified.
 
-* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? Defaults to `false`.
+* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? 
 * `settings` - (Optional) The settings passed to the extension, these are
     specified as a JSON object in a string.
 

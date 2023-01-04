@@ -159,7 +159,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
 
-* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled. Defaults to `false`.
+* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
 
@@ -175,9 +175,9 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as documented below.
 
-* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? Defaults to `false`. This is only supported on resources with the `Standard` or `Premium` SKU.
+* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry?  This is only supported on resources with the `Standard` or `Premium` SKU.
 
-* `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? Defaults to `false`. This is only supported on resources with the `Premium` SKU.
+* `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry?  This is only supported on resources with the `Premium` SKU.
 
 * `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
@@ -187,7 +187,7 @@ The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated. Changing this forces a new resource to be created.
 
-* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? Defaults to `false`.
+* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? 
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`. Changing this forces a new resource to be created.
 

@@ -307,7 +307,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) A plan block as documented below.
 
-* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Defaults to `Regular`. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
+* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is only applicable when the `upgrade_policy_mode` is `Rolling`.
 
@@ -441,7 +441,7 @@ The `network_profile` block supports the following:
 * `name` - (Required) Specifies the name of the network interface configuration. Changing this forces a new resource to be created.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not.
 * `dns_settings` - (Optional) A dns_settings block as documented below.
 * `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
@@ -518,7 +518,7 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 
 The `boot_diagnostics` block supports the following:
 
-* `enabled` - (Optional) Whether to enable boot diagnostics for the virtual machine.
+* `enabled` - (Optional) Whether to enable boot diagnostics for the virtual machine. Defaults to `true`.
 
 * `storage_uri` - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
 

@@ -63,6 +63,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Monitor Private Link Scope.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Monitor Private Link Scope.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure Monitor Private Link Scope.
+* `update` - (Defaults to 30 minutes) Used when updating the Monitor Private Link Scoped Service.
 
 ## Import
 

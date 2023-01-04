@@ -271,7 +271,7 @@ The following attributes are exported:
 
 The `bgp_settings` block supports:
 
-* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below.
+* `peering_addresses` - A list of `peering_addresses` as defined below.
 
 ---
 

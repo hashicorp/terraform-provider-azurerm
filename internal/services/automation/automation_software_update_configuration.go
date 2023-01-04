@@ -189,6 +189,9 @@ func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 	}
 
 	parseTime := func(s string) *date.Time {
+		if s == "" {
+			return nil
+		}
 		t, _ := time.Parse(time.RFC3339, s)
 		return &date.Time{Time: t}
 	}
@@ -728,6 +731,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"expiry_time": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
+						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},

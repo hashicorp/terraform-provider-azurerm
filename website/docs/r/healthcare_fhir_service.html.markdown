@@ -130,8 +130,8 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare FHIR Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare FHIR Service.
+* `create` - (Defaults to 90 minutes) Used when creating the Healthcare FHIR Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare FHIR Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare FHIR Service.
 

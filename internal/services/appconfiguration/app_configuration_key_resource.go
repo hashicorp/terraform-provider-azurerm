@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
@@ -23,6 +24,8 @@ import (
 type KeyResource struct{}
 
 var _ sdk.ResourceWithCustomizeDiff = KeyResource{}
+
+var _ sdk.ResourceWithStateMigration = KeyResource{}
 
 const (
 	KeyTypeVault        = "vault"
@@ -393,4 +396,13 @@ func (k KeyResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (k KeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.AppConfigurationKeyID
+}
+
+func (k KeyResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.KeyResourceV0ToV1{},
+		},
+	}
 }
