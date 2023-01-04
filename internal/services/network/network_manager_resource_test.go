@@ -152,7 +152,7 @@ resource "azurerm_network_manager" "test" {
   name                = "acctest-networkmanager-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  scope_accesses = ["SecurityAdmin"]
+  scope_accesses      = ["SecurityAdmin"]
 
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
@@ -169,7 +169,7 @@ resource "azurerm_network_manager" "test" {
   name                = "acctest-networkmanager-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  scope_accesses = ["SecurityAdmin"]
+  scope_accesses      = ["SecurityAdmin"]
 
   scope {
     management_group_ids = [azurerm_management_group.test.id]
@@ -185,7 +185,7 @@ resource "azurerm_network_manager" "import" {
   name                = azurerm_network_manager.test.name
   location            = azurerm_network_manager.test.location
   resource_group_name = azurerm_network_manager.test.resource_group_name
-  scope_accesses = azurerm_network_manager.test.scope_accesses
+  scope_accesses      = azurerm_network_manager.test.scope_accesses
 
   scope {
     management_group_ids = azurerm_network_manager.test.scope.0.management_group_ids
@@ -200,8 +200,9 @@ func (r ManagerResource) complete(data acceptance.TestData) string {
 resource "azurerm_network_manager" "test" {
   name                = "acctest-networkmanager-%d"
   location            = azurerm_resource_group.test.location
-   scope_accesses = ["Connectivity", "SecurityAdmin"]
-  description    = "test network manager" resource_group_name = azurerm_resource_group.test.name
+  scope_accesses      = ["Connectivity", "SecurityAdmin"]
+  description         = "test network manager"
+  resource_group_name = azurerm_resource_group.test.name
 
   scope {
     management_group_ids = [azurerm_management_group.test.id]
