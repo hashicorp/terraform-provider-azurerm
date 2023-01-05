@@ -272,12 +272,11 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name   = "acctest-cont-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.25
-      memory = "0.5Gi"
-      //args    = ["HOSTNAME", "APPLICATION_PORT"]
-      //command = ["node"]
+      name              = "acctest-cont-%[2]d"
+      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu               = 0.25
+      memory            = "0.5Gi"
+      ephemeral_storage = "1Gi"
 
       readiness_probe {
         transport = "http"
@@ -314,6 +313,7 @@ resource "azurerm_container_app" "test" {
     volume {
       name         = azurerm_container_app_environment_storage.test.name
       storage_type = "AzureFile"
+      storage_name = azurerm_container_app_environment_storage.test.name
     }
 
     min_replicas = 2
@@ -411,6 +411,7 @@ resource "azurerm_container_app" "test" {
     volume {
       name         = azurerm_container_app_environment_storage.test.name
       storage_type = "AzureFile"
+      storage_name = azurerm_container_app_environment_storage.test.name
     }
 
     min_replicas = 2
@@ -464,8 +465,6 @@ resource "azurerm_container_app" "test" {
       image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       cpu    = 0.5
       memory = "1Gi"
-      //args    = ["HOSTNAME"] // TODO - Add a container Image where args and command can be used
-      //command = ["node"]
 
       readiness_probe {
         transport               = "http"
@@ -502,17 +501,7 @@ resource "azurerm_container_app" "test" {
         timeout                 = 5
         failure_count_threshold = 1
       }
-
-      //volume_mounts {
-      // name = "testVol"
-      // path = "/tmp/testdata"
-      //}
     }
-
-    //volume {
-    // name = "testVol"
-    // storage_type = "EmptyDir"
-    //}
 
     min_replicas = 1
     max_replicas = 4
@@ -583,8 +572,6 @@ resource "azurerm_container_app" "test" {
       image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       cpu    = 0.5
       memory = "1Gi"
-      //args    = ["HOSTNAME"] // TODO - Add a container Image where args and command can be used
-      //command = ["node"]
 
       readiness_probe {
         transport               = "http"
@@ -622,16 +609,17 @@ resource "azurerm_container_app" "test" {
         failure_count_threshold = 1
       }
 
-      //volume_mounts {
-      // name = "testVol"
-      // path = "/tmp/testdata"
-      //}
+      volume_mounts {
+        name = azurerm_container_app_environment_storage.test.name
+        path = "/tmp/testdata"
+      }
     }
 
-    //volume {
-    // name = "testVol"
-    // storage_type = "EmptyDir"
-    //}
+    volume {
+      name         = azurerm_container_app_environment_storage.test.name
+      storage_type = "AzureFile"
+      storage_name = azurerm_container_app_environment_storage.test.name
+    }
 
     min_replicas = 1
     max_replicas = 4

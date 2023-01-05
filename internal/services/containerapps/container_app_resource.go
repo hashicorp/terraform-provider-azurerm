@@ -44,8 +44,6 @@ type ContainerAppModel struct {
 	LatestRevisionName         string   `tfschema:"latest_revision_name"`
 	LatestRevisionFqdn         string   `tfschema:"latest_revision_fqdn"`
 	CustomDomainVerificationId string   `tfschema:"custom_domain_verification_id"`
-
-	// TODO - Expose SystemData ?
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppResource{}

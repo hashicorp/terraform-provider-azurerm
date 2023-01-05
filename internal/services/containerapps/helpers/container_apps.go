@@ -780,7 +780,7 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the `AzureFile` storage.",
+					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`",
 				},
 			},
 		},
