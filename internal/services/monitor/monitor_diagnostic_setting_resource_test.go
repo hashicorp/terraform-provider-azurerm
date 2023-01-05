@@ -248,12 +248,14 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
+  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category = "AuditEvent"
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -332,6 +334,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
+  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category_group = "Audit"
@@ -357,6 +360,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -378,6 +382,7 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -386,6 +391,7 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -424,15 +430,17 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                       = "acctest-DS-%[1]d"
-  target_resource_id         = azurerm_key_vault.test.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
+  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category = "AuditEvent"
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -451,6 +459,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -584,6 +593,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -622,15 +632,17 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                = "acctest-DS-%[1]d"
-  target_resource_id  = azurerm_key_vault.test.id
-  partner_solution_id = azurerm_elastic_cloud_elasticsearch.test.id
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  partner_solution_id            = azurerm_elastic_cloud_elasticsearch.test.id
+  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category = "AuditEvent"
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -649,6 +661,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -687,15 +700,17 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name               = "acctest-DS-%[1]d"
-  target_resource_id = azurerm_key_vault.test.id
-  storage_account_id = azurerm_storage_account.test.id
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  storage_account_id             = azurerm_storage_account.test.id
+  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category = "AuditEvent"
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -714,6 +729,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -750,9 +766,10 @@ resource "azurerm_storage_account" "test" {
 
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name               = "acctest-DS-%[1]d"
-  target_resource_id = data.azurerm_subscription.current.id
-  storage_account_id = azurerm_storage_account.test.id
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = data.azurerm_subscription.current.id
+  storage_account_id             = azurerm_storage_account.test.id
+  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category = "Administrative"
@@ -848,11 +865,13 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
+  log_analytics_destination_type = "AzureDiagnostics"
 
   enabled_log {
     category = "AuditEvent"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -930,11 +949,13 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
+  log_analytics_destination_type = "AzureDiagnostics"
 
   enabled_log {
     category = "AuditEvent"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
