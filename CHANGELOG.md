@@ -27,6 +27,7 @@ BUG FIXES
 * `azurerm_spring_cloud_connection` - polling until the resource is fully updated and deleted [GH-19792]
 * `azurerm_stack_hci_cluster` - polling until the resource is fully deleted [GH-19792]
 * `azurerm_stream_analytics_cluster` - polling until the resource is fully deleted [GH-19792]
+* `azurerm_stream_analytics_reference_input_blob` - the `storage_account_key` property is now optional when MSI auth is used [GH-19676]
 * `azurerm_storage_account_network_rules` - the requires import check no longer checks the `bypass` field to workaround an issue within the Azure API [GH-19719]
 * `azurerm_virtual_desktop_application_group` - changing the `host_pool_id` now creates a new resource [GH-19689]
 
