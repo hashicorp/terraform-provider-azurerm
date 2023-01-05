@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
@@ -129,7 +129,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := azuresdkhacks.DataConnectorsClient{BaseClient: metadata.Client.Sentinel.DataConnectorsClient.BaseClient}
-			wspClient := metadata.Client.LogAnalytics.WorkspacesClient
+			wspClient := metadata.Client.LogAnalytics.WorkspaceClient
 
 			var plan DataConnectorThreatIntelligenceTAXIIModel
 			if err := metadata.Decode(&plan); err != nil {
