@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -427,17 +427,17 @@ func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 }
 
 func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlexibleServerID(state.ID)
+	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.FlexibleServerClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.MySQL.FlexibleServerClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MySql Flexible Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving MySql Flexible Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.ServerProperties != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil
 }
 
 func (MySqlFlexibleServerResource) template(data acceptance.TestData) string {
