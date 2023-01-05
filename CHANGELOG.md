@@ -34,6 +34,7 @@ BUG FIXES
 * `azurerm_stream_analytics_reference_input_blob` - the `storage_account_key` property is now optional when MSI auth is used [GH-19676]
 * `azurerm_storage_account_network_rules` - the requires import check no longer checks the `bypass` field to workaround an issue within the Azure API [GH-19719]
 * `azurerm_subscription_cost_management_export` - marking the resource as gone when it's no longer present in Azure [GH-19871]
+* `azurerm_synapse_linked_service` - report error during create/update [GH-19849]
 * `azurerm_virtual_desktop_application_group` - changing the `host_pool_id` now creates a new resource [GH-19689]
 * `azurerm_vmware_express_route_authorization` - marking the resource as gone when it's no longer present in Azure [GH-19871]
 
