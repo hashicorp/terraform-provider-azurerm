@@ -10,6 +10,7 @@ ENHANCEMENTS
 
 * dependencies: updating to `v0.20230105.1121404` of `github.com/hashicorp/go-azure-sdk` [GH-19872]
 * dependencies: updating to `v0.20221207.1110610` of `github.com/tombuildsstuff/kermit` [GH-19698]
+* `azurerm_dedicated_host` - add support for`LSv3-Type1` type [GH-19875]
 * `azurerm_proximity_placement_group` - support for the `allowed_vm_sizes` and `zone` properties [GH-19675]
 
 BUG FIXES
