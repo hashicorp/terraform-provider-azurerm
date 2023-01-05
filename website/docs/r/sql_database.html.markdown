@@ -68,13 +68,13 @@ resource "azurerm_sql_database" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the database.
+* `name` - (Required) The name of the database. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the database.  This must be the same as Database Server resource group currently.
+* `resource_group_name` - (Required) The name of the resource group in which to create the database.  This must be the same as Database Server resource group currently. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `server_name` - (Required) The name of the SQL Server on which to create the database.
+* `server_name` - (Required) The name of the SQL Server on which to create the database. Changing this forces a new resource to be created.
 
 * `create_mode` - (Optional) Specifies how to create the database. Valid values are: `Default`, `Copy`, `OnlineSecondary`, `NonReadableSecondary`,  `PointInTimeRestore`, `Recovery`, `Restore` or `RestoreLongTermRetentionBackup`. Must be `Default` to create a new database. Defaults to `Default`. Please see [Azure SQL Database REST API](https://docs.microsoft.com/rest/api/sql/databases/createorupdate#createmode)
 
@@ -108,7 +108,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`import` supports the following:
+---
+
+The `import` block supports the following:
 
 * `storage_uri` - (Required) Specifies the blob URI of the .bacpac file.
 * `storage_key` - (Required) Specifies the access key for the storage account.
@@ -120,11 +122,11 @@ The following arguments are supported:
 
 ---
 
-`threat_detection_policy` supports the following:
+The `threat_detection_policy` block supports the following:
 
-* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `state` - (Optional) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
-* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered? Possible values are `Disabled` and `Enabled`.
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.

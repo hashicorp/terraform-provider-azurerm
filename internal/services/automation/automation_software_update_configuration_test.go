@@ -121,11 +121,6 @@ resource "azurerm_automation_software_update_configuration" "test" {
     azure_query {
       scope     = [azurerm_resource_group.test.id]
       locations = [azurerm_resource_group.test.location]
-      tags {
-        tag    = "foo"
-        values = ["barbar2"]
-      }
-      tag_filter = "Any"
     }
 
     non_azure_query {
@@ -137,7 +132,6 @@ resource "azurerm_automation_software_update_configuration" "test" {
   schedule {
     description         = "foo-schedule"
     start_time          = "%[3]s"
-    expiry_time         = "%[4]s"
     is_enabled          = true
     interval            = 1
     frequency           = "Hour"

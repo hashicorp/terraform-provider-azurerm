@@ -49,10 +49,9 @@ resource "azurerm_storage_share" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the share. Must be unique within the storage account where the share is located.
+* `name` - (Required) The name of the share. Must be unique within the storage account where the share is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the share.
- Changing this forces a new resource to be created.
+* `storage_account_name` - (Required) Specifies the storage account in which to create the share. Changing this forces a new resource to be created.
 
 * `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`, `Premium`.
 
@@ -72,7 +71,7 @@ A `acl` block supports the following:
 
 * `id` - (Required) The ID which should be used for this Shared Identifier.
 
-* `access_policy` - (Required) An `access_policy` block as defined below.
+* `access_policy` - (Optional) An `access_policy` block as defined below.
 
 ---
 

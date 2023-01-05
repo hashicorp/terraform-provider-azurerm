@@ -119,7 +119,6 @@ func TestParseFrontDoorID(t *testing.T) {
 		if actual.FrontDoorName != v.Expected.FrontDoorName {
 			t.Fatalf("Expected %q but got %q for FrontDoorName", v.Expected.FrontDoorName, actual.FrontDoorName)
 		}
-
 	}
 }
 
@@ -259,7 +258,6 @@ func TestParseFrontDoorIDInsensitively(t *testing.T) {
 		if actual.FrontDoorName != v.Expected.FrontDoorName {
 			t.Fatalf("Expected %q but got %q for FrontDoorName", v.Expected.FrontDoorName, actual.FrontDoorName)
 		}
-
 	}
 }
 

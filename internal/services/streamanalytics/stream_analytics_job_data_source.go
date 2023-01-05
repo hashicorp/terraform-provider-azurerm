@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -102,10 +103,13 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "transformation")
+	id := streamingjobs.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	opts := streamingjobs.GetOperationOptions{
+		Expand: utils.ToPtr("transformation"),
+	}
+	resp, err := client.Get(ctx, id, opts)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -114,42 +118,90 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.JobName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if err := d.Set("identity", flattenJobIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %v", err)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if err := d.Set("identity", flattenJobIdentity(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			compatibilityLevel := ""
+			if v := props.CompatibilityLevel; v != nil {
+				compatibilityLevel = string(*v)
+			}
+			d.Set("compatibility_level", compatibilityLevel)
+
+			dataLocale := ""
+			if v := props.DataLocale; v != nil {
+				dataLocale = *v
+			}
+			d.Set("data_locale", dataLocale)
+
+			var lateArrival int64
+			if v := props.EventsLateArrivalMaxDelayInSeconds; v != nil {
+				lateArrival = *v
+			}
+			d.Set("events_late_arrival_max_delay_in_seconds", lateArrival)
+
+			var maxDelay int64
+			if v := props.EventsLateArrivalMaxDelayInSeconds; v != nil {
+				maxDelay = *v
+			}
+			d.Set("events_out_of_order_max_delay_in_seconds", maxDelay)
+
+			orderPolicy := ""
+			if v := props.EventsOutOfOrderPolicy; v != nil {
+				orderPolicy = string(*v)
+			}
+			d.Set("events_out_of_order_policy", orderPolicy)
+
+			outputPolicy := ""
+			if v := props.OutputErrorPolicy; v != nil {
+				outputPolicy = string(*v)
+			}
+			d.Set("output_error_policy", outputPolicy)
+
+			lastOutputTime := ""
+			if v := props.LastOutputEventTime; v != nil {
+				lastOutputTime = *v
+			}
+			d.Set("last_output_time", lastOutputTime)
+
+			startTime := ""
+			if v := props.OutputStartTime; v != nil {
+				startTime = *v
+			}
+			d.Set("start_time", startTime)
+
+			startMode := ""
+			if v := props.OutputStartMode; v != nil {
+				startMode = string(*v)
+			}
+			d.Set("start_mode", startMode)
+
+			jobId := ""
+			if v := props.JobId; v != nil {
+				jobId = *v
+			}
+			d.Set("job_id", jobId)
+
+			if props.Transformation != nil && props.Transformation.Properties != nil {
+				var streamingUnits int64
+				if v := props.Transformation.Properties.StreamingUnits; v != nil {
+					streamingUnits = *v
+				}
+				d.Set("streaming_units", streamingUnits)
+
+				query := ""
+				if v := props.Transformation.Properties.Query; v != nil {
+					query = *v
+				}
+				d.Set("transformation_query", query)
+			}
+		}
 	}
-
-	if props := resp.StreamingJobProperties; props != nil {
-		d.Set("compatibility_level", string(props.CompatibilityLevel))
-		d.Set("data_locale", props.DataLocale)
-		if v := props.EventsLateArrivalMaxDelayInSeconds; v != nil {
-			d.Set("events_late_arrival_max_delay_in_seconds", int(*v))
-		}
-		if v := props.EventsOutOfOrderMaxDelayInSeconds; v != nil {
-			d.Set("events_out_of_order_max_delay_in_seconds", int(*v))
-		}
-		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
-		d.Set("job_id", props.JobID)
-		d.Set("output_error_policy", string(props.OutputErrorPolicy))
-
-		if v := props.LastOutputEventTime; v != nil {
-			d.Set("last_output_time", v.String())
-		}
-
-		if v := props.OutputStartTime; v != nil {
-			d.Set("start_time", v.String())
-		}
-
-		d.Set("start_mode", props.OutputStartMode)
-
-		if props.Transformation != nil && props.Transformation.TransformationProperties != nil {
-			d.Set("streaming_units", props.Transformation.TransformationProperties.StreamingUnits)
-			d.Set("transformation_query", props.Transformation.TransformationProperties.Query)
-		}
-	}
-
 	return nil
 }

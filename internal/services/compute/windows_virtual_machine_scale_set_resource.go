@@ -112,10 +112,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
+	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -531,8 +528,9 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
 
 			// however if this block has been changed then we need to pull it
-			// we can guarantee this always has a value since it'll have been expanded and thus is safe to de-ref
-			automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			if upgradePolicy.AutomaticOSUpgradePolicy != nil && upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
+				automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			}
 		}
 
 		if d.HasChange("rolling_upgrade_policy") {
@@ -638,10 +636,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-			if err != nil {
-				return err
-			}
+			sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
@@ -1421,6 +1416,10 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 				computeValidate.SharedGalleryImageID,
 				computeValidate.SharedGalleryImageVersionID,
 			),
+			ExactlyOneOf: []string{
+				"source_image_id",
+				"source_image_reference",
+			},
 		},
 
 		"source_image_reference": sourceImageReferenceSchema(false),

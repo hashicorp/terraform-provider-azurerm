@@ -76,11 +76,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Private DNS Resolver Dns Forwarding Ruleset should exist. Changing this forces a new Private DNS Resolver Dns Forwarding Ruleset to be created.
 
-* `dns_resolver_outbound_endpoints` - (Required)  The list of IDs of the Private DNS Resolver Outbound Endpoint that is linked to the Private DNS Resolver Dns Forwarding Ruleset .
+* `private_dns_resolver_outbound_endpoint_ids` - (Required)  The list of IDs of the Private DNS Resolver Outbound Endpoint that is linked to the Private DNS Resolver Dns Forwarding Ruleset.
 
 * `location` - (Required) Specifies the Azure Region where the Private DNS Resolver Dns Forwarding Ruleset should exist. Changing this forces a new Private DNS Resolver Dns Forwarding Ruleset to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Private DNS Resolver Dns Forwarding Ruleset.
+* `tags` - (Optional) A mapping of tags to assign to the Private DNS Resolver Dns Forwarding Ruleset.
 
 ## Attributes Reference
 

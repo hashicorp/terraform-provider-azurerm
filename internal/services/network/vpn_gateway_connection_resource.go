@@ -78,6 +78,19 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validate.HubRouteTableID,
 						},
+
+						"inbound_route_map_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.RouteMapID,
+						},
+
+						"outbound_route_map_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.RouteMapID,
+						},
+
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -711,9 +724,23 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *networ
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+
 	raw := input[0].(map[string]interface{})
+
 	output := &network.RoutingConfiguration{
 		AssociatedRouteTable: &network.SubResource{ID: utils.String(raw["associated_route_table"].(string))},
+	}
+
+	if inboundRouteMapId := raw["inbound_route_map_id"].(string); inboundRouteMapId != "" {
+		output.InboundRouteMap = &network.SubResource{
+			ID: utils.String(inboundRouteMapId),
+		}
+	}
+
+	if outboundRouteMapId := raw["outbound_route_map_id"].(string); outboundRouteMapId != "" {
+		output.OutboundRouteMap = &network.SubResource{
+			ID: utils.String(outboundRouteMapId),
+		}
 	}
 
 	if v := raw["propagated_route_table"].([]interface{}); len(v) != 0 {
@@ -733,10 +760,22 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 		associateRouteTable = *input.AssociatedRouteTable.ID
 	}
 
+	var inboundRouteMapId string
+	if input.InboundRouteMap != nil && input.InboundRouteMap.ID != nil {
+		inboundRouteMapId = *input.InboundRouteMap.ID
+	}
+
+	var outboundRouteMapId string
+	if input.OutboundRouteMap != nil && input.OutboundRouteMap.ID != nil {
+		outboundRouteMapId = *input.OutboundRouteMap.ID
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"propagated_route_table": flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 			"associated_route_table": associateRouteTable,
+			"inbound_route_map_id":   inboundRouteMapId,
+			"outbound_route_map_id":  outboundRouteMapId,
 		},
 	}
 }

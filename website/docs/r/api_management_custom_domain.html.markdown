@@ -138,7 +138,7 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 
 * `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type application/x-pkcs12.
 
-* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to false.
+* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
 ---
 
@@ -152,11 +152,11 @@ A `gateway` block supports the following:
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
-* `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to false.
+* `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to `false`.
 
 * `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type application/x-pkcs12.
 
-* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to false.
+* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
 ## Attributes Reference
 
@@ -168,10 +168,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the API Management Custom Domain.
+* `create` - (Defaults to 45 minutes) Used when creating the API Management Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Custom Domain.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Custom Domain.
-* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Custom Domain.
+* `update` - (Defaults to 45 minutes) Used when updating the API Management Custom Domain.
+* `delete` - (Defaults to 45 minutes) Used when deleting the API Management Custom Domain.
 
 ## Import
 

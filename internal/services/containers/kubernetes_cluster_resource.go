@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
@@ -307,6 +307,27 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"monitor_metrics": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"annotations_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"labels_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"default_node_pool": SchemaDefaultNodePool(),
 
 			"disk_encryption_set_id": {
@@ -333,10 +354,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_pod_security_policy": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Type:       pluginsdk.TypeBool,
+				Deprecated: "The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy.",
+				Optional:   true,
 			},
 
 			"fqdn": {
@@ -378,6 +399,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
+			"image_cleaner_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"image_cleaner_interval_hours": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      48,
+				ValidateFunc: validation.IntBetween(24, 2160),
+			},
 
 			"web_app_routing": {
 				Type:     pluginsdk.TypeList,
@@ -555,7 +589,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"ssh_key": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							ForceNew: true,
 							MaxItems: 1,
 
 							Elem: &pluginsdk.Resource{
@@ -563,7 +596,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"key_data": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
@@ -716,6 +748,24 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
+						},
+
+						"ebpf_data_plane": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.EbpfDataplaneCilium),
+							}, false),
+						},
+
+						"network_plugin_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.NetworkPluginModeOverlay),
+							}, false),
 						},
 
 						"pod_cidr": {
@@ -1004,6 +1054,46 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"storage_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"blob_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"disk_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"disk_driver_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "v1",
+							ValidateFunc: validation.StringInSlice([]string{
+								"v1",
+								"v2",
+							}, false),
+						},
+						"file_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"snapshot_controller_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 
 			"windows_profile": {
@@ -1190,6 +1280,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
+	azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
+	azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
+
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
@@ -1208,11 +1301,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 	securityProfile := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 
+	storageProfileRaw := d.Get("storage_profile").([]interface{})
+	storageProfile := expandStorageProfile(storageProfileRaw)
+
 	workloadIdentity := false
 	if v, ok := d.GetOk("workload_identity_enabled"); ok {
 		workloadIdentity = v.(bool)
 
-		if workloadIdentity == true && enableOidcIssuer == false {
+		if workloadIdentity && !enableOidcIssuer {
 			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
 		}
 
@@ -1223,6 +1319,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		securityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{
 			Enabled: &workloadIdentity,
 		}
+	}
+	if securityProfile == nil {
+		securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+	}
+
+	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+		Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
 	}
 
 	parameters := managedclusters.ManagedCluster{
@@ -1239,6 +1343,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AddonProfiles:             addonProfiles,
 			AgentPoolProfiles:         agentProfiles,
 			AutoScalerProfile:         autoScalerProfile,
+			AzureMonitorProfile:       azureMonitorProfile,
 			DnsPrefix:                 utils.String(dnsPrefix),
 			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         utils.String(kubernetesVersion),
@@ -1251,6 +1356,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			HTTPProxyConfig:           httpProxyConfig,
 			OidcIssuerProfile:         oidcIssuerProfile,
 			SecurityProfile:           securityProfile,
+			StorageProfile:            storageProfile,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
@@ -1418,7 +1524,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
 	if d.HasChange("role_based_access_control_enabled") {
-
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
 			return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
@@ -1506,6 +1611,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 		existing.Model.Properties.AutoScalerProfile = autoScalerProfile
+	}
+
+	if d.HasChange("monitor_metrics") {
+		updateCluster = true
+		azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
+
+		azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
+		existing.Model.Properties.AzureMonitorProfile = azureMonitorProfile
 	}
 
 	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
@@ -1717,6 +1830,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile = microsoftDefender
 	}
 
+	if d.HasChanges("storage_profile") {
+		updateCluster = true
+		storageProfileRaw := d.Get("storage_profile").([]interface{})
+		clusterStorageProfile := expandStorageProfile(storageProfileRaw)
+		existing.Model.Properties.StorageProfile = clusterStorageProfile
+	}
+
 	if d.HasChange("workload_autoscaler_profile") {
 		updateCluster = true
 		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
@@ -1740,6 +1860,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 		existing.Model.Properties.SecurityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{
 			Enabled: &workloadIdentity,
+		}
+	}
+
+	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_hours") {
+		updateCluster = true
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		existing.Model.Properties.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
 		}
 	}
 
@@ -1970,6 +2101,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
 		}
 
+		azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
+		if err := d.Set("monitor_metrics", azureMonitorProfile); err != nil {
+			return fmt.Errorf("setting `monitor_metrics`: %+v", err)
+		}
+
 		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
 		if err != nil {
 			return fmt.Errorf("flattening `default_node_pool`: %+v", err)
@@ -2026,6 +2162,15 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 		}
 
+		if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+			if props.SecurityProfile.ImageCleaner.Enabled != nil {
+				d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
+			}
+			if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
+				d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
+			}
+		}
+
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
@@ -2063,7 +2208,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-
 			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
 			adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
 			if err != nil {
@@ -2147,7 +2291,7 @@ func flattenKubernetesClusterAccessProfile(profile managedclusters.ManagedCluste
 		if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
 			rawConfig := *kubeConfigRaw
 			if base64IsEncoded(*kubeConfigRaw) {
-				rawConfig, _ = base64Decode(*kubeConfigRaw)
+				rawConfig = base64Decode(*kubeConfigRaw)
 			}
 			var flattenedKubeConfig []interface{}
 
@@ -2275,7 +2419,6 @@ func flattenKubernetesClusterLinuxProfile(profile *managedclusters.ContainerServ
 				"key_data": keyData,
 			})
 		}
-
 	}
 
 	return []interface{}{
@@ -2335,7 +2478,6 @@ func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile 
 		DnsServer:      utils.String(config["dns_server"].(string)),
 		RootDomainName: utils.String(config["root_domain"].(string)),
 	}
-
 }
 
 func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
@@ -2437,6 +2579,13 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		LoadBalancerSku: utils.ToPtr(managedclusters.LoadBalancerSku(loadBalancerSku)),
 		OutboundType:    utils.ToPtr(managedclusters.OutboundType(outboundType)),
 		IPFamilies:      ipVersions,
+	}
+
+	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
+		networkProfile.EbpfDataplane = utils.ToPtr(managedclusters.EbpfDataplane(ebpfDataPlane))
+	}
+	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
+		networkProfile.NetworkPluginMode = utils.ToPtr(managedclusters.NetworkPluginMode(networkPluginMode))
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -2725,15 +2874,30 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 	}
 
+	networkPluginMode := ""
+	if profile.NetworkPluginMode != nil {
+		// The returned value has inconsistent casing
+		// TODO: Remove the normalization codes once the following issue is fixed.
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21810
+		if strings.EqualFold(string(*profile.NetworkPluginMode), string(managedclusters.NetworkPluginModeOverlay)) {
+			networkPluginMode = string(managedclusters.NetworkPluginModeOverlay)
+		}
+	}
+	ebpfDataPlane := ""
+	if profile.EbpfDataplane != nil {
+		ebpfDataPlane = string(*profile.EbpfDataplane)
+	}
 	return []interface{}{
 		map[string]interface{}{
 			"dns_service_ip":        dnsServiceIP,
 			"docker_bridge_cidr":    dockerBridgeCidr,
+			"ebpf_data_plane":       ebpfDataPlane,
 			"load_balancer_sku":     string(*sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
 			"ip_versions":           ipVersions,
 			"network_plugin":        networkPlugin,
+			"network_plugin_mode":   networkPluginMode,
 			"network_mode":          networkMode,
 			"network_policy":        networkPolicy,
 			"pod_cidr":              podCidr,
@@ -3184,7 +3348,6 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input *[]maintena
 		var start string
 		if item.Start != nil {
 			start = *item.Start
-
 		}
 		results = append(results, map[string]interface{}{
 			"end":   end,
@@ -3317,6 +3480,32 @@ func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClu
 	}
 }
 
+func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterStorageProfile {
+	if (input == nil) || len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	profile := managedclusters.ManagedClusterStorageProfile{
+		BlobCSIDriver: &managedclusters.ManagedClusterStorageProfileBlobCSIDriver{
+			Enabled: utils.Bool(raw["blob_driver_enabled"].(bool)),
+		},
+		DiskCSIDriver: &managedclusters.ManagedClusterStorageProfileDiskCSIDriver{
+			Enabled: utils.Bool(raw["disk_driver_enabled"].(bool)),
+			Version: utils.String(raw["disk_driver_version"].(string)),
+		},
+		FileCSIDriver: &managedclusters.ManagedClusterStorageProfileFileCSIDriver{
+			Enabled: utils.Bool(raw["file_driver_enabled"].(bool)),
+		},
+		SnapshotController: &managedclusters.ManagedClusterStorageProfileSnapshotController{
+			Enabled: utils.Bool(raw["snapshot_controller_enabled"].(bool)),
+		},
+	}
+
+	return &profile
+}
+
 func expandEdgeZone(input string) *edgezones.Model {
 	normalized := edgezones.Normalize(input)
 	if normalized == "" {
@@ -3336,12 +3525,12 @@ func flattenEdgeZone(input *edgezones.Model) string {
 	return edgezones.NormalizeNilable(&input.Name)
 }
 
-func base64Decode(str string) (string, bool) {
+func base64Decode(str string) string {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return "", true
+		return ""
 	}
-	return string(data), false
+	return string(data)
 }
 
 func base64IsEncoded(data string) bool {
@@ -3382,6 +3571,58 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 	return []interface{}{
 		map[string]interface{}{
 			"dns_zone_id": dnsZoneId,
+		},
+	}
+}
+
+func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclusters.ManagedClusterAzureMonitorProfile {
+	if len(input) == 0 {
+		return &managedclusters.ManagedClusterAzureMonitorProfile{
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+				Enabled: false,
+			},
+		}
+	}
+	if input[0] == nil {
+		return &managedclusters.ManagedClusterAzureMonitorProfile{
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+				Enabled: true,
+			},
+		}
+	}
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ManagedClusterAzureMonitorProfile{
+		Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+			Enabled: true,
+			KubeStateMetrics: &managedclusters.ManagedClusterAzureMonitorProfileKubeStateMetrics{
+				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
+				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
+			},
+		},
+	}
+}
+
+func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {
+	if input == nil || input.Metrics == nil || !input.Metrics.Enabled {
+		return nil
+	}
+	if input.Metrics.KubeStateMetrics == nil {
+		return []interface{}{
+			map[string]interface{}{},
+		}
+	}
+	annotationAllowList := ""
+	if input.Metrics.KubeStateMetrics.MetricAnnotationsAllowList != nil {
+		annotationAllowList = *input.Metrics.KubeStateMetrics.MetricAnnotationsAllowList
+	}
+	labelAllowList := ""
+	if input.Metrics.KubeStateMetrics.MetricLabelsAllowlist != nil {
+		labelAllowList = *input.Metrics.KubeStateMetrics.MetricLabelsAllowlist
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"annotations_allowed": annotationAllowList,
+			"labels_allowed":      labelAllowList,
 		},
 	}
 }

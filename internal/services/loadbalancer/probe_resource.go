@@ -74,6 +74,13 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				ValidateFunc: validate.PortNumber,
 			},
 
+			"probe_threshold": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 100),
+			},
+
 			"request_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -211,6 +218,12 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("protocol", string(props.Protocol))
 		d.Set("request_path", props.RequestPath)
 
+		var threshold int
+		if v := props.ProbeThreshold; v != nil {
+			threshold = int(*v)
+		}
+		d.Set("probe_threshold", threshold)
+
 		// TODO: parse/make these consistent
 		var loadBalancerRules []string
 		if rules := props.LoadBalancingRules; rules != nil {
@@ -286,6 +299,10 @@ func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *network.Probe {
 
 	if v, ok := d.GetOk("request_path"); ok {
 		properties.RequestPath = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("probe_threshold"); ok {
+		properties.ProbeThreshold = utils.Int32(int32(v.(int)))
 	}
 
 	return &network.Probe{

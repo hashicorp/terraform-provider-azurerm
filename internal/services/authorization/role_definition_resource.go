@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,7 +66,7 @@ func resourceArmRoleDefinition() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"permissions": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

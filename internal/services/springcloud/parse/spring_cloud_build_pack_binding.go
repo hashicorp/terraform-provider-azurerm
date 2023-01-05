@@ -15,23 +15,23 @@ type SpringCloudBuildPackBindingId struct {
 	SpringName           string
 	BuildServiceName     string
 	BuilderName          string
-	BuildpackBindingName string
+	BuildPackBindingName string
 }
 
-func NewSpringCloudBuildPackBindingID(subscriptionId, resourceGroup, springName, buildServiceName, builderName, buildpackBindingName string) SpringCloudBuildPackBindingId {
+func NewSpringCloudBuildPackBindingID(subscriptionId, resourceGroup, springName, buildServiceName, builderName, buildPackBindingName string) SpringCloudBuildPackBindingId {
 	return SpringCloudBuildPackBindingId{
 		SubscriptionId:       subscriptionId,
 		ResourceGroup:        resourceGroup,
 		SpringName:           springName,
 		BuildServiceName:     buildServiceName,
 		BuilderName:          builderName,
-		BuildpackBindingName: buildpackBindingName,
+		BuildPackBindingName: buildPackBindingName,
 	}
 }
 
 func (id SpringCloudBuildPackBindingId) String() string {
 	segments := []string{
-		fmt.Sprintf("Buildpack Binding Name %q", id.BuildpackBindingName),
+		fmt.Sprintf("Build Pack Binding Name %q", id.BuildPackBindingName),
 		fmt.Sprintf("Builder Name %q", id.BuilderName),
 		fmt.Sprintf("Build Service Name %q", id.BuildServiceName),
 		fmt.Sprintf("Spring Name %q", id.SpringName),
@@ -42,8 +42,8 @@ func (id SpringCloudBuildPackBindingId) String() string {
 }
 
 func (id SpringCloudBuildPackBindingId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/buildServices/%s/builders/%s/buildpackBindings/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildpackBindingName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/spring/%s/buildServices/%s/builders/%s/buildPackBindings/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 }
 
 // SpringCloudBuildPackBindingID parses a SpringCloudBuildPackBinding ID into an SpringCloudBuildPackBindingId struct
@@ -66,7 +66,7 @@ func SpringCloudBuildPackBindingID(input string) (*SpringCloudBuildPackBindingId
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {
+	if resourceId.SpringName, err = id.PopSegment("spring"); err != nil {
 		return nil, err
 	}
 	if resourceId.BuildServiceName, err = id.PopSegment("buildServices"); err != nil {
@@ -75,7 +75,87 @@ func SpringCloudBuildPackBindingID(input string) (*SpringCloudBuildPackBindingId
 	if resourceId.BuilderName, err = id.PopSegment("builders"); err != nil {
 		return nil, err
 	}
-	if resourceId.BuildpackBindingName, err = id.PopSegment("buildpackBindings"); err != nil {
+	if resourceId.BuildPackBindingName, err = id.PopSegment("buildPackBindings"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// SpringCloudBuildPackBindingIDInsensitively parses an SpringCloudBuildPackBinding ID into an SpringCloudBuildPackBindingId struct, insensitively
+// This should only be used to parse an ID for rewriting, the SpringCloudBuildPackBindingID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func SpringCloudBuildPackBindingIDInsensitively(input string) (*SpringCloudBuildPackBindingId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := SpringCloudBuildPackBindingId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'spring' segment
+	springKey := "spring"
+	for key := range id.Path {
+		if strings.EqualFold(key, springKey) {
+			springKey = key
+			break
+		}
+	}
+	if resourceId.SpringName, err = id.PopSegment(springKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'buildServices' segment
+	buildServicesKey := "buildServices"
+	for key := range id.Path {
+		if strings.EqualFold(key, buildServicesKey) {
+			buildServicesKey = key
+			break
+		}
+	}
+	if resourceId.BuildServiceName, err = id.PopSegment(buildServicesKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'builders' segment
+	buildersKey := "builders"
+	for key := range id.Path {
+		if strings.EqualFold(key, buildersKey) {
+			buildersKey = key
+			break
+		}
+	}
+	if resourceId.BuilderName, err = id.PopSegment(buildersKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'buildPackBindings' segment
+	buildPackBindingsKey := "buildPackBindings"
+	for key := range id.Path {
+		if strings.EqualFold(key, buildPackBindingsKey) {
+			buildPackBindingsKey = key
+			break
+		}
+	}
+	if resourceId.BuildPackBindingName, err = id.PopSegment(buildPackBindingsKey); err != nil {
 		return nil, err
 	}
 
