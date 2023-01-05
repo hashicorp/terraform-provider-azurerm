@@ -78,7 +78,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-			"automatic_update_extension_settings": {
+			"automatic_update_extension": {
 				Type:     pluginsdk.TypeList,
 				MinItems: 1,
 				MaxItems: 1,
@@ -137,7 +137,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension_settings").([]interface{}))
+	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension").([]interface{}))
 
 	parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
 		InstanceType: siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A,
@@ -208,8 +208,8 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 		AutomationAccountArmID: detail.AutomationAccountArmID,
 	}
 
-	if d.HasChange("automatic_update_extension_settings") {
-		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension_settings").([]interface{}))
+	if d.HasChange("automatic_update_extension") {
+		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension").([]interface{}))
 		updateInput.AgentAutoUpdateStatus = autoUpdateEnabledValue
 		updateInput.AutomationAccountArmID = automationAccountArmId
 	}
@@ -259,7 +259,7 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 	d.Set("recovery_target_protection_container_id", resp.Properties.TargetProtectionContainerID)
 
 	if detail, ok := resp.Properties.ProviderSpecificDetails.AsA2AProtectionContainerMappingDetails(); ok {
-		d.Set("automatic_update_extension_settings", flattenAutoUpdateSettings(detail))
+		d.Set("automatic_update_extension", flattenAutoUpdateSettings(detail))
 	}
 
 	return nil
