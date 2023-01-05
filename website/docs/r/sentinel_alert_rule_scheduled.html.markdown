@@ -166,9 +166,9 @@ A `grouping` block supports the following:
 
 * `group_by_entities` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Selected`. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
-* `gorup_by_alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`.
+* `group_by_alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`.
 
-* `gorup_by_custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
+* `group_by_custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
 
 ## Attributes Reference
 

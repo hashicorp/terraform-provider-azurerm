@@ -248,7 +248,11 @@ In addition to all arguments above, the following attributes are exported:
 
 A `secure_ldap` block exports the following:
 
-* `external_access_ip_address` - The publicly routable IP address for LDAPS clients to connect to.
+* `certificate_expiry` - The expiry time of the certificate.
+
+* `certificate_thumbprint` - The thumbprint of the certificate.
+
+* `public_certificate` - The public certificate.
 
 ---
 
@@ -260,7 +264,7 @@ An `initial_replica_set` block exports the following:
 
 * `location` - The Azure location in which the initialreplica set resides.
 
-* `replica_set_id` - A unique ID for the replica set.
+* `id` - A unique ID for the replica set.
 
 * `service_status` - The current service status for the initial replica set.
 

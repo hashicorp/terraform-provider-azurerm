@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) The name of the Storage Account that has the blob container with reference data.
 
-* `storage_account_key` - (Required) The Access Key which should be used to connect to this Storage Account.
+* `storage_account_key` - (Optional) The Access Key which should be used to connect to this Storage Account. Required if `authentication_mode` is `ConnectionString`.
 
 * `storage_container_name` - (Required) The name of the Container within the Storage Account.
 
