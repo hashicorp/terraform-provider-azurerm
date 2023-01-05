@@ -73,9 +73,6 @@ func resourcePublicIp() *pluginsdk.Resource {
 					string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
 				}, false),
 				Default: string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
-				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-					return old == "" && new == string(network.DdosSettingsProtectionModeVirtualNetworkInherited)
-				},
 			},
 
 			"ddos_protection_plan_id": {
@@ -340,12 +337,14 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("domain_name_label", settings.DomainNameLabel)
 		}
 
+		ddosProtectionMode := string(network.DdosSettingsProtectionModeVirtualNetworkInherited)
 		if ddosSetting := props.DdosSettings; ddosSetting != nil {
-			d.Set("ddos_protection_mode", string(ddosSetting.ProtectionMode))
+			ddosProtectionMode = string(ddosSetting.ProtectionMode)
 			if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
 				d.Set("ddos_protection_plan_id", subResource.ID)
 			}
 		}
+		d.Set("ddos_protection_mode", ddosProtectionMode)
 
 		d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
 
