@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_hub"
 description: |-
@@ -102,7 +102,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Web Pubsub Hub resource.
 
-* `name` - The name of the Web Pubsub Hub resource
+* `name` - (Required) The name of the Web Pubsub Hub resource
 
 ## Timeouts
 

@@ -99,14 +99,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `SqlVirtualMachinesClient.ListBySqlVmGroup`
+### Example Usage: `SqlVirtualMachinesClient.ListBySqlVMGroup`
 
 ```go
 ctx := context.TODO()
 id := sqlvirtualmachines.NewSqlVirtualMachineGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupValue")
 
-// alternatively `client.ListBySqlVmGroup(ctx, id)` can be used to do batched pagination
-items, err := client.ListBySqlVmGroupComplete(ctx, id)
+// alternatively `client.ListBySqlVMGroup(ctx, id)` can be used to do batched pagination
+items, err := client.ListBySqlVMGroupComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

@@ -45,7 +45,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_server" "example" {
-  # ...
+  # ...
 }
 
 resource "azurerm_postgresql_firewall_rule" "example" {

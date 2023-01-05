@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -295,9 +295,12 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName, "access")
 		if err != nil {
-			return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
+			if !utils.ResponseWasForbidden(tenantAccessInformationContract.Response) {
+				return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
+			}
+		} else {
+			tenantAccess = flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)
 		}
-		tenantAccess = flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)
 	}
 	if err := d.Set("tenant_access", tenantAccess); err != nil {
 		return fmt.Errorf("setting `tenant_access`: %+v", err)

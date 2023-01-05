@@ -228,7 +228,9 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
-* `source_recovery_fabric_name` - (Required) Name of fabric that should contains this replication. Changing this forces a new resource to be created.
+* `recovery_replication_policy_id` - (Required) Id of the policy to use for this replicated vm. Changing this forces a new resource to be created.
+
+* `source_recovery_fabric_name` - (Required) Name of fabric that should contain this replication. Changing this forces a new resource to be created.
 
 * `source_vm_id` - (Required) Id of the VM to replicate Changing this forces a new resource to be created.
 
@@ -244,11 +246,11 @@ The following arguments are supported:
 
 * `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. Changing this forces a new resource to be created.
 
-* `managed_disk` - (Optional) One or more `managed_disk` block.
+* `managed_disk` - (Optional) One or more `managed_disk` block as defined below.
 
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
-* `network_interface` - (Optional) One or more `network_interface` block.
+* `network_interface` - (Optional) One or more `network_interface` block as defined below.
 
 ---
 
@@ -272,7 +274,7 @@ A `managed_disk` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `source_network_interface_id` - (Required if the network_interface block is specified) Id source network interface.
+* `source_network_interface_id` - (Optional) (Required if the network_interface block is specified) Id source network interface.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 

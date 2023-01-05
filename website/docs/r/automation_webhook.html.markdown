@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) Map of input parameters passed to runbook.
 
-* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation. Changing this forces a new resource to be created. 
 
 ## Attributes Reference
 
@@ -82,7 +82,7 @@ The following attributes are exported:
 
 * `id` - The Automation Webhook ID.
 
-* `uri` - (Sensitive) Generated URI for this Webhook.
+* `uri` - (Optional) (Sensitive) Generated URI for this Webhook.
 
 ## Timeouts
 

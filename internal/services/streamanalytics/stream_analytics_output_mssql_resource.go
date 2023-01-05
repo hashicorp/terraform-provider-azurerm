@@ -85,14 +85,14 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 
 			"user": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"password": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -142,20 +142,26 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
+	dataSourceProperties := outputs.AzureSqlDatabaseDataSourceProperties{
+		Server:             utils.String(d.Get("server").(string)),
+		Database:           utils.String(d.Get("database").(string)),
+		Table:              utils.String(d.Get("table").(string)),
+		MaxBatchCount:      utils.Float(d.Get("max_batch_count").(float64)),
+		MaxWriterCount:     utils.Float(d.Get("max_writer_count").(float64)),
+		AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	}
+
+	// Add user/password dataSourceProperties only if authentication mode requires them
+	if *dataSourceProperties.AuthenticationMode == outputs.AuthenticationModeConnectionString {
+		dataSourceProperties.User = utils.String(d.Get("user").(string))
+		dataSourceProperties.Password = utils.String(d.Get("password").(string))
+	}
+
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.AzureSqlDatabaseOutputDataSource{
-				Properties: &outputs.AzureSqlDatabaseDataSourceProperties{
-					Server:             utils.String(d.Get("server").(string)),
-					Database:           utils.String(d.Get("database").(string)),
-					User:               utils.String(d.Get("user").(string)),
-					Password:           utils.String(d.Get("password").(string)),
-					Table:              utils.String(d.Get("table").(string)),
-					MaxBatchCount:      utils.Float(d.Get("max_batch_count").(float64)),
-					MaxWriterCount:     utils.Float(d.Get("max_writer_count").(float64)),
-					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-				},
+				Properties: &dataSourceProperties,
 			},
 		},
 	}

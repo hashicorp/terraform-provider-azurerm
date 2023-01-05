@@ -428,7 +428,6 @@ func TestAccWindowsWebAppSlot_identityKeyVault(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 // Attributes
@@ -655,7 +654,7 @@ func TestAccWindowsWebAppSlot_withNode16LTS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "16-LTS"),
+			Config: r.node(data, "18-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

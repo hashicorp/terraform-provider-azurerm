@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,9 +48,14 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			},
 
 			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.Any(
+					// Storage Account Customer Managed Keys support both Key Vault and Key Vault Managed HSM keys:
+					// https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview
+					keyVaultValidate.VaultID,
+					keyVaultValidate.ManagedHSMID,
+				),
 			},
 
 			"key_name": {
