@@ -77,36 +77,6 @@ func TestAccMachineLearningDataStore_fileShareSas(t *testing.T) {
 	})
 }
 
-//func TestAccMachineLearningDataStore_dataLakeGen1Basic(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore", "test")
-//	r := MachineLearningDataStore{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.dataLakeGen1Basic(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccMachineLearningDataStore_dataLakeGen1Spn(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore", "test")
-//	r := MachineLearningDataStore{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.dataLakeGen1Spn(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep("credentials.0.client_secret"),
-//	})
-//}
-
 func TestAccMachineLearningDataStore_dataLakeGen2Basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore", "test")
 	r := MachineLearningDataStore{}
@@ -338,46 +308,6 @@ resource "azurerm_machine_learning_datastore" "test" {
 }
 
 
-`, template, data.RandomInteger)
-}
-
-func (r MachineLearningDataStore) dataLakeGen1Basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-
-resource "azurerm_machine_learning_datastore" "test" {
-  name                = "accdatastore%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_machine_learning_workspace.test.name
-  type                = "AzureDataLakeGen1"
-
-  store_name = "xz3gen1"
-
-}
-`, template, data.RandomInteger)
-}
-
-func (r MachineLearningDataStore) dataLakeGen1Spn(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-
-resource "azurerm_machine_learning_datastore" "test" {
-  name                = "accdatastore%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_machine_learning_workspace.test.name
-  type                = "AzureDataLakeGen1"
-
-  store_name = "xz3gen1"
-  credentials {
-    tenant_id     = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-    client_id     = "b78b19bf-be33-40ad-98df-a56fe3d5860a"
-    client_secret = "R-U7Q~nCvXXWav3xRzwyd-sldhyfgL~3bsDcn"
-  }
-}
 `, template, data.RandomInteger)
 }
 
