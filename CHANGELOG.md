@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_marketplace_agreement` [GH-19628]
+* **New Data Source:** `azurerm_network_manager_network_group` [GH-19593]
 * **New Data Source:** `azurerm_virtual_hub_route_table` [GH-19628]
 
 ENHANCEMENTS
