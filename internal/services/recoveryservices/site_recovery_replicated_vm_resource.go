@@ -242,7 +242,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"is_primary": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
 				Default:  false,
 			},
 		},
