@@ -576,7 +576,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
 				}
 				state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
-				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION") // TODO - Allow this to be set directly in app_settings?
+				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
 			}
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.

@@ -509,13 +509,11 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
 			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
-				if nodeVer != "6.9.1" { // Slots appear to have an invalid value for this by default?
-					if state.SiteConfig[0].ApplicationStack == nil {
-						state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
-					}
-					state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
+				if state.SiteConfig[0].ApplicationStack == nil {
+					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
 				}
-				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION") // TODO - Allow this to be set directly in app_settings?
+				state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
+				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
 			}
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
