@@ -67,7 +67,7 @@ func TestAccMediaServicesAccount_multipleAccounts(t *testing.T) {
 	})
 }
 
-func TestAccMediaServicesAccount_(t *testing.T) {
+func TestAccMediaServicesAccount_storageAuthWithManagedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 	r := MediaServicesAccountResource{}
 
@@ -299,6 +299,7 @@ func (r MediaServicesAccountResource) encryptionCustomerKey(data acceptance.Test
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_key_vault" "test" {
   name                       = "mediakv-%s"
   location                   = azurerm_resource_group.test.location
@@ -312,7 +313,7 @@ resource "azurerm_key_vault" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-uai-%[1]s"
+  name                = "acctest-uai-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -334,7 +335,7 @@ resource "azurerm_key_vault_access_policy" "client" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "test-kvk-%[1]s"
+  name         = "test-kvk-%[2]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -354,7 +355,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_media_services_account" "test" {
-  name                = "acctestmsa%[1]s"
+  name                = "acctestmsa%[2]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -495,17 +496,37 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
+resource "azurerm_storage_account" "third" {
+  name                     = "acctestsa3%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_role_assignment" "storageAccountRoleAssignment" {
+  scope                = azurerm_storage_account.third.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
 resource "azurerm_media_services_account" "test" {
-  name                        = "acctestmsa%[1]s"
+  name                        = "acctestmsa%[2]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   storage_authentication_type = "ManagedIdentity"
 
   storage_account {
-    id                           = azurerm_storage_account.first.id
-    is_primary                   = true
-    user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
-    use_system_assigned_identity = false
+    id         = azurerm_storage_account.third.id
+    is_primary = true
+    managed_identity {
+      user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
+      use_system_assigned_identity = false
+    }
   }
 
   identity {
@@ -516,6 +537,10 @@ resource "azurerm_media_services_account" "test" {
   tags = {
     environment = "staging"
   }
+
+  depends_on = [
+    azurerm_role_assignment.storageAccountRoleAssignment
+  ]
 }
 `, template, data.RandomString)
 }

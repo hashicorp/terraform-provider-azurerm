@@ -82,16 +82,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						"user_assigned_identity": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-						},
-
-						"use_system_assigned_identity": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
+						"managed_identity": mediaServicesAccountUseManagedIdentity(),
 					},
 				},
 			},
@@ -121,16 +112,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"user_assigned_identity": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-						},
-
-						"use_system_assigned_identity": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
+						"managed_identity": mediaServicesAccountUseManagedIdentity(),
 					},
 				},
 			},
@@ -306,7 +288,7 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 			if err != nil {
 				return fmt.Errorf("flattening `encryption`: %s", err)
 			}
-			if err := d.Set("storage_account", encryption); err != nil {
+			if err := d.Set("encryption", encryption); err != nil {
 				return fmt.Errorf("setting `encryption`: %s", err)
 			}
 
@@ -352,6 +334,28 @@ func resourceMediaServicesAccountDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
+func mediaServicesAccountUseManagedIdentity() *schema.Schema {
+	return &schema.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"user_assigned_identity_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+				},
+
+				"use_system_assigned_identity": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
 func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]accounts.StorageAccount, error) {
 	results := make([]accounts.StorageAccount, 0)
 
@@ -371,20 +375,14 @@ func expandMediaServicesAccountStorageAccounts(input []interface{}) (*[]accounts
 			foundPrimary = true
 		}
 
-		resourceIdentity := accounts.ResourceIdentity{
-			UseSystemAssignedIdentity: accountMap["use_system_assigned_identity"].(bool),
+		resourceIdentity, err := expandMediaServicesAccountManagedIdentity(accountMap["managed_identity"].([]interface{}))
+		if err != nil {
+			return nil, err
 		}
-		if userAssignedIdentityId := accountMap["user_assigned_identity_id"].(string); userAssignedIdentityId != "" {
-			if resourceIdentity.UseSystemAssignedIdentity {
-				return nil, fmt.Errorf("use either of user assigned identity or system assigned identity for storage account")
-			}
-			resourceIdentity.UserAssignedIdentity = &userAssignedIdentityId
-		}
-
 		results = append(results, accounts.StorageAccount{
 			Id:       utils.String(id),
 			Type:     storageType,
-			Identity: &resourceIdentity,
+			Identity: resourceIdentity,
 		})
 	}
 
@@ -407,20 +405,10 @@ func flattenMediaServicesAccountStorageAccounts(input *[]accounts.StorageAccount
 			storageAccountId = id.ID()
 		}
 
-		useSystemAssignedIdentity := false
-		userAssignedIdentityId := ""
-		if storageAccount.Identity != nil {
-			useSystemAssignedIdentity = storageAccount.Identity.UseSystemAssignedIdentity
-			if storageAccount.Identity.UserAssignedIdentity != nil {
-				userAssignedIdentityId = *storageAccount.Identity.UserAssignedIdentity
-			}
-		}
-
 		results = append(results, map[string]interface{}{
-			"id":                           storageAccountId,
-			"is_primary":                   storageAccount.Type == accounts.StorageAccountTypePrimary,
-			"use_system_assigned_identity": useSystemAssignedIdentity,
-			"user_assigned_identity_id":    userAssignedIdentityId,
+			"id":               storageAccountId,
+			"is_primary":       storageAccount.Type == accounts.StorageAccountTypePrimary,
+			"managed_identity": flattenMediaServicesAccountManagedIdentity(storageAccount.Identity),
 		})
 	}
 
@@ -432,14 +420,9 @@ func expandMediaServicesAccountEncryption(input []interface{}) (*accounts.Accoun
 	}
 	val := input[0].(map[string]interface{})
 
-	resourceIdentity := accounts.ResourceIdentity{
-		UseSystemAssignedIdentity: val["use_system_assigned_identity"].(bool),
-	}
-	if userAssignedIdentityId := val["user_assigned_identity_id"].(string); userAssignedIdentityId != "" {
-		if resourceIdentity.UseSystemAssignedIdentity {
-			return nil, fmt.Errorf("use either of user assigned identity or system assigned identity for ecryption")
-		}
-		resourceIdentity.UserAssignedIdentity = &userAssignedIdentityId
+	resourceIdentity, err := expandMediaServicesAccountManagedIdentity(val["managed_identity"].([]interface{}))
+	if err != nil {
+		return nil, err
 	}
 
 	var keyVaultProperty accounts.KeyVaultProperties
@@ -450,7 +433,7 @@ func expandMediaServicesAccountEncryption(input []interface{}) (*accounts.Accoun
 
 	return &accounts.AccountEncryption{
 		Type:               accounts.AccountEncryptionKeyType(val["type"].(string)),
-		Identity:           &resourceIdentity,
+		Identity:           resourceIdentity,
 		KeyVaultProperties: &keyVaultProperty,
 	}, nil
 }
@@ -460,14 +443,7 @@ func flattenMediaServicesAccountEncryption(input *accounts.AccountEncryption) (*
 		return &[]interface{}{}, nil
 	}
 
-	var useSystemAssignedIdentity bool
-	var userAssignedIdentityId, keyIdentifier, currentKeyIdentifier string
-	if input.Identity != nil {
-		useSystemAssignedIdentity = input.Identity.UseSystemAssignedIdentity
-		if input.Identity.UserAssignedIdentity != nil {
-			userAssignedIdentityId = *input.Identity.UserAssignedIdentity
-		}
-	}
+	var keyIdentifier, currentKeyIdentifier string
 
 	if input.KeyVaultProperties != nil {
 		if input.KeyVaultProperties.KeyIdentifier != nil {
@@ -478,14 +454,14 @@ func flattenMediaServicesAccountEncryption(input *accounts.AccountEncryption) (*
 		}
 	}
 
-	return &[]interface{}{map[string]interface{}{
-		"type":                         string(input.Type),
-		"use_system_assigned_identity": useSystemAssignedIdentity,
-		"user_assigned_identity_id":    userAssignedIdentityId,
-		"key_vault_key_identifier":     keyIdentifier,
-		"current_key_identifier":       currentKeyIdentifier,
-	}}, nil
-
+	return &[]interface{}{
+		map[string]interface{}{
+			"type":                     string(input.Type),
+			"key_vault_key_identifier": keyIdentifier,
+			"current_key_identifier":   currentKeyIdentifier,
+			"managed_identity":         flattenMediaServicesAccountManagedIdentity(input.Identity),
+		},
+	}, nil
 }
 
 func expandMediaServicesAccountIdentity(input []interface{}) (*accounts.MediaServiceIdentity, error) {
@@ -568,7 +544,7 @@ func expandMediaServicesAccountKeyDelivery(input []interface{}) *accounts.KeyDel
 }
 
 func flattenMediaServicesAccountKeyDelivery(input *accounts.KeyDelivery) []interface{} {
-	if input == nil && input.AccessControl != nil {
+	if input == nil || input.AccessControl == nil {
 		return make([]interface{}, 0)
 	}
 
@@ -581,6 +557,43 @@ func flattenMediaServicesAccountKeyDelivery(input *accounts.KeyDelivery) []inter
 		map[string]interface{}{
 			"default_action": defaultAction,
 			"ip_allow_list":  utils.FlattenStringSlice(input.AccessControl.IPAllowList),
+		},
+	}
+}
+
+func expandMediaServicesAccountManagedIdentity(input []interface{}) (*accounts.ResourceIdentity, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	ManagedIdentity := input[0].(map[string]interface{})
+
+	result := &accounts.ResourceIdentity{
+		UseSystemAssignedIdentity: ManagedIdentity["use_system_assigned_identity"].(bool),
+	}
+	if userAssignedIdentityId := ManagedIdentity["user_assigned_identity_id"].(string); userAssignedIdentityId != "" {
+		if result.UseSystemAssignedIdentity {
+			return nil, fmt.Errorf("use either of user assigned identity or system assigned identity for ecryption")
+		}
+		result.UserAssignedIdentity = &userAssignedIdentityId
+	}
+	return result, nil
+}
+
+func flattenMediaServicesAccountManagedIdentity(input *accounts.ResourceIdentity) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var userAssignedIdentity string
+	if input.UserAssignedIdentity != nil {
+		userAssignedIdentity = *input.UserAssignedIdentity
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"use_system_assigned_identity": input.UseSystemAssignedIdentity,
+			"user_assigned_identity":       userAssignedIdentity,
 		},
 	}
 }
