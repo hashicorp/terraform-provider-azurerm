@@ -136,7 +136,13 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	if strings.Contains(destinationId, "Microsoft.EventHub") {
+	if strings.Contains(destinationId, "Microsoft.EventHub/namespaces") {
+		eventhubNamespace, err := eventhubs.ParseNamespaceID(destinationId)
+		if err != nil {
+			return fmt.Errorf("parsing destination eventhub id error: %+v", err)
+		}
+		parameters.Properties.Destination.ResourceId = eventhubNamespace.ID()
+	} else if strings.Contains(destinationId, "Microsoft.EventHub") {
 		eventhubId, err := eventhubs.ParseEventhubID(destinationId)
 		if err != nil {
 			return fmt.Errorf("parsing destination eventhub id error: %+v", err)
