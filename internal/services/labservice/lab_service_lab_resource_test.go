@@ -307,12 +307,11 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 resource "azurerm_lab_service_plan" "test" {
-  name                      = "acctest-lslp-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  allowed_regions           = [azurerm_resource_group.test.location]
-  default_network_subnet_id = azurerm_subnet.test.id
-  shared_gallery_id         = azurerm_shared_image_gallery.test.id
+  name                = "acctest-lslp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allowed_regions     = [azurerm_resource_group.test.location]
+  shared_gallery_id   = azurerm_shared_image_gallery.test.id
 
   depends_on = [azurerm_role_assignment.test, azurerm_shared_image_version.test]
 }
@@ -365,10 +364,6 @@ resource "azurerm_lab_service_lab" "test" {
   connection_setting {
     client_rdp_access = "Public"
     client_ssh_access = "Public"
-  }
-
-  network {
-    subnet_id = azurerm_subnet.test.id
   }
 
   tags = {
@@ -500,12 +495,11 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 resource "azurerm_lab_service_plan" "test" {
-  name                      = "acctest-lslp-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  allowed_regions           = [azurerm_resource_group.test.location]
-  default_network_subnet_id = azurerm_subnet.test.id
-  shared_gallery_id         = azurerm_shared_image_gallery.test.id
+  name                = "acctest-lslp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allowed_regions     = [azurerm_resource_group.test.location]
+  shared_gallery_id   = azurerm_shared_image_gallery.test.id
 
   depends_on = [azurerm_role_assignment.test, azurerm_shared_image_version.test]
 }
@@ -552,10 +546,6 @@ resource "azurerm_lab_service_lab" "test" {
 
   connection_setting {
     client_rdp_access = "Public"
-  }
-
-  network {
-    subnet_id = azurerm_subnet.test.id
   }
 
   tags = {
