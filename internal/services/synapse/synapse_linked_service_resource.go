@@ -308,7 +308,7 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	// Sometimes this resource fails to create but Azure is returning a 200. We'll check if the last response failed or not before moving on
-	// todo remove this once https://github.com/Azure/azure-rest-api-specs/issues/22035 is fixed
+	// todo remove this once https://github.com/hashicorp/go-azure-sdk/pull/122 is merged
 	if err = checkLinkedServiceResponse(future.Response()); err != nil {
 		return err
 	}
