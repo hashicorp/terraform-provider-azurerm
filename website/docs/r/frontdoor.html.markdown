@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `friendly_name` - (Optional) A friendly name for the Front Door service.
 
+* `backend_pool_settings` - (Optional) A `backend_pool_settings` block as defined below.
+
 * `frontend_endpoint` - (Required) A `frontend_endpoint` block as defined below.
 
 * `routing_rule` - (Required) A `routing_rule` block as defined below.
@@ -282,12 +284,6 @@ The `redirect_configuration` block supports the following:
 `frontend_endpoint` exports the following:
 
 * `id` - The ID of the Azure Front Door Frontend Endpoint.
-
-* `provisioning_state` - Provisioning state of the Front Door.
-
-* `provisioning_substate` - Provisioning substate of the Front Door
-
-[//]: *"* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
 ---
 

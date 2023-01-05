@@ -1,3 +1,34 @@
+## 3.38.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_marketplace_agreement` [GH-19628]
+* **New Data Source:** `azurerm_virtual_hub_route_table` [GH-19628]
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20230103.1090844` of `github.com/hashicorp/go-azure-sdk` [GH-19840]
+* dependencies: updating to `v0.20221207.1110610` of `github.com/tombuildsstuff/kermit` [GH-19698]
+* `azurerm_proximity_placement_group` - support for the `allowed_vm_sizes` and `zone` properties [GH-19675]
+
+BUG FIXES
+
+* `azurerm_automation_software_update_configuration` - correctly handle empty `expiry_time` api values [GH-19774]
+* `azurerm_app_service_connection` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_batch_pool` - correctly handle the resource being deleted outside of terraform [GH-19780]
+* `azurerm_databricks_access_connector` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_datadog_monitor_sso_configuration` - polling until the resource is fully created and deleted [GH-19792]
+* `azurerm_hdinsight_kafka_cluster` - the `kafka_management_node` property has been deprecated and will be removed in `v4.0` [GH-19423]
+* `azurerm_kubernetes_cluster` - `scale_down_mode` of the default node pool can now be updated without rebuilding the entire cluster [GH-19823]
+* `azurerm_orbital_contact_profile` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_orbital_spacecraft` - polling until the resource is fully created, updated and deleted [GH-19792]
+* `azurerm_postgresql_flexible_server` - correctly handle password authentication [GH-19800]
+* `azurerm_spring_cloud_connection` - polling until the resource is fully updated and deleted [GH-19792]
+* `azurerm_stack_hci_cluster` - polling until the resource is fully deleted [GH-19792]
+* `azurerm_stream_analytics_cluster` - polling until the resource is fully deleted [GH-19792]
+* `azurerm_storage_account_network_rules` - the requires import check no longer checks the `bypass` field to workaround an issue within the Azure API [GH-19719]
+* `azurerm_virtual_desktop_application_group` - changing the `host_pool_id` now creates a new resource [GH-19689]
+
 ## 3.37.0 (December 21, 2022)
 
 FEATURES:

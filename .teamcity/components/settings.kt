@@ -19,7 +19,7 @@ var locations = mapOf(
 
 // specifies the list of Azure Environments where tests should be run nightly
 var runNightly = mapOf(
-        "public" to false
+        "public" to true
 )
 
 // specifies a list of services which should be run with a custom test configuration
@@ -106,6 +106,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // netapp has a max of 10 accounts per subscription so lets limit it to 3 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6", useDevTestSubscription = true),
+
+        // Orbital is only available in certain locations
+        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
 

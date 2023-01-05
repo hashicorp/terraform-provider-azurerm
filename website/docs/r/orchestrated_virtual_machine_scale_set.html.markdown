@@ -51,6 +51,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `additional_capabilities` - (Optional) An `additional_capabilities` block as defined below.
 
+* `encryption_at_host_enabled` - (Optional) Should disks attached to this Virtual Machine Scale Set be encrypted by enabling Encryption at Host?
+
 * `instances` - (Optional) The number of Virtual Machines in the Orcestrated Virtual Machine Scale Set.
 
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below.
@@ -58,6 +60,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 * `os_profile` - (Optional) An `os_profile` block as defined below.
 
 * `os_disk` - (Optional) An `os_disk` block as defined below.
+
+* `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below.
+
+-> **NOTE:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
@@ -103,6 +109,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Orchestrated Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
+* `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`. Changing this forces a new resource to be created.
+
+-> **NOTE:** This can only be set to `true` when one or more `zones` are configured.
+
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Orchestrated Virtual Machine should be located. Changing this forces a new Orchestrated Virtual Machine to be created.
 
 -> **NOTE:** Due to a limitation of the Azure API at this time only one Availability Zone can be defined.
@@ -134,10 +144,6 @@ A `windows_configuration` block supports the following:
 * `admin_username` - (Required) The username of the local administrator on each Orchestrated Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
 
 * `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
-
-* `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below.
-
--> **NOTE:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 
@@ -229,6 +235,8 @@ An `admin_ssh_key` block supports the following:
 
 A `winrm_listener` block supports the following:
 
+* `protocol` - (Required) Specifies the protocol of listener. Possible values are `Http` or `Https`
+
 * `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when protocol is set to `Https`.
 
 -> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
@@ -279,6 +287,14 @@ A `data_disk` block supports the following:
 
 * `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS` and `UltraSSD_LRS`.
 
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt the Data Disk. Changing this forces a new resource to be created.
+
+* `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
+
+* `ultra_ssd_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
+
+* `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the Data Disk. Defaults to `false`.
+
 ---
 
 An `extension` block supports the following:
@@ -308,6 +324,8 @@ An `extension` block supports the following:
 * `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`.
 
 -> **NOTE:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
+
+* `settings` - (Optional) A JSON String which specifies Settings for the Extension.
 
 ---
 
@@ -378,6 +396,8 @@ An `os_disk` block supports the following:
 -> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.
+
+* `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the OS Disk. Defaults to `false`.
 
 ---
 

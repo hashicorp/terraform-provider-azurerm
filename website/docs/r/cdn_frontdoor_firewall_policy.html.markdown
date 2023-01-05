@@ -249,8 +249,6 @@ The following attributes are exported:
 
 * `id` - The ID of the Front Door Firewall Policy.
 
-* `location` - The Azure Region where this Front Door Firewall Policy exists.
-
 * `frontend_endpoint_ids` - The Front Door Profiles frontend endpoints associated with this Front Door Firewall Policy.
 
 ## Timeouts
