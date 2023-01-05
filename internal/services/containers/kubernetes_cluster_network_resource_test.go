@@ -734,6 +734,36 @@ func TestAccKubernetesCluster_publicNetworkAccess(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_networkPluginMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkPluginMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_ebpfDataPlane(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ebpfDataPlane(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3086,4 +3116,101 @@ resource "azurerm_kubernetes_cluster" "test" {
   %s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, authorizedIPConfig)
+}
+
+func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestRG-vnet-%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestRG-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/16"]
+
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  network_profile {
+    pod_cidr            = "192.168.0.0/16"
+    network_plugin      = "azure"
+    ebpf_data_plane     = "cilium"
+    network_plugin_mode = "Overlay"
+  }
+}
+`, "westcentralus", data.RandomInteger)
+}
+
+func (KubernetesClusterResource) networkPluginMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestRG-vnet-%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestRG-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/16"]
+
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  network_profile {
+    pod_cidr            = "192.168.0.0/16"
+    network_plugin      = "azure"
+    network_plugin_mode = "Overlay"
+  }
+}
+`, "westcentralus", data.RandomInteger)
 }

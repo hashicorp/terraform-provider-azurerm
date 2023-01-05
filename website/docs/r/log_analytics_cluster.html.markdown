@@ -81,7 +81,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
-* `type` - The identity type of this Managed Service Identity.
+* `type` - (Required) The identity type of this Managed Service Identity.
 
 -> You can access the Principal ID via `azurerm_log_analytics_cluster.example.identity.0.principal_id` and the Tenant ID via `azurerm_log_analytics_cluster.example.identity.0.tenant_id`
 

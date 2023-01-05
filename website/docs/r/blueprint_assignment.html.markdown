@@ -124,7 +124,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
-* `lock_mode` - (Optional) The locking mode of the Blueprint Assignment.  One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`.
+* `lock_mode` - (Optional) The locking mode of the Blueprint Assignment.  One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`. Defaults to `none`.
 
 * `lock_exclude_principals` - (Optional) a list of up to 5 Principal IDs that are permitted to bypass the locks applied by the Blueprint.
 

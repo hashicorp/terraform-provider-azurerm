@@ -51,10 +51,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the Stream Analytics.
+* `create` - (Defaults to 90 minutes) Used when creating the Stream Analytics.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics.
-* `update` - (Defaults to 1 hour) Used when updating the Stream Analytics.
-* `delete` - (Defaults to 1 hour) Used when deleting the Stream Analytics.
+* `update` - (Defaults to 90 minutes) Used when updating the Stream Analytics.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Stream Analytics.
 
 ## Import
 

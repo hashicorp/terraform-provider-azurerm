@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,6 +32,8 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": commonschema.LocationComputed(),
+
+			"zone": commonschema.ZoneSingleComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -141,6 +143,14 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
+
+		zone := ""
+		if model.Zones != nil {
+			if zones := *model.Zones; len(zones) > 0 {
+				zone = zones[0]
+			}
+		}
+		d.Set("zone", zone)
 
 		props := model.Properties
 		d.Set("volume_path", props.CreationToken)

@@ -74,11 +74,11 @@ An `access_rule` block supports the following:
 
 * `filter` - (Optional) The filter applied to the `scope` for this rule. The filter's format depends on its scope: `default` scope matches all clients and has no filter value; `network` scope takes a CIDR format; `host` takes an IP address or fully qualified domain name. If a client does not match any filter rule and there is no default rule, access is denied.
 
-* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/azure/hpc-cache/access-policies#suid) is allowed? Defaults to `false`.
+* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/azure/hpc-cache/access-policies#suid) is allowed? 
 
-* `submount_access_enabled` - (Optional) Whether allow access to subdirectories under the root export? Defaults to `false`.
+* `submount_access_enabled` - (Optional) Whether allow access to subdirectories under the root export? 
 
-* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/azure/hpc-cache/access-policies#root-squash)? Defaults to `false`.
+* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/azure/hpc-cache/access-policies#root-squash)? 
 
 * `anonymous_uid` - (Optional) The anonymous UID used when `root_squash_enabled` is `true`.
 

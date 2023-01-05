@@ -7,7 +7,6 @@ import (
 
 func TestAccessConnectorName(t *testing.T) {
 	const errEmpty = "cannot be an empty string"
-	const errMinLen = "must be at least 1 character"
 	const errMaxLen = "must be no more than 30 characters"
 	const errAllowList = "can contain only alphanumeric characters, underscores, and hyphens"
 

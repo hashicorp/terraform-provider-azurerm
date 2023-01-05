@@ -26,6 +26,7 @@ type Client struct {
 	IPGroupsClient                         *network.IPGroupsClient
 	LocalNetworkGatewaysClient             *network.LocalNetworkGatewaysClient
 	ManagersClient                         *network.ManagersClient
+	ManagerNetworkGroupsClient             *network.GroupsClient
 	ManagerSubscriptionConnectionsClient   *network.SubscriptionNetworkManagerConnectionsClient
 	NatRuleClient                          *network.NatRulesClient
 	PointToSiteVpnGatewaysClient           *network.P2sVpnGatewaysClient
@@ -34,6 +35,7 @@ type Client struct {
 	PrivateEndpointClient                  *network.PrivateEndpointsClient
 	PublicIPsClient                        *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
+	RouteMapsClient                        *network.RouteMapsClient
 	RoutesClient                           *network.RoutesClient
 	RouteFiltersClient                     *network.RouteFiltersClient
 	RouteTablesClient                      *network.RouteTablesClient
@@ -127,6 +129,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	ManagersClient := network.NewManagersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagersClient.Client, o.ResourceManagerAuthorizer)
 
+	ManagerNetworkGroupsClient := network.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerNetworkGroupsClient.Client, o.ResourceManagerAuthorizer)
+
 	ManagerSubscriptionConnectionsClient := network.NewSubscriptionNetworkManagerConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerSubscriptionConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -165,6 +170,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	PrivateLinkServiceClient := network.NewPrivateLinkServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PrivateLinkServiceClient.Client, o.ResourceManagerAuthorizer)
+
+	RouteMapsClient := network.NewRouteMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RouteMapsClient.Client, o.ResourceManagerAuthorizer)
 
 	RoutesClient := network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RoutesClient.Client, o.ResourceManagerAuthorizer)
@@ -262,6 +270,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		IPGroupsClient:                         &IpGroupsClient,
 		LocalNetworkGatewaysClient:             &LocalNetworkGatewaysClient,
 		ManagersClient:                         &ManagersClient,
+		ManagerNetworkGroupsClient:             &ManagerNetworkGroupsClient,
 		ManagerSubscriptionConnectionsClient:   &ManagerSubscriptionConnectionsClient,
 		NatRuleClient:                          &NatRuleClient,
 		PointToSiteVpnGatewaysClient:           &pointToSiteVpnGatewaysClient,
@@ -270,6 +279,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateEndpointClient:                  &PrivateEndpointClient,
 		PublicIPsClient:                        &PublicIPsClient,
 		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
+		RouteMapsClient:                        &RouteMapsClient,
 		RoutesClient:                           &RoutesClient,
 		RouteFiltersClient:                     &RouteFiltersClient,
 		RouteTablesClient:                      &RouteTablesClient,

@@ -52,7 +52,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Automation Job Schedule.
 
-* `job_schedule_id` - The UUID identifying the Automation Job Schedule.
+* `job_schedule_id` - (Optional) The UUID identifying the Automation Job Schedule.
 
 ## Timeouts
 

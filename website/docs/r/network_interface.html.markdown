@@ -106,7 +106,7 @@ When `private_ip_address_allocation` is set to `Static` the following fields can
 
 When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
 
-* `subnet_id` - (Required) The ID of the Subnet where this Network Interface should be located in.
+* `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 
 ## Attributes Reference
 

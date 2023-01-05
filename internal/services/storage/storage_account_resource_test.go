@@ -606,6 +606,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("300"),
+				check.That(data.ResourceName).Key("blob_properties.0.restore_policy.0.days").HasValue("299"),
 			),
 		},
 		data.ImportStep(),
@@ -625,6 +626,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("blob_properties.0.restore_policy.#").DoesNotExist(),
 				check.That(data.ResourceName).Key("blob_properties.0.container_delete_retention_policy.#").DoesNotExist(),
 			),
 		},
@@ -1683,33 +1685,6 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
 }
 
-func (r *StorageAccountResource) controlAllowNestedItemsToBePublic(data acceptance.TestData, allowFlag bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = %t
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, allowFlag)
-}
-
 func (r StorageAccountResource) isHnsEnabledTrue(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2439,6 +2414,10 @@ resource "azurerm_storage_account" "test" {
 
     delete_retention_policy {
       days = 300
+    }
+
+    restore_policy {
+      days = 299
     }
 
     default_service_version       = "2019-07-07"

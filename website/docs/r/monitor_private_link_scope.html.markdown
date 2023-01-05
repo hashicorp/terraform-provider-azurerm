@@ -44,10 +44,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 5 hours) Used when creating the Azure Monitor Private Link Scope.
+* `create` - (Defaults to 30 minutes) Used when creating the Azure Monitor Private Link Scope.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Monitor Private Link Scope.
-* `update` - (Defaults to 5 hours) Used when updating the Azure Monitor Private Link Scope.
-* `delete` - (Defaults to 5 hours) Used when deleting the Azure Monitor Private Link Scope.
+* `update` - (Defaults to 30 minutes) Used when updating the Azure Monitor Private Link Scope.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Monitor Private Link Scope.
 
 ## Import
 

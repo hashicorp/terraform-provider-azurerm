@@ -148,13 +148,13 @@ The `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - (Optional) The host key algorithm, should be `ssh-dss`, `ssh-rsa`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`. Required only if `host-key` exists.
 
-* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match.
+* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match. Defaults to `true`.
 
 ---
 
 The `trace` block supports the following:
 
-* `connection_string` - (Required) The connection string used for Application Insights.
+* `connection_string` - (Optional) The connection string used for Application Insights.
 
 * `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
 
@@ -172,13 +172,13 @@ The following attributes are exported:
 
 ---
 
-The `required_network_traffic_rules` supports the following:
+The `required_network_traffic_rules` block supports the following:
 
 * `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The IP list of required traffic.
+* `ip_addresses` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 

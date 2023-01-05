@@ -149,7 +149,11 @@ A `routing` block supports the following:
 
 * `associated_route_table` - (Required) The ID of the Route Table associated with this VPN Connection.
 
-* `propagated_route_table` - (Required) A `propagated_route_table` block as defined below.
+* `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
+
+* `inbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for inbound learned routes.
+
+* `outbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for outbound advertised routes.
 
 ---
 

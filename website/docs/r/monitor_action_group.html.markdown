@@ -139,7 +139,7 @@ The following arguments are supported:
 
 ---
 
-`arm_role_receiver` supports the following:
+The `arm_role_receiver` block supports the following:
 
 * `name` - (Required) The name of the ARM role receiver. Changing this forces a new resource to be created.
 * `role_id` - (Required) The arm role id.
@@ -147,7 +147,7 @@ The following arguments are supported:
 
 ---
 
-`automation_runbook_receiver` supports the following:
+The `automation_runbook_receiver` block supports the following:
 
 * `name` - (Required) The name of the automation runbook receiver. Changing this forces a new resource to be created.
 * `automation_account_id` - (Required) The automation account ID which holds this runbook and authenticates to Azure resources.
@@ -159,14 +159,14 @@ The following arguments are supported:
 
 ---
 
-`azure_app_push_receiver` supports the following:
+The `azure_app_push_receiver` block supports the following:
 
 * `name` - (Required) The name of the Azure app push receiver. Changing this forces a new resource to be created.
 * `email_address` - (Required) The email address of the user signed into the mobile app who will receive push notifications from this receiver.
 
 ---
 
-`azure_function_receiver` supports the following:
+The `azure_function_receiver` block supports the following:
 
 * `name` - (Required) The name of the Azure Function receiver. Changing this forces a new resource to be created.
 * `function_app_resource_id` - (Required) The Azure resource ID of the function app.
@@ -176,7 +176,7 @@ The following arguments are supported:
 
 ---
 
-`email_receiver` supports the following:
+The `email_receiver` block supports the following:
 
 * `name` - (Required) The name of the email receiver. Names must be unique (case-insensitive) across all receivers within an action group. Changing this forces a new resource to be created.
 * `email_address` - (Required) The email address of this receiver.
@@ -184,7 +184,7 @@ The following arguments are supported:
 
 ---
 
-`event_hub_receiver` supports the following:
+The `event_hub_receiver` block supports the following:
 
 * `name` - (Required) The name of the EventHub Receiver, must be unique within action group. Changing this forces a new resource to be created.
 * `event_hub_id` - (Optional) The resource ID of the respective Event Hub.
@@ -199,7 +199,7 @@ The following arguments are supported:
 
 ---
 
-`itsm_receiver` supports the following:
+The `itsm_receiver` block supports the following:
 
 * `name` - (Required) The name of the ITSM receiver. Changing this forces a new resource to be created.
 * `workspace_id` - (Required) The Azure Log Analytics workspace ID where this connection is defined. Format is `<subscription id>|<workspace id>`, for example `00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000`.
@@ -211,7 +211,7 @@ The following arguments are supported:
 
 ---
 
-`logic_app_receiver` supports the following:
+The `logic_app_receiver` block supports the following:
 
 * `name` - (Required) The name of the logic app receiver. Changing this forces a new resource to be created.
 * `resource_id` - (Required) The Azure resource ID of the logic app.
@@ -220,7 +220,7 @@ The following arguments are supported:
 
 ---
 
-`sms_receiver` supports the following:
+The `sms_receiver` block supports the following:
 
 * `name` - (Required) The name of the SMS receiver. Names must be unique (case-insensitive) across all receivers within an action group. Changing this forces a new resource to be created.
 * `country_code` - (Required) The country code of the SMS receiver.
@@ -228,7 +228,7 @@ The following arguments are supported:
 
 ---
 
-`voice_receiver` supports the following:
+The `voice_receiver` block supports the following:
 
 * `name` - (Required) The name of the voice receiver. Changing this forces a new resource to be created.
 * `country_code` - (Required) The country code of the voice receiver.
@@ -236,7 +236,7 @@ The following arguments are supported:
 
 ---
 
-`webhook_receiver` supports the following:
+The `webhook_receiver` block supports the following:
 
 * `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group. Changing this forces a new resource to be created.
 * `service_uri` - (Required) The URI where webhooks should be sent.
@@ -245,7 +245,9 @@ The following arguments are supported:
 
 ~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
 
-`aad_auth` supports the following:.
+---
+
+The `aad_auth` block supports the following:.
 
 * `object_id` - (Required) The webhook application object Id for AAD auth.
 * `identifier_uri` - (Optional) The identifier URI for AAD auth.

@@ -256,20 +256,24 @@ The following arguments are supported:
     selectors are enabled for this connection. Enabling policy-based traffic
     selectors requires an `ipsec_policy` block. Defaults to `false`.
 
-* `ipsec_policy` (Optional) A `ipsec_policy` block which is documented below.
+* `ipsec_policy` - (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
 
-* `traffic_selector_policy` (Optional) One or more `traffic_selector_policy` blocks which are documented below.
+* `traffic_selector_policy` - (Optional) One or more `traffic_selector_policy` blocks which are documented below.
     A `traffic_selector_policy` allows to specify a traffic selector policy proposal to be used in a virtual network gateway connection.
     For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `custom_bgp_addresses` block supports:
 
-* `primary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
-* `secondary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
+* `primary` - (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
+* `secondary` - (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
+
+---
 
 The `ipsec_policy` block supports:
 
@@ -299,11 +303,13 @@ The `ipsec_policy` block supports:
 * `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least
     `300` seconds. Defaults to `27000` seconds.
 
+---
+
 The `traffic_selector_policy` block supports:
 
-* `local_address_cidrs` - List of local CIDRs.
+* `local_address_cidrs` - (Required) List of local CIDRs.
 
-* `remote_address_cidrs` - List of remote CIDRs.
+* `remote_address_cidrs` - (Required) List of remote CIDRs.
 
 ## Attributes Reference
 
