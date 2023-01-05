@@ -10,6 +10,7 @@ import (
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
+// TODO 4.0 check if this can be removed
 // Hacking the SDK model, together with the Create and Get method for working around issue: https://github.com/Azure/azure-rest-api-specs/issues/21487
 
 type DataConnectorModel struct {
