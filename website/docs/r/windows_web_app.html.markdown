@@ -146,23 +146,33 @@ An `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include  `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0` and `v7.0`.
 
+~> **NOTE:** The Portal displayed values and the actual underlying API values differ for this setting, as follows:
+Portal Value | API value
+:--|--:
+ASP.NET V3.5 | v2.0
+ASP.NET V4.8 | v4.0
+.NET 6 (LTS) | v6.0
+.NET 7 (STS) | v7.0
+
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
 
-* `tomcat_version` - (Optional) The version of Tomcat the Java App should use. 
+* `tomcat_version` - (Optional) The version of Tomcat the Java App should use. Conflicts with `java_embedded_server_enabled`
 
-~> **NOTE:** See the official documentation for current supported versions.
+~> **NOTE:** See the official documentation for current supported versions.  Some example valuess include: `10.0`, `10.0.20`.
 
 * `java_embedded_server_enabled` - (Optional) Should the Java Embedded Server (Java SE) be used to run the app.
 
-* `java_version` - (Optional) The version of Java to use when `current_stack` is set to `java`. Possible values include `1.7`, `1.8`, `11` and `17`. Required with `java_container` and `java_container_version`.
+* `java_version` - (Optional) The version of Java to use when `current_stack` is set to `java`. 
 
-~> **NOTE:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
+~> **NOTE:** For currently supported versions, please see the official documentation. Some example values include: `1.8`, `1.8.0_322`,  `11`, `11.0.14`, `17` and `17.0.2`
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `~12`, `~14`, `~16`, and `~18`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, and `~18`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
-* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v7.4`.
+* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values are `v7.1`, `v7.4` and `Off`.
+
+~> **NOTE:** The value `Off` is used to signify latest supported by the service.
 
 * `python` - (Optional) The app is a Python app. Defaults to `false`.
 

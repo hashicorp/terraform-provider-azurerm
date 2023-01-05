@@ -55,7 +55,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+					ValidateFunc: validation.StringInSlice([]string{
 						"v2.0",
 						"v3.0",
 						"v4.0",
