@@ -443,7 +443,7 @@ func flattenDataLakeGen2(d *pluginsdk.ResourceData, data datastore.AzureDataLake
 }
 
 func expandCredentials(input []interface{}) map[string]interface{} {
-	if input == nil || len(input) == 0 || input[0] == nil {
+	if len(input) == 0 || input[0] == nil {
 		return map[string]interface{}{
 			"credentialsType": "None",
 		}

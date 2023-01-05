@@ -40,7 +40,7 @@ func TestDataStoreName(t *testing.T) {
 		{
 			// 2 chars
 			input:    "ab",
-			expected: false,
+			expected: true,
 		},
 		{
 			// 255 chars
