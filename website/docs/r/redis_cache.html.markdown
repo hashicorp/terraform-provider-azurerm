@@ -126,7 +126,7 @@ redis_configuration {
 
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
-* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
+* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below. Defaults to `volatile-lru`.
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 

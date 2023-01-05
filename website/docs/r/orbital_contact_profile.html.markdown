@@ -128,7 +128,7 @@ A `channels` block supports the following:
 
 An `end_point` block supports the following:
 
-* `end_point_name` -(Required) Name of an end point.
+* `end_point_name` - (Required) Name of an end point.
 
 * `ip_address` - (Required) IP address of an end point.
 

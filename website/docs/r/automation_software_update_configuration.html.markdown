@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Automation. Changing this forces a new Automation to be created.
 
-* `automation_account_id` (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
+* `automation_account_id` - (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
 * `operating_system` - (Required) The Operating system of target machines. Possible values are `Windows` and `Linux`.
 
@@ -163,7 +163,7 @@ A `schedule` block supports the following:
 
 * `description` -  (Optional) A description for this Schedule.
 
-* `interval` -  (Optional) The number of `frequency`s between runs. Only valid when frequency is `Day`, `Hour`, `Week`, or `Month` and defaults to `1`.
+* `interval` -  (Optional) The number of `frequency`s between runs. Only valid when frequency is `Day`, `Hour`, `Week`, or `Month`.
 
 * `start_time` -  (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
 

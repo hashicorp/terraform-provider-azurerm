@@ -18,6 +18,7 @@ resource "azurerm_resource_group" "example" {
   name     = "example-datadog"
   location = "West US 2"
 }
+
 resource "azurerm_datadog_monitor_tag_rule" "example" {
   datadog_monitor_id = azurerm_datadog_monitor.example.id
   log {
@@ -41,7 +42,7 @@ The following arguments are supported:
 
 ---
 
-* `rule_set_name` - (Optional) The name of the Tag Rules configuration.
+* `name` - (Optional) The name of the Tag Rules configuration. The allowed value is `default`. It defaults to `default`.
 
 * `log` - (Optional) A `log` block as defined below.
 

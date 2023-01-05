@@ -115,18 +115,22 @@ The following arguments are supported:
 
 ~> **Note:** `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
 
-`os_disk` supports the following:
+---
 
-* `os_type` - (Required) Specifies the type of operating system contained in the virtual machine image. Possible values are: Windows or Linux.
-* `os_state` - (Required) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized.
+The `os_disk` block supports the following:
+
+* `os_type` - (Optional) Specifies the type of operating system contained in the virtual machine image. Possible values are: `Windows` or `Linux`.
+* `os_state` - (Optional) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized. Possible values are `Generalized` and `Specialized`.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
 
-`data_disk` supports the following:
+---
 
-* `lun` - (Required) Specifies the logical unit number of the data disk.
+The `data_disk` block supports the following:
+
+* `lun` - (Optional) Specifies the logical unit number of the data disk.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.

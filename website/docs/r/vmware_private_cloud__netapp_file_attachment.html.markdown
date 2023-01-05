@@ -176,10 +176,10 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 10 hours) Used when creating the VMware Private Cloud Netapp File Volume Attachment.
+* `create` - (Defaults to 30 minutes) Used when creating the VMware Private Cloud Netapp File Volume Attachment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VMware Private Cloud Netapp File Volume Attachment.
 * `update` - (Defaults to 10 hours) Used when updating the VMware Private Cloud Netapp File Volume Attachment.
-* `delete` - (Defaults to 10 hours) Used when deleting the VMware Private Cloud Netapp File Volume Attachment.
+* `delete` - (Defaults to 30 minutes) Used when deleting the VMware Private Cloud Netapp File Volume Attachment.
 
 ## Import
 
