@@ -9,6 +9,8 @@ edit_uri: "https://github.com/hashicorp/terraform-provider-azurerm/tree/main/con
 docs_dir: contributing
 site_dir: site
 
+dev_addr: 127.0.0.1:47000
+
 nav:
   - Welcome: README.md
   - Basics:
@@ -23,11 +25,12 @@ nav:
       - Adding a new Resource: topics/guide-new-resource.md
       - Adding fields to an existing Data Source: topics/guide-new-fields-to-data-source.md
       - Adding fields to an existing Resource: topics/guide-new-fields-to-resource.md
+      - When to create a new Resource vs Inline Block: topics/guide-new-resource-vs-inline.md
   - Reference:
     - Acceptance Testing: topics/reference-acceptance-testing.md
     - Working with Errors: topics/reference-errors.md
     - Naming: topics/reference-naming.md
-    - Schema Design: schema-design-considerations.md
+    - Schema Design: topics/schema-design-considerations.md
     - Glossary: topics/reference-glossary.md
   - Maintainers:
     - Updates to the Changelog: topics/maintainer-changelog.md
