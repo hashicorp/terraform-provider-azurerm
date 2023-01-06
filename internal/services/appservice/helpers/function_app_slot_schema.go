@@ -917,8 +917,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 
 	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
 		DotNetVersion:         pointer.From(functionAppSlotSiteConfig.NetFrameworkVersion),
-		DotNetIsolated:        false, // set this later from app_settings
-		NodeVersion:           "",    // Need to get this from app_settings later
+		DotNetIsolated:        false, // Note: this is set later from app_settings.FUNCTIONS_WORKER_RUNTIME in unpackWindowsFunctionAppSettings
+		NodeVersion:           "",    // Note: this will be set from app_settings later in unpackWindowsFunctionAppSettings
 		JavaVersion:           pointer.From(functionAppSlotSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
 		CustomHandler:         false, // set this later from app_settings

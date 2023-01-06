@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"regexp"
 	"testing"
 
@@ -841,7 +842,9 @@ func TestAccWindowsWebApp_basicDockerContainer(t *testing.T) {
 // TODO: More Java matrix tests...
 
 func TestAccWindowsWebApp_withNode12(t *testing.T) {
-	// TODO Deprecated - remove in 4.0
+	if features.FourPointOh() {
+		t.Fatalf("Node 12 is no longer supported in v4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 

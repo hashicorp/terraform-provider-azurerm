@@ -174,7 +174,7 @@ ASP.NET V4.8 | v4.0
 
 ~> **NOTE:** The value `Off` is used to signify latest supported by the service.
 
-* `python` - (Optional) The app is a Python app. Defaults to `false`.
+* `python` - (Optional) Specifies whether this is a Python app. Defaults to `false`.
 
 ---
 

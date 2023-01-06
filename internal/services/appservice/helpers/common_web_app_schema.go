@@ -348,8 +348,6 @@ func BackupSchema() *pluginsdk.Schema {
 								Optional:    true,
 								Computed:    true,
 								Description: "When the schedule should start working in RFC-3339 format.",
-								// DiffSuppressFunc: suppress.RFC3339Time,
-								// ValidateFunc:     validation.IsRFC3339Time,
 							},
 
 							"last_execution_time": {
@@ -1115,7 +1113,7 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 				blobStorage.RetentionInDays = int(*httpLogs.AzureBlobStorage.RetentionInDays)
 			}
 
-			if blobStorage.RetentionInDays != 0 && blobStorage.SasUrl != "" {
+			if blobStorage.RetentionInDays != 0 || blobStorage.SasUrl != "" {
 				httpLog.AzureBlobStorage = []AzureBlobStorageHttp{blobStorage}
 			}
 		}

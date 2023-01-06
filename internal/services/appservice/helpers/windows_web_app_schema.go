@@ -714,7 +714,6 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	if winAppStack.PhpVersion == "" {
 		winAppStack.PhpVersion = PhpVersionOff
 	}
-	winAppStack.NodeVersion = pointer.From(appSiteConfig.NodeVersion)     // TODO - Get from app_settings
 	winAppStack.PythonVersion = pointer.From(appSiteConfig.PythonVersion) // This _should_ always be `""`
 	winAppStack.Python = currentStack == CurrentStackPython
 	winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)

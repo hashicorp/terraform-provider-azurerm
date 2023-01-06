@@ -910,7 +910,6 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
 			case "custom":
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
-
 			}
 		case "DOCKER_REGISTRY_SERVER_URL":
 			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
