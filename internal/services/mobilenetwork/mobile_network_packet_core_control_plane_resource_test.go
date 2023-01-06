@@ -260,10 +260,10 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
 
 func (r MobileNetworkPacketCoreControlPlaneResource) withCertificateUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-			%s
+	%s
 
 data "azurerm_client_config" "test" {}
-
+	
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest-mn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -336,6 +336,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
 
   depends_on = [azurerm_mobile_network.test]
 }
+
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 

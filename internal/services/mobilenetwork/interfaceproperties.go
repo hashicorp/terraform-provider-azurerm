@@ -44,3 +44,30 @@ func interfacePropertiesSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
+func interfacePropertiesSchemaDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"ipv4_address": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"ipv4_subnet": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"ipv4_gateway": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
