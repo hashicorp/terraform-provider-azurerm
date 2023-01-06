@@ -286,7 +286,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
-		d.Set("vm_size", props.VmSize)
+		d.Set("vm_size", props.VMSize)
 
 		d.Set("tags", tags.Flatten(props.Tags))
 	}

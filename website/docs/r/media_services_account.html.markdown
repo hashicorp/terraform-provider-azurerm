@@ -64,7 +64,7 @@ A `storage_account` block supports the following:
 
 * `id` - (Required) Specifies the ID of the Storage Account that will be associated with the Media Services instance.
 
-* `is_primary` - (Required) Specifies whether the storage account should be the primary account or not. Defaults to `false`.
+* `is_primary` - (Optional) Specifies whether the storage account should be the primary account or not. Defaults to `false`.
 
 ~> **NOTE:** Whilst multiple `storage_account` blocks can be specified - one of them must be set to the primary
 
@@ -72,7 +72,9 @@ A `storage_account` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Media Services Account. Possible value is  `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Media Services Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Media Services Account.
 
 ---
 
@@ -114,5 +116,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Media Services Accounts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_services_account.account /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Media/mediaservices/account1
+terraform import azurerm_media_services_account.account /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Media/mediaServices/account1
 ```

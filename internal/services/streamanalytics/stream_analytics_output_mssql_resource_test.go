@@ -52,13 +52,13 @@ func TestAccStreamAnalyticsOutputSql_update(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsOutputSql_authenticationMode(t *testing.T) {
+func TestAccStreamAnalyticsOutputSql_authenticationModeMsi(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
 	r := StreamAnalyticsOutputSqlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authenticationMode(data),
+			Config: r.authenticationModeMsi(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -213,7 +213,7 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 `, template, data.RandomInteger, maxBatchCount, maxWriterCount)
 }
 
-func (r StreamAnalyticsOutputSqlResource) authenticationMode(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputSqlResource) authenticationModeMsi(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -225,8 +225,6 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   authentication_mode       = "Msi"
 
   server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
   database = azurerm_sql_database.test.name
   table    = "AccTestTable"
 }

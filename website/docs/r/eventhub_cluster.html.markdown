@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The SKU name of the EventHub Cluster. The only supported value at this time is `Dedicated_1`.
+* `sku_name` - (Required) The SKU name of the EventHub Cluster. The only supported value at this time is `Dedicated_1`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

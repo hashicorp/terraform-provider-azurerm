@@ -107,9 +107,9 @@ The following arguments are supported:
 * `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint,
   this must be specified for Profiles using the `Performance` routing method.
 
-* `minimum_required_child_endpoints_ipv4` - (Optional) This argument specifies the minimum number of IPv4 (DNS record type A) endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This argument only applies to Endpoints of type `nestedEndpoints` and defaults to `1`.
+* `minimum_required_child_endpoints_ipv4` - (Optional) This argument specifies the minimum number of IPv4 (DNS record type A) endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This argument only applies to Endpoints of type `nestedEndpoints` and 
 
-* `minimum_required_child_endpoints_ipv6` - (Optional) This argument specifies the minimum number of IPv6 (DNS record type AAAA) endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This argument only applies to Endpoints of type `nestedEndpoints` and defaults to `1`.
+* `minimum_required_child_endpoints_ipv6` - (Optional) This argument specifies the minimum number of IPv6 (DNS record type AAAA) endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This argument only applies to Endpoints of type `nestedEndpoints` and 
 
 * `priority` - (Optional) Specifies the priority of this Endpoint, this must be
     specified for Profiles using the `Priority` traffic routing method. Supports

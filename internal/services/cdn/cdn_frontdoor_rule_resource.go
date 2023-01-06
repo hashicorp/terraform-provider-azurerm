@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	cdn "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	cdn "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnFrontDoorRuleActions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
@@ -859,7 +859,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 
 func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeliveryRuleCondition, error) {
 	results := make([]cdn.BasicDeliveryRuleCondition, 0)
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return results, nil
 	}
 

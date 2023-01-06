@@ -2,7 +2,6 @@ package clients
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -67,6 +66,7 @@ import (
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
+	labservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/client"
 	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
@@ -186,6 +186,7 @@ type Client struct {
 	IoTTimeSeriesInsights *timeseriesinsights.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
+	LabService            *labservice.Client
 	Legacy                *legacy.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
@@ -247,9 +248,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
 
-	if err := buildAutoClients(&client.autoClient, o); err != nil {
-		return fmt.Errorf("building auto-sdk clients: %+v", err)
-	}
+	buildAutoClients(&client.autoClient, o)
 
 	client.Features = o.Features
 	client.StopContext = ctx
@@ -309,6 +308,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
+	client.LabService = labservice.NewClient(o)
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)

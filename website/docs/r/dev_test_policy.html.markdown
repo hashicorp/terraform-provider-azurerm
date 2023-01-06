@@ -55,8 +55,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Dev Test Lab resource exists. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Dev Test Lab exists. Changing this forces a new resource to be created.
-
 * `description` - (Optional) A description for the Policy.
 
 * `evaluator_type` - (Required) The Evaluation Type used for this Policy. Possible values include: 'AllowedValuesPolicy', 'MaxValuePolicy'. Changing this forces a new resource to be created.

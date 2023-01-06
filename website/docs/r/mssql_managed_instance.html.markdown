@@ -215,15 +215,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure.
+* `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Managed Instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Managed Instance. Changing this forces a new resource to be created.
 
 * `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `GP_Gen8IM`, `GP_Gen8IH`, `BC_Gen4`, `BC_Gen5`, `BC_Gen8IM` or `BC_Gen8IH`.
 
 * `storage_size_in_gb` - (Required) Maximum storage space for the SQL Managed instance. This should be a multiple of 32 (GB).
 
-* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
+* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with. Changing this forces a new resource to be created.
 
 * `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `8`, `16`, `24`, `32`, `40`, `64`, or `80` for Gen5 SKUs.
 

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -458,6 +458,22 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+
+						"restore_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:         pluginsdk.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+							RequiredWith: []string{"blob_properties.0.delete_retention_policy"},
 						},
 
 						"versioning_enabled": {
@@ -1310,6 +1326,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
+		if (blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled) && (blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled) {
+			// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
+			return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
+		}
+
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
 			return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", id.Name, err)
 		}
@@ -1353,11 +1374,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
 		if accountTier != string(storage.SkuTierPremium) && shareProperties.FileServicePropertiesProperties != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings != nil {
-
 			// Error if the user has tried to enable multichannel on a standard tier storage account
 			smb := shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb
 			if smb != nil && smb.Multichannel != nil {
-
 				if smb.Multichannel.Enabled != nil {
 					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
 						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
@@ -1568,7 +1587,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
 			return fmt.Errorf("updating %s Customer Managed Key: %+v", *id, err)
 		}
-
 	}
 
 	if d.HasChange("sftp_enabled") {
@@ -1822,7 +1840,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
 		if accountTier != string(storage.SkuTierPremium) {
-
 			// Error if the user has tried to enable multichannel on a standard tier storage account
 			if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
 				if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
@@ -2384,7 +2401,6 @@ func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAcc
 			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
 		},
 	}
-
 }
 
 func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
@@ -2587,6 +2603,10 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+
+	restorePolicyRaw := v["restore_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
+
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -2618,6 +2638,22 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 	policy := input[0].(map[string]interface{})
 
 	return &storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
+	}
+}
+
+func expandBlobPropertiesRestorePolicy(input []interface{}) *storage.RestorePolicyProperties {
+	result := storage.RestorePolicyProperties{
+		Enabled: utils.Bool(false),
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &storage.RestorePolicyProperties{
 		Enabled: utils.Bool(true),
 		Days:    utils.Int32(int32(policy["days"].(int))),
 	}
@@ -3052,6 +3088,11 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
+	flattenedRestorePolicy := make([]interface{}, 0)
+	if restorePolicy := input.BlobServicePropertiesProperties.RestorePolicy; restorePolicy != nil {
+		flattenedRestorePolicy = flattenBlobPropertiesRestorePolicy(restorePolicy)
+	}
+
 	flattenedContainerDeletePolicy := make([]interface{}, 0)
 	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
@@ -3085,6 +3126,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		map[string]interface{}{
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
+			"restore_policy":                    flattenedRestorePolicy,
 			"versioning_enabled":                versioning,
 			"change_feed_enabled":               changeFeedEnabled,
 			"change_feed_retention_in_days":     changeFeedRetentionInDays,
@@ -3159,6 +3201,27 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	}
 
 	return deleteRetentionPolicy
+}
+
+func flattenBlobPropertiesRestorePolicy(input *storage.RestorePolicyProperties) []interface{} {
+	restorePolicy := make([]interface{}, 0)
+
+	if input == nil {
+		return restorePolicy
+	}
+
+	if enabled := input.Enabled; enabled != nil && *enabled {
+		days := 0
+		if input.Days != nil {
+			days = int(*input.Days)
+		}
+
+		restorePolicy = append(restorePolicy, map[string]interface{}{
+			"days": days,
+		})
+	}
+
+	return restorePolicy
 }
 
 func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {

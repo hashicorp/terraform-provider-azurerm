@@ -54,9 +54,9 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "work
 
 The following arguments are supported:
 
-* `workspace_id` - (Required) The resource ID for the Virtual Desktop Workspace.
+* `workspace_id` - (Required) The resource ID for the Virtual Desktop Workspace. Changing this forces a new resource to be created.
 
-* `application_group_id` - (Required) The resource ID for the Virtual Desktop Application Group.
+* `application_group_id` - (Required) The resource ID for the Virtual Desktop Application Group. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

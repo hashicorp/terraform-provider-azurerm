@@ -85,7 +85,7 @@ The following arguments are supported:
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
-* `dns_name_label_reuse_policy` - (Optional) The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`. Defaults to `Unsecure`. Changing this forces a new resource to be created.
+* `dns_name_label_reuse_policy` - (Optional) The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`. Defaults to `Unsecure`. 
 
 * `exposed_port` - (Optional) Zero or more `exposed_port` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones in which this Container Group is located.
+* `zones` - (Optional) A list of Availability Zones in which this Container Group is located. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -177,9 +177,9 @@ A `container` block supports:
 
 An `exposed_port` block supports:
 
-* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
+* `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
 ~> **Note:** Removing all `exposed_port` blocks requires setting `exposed_port = []`.
 
@@ -217,19 +217,19 @@ A `log_analytics` block supports:
 
 A `ports` block supports:
 
-* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
+* `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
 ~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
---
+---
 
 A `gpu` block supports:
 
-* `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
+* `count` - (Optional) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
+* `sku` - (Optional) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
 
 ---
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/encodings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -72,7 +72,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"output": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -84,7 +84,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForOnErrorType(), false),
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"builtin_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -99,7 +99,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								},
 							},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"audio_analyzer_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -136,7 +136,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								},
 							},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"video_analyzer_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -178,7 +178,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								},
 							},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"face_detector_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -206,7 +206,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 }
 
 func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +248,7 @@ func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -287,7 +287,7 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.Encodings
+	client := meta.(*clients.Client).Media.V20211101Client.Encodings
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

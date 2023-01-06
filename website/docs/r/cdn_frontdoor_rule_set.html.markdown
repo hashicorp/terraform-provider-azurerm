@@ -51,6 +51,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Rule Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule Set.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Rule Set.
+* `update` - (Defaults to 30 minutes) Used when updating the Cdn Frontdoor Rule Set.
 
 ## Import
 

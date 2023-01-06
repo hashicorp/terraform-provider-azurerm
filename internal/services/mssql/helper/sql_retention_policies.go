@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -130,7 +130,7 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.LongTermRetenti
 	}
 
 	weekOfYear := int32(1)
-	if longTermRetentionPolicy.WeekOfYear != nil {
+	if longTermRetentionPolicy.WeekOfYear != nil && *longTermRetentionPolicy.WeekOfYear != 0 {
 		weekOfYear = *longTermRetentionPolicy.WeekOfYear
 	}
 
