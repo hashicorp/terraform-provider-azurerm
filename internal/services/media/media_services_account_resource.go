@@ -90,8 +90,8 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 			"encryption": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
-				MinItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -414,6 +414,7 @@ func flattenMediaServicesAccountStorageAccounts(input *[]accounts.StorageAccount
 
 	return &results, nil
 }
+
 func expandMediaServicesAccountEncryption(input []interface{}) (*accounts.AccountEncryption, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
@@ -425,17 +426,21 @@ func expandMediaServicesAccountEncryption(input []interface{}) (*accounts.Accoun
 		return nil, err
 	}
 
-	var keyVaultProperty accounts.KeyVaultProperties
-	if keyIdentifierRaw, ok := val["key_vault_key_identifier"]; ok {
-		keyIdentifier := keyIdentifierRaw.(string)
-		keyVaultProperty.KeyIdentifier = &keyIdentifier
+	accountsEncryption := accounts.AccountEncryption{
+		Type:     accounts.AccountEncryptionKeyType(val["type"].(string)),
+		Identity: resourceIdentity,
 	}
 
-	return &accounts.AccountEncryption{
-		Type:               accounts.AccountEncryptionKeyType(val["type"].(string)),
-		Identity:           resourceIdentity,
-		KeyVaultProperties: &keyVaultProperty,
-	}, nil
+	if keyIdentifier, ok := val["key_vault_key_identifier"].(string); ok && keyIdentifier != "" {
+		if accountsEncryption.Type != accounts.AccountEncryptionKeyTypeCustomerKey {
+			return nil, fmt.Errorf("key_vault_key_identifier can only be set when encryption type is 'CustomerKey'")
+		}
+		accountsEncryption.KeyVaultProperties = &accounts.KeyVaultProperties{
+			KeyIdentifier: &keyIdentifier,
+		}
+	}
+
+	return &accountsEncryption, nil
 }
 
 func flattenMediaServicesAccountEncryption(input *accounts.AccountEncryption) (*[]interface{}, error) {
@@ -499,8 +504,7 @@ func flattenMediaServicesAccountIdentity(input *accounts.MediaServiceIdentity) (
 			identityType = identity.TypeSystemAssignedUserAssigned
 		}
 		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identityType,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+			Type: identityType,
 		}
 		if input.PrincipalId != nil {
 			transform.PrincipalId = *input.PrincipalId
@@ -509,6 +513,7 @@ func flattenMediaServicesAccountIdentity(input *accounts.MediaServiceIdentity) (
 			transform.TenantId = *input.TenantId
 		}
 		if input.UserAssignedIdentities != nil {
+			transform.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails)
 			for k, v := range *input.UserAssignedIdentities {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,
@@ -562,7 +567,7 @@ func flattenMediaServicesAccountKeyDelivery(input *accounts.KeyDelivery) []inter
 }
 
 func expandMediaServicesAccountManagedIdentity(input []interface{}) (*accounts.ResourceIdentity, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
@@ -593,7 +598,7 @@ func flattenMediaServicesAccountManagedIdentity(input *accounts.ResourceIdentity
 	return []interface{}{
 		map[string]interface{}{
 			"use_system_assigned_identity": input.UseSystemAssignedIdentity,
-			"user_assigned_identity":       userAssignedIdentity,
+			"user_assigned_identity_id":    userAssignedIdentity,
 		},
 	}
 }

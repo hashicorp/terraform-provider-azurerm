@@ -275,14 +275,24 @@ func (r MediaServicesAccountResource) encryptionSystemKey(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_media_services_account" "test" {
-  name                = "acctestmsa%s"
+  name                = "acctestmsa%[2]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
     id         = azurerm_storage_account.first.id
     is_primary = true
+  }
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   encryption {
     type = "SystemKey"
@@ -368,9 +378,11 @@ resource "azurerm_media_services_account" "test" {
     is_primary = true
   }
   encryption {
-    type                      = "CustomerKey"
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-    key_vault_key_identifier  = azurerm_key_vault_key.test.id
+    type                     = "CustomerKey"
+    key_vault_key_identifier = azurerm_key_vault_key.test.id
+    managed_identity {
+      user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    }
   }
 
   tags = {
