@@ -30,9 +30,10 @@ func resourceMobileNetworkChildWaitForDeletion(ctx context.Context, id string, g
 
 			return resp, strconv.Itoa(resp.StatusCode), nil
 		},
-		MinTimeout:   10 * time.Second,
-		PollInterval: 5 * time.Second,
-		Timeout:      time.Until(deadline),
+		MinTimeout:                10 * time.Second,
+		PollInterval:              5 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {

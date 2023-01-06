@@ -46,8 +46,6 @@ The following arguments are supported:
 
 * `mobile_network_code` - (Required) Mobile network code (MNC), defined in https://www.itu.int/rec/T-REC-E.212 .
 
-* `public_land_mobile_network_identifier` - (Required) A `public_land_mobile_network_identifier` block as defined below.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network.
 
 ---

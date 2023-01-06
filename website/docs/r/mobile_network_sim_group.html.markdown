@@ -89,15 +89,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network Sim Groups.
 
-* `identity` - An `identity` block as defined below.
-
----
-
-An `identity` block exports the following:
-
-* `principal_id` - The Principal ID associated with this Managed Service Identity.
-
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

@@ -101,7 +101,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network Site.
 
-* `network_function_ids` - (Optional) An array of Id of Network Functions deployed on the site.
+* `network_function_ids` - An array of Id of Network Functions deployed on the site.
 
 ## Timeouts
 
