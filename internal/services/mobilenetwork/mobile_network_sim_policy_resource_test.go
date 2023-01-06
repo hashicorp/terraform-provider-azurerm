@@ -103,7 +103,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
+  name     = "acctest-mn-%[1]d"
   location = "%[2]s"
 }
 

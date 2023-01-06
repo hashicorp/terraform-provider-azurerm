@@ -140,7 +140,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
+  name     = "acctest-mn-%[1]d"
   location = "%[2]s"
 }
 
@@ -395,9 +395,9 @@ resource "azurerm_mobile_network_sim" "test" {
   name                                     = "acctest-mns-%[2]d"
   mobile_network_sim_group_id              = azurerm_mobile_network_sim_group.test.id
   authentication_key                       = "00000000000000000000000000000000"
+  operator_key_code                        = "00000000000000000000000000000000"
   integrated_circuit_card_identifier       = "8900000000000000000"
   international_mobile_subscriber_identity = "000000000000000"
-  operator_key_code                        = "00000000000000000000000000000000"
   sim_policy_id                            = azurerm_mobile_network_sim_policy.test.id
 
   static_ip_configuration {
