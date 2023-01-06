@@ -141,7 +141,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Front Door Firewall Policy enabled? Defaults to `true`.
 
-* `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
+* `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
 -> **NOTE:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
 
@@ -248,8 +248,6 @@ An `exclusion` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Front Door Firewall Policy.
-
-* `location` - The Azure Region where this Front Door Firewall Policy exists.
 
 * `frontend_endpoint_ids` - The Front Door Profiles frontend endpoints associated with this Front Door Firewall Policy.
 

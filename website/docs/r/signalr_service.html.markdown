@@ -59,13 +59,13 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as documented below.
 
-* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
+* `connectivity_logs_enabled` - (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
-* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
+* `messaging_logs_enabled` - (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
 
-* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
+* `live_trace_enabled` - (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
 
-* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
+* `service_mode` - (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 

@@ -59,7 +59,7 @@ The following arguments are supported:
 
 ~> **NOTE** Please follow [Set up Logz.io single sign-on](https://docs.microsoft.com/azure/partner-solutions/logzio/setup-sso) to create the ID of the Enterprise App.
 
-* `enabled` - (Optional) Whether the resource monitoring is enabled?
+* `enabled` - (Optional) Whether the resource monitoring is enabled? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the logz Monitor.
 

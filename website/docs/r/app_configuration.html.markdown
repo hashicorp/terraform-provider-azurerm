@@ -152,7 +152,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
 
-* `encrption` - (Optional) An `encryption` block as defined below.
+* `encryption` - (Optional) An `encryption` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`.
 

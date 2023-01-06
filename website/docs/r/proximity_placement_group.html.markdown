@@ -40,6 +40,12 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `allowed_vm_sizes` - (Optional) Specifies the supported sizes of Virtual Machines that can be created in the Proximity Placement Group.
+
+* `zone` - (Optional) Specifies the supported zone of the Proximity Placement Group. Changing this forces a new resource to be created.
+
+~> **NOTE:** `allowed_vm_sizes` must be set when `zone` is specified.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

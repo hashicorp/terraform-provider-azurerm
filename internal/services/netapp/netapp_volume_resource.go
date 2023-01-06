@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -55,6 +55,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
+
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -306,6 +308,14 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+
+	zones := &[]string{}
+	if v, ok := d.GetOk("zone"); ok {
+		zones = &[]string{
+			v.(string),
+		}
+	}
+
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
@@ -445,7 +455,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
+		Zones: zones,
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
@@ -501,6 +512,10 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	shouldUpdate := false
 	update := volumes.VolumePatch{
 		Properties: &volumes.VolumePatchProperties{},
+	}
+
+	if d.HasChange("zones") {
+		return fmt.Errorf("zone changes are not supported after volume is already created, %s", id)
 	}
 
 	if d.HasChange("storage_quota_in_gb") {
@@ -584,6 +599,14 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		zone := ""
+		if model.Zones != nil {
+			if zones := *model.Zones; len(zones) > 0 {
+				zone = zones[0]
+			}
+		}
+		d.Set("zone", zone)
 
 		props := model.Properties
 		d.Set("volume_path", props.CreationToken)

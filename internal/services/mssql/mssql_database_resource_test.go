@@ -51,9 +51,14 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
-	maintenance_configuration_name := "SQL_Default"
-	if data.Locations.Primary == "westeurope" {
+	maintenance_configuration_name := ""
+	switch data.Locations.Primary {
+	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
+	case "francecentral":
+		maintenance_configuration_name = "SQL_FranceCentral_DB_1"
+	default:
+		maintenance_configuration_name = "SQL_Default"
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -606,6 +611,13 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.withLongTermRetentionPolicyNoWeekOfYear(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -789,6 +801,16 @@ resource "azurerm_mssql_database" "import" {
 }
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
+	configName := ""
+	switch data.Locations.Primary {
+	case "westeurope":
+		configName = "SQL_WestEurope_DB_2"
+	case "francecentral":
+		configName = "SQL_FranceCentral_DB_1"
+	default:
+		configName = "SQL_Default"
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -801,7 +823,7 @@ resource "azurerm_mssql_database" "test" {
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
-  maintenance_configuration_name = azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
+  maintenance_configuration_name = "%[3]s"
 
   storage_account_type = "Local"
 
@@ -809,7 +831,7 @@ resource "azurerm_mssql_database" "test" {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, configName)
 }
 
 func (r MsSqlDatabaseResource) update(data acceptance.TestData) string {
@@ -1454,6 +1476,36 @@ resource "azurerm_mssql_database" "test" {
     weekly_retention = "P1W"
     yearly_retention = "P1Y"
     week_of_year     = 2
+  }
+}
+`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withLongTermRetentionPolicyNoWeekOfYear(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_mssql_server.test.id
+  long_term_retention_policy {
+    weekly_retention = "P10D"
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)

@@ -44,7 +44,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  utils.String("default"),
+				Default:  "default",
 			},
 
 			"enterprise_application_id": {
@@ -99,8 +99,14 @@ func resourceDatadogSingleSignOnConfigurationsCreateorUpdate(d *pluginsdk.Resour
 			EnterpriseAppID:   utils.String(enterpriseAppID),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, configurationName, &body); err != nil {
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, configurationName, &body)
+	if err != nil {
 		return fmt.Errorf("configuring SingleSignOn on Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on configuring SingleSignOn on Datadog Monitor %s: %+v", id, err)
 	}
 
 	d.SetId(ssoId)
@@ -166,8 +172,14 @@ func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, 
 			EnterpriseAppID:   utils.String(enterpriseAppID),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.SingleSignOnConfigurationName, &body); err != nil {
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.SingleSignOnConfigurationName, &body)
+	if err != nil {
 		return fmt.Errorf("removing SingleSignOnConfiguration on Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on removing SingleSignOnConfiguration on Datadog Monitor %s: %+v", id, err)
 	}
 
 	return nil

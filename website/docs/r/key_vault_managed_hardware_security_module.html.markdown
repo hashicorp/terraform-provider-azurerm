@@ -62,11 +62,11 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Active Directory Tenant ID that should be used for authenticating requests to the key vault Managed Hardware Security Module. Changing this forces a new resource to be created.
 
-* `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault Managed Hardware Security Module? Defaults to `false`. Changing this forces a new resource to be created.
+* `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault Managed Hardware Security Module?  Changing this forces a new resource to be created.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` days. Defaults to `90`. Changing this forces a new resource to be created.
 
-* `public_network_access_enabled` - (Optional) Whether traffic from public networks is permitted. Defaults to `True`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Whether traffic from public networks is permitted. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
