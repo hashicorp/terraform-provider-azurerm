@@ -176,7 +176,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
-			logAnalyticsClient := metadata.Client.LogAnalytics.WorkspacesClient
+			logAnalyticsClient := metadata.Client.LogAnalytics.SharedKeyWorkspacesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var containerAppEnvironment ContainerAppEnvironmentModel
