@@ -570,6 +570,7 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d *pluginsdk.Resour
 			PolicyDefinitionID:          utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.policy_definition_id", i)).(string)),
 			Parameters:                  parameters,
 			PolicyDefinitionReferenceID: utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.reference_id", i)).(string)),
+			GroupNames:                  d.Get(fmt.Sprintf("policy_definition_reference.%d.policy_group_names", i)).(*[]string),
 		})
 	}
 
