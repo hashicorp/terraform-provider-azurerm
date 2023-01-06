@@ -609,7 +609,7 @@ A `rewrite_rule_set` block supports the following:
 
 * `name` - (Required) Unique name of the rewrite rule set block
 
-* `rewrite_rule` - (Required) One or more `rewrite_rule` blocks as defined above.
+* `rewrite_rule` - (Optional) One or more `rewrite_rule` blocks as defined above.
 
 ---
 
@@ -839,7 +839,7 @@ A `url_path_map` block exports the following:
 
 * `default_redirect_configuration_id` - The ID of the Default Redirect Configuration.
 
-* `path_rule` - A list of `path_rule` blocks as defined above.
+* `path_rule` - (Required) A list of `path_rule` blocks as defined above.
 
 ---
 

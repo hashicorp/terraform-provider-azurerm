@@ -98,9 +98,9 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below.
 
-* `storage_account` - (Required) One or more `storage_account` block as defined below.
+* `storage_account` - (Optional) One or more `storage_account` block as defined below.
 
-* `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
+* `storage_account_gen2` - (Optional) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Kafka Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 

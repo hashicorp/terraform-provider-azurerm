@@ -460,6 +460,22 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							},
 						},
 
+						"restore_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:         pluginsdk.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+							RequiredWith: []string{"blob_properties.0.delete_retention_policy"},
+						},
+
 						"versioning_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -1308,6 +1324,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && isHnsEnabled {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+		}
+
+		if (blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled) && (blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled) {
+			// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
+			return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
 		}
 
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -2582,6 +2603,10 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+
+	restorePolicyRaw := v["restore_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
+
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -2613,6 +2638,22 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 	policy := input[0].(map[string]interface{})
 
 	return &storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
+	}
+}
+
+func expandBlobPropertiesRestorePolicy(input []interface{}) *storage.RestorePolicyProperties {
+	result := storage.RestorePolicyProperties{
+		Enabled: utils.Bool(false),
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &storage.RestorePolicyProperties{
 		Enabled: utils.Bool(true),
 		Days:    utils.Int32(int32(policy["days"].(int))),
 	}
@@ -3047,6 +3088,11 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
+	flattenedRestorePolicy := make([]interface{}, 0)
+	if restorePolicy := input.BlobServicePropertiesProperties.RestorePolicy; restorePolicy != nil {
+		flattenedRestorePolicy = flattenBlobPropertiesRestorePolicy(restorePolicy)
+	}
+
 	flattenedContainerDeletePolicy := make([]interface{}, 0)
 	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
@@ -3080,6 +3126,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		map[string]interface{}{
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
+			"restore_policy":                    flattenedRestorePolicy,
 			"versioning_enabled":                versioning,
 			"change_feed_enabled":               changeFeedEnabled,
 			"change_feed_retention_in_days":     changeFeedRetentionInDays,
@@ -3154,6 +3201,27 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	}
 
 	return deleteRetentionPolicy
+}
+
+func flattenBlobPropertiesRestorePolicy(input *storage.RestorePolicyProperties) []interface{} {
+	restorePolicy := make([]interface{}, 0)
+
+	if input == nil {
+		return restorePolicy
+	}
+
+	if enabled := input.Enabled; enabled != nil && *enabled {
+		days := 0
+		if input.Days != nil {
+			days = int(*input.Days)
+		}
+
+		restorePolicy = append(restorePolicy, map[string]interface{}{
+			"days": days,
+		})
+	}
+
+	return restorePolicy
 }
 
 func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {

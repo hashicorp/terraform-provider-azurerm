@@ -107,9 +107,9 @@ The following arguments are supported:
 
 * `network_interface_ids` - (Required) A list of Network Interface IDs which should be associated with the Virtual Machine.
 
-* `os_profile_linux_config` - (Required, when a Linux machine) An `os_profile_linux_config` block as defined below.
+* `os_profile_linux_config` - (Optional) (Required, when a Linux machine) An `os_profile_linux_config` block as defined below.
 
-* `os_profile_windows_config` - (Required, when a Windows machine) An `os_profile_windows_config` block as defined below.
+* `os_profile_windows_config` - (Optional) (Required, when a Windows machine) An `os_profile_windows_config` block as defined below.
 
 * `vm_size` - (Required) Specifies the [size of the Virtual Machine](https://docs.microsoft.com/azure/virtual-machines/sizes-general). See also [Azure VM Naming Conventions](https://docs.microsoft.com/azure/virtual-machines/vm-naming-conventions).
 
@@ -238,7 +238,7 @@ A `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the ID of the Key Vault to use.
 
-* `vault_certificates` - (Required) One or more `vault_certificates` blocks.
+* `vault_certificates` - (Optional) One or more `vault_certificates` blocks.
 
 ---
 

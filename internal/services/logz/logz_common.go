@@ -1,6 +1,8 @@
 package logz
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -8,6 +10,9 @@ import (
 )
 
 const TagRuleName = "default"
+
+const PlanId100gb14days = "100gb14days"
+const PlanDetails100gb14days = "100gb14days@TIDgmz7xq9ge3py"
 
 func SchemaUserInfo() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -127,4 +132,20 @@ func schemaTagFilter() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func getPlanDetails(plan string) (string, error) {
+	if plan == PlanId100gb14days {
+		return PlanDetails100gb14days, nil
+	}
+
+	return "", fmt.Errorf("cannot find plan details for id: %s", plan)
+}
+
+func getPlanId(planDetails string) (string, error) {
+	if planDetails == PlanDetails100gb14days {
+		return PlanId100gb14days, nil
+	}
+
+	return "", fmt.Errorf("cannot find plan id for details: %s", planDetails)
 }

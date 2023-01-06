@@ -540,7 +540,7 @@ A `recurrence` block supports the following:
 
 A `notification` block supports the following:
 
-* `email` - (Required) A `email` block as defined below.
+* `email` - (Optional) A `email` block as defined below.
 
 * `webhook` - (Optional) One or more `webhook` blocks as defined below.
 

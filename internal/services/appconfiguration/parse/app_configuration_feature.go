@@ -2,10 +2,11 @@ package parse
 
 import (
 	"fmt"
+	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 var _ resourceids.Id = AppConfigurationFeatureId{}
@@ -30,7 +31,7 @@ func (id AppConfigurationFeatureId) String() string {
 }
 
 func FeatureId(input string) (*AppConfigurationFeatureId, error) {
-	resourceID, err := azure.ParseAzureResourceID(input)
+	resourceID, err := parseAzureResourceID(handleSlashInIdForFeature(input))
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
@@ -53,4 +54,19 @@ func FeatureId(input string) (*AppConfigurationFeatureId, error) {
 	appcfgID.ConfigurationStoreId = strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationFeature/%s/Label/%s", appcfgID.Name, appcfgID.Label))
 
 	return &appcfgID, nil
+}
+
+// a workaround to support "/" in id
+func handleSlashInIdForFeature(input string) string {
+	oldNames := regexp.MustCompile(`AppConfigurationFeature\/(.+)\/Label`).FindStringSubmatch(input)
+	if len(oldNames) == 2 {
+		input = strings.Replace(input, oldNames[1], url.QueryEscape(oldNames[1]), 1)
+	}
+
+	oldNames = regexp.MustCompile(`AppConfigurationFeature\/.+\/Label\/(.+)`).FindStringSubmatch(input)
+	if len(oldNames) == 2 {
+		input = strings.Replace(input, oldNames[1], url.QueryEscape(oldNames[1]), 1)
+	}
+
+	return input
 }

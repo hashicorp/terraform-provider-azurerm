@@ -25,7 +25,6 @@ resource "azurerm_logz_monitor" "example" {
   plan {
     billing_cycle  = "MONTHLY"
     effective_date = "2022-06-06T00:00:00Z"
-    plan_id        = "100gb14days"
     usage_type     = "COMMITTED"
   }
 
@@ -72,9 +71,9 @@ An `plan` block exports the following:
 
 * `effective_date` - (Required) Date when plan was applied. Changing this forces a new logz Monitor to be created.
 
-* `plan_id` - (Required) Plan id as published by Logz. Possible values are `100gb14days`. Changing this forces a new logz Monitor to be created.
-
 * `usage_type` - (Required) Different usage types. Possible values are `PAYG` or `COMMITTED`. Changing this forces a new logz Monitor to be created.
+
+* `plan_id` - (Optional) Plan id as published by Logz. The only possible value is `100gb14days`. Defaults to `100gb14days`. Changing this forces a new logz Monitor to be created.
 
 ---
 
