@@ -118,21 +118,6 @@ func TestAccContainerAppResource_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// TODO - Uncomment the following stages when https://github.com/Azure/azure-rest-api-specs/issues/19285 / https://github.com/microsoft/azure-container-apps/issues/395 are resolved and secrets can be managed?
-		// {
-		// 	Config: r.complete(data, "rev3"),
-		// 	Check: acceptance.ComposeTestCheckFunc(
-		// 		check.That(data.ResourceName).ExistsInAzure(r),
-		// 	),
-		// },
-		// data.ImportStep(),
-		// {
-		// 	Config: r.completeUpdate2(data, "rev4"),
-		// 	Check: acceptance.ComposeTestCheckFunc(
-		// 		check.That(data.ResourceName).ExistsInAzure(r),
-		// 	),
-		// },
-		// data.ImportStep(),
 	})
 }
 
@@ -669,34 +654,6 @@ resource "azurerm_container_app" "test" {
   tags = {
     foo     = "Bar"
     accTest = "1"
-  }
-}
-`, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
-}
-
-func (r ContainerAppResource) completeUpdate2(data acceptance.TestData, revisionSuffix string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_container_app" "test" {
-  name                         = "acctest-capp-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  container_app_environment_id = azurerm_container_app_environment.test.id
-  revision_mode                = "Single"
-
-  template {
-    container {
-      name   = "acctest-cont-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 1.0
-      memory = "2Gi"
-    }
-    revision_suffix = "%[3]s"
-  }
-
-  secret {
-    name  = "doesnt-matter"
-    value = "anything"
   }
 }
 `, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)

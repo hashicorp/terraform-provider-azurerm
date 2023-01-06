@@ -201,7 +201,7 @@ type CustomDomain struct {
 }
 
 func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapps.CustomDomain {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -287,7 +287,7 @@ func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 }
 
 func expandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]containerapps.TrafficWeight {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -1659,10 +1659,7 @@ func UnpackContainerSecretsCollection(input *containerapps.SecretsCollection) *[
 
 	result := make([]containerapps.Secret, 0)
 	for _, v := range input.Value {
-		result = append(result, containerapps.Secret{
-			Name:  v.Name,
-			Value: v.Value,
-		})
+		result = append(result, containerapps.Secret(v))
 	}
 
 	return &result
@@ -1675,10 +1672,7 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 
 	result := make([]daprcomponents.Secret, 0)
 	for _, v := range input.Value {
-		result = append(result, daprcomponents.Secret{
-			Name:  v.Name,
-			Value: v.Value,
-		})
+		result = append(result, daprcomponents.Secret(v))
 	}
 
 	return &result
