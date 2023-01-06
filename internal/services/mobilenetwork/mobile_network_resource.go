@@ -87,7 +87,7 @@ func (r MobileNetworkResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r MobileNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model MobileNetworkModel
 			if err := metadata.Decode(&model); err != nil {
@@ -130,7 +130,7 @@ func (r MobileNetworkResource) Create() sdk.ResourceFunc {
 
 func (r MobileNetworkResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.MobileNetworkClient
 
@@ -224,7 +224,7 @@ func (r MobileNetworkResource) Read() sdk.ResourceFunc {
 
 func (r MobileNetworkResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.MobileNetworkClient
 

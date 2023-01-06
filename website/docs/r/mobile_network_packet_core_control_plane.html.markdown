@@ -173,10 +173,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Mobile Network Packet Core Control Plane.
+* `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Packet Core Control Plane.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Packet Core Control Plane.
-* `update` - (Defaults to 30 minutes) Used when updating the Mobile Network Packet Core Control Plane.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Mobile Network Packet Core Control Plane.
+* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Packet Core Control Plane.
+* `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Packet Core Control Plane.
 
 ## Import
 

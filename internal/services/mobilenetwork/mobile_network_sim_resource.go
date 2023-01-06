@@ -176,7 +176,7 @@ func (r SimResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r SimResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model SimModel
 			if err := metadata.Decode(&model); err != nil {
@@ -251,7 +251,7 @@ func (r SimResource) Create() sdk.ResourceFunc {
 
 func (r SimResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SIMClient
 
@@ -403,7 +403,7 @@ func (r SimResource) Read() sdk.ResourceFunc {
 
 func (r SimResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SIMClient
 

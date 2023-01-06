@@ -105,7 +105,7 @@ func (r SliceResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r SliceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model SliceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -159,7 +159,7 @@ func (r SliceResource) Create() sdk.ResourceFunc {
 
 func (r SliceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SliceClient
 
@@ -270,7 +270,7 @@ func (r SliceResource) Read() sdk.ResourceFunc {
 
 func (r SliceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SliceClient
 

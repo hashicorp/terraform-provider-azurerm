@@ -223,7 +223,7 @@ func (r AttachedDataNetworkResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model AttachedDataNetworkModel
 			if err := metadata.Decode(&model); err != nil {
@@ -277,7 +277,7 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 
 func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.AttachedDataNetworkClient
 
@@ -405,7 +405,7 @@ func (r AttachedDataNetworkResource) Read() sdk.ResourceFunc {
 
 func (r AttachedDataNetworkResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.AttachedDataNetworkClient
 

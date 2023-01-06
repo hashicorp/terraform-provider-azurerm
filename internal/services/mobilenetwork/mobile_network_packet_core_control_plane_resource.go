@@ -219,7 +219,7 @@ func (r PacketCoreControlPlaneResource) Attributes() map[string]*pluginsdk.Schem
 
 func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model PacketCoreControlPlaneModel
 			if err := metadata.Decode(&model); err != nil {
@@ -303,7 +303,7 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 
 func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.PacketCoreControlPlaneClient
 
@@ -482,7 +482,7 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 
 func (r PacketCoreControlPlaneResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.PacketCoreControlPlaneClient
 

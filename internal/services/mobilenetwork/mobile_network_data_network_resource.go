@@ -74,7 +74,7 @@ func (r DataNetworkResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r DataNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model DataNetworkModel
 			if err := metadata.Decode(&model); err != nil {
@@ -119,7 +119,7 @@ func (r DataNetworkResource) Create() sdk.ResourceFunc {
 
 func (r DataNetworkResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.DataNetworkClient
 
@@ -213,7 +213,7 @@ func (r DataNetworkResource) Read() sdk.ResourceFunc {
 
 func (r DataNetworkResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.DataNetworkClient
 

@@ -78,7 +78,7 @@ func (r SiteResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r SiteResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model SiteModel
 			if err := metadata.Decode(&model); err != nil {
@@ -119,7 +119,7 @@ func (r SiteResource) Create() sdk.ResourceFunc {
 
 func (r SiteResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SiteClient
 
@@ -208,7 +208,7 @@ func (r SiteResource) Read() sdk.ResourceFunc {
 
 func (r SiteResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SiteClient
 
