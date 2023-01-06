@@ -1808,7 +1808,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
 		}
 
-		existing.Model.Properties.NetworkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(d.Get("network_profile.0.kube_proxy").([]interface{}))
+		if key := "network_profile.0.kube_proxy"; d.HasChange(key) {
+			existing.Model.Properties.NetworkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(d.Get(key).([]interface{}))
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -2632,10 +2634,13 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		NetworkPlugin:   utils.ToPtr(managedclusters.NetworkPlugin(networkPlugin)),
 		NetworkMode:     utils.ToPtr(managedclusters.NetworkMode(networkMode)),
 		NetworkPolicy:   utils.ToPtr(managedclusters.NetworkPolicy(networkPolicy)),
-		KubeProxyConfig: expandKubernetesClusterKubeProxyConfig(config["kube_proxy"].([]interface{})),
 		LoadBalancerSku: utils.ToPtr(managedclusters.LoadBalancerSku(loadBalancerSku)),
 		OutboundType:    utils.ToPtr(managedclusters.OutboundType(outboundType)),
 		IPFamilies:      ipVersions,
+	}
+
+	if kubeProxyRaw := config["kube_proxy"].([]interface{}); len(kubeProxyRaw) != 0 {
+		networkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(kubeProxyRaw)
 	}
 
 	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
