@@ -188,7 +188,7 @@ func (r SimPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 								"preemption_vulnerability": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Default:  simpolicy.PreemptionCapabilityNotPreempt,
+									Default:  simpolicy.PreemptionVulnerabilityNotPreemptable,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(simpolicy.PreemptionVulnerabilityNotPreemptable),
 										string(simpolicy.PreemptionVulnerabilityPreemptable),
