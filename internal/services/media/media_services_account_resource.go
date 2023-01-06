@@ -284,11 +284,7 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `storage_account`: %s", err)
 			}
 
-			encryption, err := flattenMediaServicesAccountEncryption(props.Encryption)
-			if err != nil {
-				return fmt.Errorf("flattening `encryption`: %s", err)
-			}
-			if err := d.Set("encryption", encryption); err != nil {
+			if err := d.Set("encryption", flattenMediaServicesAccountEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %s", err)
 			}
 
@@ -443,9 +439,9 @@ func expandMediaServicesAccountEncryption(input []interface{}) (*accounts.Accoun
 	return &accountsEncryption, nil
 }
 
-func flattenMediaServicesAccountEncryption(input *accounts.AccountEncryption) (*[]interface{}, error) {
+func flattenMediaServicesAccountEncryption(input *accounts.AccountEncryption) *[]interface{} {
 	if input == nil {
-		return &[]interface{}{}, nil
+		return &[]interface{}{}
 	}
 
 	var keyIdentifier, currentKeyIdentifier string
@@ -466,7 +462,7 @@ func flattenMediaServicesAccountEncryption(input *accounts.AccountEncryption) (*
 			"current_key_identifier":   currentKeyIdentifier,
 			"managed_identity":         flattenMediaServicesAccountManagedIdentity(input.Identity),
 		},
-	}, nil
+	}
 }
 
 func expandMediaServicesAccountIdentity(input []interface{}) (*accounts.MediaServiceIdentity, error) {
