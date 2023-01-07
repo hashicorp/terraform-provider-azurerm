@@ -49,7 +49,7 @@ resource "azurerm_costmanagement_anomaly_alert" "test" {
   name            = "acctestRG-%d"
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
-	message         = "Oops, cost anomaly"
+  message         = "Oops, cost anomaly"
 }
 `, data.RandomInteger)
 }
