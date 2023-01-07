@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,6 +97,26 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+						"primary_user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+					},
+				},
+			},
+
 			"delegated_subnet_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -127,6 +150,8 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"maintenance_window": {
 				Type:     pluginsdk.TypeList,
@@ -324,6 +349,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 			Network:          expandArmServerNetwork(d),
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
 			Backup:           expandArmServerBackup(d),
+			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -353,6 +379,12 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		parameters.Properties.SetRestorePointInTimeAsTime(v)
 	}
+
+	identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`")
+	}
+	parameters.Identity = identity
 
 	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -440,6 +472,18 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+			}
+
+			if err := d.Set("customer_managed_key", flattenFlexibleServerDataEncryption(props.DataEncryption)); err != nil {
+				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+			}
+
+			id, err := flattenFlexibleServerIdentity(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", id); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
 			if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
@@ -586,6 +630,18 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("backup_retention_days") || d.HasChange("geo_redundant_backup_enabled") {
 		parameters.Properties.Backup = expandArmServerBackup(d)
+	}
+
+	if d.HasChange("customer_managed_key") {
+		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{}))
+	}
+
+	if d.HasChange("identity") {
+		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+		}
+		parameters.Identity = identity
 	}
 
 	if d.HasChange("maintenance_window") {
@@ -853,4 +909,82 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 			"standby_availability_zone": zone,
 		},
 	}
+}
+
+func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
+	if len(input) == 0 {
+		det := servers.DataEncryptionTypeSystemManaged
+		return &servers.DataEncryption{
+			Type: &det,
+		}
+	}
+	v := input[0].(map[string]interface{})
+
+	det := servers.DataEncryptionTypeAzureKeyVault
+	dataEncryption := servers.DataEncryption{
+		Type:                          &det,
+		PrimaryKeyURI:                 utils.String(v["key_vault_key_id"].(string)),
+		PrimaryUserAssignedIdentityId: utils.String(v["primary_user_assigned_identity_id"].(string)),
+	}
+
+	return &dataEncryption
+}
+
+func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) []interface{} {
+	if de == nil || *de.Type == servers.DataEncryptionTypeSystemManaged {
+		return []interface{}{}
+	}
+
+	var keyId string
+	if de.PrimaryKeyURI != nil {
+		keyId = *de.PrimaryKeyURI
+	}
+	var identityId string
+	if de.PrimaryUserAssignedIdentityId != nil {
+		identityId = *de.PrimaryUserAssignedIdentityId
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id":                  keyId,
+			"primary_user_assigned_identity_id": identityId,
+		},
+	}
+}
+
+func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil || expanded.Type != identity.TypeUserAssigned {
+		return nil, err
+	}
+
+	idUserAssigned := servers.ManagedServiceIdentityTypeUserAssigned
+	out := servers.Identity{
+		Type: &idUserAssigned,
+	}
+	if expanded.Type == identity.TypeUserAssigned {
+		ids := make(map[string]interface{})
+		for k := range expanded.IdentityIds {
+			ids[k] = struct{}{}
+		}
+		out.UserAssignedIdentities = &ids
+	}
+
+	return &out, nil
+}
+
+func flattenFlexibleServerIdentity(input *servers.Identity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
+
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(*input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k := range *input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{}
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(transform)
 }
