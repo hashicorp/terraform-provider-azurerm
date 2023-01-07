@@ -23,6 +23,12 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"email_subject": {
@@ -56,7 +62,7 @@ func (AnomalyAlertResource) ModelObject() interface{} {
 }
 
 func (AnomalyAlertResource) ResourceType() string {
-	return "azurerm_costmanagement_anomaly_alert"
+	return "azurerm_cost_management_anomaly_alert"
 }
 
 func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
@@ -65,7 +71,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ScheduledActionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := scheduledactions.NewScopedScheduledActionID(fmt.Sprint("/subscriptions/", subscriptionId), "dailyanomalybyresourcegroup")
+			id := scheduledactions.NewScopedScheduledActionID(fmt.Sprint("/subscriptions/", subscriptionId), metadata.ResourceData.Get("name").(string))
 
 			existing, err := client.GetByScope(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -89,7 +95,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			param := scheduledactions.ScheduledAction{
 				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindInsightAlert),
 				Properties: &scheduledactions.ScheduledActionProperties{
-					DisplayName: metadata.ResourceData.Get("name").(string),
+					DisplayName: metadata.ResourceData.Get("display_name").(string),
 					Status:      scheduledactions.ScheduledActionStatusEnabled,
 					ViewId:      viewId.ID(),
 					FileDestination: &scheduledactions.FileDestination{
@@ -119,9 +125,20 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ScheduledActionsClient
 
-			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Get("id").(string))
+			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
+			}
+
+			resp, err := client.GetByScope(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", id, err)
+			}
+
+			if model := resp.Model; model != nil {
+				if model.ETag == nil {
+					return fmt.Errorf("add %s: etag was nil", *id)
+				}
 			}
 
 			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()
@@ -138,8 +155,9 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 
 			param := scheduledactions.ScheduledAction{
 				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindInsightAlert),
+				ETag: resp.Model.ETag,
 				Properties: &scheduledactions.ScheduledActionProperties{
-					DisplayName: metadata.ResourceData.Get("name").(string),
+					DisplayName: metadata.ResourceData.Get("display_name").(string),
 					Status:      scheduledactions.ScheduledActionStatusEnabled,
 					ViewId:      viewId.ID(),
 					Notification: scheduledactions.NotificationProperties{
@@ -180,7 +198,8 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			metadata.ResourceData.Set("name", resp.Model.Properties.DisplayName)
+			metadata.ResourceData.Set("name", resp.Model.Name)
+			metadata.ResourceData.Set("display_name", resp.Model.Properties.DisplayName)
 			metadata.ResourceData.Set("email_subject", resp.Model.Properties.Notification.Subject)
 			metadata.ResourceData.Set("email_addresses", resp.Model.Properties.Notification.To)
 			metadata.ResourceData.Set("message", resp.Model.Properties.Notification.Message)
