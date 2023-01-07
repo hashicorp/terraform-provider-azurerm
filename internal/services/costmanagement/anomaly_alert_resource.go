@@ -77,22 +77,21 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 
 			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()
 			emailAddresses := utils.ExpandStringSlice(emailAddressesRaw)
+
 			viewId := parse.NewAnomalyAlertViewIdID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
+
 			schedule := scheduledactions.ScheduleProperties{
-				Frequency:  scheduledactions.ScheduleFrequencyDaily,
-				HourOfDay:  utils.Int64(int64(12)),
-				DayOfMonth: utils.Int64(int64(0)),
+				Frequency: scheduledactions.ScheduleFrequencyDaily,
 			}
 			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
 			schedule.SetStartDateAsTime(time.Now())
+
 			param := scheduledactions.ScheduledAction{
 				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindInsightAlert),
-				Type: utils.String("Microsoft.CostManagement/ScheduledActions"),
 				Properties: &scheduledactions.ScheduledActionProperties{
 					DisplayName: metadata.ResourceData.Get("name").(string),
 					Status:      scheduledactions.ScheduledActionStatusEnabled,
 					ViewId:      viewId.ID(),
-					Scope:       utils.String(fmt.Sprint("/subscriptions/", subscriptionId)),
 					FileDestination: &scheduledactions.FileDestination{
 						FileFormats: &[]scheduledactions.FileFormat{},
 					},
@@ -132,9 +131,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			viewId := parse.NewAnomalyAlertViewIdID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
 			schedule := scheduledactions.ScheduleProperties{
-				Frequency:  scheduledactions.ScheduleFrequencyDaily,
-				HourOfDay:  utils.Int64(int64(12)),
-				DayOfMonth: utils.Int64(int64(0)),
+				Frequency: scheduledactions.ScheduleFrequencyDaily,
 			}
 			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
 			schedule.SetStartDateAsTime(time.Now())
@@ -143,7 +140,6 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindInsightAlert),
 				Properties: &scheduledactions.ScheduledActionProperties{
 					DisplayName: metadata.ResourceData.Get("name").(string),
-					Scope:       utils.String(fmt.Sprint("/subscriptions/", subscriptionId)),
 					Status:      scheduledactions.ScheduledActionStatusEnabled,
 					ViewId:      viewId.ID(),
 					Notification: scheduledactions.NotificationProperties{
