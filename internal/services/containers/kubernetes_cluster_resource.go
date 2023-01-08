@@ -1392,7 +1392,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	azureKeyVaultKmsRaw := d.Get("key_vault_kms").([]interface{})
-	securityProfile.AzureKeyVaultKms = expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
+	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
+	if err != nil {
+		return err
+	}
 
 	parameters := managedclusters.ManagedCluster{
 		Name:             utils.String(id.ResourceName),
@@ -1868,7 +1871,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChanges("key_vault_kms") {
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_vault_kms").([]interface{})
-		azureKeyVaultKms := expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
+		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
@@ -3418,24 +3421,31 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	}
 }
 
-func expandKubernetesClusterAzureKeyVaultKms(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.AzureKeyVaultKms {
+func expandKubernetesClusterAzureKeyVaultKms(d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
 	if ((input == nil) || len(input) == 0) && d.HasChanges("key_vault_kms") {
 		return &managedclusters.AzureKeyVaultKms{
 			Enabled: utils.Bool(false),
-		}
+		}, nil
 	} else if (input == nil) || len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	raw := input[0].(map[string]interface{})
-	kvAccess := managedclusters.KeyVaultNetworkAccessTypes(*utils.String(raw["key_vault_network_access"].(string)))
+	kvAccess := managedclusters.KeyVaultNetworkAccessTypes(raw["key_vault_network_access"].(string))
 
-	return &managedclusters.AzureKeyVaultKms{
+	azureKeyVaultKms := &managedclusters.AzureKeyVaultKms{
 		Enabled:               utils.Bool(raw["enabled"].(bool)),
 		KeyId:                 utils.String(raw["key_id"].(string)),
 		KeyVaultNetworkAccess: &kvAccess,
 		KeyVaultResourceId:    utils.String(raw["key_vault_resource_id"].(string)),
 	}
+
+	private := managedclusters.KeyVaultNetworkAccessTypesPrivate
+	if kvAccess == private && len(*azureKeyVaultKms.KeyVaultResourceId) == 0 {
+		return nil, fmt.Errorf("a valid  `key_vault_resource_id` is required when `key_vault_network_access` is `%s`", private)
+	}
+
+	return azureKeyVaultKms, nil
 }
 
 func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *maintenanceconfigurations.MaintenanceConfigurationProperties {

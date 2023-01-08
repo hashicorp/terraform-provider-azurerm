@@ -81,7 +81,13 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azureKeyVaultKms(data, currentKubernetesVersion),
+			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -527,23 +533,62 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, tag)
 }
 
-func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string) string {
+func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                      = substr("acctestRG-kv-%[1]d", 0, 24)
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  enable_rbac_authorization = true
+  sku_name                  = "standard"
+}
+
+resource "azurerm_role_assignment" "test_admin" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Crypto User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "etcd-encryption"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [azurerm_role_assignment.test_admin]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  kubernetes_version  = %q
+  dns_prefix          = "acctestaks%[1]d"
+  kubernetes_version  = %[3]q
 
   default_node_pool {
     name       = "default"
@@ -553,15 +598,15 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = ["/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/acctestRG-aks-%d/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-acctestaks"]
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   key_vault_kms {
-    enabled = true
-    key_id  = "https://kv-acctestaks.vault.azure.net/keys/acctestaks/dummykeyversion"
+    enabled = %[4]t
+    key_id  = azurerm_key_vault_key.test.id
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, controlPlaneVersion, enabled)
 }
 
 func (KubernetesClusterResource) storageProfile(data acceptance.TestData, controlPlaneVersion string) string {
