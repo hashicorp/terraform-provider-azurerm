@@ -15,7 +15,7 @@ import (
 type AnomalyAlertResource struct{}
 
 func TestAccResourceAnomalyAlert_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cost_management_anomaly_alert", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.basicConfig, testResource),
@@ -28,7 +28,7 @@ func TestAccResourceAnomalyAlert_update(t *testing.T) {
 }
 
 func TestAccResourceAnomalyAlert_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cost_management_anomaly_alert", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.basicConfig, testResource),
@@ -56,7 +56,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_cost_management_anomaly_alert" "test" {
+resource "azurerm_cost_anomaly_alert" "test" {
   name            = "acctest-%d"
   display_name    = "acctest %d"
   email_subject   = "Hi"
@@ -71,12 +71,12 @@ func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cost_management_anomaly_alert" "import" {
-  name            = azurerm_cost_management_anomaly_alert.test.name
-  display_name    = azurerm_cost_management_anomaly_alert.test.display_name
-  email_subject   = azurerm_cost_management_anomaly_alert.test.email_subject
-  email_addresses = azurerm_cost_management_anomaly_alert.test.email_addresses
-  message         = azurerm_cost_management_anomaly_alert.test.message
+resource "azurerm_cost_anomaly_alert" "import" {
+  name            = azurerm_cost_anomaly_alert.test.name
+  display_name    = azurerm_cost_anomaly_alert.test.display_name
+  email_subject   = azurerm_cost_anomaly_alert.test.email_subject
+  email_addresses = azurerm_cost_anomaly_alert.test.email_addresses
+  message         = azurerm_cost_anomaly_alert.test.message
 }
 `, template)
 }
@@ -87,7 +87,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_cost_management_anomaly_alert" "test" {
+resource "azurerm_cost_anomaly_alert" "test" {
   name            = "acctest-%d"
   display_name    = "acctest name update %d"
   email_subject   = "Hi you!"

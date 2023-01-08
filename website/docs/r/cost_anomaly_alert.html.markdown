@@ -1,19 +1,19 @@
 ---
 subcategory: "Cost Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cost_management_anomaly_alert"
+page_title: "Azure Resource Manager: azurerm_cost_anomaly_alert"
 description: |-
   Manages a Cost Management Anomaly Alert.
 ---
 
-# azurerm_cost_management_anomaly_alert
+# azurerm_cost_anomaly_alert
 
 Manages a Cost Management Anomaly Alert.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_cost_management_anomaly_alert" "example" {
+resource "azurerm_cost_anomaly_alert" "example" {
   name            = "alertname"
   display_name    = "Alert DisplayName"
   email_subject   = "My Test Anomaly Alert"
@@ -59,5 +59,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Cost Management Anomaly Alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cost_management_anomaly_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/scheduledActions/dailyanomalybyresourcegroup
+terraform import azurerm_cost_anomaly_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/scheduledActions/dailyanomalybyresourcegroup
 ```

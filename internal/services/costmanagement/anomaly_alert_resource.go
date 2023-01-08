@@ -62,7 +62,7 @@ func (AnomalyAlertResource) ModelObject() interface{} {
 }
 
 func (AnomalyAlertResource) ResourceType() string {
-	return "azurerm_cost_management_anomaly_alert"
+	return "azurerm_cost_anomaly_alert"
 }
 
 func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
