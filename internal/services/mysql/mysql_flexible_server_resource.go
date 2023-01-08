@@ -105,12 +105,16 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							RequiredWith: []string{
+								"identity",
+								"customer_managed_key.0.primary_user_assigned_identity_id",
+							},
 						},
 						"primary_user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
@@ -935,21 +939,15 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) []interface
 		return []interface{}{}
 	}
 
-	var keyId string
+	item := map[string]interface{}{}
 	if de.PrimaryKeyURI != nil {
-		keyId = *de.PrimaryKeyURI
+		item["key_vault_key_id"] = *de.PrimaryKeyURI
 	}
-	var identityId string
 	if de.PrimaryUserAssignedIdentityId != nil {
-		identityId = *de.PrimaryUserAssignedIdentityId
+		item["primary_user_assigned_identity_id"] = *de.PrimaryUserAssignedIdentityId
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"key_vault_key_id":                  keyId,
-			"primary_user_assigned_identity_id": identityId,
-		},
-	}
+	return []interface{}{item}
 }
 
 func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error) {
