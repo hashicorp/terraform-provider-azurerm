@@ -57,7 +57,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "acctest-%d"
+  name            = "-acctest-%d"
   display_name    = "acctest %d"
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
@@ -88,7 +88,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_cost_anomaly_alert" "test" {
-  name            = "acctest-%d"
+  name            = "-acctest-%d"
   display_name    = "acctest name update %d"
   email_subject   = "Hi you!"
   email_addresses = ["tester@test.com", "test2@hashicorp.developer"]

@@ -25,19 +25,19 @@ resource "azurerm_cost_anomaly_alert" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Cost Anomaly Alert. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Cost Anomaly Alert. Changing this forces a new resource to be created. The name can contain only lowercase letters, numbers and hyphens.
 
 * `display_name` - (Required) The display name which should be used for this Cost Anomaly Alert.
 
 * `email_addresses` - (Required) Specifies a list of email addresses which the Anomaly Alerts are send to.
 
-* `email_subject` - (Required) The email subject of the Anomaly Alerts.
+* `email_subject` - (Required) The email subject of the Cost Anomaly Alerts. Maximum length of the subject is 70.
 
 
 
 ---
 
-* `message` - (Optional) The message of the Anomaly Alert.
+* `message` - (Optional) The message of the Cost Anomaly Alert. Maximum length of the message is 250.
 
 ## Attributes Reference
 

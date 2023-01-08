@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -21,19 +22,23 @@ type AnomalyAlertResource struct{}
 func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.CostAnomalyAlertName,
+			// action names can contain only alphanumeric characters and hyphens.
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"email_subject": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 70),
 		},
 
 		"email_addresses": {
@@ -47,8 +52,9 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"message": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 250),
 		},
 	}
 }
