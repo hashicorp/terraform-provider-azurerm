@@ -143,10 +143,7 @@ func resourceMachineLearningDataStoreCreateOrUpdate(d *pluginsdk.ResourceData, m
 		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
 	}
 
-	prop, err := expandBlobStorage(d)
-	if err != nil {
-		return fmt.Errorf("%+v", err)
-	}
+	prop := expandBlobStorage(d)
 	datastoreRaw.Properties = prop
 
 	_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
@@ -201,7 +198,7 @@ func resourceMachineLearningDataStoreDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandBlobStorage(d *pluginsdk.ResourceData) (*datastore.AzureBlobDatastore, error) {
+func expandBlobStorage(d *pluginsdk.ResourceData) *datastore.AzureBlobDatastore {
 	storeProps := &datastore.AzureBlobDatastore{
 		AccountName:                   utils.String(d.Get("storage_account_name").(string)),
 		ContainerName:                 utils.String(d.Get("container_name").(string)),
@@ -233,7 +230,7 @@ func expandBlobStorage(d *pluginsdk.ResourceData) (*datastore.AzureBlobDatastore
 		}
 	}
 
-	return storeProps, nil
+	return storeProps
 }
 
 func flattenBlobStorage(d *pluginsdk.ResourceData, data datastore.AzureBlobDatastore) error {
