@@ -68,6 +68,21 @@ func TestAccMachineLearningDataStoreBlobStorage_Update(t *testing.T) {
 	})
 }
 
+func TestAccMachineLearningDataStoreBlobStorage_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
+	r := MachineLearningDataStoreBlobStorage{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blobStorageAccountKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func (r MachineLearningDataStoreBlobStorage) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataStoreClient := client.MachineLearning.DatastoreClient
 	id, err := datastore.ParseDataStoreID(state.ID)
@@ -163,6 +178,23 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
 
 
 `, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) requiresImport(data acceptance.TestData) string {
+	template := r.blobStorageAccountKey(data)
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_machine_learning_datastore_blobstorage" "import" {
+  name                 = azurerm_machine_learning_datastore_blobstorage.test.name
+  workspace_id       = azurerm_machine_learning_datastore_blobstorage.test.workspace_id
+  storage_account_name = azurerm_machine_learning_datastore_blobstorage.test.storage_account_name
+  container_name       = azurerm_machine_learning_datastore_blobstorage.test.container_name
+  account_key = azurerm_machine_learning_datastore_blobstorage.test.account_key
+}
+
+`, template)
 }
 
 func (r MachineLearningDataStoreBlobStorage) template(data acceptance.TestData) string {
