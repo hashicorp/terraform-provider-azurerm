@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_cost_anomaly_alert` [GH-19899]
+* **New Resource:** `azurerm_cost_anomaly_alert` [GH-19899]
+* **New Data Source:** `azurerm_private_dns_resolver` [GH-19885]
 
 ENHANCEMENTS:
 
