@@ -710,18 +710,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"key_vault_kms": {
+			"key_management_service": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: false,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-						"key_id": {
+						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: keyVaultValidate.NestedItemId,
@@ -1391,7 +1387,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
 	}
 
-	azureKeyVaultKmsRaw := d.Get("key_vault_kms").([]interface{})
+	azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
 	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
 	if err != nil {
 		return err
@@ -1868,9 +1864,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.OidcIssuerProfile = oidcIssuerProfile
 	}
 
-	if d.HasChanges("key_vault_kms") {
+	if d.HasChanges("key_management_service") {
 		updateCluster = true
-		azureKeyVaultKmsRaw := d.Get("key_vault_kms").([]interface{})
+		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
 		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
@@ -2265,8 +2261,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("workload_identity_enabled", workloadIdentity)
 
 		azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
-		if err := d.Set("key_vault_kms", azureKeyVaultKms); err != nil {
-			return fmt.Errorf("setting `key_vault_kms`: %+v", err)
+		if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
+			return fmt.Errorf("setting `key_management_service`: %+v", err)
 		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
@@ -3422,7 +3418,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 }
 
 func expandKubernetesClusterAzureKeyVaultKms(d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
-	if ((input == nil) || len(input) == 0) && d.HasChanges("key_vault_kms") {
+	if ((input == nil) || len(input) == 0) && d.HasChanges("key_management_service") {
 		return &managedclusters.AzureKeyVaultKms{
 			Enabled: utils.Bool(false),
 		}, nil
@@ -3434,8 +3430,8 @@ func expandKubernetesClusterAzureKeyVaultKms(d *pluginsdk.ResourceData, input []
 	kvAccess := managedclusters.KeyVaultNetworkAccessTypes(raw["key_vault_network_access"].(string))
 
 	azureKeyVaultKms := &managedclusters.AzureKeyVaultKms{
-		Enabled:               utils.Bool(raw["enabled"].(bool)),
-		KeyId:                 utils.String(raw["key_id"].(string)),
+		Enabled:               utils.Bool(true),
+		KeyId:                 utils.String(raw["key_vault_key_id"].(string)),
 		KeyVaultNetworkAccess: &kvAccess,
 		KeyVaultResourceId:    utils.String(raw["key_vault_resource_id"].(string)),
 	}
