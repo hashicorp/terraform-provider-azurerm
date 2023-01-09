@@ -1,3 +1,14 @@
+## 3.39.0 (Unreleased)
+
+
+ENHANCEMENTS:
+
+* Data Source: `azurerm_shared_image` - add support for the `purchase_plan` block [GH-19873]
+
+BUG FIXES:
+
+* `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
+
 ## 3.38.0 (January 05, 2023)
 
 FEATURES:
@@ -6,14 +17,14 @@ FEATURES:
 * **New Data Source:** `azurerm_network_manager_network_group` ([#19593](https://github.com/hashicorp/terraform-provider-azurerm/issues/19593))
 * **New Data Source:** `azurerm_virtual_hub_route_table` ([#19628](https://github.com/hashicorp/terraform-provider-azurerm/issues/19628))
 
-ENHANCEMENTS
+ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230105.1121404` of `github.com/hashicorp/go-azure-sdk` ([#19872](https://github.com/hashicorp/terraform-provider-azurerm/issues/19872))
 * dependencies: updating to `v0.20221207.1110610` of `github.com/tombuildsstuff/kermit` ([#19698](https://github.com/hashicorp/terraform-provider-azurerm/issues/19698))
 * `azurerm_dedicated_host` - add support for`LSv3-Type1` type ([#19875](https://github.com/hashicorp/terraform-provider-azurerm/issues/19875))
 * `azurerm_proximity_placement_group` - support for the `allowed_vm_sizes` and `zone` properties ([#19675](https://github.com/hashicorp/terraform-provider-azurerm/issues/19675))
 
-BUG FIXES
+BUG FIXES:
 
 * `azurerm_automation_software_update_configuration` - correctly handle empty `expiry_time` api values ([#19774](https://github.com/hashicorp/terraform-provider-azurerm/issues/19774))
 * `azurerm_app_service_connection` - polling until the resource is fully created, updated and deleted ([#19792](https://github.com/hashicorp/terraform-provider-azurerm/issues/19792))
