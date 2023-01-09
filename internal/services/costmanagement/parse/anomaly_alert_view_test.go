@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = AnomalyAlertViewIdId{}
+var _ resourceids.Id = AnomalyAlertViewId{}
 
-func TestAnomalyAlertViewIdIDFormatter(t *testing.T) {
-	actual := NewAnomalyAlertViewIdID("12345678-1234-9876-4563-123456789012", "ms:DailyAnomalyByResourceGroup").ID()
+func TestAnomalyAlertViewIDFormatter(t *testing.T) {
+	actual := NewAnomalyAlertViewID("12345678-1234-9876-4563-123456789012", "ms:DailyAnomalyByResourceGroup").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.CostManagement/views/ms:DailyAnomalyByResourceGroup"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestAnomalyAlertViewIdID(t *testing.T) {
+func TestAnomalyAlertViewID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AnomalyAlertViewIdId
+		Expected *AnomalyAlertViewId
 	}{
 
 		{
@@ -58,7 +58,7 @@ func TestAnomalyAlertViewIdID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.CostManagement/views/ms:DailyAnomalyByResourceGroup",
-			Expected: &AnomalyAlertViewIdId{
+			Expected: &AnomalyAlertViewId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ViewName:       "ms:DailyAnomalyByResourceGroup",
 			},
@@ -74,7 +74,7 @@ func TestAnomalyAlertViewIdID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := AnomalyAlertViewIdID(v.Input)
+		actual, err := AnomalyAlertViewID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

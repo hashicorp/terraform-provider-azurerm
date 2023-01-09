@@ -9,39 +9,39 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type AnomalyAlertViewIdId struct {
+type AnomalyAlertViewId struct {
 	SubscriptionId string
 	ViewName       string
 }
 
-func NewAnomalyAlertViewIdID(subscriptionId, viewName string) AnomalyAlertViewIdId {
-	return AnomalyAlertViewIdId{
+func NewAnomalyAlertViewID(subscriptionId, viewName string) AnomalyAlertViewId {
+	return AnomalyAlertViewId{
 		SubscriptionId: subscriptionId,
 		ViewName:       viewName,
 	}
 }
 
-func (id AnomalyAlertViewIdId) String() string {
+func (id AnomalyAlertViewId) String() string {
 	segments := []string{
 		fmt.Sprintf("View Name %q", id.ViewName),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Anomaly Alert View Id", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Anomaly Alert View", segmentsStr)
 }
 
-func (id AnomalyAlertViewIdId) ID() string {
+func (id AnomalyAlertViewId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.CostManagement/views/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ViewName)
 }
 
-// AnomalyAlertViewIdID parses a AnomalyAlertViewId ID into an AnomalyAlertViewIdId struct
-func AnomalyAlertViewIdID(input string) (*AnomalyAlertViewIdId, error) {
+// AnomalyAlertViewID parses a AnomalyAlertView ID into an AnomalyAlertViewId struct
+func AnomalyAlertViewID(input string) (*AnomalyAlertViewId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := AnomalyAlertViewIdId{
+	resourceId := AnomalyAlertViewId{
 		SubscriptionId: id.SubscriptionID,
 	}
 

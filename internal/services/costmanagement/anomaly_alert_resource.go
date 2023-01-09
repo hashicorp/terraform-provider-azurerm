@@ -90,7 +90,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()
 			emailAddresses := utils.ExpandStringSlice(emailAddressesRaw)
 
-			viewId := parse.NewAnomalyAlertViewIdID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
+			viewId := parse.NewAnomalyAlertViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
 			schedule := scheduledactions.ScheduleProperties{
 				Frequency: scheduledactions.ScheduleFrequencyDaily,
@@ -151,7 +151,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			emailAddresses := utils.ExpandStringSlice(emailAddressesRaw)
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			viewId := parse.NewAnomalyAlertViewIdID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
+			viewId := parse.NewAnomalyAlertViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
 			schedule := scheduledactions.ScheduleProperties{
 				Frequency: scheduledactions.ScheduleFrequencyDaily,

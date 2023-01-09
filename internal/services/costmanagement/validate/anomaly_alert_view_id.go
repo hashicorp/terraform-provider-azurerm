@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
 )
 
-func AnomalyAlertViewIdID(input interface{}, key string) (warnings []string, errors []error) {
+func AnomalyAlertViewID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.AnomalyAlertViewIdID(v); err != nil {
+	if _, err := parse.AnomalyAlertViewID(v); err != nil {
 		errors = append(errors, err)
 	}
 

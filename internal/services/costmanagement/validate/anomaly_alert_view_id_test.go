@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestAnomalyAlertViewIdID(t *testing.T) {
+func TestAnomalyAlertViewID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -54,7 +54,7 @@ func TestAnomalyAlertViewIdID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := AnomalyAlertViewIdID(tc.Input, "test")
+		_, errors := AnomalyAlertViewID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
