@@ -127,7 +127,7 @@ provider "azurerm" {
   features {}
 }
 
-provider "azuread"{
+provider "azuread" {
 }
 
 data "azurerm_client_config" "current" {}
@@ -157,30 +157,27 @@ resource "azurerm_key_vault" "test" {
 
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azuread_service_principal.test.object_id
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "Update",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Delete",
+      "Set",
+    ]
+  }
 }
 
-
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.test.id
-
-  key_permissions = [
-    "Create",
-    "Delete",
-    "Get",
-    "List",
-    "Purge",
-    "Update",
-  ]
-
-  secret_permissions = [
-    "Get",
-    "Delete",
-    "Set",
-  ]
-
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
-}
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
