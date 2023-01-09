@@ -8,7 +8,8 @@ ENHANCEMENTS:
 
 * Data Source: `azurerm_shared_image` - add support for the `purchase_plan` block [GH-19873]
 * `azurerm_logic_app_action_http` - add support for `@` in the `body` property [GH-19754]
-*  `azurerm_synapse_spark_pool` - add support for Spark 3.3 [GH-19866]
+* `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties [GH-19891]
+* `azurerm_synapse_spark_pool` - add support for Spark 3.3 [GH-19866]
 
 BUG FIXES:
 
