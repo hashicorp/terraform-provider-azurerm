@@ -59,7 +59,7 @@ func (r MobileNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^\\d{3}$`),
+				regexp.MustCompile(`^\d{3}$`),
 				"Mobile country code should be three digits.",
 			)},
 
@@ -68,7 +68,7 @@ func (r MobileNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^\\d{2,3}$`),
+				regexp.MustCompile(`^\d{2,3}$`),
 				"Mobile network code should be two or three digits.",
 			)},
 

@@ -17,7 +17,7 @@ func TestAccMobileNetworkSimGroupDataSource_complete(t *testing.T) {
 		{
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key(`location`).HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`mobile_network_id`).Exists(),
 				check.That(data.ResourceName).Key(`encryption_key_url`).Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),

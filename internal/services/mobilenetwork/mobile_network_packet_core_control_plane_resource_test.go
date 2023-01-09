@@ -45,7 +45,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_with3PSTACKHCI(t *testing.T) {
-	t.Skip("service is still in progress")
+	if true {
+		t.Skip("service is still in progress")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -88,7 +91,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
 }
 
 func TestAccMobileNetworkPacketCoreControlPlane_withCertificateUserAssignedIdentity(t *testing.T) {
-	t.Skip("Skipping as the service is still in progress.")
+	if true {
+		t.Skip("Skipping as the service is still in progress.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

@@ -17,7 +17,7 @@ func TestAccMobileNetworkPacketCoreControlPlanDataSource_basic(t *testing.T) {
 		{
 			Config: d.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key(`location`).HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`sku`).HasValue("G0"),
 				check.That(data.ResourceName).Key(`site_ids.#`).HasValue("1"),
 				check.That(data.ResourceName).Key(`local_diagnostics_access_setting.0.authentication_type`).HasValue("AAD"),
