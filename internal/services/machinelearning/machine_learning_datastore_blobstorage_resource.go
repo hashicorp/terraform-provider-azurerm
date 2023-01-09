@@ -134,7 +134,7 @@ func resourceMachineLearningDataStoreCreateOrUpdate(d *pluginsdk.ResourceData, m
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_machine_learning_datastore", id.ID())
+			return tf.ImportAsExistsError("azurerm_machine_learning_datastore_blobstorage", id.ID())
 		}
 	}
 
