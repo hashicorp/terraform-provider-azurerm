@@ -344,7 +344,10 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(webAppSlot.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(webAppSlot.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Linux %s: %+v", id, err)
+			}
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
 					return fmt.Errorf("adding Backup Settings for Linux %s: %+v", id, err)
@@ -472,7 +475,10 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			if err != nil {
+				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
+			}
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -657,7 +663,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
+				}
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)

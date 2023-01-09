@@ -493,7 +493,11 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(functionAppSlot.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
+			}
+
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
@@ -846,7 +850,11 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Windows %s: %+v", *id, err)
+				}
+
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)

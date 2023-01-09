@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -461,6 +462,8 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
 			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
+				// TODO - This code will not work as expected due to the service plan always being updated before the App, so the apply will always error out on the Service Plan change if `always_on` is incorrectly set.
+				// Need to investigate if there's a way to avoid users needing to run 2 applies for this.
 				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}
@@ -486,7 +489,6 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(winSiteConfig.ApplicationStack) == 1 {
 			winAppStack := winSiteConfig.ApplicationStack[0]
-			// TODO - only one of these should be non-nil?
 			if winAppStack.NetFrameworkVersion != "" {
 				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
 				if currentStack == "" {
@@ -572,7 +574,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("expanding IP Restrictions: %+v", err)
 		}
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
@@ -582,7 +584,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("expanding SCM IP Restrictions: %+v", err)
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
@@ -652,9 +654,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindows {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) ([]SiteConfigWindows, error) {
 	if appSiteConfig == nil {
-		return nil
+		return nil, nil
 	}
 
 	siteConfig := SiteConfigWindows{
@@ -688,7 +690,11 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
-		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID
+		apiId, err := parse.ApiIDInsensitively(*appSiteConfig.APIManagementConfig.ID)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse API Management ID: %+v", err)
+		}
+		siteConfig.ApiManagementConfigId = apiId.ID()
 	}
 
 	if appSiteConfig.APIDefinition != nil && appSiteConfig.APIDefinition.URL != nil {
@@ -763,5 +769,5 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		}
 	}
 
-	return []SiteConfigWindows{siteConfig}
+	return []SiteConfigWindows{siteConfig}, nil
 }

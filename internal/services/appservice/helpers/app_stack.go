@@ -55,7 +55,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
+					ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
 						"v2.0",
 						"v3.0",
 						"v4.0",
@@ -508,7 +508,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
 						"2.6", // Deprecated - accepted but not offered in the portal. Remove in 4.0
-						"2.7",
+						"2.7", // EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",

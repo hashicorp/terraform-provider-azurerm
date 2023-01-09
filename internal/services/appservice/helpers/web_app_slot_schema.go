@@ -846,7 +846,7 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 				}
 			}
 			if winAppStack.NetCoreVersion != "" {
-				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
 				if currentStack == "" {
 					currentStack = CurrentStackDotNetCore
 				}

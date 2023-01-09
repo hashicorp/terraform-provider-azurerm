@@ -387,7 +387,10 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(webApp.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(webApp.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Linux %s: %+v", id, err)
+			}
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Linux %s: %+v", id, err)
@@ -523,7 +526,10 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			if err != nil {
+				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
+			}
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -757,7 +763,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
+				}
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)

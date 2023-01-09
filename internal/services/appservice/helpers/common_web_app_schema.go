@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -344,10 +345,11 @@ func BackupSchema() *pluginsdk.Schema {
 							},
 
 							"start_time": {
-								Type:        pluginsdk.TypeString,
-								Optional:    true,
-								Computed:    true,
-								Description: "When the schedule should start working in RFC-3339 format.",
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								Computed:     true,
+								Description:  "When the schedule should start working in RFC-3339 format.",
+								ValidateFunc: validation.IsRFC3339Time,
 							},
 
 							"last_execution_time": {
@@ -872,10 +874,10 @@ func ExpandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 	return result
 }
 
-func ExpandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
+func ExpandBackupConfig(backupConfigs []Backup) (*web.BackupRequest, error) {
 	result := &web.BackupRequest{}
 	if len(backupConfigs) == 0 {
-		return result
+		return result, nil
 	}
 
 	backupConfig := backupConfigs[0]
@@ -893,11 +895,14 @@ func ExpandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
 	}
 
 	if backupSchedule.StartTime != "" {
-		dateTimeToStart, _ := time.Parse(time.RFC3339, backupSchedule.StartTime)
+		dateTimeToStart, err := time.Parse(time.RFC3339, backupSchedule.StartTime)
+		if err != nil {
+			return nil, fmt.Errorf("parsing back up start_time: %+v", err)
+		}
 		result.BackupRequestProperties.BackupSchedule.StartTime = &date.Time{Time: dateTimeToStart}
 	}
 
-	return result
+	return result, nil
 }
 
 func ExpandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePropertyDictionaryResource {
@@ -1008,7 +1013,7 @@ func expandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplic
 
 func FlattenBackupConfig(backupRequest web.BackupRequest) []Backup {
 	if backupRequest.BackupRequestProperties == nil {
-		return nil
+		return []Backup{}
 	}
 	props := *backupRequest.BackupRequestProperties
 	backup := Backup{}
@@ -1056,7 +1061,7 @@ func FlattenBackupConfig(backupRequest web.BackupRequest) []Backup {
 
 func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 	if logsConfig.SiteLogsConfigProperties == nil {
-		return nil
+		return []LogsConfig{}
 	}
 	props := *logsConfig.SiteLogsConfigProperties
 	if onlyDefaultLoggingConfig(props) {
@@ -1163,7 +1168,7 @@ func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 
 func FlattenStorageAccounts(appStorageAccounts web.AzureStoragePropertyDictionaryResource) []StorageAccount {
 	if len(appStorageAccounts.Properties) == 0 {
-		return nil
+		return []StorageAccount{}
 	}
 	var storageAccounts []StorageAccount
 	for k, v := range appStorageAccounts.Properties {
@@ -1195,7 +1200,7 @@ func FlattenStorageAccounts(appStorageAccounts web.AzureStoragePropertyDictionar
 
 func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionary) []ConnectionString {
 	if len(appConnectionStrings.Properties) == 0 {
-		return nil
+		return []ConnectionString{}
 	}
 	var connectionStrings []ConnectionString
 	for k, v := range appConnectionStrings.Properties {
@@ -1237,7 +1242,7 @@ func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair
 	return nil
 }
 
-func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
+func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, error) {
 	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURES"
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
@@ -1254,7 +1259,10 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 	var healthCheckCount *int
 	appSettings := FlattenWebStringDictionary(input)
 	if v, ok := appSettings[maxPingFailures]; ok {
-		h, _ := strconv.Atoi(v)
+		h, err := strconv.Atoi(v)
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not convert max ping failures to int")
+		}
 		healthCheckCount = &h
 	}
 
@@ -1263,7 +1271,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 		delete(appSettings, v)
 	}
 
-	return appSettings, healthCheckCount
+	return appSettings, healthCheckCount, nil
 }
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {

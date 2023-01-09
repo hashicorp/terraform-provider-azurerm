@@ -401,7 +401,11 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(webApp.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(webApp.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
+			}
+
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
@@ -551,7 +555,10 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			if err != nil {
+				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
+			}
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -569,8 +576,10 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
-
+			state.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
 			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
 				if state.SiteConfig[0].ApplicationStack == nil {
 					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
@@ -799,7 +808,11 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Windows %s: %+v", *id, err)
+				}
+
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)

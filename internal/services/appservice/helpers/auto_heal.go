@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -194,9 +195,9 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time, // TODO should be hh:mm:ss - This is too loose, need to improve
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.AutoHealInterval, // TODO should be hh:mm:ss - This is too loose, need to improve
 							},
 						},
 					},
@@ -216,7 +217,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"status_code_range": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: nil, // TODO - status code range validation
+								ValidateFunc: validate.StatusCodeRange,
 							},
 
 							"count": {
@@ -226,21 +227,19 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.AutoHealInterval,
 							},
 
 							"sub_status": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: nil, // TODO - no docs on this, needs investigation
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
 							},
 
 							"win32_status": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: nil, // TODO - no docs on this, needs investigation
+								Type:     pluginsdk.TypeString,
+								Optional: true,
 							},
 
 							"path": {
@@ -259,15 +258,15 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.AutoHealInterval,
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.AutoHealInterval,
 							},
 
 							"count": {

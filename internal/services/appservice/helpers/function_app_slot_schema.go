@@ -921,7 +921,7 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 		NodeVersion:           "",    // Note: this will be set from app_settings later in unpackWindowsFunctionAppSettings
 		JavaVersion:           pointer.From(functionAppSlotSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
-		CustomHandler:         false, // set this later from app_settings
+		CustomHandler:         false, // Note: this is set later from app_settings
 	}}
 
 	return result, nil
