@@ -235,19 +235,9 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 				state.RfspIndex = *properties.RfspIndex
 			}
 
-			sliceConfigurationsValue, err := flattenSliceConfigurationModel(&properties.SliceConfigurations)
-			if err != nil {
-				return err
-			}
+			state.SliceConfigurations = flattenSliceConfigurationModel(properties.SliceConfigurations)
 
-			state.SliceConfigurations = sliceConfigurationsValue
-
-			ueAmbrValue, err := flattenSimPolicyAmbrModel(&properties.UeAmbr)
-			if err != nil {
-				return err
-			}
-
-			state.UeAmbr = ueAmbrValue
+			state.UeAmbr = flattenSimPolicyAmbrModel(&properties.UeAmbr)
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}

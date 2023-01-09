@@ -315,23 +315,9 @@ func (r SimPolicyResource) Create() sdk.ResourceFunc {
 				properties.Properties.RfspIndex = &model.RfspIndex
 			}
 
-			sliceConfigurationsValue, err := expandSliceConfigurationModel(model.SliceConfigurations)
-			if err != nil {
-				return err
-			}
+			properties.Properties.SliceConfigurations = expandSliceConfigurationModel(model.SliceConfigurations)
 
-			if sliceConfigurationsValue != nil {
-				properties.Properties.SliceConfigurations = *sliceConfigurationsValue
-			}
-
-			ueAmbrValue, err := expandAmbrModel(model.UeAmbr)
-			if err != nil {
-				return err
-			}
-
-			if ueAmbrValue != nil {
-				properties.Properties.UeAmbr = *ueAmbrValue
-			}
+			properties.Properties.UeAmbr = expandAmbrModel(model.UeAmbr)
 
 			if err := client.SimPoliciesCreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -383,25 +369,11 @@ func (r SimPolicyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("slice_configurations") {
-				sliceConfigurationsValue, err := expandSliceConfigurationModel(model.SliceConfigurations)
-				if err != nil {
-					return err
-				}
-
-				if sliceConfigurationsValue != nil {
-					properties.Properties.SliceConfigurations = *sliceConfigurationsValue
-				}
+				properties.Properties.SliceConfigurations = expandSliceConfigurationModel(model.SliceConfigurations)
 			}
 
 			if metadata.ResourceData.HasChange("user_equipment_aggregate_maximum_bit_rate") {
-				ueAmbrValue, err := expandAmbrModel(model.UeAmbr)
-				if err != nil {
-					return err
-				}
-
-				if ueAmbrValue != nil {
-					properties.Properties.UeAmbr = *ueAmbrValue
-				}
+				properties.Properties.UeAmbr = expandAmbrModel(model.UeAmbr)
 			}
 
 			properties.SystemData = nil
@@ -462,19 +434,9 @@ func (r SimPolicyResource) Read() sdk.ResourceFunc {
 				state.RfspIndex = *properties.RfspIndex
 			}
 
-			sliceConfigurationsValue, err := flattenSliceConfigurationModel(&properties.SliceConfigurations)
-			if err != nil {
-				return err
-			}
+			state.SliceConfigurations = flattenSliceConfigurationModel(properties.SliceConfigurations)
 
-			state.SliceConfigurations = sliceConfigurationsValue
-
-			ueAmbrValue, err := flattenSimPolicyAmbrModel(&properties.UeAmbr)
-			if err != nil {
-				return err
-			}
-
-			state.UeAmbr = ueAmbrValue
+			state.UeAmbr = flattenSimPolicyAmbrModel(&properties.UeAmbr)
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -511,7 +473,7 @@ func (r SimPolicyResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandSliceConfigurationModel(inputList []SliceConfigurationModel) (*[]simpolicy.SliceConfiguration, error) {
+func expandSliceConfigurationModel(inputList []SliceConfigurationModel) []simpolicy.SliceConfiguration {
 	var outputList []simpolicy.SliceConfiguration
 	for _, v := range inputList {
 		input := v
@@ -519,14 +481,7 @@ func expandSliceConfigurationModel(inputList []SliceConfigurationModel) (*[]simp
 			Slice: simpolicy.SliceResourceId{Id: input.SliceId},
 		}
 
-		dataNetworkConfigurationsValue, err := expandDataNetworkConfigurationModel(input.DataNetworkConfigurations)
-		if err != nil {
-			return nil, err
-		}
-
-		if dataNetworkConfigurationsValue != nil {
-			output.DataNetworkConfigurations = *dataNetworkConfigurationsValue
-		}
+		output.DataNetworkConfigurations = expandDataNetworkConfigurationModel(input.DataNetworkConfigurations)
 
 		if input.DefaultDataNetworkId != "" {
 			output.DefaultDataNetwork = simpolicy.DataNetworkResourceId{
@@ -537,10 +492,10 @@ func expandSliceConfigurationModel(inputList []SliceConfigurationModel) (*[]simp
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return outputList
 }
 
-func expandDataNetworkConfigurationModel(inputList []DataNetworkConfigurationModel) (*[]simpolicy.DataNetworkConfiguration, error) {
+func expandDataNetworkConfigurationModel(inputList []DataNetworkConfigurationModel) []simpolicy.DataNetworkConfiguration {
 	var outputList []simpolicy.DataNetworkConfiguration
 	for _, v := range inputList {
 		input := v
@@ -556,15 +511,7 @@ func expandDataNetworkConfigurationModel(inputList []DataNetworkConfigurationMod
 			PreemptionCapability:                &preemptionCapability,
 			PreemptionVulnerability:             &preemptionVulnerability,
 			MaximumNumberOfBufferedPackets:      &input.MaximumNumberOfBufferedPackets,
-		}
-
-		allowedServicesValue, err := expandServiceResourceIdModel(input.AllowedServices)
-		if err != nil {
-			return nil, err
-		}
-
-		if allowedServicesValue != nil {
-			output.AllowedServices = *allowedServicesValue
+			AllowedServices:                     expandServiceResourceIdModel(input.AllowedServices),
 		}
 
 		if input.DataNetworkId != "" {
@@ -573,19 +520,12 @@ func expandDataNetworkConfigurationModel(inputList []DataNetworkConfigurationMod
 			}
 		}
 
-		sessionAmbrValue, err := expandAmbrModel(input.SessionAmbr)
-		if err != nil {
-			return nil, err
-		}
-
-		if sessionAmbrValue != nil {
-			output.SessionAmbr = *sessionAmbrValue
-		}
+		output.SessionAmbr = expandAmbrModel(input.SessionAmbr)
 
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return outputList
 }
 
 func expandSimPolicyAdditionalAllowedSessionType(inputList []string) *[]simpolicy.PduSessionType {
@@ -597,7 +537,7 @@ func expandSimPolicyAdditionalAllowedSessionType(inputList []string) *[]simpolic
 	return &outputList
 }
 
-func expandServiceResourceIdModel(inputList []string) (*[]simpolicy.ServiceResourceId, error) {
+func expandServiceResourceIdModel(inputList []string) []simpolicy.ServiceResourceId {
 	var outputList []simpolicy.ServiceResourceId
 	for _, v := range inputList {
 		input := v
@@ -608,52 +548,44 @@ func expandServiceResourceIdModel(inputList []string) (*[]simpolicy.ServiceResou
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return outputList
 }
 
-func expandAmbrModel(inputList []AmbrModel) (*simpolicy.Ambr, error) {
+func expandAmbrModel(inputList []AmbrModel) simpolicy.Ambr {
+	output := simpolicy.Ambr{}
+
 	if len(inputList) == 0 {
-		return nil, nil
+		return output
 	}
 
 	input := &inputList[0]
-	output := simpolicy.Ambr{
-		Downlink: input.Downlink,
-		Uplink:   input.Uplink,
-	}
+	output.Downlink = input.Downlink
+	output.Uplink = input.Uplink
 
-	return &output, nil
+	return output
 }
 
-func flattenSliceConfigurationModel(inputList *[]simpolicy.SliceConfiguration) ([]SliceConfigurationModel, error) {
+func flattenSliceConfigurationModel(inputList []simpolicy.SliceConfiguration) []SliceConfigurationModel {
 	var outputList []SliceConfigurationModel
-	if inputList == nil {
-		return outputList, nil
-	}
 
-	for _, input := range *inputList {
+	for _, input := range inputList {
 		output := SliceConfigurationModel{
 			SliceId:              input.Slice.Id,
 			DefaultDataNetworkId: input.DefaultDataNetwork.Id,
 		}
 
-		dataNetworkConfigurationsValue, err := flattenDataNetworkConfigurationModel(&input.DataNetworkConfigurations)
-		if err != nil {
-			return nil, err
-		}
-
-		output.DataNetworkConfigurations = dataNetworkConfigurationsValue
+		output.DataNetworkConfigurations = flattenDataNetworkConfigurationModel(&input.DataNetworkConfigurations)
 
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenDataNetworkConfigurationModel(inputList *[]simpolicy.DataNetworkConfiguration) ([]DataNetworkConfigurationModel, error) {
+func flattenDataNetworkConfigurationModel(inputList *[]simpolicy.DataNetworkConfiguration) []DataNetworkConfigurationModel {
 	var outputList []DataNetworkConfigurationModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -667,12 +599,7 @@ func flattenDataNetworkConfigurationModel(inputList *[]simpolicy.DataNetworkConf
 			output.AllocationAndRetentionPriorityLevel = *input.AllocationAndRetentionPriorityLevel
 		}
 
-		allowedServicesValue, err := flattenServiceResourceIdModel(&input.AllowedServices)
-		if err != nil {
-			return nil, err
-		}
-
-		output.AllowedServices = allowedServicesValue
+		output.AllowedServices = flattenServiceResourceIdModel(&input.AllowedServices)
 
 		if input.DefaultSessionType != nil {
 			output.DefaultSessionType = string(*input.DefaultSessionType)
@@ -694,17 +621,12 @@ func flattenDataNetworkConfigurationModel(inputList *[]simpolicy.DataNetworkConf
 			output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 		}
 
-		sessionAmbrValue, err := flattenSimPolicyAmbrModel(&input.SessionAmbr)
-		if err != nil {
-			return nil, err
-		}
-
-		output.SessionAmbr = sessionAmbrValue
+		output.SessionAmbr = flattenSimPolicyAmbrModel(&input.SessionAmbr)
 
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
 func flattenSimPolicyAllowedSessionType(input *[]simpolicy.PduSessionType) []string {
@@ -718,10 +640,10 @@ func flattenSimPolicyAllowedSessionType(input *[]simpolicy.PduSessionType) []str
 	return output
 }
 
-func flattenServiceResourceIdModel(inputList *[]simpolicy.ServiceResourceId) ([]string, error) {
+func flattenServiceResourceIdModel(inputList *[]simpolicy.ServiceResourceId) []string {
 	var outputList []string
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -729,13 +651,13 @@ func flattenServiceResourceIdModel(inputList *[]simpolicy.ServiceResourceId) ([]
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenSimPolicyAmbrModel(input *simpolicy.Ambr) ([]AmbrModel, error) {
+func flattenSimPolicyAmbrModel(input *simpolicy.Ambr) []AmbrModel {
 	var outputList []AmbrModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := AmbrModel{
@@ -743,5 +665,5 @@ func flattenSimPolicyAmbrModel(input *simpolicy.Ambr) ([]AmbrModel, error) {
 		Uplink:   input.Uplink,
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

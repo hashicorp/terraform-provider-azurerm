@@ -138,14 +138,7 @@ func (r SliceResource) Create() sdk.ResourceFunc {
 				properties.Properties.Description = &model.Description
 			}
 
-			snssaiValue, err := expandSnssaiModel(model.Snssai)
-			if err != nil {
-				return err
-			}
-
-			if snssaiValue != nil {
-				properties.Properties.Snssai = *snssaiValue
-			}
+			properties.Properties.Snssai = expandSnssaiModel(model.Snssai)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -192,14 +185,7 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("snssai") {
-				snssaiValue, err := expandSnssaiModel(model.Snssai)
-				if err != nil {
-					return err
-				}
-
-				if snssaiValue != nil {
-					properties.Properties.Snssai = *snssaiValue
-				}
+				properties.Properties.Snssai = expandSnssaiModel(model.Snssai)
 			}
 
 			properties.SystemData = nil
@@ -253,12 +239,7 @@ func (r SliceResource) Read() sdk.ResourceFunc {
 				state.Description = *properties.Description
 			}
 
-			snssaiValue, err := flattenSnssaiModel(&properties.Snssai)
-			if err != nil {
-				return err
-			}
-
-			state.Snssai = snssaiValue
+			state.Snssai = flattenSnssaiModel(properties.Snssai)
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -295,28 +276,24 @@ func (r SliceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandSnssaiModel(inputList []SnssaiModel) (*slice.Snssai, error) {
+func expandSnssaiModel(inputList []SnssaiModel) slice.Snssai {
+	output := slice.Snssai{}
 	if len(inputList) == 0 {
-		return nil, nil
+		return output
 	}
-
 	input := &inputList[0]
-	output := slice.Snssai{
-		Sst: input.Sst,
-	}
+
+	output.Sst = input.Sst
 
 	if input.Sd != "" {
 		output.Sd = &input.Sd
 	}
 
-	return &output, nil
+	return output
 }
 
-func flattenSnssaiModel(input *slice.Snssai) ([]SnssaiModel, error) {
+func flattenSnssaiModel(input slice.Snssai) []SnssaiModel {
 	var outputList []SnssaiModel
-	if input == nil {
-		return outputList, nil
-	}
 
 	output := SnssaiModel{
 		Sst: input.Sst,
@@ -326,5 +303,5 @@ func flattenSnssaiModel(input *slice.Snssai) ([]SnssaiModel, error) {
 		output.Sd = *input.Sd
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

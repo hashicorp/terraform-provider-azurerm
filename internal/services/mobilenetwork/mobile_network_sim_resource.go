@@ -105,10 +105,10 @@ func (r SimResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"operator_key_code": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			//Sensitive: true,
+			Type:      pluginsdk.TypeString,
+			Required:  true,
+			ForceNew:  true,
+			Sensitive: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[0-9a-fA-F]{32}$`),
 				"The operator key code (OPC) must be a 32 hexadecimal number.",
@@ -228,22 +228,17 @@ func (r SimResource) Create() sdk.ResourceFunc {
 				properties.Properties.OperatorKeyCode = &model.OperatorKeyCode
 			}
 
-			staticIPConfigurationValue, err := expandSimStaticIPPropertiesModel(model.StaticIPConfiguration)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.StaticIPConfiguration = staticIPConfigurationValue
+			properties.Properties.StaticIPConfiguration = expandSimStaticIPPropertiesModel(model.StaticIPConfiguration)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
-
 			// AuthenticationKey and OperatorKeyCode are not returned from the API side.
 			metadata.ResourceData.Set("authentication_key", model.AuthenticationKey)
 			metadata.ResourceData.Set("operator_key_code", model.OperatorKeyCode)
+
+			metadata.SetID(id)
 
 			return nil
 		},
@@ -311,12 +306,7 @@ func (r SimResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("static_ip_configuration") {
-				staticIPConfigurationValue, err := expandSimStaticIPPropertiesModel(model.StaticIPConfiguration)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.StaticIPConfiguration = staticIPConfigurationValue
+				properties.Properties.StaticIPConfiguration = expandSimStaticIPPropertiesModel(model.StaticIPConfiguration)
 			}
 
 			properties.SystemData = nil
@@ -380,11 +370,7 @@ func (r SimResource) Read() sdk.ResourceFunc {
 				state.SimState = string(*properties.SimState)
 			}
 
-			staticIPConfigurationValue, err := flattenSimStaticIPPropertiesModel(properties.StaticIPConfiguration)
-			if err != nil {
-				return err
-			}
-			state.StaticIPConfiguration = staticIPConfigurationValue
+			state.StaticIPConfiguration = flattenSimStaticIPPropertiesModel(properties.StaticIPConfiguration)
 
 			if properties.VendorKeyFingerprint != nil {
 				state.VendorKeyFingerprint = *properties.VendorKeyFingerprint
@@ -429,7 +415,7 @@ func (r SimResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandSimStaticIPPropertiesModel(inputList []SimStaticIPPropertiesModel) (*[]sim.SimStaticIPProperties, error) {
+func expandSimStaticIPPropertiesModel(inputList []SimStaticIPPropertiesModel) *[]sim.SimStaticIPProperties {
 	var outputList []sim.SimStaticIPProperties
 	for _, v := range inputList {
 		input := v
@@ -447,13 +433,13 @@ func expandSimStaticIPPropertiesModel(inputList []SimStaticIPPropertiesModel) (*
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenSimStaticIPPropertiesModel(inputList *[]sim.SimStaticIPProperties) ([]SimStaticIPPropertiesModel, error) {
+func flattenSimStaticIPPropertiesModel(inputList *[]sim.SimStaticIPProperties) []SimStaticIPPropertiesModel {
 	var outputList []SimStaticIPPropertiesModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -474,5 +460,5 @@ func flattenSimStaticIPPropertiesModel(inputList *[]sim.SimStaticIPProperties) (
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }

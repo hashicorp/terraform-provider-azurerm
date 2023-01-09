@@ -276,21 +276,13 @@ func (r MobileNetworkServiceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
-			pccRulesValue, err := flattenPccRuleConfigurationModel(&properties.PccRules)
-			if err != nil {
-				return err
-			}
 
-			state.PccRules = pccRulesValue
+			state.PccRules = flattenPccRuleConfigurationModel(properties.PccRules)
 
 			state.ServicePrecedence = properties.ServicePrecedence
 
-			serviceQosPolicyValue, err := flattenQosPolicyModel(properties.ServiceQosPolicy)
-			if err != nil {
-				return err
-			}
+			state.ServiceQosPolicy = flattenQosPolicyModel(properties.ServiceQosPolicy)
 
-			state.ServiceQosPolicy = serviceQosPolicyValue
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}

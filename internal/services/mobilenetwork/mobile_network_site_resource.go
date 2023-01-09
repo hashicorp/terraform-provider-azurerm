@@ -190,12 +190,7 @@ func (r SiteResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := model.Properties; properties != nil {
-				networkFunctionsValue, err := flattenSubResourceModel(properties.NetworkFunctions)
-				if err != nil {
-					return err
-				}
-
-				state.NetworkFunctions = networkFunctionsValue
+				state.NetworkFunctions = flattenSubResourceModel(properties.NetworkFunctions)
 			}
 			if model.Tags != nil {
 				state.Tags = *model.Tags
@@ -233,10 +228,10 @@ func (r SiteResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func flattenSubResourceModel(inputList *[]site.SubResource) ([]string, error) {
+func flattenSubResourceModel(inputList *[]site.SubResource) []string {
 	var outputList []string
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -244,5 +239,5 @@ func flattenSubResourceModel(inputList *[]site.SubResource) ([]string, error) {
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }

@@ -105,12 +105,7 @@ func (r SiteDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := model.Properties; properties != nil {
-				networkFunctionsValue, err := flattenSubResourceModel(properties.NetworkFunctions)
-				if err != nil {
-					return err
-				}
-
-				state.NetworkFunctions = networkFunctionsValue
+				state.NetworkFunctions = flattenSubResourceModel(properties.NetworkFunctions)
 			}
 			if model.Tags != nil {
 				state.Tags = *model.Tags

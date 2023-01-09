@@ -371,25 +371,11 @@ func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: service.ServicePropertiesFormat{
 					ServicePrecedence: model.ServicePrecedence,
+					PccRules:          expandPccRuleConfigurationModel(model.PccRules),
+					ServiceQosPolicy:  expandQosPolicyModel(model.ServiceQosPolicy),
 				},
 				Tags: &model.Tags,
 			}
-
-			pccRulesValue, err := expandPccRuleConfigurationModel(model.PccRules)
-			if err != nil {
-				return err
-			}
-
-			if pccRulesValue != nil {
-				properties.Properties.PccRules = *pccRulesValue
-			}
-
-			serviceQosPolicyValue, err := expandQosPolicyModel(model.ServiceQosPolicy)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.ServiceQosPolicy = serviceQosPolicyValue
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -428,14 +414,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("pcc_rules") {
-				pccRulesValue, err := expandPccRuleConfigurationModel(model.PccRules)
-				if err != nil {
-					return err
-				}
-
-				if pccRulesValue != nil {
-					properties.Properties.PccRules = *pccRulesValue
-				}
+				properties.Properties.PccRules = expandPccRuleConfigurationModel(model.PccRules)
 			}
 
 			if metadata.ResourceData.HasChange("service_precedence") {
@@ -443,12 +422,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("service_qos_policy") {
-				serviceQosPolicyValue, err := expandQosPolicyModel(model.ServiceQosPolicy)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.ServiceQosPolicy = serviceQosPolicyValue
+				properties.Properties.ServiceQosPolicy = expandQosPolicyModel(model.ServiceQosPolicy)
 			}
 
 			properties.SystemData = nil
@@ -498,21 +472,13 @@ func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
-			pccRulesValue, err := flattenPccRuleConfigurationModel(&properties.PccRules)
-			if err != nil {
-				return err
-			}
 
-			state.PccRules = pccRulesValue
+			state.PccRules = flattenPccRuleConfigurationModel(properties.PccRules)
 
 			state.ServicePrecedence = properties.ServicePrecedence
 
-			serviceQosPolicyValue, err := flattenQosPolicyModel(properties.ServiceQosPolicy)
-			if err != nil {
-				return err
-			}
+			state.ServiceQosPolicy = flattenQosPolicyModel(properties.ServiceQosPolicy)
 
-			state.ServiceQosPolicy = serviceQosPolicyValue
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -549,7 +515,7 @@ func (r MobileNetworkServiceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPccRuleConfigurationModel(inputList []PccRuleConfigurationModel) (*[]service.PccRuleConfiguration, error) {
+func expandPccRuleConfigurationModel(inputList []PccRuleConfigurationModel) []service.PccRuleConfiguration {
 	var outputList []service.PccRuleConfiguration
 	for _, v := range inputList {
 		input := v
@@ -564,31 +530,19 @@ func expandPccRuleConfigurationModel(inputList []PccRuleConfigurationModel) (*[]
 		}
 		output.TrafficControl = &trafficControlValue
 
-		ruleQosPolicyValue, err := expandPccRuleQosPolicyModel(input.RuleQosPolicy)
-		if err != nil {
-			return nil, err
-		}
+		output.RuleQosPolicy = expandPccRuleQosPolicyModel(input.RuleQosPolicy)
 
-		output.RuleQosPolicy = ruleQosPolicyValue
-
-		serviceDataFlowTemplatesValue, err := expandServiceDataFlowTemplateModel(input.ServiceDataFlowTemplates)
-		if err != nil {
-			return nil, err
-		}
-
-		if serviceDataFlowTemplatesValue != nil {
-			output.ServiceDataFlowTemplates = serviceDataFlowTemplatesValue
-		}
+		output.ServiceDataFlowTemplates = expandServiceDataFlowTemplateModel(input.ServiceDataFlowTemplates)
 
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return outputList
 }
 
-func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) (*service.PccRuleQosPolicy, error) {
+func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) *service.PccRuleQosPolicy {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -601,26 +555,16 @@ func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) (*service.Pc
 		PreemptionVulnerability:             &vulnerability,
 	}
 
-	guaranteedBitRateValue, err := expandMaxBitRateModel(input.GuaranteedBitRate)
-	if err != nil {
-		return nil, err
+	output.GuaranteedBitRate = expandMaxBitRateModel(input.GuaranteedBitRate)
+
+	if v := expandMaxBitRateModel(input.MaximumBitRate); v != nil {
+		output.MaximumBitRate = *v
 	}
 
-	output.GuaranteedBitRate = guaranteedBitRateValue
-
-	maximumBitRateValue, err := expandMaxBitRateModel(input.MaximumBitRate)
-	if err != nil {
-		return nil, err
-	}
-
-	if maximumBitRateValue != nil {
-		output.MaximumBitRate = *maximumBitRateValue
-	}
-
-	return &output, nil
+	return &output
 }
 
-func expandServiceDataFlowTemplateModel(inputList []ServiceDataFlowTemplateModel) ([]service.ServiceDataFlowTemplate, error) {
+func expandServiceDataFlowTemplateModel(inputList []ServiceDataFlowTemplateModel) []service.ServiceDataFlowTemplate {
 	outputList := make([]service.ServiceDataFlowTemplate, 0)
 	for _, v := range inputList {
 		input := v
@@ -635,12 +579,12 @@ func expandServiceDataFlowTemplateModel(inputList []ServiceDataFlowTemplateModel
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func expandQosPolicyModel(inputList []QosPolicyModel) (*service.QosPolicy, error) {
+func expandQosPolicyModel(inputList []QosPolicyModel) *service.QosPolicy {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -653,43 +597,25 @@ func expandQosPolicyModel(inputList []QosPolicyModel) (*service.QosPolicy, error
 		PreemptionVulnerability:             &vulnerability,
 	}
 
-	maximumBitRateValue, err := expandMaxBitRateModel(input.MaximumBitRate)
-	if err != nil {
-		return nil, err
+	if v := expandMaxBitRateModel(input.MaximumBitRate); v != nil {
+		output.MaximumBitRate = *v
 	}
 
-	if maximumBitRateValue != nil {
-		output.MaximumBitRate = *maximumBitRateValue
-	}
-
-	return &output, nil
+	return &output
 }
 
-func flattenPccRuleConfigurationModel(inputList *[]service.PccRuleConfiguration) ([]PccRuleConfigurationModel, error) {
+func flattenPccRuleConfigurationModel(inputList []service.PccRuleConfiguration) []PccRuleConfigurationModel {
 	var outputList []PccRuleConfigurationModel
-	if inputList == nil {
-		return outputList, nil
-	}
 
-	for _, input := range *inputList {
+	for _, input := range inputList {
 		output := PccRuleConfigurationModel{
 			RuleName:       input.RuleName,
 			RulePrecedence: input.RulePrecedence,
 		}
 
-		ruleQosPolicyValue, err := flattenPccRuleQosPolicyModel(input.RuleQosPolicy)
-		if err != nil {
-			return nil, err
-		}
+		output.RuleQosPolicy = flattenPccRuleQosPolicyModel(input.RuleQosPolicy)
 
-		output.RuleQosPolicy = ruleQosPolicyValue
-
-		serviceDataFlowTemplatesValue, err := flattenServiceDataFlowTemplateModel(&input.ServiceDataFlowTemplates)
-		if err != nil {
-			return nil, err
-		}
-
-		output.ServiceDataFlowTemplates = serviceDataFlowTemplatesValue
+		output.ServiceDataFlowTemplates = flattenServiceDataFlowTemplateModel(&input.ServiceDataFlowTemplates)
 
 		if input.TrafficControl != nil {
 			output.TrafficControlEnabled = *input.TrafficControl == service.TrafficControlPermissionEnabled
@@ -698,13 +624,13 @@ func flattenPccRuleConfigurationModel(inputList *[]service.PccRuleConfiguration)
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) ([]PccRuleQosPolicyModel, error) {
+func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) []PccRuleQosPolicyModel {
 	var outputList []PccRuleQosPolicyModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := PccRuleQosPolicyModel{}
@@ -717,19 +643,9 @@ func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) ([]PccRuleQos
 		output.QosIdentifier = *input.Fiveqi
 	}
 
-	guaranteedBitRateValue, err := flattenMaxBitRateModel(input.GuaranteedBitRate)
-	if err != nil {
-		return nil, err
-	}
+	output.GuaranteedBitRate = flattenMaxBitRateModel(input.GuaranteedBitRate)
 
-	output.GuaranteedBitRate = guaranteedBitRateValue
-
-	maximumBitRateValue, err := flattenMaxBitRateModel(&input.MaximumBitRate)
-	if err != nil {
-		return nil, err
-	}
-
-	output.MaximumBitRate = maximumBitRateValue
+	output.MaximumBitRate = flattenMaxBitRateModel(&input.MaximumBitRate)
 
 	if input.PreemptionCapability != nil {
 		output.PreemptionCapability = string(*input.PreemptionCapability)
@@ -739,13 +655,13 @@ func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) ([]PccRuleQos
 		output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenServiceDataFlowTemplateModel(inputList *[]service.ServiceDataFlowTemplate) ([]ServiceDataFlowTemplateModel, error) {
+func flattenServiceDataFlowTemplateModel(inputList *[]service.ServiceDataFlowTemplate) []ServiceDataFlowTemplateModel {
 	var outputList []ServiceDataFlowTemplateModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -763,13 +679,13 @@ func flattenServiceDataFlowTemplateModel(inputList *[]service.ServiceDataFlowTem
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenQosPolicyModel(input *service.QosPolicy) ([]QosPolicyModel, error) {
+func flattenQosPolicyModel(input *service.QosPolicy) []QosPolicyModel {
 	var outputList []QosPolicyModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := QosPolicyModel{}
@@ -782,12 +698,7 @@ func flattenQosPolicyModel(input *service.QosPolicy) ([]QosPolicyModel, error) {
 		output.QosIdentifier = *input.Fiveqi
 	}
 
-	maximumBitRateValue, err := flattenMaxBitRateModel(&input.MaximumBitRate)
-	if err != nil {
-		return nil, err
-	}
-
-	output.MaximumBitRate = maximumBitRateValue
+	output.MaximumBitRate = flattenMaxBitRateModel(&input.MaximumBitRate)
 
 	if input.PreemptionCapability != nil {
 		output.PreemptionCapability = string(*input.PreemptionCapability)
@@ -797,12 +708,13 @@ func flattenQosPolicyModel(input *service.QosPolicy) ([]QosPolicyModel, error) {
 		output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func expandMaxBitRateModel(inputList []maxBitRateModel) (*service.Ambr, error) {
+// make it return a pointer because some property accept nil value
+func expandMaxBitRateModel(inputList []maxBitRateModel) *service.Ambr {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -811,13 +723,13 @@ func expandMaxBitRateModel(inputList []maxBitRateModel) (*service.Ambr, error) {
 		Uplink:   input.Uplink,
 	}
 
-	return &output, nil
+	return &output
 }
 
-func flattenMaxBitRateModel(input *service.Ambr) ([]maxBitRateModel, error) {
+func flattenMaxBitRateModel(input *service.Ambr) []maxBitRateModel {
 	var outputList []maxBitRateModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := maxBitRateModel{
@@ -825,5 +737,5 @@ func flattenMaxBitRateModel(input *service.Ambr) ([]maxBitRateModel, error) {
 		Uplink:   input.Uplink,
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

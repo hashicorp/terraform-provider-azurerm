@@ -176,11 +176,7 @@ func (r SimDataSource) Read() sdk.ResourceFunc {
 				state.SimState = string(*properties.SimState)
 			}
 
-			staticIPConfigurationValue, err := flattenSimStaticIPPropertiesModel(properties.StaticIPConfiguration)
-			if err != nil {
-				return err
-			}
-			state.StaticIPConfiguration = staticIPConfigurationValue
+			state.StaticIPConfiguration = flattenSimStaticIPPropertiesModel(properties.StaticIPConfiguration)
 
 			if properties.VendorKeyFingerprint != nil {
 				state.VendorKeyFingerprint = *properties.VendorKeyFingerprint

@@ -256,12 +256,7 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			naptConfigurationValue, err := expandNaptConfigurationModel(model.NaptConfiguration)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.NaptConfiguration = naptConfigurationValue
+			properties.Properties.NaptConfiguration = expandNaptConfigurationModel(model.NaptConfiguration)
 
 			properties.Properties.UserPlaneDataInterface = expandAttachedDataNetworkInterfacePropertiesModel(model.UserPlaneDataInterface)
 
@@ -306,12 +301,7 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("network_address_port_translation_configuration") {
-				naptConfigurationValue, err := expandNaptConfigurationModel(model.NaptConfiguration)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.NaptConfiguration = naptConfigurationValue
+				properties.Properties.NaptConfiguration = expandNaptConfigurationModel(model.NaptConfiguration)
 			}
 
 			if metadata.ResourceData.HasChange("user_equipment_address_pool_prefixes") {
@@ -377,12 +367,7 @@ func (r AttachedDataNetworkResource) Read() sdk.ResourceFunc {
 				state.DnsAddresses = properties.DnsAddresses
 			}
 
-			naptConfigurationValue, err := flattenNaptConfigurationModel(properties.NaptConfiguration)
-			if err != nil {
-				return err
-			}
-
-			state.NaptConfiguration = naptConfigurationValue
+			state.NaptConfiguration = flattenNaptConfigurationModel(properties.NaptConfiguration)
 
 			if properties.UserEquipmentAddressPoolPrefix != nil {
 				state.UserEquipmentAddressPoolPrefix = *properties.UserEquipmentAddressPoolPrefix
@@ -430,9 +415,9 @@ func (r AttachedDataNetworkResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandNaptConfigurationModel(inputList []NaptConfigurationModel) (*attacheddatanetwork.NaptConfiguration, error) {
+func expandNaptConfigurationModel(inputList []NaptConfigurationModel) *attacheddatanetwork.NaptConfiguration {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -446,33 +431,18 @@ func expandNaptConfigurationModel(inputList []NaptConfigurationModel) (*attached
 	}
 	output.Enabled = &naptEnabled
 
-	pinholeTimeoutsValue, err := expandPinholeTimeoutsModel(input.PinholeTimeouts)
-	if err != nil {
-		return nil, err
-	}
+	output.PinholeTimeouts = expandPinholeTimeoutsModel(input.PinholeTimeouts)
 
-	output.PinholeTimeouts = pinholeTimeoutsValue
+	output.PortRange = expandPortRangeModel(input.PortRange)
 
-	portRangeValue, err := expandPortRangeModel(input.PortRange)
-	if err != nil {
-		return nil, err
-	}
+	output.PortReuseHoldTime = expandPortReuseHoldTimesModel(input.PortReuseHoldTime)
 
-	output.PortRange = portRangeValue
-
-	portReuseHoldTimeValue, err := expandPortReuseHoldTimesModel(input.PortReuseHoldTime)
-	if err != nil {
-		return nil, err
-	}
-
-	output.PortReuseHoldTime = portReuseHoldTimeValue
-
-	return &output, nil
+	return &output
 }
 
-func expandPinholeTimeoutsModel(inputList []PinholeTimeoutsModel) (*attacheddatanetwork.PinholeTimeouts, error) {
+func expandPinholeTimeoutsModel(inputList []PinholeTimeoutsModel) *attacheddatanetwork.PinholeTimeouts {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -482,12 +452,12 @@ func expandPinholeTimeoutsModel(inputList []PinholeTimeoutsModel) (*attacheddata
 		Udp:  &input.Udp,
 	}
 
-	return &output, nil
+	return &output
 }
 
-func expandPortRangeModel(inputList []PortRangeModel) (*attacheddatanetwork.PortRange, error) {
+func expandPortRangeModel(inputList []PortRangeModel) *attacheddatanetwork.PortRange {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -496,12 +466,12 @@ func expandPortRangeModel(inputList []PortRangeModel) (*attacheddatanetwork.Port
 		MinPort: &input.MinPort,
 	}
 
-	return &output, nil
+	return &output
 }
 
-func expandPortReuseHoldTimesModel(inputList []PortReuseHoldTimesModel) (*attacheddatanetwork.PortReuseHoldTimes, error) {
+func expandPortReuseHoldTimesModel(inputList []PortReuseHoldTimesModel) *attacheddatanetwork.PortReuseHoldTimes {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -510,7 +480,7 @@ func expandPortReuseHoldTimesModel(inputList []PortReuseHoldTimesModel) (*attach
 		Udp: &input.Udp,
 	}
 
-	return &output, nil
+	return &output
 }
 
 func expandAttachedDataNetworkInterfacePropertiesModel(inputList []InterfacePropertiesModel) attacheddatanetwork.InterfaceProperties {
@@ -539,10 +509,10 @@ func expandAttachedDataNetworkInterfacePropertiesModel(inputList []InterfaceProp
 	return output
 }
 
-func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration) ([]NaptConfigurationModel, error) {
+func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration) []NaptConfigurationModel {
 	var outputList []NaptConfigurationModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := NaptConfigurationModel{
@@ -553,34 +523,19 @@ func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration)
 		output.PinholeLimits = *input.PinholeLimits
 	}
 
-	pinholeTimeoutsValue, err := flattenPinholeTimeoutsModel(input.PinholeTimeouts)
-	if err != nil {
-		return nil, err
-	}
+	output.PinholeTimeouts = flattenPinholeTimeoutsModel(input.PinholeTimeouts)
 
-	output.PinholeTimeouts = pinholeTimeoutsValue
+	output.PortRange = flattenPortRangeModel(input.PortRange)
 
-	portRangeValue, err := flattenPortRangeModel(input.PortRange)
-	if err != nil {
-		return nil, err
-	}
+	output.PortReuseHoldTime = flattenPortReuseHoldTimesModel(input.PortReuseHoldTime)
 
-	output.PortRange = portRangeValue
-
-	portReuseHoldTimeValue, err := flattenPortReuseHoldTimesModel(input.PortReuseHoldTime)
-	if err != nil {
-		return nil, err
-	}
-
-	output.PortReuseHoldTime = portReuseHoldTimeValue
-
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenPinholeTimeoutsModel(input *attacheddatanetwork.PinholeTimeouts) ([]PinholeTimeoutsModel, error) {
+func flattenPinholeTimeoutsModel(input *attacheddatanetwork.PinholeTimeouts) []PinholeTimeoutsModel {
 	var outputList []PinholeTimeoutsModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := PinholeTimeoutsModel{}
@@ -599,13 +554,13 @@ func flattenPinholeTimeoutsModel(input *attacheddatanetwork.PinholeTimeouts) ([]
 
 	outputList = append(outputList, output)
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenPortRangeModel(input *attacheddatanetwork.PortRange) ([]PortRangeModel, error) {
+func flattenPortRangeModel(input *attacheddatanetwork.PortRange) []PortRangeModel {
 	var outputList []PortRangeModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := PortRangeModel{}
@@ -618,13 +573,13 @@ func flattenPortRangeModel(input *attacheddatanetwork.PortRange) ([]PortRangeMod
 		output.MinPort = *input.MinPort
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenPortReuseHoldTimesModel(input *attacheddatanetwork.PortReuseHoldTimes) ([]PortReuseHoldTimesModel, error) {
+func flattenPortReuseHoldTimesModel(input *attacheddatanetwork.PortReuseHoldTimes) []PortReuseHoldTimesModel {
 	var outputList []PortReuseHoldTimesModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := PortReuseHoldTimesModel{}
@@ -637,7 +592,7 @@ func flattenPortReuseHoldTimesModel(input *attacheddatanetwork.PortReuseHoldTime
 		output.Udp = *input.Udp
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
 func flattenAttachedDataNetworkInterfacePropertiesModel(input attacheddatanetwork.InterfaceProperties) []InterfacePropertiesModel {

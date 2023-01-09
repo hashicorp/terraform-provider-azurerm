@@ -30,6 +30,20 @@ func TestAccMobileNetworkSimGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccMobileNetworkSimGroup_withSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
+	r := MobileNetworkSimGroupResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMobileNetworkSimGroup_withEncryptionKeyUrl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
 	r := MobileNetworkSimGroupResource{}

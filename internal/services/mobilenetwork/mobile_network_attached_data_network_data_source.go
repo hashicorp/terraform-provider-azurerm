@@ -207,12 +207,7 @@ func (r AttachedDataNetworkDataSource) Read() sdk.ResourceFunc {
 				state.DnsAddresses = properties.DnsAddresses
 			}
 
-			naptConfigurationValue, err := flattenNaptConfigurationModel(properties.NaptConfiguration)
-			if err != nil {
-				return err
-			}
-
-			state.NaptConfiguration = naptConfigurationValue
+			state.NaptConfiguration = flattenNaptConfigurationModel(properties.NaptConfiguration)
 
 			if properties.UserEquipmentAddressPoolPrefix != nil {
 				state.UserEquipmentAddressPoolPrefix = *properties.UserEquipmentAddressPoolPrefix

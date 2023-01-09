@@ -124,12 +124,8 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 				state.Description = *properties.Description
 			}
 
-			snssaiValue, err := flattenSnssaiModel(&properties.Snssai)
-			if err != nil {
-				return err
-			}
+			state.Snssai = flattenSnssaiModel(properties.Snssai)
 
-			state.Snssai = snssaiValue
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
