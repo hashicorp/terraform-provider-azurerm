@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -122,9 +122,10 @@ func (r SimResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sim_policy_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: simpolicy.ValidateSimPolicyID,
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     simpolicy.ValidateSimPolicyID,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"static_ip_configuration": {
@@ -372,7 +373,7 @@ func (r SimResource) Read() sdk.ResourceFunc {
 			state.InternationalMobileSubscriberIdentity = properties.InternationalMobileSubscriberIdentity
 
 			if simPolicy := properties.SimPolicy; properties.SimPolicy != nil {
-				state.SimPolicyId = replaceUpperCaseWordsWorkAround(simPolicy.Id)
+				state.SimPolicyId = simPolicy.Id
 			}
 
 			if properties.SimState != nil {
@@ -474,13 +475,4 @@ func flattenSimStaticIPPropertiesModel(inputList *[]sim.SimStaticIPProperties) (
 	}
 
 	return outputList, nil
-}
-
-// TODO: remove before submit pr, a workaround because the service returned different upper case id
-func replaceUpperCaseWordsWorkAround(input string) string {
-	output := strings.Replace(input, "/resourcegroups/", "/resourceGroups/", 1)
-	output = strings.Replace(output, "/mobilenetworks/", "/mobileNetworks/", 1)
-	output = strings.Replace(output, "/simpolicies/", "/simPolicies/", 1)
-	output = strings.Replace(output, "/microsoft.mobilenetwork/", "/Microsoft.MobileNetwork/", 1)
-	return output
 }

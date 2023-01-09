@@ -244,7 +244,7 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 
 			if identityValue != nil && identityValue.Type == identity.TypeUserAssigned {
 				return fmt.Errorf("do not spciify `identity` to `UserAssgined`, there is an ongoing issue may cause an ICM")
-				// TODO: remove this check when the issue is fixed. before PR submit.
+				// TODO: remove this check when the issue is fixed. before PR merged.
 			}
 
 			properties := packetcorecontrolplane.PacketCoreControlPlane{

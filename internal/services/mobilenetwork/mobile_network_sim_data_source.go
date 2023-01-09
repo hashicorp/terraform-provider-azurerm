@@ -169,7 +169,7 @@ func (r SimDataSource) Read() sdk.ResourceFunc {
 			state.InternationalMobileSubscriberIdentity = properties.InternationalMobileSubscriberIdentity
 
 			if simPolicy := properties.SimPolicy; properties.SimPolicy != nil {
-				state.SimPolicyId = replaceUpperCaseWordsWorkAround(simPolicy.Id)
+				state.SimPolicyId = simPolicy.Id
 			}
 
 			if properties.SimState != nil {
