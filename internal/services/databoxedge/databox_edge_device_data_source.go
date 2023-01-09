@@ -140,8 +140,7 @@ func (d EdgeDeviceDataSource) Read() sdk.ResourceFunc {
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					log.Printf("[INFO] %s was not found - removing from state", id)
-					metadata.MarkAsGone(id)
-					return nil
+					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
@@ -160,9 +159,7 @@ func (d EdgeDeviceDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			metadata.Encode(&state)
-
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
