@@ -49,7 +49,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
   }
 
   platform {
-    type = "AKS-HCI"
+    type           = "AKS-HCI"
     edge_device_id = azurerm_databox_edge_device.example.id
   }
 }

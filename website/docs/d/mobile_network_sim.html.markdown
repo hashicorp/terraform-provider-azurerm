@@ -20,8 +20,8 @@ data "azurerm_mobile_network_sim_group" "example" {
 
 
 data "azurerm_mobile_network_sim" "example" {
-  name                                     = "example-sim"
-  mobile_network_sim_group_id              = data.azurerm_mobile_network_sim_group.example.id
+  name                        = "example-sim"
+  mobile_network_sim_group_id = data.azurerm_mobile_network_sim_group.example.id
 }
 ```
 

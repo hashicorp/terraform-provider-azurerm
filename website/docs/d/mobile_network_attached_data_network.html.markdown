@@ -19,8 +19,8 @@ data "azurerm_mobile_network_packet_core_control_plane" "example" {
 }
 
 resource "azurerm_mobile_network_attached_data_network" "example" {
-  name                                        = "example-data-network"
-  mobile_network_packet_core_data_plane_id    = data.azurerm_mobile_network_packet_core_control_plane.example.id
+  name                                     = "example-data-network"
+  mobile_network_packet_core_data_plane_id = data.azurerm_mobile_network_packet_core_control_plane.example.id
 }
 ```
 

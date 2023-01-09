@@ -19,8 +19,8 @@ data "azurerm_mobile_network" "example" {
 }
 
 resource "azurerm_mobile_network_service" "example" {
-  name               = "example-mns"
-  mobile_network_id  = data.azurerm_mobile_network.example.id
+  name              = "example-mns"
+  mobile_network_id = data.azurerm_mobile_network.example.id
 }
 ```
 

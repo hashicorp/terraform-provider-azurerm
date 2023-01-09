@@ -19,8 +19,8 @@ data "azurerm_mobile_network" "example" {
 }
 
 data "azurerm_mobile_network_sim_policy" "example" {
-  name                          = "example-mnsp"
-  mobile_network_id             = data.azurerm_mobile_network.example.id
+  name              = "example-mnsp"
+  mobile_network_id = data.azurerm_mobile_network.example.id
 }
 ```
 
