@@ -11,7 +11,7 @@ import (
 type MobileNetworkSliceDataSource struct{}
 
 func TestAccMobileNetworkSliceDataSource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mobile_network_site", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
 	d := MobileNetworkSliceDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{

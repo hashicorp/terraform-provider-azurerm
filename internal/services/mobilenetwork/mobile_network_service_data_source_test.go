@@ -18,7 +18,6 @@ func TestAccMobileNetworkServiceDataSource_complete(t *testing.T) {
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key(`location`).HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key(`mobile_country_code`).HasValue("001"),
 				check.That(data.ResourceName).Key(`service_precedence`).HasValue("0"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_name`).HasValue("default-rule"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_precedence`).HasValue("1"),
@@ -29,7 +28,7 @@ func TestAccMobileNetworkServiceDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_qos_policy.0.preemption_vulnerability`).HasValue("Preemptable"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_qos_policy.0.guaranteed_bit_rate.0.downlink`).HasValue("100 Mbps"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_qos_policy.0.guaranteed_bit_rate.0.uplink`).HasValue("10 Mbps"),
-				check.That(data.ResourceName).Key(`pcc_rules.0.rule_qos_policy.0.maximum_bit_rate.0.uplink`).HasValue("1 Gbps"),
+				check.That(data.ResourceName).Key(`pcc_rules.0.rule_qos_policy.0.maximum_bit_rate.0.downlink`).HasValue("1 Gbps"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_qos_policy.0.maximum_bit_rate.0.uplink`).HasValue("100 Mbps"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.service_data_flow_templates.0.direction`).HasValue("Uplink"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.service_data_flow_templates.0.template_name`).HasValue("IP-to-server"),

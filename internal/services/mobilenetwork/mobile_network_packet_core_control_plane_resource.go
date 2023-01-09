@@ -43,11 +43,11 @@ type LocalDiagnosticsAccessConfigurationModel struct {
 }
 
 type PlatformConfigurationModel struct {
-	AzureStackEdgeDeviceId string                              `tfschema:"edge_device_id"`
-	AzureStackHciClusterId string                              `tfschema:"azure_stack_hci_cluster_id"`
-	ConnectedClusterId     string                              `tfschema:"azure_arc_connected_cluster_id"`
-	CustomLocationId       string                              `tfschema:"custom_location_id"`
-	Type                   packetcorecontrolplane.PlatformType `tfschema:"type"`
+	AzureStackEdgeDeviceId string `tfschema:"edge_device_id"`
+	AzureStackHciClusterId string `tfschema:"azure_stack_hci_cluster_id"`
+	ConnectedClusterId     string `tfschema:"azure_arc_connected_cluster_id"`
+	CustomLocationId       string `tfschema:"custom_location_id"`
+	Type                   string `tfschema:"type"`
 }
 
 type PacketCoreControlPlaneResource struct{}
@@ -163,6 +163,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 						ValidateFunc: validation.StringInSlice([]string{
 							string(packetcorecontrolplane.PlatformTypeAKSNegativeHCI),
 							string(packetcorecontrolplane.PlatformTypeThreePNegativeAZURENegativeSTACKNegativeHCI),
+							string("BaseVM"), // a workaround for there might be existing one with this value. allow user to import them.
 						}, false),
 					},
 				},
@@ -170,8 +171,6 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
-
-		// it's still in progress, And will only support user assigned identity.
 
 		"interop_settings": {
 			Type:             pluginsdk.TypeString,
@@ -243,9 +242,9 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			if identityValue != nil {
-				return fmt.Errorf("do not spciify `identity`, there is an ongoing issue may cause an ICM")
-				// todo: remove this check when the issue is fixed. before PR submit.
+			if identityValue != nil && identityValue.Type == identity.TypeUserAssigned {
+				return fmt.Errorf("do not spciify `identity` to `UserAssgined`, there is an ongoing issue may cause an ICM")
+				// TODO: remove this check when the issue is fixed. before PR submit.
 			}
 
 			properties := packetcorecontrolplane.PacketCoreControlPlane{
@@ -584,7 +583,12 @@ func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (p
 	}
 
 	input := inputList[0]
-	output.Type = input.Type
+
+	if strings.EqualFold("basevm", input.Type) {
+		return output, fmt.Errorf("it's not allowed to create new PCCP with BaseVm platform type")
+	}
+
+	output.Type = packetcorecontrolplane.PlatformType(input.Type)
 
 	if pass, err := vertifyPlatformConfigurationModel(input); !pass {
 		return output, err
@@ -672,7 +676,7 @@ func flattenPlatformConfigurationModel(input packetcorecontrolplane.PlatformConf
 	var outputList []PlatformConfigurationModel
 
 	output := PlatformConfigurationModel{
-		Type: input.Type,
+		Type: string(input.Type),
 	}
 
 	if input.AzureStackEdgeDevice != nil {

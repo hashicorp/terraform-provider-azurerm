@@ -22,7 +22,6 @@ func TestAccMobileNetworkPacketCoreControlPlanDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key(`site_ids.#`).HasValue("1"),
 				check.That(data.ResourceName).Key(`local_diagnostics_access_setting.0.authentication_type`).HasValue("AAD"),
 				check.That(data.ResourceName).Key(`platform.0.type`).HasValue("AKS-HCI"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -35,7 +34,7 @@ func (r MobileNetworkPacketCoreControlPlanDataSource) basic(data acceptance.Test
 
 data "azurerm_mobile_network_packet_core_control_plane" "test" {
   name                = azurerm_mobile_network_packet_core_control_plane.test.name
-  resource_group_name = azurerm_mobile_network_data_network.test.resource_group_name
+  resource_group_name = azurerm_mobile_network_packet_core_control_plane.test.resource_group_name
 }
 `, MobileNetworkPacketCoreControlPlaneResource{}.basic(data))
 }

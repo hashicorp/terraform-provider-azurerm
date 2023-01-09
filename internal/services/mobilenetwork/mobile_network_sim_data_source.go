@@ -13,6 +13,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+type SimDataSourceModel struct {
+	Name                                  string                       `tfschema:"name"`
+	MobileNetworkSimGroupId               string                       `tfschema:"mobile_network_sim_group_id"`
+	DeviceType                            string                       `tfschema:"device_type"`
+	IntegratedCircuitCardIdentifier       string                       `tfschema:"integrated_circuit_card_identifier"`
+	InternationalMobileSubscriberIdentity string                       `tfschema:"international_mobile_subscriber_identity"`
+	SimPolicyId                           string                       `tfschema:"sim_policy_id"`
+	StaticIPConfiguration                 []SimStaticIPPropertiesModel `tfschema:"static_ip_configuration"`
+	SimState                              string                       `tfschema:"sim_state"`
+	VendorKeyFingerprint                  string                       `tfschema:"vendor_key_fingerprint"`
+	VendorName                            string                       `tfschema:"vendor_name"`
+}
+
 type SimDataSource struct{}
 
 var _ sdk.DataSource = SimDataSource{}
@@ -22,7 +35,7 @@ func (r SimDataSource) ResourceType() string {
 }
 
 func (r SimDataSource) ModelObject() interface{} {
-	return &SimModel{}
+	return &SimDataSourceModel{}
 }
 
 func (r SimDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
