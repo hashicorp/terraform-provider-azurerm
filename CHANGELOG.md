@@ -19,6 +19,8 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
+* `azurerm_storage_account` -  `403` is now a valid status code for when permissions to list keys is missing [GH-19645]
+
 
 ## 3.38.0 (January 05, 2023)
 
