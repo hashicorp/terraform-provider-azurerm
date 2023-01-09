@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )

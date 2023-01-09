@@ -1,14 +1,14 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/attacheddatabaseconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusterprincipalassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/databaseprincipalassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/dataconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/managedprivateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/scripts" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/attacheddatabaseconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/clusterprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/databaseprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/scripts" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

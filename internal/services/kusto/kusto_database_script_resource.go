@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/scripts" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/scripts" // nolint: staticcheck
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

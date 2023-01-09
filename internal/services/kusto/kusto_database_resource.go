@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-11-11/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
