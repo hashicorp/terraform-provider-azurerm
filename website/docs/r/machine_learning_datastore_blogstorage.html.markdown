@@ -84,9 +84,9 @@ The following arguments are supported:
 * `workspace_id` - (Required) The ID of the machine learning workspace. Changing this forces a new Machine Learning DataStore to be created.
 
 ---
-* `storage_account_name` - (Optional) The name of the storage account. Changing this forces a new Machine Learning DataStore to be created.
+* `storage_account_name` - (Required) The name of the storage account. Changing this forces a new Machine Learning DataStore to be created.
 
-* `container_name` - (Optional) The name of the storage account container. Changing this forces a new Machine Learning DataStore to be created.
+* `container_name` - (Required) The name of the storage account container. Changing this forces a new Machine Learning DataStore to be created.
 
 * `account_key` - (Optional) The access key of the storage account. Conflicts with `shared_access_signature`.
 
