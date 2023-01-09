@@ -1,5 +1,8 @@
 ## 3.39.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_cost_anomaly_alert` [GH-19899]
 
 ENHANCEMENTS:
 
