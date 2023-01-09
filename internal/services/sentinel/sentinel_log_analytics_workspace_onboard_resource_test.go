@@ -276,7 +276,7 @@ func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acc
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
+resource "azurerm_sentinel_log_analytics_workspace_onboard" "import" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
 }
