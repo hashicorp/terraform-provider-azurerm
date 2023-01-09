@@ -147,6 +147,11 @@ resource "azurerm_log_analytics_cluster" "test" {
   }
 }
 
+data "azuread_service_principal" "cosmos" {
+  display_name = "Azure Cosmos DB"
+}
+
+
 resource "azurerm_key_vault" "test" {
   name                = "vault%[3]s"
   location            = azurerm_resource_group.test.location
@@ -160,7 +165,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.test.object_id
+    object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
       "Create",
       "Delete",
@@ -176,41 +181,26 @@ resource "azurerm_key_vault" "test" {
       "Set",
     ]
   }
-}
 
+  access_policy {
+    tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
+    object_id = azurerm_log_analytics_cluster.test.identity.0.principal_id
+    key_permissions = [
+      "Get",
+      "UnwrapKey",
+      "WrapKey"
+    ]
+  }
 
-resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id = azurerm_key_vault.test.id
-
-  key_permissions = [
-    "Get",
-    "UnwrapKey",
-    "WrapKey"
-  ]
-
-  tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
-  object_id = azurerm_log_analytics_cluster.test.identity.0.principal_id
-
-  depends_on = [azurerm_key_vault_access_policy.terraform]
-}
-
-data "azuread_service_principal" "cosmos" {
-  display_name = "Azure Cosmos DB"
-}
-
-resource "azurerm_key_vault_access_policy" "cosmos" { #sentinel works with Azure Cosmos DB as an additional storage resource.
-  key_vault_id = azurerm_key_vault.test.id
-
-  key_permissions = [
-    "Get",
-    "UnwrapKey",
-    "WrapKey"
-  ]
-
-  tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
-  object_id = data.azuread_service_principal.cosmos.object_id
-
-  depends_on = [azurerm_key_vault_access_policy.terraform]
+  access_policy {
+    tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
+    object_id = data.azuread_service_principal.cosmos.object_id
+    key_permissions = [
+      "Get",
+      "UnwrapKey",
+      "WrapKey"
+    ]
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -228,14 +218,12 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 
-  depends_on = [azurerm_key_vault_access_policy.terraform]
 }
 
 resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
   log_analytics_cluster_id = azurerm_log_analytics_cluster.test.id
   key_vault_key_id         = azurerm_key_vault_key.test.id
 
-  depends_on = [azurerm_key_vault_access_policy.test]
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
