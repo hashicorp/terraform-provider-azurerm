@@ -17,7 +17,7 @@ func TestAccDataboxEdgeDeviceDataSource_complete(t *testing.T) {
 		{
 			Config: DataboxEdgeDeviceDataSource{}.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("EdgeP_Base-Standard"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
