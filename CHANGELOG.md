@@ -7,6 +7,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `siterecovery`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19571]
+* `siterecovery`: updating to API version `2021-11-01` [GH-19571]
 * Data Source: `azurerm_shared_image` - add support for the `purchase_plan` block [GH-19873]
 * `azurerm_logic_app_action_http` - add support for `@` in the `body` property [GH-19754]
 * `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties [GH-19891]
