@@ -478,7 +478,11 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
 			}
 
-			if err := d.Set("customer_managed_key", flattenFlexibleServerDataEncryption(props.DataEncryption)); err != nil {
+			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
+			if err != nil {
+				return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
+			}
+			if err := d.Set("customer_managed_key", cmk); err != nil {
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
@@ -934,20 +938,24 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	return &dataEncryption
 }
 
-func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) []interface{} {
+func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interface{}, error) {
 	if de == nil || *de.Type == servers.DataEncryptionTypeSystemManaged {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	item := map[string]interface{}{}
 	if de.PrimaryKeyURI != nil {
 		item["key_vault_key_id"] = *de.PrimaryKeyURI
 	}
-	if de.PrimaryUserAssignedIdentityId != nil {
-		item["primary_user_assigned_identity_id"] = *de.PrimaryUserAssignedIdentityId
+	if identity := de.PrimaryUserAssignedIdentityId; identity != nil {
+		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
+		}
+		item["primary_user_assigned_identity_id"] = parsed.ID()
 	}
 
-	return []interface{}{item}
+	return []interface{}{item}, nil
 }
 
 func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error) {
