@@ -85,7 +85,7 @@ The `auto_backup` block supports the following:
 
 * `storage_account_access_key` - (Required) Access key for the storage account where backups will be kept.
 
-* `system_databases_backup_enabled` - (Optional) Include or exclude system databases from auto backup. Defaults to `false`.
+* `system_databases_backup_enabled` - (Optional) Include or exclude system databases from auto backup.
 
 ---
 

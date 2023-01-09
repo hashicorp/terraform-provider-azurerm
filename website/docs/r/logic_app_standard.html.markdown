@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 
-* `enabled` - (Optional) Is the Logic App enabled?
+* `enabled` - (Optional) Is the Logic App enabled? Defaults to `true`.
 
 * `https_only` - (Optional) Can the Logic App only be accessed via HTTPS? Defaults to `false`.
 

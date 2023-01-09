@@ -242,7 +242,7 @@ The `rule` block supports the following:
 
 * `id` - (Required) Identifier for the managed rule.
 
-* `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state. Defaults to `false`.
+* `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state.
 
 * `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block` and `Log`.
 

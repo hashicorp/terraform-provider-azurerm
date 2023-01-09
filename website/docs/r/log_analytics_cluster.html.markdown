@@ -71,8 +71,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cluster_id` - The GUID of the cluster.
 
-* `type` - The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
-
 ---
 
 An `identity` block exports the following:

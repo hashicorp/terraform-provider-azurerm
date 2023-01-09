@@ -226,11 +226,10 @@ func (r SpringCloudConnectorResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.LinkerDelete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.LinkerDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -275,7 +274,7 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 				Properties: &linkerProps,
 			}
 
-			if _, err := client.LinkerUpdate(ctx, *id, props); err != nil {
+			if err := client.LinkerUpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil

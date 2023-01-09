@@ -165,7 +165,7 @@ A `client_certificate_common_name` block supports the following:
 
 * `common_name` - (Required) The common or subject name of the certificate.
 
-* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+* `issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
 -> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
@@ -243,7 +243,7 @@ A `ephemeral_ports` block supports the following:
 
 A `upgrade_policy` block supports the following:
 
-* `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
+* `force_restart_enabled` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
 
 * `health_check_retry_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, after which Service Fabric retries the health check if the previous health check fails. Defaults to `00:45:00`.
 

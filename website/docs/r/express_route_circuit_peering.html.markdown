@@ -146,9 +146,9 @@ A `microsoft_peering_config` block contains:
 
 * `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes.
 
-* `customer_asn` - (Optional) The CustomerASN of the peering.
+* `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc.
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
 ---
 
@@ -172,9 +172,9 @@ A `microsoft_peering` block contains:
 
 * `advertised_public_prefixes` - (Optional) A list of Advertised Public Prefixes.
 
-* `customer_asn` - (Optional) The CustomerASN of the peering.
+* `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example:  `ARIN`, `RIPE`, `AFRINIC` etc.
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example:  `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
 ## Attributes Reference
 
