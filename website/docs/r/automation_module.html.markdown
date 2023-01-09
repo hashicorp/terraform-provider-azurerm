@@ -46,13 +46,23 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Module is created. Changing this forces a new resource to be created.
 
-* `module_link` - (Required) The published Module link.
+* `module_link` - (Required) The published Module link `module_link` block defined as blow.
 
 ---
 
 The `module_link` block supports the following:
 
 * `uri` - (Required) The URI of the module content (zip or nupkg).
+
+* `hash` - (Optional) A `hash` block defined as below.
+
+---
+
+The `hash` block supports the following:
+
+* `algorithm` - (Required) Specify the algorithm used for the hash content.
+
+* `value` - (Required) The hash value of the content.
 
 ## Attributes Reference
 
