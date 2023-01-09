@@ -225,10 +225,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	blobStorageProperties := &datafactory.AzureBlobStorageLinkedServiceTypeProperties{}
 
 	if v, ok := d.GetOk("connection_string"); ok {
-		blobStorageProperties.ConnectionString = &datafactory.SecureString{
-			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
-		}
+		blobStorageProperties.ConnectionString = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
