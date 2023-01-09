@@ -204,11 +204,15 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			metadata.ResourceData.Set("name", resp.Model.Name)
-			metadata.ResourceData.Set("display_name", resp.Model.Properties.DisplayName)
-			metadata.ResourceData.Set("email_subject", resp.Model.Properties.Notification.Subject)
-			metadata.ResourceData.Set("email_addresses", resp.Model.Properties.Notification.To)
-			metadata.ResourceData.Set("message", resp.Model.Properties.Notification.Message)
+			if model := resp.Model; model != nil {
+				metadata.ResourceData.Set("name", model.Name)
+				if props := model.Properties; props != nil {
+					metadata.ResourceData.Set("display_name", props.DisplayName)
+					metadata.ResourceData.Set("email_subject", props.Notification.Subject)
+					metadata.ResourceData.Set("email_addresses", props.Notification.To)
+					metadata.ResourceData.Set("message", props.Notification.Message)
+				}
+			}
 
 			return nil
 		},
