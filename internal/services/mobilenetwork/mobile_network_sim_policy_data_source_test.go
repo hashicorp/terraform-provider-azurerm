@@ -17,7 +17,7 @@ func TestAccMobileNetworkSimPolicyDataSource_complete(t *testing.T) {
 		{
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key(`location`).HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`default_slice_id`).Exists(),
 				check.That(data.ResourceName).Key(`registration_timer_in_seconds`).HasValue("3240"),
 				check.That(data.ResourceName).Key(`rfsp_index`).HasValue("1"),

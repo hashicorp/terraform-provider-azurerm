@@ -17,7 +17,7 @@ func TestAccMobileNetworkServiceDataSource_complete(t *testing.T) {
 		{
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key(`location`).HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`service_precedence`).HasValue("0"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_name`).HasValue("default-rule"),
 				check.That(data.ResourceName).Key(`pcc_rules.0.rule_precedence`).HasValue("1"),

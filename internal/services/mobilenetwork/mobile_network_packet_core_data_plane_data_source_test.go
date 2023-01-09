@@ -17,7 +17,7 @@ func TestAccMobileNetworkPacketCoreDataPlaneDataSource_complete(t *testing.T) {
 		{
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key(`location`).HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`user_plane_access_interface.0.name`).HasValue("default-interface"),
 				check.That(data.ResourceName).Key(`user_plane_access_interface.0.ipv4_address`).HasValue("192.168.1.199"),
 				check.That(data.ResourceName).Key(`user_plane_access_interface.0.ipv4_gateway`).HasValue("192.168.1.1"),

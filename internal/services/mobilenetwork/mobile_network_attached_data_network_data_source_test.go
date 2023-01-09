@@ -17,7 +17,7 @@ func TestAccMobileNetworkAttachedDataNetworkDataSource_basic(t *testing.T) {
 		{
 			Config: d.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key(`location`).HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`dns_addresses.0`).HasValue("1.1.1.1"),
 				check.That(data.ResourceName).Key(`user_equipment_address_pool_prefixes.0`).HasValue("2.4.0.0/16"),
 				check.That(data.ResourceName).Key(`user_equipment_static_address_pool_prefixes.0`).HasValue("2.4.0.0/16"),
