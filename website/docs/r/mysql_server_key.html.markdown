@@ -100,10 +100,10 @@ The following attributes are exported in addition to the arguments listed above:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the MySQL Server Key.
-* `update` - (Defaults to 30 minutes) Used when updating the MySQL Server Key.
+* `create` - (Defaults to 60 minutes) Used when creating the MySQL Server Key.
+* `update` - (Defaults to 60 minutes) Used when updating the MySQL Server Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Server Key.
-* `delete` - (Defaults to 30 minutes) Used when deleting the MySQL Server Key.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MySQL Server Key.
 
 ## Import
 

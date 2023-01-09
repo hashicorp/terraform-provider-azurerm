@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ---
 
-* `mtu` - (Optional) The IPv4 maximum transmission unit configured for the subnet of the HPC Cache. Possible values range from 576 - 1500. Defaults to 1500.
+* `mtu` - (Optional) The IPv4 maximum transmission unit configured for the subnet of the HPC Cache. Possible values range from 576 - 1500. Defaults to `1500`.
 
 * `default_access_policy` - (Optional) A `default_access_policy` block as defined below.
 
@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to encrypt the data in this HPC Cache.
 
-* `automatically_rotate_key_to_latest_enabled` - (Optional) Specifies whether the HPC Cache automatically rotates Encryption Key to the latest version. Defaults to `false`.
+* `automatically_rotate_key_to_latest_enabled` - (Optional) Specifies whether the HPC Cache automatically rotates Encryption Key to the latest version.
 
 * `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
 
@@ -104,11 +104,11 @@ An `access_rule` block contains the following:
 
 * `filter` - (Optional) The filter applied to the `scope` for this rule. The filter's format depends on its scope: `default` scope matches all clients and has no filter value; `network` scope takes a CIDR format; `host` takes an IP address or fully qualified domain name. If a client does not match any filter rule and there is no default rule, access is denied.
 
-* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/azure/hpc-cache/access-policies#suid) is allowed? Defaults to `false`.
+* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/azure/hpc-cache/access-policies#suid) is allowed? 
 
-* `submount_access_enabled` - (Optional) Whether allow access to subdirectories under the root export? Defaults to `false`.
+* `submount_access_enabled` - (Optional) Whether allow access to subdirectories under the root export? 
 
-* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/azure/hpc-cache/access-policies#root-squash)? Defaults to `false`.
+* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/azure/hpc-cache/access-policies#root-squash)? 
 
 * `anonymous_uid` - (Optional) The anonymous UID used when `root_squash_enabled` is `true`.
 
@@ -162,11 +162,11 @@ A `directory_ldap` block contains the following:
 
 * `base_dn` - (Required) The base distinguished name (DN) for the LDAP domain.
 
-* `encrypted` - (Optional) Whether the LDAP connection should be encrypted? Defaults to `false`.
+* `encrypted` - (Optional) Whether the LDAP connection should be encrypted? 
 
 * `certificate_validation_uri` - (Optional) The URI of the CA certificate to validate the LDAP secure connection.
 
-* `download_certificate_automatically` - (Optional) Whether the certificate should be automatically downloaded. This can be set to `true` only when `certificate_validation_uri` is provided. Defaults to `false`.
+* `download_certificate_automatically` - (Optional) Whether the certificate should be automatically downloaded. This can be set to `true` only when `certificate_validation_uri` is provided.
 
 * `bind` - (Optional) A `bind` block as defined above.
 
@@ -198,9 +198,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the HPC Cache.
+* `create` - (Defaults to 60 minutes) Used when creating the HPC Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache.
-* `delete` - (Defaults to 30 minutes) Used when deleting the HPC Cache.
+* `delete` - (Defaults to 60 minutes) Used when deleting the HPC Cache.
+* `update` - (Defaults to 60 minutes) Used when updating the Hpc Cache.
 
 ## Import
 

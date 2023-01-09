@@ -60,7 +60,9 @@ The following arguments are supported:
 * `sku_tier` - (Optional) `sku_tier` - (Optional) The SKU tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`frontend_ip_configuration` supports the following:
+---
+
+The `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the frontend IP configuration. Changing this forces a new resource to be created.
 
@@ -72,7 +74,7 @@ The following arguments are supported:
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.
-* `private_ip_address_version` - The version of IP that the Private IP Address is. Possible values are `IPv4` or `IPv6`.
+* `private_ip_address_version` - (Optional) The version of IP that the Private IP Address is. Possible values are `IPv4` or `IPv6`.
 * `public_ip_address_id` - (Optional) The ID of a Public IP Address which should be associated with the Load Balancer.
 * `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.
 
@@ -95,7 +97,7 @@ A `frontend_ip_configuration` block exports the following:
 * `load_balancer_rules` - The list of IDs of load balancing rules that use this frontend IP.
 * `outbound_rules` - The list of IDs outbound rules that use this frontend IP.
 * `private_ip_address` - Private IP Address to assign to the Load Balancer.
-* `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer.
+* `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer. Possible values are `Dynamic` and `Static`.
 * `public_ip_address_id` - The ID of a  Public IP Address which is associated with this Load Balancer.
 * `public_ip_prefix_id` - The ID of a Public IP Prefix which is associated with the Load Balancer.
 * `subnet_id` - The ID of the Subnet which is associated with the IP Configuration.

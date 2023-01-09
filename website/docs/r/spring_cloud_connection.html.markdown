@@ -97,6 +97,8 @@ The following arguments are supported:
 
 ---
 
+An `authentication` block supports the following:
+
 * `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`.
 
 * `name` - (Required) Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.
