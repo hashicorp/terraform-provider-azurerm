@@ -139,7 +139,9 @@ An `identity` block supports the following:
 
 A `platform` block supports the following:
 
-* `type` - (Required) Specifies the platform type where packet core is deployed. Possible values are `AKS-HCI` and `3P-AZURE-STACK-HCI`.
+* `type` - (Required) Specifies the platform type where packet core is deployed. Possible values are `AKS-HCI`, `3P-AZURE-STACK-HCI` and `BaseVM`.
+
+~> **NOTE:** `BaseVM` is deprecated and it's not allowed to create new PCCP with it, it's only used to import an existing one with `BaseVM`.
 
 * `edge_device_id` - (Optional) The ID of Azure Stack Edge device where the packet core is deployed. If the device is part of a fault tolerant pair, either device in the pair can be specified.
 
