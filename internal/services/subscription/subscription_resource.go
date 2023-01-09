@@ -94,12 +94,6 @@ func resourceSubscription() *pluginsdk.Resource {
 				},
 			},
 
-			"management_group_id": {
-				Type:        pluginsdk.TypeString,
-				Description: "The Management Group ID to which the subscription belongs",
-				Optional:    true,
-			},
-
 			"subscription_id": {
 				Type:        pluginsdk.TypeString,
 				Description: "The GUID of the Subscription.",
@@ -165,10 +159,6 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Properties: &subscriptionAliasPandora.PutAliasRequestProperties{
 			Workload: &workload,
 		},
-	}
-
-	if managementGroupIdRaw, ok := d.GetOk("management_group_id"); ok {
-		req.Properties.AdditionalProperties.ManagementGroupId = utils.ToPtr(managementGroupIdRaw.(string))
 	}
 
 	subscriptionId := ""
@@ -258,7 +248,6 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
-	managementGroupsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -288,22 +277,6 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if _, err := subscriptionClient.Rename(ctx, *subscriptionId, displayName); err != nil {
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
-		}
-	}
-
-	if d.HasChange("management_group_id") {
-		groupName := d.Get("management_group_id").(string)
-		if groupName != "" {
-			if _, err := managementGroupsClient.Create(ctx, groupName, *subscriptionId, "no-cache"); err != nil {
-				return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q: %+v", *subscriptionId, groupName, err)
-			}
-		} else if old, _ := d.GetChange("management_group_id"); old.(string) != "" {
-			deleteResp, err := managementGroupsClient.Delete(ctx, old.(string), *subscriptionId, "no-cache")
-			if err != nil {
-				if !response.WasNotFound(deleteResp.Response) {
-					return fmt.Errorf("unable to de-associate Subscription %q from Management Group %q: %+v", *subscriptionId, old.(string), err)
-				}
-			}
 		}
 	}
 
