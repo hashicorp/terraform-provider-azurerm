@@ -36,14 +36,18 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
-
-			id, err := replicationrecoveryplans.ParseReplicationRecoveryPlanID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			var metaModel SiteRecoveryReplicationRecoveryPlanModel
+			if err := metadata.Decode(&metaModel); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
+
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, metaModel.ResourceGroupName, metaModel.RecoveryVaultName, metaModel.Name)
+
+			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
