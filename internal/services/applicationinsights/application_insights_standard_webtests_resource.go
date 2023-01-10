@@ -258,10 +258,10 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 			geoLocations := expandApplicationInsightsStandardWebTestGeoLocations(geoLocationsRaw)
 
 			requestRaw := metadata.ResourceData.Get("request").([]interface{})
-			request := expandApplicationInsightsStandardWebTestRequest(requestRaw)
+			request, isHttps := expandApplicationInsightsStandardWebTestRequest(requestRaw)
 
 			validationsRaw := metadata.ResourceData.Get("validation_rules").([]interface{})
-			validations := expandApplicationInsightsStandardWebTestValidations(validationsRaw)
+			validations := expandApplicationInsightsStandardWebTestValidations(validationsRaw, isHttps)
 
 			appInsightsId, err := webtests.ParseComponentID(metadata.ResourceData.Get("application_insights_id").(string))
 			if err != nil {
@@ -321,10 +321,10 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 			geoLocations := expandApplicationInsightsStandardWebTestGeoLocations(geoLocationsRaw)
 
 			requestRaw := metadata.ResourceData.Get("request").([]interface{})
-			request := expandApplicationInsightsStandardWebTestRequest(requestRaw)
+			request, isHttps := expandApplicationInsightsStandardWebTestRequest(requestRaw)
 
 			validationsRaw := metadata.ResourceData.Get("validation_rules").([]interface{})
-			validations := expandApplicationInsightsStandardWebTestValidations(validationsRaw)
+			validations := expandApplicationInsightsStandardWebTestValidations(validationsRaw, isHttps)
 
 			appInsightsId, err := webtests.ParseComponentID(metadata.ResourceData.Get("application_insights_id").(string))
 			if err != nil {
@@ -454,7 +454,7 @@ func (ApplicationInsightsStandardWebTestResource) IDValidationFunc() pluginsdk.S
 	return webtests.ValidateWebTestID
 }
 
-func expandApplicationInsightsStandardWebTestRequest(input []interface{}) webtests.WebTestPropertiesRequest {
+func expandApplicationInsightsStandardWebTestRequest(input []interface{}) (webtests.WebTestPropertiesRequest, bool) {
 	requestInput := input[0].(map[string]interface{})
 
 	followRedirects := true
@@ -481,11 +481,13 @@ func expandApplicationInsightsStandardWebTestRequest(input []interface{}) webtes
 	if v, ok := requestInput["body"].(string); ok && v != "" {
 		request.RequestBody = utils.String(utils.Base64EncodeIfNot(v))
 	}
+	isHttps := true
 	if v, ok := requestInput["url"].(string); ok {
 		request.RequestUrl = utils.String(v)
+		isHttps = strings.HasPrefix(v, "https://")
 	}
 
-	return request
+	return request, isHttps
 }
 
 func expandApplicationInsightsStandardWebTestRequestHeaders(input []interface{}) *[]webtests.HeaderField {
@@ -604,7 +606,7 @@ func flattenApplicationInsightsStandardWebTestContentValidations(input *webtests
 	return []interface{}{result}
 }
 
-func expandApplicationInsightsStandardWebTestValidations(input []interface{}) webtests.WebTestPropertiesValidationRules {
+func expandApplicationInsightsStandardWebTestValidations(input []interface{}, isHttps bool) webtests.WebTestPropertiesValidationRules {
 	rules := webtests.WebTestPropertiesValidationRules{
 		ExpectedHTTPStatusCode: utils.Int64(200),
 		// IgnoreHTTPSStatusCode:  utils.Bool(false),
@@ -621,11 +623,17 @@ func expandApplicationInsightsStandardWebTestValidations(input []interface{}) we
 	// if v, ok := validationsInput["ignore_status_code"].(bool); ok {
 	// 	rules.IgnoreHTTPSStatusCode = utils.Bool(v)
 	// }
-	if v, ok := validationsInput["ssl_cert_remaining_lifetime"].(int); ok {
-		rules.SSLCertRemainingLifetimeCheck = utils.Int64(int64(v))
-	}
-	if v, ok := validationsInput["ssl_check_enabled"].(bool); ok {
+
+	// if URL https, sslCheck cannot be enabled
+	sslCheckEnabled := false
+	if v, ok := validationsInput["ssl_check_enabled"].(bool); ok && isHttps {
 		rules.SSLCheck = utils.Bool(v)
+		sslCheckEnabled = true
+	}
+	// if sslCheck not enabled, SSLCertRemainingLifetimeCheck cannot be enabled
+	
+	if v, ok := validationsInput["ssl_cert_remaining_lifetime"].(int); ok && sslCheckEnabled {
+		rules.SSLCertRemainingLifetimeCheck = utils.Int64(int64(v))
 	}
 	if contentValidation, ok := validationsInput["content"].([]interface{}); ok {
 		rules.ContentValidation = expandApplicationInsightsStandardWebTestContentValidations(contentValidation)
