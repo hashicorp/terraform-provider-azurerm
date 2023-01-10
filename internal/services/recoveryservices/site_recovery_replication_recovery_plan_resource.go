@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
@@ -104,9 +103,9 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(siterecovery.Boot),
-							string(siterecovery.Shutdown),
-							string(siterecovery.Failover),
+							string(replicationrecoveryplans.RecoveryPlanGroupTypeBoot),
+							string(replicationrecoveryplans.RecoveryPlanGroupTypeShutdown),
+							string(replicationrecoveryplans.RecoveryPlanGroupTypeFailover),
 						}, false),
 					},
 					"replicated_protected_items": {
@@ -158,8 +157,8 @@ func schemaAction() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(siterecovery.PrimaryToRecovery),
-						string(siterecovery.RecoveryToPrimary),
+						string(replicationrecoveryplans.PossibleOperationsDirectionsPrimaryToRecovery),
+						string(replicationrecoveryplans.PossibleOperationsDirectionsRecoveryToPrimary),
 					}, false),
 				},
 			},
@@ -170,9 +169,9 @@ func schemaAction() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(siterecovery.ReplicationProtectedItemOperationPlannedFailover),
-						string(siterecovery.ReplicationProtectedItemOperationTestFailover),
-						string(siterecovery.ReplicationProtectedItemOperationUnplannedFailover),
+						string(replicationrecoveryplans.ReplicationProtectedItemOperationPlannedFailover),
+						string(replicationrecoveryplans.ReplicationProtectedItemOperationTestFailover),
+						string(replicationrecoveryplans.ReplicationProtectedItemOperationUnplannedFailover),
 					}, false),
 				},
 			},
@@ -185,8 +184,8 @@ func schemaAction() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(siterecovery.Primary),
-					string(siterecovery.Recovery),
+					string(replicationrecoveryplans.RecoveryPlanActionLocationPrimary),
+					string(replicationrecoveryplans.RecoveryPlanActionLocationRecovery),
 				}, false),
 			},
 			"manual_action_instruction": {
