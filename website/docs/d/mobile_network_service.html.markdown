@@ -52,7 +52,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `pcc_rules` block supports the following:
 
-* `rule_name` - Specifies the name of the rule. This must be unique within the parent service.
+* `rule_name` - The name of the rule. This must be unique within the parent service.
 
 * `rule_precedence` - A precedence value that is used to decide between data flow policy rules when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all data flow policy rules configured in the mobile network.
 
@@ -90,9 +90,9 @@ A `guaranteed_bit_rate` block supports the following:
 
 A `service_data_flow_templates` block supports the following:
 
-* `template_name` - Specifies the name of the data flow template. This must be unique within the parent data flow policy rule.
+* `template_name` - The name of the data flow template. This must be unique within the parent data flow policy rule.
 
-* `direction` - Specifies the direction of this flow. Possible values are `Uplink`, `Downlink` and `Bidirectional`.
+* `direction` - The direction of this flow. Possible values are `Uplink`, `Downlink` and `Bidirectional`.
 
 * `protocol` - A list of the allowed protocol(s) for this flow. If you want this flow to be able to use any protocol within the internet protocol suite, use the value `ip`. If you only want to allow a selection of protocols, you must use the corresponding IANA Assigned Internet Protocol Number for each protocol, as described in https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml. For example, for UDP, you must use 17. If you use the value `ip` then you must leave the field `port` unspecified.
 

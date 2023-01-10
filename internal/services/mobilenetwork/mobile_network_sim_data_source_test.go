@@ -23,10 +23,8 @@ func TestAccMobileNetworkSimDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key(`static_ip_configuration.0.attached_data_network_id`).Exists(),
 				check.That(data.ResourceName).Key(`static_ip_configuration.0.slice_id`).Exists(),
 				check.That(data.ResourceName).Key(`static_ip_configuration.0.static_ipv4_address`).HasValue("2.4.0.1"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 

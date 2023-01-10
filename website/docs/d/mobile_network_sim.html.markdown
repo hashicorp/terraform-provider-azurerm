@@ -45,13 +45,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vendor_name` - The name of the SIM vendor who provided this SIM, if any.
 
-* `international_mobile_subscriber_identity` - Specifies the international mobile subscriber identity (IMSI) for the SIM.
+* `international_mobile_subscriber_identity` - The international mobile subscriber identity (IMSI) for the SIM.
 
-* `authentication_key` - Specifies the Ki value for the SIM.
-
-* `integrated_circuit_card_identifier` - Specifies the integrated circuit card ID (ICCID) for the SIM.
-
-* `operator_key_code` - Specifies the Opc value for the SIM.
+* `integrated_circuit_card_identifier` - The integrated circuit card ID (ICCID) for the SIM.
 
 * `device_type` - An optional free-form text field that can be used to record the device type this SIM is associated with.
 

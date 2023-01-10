@@ -24,7 +24,6 @@ func TestAccMobileNetworkPacketCoreControlPlanDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key(`platform.0.type`).HasValue("AKS-HCI"),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 

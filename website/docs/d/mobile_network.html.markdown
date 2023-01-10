@@ -36,7 +36,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network.
 
-* `location` - Specifies the Azure Region where the Mobile Network should exist. Changing this forces a new Mobile Network to be created.
+* `location` - The Azure Region where the Mobile Network should exist. Changing this forces a new Mobile Network to be created.
 
 * `mobile_country_code` - Mobile country code (MCC), defined in https://www.itu.int/rec/T-REC-E.212 .
 

@@ -93,7 +93,7 @@ An `identity` block supports the following:
 
 A `platform` block supports the following:
 
-* `type` - Specifies the platform type where packet core is deployed.
+* `type` - The platform type where packet core is deployed.
 
 * `edge_device_id` - The ID of Azure Stack Edge device where the packet core is deployed. If the device is part of a fault tolerant pair, either device in the pair can be specified.
 

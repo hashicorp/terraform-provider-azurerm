@@ -37,7 +37,6 @@ func TestAccMobileNetworkAttachedDataNetworkDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key(`tags.%`).HasValue("1"),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 

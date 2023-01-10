@@ -38,17 +38,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network Attached Data Network.
 
-* `location` - Specifies the Azure Region where the Mobile Network Attached Data Network should exist. 
+* `location` - The Azure Region where the Mobile Network Attached Data Network should exist. 
 
-* `dns_addresses` - Specifies the DNS servers to signal to UEs to use for this attached data network.
+* `dns_addresses` - The DNS servers to signal to UEs to use for this attached data network.
 
 * `network_address_port_translation_configuration` - A `network_address_port_translation_configuration` block as defined below.
 
 * `user_plane_data_interface` - A `user_plane_data_interface` block as defined below.
 
-* `user_equipment_address_pool_prefix` - Specifies the user equipment (UE) address pool prefixes for the attached data network from which the packet core instance will dynamically assign IP addresses to UEs. The packet core instance assigns an IP address to a UE when the UE sets up a PDU session.
+* `user_equipment_address_pool_prefix` - The user equipment (UE) address pool prefixes for the attached data network from which the packet core instance will dynamically assign IP addresses to UEs. The packet core instance assigns an IP address to a UE when the UE sets up a PDU session.
 
-* `user_equipment_static_address_pool_prefix` - Specifies the user equipment (UE) address pool prefixes for the attached data network from which the packet core instance will assign static IP addresses to UEs. The packet core instance assigns an IP address to a UE when the UE sets up a PDU session. The static IP address for a specific UE is set in StaticIPConfiguration on the corresponding SIM resource.
+* `user_equipment_static_address_pool_prefix` - The user equipment (UE) address pool prefixes for the attached data network from which the packet core instance will assign static IP addresses to UEs. The packet core instance assigns an IP address to a UE when the UE sets up a PDU session. The static IP address for a specific UE is set in StaticIPConfiguration on the corresponding SIM resource.
 
 * `tags` - A mapping of tags which should be assigned to the Mobile Network Attached Data Network.
 
@@ -92,9 +92,9 @@ A `pinhole_timeouts_in_seconds` block supports the following:
 
 A `port_range` block supports the following:
 
-* `max_port` - Specifies the maximum port number.
+* `max_port` - The maximum port number.
 
-* `min_port` - Specifies the minimum port number.
+* `min_port` - The minimum port number.
 
 ---
 
