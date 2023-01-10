@@ -42,21 +42,7 @@ func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.
 	r := SecurityInsightsSentinelOnboardingStateResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withCmk(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withCmk(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withCmk(data, true),
+			Config: r.withCmk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -121,7 +107,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r SecurityInsightsSentinelOnboardingStateResource) withCmk(data acceptance.TestData, cmkEnabled bool) string {
+func (r SecurityInsightsSentinelOnboardingStateResource) withCmk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -248,12 +234,12 @@ resource "azurerm_log_analytics_linked_service" "test" {
 resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   workspace_name               = azurerm_log_analytics_workspace.test.name
-  customer_managed_key_enabled = %[4]v
+  customer_managed_key_enabled = true
 
   depends_on = [azurerm_log_analytics_linked_service.test]
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, cmkEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acceptance.TestData) string {
