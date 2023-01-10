@@ -257,6 +257,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       days    = 1
     }
   }
+  log {
+    category = "EnrichedOffice365AuditLogs"
+    enabled  = false
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -375,6 +383,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {
       enabled = true
       days    = 1
+    }
+  }
+  log {
+    category = "EnrichedOffice365AuditLogs"
+    enabled  = false
+    retention_policy {
+      days    = 0
+      enabled = false
     }
   }
 }
@@ -522,6 +538,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       days    = 1
     }
   }
+  log {
+    category = "EnrichedOffice365AuditLogs"
+    enabled  = false
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -633,6 +657,14 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     retention_policy {
       enabled = true
       days    = 1
+    }
+  }
+  log {
+    category = "EnrichedOffice365AuditLogs"
+    enabled  = false
+    retention_policy {
+      days    = 0
+      enabled = false
     }
   }
 }
