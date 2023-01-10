@@ -1,12 +1,10 @@
 package containers_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net/http"
 	"testing"
-	"text/template"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
@@ -536,7 +534,15 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
-	const hcl = `
+	kmsBlock := ""
+	if enabled {
+		kmsBlock = `
+  key_management_service {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+  }`
+	}
+
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -544,12 +550,12 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-{{.randomInteger}}"
-  location = "{{.location}}"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                      = substr("acctest{{.randomInteger}}", 0, 24)
+  name                      = substr("acctest%[1]d", 0, 24)
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
   tenant_id                 = data.azurerm_client_config.current.tenant_id
@@ -580,18 +586,18 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest{{.randomInteger}}"
+  name                = "acctest%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks{{.randomInteger}}"
+  name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   node_resource_group = "${azurerm_resource_group.test.name}-infra"
-  dns_prefix          = "acctestaks{{.randomInteger}}"
-  kubernetes_version  = "{{.controlPlaneVersion}}"
+  dns_prefix          = "acctestaks%[1]d"
+  kubernetes_version  = %[3]q
 
   default_node_pool {
     name       = "default"
@@ -603,25 +609,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-
-  {{ if .enabled }}
-  key_management_service {
-    key_vault_key_id = azurerm_key_vault_key.test.id
-  }
-  {{ end }}
+  %[4]s
 }
-`
-	tpl, _ := template.New("hcl").Parse(hcl)
-
-	var tplBuffer bytes.Buffer
-	tpl.Execute(&tplBuffer, map[string]interface{}{
-		"enabled":             enabled,
-		"randomInteger":       data.RandomInteger,
-		"location":            data.Locations.Primary,
-		"controlPlaneVersion": controlPlaneVersion,
-	})
-
-	return tplBuffer.String()
+`, data.RandomInteger, data.Locations.Primary, controlPlaneVersion, kmsBlock)
 }
 
 func (KubernetesClusterResource) storageProfile(data acceptance.TestData, controlPlaneVersion string) string {
