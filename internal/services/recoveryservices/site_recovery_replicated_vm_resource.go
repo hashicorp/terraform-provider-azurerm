@@ -133,7 +133,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"target_edge_zone_name": commonschema.EdgeZoneOptionalForceNew(),
+			"target_edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"unmanaged_disk": {
 				Type:       pluginsdk.TypeSet,
@@ -164,7 +164,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				},
 			},
 
-			"multi_vm_group_id": {
+			"multi_vm_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -451,7 +451,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryResourceGroupId:            &targetResourceGroupId,
 				RecoveryAvailabilitySetId:          targetAvailabilitySetID,
 				RecoveryAvailabilityZone:           targetAvailabilityZone,
-				MultiVMGroupId:                     utils.String(d.Get("multi_vm_group_id").(string)),
+				MultiVMGroupName:                   utils.String(d.Get("multi_vm_group_name").(string)),
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
 				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
 				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
