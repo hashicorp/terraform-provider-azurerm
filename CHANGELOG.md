@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_private_dns_resolver` [GH-19885]
 * **New Resource:** `azurerm_cost_anomaly_alert` [GH-19899]
+* **New Resource:** `azurerm_lab_service_lab` [GH-19852]
 * **New Resource:** `azurerm_network_manager_subscription_connection` [GH-19617]
 
 ENHANCEMENTS:
