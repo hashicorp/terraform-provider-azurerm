@@ -12,8 +12,6 @@ Allows you to manage an Azure SQL Database
 
 -> **Note:** The `azurerm_sql_database` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_database`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_database) resource instead.
 
-~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
-
 ## Example Usage
 
 ```hcl
@@ -48,15 +46,6 @@ resource "azurerm_sql_database" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   server_name         = azurerm_sql_server.example.name
-
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
-
 
   tags = {
     environment = "production"
