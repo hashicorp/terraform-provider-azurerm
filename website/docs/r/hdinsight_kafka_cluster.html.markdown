@@ -182,6 +182,8 @@ A `roles` block supports the following:
 
 * `kafka_management_node` - (Optional) A `kafka_management_node` block as defined below.
 
+  ~> **Note:** This property has been deprecated and will be removed in version 4.0.
+
 ---
 
 A `network` block supports the following:

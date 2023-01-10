@@ -127,6 +127,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					"publicpreview_Monthly_gmz7xq9ge3py",
+					"standard_Monthly",
 				}, false),
 		},
 

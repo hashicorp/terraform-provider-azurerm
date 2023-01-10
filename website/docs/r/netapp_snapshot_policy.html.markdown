@@ -80,6 +80,8 @@ The following arguments are supported:
 
 * `monthly_schedule` - (Optional) Sets a monthly snapshot schedule. See details in below `monthly_schedule` block.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 An `hourly_schedule` block supports the following:
@@ -112,11 +114,11 @@ A `weekly_schedule` block supports the following:
 
 ---
 
-A `weekly_schedule` block supports the following:
+A `monthly_schedule` block supports the following:
 
 * `snapshots_to_keep` - (Required) How many hourly snapshots to keep, valid range is from 0 to 255.
 
-* `monthly_schedule` - (Required) List of the days of the month when the snapshots will be created, valid range is from 1 to 30.
+* `days_of_month` - (Required) List of the days of the month when the snapshots will be created, valid range is from 1 to 30.
 
 * `hour` - (Required) Hour of the day that the snapshots will be created, valid range is from 0 to 23.
 

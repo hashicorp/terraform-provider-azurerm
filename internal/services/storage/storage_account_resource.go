@@ -1307,7 +1307,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-		blobProperties := expandBlobProperties(val.([]interface{}))
+		blobProperties, err := expandBlobProperties(val.([]interface{}))
+		if err != nil {
+			return err
+		}
 
 		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
 		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
@@ -1774,7 +1777,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-		blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		if err != nil {
+			return err
+		}
 
 		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
 		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
@@ -1921,7 +1927,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if e, ok := err.(azautorest.DetailedError); ok {
 			if status, ok := e.StatusCode.(int); ok {
 				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = status == http.StatusUnauthorized
+				doesntHavePermissions = (status == http.StatusUnauthorized || status == http.StatusForbidden)
 			}
 		}
 
@@ -2579,7 +2585,7 @@ func expandStorageAccountPrivateLinkAccess(inputs []interface{}, tenantId string
 	return &privateLinkAccess
 }
 
-func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
+func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, error) {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
@@ -2596,7 +2602,7 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	}
 
 	if len(input) == 0 || input[0] == nil {
-		return &props
+		return &props, nil
 	}
 
 	v := input[0].(map[string]interface{})
@@ -2624,7 +2630,18 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
-	return &props
+	// Sanity check for the prerequisites of restore_policy
+	// Ref: https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	if p := props.BlobServicePropertiesProperties.RestorePolicy; p != nil && p.Enabled != nil && *p.Enabled {
+		if props.ChangeFeed == nil || props.ChangeFeed.Enabled == nil || !*props.ChangeFeed.Enabled {
+			return nil, fmt.Errorf("`change_feed_enabled` must be `true` when `restore_policy` is set")
+		}
+		if props.IsVersioningEnabled == nil || !*props.IsVersioningEnabled {
+			return nil, fmt.Errorf("`versioning_enabled` must be `true` when `restore_policy` is set")
+		}
+	}
+
+	return &props, nil
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
