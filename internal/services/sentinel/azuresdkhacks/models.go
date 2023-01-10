@@ -315,19 +315,15 @@ func (ttdc *TiTaxiiDataConnector) UnmarshalJSON(body []byte) error {
 type PollingFrequency string
 
 func (freq *PollingFrequency) UnmarshalJSON(body []byte) error {
-	var v int
-	if err := json.Unmarshal(body, &v); err != nil {
-		return fmt.Errorf("unmarshalling pollingFrequency: %s: %v", string(body), err)
-	}
-	switch v {
-	case 0:
+	switch string(body) {
+	case "0", string(PollingFrequencyOnceAMinute):
 		*freq = PollingFrequencyOnceAMinute
-	case 1:
+	case "1", string(PollingFrequencyOnceAnHour):
 		*freq = PollingFrequencyOnceAnHour
-	case 2:
+	case "2", string(PollingFrequencyOnceADay):
 		*freq = PollingFrequencyOnceADay
 	default:
-		return fmt.Errorf("unknown enum for pollingFrequency %d", v)
+		return fmt.Errorf("unknown enum for pollingFrequency %s", string(body))
 	}
 	return nil
 }
@@ -341,7 +337,16 @@ const (
 type Time date.Time
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
-	t.Time, err = time.Parse(`"01/02/2006 15:04:05"`, string(data))
+	// Firstly, try to parse the date time via RFC3339, which is the expected format defined by Swagger.
+	// However, since the service issue (#21487), it currently doesn't return in this format.
+	// In order not to break the code once the service fix it, we keep this try at first.
+	if time, err := time.Parse(time.RFC3339, string(data)); err == nil {
+		t.Time = time
+		return nil
+	}
+
+	// This is the format that the service returns at this moment, which is not the expected format (RFC3339).
+	t.Time, err = time.Parse(`"1/2/2006 15:04:05 PM -07:00"`, string(data))
 	return err
 }
 
