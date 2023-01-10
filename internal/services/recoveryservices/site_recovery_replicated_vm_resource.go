@@ -662,7 +662,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 						"target_storage_account_id":  disk.RecoveryAzureStorageAccountId,
 					})
 				}
-				d.Set("unmanaged_disk", a2aDetails.ProtectedDisks)
+				d.Set("unmanaged_disk", disksOutput)
 			}
 
 			if a2aDetails.ProtectedManagedDisks != nil {
