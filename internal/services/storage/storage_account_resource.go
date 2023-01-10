@@ -828,6 +828,15 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"allowed_copy_scope": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.AllowedCopyScopePrivateLink),
+					string(storage.AllowedCopyScopeAAD),
+				}, false),
+			},
+
 			"sftp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1123,6 +1132,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
 		},
+	}
+
+	if v := d.Get("allowed_copy_scope").(string); v != "" {
+		parameters.AccountPropertiesCreateParameters.AllowedCopyScope = storage.AllowedCopyScope(v)
 	}
 
 	// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
@@ -1769,6 +1782,18 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("allowed_copy_scope") {
+		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `allowed_copy_scope` can not be disabled once enabled.
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				AllowedCopyScope: storage.AllowedCopyScope(d.Get("allowed_copy_scope").(string)),
+			},
+		}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account allowed_copy_scope %q: %+v", id.Name, err)
+		}
+	}
+
 	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
 
 	if d.HasChange("blob_properties") {
@@ -2107,6 +2132,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `sas_policy`: %+v", err)
 		}
 
+		d.Set("allowed_copy_scope", props.AllowedCopyScope)
 		d.Set("sftp_enabled", props.IsSftpEnabled)
 	}
 
