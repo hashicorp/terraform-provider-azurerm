@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments` Documentation
 
-The `configurationassignments` SDK allows for interaction with the Azure Resource Manager Service `maintenance` (API Version `2021-05-01`).
+The `configurationassignments` SDK allows for interaction with the Azure Resource Manager Service `maintenance` (API Version `2022-07-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
 ```
 
 
@@ -94,6 +94,38 @@ if model := read.Model; model != nil {
 ```
 
 
+### Example Usage: `ConfigurationAssignmentsClient.Get`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+
+read, err := client.Get(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.GetParent`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewProviders2ConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceParentTypeValue", "resourceParentValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+
+read, err := client.GetParent(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `ConfigurationAssignmentsClient.List`
 
 ```go
@@ -117,6 +149,22 @@ ctx := context.TODO()
 id := configurationassignments.NewResourceGroupProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceParentTypeValue", "resourceParentValue", "resourceTypeValue", "resourceValue")
 
 read, err := client.ListParent(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.WithinSubscriptionList`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+read, err := client.WithinSubscriptionList(ctx, id)
 if err != nil {
 	// handle the error
 }
