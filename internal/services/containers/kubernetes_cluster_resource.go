@@ -2095,9 +2095,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 			}
 		}
-		if !features.FourPointOhBeta() {
-			d.Set("private_cluster_enabled", enablePrivateCluster)
-		}
+		d.Set("private_cluster_enabled", enablePrivateCluster)
 		d.Set("private_cluster_public_fqdn_enabled", enablePrivateClusterPublicFQDN)
 		d.Set("run_command_enabled", runCommandEnabled)
 
