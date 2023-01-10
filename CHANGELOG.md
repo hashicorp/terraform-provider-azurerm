@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_logic_app_action_http` - add support for `@` in the `body` property [GH-19754]
 * `azurerm_maintenance_configuration` - support for the `in_guest_user_patch_mode` and `install_patches` properties [GH-19865]
 * `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties [GH-19891]
+* `azurerm_mysql_flexible_server` - suport for the `customer_managed_key` properties [GH-19905]
 * `azurerm_synapse_spark_pool` - add support for Spark 3.3 [GH-19866]
 * `azurerm_sentinel_automation_rule` - support for the `triggers_on`, `triggers_when`, and `condition_json` properties [GH-19309]
 
