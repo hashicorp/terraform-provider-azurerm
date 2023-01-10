@@ -16,7 +16,7 @@ func TestAccDataSourceSiteRecoveryReplicationRecoverPlan_basic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 24*60, 4*60),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -31,7 +31,7 @@ func TestAccDataSourceSiteRecoveryReplicationRecoverPlan_basic(t *testing.T) {
 	})
 }
 
-func (SiteRecoveryReplicationRecoveryPlanDataSource) basic(data acceptance.TestData, retentionInMinutes int, snapshotFrequencyInMinutes int) string {
+func (SiteRecoveryReplicationRecoveryPlanDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

@@ -58,10 +58,10 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
   recovery_groups {
-    group_type                 = "Failover"
+    group_type = "Failover"
   }
   recovery_groups {
-    group_type                 = "Shutdown"
+    group_type = "Shutdown"
   }
 
 }
