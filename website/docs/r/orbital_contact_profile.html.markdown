@@ -96,11 +96,13 @@ The following arguments are supported:
 
 * `minimum_elevation_degrees` - (Optional) Maximum elevation of the antenna during the contact in decimal degrees.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `links` block supports the following:
 
-* `channels` - (Required) A list of contact profile link channels. A `channel` block as defined below.
+* `channels` - (Required) A list of contact profile link channels. A `channels` block as defined below.
 
 * `direction` - (Required) Direction of the link. Possible values are `Uplink` and `Downlink`.
 
