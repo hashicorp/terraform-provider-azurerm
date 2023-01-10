@@ -167,7 +167,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"multi_vm_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"managed_disk": {
