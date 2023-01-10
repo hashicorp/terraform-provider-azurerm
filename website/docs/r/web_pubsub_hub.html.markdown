@@ -71,6 +71,8 @@ The following arguments are supported:
 
 * `event_handler` - (Optional) An `event_handler` block as defined below.
 
+-> **NOTE:** User can change the order of `event_handler` to change the priority accordingly.
+
 ---
 
 An `event_handler` block supports the following:
