@@ -34,8 +34,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagerResource{},
 		ManagerManagementGroupConnectionResource{},
+		ManagerNetworkGroupResource{},
+		ManagerResource{},
+		ManagerSubscriptionConnectionResource{},
+		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 	}
 }
@@ -63,6 +66,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_network_service_tags":                      dataSourceNetworkServiceTags(),
 		"azurerm_subnet":                                    dataSourceSubnet(),
 		"azurerm_virtual_hub":                               dataSourceVirtualHub(),
+		"azurerm_virtual_hub_route_table":                   dataSourceVirtualHubRouteTable(),
 		"azurerm_virtual_network_gateway":                   dataSourceVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":        dataSourceVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                           dataSourceVirtualNetwork(),
@@ -129,6 +133,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_hub_ip":                            resourceVirtualHubIP(),
 		"azurerm_virtual_hub_route_table":                   resourceVirtualHubRouteTable(),
 		"azurerm_virtual_hub_route_table_route":             resourceVirtualHubRouteTableRoute(),
+		"azurerm_virtual_machine_packet_capture":            resourceVirtualMachinePacketCapture(),
+		"azurerm_virtual_machine_scale_set_packet_capture":  resourceVirtualMachineScaleSetPacketCapture(),
 		"azurerm_virtual_network_dns_servers":               resourceVirtualNetworkDnsServers(),
 		"azurerm_virtual_network_gateway_connection":        resourceVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network_gateway_nat_rule":          resourceVirtualNetworkGatewayNatRule(),

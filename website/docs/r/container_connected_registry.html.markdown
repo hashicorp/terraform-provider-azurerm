@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `sync_message_ttl` - (Optional) The period of time (in form of ISO8601) for which a message is available to sync before it is expired. Allowed range is from `P1D` to `P90D`.
 
-* `sync_schedule` - (Optional) The cron expression indicating the schedule that the Connected Registry will sync with its parent.
+* `sync_schedule` - (Optional) The cron expression indicating the schedule that the Connected Registry will sync with its parent. Defaults to `* * * * *`.
 
 * `sync_window` - (Optional) The time window (in form of ISO8601) during which sync is enabled for each schedule occurrence. Allowed range is from `PT3H` to `P7D`.
 

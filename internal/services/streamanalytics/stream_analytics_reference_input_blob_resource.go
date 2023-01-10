@@ -72,7 +72,7 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 
 			"storage_account_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -149,7 +149,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
 							AccountName: utils.String(d.Get("storage_account_name").(string)),
-							AccountKey:  utils.String(d.Get("storage_account_key").(string)),
+							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
 					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
@@ -198,7 +198,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
 							AccountName: utils.String(d.Get("storage_account_name").(string)),
-							AccountKey:  utils.String(d.Get("storage_account_key").(string)),
+							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
 					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
@@ -317,6 +317,14 @@ func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, 
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
+	}
+
+	return nil
+}
+
+func normalizeAccountKey(accountKey string) *string {
+	if accountKey != "" {
+		return utils.String(accountKey)
 	}
 
 	return nil

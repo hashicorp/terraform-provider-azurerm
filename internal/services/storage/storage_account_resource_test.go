@@ -601,11 +601,19 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.restorePolicyMinimal(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.blobProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("300"),
+				check.That(data.ResourceName).Key("blob_properties.0.restore_policy.0.days").HasValue("299"),
 			),
 		},
 		data.ImportStep(),
@@ -625,6 +633,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("blob_properties.0.restore_policy.#").DoesNotExist(),
 				check.That(data.ResourceName).Key("blob_properties.0.container_delete_retention_policy.#").DoesNotExist(),
 			),
 		},
@@ -1342,6 +1351,35 @@ func TestAccStorageAccount_sasPolicy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.sasPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_allowedCopyScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.allowedCopyScope(data, "AAD"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.allowedCopyScope(data, "PrivateLink"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2414,6 +2452,10 @@ resource "azurerm_storage_account" "test" {
       days = 300
     }
 
+    restore_policy {
+      days = 299
+    }
+
     default_service_version       = "2019-07-07"
     versioning_enabled            = true
     change_feed_enabled           = true
@@ -2494,6 +2536,39 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) restorePolicyMinimal(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    delete_retention_policy {}
+
+    restore_policy {
+      days = 6
+    }
+
     versioning_enabled  = true
     change_feed_enabled = true
   }
@@ -4117,6 +4192,29 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) allowedCopyScope(data acceptance.TestData, scope string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  allowed_copy_scope       = %q
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, scope)
 }
 
 func (r StorageAccountResource) emptyShareProperties(data acceptance.TestData) string {
