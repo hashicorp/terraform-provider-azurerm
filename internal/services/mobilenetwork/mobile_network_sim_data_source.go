@@ -151,7 +151,7 @@ func (r SimDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := SimModel{
+			state := SimDataSourceModel{
 				Name:                    id.SimName,
 				MobileNetworkSimGroupId: simgroup.NewSimGroupID(id.SubscriptionId, id.ResourceGroupName, id.SimGroupName).ID(),
 			}

@@ -17,12 +17,13 @@ import (
 )
 
 type SimGroupModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	EncryptionKeyUrl  string            `tfschema:"encryption_key_url"`
-	Location          string            `tfschema:"location"`
-	MobileNetworkId   string            `tfschema:"mobile_network_id"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name              string                       `tfschema:"name"`
+	ResourceGroupName string                       `tfschema:"resource_group_name"`
+	EncryptionKeyUrl  string                       `tfschema:"encryption_key_url"`
+	Identity          []identity.ModelUserAssigned `tfschema:"identity"`
+	Location          string                       `tfschema:"location"`
+	MobileNetworkId   string                       `tfschema:"mobile_network_id"`
+	Tags              map[string]string            `tfschema:"tags"`
 }
 
 type SimGroupResource struct{}
@@ -98,10 +99,11 @@ func (r SimGroupResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := expandSimGroupIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
+
 			properties := &simgroup.SimGroup{
 				Identity: identityValue,
 				Location: location.Normalize(model.Location),
@@ -274,4 +276,22 @@ func (r SimGroupResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandSimGroupIdentity(input []identity.ModelUserAssigned) (*identity.LegacySystemAndUserAssignedMap, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	identityValue, err := identity.ExpandUserAssignedMapFromModel(input)
+	if err != nil {
+		return nil, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	output := identity.LegacySystemAndUserAssignedMap{
+		Type:        identityValue.Type,
+		IdentityIds: identityValue.IdentityIds,
+	}
+
+	return &output, nil
 }

@@ -30,20 +30,6 @@ func TestAccMobileNetworkSimGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccMobileNetworkSimGroup_withSystemAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
-	r := MobileNetworkSimGroupResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withSystemAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMobileNetworkSimGroup_withEncryptionKeyUrl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
 	r := MobileNetworkSimGroupResource{}
@@ -136,24 +122,6 @@ resource "azurerm_mobile_network_sim_group" "test" {
 `, MobileNetworkResource{}.basic(data), data.RandomInteger)
 }
 
-func (r MobileNetworkSimGroupResource) withSystemAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_mobile_network_sim_group" "test" {
-  name                = "acctest-mnsg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
-  mobile_network_id   = azurerm_mobile_network.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-}
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
-}
-
 func (r MobileNetworkSimGroupResource) withEncryptionKeyUrl(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 			%s
@@ -188,7 +156,6 @@ resource "azurerm_key_vault" "test" {
     key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "UnwrapKey", "WrapKey"]
   }
 }
-
 
 resource "azurerm_key_vault_key" "test" {
   name         = "enckey%[2]d"
