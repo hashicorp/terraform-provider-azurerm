@@ -79,6 +79,8 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&state)
 		},
 	}
