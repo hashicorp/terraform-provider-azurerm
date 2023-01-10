@@ -136,7 +136,7 @@ The `draft` block supports:
 
 * `output_types` - (Optional) Specifies the output types of the runbook.
 
-* `parameters` - (Optional) A list of `parameters` block as define below.
+* `parameters` - (Optional) A list of `parameters` block as defined below.
 
 ---
 

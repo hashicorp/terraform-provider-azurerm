@@ -119,7 +119,7 @@ A `azure_query` block supports the following:
 
 * `tag_filter` - (Optional) Specifies how the specified tags to filter VMs. Possible values are `Any` and `All`.
 
-* `tags` - (Optional) A mapping of tags used for query filter defined as below.
+* `tags` - (Optional) A mapping of tags used for query filter as defined below.
 
 ---
 
