@@ -141,7 +141,17 @@ A `network_acls` block supports the following:
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.
 
-* `virtual_network_subnet_ids` - (Optional) One or more Subnet IDs which should be able to access this Key Vault.
+* `virtual_network_subnet_ids` - (Optional) One or more Subnet IDs which should be able to access this Key Vault. `virtual_network_rules` is preferred.
+
+* `virtual_network_rules` - (Optional) One or more `virtual_network_rules` blocks as defined below.
+
+---
+
+A `virtual_network_rules` block supports the following:
+
+* `id` - (Required) Specifies the subnet ID for this rule.
+
+* `ignore_missing_vnet_service_endpoint_enabled` - (Optional) Should ignore missing virtual network service endpoint for this rule.
 
 ---
 

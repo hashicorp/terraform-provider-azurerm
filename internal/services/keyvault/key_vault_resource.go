@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -27,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -158,6 +160,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 								string(keyvault.NetworkRuleActionDeny),
 							}, false),
 						},
+
 						"bypass": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
@@ -166,6 +169,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 								string(keyvault.NetworkRuleBypassOptionsAzureServices),
 							}, false),
 						},
+
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -178,11 +182,36 @@ func resourceKeyVault() *pluginsdk.Resource {
 							},
 							Set: set.HashIPv4AddressOrCIDR,
 						},
+
 						"virtual_network_subnet_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      set.HashStringIgnoreCase,
+							Type:          pluginsdk.TypeSet,
+							Optional:      true,
+							Computed:      true,
+							Deprecated:    "virtual_network_rules is preferred",
+							ConflictsWith: []string{"network_acls.virtual_network_rules"},
+							Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:           set.HashStringIgnoreCase,
+						},
+
+						"virtual_network_rules": {
+							Type:          pluginsdk.TypeList,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"network_acls.virtual_network_subnet_ids"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"id": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.CaseDifference,
+									},
+
+									"ignore_missing_vnet_service_endpoint_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -843,6 +872,13 @@ func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
 	}
 }
 
+func newVNetRule(id string, ignore *bool) keyvault.VirtualNetworkRule {
+	return keyvault.VirtualNetworkRule{
+		ID:                               pointer.To(id),
+		IgnoreMissingVnetServiceEndpoint: ignore,
+	}
+}
+
 func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, []string) {
 	subnetIds := make([]string, 0)
 	if len(input) == 0 {
@@ -864,15 +900,27 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, [
 		ipRules = append(ipRules, rule)
 	}
 
-	networkRulesRaw := v["virtual_network_subnet_ids"].(*pluginsdk.Set)
 	networkRules := make([]keyvault.VirtualNetworkRule, 0)
-	for _, v := range networkRulesRaw.List() {
-		rawId := v.(string)
-		subnetIds = append(subnetIds, rawId)
-		rule := keyvault.VirtualNetworkRule{
-			ID: utils.String(rawId),
+	// only one of virtual_network_subnet_ids or virtual_network_rules exists
+
+	for _, val := range v["virtual_network_rules"].([]interface{}) {
+		rawRule := val.(map[string]interface{})
+		id := rawRule["id"].(string)
+		subnetIds = append(subnetIds, id)
+		var ignore *bool
+		if ignoreVal, ok := rawRule["ignore_missing_vnet_service_endpoint_enabled"]; ok {
+			ignore = pointer.To(ignoreVal.(bool))
 		}
-		networkRules = append(networkRules, rule)
+		networkRules = append(networkRules, newVNetRule(id, ignore))
+	}
+
+	if len(subnetIds) == 0 {
+		networkRulesRaw := v["virtual_network_subnet_ids"].(*pluginsdk.Set)
+		for _, v := range networkRulesRaw.List() {
+			rawId := v.(string)
+			subnetIds = append(subnetIds, rawId)
+			networkRules = append(networkRules, newVNetRule(rawId, nil))
+		}
 	}
 
 	ruleSet := keyvault.NetworkRuleSet{
@@ -910,6 +958,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 				"default_action":             string(keyvault.NetworkRuleActionAllow),
 				"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 				"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
+				"virtual_network_rules":      []interface{}{},
 			},
 		}
 	}
@@ -931,7 +980,9 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	}
 	output["ip_rules"] = pluginsdk.NewSet(pluginsdk.HashString, ipRules)
 
-	virtualNetworkRules := make([]interface{}, 0)
+	virtualNetworkSubnetIDs := make([]interface{}, 0)
+	var virtualNetworkRules []interface{}
+
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
 			if v.ID == nil {
@@ -943,11 +994,18 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 			if err == nil {
 				id = subnetId.ID()
 			}
+			virtualNetworkSubnetIDs = append(virtualNetworkSubnetIDs, id)
 
-			virtualNetworkRules = append(virtualNetworkRules, id)
+			rule := map[string]interface{}{}
+			rule["id"] = id
+			if b := v.IgnoreMissingVnetServiceEndpoint; b != nil {
+				rule["ignore_missing_vnet_service_endpoint_enabled"] = *b
+			}
+			virtualNetworkRules = append(virtualNetworkRules, rule)
 		}
 	}
-	output["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules)
+	output["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIDs)
+	output["virtual_network_rules"] = virtualNetworkRules
 
 	return []interface{}{output}
 }

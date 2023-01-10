@@ -612,10 +612,16 @@ resource "azurerm_key_vault" "test" {
   }
 
   network_acls {
-    default_action             = "Allow"
-    bypass                     = "AzureServices"
-    ip_rules                   = ["123.0.0.102/32", "123.0.0.101"]
-    virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
+    default_action = "Allow"
+    bypass         = "AzureServices"
+    ip_rules       = ["123.0.0.102/32", "123.0.0.101"]
+    virtual_network_rules {
+      id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      id                                           = azurerm_subnet.test_b.id
+      ignore_missing_vnet_service_endpoint_enabled = true
+    }
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger)
