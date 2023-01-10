@@ -26,10 +26,7 @@ func TestAccMobileNetworkSim_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"operator_key_code",  // not returned from the service
-			"authentication_key", // not returned from the service
-		),
+		data.ImportStep("authentication_key", "operator_key_code"),
 	})
 }
 
@@ -43,10 +40,7 @@ func TestAccMobileNetworkSim_withStaticIpConfiguration(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"operator_key_code",  // not returned from the service
-			"authentication_key", // not returned from the service
-		),
+		data.ImportStep("authentication_key", "operator_key_code"),
 	})
 }
 
@@ -60,10 +54,7 @@ func TestAccMobileNetworkSim_withSimPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"operator_key_code",  // not returned from the service
-			"authentication_key", // not returned from the service
-		),
+		data.ImportStep("authentication_key", "operator_key_code"),
 	})
 }
 
@@ -91,7 +82,7 @@ func TestAccMobileNetworkSim_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authentication_key", "operator_key_code"),
 	})
 }
 
@@ -105,14 +96,14 @@ func TestAccMobileNetworkSim_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authentication_key", "operator_key_code"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authentication_key", "operator_key_code"),
 	})
 }
 
@@ -305,13 +296,6 @@ resource "azurerm_mobile_network_sim_policy" "test" {
 
 }
 
-
-
-
-
-
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -427,10 +411,6 @@ resource "azurerm_mobile_network_sim" "test" {
     attached_data_network_id = azurerm_mobile_network_attached_data_network.test.id
     slice_id                 = azurerm_mobile_network_slice.test.id
     static_ipv4_address      = "2.4.0.1"
-  }
-
-  tags {
-    key = "value"
   }
 }
 `, template, data.RandomInteger)

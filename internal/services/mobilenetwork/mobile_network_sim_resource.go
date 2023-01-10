@@ -234,10 +234,6 @@ func (r SimResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// AuthenticationKey and OperatorKeyCode are not returned from the API side.
-			metadata.ResourceData.Set("authentication_key", model.AuthenticationKey)
-			metadata.ResourceData.Set("operator_key_code", model.OperatorKeyCode)
-
 			metadata.SetID(id)
 
 			return nil
@@ -326,6 +322,11 @@ func (r SimResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SIMClient
 
+			var metaModel SimModel
+			if err := metadata.Decode(&metaModel); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
 			id, err := sim.ParseSimID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -380,8 +381,9 @@ func (r SimResource) Read() sdk.ResourceFunc {
 				state.VendorName = *properties.VendorName
 			}
 
-			state.AuthenticationKey = metadata.ResourceData.Get("authentication_key").(string)
-			state.OperatorKeyCode = metadata.ResourceData.Get("operator_key_code").(string)
+			// AuthenticationKey and OperatorKeyCode are not returned from the API side. read from the state to help handle diff.
+			state.AuthenticationKey = metaModel.AuthenticationKey
+			state.OperatorKeyCode = metaModel.OperatorKeyCode
 
 			return metadata.Encode(&state)
 		},

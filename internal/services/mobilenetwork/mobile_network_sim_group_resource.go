@@ -223,14 +223,12 @@ func (r SimGroupResource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+			identityValue, err := flattenSimGroupIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
 
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
+			state.Identity = identityValue
 
 			properties := &model.Properties
 
@@ -294,4 +292,22 @@ func expandSimGroupIdentity(input []identity.ModelUserAssigned) (*identity.Legac
 	}
 
 	return &output, nil
+}
+
+func flattenSimGroupIdentity(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
+	if input == nil {
+		return nil, nil
+	}
+
+	tmp := identity.UserAssignedMap{
+		Type:        input.Type,
+		IdentityIds: input.IdentityIds,
+	}
+
+	output, err := identity.FlattenUserAssignedMapToModel(&tmp)
+	if err != nil {
+		return nil, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	return *output, nil
 }
