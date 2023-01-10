@@ -28,6 +28,15 @@ data "azurerm_subscription" "alt" {
 data "azurerm_subscription" "current" {
 }
 
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_role_assignment" "network_contributor" {
+  scope                = azurerm_management_group.example.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -48,6 +57,7 @@ resource "azurerm_network_manager_management_group_connection" "example" {
   management_group_id = azurerm_management_group.example.id
   network_manager_id  = azurerm_network_manager.example.id
   description         = "example"
+  depends_on          = [azurerm_role_assignment.network_contributor]
 }
 ```
 
