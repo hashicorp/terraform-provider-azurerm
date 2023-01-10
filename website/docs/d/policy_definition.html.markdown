@@ -32,6 +32,8 @@ output "id" {
 
 * `management_group_name` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
+* `policy_type` - (Optional) The Type of the Policy. The only possible values is `BuiltIn`.
+
 ## Attributes Reference
 
 * `id` - The ID of the Policy Definition.

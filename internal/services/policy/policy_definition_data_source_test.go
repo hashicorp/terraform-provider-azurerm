@@ -127,6 +127,7 @@ provider "azurerm" {
 
 data "azurerm_policy_definition" "test" {
   display_name = "%s"
+  policy_type  = "BuiltIn"
 }
 `, name)
 }

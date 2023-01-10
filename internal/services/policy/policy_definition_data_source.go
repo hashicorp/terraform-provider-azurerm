@@ -55,6 +55,13 @@ func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
 			"policy_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice(func() (res []string) {
+					for _, val := range policy.PossibleTypeValues() {
+						res = append(res, string(val))
+					}
+					return
+				}(), false),
 			},
 
 			"policy_rule": {
@@ -103,14 +110,15 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	var policyDefinition policy.Definition
 	var err error
 	// one of display_name and name must be non-empty, this is guaranteed by schema
+	policyType := policy.Type(d.Get("policy_type").(string))
 	if displayName != "" {
-		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupName)
+		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupName, policyType)
 		if err != nil {
 			return fmt.Errorf("reading Policy Definition (Display Name %q): %+v", displayName, err)
 		}
 	}
 	if name != "" {
-		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, managementGroupName, policyType)
 		if err != nil {
 			return fmt.Errorf("reading Policy Definition %q: %+v", name, err)
 		}
