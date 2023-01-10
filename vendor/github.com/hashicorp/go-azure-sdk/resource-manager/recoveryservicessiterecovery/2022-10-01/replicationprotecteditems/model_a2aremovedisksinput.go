@@ -11,8 +11,8 @@ import (
 var _ RemoveDisksProviderSpecificInput = A2ARemoveDisksInput{}
 
 type A2ARemoveDisksInput struct {
-	VmDisksUris       *[]string `json:"vmDisksUris,omitempty"`
-	VmManagedDisksIds *[]string `json:"vmManagedDisksIds,omitempty"`
+	VMDisksUris       *[]string `json:"vmDisksUris,omitempty"`
+	VMManagedDisksIds *[]string `json:"vmManagedDisksIds,omitempty"`
 
 	// Fields inherited from RemoveDisksProviderSpecificInput
 }

@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group. Possible values also include `$superuser`.
 
-* `ace` - (Required) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
+* `ace` - (Optional) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
 
 ---
 

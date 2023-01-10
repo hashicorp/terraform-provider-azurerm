@@ -403,7 +403,6 @@ func resourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.Set("geo_redundant_backup_enabled", geoRedundant)
 				d.Set("backup_retention_days", storage.BackupRetentionDays)
 				d.Set("storage_mb", storage.StorageMB)
-
 			}
 
 			// Computed

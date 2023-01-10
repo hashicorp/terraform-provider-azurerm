@@ -9,10 +9,9 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
-      - '.github/**'
-      - '**.go'
+      - '.github/workflows/thirty-two-bit.yaml'
       - 'vendor/**'
-      - '.github/workflows/**'
+      - '**.go'
 
 concurrency:
   group: 'thirtytwo-${{ github.head_ref }}'
@@ -23,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.19.3'
+          go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: GOARCH=386 GOOS=linux go build -o 32bitbuild .

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -742,10 +742,10 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 		if v, ok := securityAlert["retention_days"]; ok {
 			properties.RetentionDays = utils.Int32(int32(v.(int)))
 		}
-		if v, ok := securityAlert["storage_account_access_key"]; ok {
+		if v, ok := securityAlert["storage_account_access_key"]; ok && v.(string) != "" {
 			properties.StorageAccountAccessKey = utils.String(v.(string))
 		}
-		if v, ok := securityAlert["storage_endpoint"]; ok {
+		if v, ok := securityAlert["storage_endpoint"]; ok && v.(string) != "" {
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 

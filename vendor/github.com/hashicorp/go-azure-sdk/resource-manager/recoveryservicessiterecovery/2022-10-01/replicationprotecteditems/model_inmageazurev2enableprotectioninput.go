@@ -18,8 +18,8 @@ type InMageAzureV2EnableProtectionInput struct {
 	LicenseType                     *LicenseType                     `json:"licenseType,omitempty"`
 	LogStorageAccountId             *string                          `json:"logStorageAccountId,omitempty"`
 	MasterTargetId                  *string                          `json:"masterTargetId,omitempty"`
-	MultiVmGroupId                  *string                          `json:"multiVmGroupId,omitempty"`
-	MultiVmGroupName                *string                          `json:"multiVmGroupName,omitempty"`
+	MultiVMGroupId                  *string                          `json:"multiVmGroupId,omitempty"`
+	MultiVMGroupName                *string                          `json:"multiVmGroupName,omitempty"`
 	ProcessServerId                 *string                          `json:"processServerId,omitempty"`
 	RunAsAccountId                  *string                          `json:"runAsAccountId,omitempty"`
 	SeedManagedDiskTags             *map[string]string               `json:"seedManagedDiskTags,omitempty"`
@@ -31,12 +31,12 @@ type InMageAzureV2EnableProtectionInput struct {
 	TargetAzureSubnetId             *string                          `json:"targetAzureSubnetId,omitempty"`
 	TargetAzureV1ResourceGroupId    *string                          `json:"targetAzureV1ResourceGroupId,omitempty"`
 	TargetAzureV2ResourceGroupId    *string                          `json:"targetAzureV2ResourceGroupId,omitempty"`
-	TargetAzureVmName               *string                          `json:"targetAzureVmName,omitempty"`
+	TargetAzureVMName               *string                          `json:"targetAzureVmName,omitempty"`
 	TargetManagedDiskTags           *map[string]string               `json:"targetManagedDiskTags,omitempty"`
 	TargetNicTags                   *map[string]string               `json:"targetNicTags,omitempty"`
 	TargetProximityPlacementGroupId *string                          `json:"targetProximityPlacementGroupId,omitempty"`
-	TargetVmSize                    *string                          `json:"targetVmSize,omitempty"`
-	TargetVmTags                    *map[string]string               `json:"targetVmTags,omitempty"`
+	TargetVMSize                    *string                          `json:"targetVmSize,omitempty"`
+	TargetVMTags                    *map[string]string               `json:"targetVmTags,omitempty"`
 
 	// Fields inherited from EnableProtectionProviderSpecificInput
 }

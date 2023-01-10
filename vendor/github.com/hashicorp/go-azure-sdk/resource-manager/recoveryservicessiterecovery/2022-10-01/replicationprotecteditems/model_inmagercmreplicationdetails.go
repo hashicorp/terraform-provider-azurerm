@@ -16,13 +16,13 @@ type InMageRcmReplicationDetails struct {
 	AgentUpgradeJobId                          *string                                      `json:"agentUpgradeJobId,omitempty"`
 	AgentUpgradeState                          *MobilityAgentUpgradeState                   `json:"agentUpgradeState,omitempty"`
 	AllocatedMemoryInMB                        *float64                                     `json:"allocatedMemoryInMB,omitempty"`
-	DiscoveredVmDetails                        *InMageRcmDiscoveredProtectedVmDetails       `json:"discoveredVmDetails,omitempty"`
+	DiscoveredVMDetails                        *InMageRcmDiscoveredProtectedVMDetails       `json:"discoveredVmDetails,omitempty"`
 	DiscoveryType                              *string                                      `json:"discoveryType,omitempty"`
 	FabricDiscoveryMachineId                   *string                                      `json:"fabricDiscoveryMachineId,omitempty"`
 	FailoverRecoveryPointId                    *string                                      `json:"failoverRecoveryPointId,omitempty"`
 	FirmwareType                               *string                                      `json:"firmwareType,omitempty"`
 	InitialReplicationProcessedBytes           *int64                                       `json:"initialReplicationProcessedBytes,omitempty"`
-	InitialReplicationProgressHealth           *VmReplicationProgressHealth                 `json:"initialReplicationProgressHealth,omitempty"`
+	InitialReplicationProgressHealth           *VMReplicationProgressHealth                 `json:"initialReplicationProgressHealth,omitempty"`
 	InitialReplicationProgressPercentage       *int64                                       `json:"initialReplicationProgressPercentage,omitempty"`
 	InitialReplicationTransferredBytes         *int64                                       `json:"initialReplicationTransferredBytes,omitempty"`
 	InternalIdentifier                         *string                                      `json:"internalIdentifier,omitempty"`
@@ -36,7 +36,7 @@ type InMageRcmReplicationDetails struct {
 	LastRpoInSeconds                           *int64                                       `json:"lastRpoInSeconds,omitempty"`
 	LicenseType                                *string                                      `json:"licenseType,omitempty"`
 	MobilityAgentDetails                       *InMageRcmMobilityAgentDetails               `json:"mobilityAgentDetails,omitempty"`
-	MultiVmGroupName                           *string                                      `json:"multiVmGroupName,omitempty"`
+	MultiVMGroupName                           *string                                      `json:"multiVmGroupName,omitempty"`
 	OsType                                     *string                                      `json:"osType,omitempty"`
 	PrimaryNicIPAddress                        *string                                      `json:"primaryNicIpAddress,omitempty"`
 	ProcessServerId                            *string                                      `json:"processServerId,omitempty"`
@@ -44,7 +44,7 @@ type InMageRcmReplicationDetails struct {
 	ProcessorCoreCount                         *int64                                       `json:"processorCoreCount,omitempty"`
 	ProtectedDisks                             *[]InMageRcmProtectedDiskDetails             `json:"protectedDisks,omitempty"`
 	ResyncProcessedBytes                       *int64                                       `json:"resyncProcessedBytes,omitempty"`
-	ResyncProgressHealth                       *VmReplicationProgressHealth                 `json:"resyncProgressHealth,omitempty"`
+	ResyncProgressHealth                       *VMReplicationProgressHealth                 `json:"resyncProgressHealth,omitempty"`
 	ResyncProgressPercentage                   *int64                                       `json:"resyncProgressPercentage,omitempty"`
 	ResyncRequired                             *string                                      `json:"resyncRequired,omitempty"`
 	ResyncState                                *ResyncState                                 `json:"resyncState,omitempty"`
@@ -59,10 +59,10 @@ type InMageRcmReplicationDetails struct {
 	TargetNetworkId                            *string                                      `json:"targetNetworkId,omitempty"`
 	TargetProximityPlacementGroupId            *string                                      `json:"targetProximityPlacementGroupId,omitempty"`
 	TargetResourceGroupId                      *string                                      `json:"targetResourceGroupId,omitempty"`
-	TargetVmName                               *string                                      `json:"targetVmName,omitempty"`
-	TargetVmSize                               *string                                      `json:"targetVmSize,omitempty"`
+	TargetVMName                               *string                                      `json:"targetVmName,omitempty"`
+	TargetVMSize                               *string                                      `json:"targetVmSize,omitempty"`
 	TestNetworkId                              *string                                      `json:"testNetworkId,omitempty"`
-	VmNics                                     *[]InMageRcmNicDetails                       `json:"vmNics,omitempty"`
+	VMNics                                     *[]InMageRcmNicDetails                       `json:"vmNics,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,6 +24,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 		Read:   resourceSpringCloudGatewayRouteConfigRead,
 		Update: resourceSpringCloudGatewayRouteConfigCreateUpdate,
 		Delete: resourceSpringCloudGatewayRouteConfigDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudGatewayRouteConfigV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -87,11 +93,34 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
+			"filters": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"predicates": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"order": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+
 						"description": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -105,11 +134,6 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-						},
-
-						"order": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
 						},
 
 						"predicates": {
@@ -154,6 +178,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"sso_validation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -185,8 +214,11 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
+			Filters:       utils.ExpandStringSlice(d.Get("filters").(*pluginsdk.Set).List()),
+			Predicates:    utils.ExpandStringSlice(d.Get("predicates").(*pluginsdk.Set).List()),
 			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
+			SsoEnabled:    utils.Bool(d.Get("sso_validation_enabled").(bool)),
 			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
 	}
@@ -234,6 +266,14 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		if err := d.Set("open_api", flattenGatewayRouteConfigOpenApi(props.OpenAPI)); err != nil {
 			return fmt.Errorf("setting `open_api`: %+v", err)
 		}
+
+		if props.Filters != nil {
+			d.Set("filters", utils.FlattenStringSlice(props.Filters))
+		}
+		if props.Predicates != nil {
+			d.Set("predicates", utils.FlattenStringSlice(props.Predicates))
+		}
+		d.Set("sso_validation_enabled", props.SsoEnabled)
 	}
 	return nil
 }

@@ -14,10 +14,10 @@ type HyperVReplicaBlueReplicationDetails struct {
 	InitialReplicationDetails    *InitialReplicationDetails `json:"initialReplicationDetails,omitempty"`
 	LastReplicatedTime           *string                    `json:"lastReplicatedTime,omitempty"`
 	VMDiskDetails                *[]DiskDetails             `json:"vMDiskDetails,omitempty"`
-	VmId                         *string                    `json:"vmId,omitempty"`
-	VmNics                       *[]VMNicDetails            `json:"vmNics,omitempty"`
-	VmProtectionState            *string                    `json:"vmProtectionState,omitempty"`
-	VmProtectionStateDescription *string                    `json:"vmProtectionStateDescription,omitempty"`
+	VMId                         *string                    `json:"vmId,omitempty"`
+	VMNics                       *[]VMNicDetails            `json:"vmNics,omitempty"`
+	VMProtectionState            *string                    `json:"vmProtectionState,omitempty"`
+	VMProtectionStateDescription *string                    `json:"vmProtectionStateDescription,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }

@@ -9,9 +9,9 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
-      - '**.go'
+      - '.github/workflows/unit-test.yaml'
       - 'vendor/**'
-      - '.github/workflows/**'
+      - '**.go'
 
 concurrency:
   group: 'unit-${{ github.head_ref }}'
@@ -19,12 +19,12 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [custom, linux, large]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.19.3'
+          go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make test
         env:

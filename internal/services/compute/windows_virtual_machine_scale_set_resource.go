@@ -112,10 +112,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
+	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -639,10 +636,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-			if err != nil {
-				return err
-			}
+			sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks

@@ -13,8 +13,8 @@ var _ ReplicationProviderSpecificSettings = InMageAzureV2ReplicationDetails{}
 type InMageAzureV2ReplicationDetails struct {
 	AgentExpiryDate                    *string                                            `json:"agentExpiryDate,omitempty"`
 	AgentVersion                       *string                                            `json:"agentVersion,omitempty"`
-	AzureVMDiskDetails                 *[]AzureVmDiskDetails                              `json:"azureVMDiskDetails,omitempty"`
-	AzureVmGeneration                  *string                                            `json:"azureVmGeneration,omitempty"`
+	AzureVMDiskDetails                 *[]AzureVMDiskDetails                              `json:"azureVMDiskDetails,omitempty"`
+	AzureVMGeneration                  *string                                            `json:"azureVmGeneration,omitempty"`
 	CompressedDataRateInMB             *float64                                           `json:"compressedDataRateInMB,omitempty"`
 	DataStores                         *[]string                                          `json:"datastores,omitempty"`
 	DiscoveryType                      *string                                            `json:"discoveryType,omitempty"`
@@ -22,7 +22,7 @@ type InMageAzureV2ReplicationDetails struct {
 	EnableRdpOnTargetOption            *string                                            `json:"enableRdpOnTargetOption,omitempty"`
 	FirmwareType                       *string                                            `json:"firmwareType,omitempty"`
 	IPAddress                          *string                                            `json:"ipAddress,omitempty"`
-	InfrastructureVmId                 *string                                            `json:"infrastructureVmId,omitempty"`
+	InfrastructureVMId                 *string                                            `json:"infrastructureVmId,omitempty"`
 	IsAdditionalStatsAvailable         *bool                                              `json:"isAdditionalStatsAvailable,omitempty"`
 	IsAgentUpdateRequired              *string                                            `json:"isAgentUpdateRequired,omitempty"`
 	IsRebootAfterUpdateRequired        *string                                            `json:"isRebootAfterUpdateRequired,omitempty"`
@@ -32,9 +32,9 @@ type InMageAzureV2ReplicationDetails struct {
 	LastUpdateReceivedTime             *string                                            `json:"lastUpdateReceivedTime,omitempty"`
 	LicenseType                        *string                                            `json:"licenseType,omitempty"`
 	MasterTargetId                     *string                                            `json:"masterTargetId,omitempty"`
-	MultiVmGroupId                     *string                                            `json:"multiVmGroupId,omitempty"`
-	MultiVmGroupName                   *string                                            `json:"multiVmGroupName,omitempty"`
-	MultiVmSyncStatus                  *string                                            `json:"multiVmSyncStatus,omitempty"`
+	MultiVMGroupId                     *string                                            `json:"multiVmGroupId,omitempty"`
+	MultiVMGroupName                   *string                                            `json:"multiVmGroupName,omitempty"`
+	MultiVMSyncStatus                  *string                                            `json:"multiVmSyncStatus,omitempty"`
 	OsDiskId                           *string                                            `json:"osDiskId,omitempty"`
 	OsType                             *string                                            `json:"osType,omitempty"`
 	OsVersion                          *string                                            `json:"osVersion,omitempty"`
@@ -56,8 +56,8 @@ type InMageAzureV2ReplicationDetails struct {
 	SelectedRecoveryAzureNetworkId     *string                                            `json:"selectedRecoveryAzureNetworkId,omitempty"`
 	SelectedSourceNicId                *string                                            `json:"selectedSourceNicId,omitempty"`
 	SelectedTfoAzureNetworkId          *string                                            `json:"selectedTfoAzureNetworkId,omitempty"`
-	SourceVmCpuCount                   *int64                                             `json:"sourceVmCpuCount,omitempty"`
-	SourceVmRamSizeInMB                *int64                                             `json:"sourceVmRamSizeInMB,omitempty"`
+	SourceVMCPUCount                   *int64                                             `json:"sourceVmCpuCount,omitempty"`
+	SourceVMRamSizeInMB                *int64                                             `json:"sourceVmRamSizeInMB,omitempty"`
 	SqlServerLicenseType               *string                                            `json:"sqlServerLicenseType,omitempty"`
 	SwitchProviderBlockingErrorDetails *[]InMageAzureV2SwitchProviderBlockingErrorDetails `json:"switchProviderBlockingErrorDetails,omitempty"`
 	SwitchProviderDetails              *InMageAzureV2SwitchProviderDetails                `json:"switchProviderDetails,omitempty"`
@@ -65,19 +65,19 @@ type InMageAzureV2ReplicationDetails struct {
 	TargetManagedDiskTags              *map[string]string                                 `json:"targetManagedDiskTags,omitempty"`
 	TargetNicTags                      *map[string]string                                 `json:"targetNicTags,omitempty"`
 	TargetProximityPlacementGroupId    *string                                            `json:"targetProximityPlacementGroupId,omitempty"`
-	TargetVmId                         *string                                            `json:"targetVmId,omitempty"`
-	TargetVmTags                       *map[string]string                                 `json:"targetVmTags,omitempty"`
+	TargetVMId                         *string                                            `json:"targetVmId,omitempty"`
+	TargetVMTags                       *map[string]string                                 `json:"targetVmTags,omitempty"`
 	TotalDataTransferred               *int64                                             `json:"totalDataTransferred,omitempty"`
 	TotalProgressHealth                *string                                            `json:"totalProgressHealth,omitempty"`
 	UncompressedDataRateInMB           *float64                                           `json:"uncompressedDataRateInMB,omitempty"`
 	UseManagedDisks                    *string                                            `json:"useManagedDisks,omitempty"`
 	VCenterInfrastructureId            *string                                            `json:"vCenterInfrastructureId,omitempty"`
+	VMId                               *string                                            `json:"vmId,omitempty"`
+	VMNics                             *[]VMNicDetails                                    `json:"vmNics,omitempty"`
+	VMProtectionState                  *string                                            `json:"vmProtectionState,omitempty"`
+	VMProtectionStateDescription       *string                                            `json:"vmProtectionStateDescription,omitempty"`
 	ValidationErrors                   *[]HealthError                                     `json:"validationErrors,omitempty"`
 	VhdName                            *string                                            `json:"vhdName,omitempty"`
-	VmId                               *string                                            `json:"vmId,omitempty"`
-	VmNics                             *[]VMNicDetails                                    `json:"vmNics,omitempty"`
-	VmProtectionState                  *string                                            `json:"vmProtectionState,omitempty"`
-	VmProtectionStateDescription       *string                                            `json:"vmProtectionStateDescription,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }

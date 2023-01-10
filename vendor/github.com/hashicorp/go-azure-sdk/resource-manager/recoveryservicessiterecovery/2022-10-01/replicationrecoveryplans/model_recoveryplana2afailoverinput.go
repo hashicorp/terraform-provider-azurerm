@@ -12,7 +12,7 @@ var _ RecoveryPlanProviderSpecificFailoverInput = RecoveryPlanA2AFailoverInput{}
 
 type RecoveryPlanA2AFailoverInput struct {
 	CloudServiceCreationOption *string                 `json:"cloudServiceCreationOption,omitempty"`
-	MultiVmSyncPointOption     *MultiVmSyncPointOption `json:"multiVmSyncPointOption,omitempty"`
+	MultiVMSyncPointOption     *MultiVMSyncPointOption `json:"multiVmSyncPointOption,omitempty"`
 	RecoveryPointType          A2ARpRecoveryPointType  `json:"recoveryPointType"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificFailoverInput

@@ -297,6 +297,11 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+			"is_primary": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -504,38 +509,44 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	}
 
 	var vmNics []replicationprotecteditems.VMNicInputDetails
-	for _, raw := range d.Get("network_interface").(*pluginsdk.Set).List() {
+	nicList := d.Get("network_interface").(*pluginsdk.Set).List()
+	for _, raw := range nicList {
 		vmNicInput := raw.(map[string]interface{})
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
 		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
+		isPrimary := vmNicInput["is_primary"].(bool)
+		if len(nicList) == 1 {
+			isPrimary = true
+		}
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
 			return fmt.Errorf("updating replicated vm %s (vault %s): Trying to update NIC that is not known by Azure %s", name, vaultName, sourceNicId)
 		}
-		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
-			NicId: nicId,
-			IPConfigs: &[]replicationprotecteditems.IPConfigInputDetails{
-				{
-					RecoverySubnetName:        &targetSubnetName,
-					RecoveryStaticIPAddress:   &targetStaticIp,
-					RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
-					IsPrimary:                 utils.Bool(true), // we only support one ip configured for one NIC for now.
-				},
+		ipConfig := []replicationprotecteditems.IPConfigInputDetails{
+			{
+				RecoverySubnetName:        &targetSubnetName,
+				RecoveryStaticIPAddress:   &targetStaticIp,
+				RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
+				IsPrimary:                 &isPrimary,
 			},
+		}
+		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
+			NicId:     nicId,
+			IPConfigs: &ipConfig,
 		})
 	}
 
-	var managedDisks []replicationprotecteditems.A2AVmManagedDiskUpdateDetails
+	var managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails
 	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
 		diskInput := raw.(map[string]interface{})
 		diskId := diskInput["disk_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
 		targetDiskType := diskInput["target_disk_type"].(string)
 
-		managedDisks = append(managedDisks, replicationprotecteditems.A2AVmManagedDiskUpdateDetails{
+		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskUpdateDetails{
 			DiskId:                         &diskId,
 			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:  &targetDiskType,

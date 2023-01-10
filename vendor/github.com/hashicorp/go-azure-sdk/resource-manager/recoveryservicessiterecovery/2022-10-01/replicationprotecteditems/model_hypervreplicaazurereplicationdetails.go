@@ -11,7 +11,7 @@ import (
 var _ ReplicationProviderSpecificSettings = HyperVReplicaAzureReplicationDetails{}
 
 type HyperVReplicaAzureReplicationDetails struct {
-	AzureVmDiskDetails               *[]AzureVmDiskDetails                   `json:"azureVmDiskDetails,omitempty"`
+	AzureVMDiskDetails               *[]AzureVMDiskDetails                   `json:"azureVmDiskDetails,omitempty"`
 	EnableRdpOnTargetOption          *string                                 `json:"enableRdpOnTargetOption,omitempty"`
 	Encryption                       *string                                 `json:"encryption,omitempty"`
 	InitialReplicationDetails        *InitialReplicationDetails              `json:"initialReplicationDetails,omitempty"`
@@ -25,25 +25,25 @@ type HyperVReplicaAzureReplicationDetails struct {
 	RecoveryAzureLogStorageAccountId *string                                 `json:"recoveryAzureLogStorageAccountId,omitempty"`
 	RecoveryAzureResourceGroupId     *string                                 `json:"recoveryAzureResourceGroupId,omitempty"`
 	RecoveryAzureStorageAccount      *string                                 `json:"recoveryAzureStorageAccount,omitempty"`
+	RecoveryAzureVMName              *string                                 `json:"recoveryAzureVmName,omitempty"`
 	RecoveryAzureVMSize              *string                                 `json:"recoveryAzureVMSize,omitempty"`
-	RecoveryAzureVmName              *string                                 `json:"recoveryAzureVmName,omitempty"`
 	RpoInSeconds                     *int64                                  `json:"rpoInSeconds,omitempty"`
 	SeedManagedDiskTags              *map[string]string                      `json:"seedManagedDiskTags,omitempty"`
 	SelectedRecoveryAzureNetworkId   *string                                 `json:"selectedRecoveryAzureNetworkId,omitempty"`
 	SelectedSourceNicId              *string                                 `json:"selectedSourceNicId,omitempty"`
-	SourceVmCpuCount                 *int64                                  `json:"sourceVmCpuCount,omitempty"`
-	SourceVmRamSizeInMB              *int64                                  `json:"sourceVmRamSizeInMB,omitempty"`
+	SourceVMCPUCount                 *int64                                  `json:"sourceVmCpuCount,omitempty"`
+	SourceVMRamSizeInMB              *int64                                  `json:"sourceVmRamSizeInMB,omitempty"`
 	SqlServerLicenseType             *string                                 `json:"sqlServerLicenseType,omitempty"`
 	TargetAvailabilityZone           *string                                 `json:"targetAvailabilityZone,omitempty"`
 	TargetManagedDiskTags            *map[string]string                      `json:"targetManagedDiskTags,omitempty"`
 	TargetNicTags                    *map[string]string                      `json:"targetNicTags,omitempty"`
 	TargetProximityPlacementGroupId  *string                                 `json:"targetProximityPlacementGroupId,omitempty"`
-	TargetVmTags                     *map[string]string                      `json:"targetVmTags,omitempty"`
+	TargetVMTags                     *map[string]string                      `json:"targetVmTags,omitempty"`
 	UseManagedDisks                  *string                                 `json:"useManagedDisks,omitempty"`
-	VmId                             *string                                 `json:"vmId,omitempty"`
-	VmNics                           *[]VMNicDetails                         `json:"vmNics,omitempty"`
-	VmProtectionState                *string                                 `json:"vmProtectionState,omitempty"`
-	VmProtectionStateDescription     *string                                 `json:"vmProtectionStateDescription,omitempty"`
+	VMId                             *string                                 `json:"vmId,omitempty"`
+	VMNics                           *[]VMNicDetails                         `json:"vmNics,omitempty"`
+	VMProtectionState                *string                                 `json:"vmProtectionState,omitempty"`
+	VMProtectionStateDescription     *string                                 `json:"vmProtectionStateDescription,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }

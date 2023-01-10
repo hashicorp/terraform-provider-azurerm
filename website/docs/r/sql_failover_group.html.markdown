@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group containing the SQL server Changing this forces a new resource to be created.
 
-* `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created. 
 
 * `databases` - (Optional) A list of database ids to add to the failover group
 
@@ -83,19 +83,25 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`partner_servers` supports the following:
+---
+
+The `partner_servers` block supports the following:
 
 * `id` - (Required) the SQL server ID
 
-`read_write_endpoint_failover_policy` supports the following:
+---
+
+The `read_write_endpoint_failover_policy` block supports the following:
 
 * `mode` - (Required) the failover mode. Possible values are `Manual`, `Automatic`
 
-* `grace_minutes` - Applies only if `mode` is `Automatic`. The grace period in minutes before failover with data loss is attempted
+* `grace_minutes` - (Optional) Applies only if `mode` is `Automatic`. The grace period in minutes before failover with data loss is attempted
 
-`readonly_endpoint_failover_policy` supports the following:
+---
 
-* `mode` - Failover policy for the read-only endpoint. Possible values are `Enabled`, and `Disabled`
+The `readonly_endpoint_failover_policy` block supports the following:
+
+* `mode` - (Required) Failover policy for the read-only endpoint. Possible values are `Enabled`, and `Disabled`
 
 ## Attributes Reference
 
@@ -103,10 +109,10 @@ The following attributes are exported:
 
 * `id` - The failover group ID.
 * `location` - the location of the failover group.
-* `server_name` - the name of the primary SQL Database Server.
+* `server_name` - (Required) the name of the primary SQL Database Server.
 * `role` - local replication role of the failover group instance.
-* `databases` - list of databases in the failover group.
-* `partner_servers` - list of partner server information for the failover group.
+* `databases` - (Optional) list of databases in the failover group.
+* `partner_servers` - (Required) list of partner server information for the failover group.
 
 ## Timeouts
 

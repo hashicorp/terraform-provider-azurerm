@@ -17,7 +17,7 @@ type VMwareV2FabricSpecificDetails struct {
 	ServiceContainerId  *string                 `json:"serviceContainerId,omitempty"`
 	ServiceEndpoint     *string                 `json:"serviceEndpoint,omitempty"`
 	ServiceResourceId   *string                 `json:"serviceResourceId,omitempty"`
-	VmwareSiteId        *string                 `json:"vmwareSiteId,omitempty"`
+	VMwareSiteId        *string                 `json:"vmwareSiteId,omitempty"`
 
 	// Fields inherited from FabricSpecificDetails
 }

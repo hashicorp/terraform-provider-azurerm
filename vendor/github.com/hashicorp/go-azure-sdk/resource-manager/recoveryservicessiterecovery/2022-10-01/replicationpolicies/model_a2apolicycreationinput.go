@@ -13,7 +13,7 @@ var _ PolicyProviderSpecificInput = A2APolicyCreationInput{}
 type A2APolicyCreationInput struct {
 	AppConsistentFrequencyInMinutes   *int64               `json:"appConsistentFrequencyInMinutes,omitempty"`
 	CrashConsistentFrequencyInMinutes *int64               `json:"crashConsistentFrequencyInMinutes,omitempty"`
-	MultiVmSyncStatus                 SetMultiVmSyncStatus `json:"multiVmSyncStatus"`
+	MultiVMSyncStatus                 SetMultiVMSyncStatus `json:"multiVmSyncStatus"`
 	RecoveryPointHistory              *int64               `json:"recoveryPointHistory,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificInput

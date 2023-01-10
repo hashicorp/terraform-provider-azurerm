@@ -18,13 +18,13 @@ type NodeTypeProperties struct {
 	MultiplePlacementGroups *bool                             `json:"multiplePlacementGroups,omitempty"`
 	PlacementProperties     *map[string]string                `json:"placementProperties,omitempty"`
 	ProvisioningState       *ManagedResourceProvisioningState `json:"provisioningState,omitempty"`
-	VmExtensions            *[]VMSSExtension                  `json:"vmExtensions,omitempty"`
-	VmImageOffer            *string                           `json:"vmImageOffer,omitempty"`
-	VmImagePublisher        *string                           `json:"vmImagePublisher,omitempty"`
-	VmImageSku              *string                           `json:"vmImageSku,omitempty"`
-	VmImageVersion          *string                           `json:"vmImageVersion,omitempty"`
-	VmInstanceCount         int64                             `json:"vmInstanceCount"`
-	VmManagedIdentity       *identity.UserAssignedList        `json:"vmManagedIdentity,omitempty"`
-	VmSecrets               *[]VaultSecretGroup               `json:"vmSecrets,omitempty"`
-	VmSize                  *string                           `json:"vmSize,omitempty"`
+	VMExtensions            *[]VMSSExtension                  `json:"vmExtensions,omitempty"`
+	VMImageOffer            *string                           `json:"vmImageOffer,omitempty"`
+	VMImagePublisher        *string                           `json:"vmImagePublisher,omitempty"`
+	VMImageSku              *string                           `json:"vmImageSku,omitempty"`
+	VMImageVersion          *string                           `json:"vmImageVersion,omitempty"`
+	VMInstanceCount         int64                             `json:"vmInstanceCount"`
+	VMManagedIdentity       *identity.UserAssignedList        `json:"vmManagedIdentity,omitempty"`
+	VMSecrets               *[]VaultSecretGroup               `json:"vmSecrets,omitempty"`
+	VMSize                  *string                           `json:"vmSize,omitempty"`
 }

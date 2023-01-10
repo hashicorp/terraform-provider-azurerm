@@ -11,7 +11,7 @@ import (
 var _ DisableProtectionProviderSpecificInput = InMageDisableProtectionProviderSpecificInput{}
 
 type InMageDisableProtectionProviderSpecificInput struct {
-	ReplicaVmDeletionStatus *string `json:"replicaVmDeletionStatus,omitempty"`
+	ReplicaVMDeletionStatus *string `json:"replicaVmDeletionStatus,omitempty"`
 
 	// Fields inherited from DisableProtectionProviderSpecificInput
 }

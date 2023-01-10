@@ -18,7 +18,7 @@ type UpdateReplicationProtectedItemInputProperties struct {
 	SelectedRecoveryAzureNetworkId *string                                     `json:"selectedRecoveryAzureNetworkId,omitempty"`
 	SelectedSourceNicId            *string                                     `json:"selectedSourceNicId,omitempty"`
 	SelectedTfoAzureNetworkId      *string                                     `json:"selectedTfoAzureNetworkId,omitempty"`
-	VmNics                         *[]VMNicInputDetails                        `json:"vmNics,omitempty"`
+	VMNics                         *[]VMNicInputDetails                        `json:"vmNics,omitempty"`
 }
 
 var _ json.Unmarshaler = &UpdateReplicationProtectedItemInputProperties{}
@@ -38,7 +38,7 @@ func (s *UpdateReplicationProtectedItemInputProperties) UnmarshalJSON(bytes []by
 	s.SelectedRecoveryAzureNetworkId = decoded.SelectedRecoveryAzureNetworkId
 	s.SelectedSourceNicId = decoded.SelectedSourceNicId
 	s.SelectedTfoAzureNetworkId = decoded.SelectedTfoAzureNetworkId
-	s.VmNics = decoded.VmNics
+	s.VMNics = decoded.VMNics
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {

@@ -228,7 +228,9 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
-* `source_recovery_fabric_name` - (Required) Name of fabric that should contains this replication. Changing this forces a new resource to be created.
+* `recovery_replication_policy_id` - (Required) Id of the policy to use for this replicated vm. Changing this forces a new resource to be created.
+
+* `source_recovery_fabric_name` - (Required) Name of fabric that should contain this replication. Changing this forces a new resource to be created.
 
 * `source_vm_id` - (Required) Id of the VM to replicate Changing this forces a new resource to be created.
 
@@ -244,7 +246,7 @@ The following arguments are supported:
 
 * `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. Changing this forces a new resource to be created.
 
-* `managed_disk` - (Optional) One or more `managed_disk` block.
+* `managed_disk` - (Optional) One or more `managed_disk` block as defined below.
 
 * `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block.
 
@@ -258,9 +260,9 @@ The following arguments are supported:
 
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
+* `network_interface` - (Optional) One or more `network_interface` block as defined below.
+* 
 * `multi_vm_group_name` - (Optional) Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over.
-
-* `network_interface` - (Optional) One or more `network_interface` block.
 
 ---
 
@@ -296,13 +298,15 @@ A `unmanaged_disk` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `source_network_interface_id` - (Required if the network_interface block is specified) Id source network interface.
+* `source_network_interface_id` - (Optional) (Required if the network_interface block is specified) Id source network interface.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
 * `target_subnet_name` - (Optional) Name of the subnet to to use when a failover is done.
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
+
+* `is_primary` - (Optional) If this is the primary network interface used for failover. If there is only one `network_interface` block, this is automatically set to `true`.
 
 ---
 

@@ -95,12 +95,15 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 
 	recoveryPoint := int64(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsistency := int64(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
+	if appConsistency > recoveryPoint {
+		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
+	}
 	parameters := replicationpolicies.CreatePolicyInput{
 		Properties: &replicationpolicies.CreatePolicyInputProperties{
 			ProviderSpecificInput: &replicationpolicies.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
 				AppConsistentFrequencyInMinutes: &appConsistency,
-				MultiVmSyncStatus:               replicationpolicies.SetMultiVmSyncStatusEnable,
+				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
 			},
 		},
 	}
@@ -128,12 +131,16 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 
 	recoveryPoint := int64(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsistency := int64(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
+	if appConsistency > recoveryPoint {
+		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
+	}
+
 	parameters := replicationpolicies.UpdatePolicyInput{
 		Properties: &replicationpolicies.UpdatePolicyInputProperties{
 			ReplicationProviderSettings: &replicationpolicies.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
 				AppConsistentFrequencyInMinutes: &appConsistency,
-				MultiVmSyncStatus:               replicationpolicies.SetMultiVmSyncStatusEnable,
+				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
 			},
 		},
 	}

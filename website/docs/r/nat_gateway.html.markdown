@@ -56,10 +56,6 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `public_ip_address_ids` - (Optional / **Deprecated in favour of `azurerm_nat_gateway_public_ip_association`**) A list of Public IP Address IDs which should be associated with the NAT Gateway resource.
-
-* `public_ip_prefix_ids` - (Optional) / **Deprecated in favour of `azurerm_nat_gateway_public_ip_prefix_association`**) A list of Public IP Prefix IDs which should be associated with the NAT Gateway resource.
-
 * `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 

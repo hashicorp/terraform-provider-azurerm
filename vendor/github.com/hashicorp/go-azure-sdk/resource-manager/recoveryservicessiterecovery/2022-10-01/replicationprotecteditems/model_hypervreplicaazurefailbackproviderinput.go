@@ -13,7 +13,7 @@ var _ PlannedFailoverProviderSpecificFailoverInput = HyperVReplicaAzureFailbackP
 type HyperVReplicaAzureFailbackProviderInput struct {
 	DataSyncOption                 *string `json:"dataSyncOption,omitempty"`
 	ProviderIdForAlternateRecovery *string `json:"providerIdForAlternateRecovery,omitempty"`
-	RecoveryVmCreationOption       *string `json:"recoveryVmCreationOption,omitempty"`
+	RecoveryVMCreationOption       *string `json:"recoveryVmCreationOption,omitempty"`
 
 	// Fields inherited from PlannedFailoverProviderSpecificFailoverInput
 }

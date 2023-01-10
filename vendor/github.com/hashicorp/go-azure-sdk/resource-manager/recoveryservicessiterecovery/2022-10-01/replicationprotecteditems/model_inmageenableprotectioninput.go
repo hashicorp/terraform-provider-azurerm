@@ -15,12 +15,12 @@ type InMageEnableProtectionInput struct {
 	DiskExclusionInput *InMageDiskExclusionInput `json:"diskExclusionInput,omitempty"`
 	DisksToInclude     *[]string                 `json:"disksToInclude,omitempty"`
 	MasterTargetId     string                    `json:"masterTargetId"`
-	MultiVmGroupId     string                    `json:"multiVmGroupId"`
-	MultiVmGroupName   string                    `json:"multiVmGroupName"`
+	MultiVMGroupId     string                    `json:"multiVmGroupId"`
+	MultiVMGroupName   string                    `json:"multiVmGroupName"`
 	ProcessServerId    string                    `json:"processServerId"`
 	RetentionDrive     string                    `json:"retentionDrive"`
 	RunAsAccountId     *string                   `json:"runAsAccountId,omitempty"`
-	VmFriendlyName     *string                   `json:"vmFriendlyName,omitempty"`
+	VMFriendlyName     *string                   `json:"vmFriendlyName,omitempty"`
 
 	// Fields inherited from EnableProtectionProviderSpecificInput
 }

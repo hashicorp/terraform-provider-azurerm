@@ -56,7 +56,7 @@ resource "azurerm_spring_cloud_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) Specifies The name of the resource group in which to create the Spring Cloud Service. Changing this forces a new resource to be created.
 
@@ -148,13 +148,13 @@ The `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - (Optional) The host key algorithm, should be `ssh-dss`, `ssh-rsa`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`. Required only if `host-key` exists.
 
-* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match.
+* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match. Defaults to `true`.
 
 ---
 
 The `trace` block supports the following:
 
-* `connection_string` - (Required) The connection string used for Application Insights.
+* `connection_string` - (Optional) The connection string used for Application Insights.
 
 * `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
 
@@ -172,13 +172,13 @@ The following attributes are exported:
 
 ---
 
-The `required_network_traffic_rules` supports the following:
+The `required_network_traffic_rules` block supports the following:
 
 * `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The IP list of required traffic.
+* `ip_addresses` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 
@@ -198,5 +198,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/Spring/spring1
+terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/spring/spring1
 ```

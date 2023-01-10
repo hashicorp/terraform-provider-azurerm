@@ -36,17 +36,17 @@ func unmarshalFabricSpecificUpdateNetworkMappingInputImplementation(input []byte
 	}
 
 	if strings.EqualFold(value, "VmmToAzure") {
-		var out VmmToAzureUpdateNetworkMappingInput
+		var out VMmToAzureUpdateNetworkMappingInput
 		if err := json.Unmarshal(input, &out); err != nil {
-			return nil, fmt.Errorf("unmarshaling into VmmToAzureUpdateNetworkMappingInput: %+v", err)
+			return nil, fmt.Errorf("unmarshaling into VMmToAzureUpdateNetworkMappingInput: %+v", err)
 		}
 		return out, nil
 	}
 
 	if strings.EqualFold(value, "VmmToVmm") {
-		var out VmmToVmmUpdateNetworkMappingInput
+		var out VMmToVMmUpdateNetworkMappingInput
 		if err := json.Unmarshal(input, &out); err != nil {
-			return nil, fmt.Errorf("unmarshaling into VmmToVmmUpdateNetworkMappingInput: %+v", err)
+			return nil, fmt.Errorf("unmarshaling into VMmToVMmUpdateNetworkMappingInput: %+v", err)
 		}
 		return out, nil
 	}

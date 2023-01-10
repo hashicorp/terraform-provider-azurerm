@@ -170,7 +170,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// Public Network Access can only be disabled after creation
-	if d.Get("public_network_access_enabled").(bool) == false {
+	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess := apps.PublicNetworkAccessDisabled
 		app.Properties.PublicNetworkAccess = &publicNetworkAccess
 		if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {

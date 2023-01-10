@@ -13,7 +13,7 @@ var _ PolicyProviderSpecificInput = InMageRcmPolicyCreationInput{}
 type InMageRcmPolicyCreationInput struct {
 	AppConsistentFrequencyInMinutes   *int64  `json:"appConsistentFrequencyInMinutes,omitempty"`
 	CrashConsistentFrequencyInMinutes *int64  `json:"crashConsistentFrequencyInMinutes,omitempty"`
-	EnableMultiVmSync                 *string `json:"enableMultiVmSync,omitempty"`
+	EnableMultiVMSync                 *string `json:"enableMultiVmSync,omitempty"`
 	RecoveryPointHistoryInMinutes     *int64  `json:"recoveryPointHistoryInMinutes,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificInput

@@ -8,5 +8,5 @@ type FailoverProcessServerRequestProperties struct {
 	SourceProcessServerId *string   `json:"sourceProcessServerId,omitempty"`
 	TargetProcessServerId *string   `json:"targetProcessServerId,omitempty"`
 	UpdateType            *string   `json:"updateType,omitempty"`
-	VmsToMigrate          *[]string `json:"vmsToMigrate,omitempty"`
+	VMsToMigrate          *[]string `json:"vmsToMigrate,omitempty"`
 }
