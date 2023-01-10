@@ -22,7 +22,7 @@ BUG FIXES:
 
 * `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
 * `azurerm_storage_account` -  `403` is now a valid status code for when permissions to list keys is missing [GH-19645]
-
+* `azurerm_web_pubsub_hub` - the `event_handler` property is now a list instead of set to respect the input order [GH-19886]
 
 ## 3.38.0 (January 05, 2023)
 
