@@ -13,7 +13,7 @@ var _ PolicyProviderSpecificDetails = A2APolicyDetails{}
 type A2APolicyDetails struct {
 	AppConsistentFrequencyInMinutes   *int64  `json:"appConsistentFrequencyInMinutes,omitempty"`
 	CrashConsistentFrequencyInMinutes *int64  `json:"crashConsistentFrequencyInMinutes,omitempty"`
-	MultiVmSyncStatus                 *string `json:"multiVmSyncStatus,omitempty"`
+	MultiVMSyncStatus                 *string `json:"multiVmSyncStatus,omitempty"`
 	RecoveryPointHistory              *int64  `json:"recoveryPointHistory,omitempty"`
 	RecoveryPointThresholdInMinutes   *int64  `json:"recoveryPointThresholdInMinutes,omitempty"`
 

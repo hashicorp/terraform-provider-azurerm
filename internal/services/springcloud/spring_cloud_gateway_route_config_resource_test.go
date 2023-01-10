@@ -58,6 +58,20 @@ func TestAccSpringCloudGatewayRouteConfig_complete(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudGatewayRouteConfig_multipleRoutes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway_route_config", "test")
+	r := SpringCloudGatewayRouteConfigResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleRoutes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudGatewayRouteConfig_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway_route_config", "test")
 	r := SpringCloudGatewayRouteConfigResource{}
@@ -77,6 +91,12 @@ func TestAccSpringCloudGatewayRouteConfig_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.multipleRoutes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(), {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -167,6 +187,9 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
+  filters                 = ["StripPrefix=7", "RateLimit=2,1s"]
+  predicates              = ["Path=/defaults/customer/**"]
+  sso_validation_enabled  = true
   protocol                = "HTTP"
   route {
     description            = "test description"
@@ -178,6 +201,44 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
     token_relay            = true
     uri                    = "https://www.test.com"
     classification_tags    = ["tag1", "tag2"]
+  }
+  open_api {
+    uri = "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/examples/v3.0/petstore.json"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SpringCloudGatewayRouteConfigResource) multipleRoutes(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_gateway_route_config" "test" {
+  name                    = "acctest-agrc-%d"
+  spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
+  spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
+  route {
+    description            = "first route"
+    filters                = ["StripPrefix=2", "RateLimit=1,1s"]
+    order                  = 1
+    predicates             = ["Path=/api5/customer/**"]
+    sso_validation_enabled = true
+    title                  = "first route config"
+    token_relay            = true
+    uri                    = "https://www.test1.com"
+    classification_tags    = ["route1_tag1", "route1_tag2"]
+  }
+  route {
+    description            = "second route"
+    filters                = ["StripPrefix=2", "RateLimit=1,1s"]
+    order                  = 2
+    predicates             = ["Path=/api5/customer/**"]
+    sso_validation_enabled = true
+    title                  = "second route config"
+    token_relay            = true
+    uri                    = "https://www.test2.com"
+    classification_tags    = ["route2_tag1", "route2_tag2"]
   }
   open_api {
     uri = "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/examples/v3.0/petstore.json"

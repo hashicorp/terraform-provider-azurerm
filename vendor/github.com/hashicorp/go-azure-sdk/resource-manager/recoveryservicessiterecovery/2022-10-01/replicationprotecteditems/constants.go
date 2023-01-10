@@ -342,31 +342,31 @@ func parseMobilityAgentUpgradeState(input string) (*MobilityAgentUpgradeState, e
 	return &out, nil
 }
 
-type MultiVmGroupCreateOption string
+type MultiVMGroupCreateOption string
 
 const (
-	MultiVmGroupCreateOptionAutoCreated   MultiVmGroupCreateOption = "AutoCreated"
-	MultiVmGroupCreateOptionUserSpecified MultiVmGroupCreateOption = "UserSpecified"
+	MultiVMGroupCreateOptionAutoCreated   MultiVMGroupCreateOption = "AutoCreated"
+	MultiVMGroupCreateOptionUserSpecified MultiVMGroupCreateOption = "UserSpecified"
 )
 
-func PossibleValuesForMultiVmGroupCreateOption() []string {
+func PossibleValuesForMultiVMGroupCreateOption() []string {
 	return []string{
-		string(MultiVmGroupCreateOptionAutoCreated),
-		string(MultiVmGroupCreateOptionUserSpecified),
+		string(MultiVMGroupCreateOptionAutoCreated),
+		string(MultiVMGroupCreateOptionUserSpecified),
 	}
 }
 
-func parseMultiVmGroupCreateOption(input string) (*MultiVmGroupCreateOption, error) {
-	vals := map[string]MultiVmGroupCreateOption{
-		"autocreated":   MultiVmGroupCreateOptionAutoCreated,
-		"userspecified": MultiVmGroupCreateOptionUserSpecified,
+func parseMultiVMGroupCreateOption(input string) (*MultiVMGroupCreateOption, error) {
+	vals := map[string]MultiVMGroupCreateOption{
+		"autocreated":   MultiVMGroupCreateOptionAutoCreated,
+		"userspecified": MultiVMGroupCreateOptionUserSpecified,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := MultiVmGroupCreateOption(input)
+	out := MultiVMGroupCreateOption(input)
 	return &out, nil
 }
 
@@ -500,67 +500,67 @@ func parseSqlServerLicenseType(input string) (*SqlServerLicenseType, error) {
 	return &out, nil
 }
 
-type VmEncryptionType string
+type VMEncryptionType string
 
 const (
-	VmEncryptionTypeNotEncrypted     VmEncryptionType = "NotEncrypted"
-	VmEncryptionTypeOnePassEncrypted VmEncryptionType = "OnePassEncrypted"
-	VmEncryptionTypeTwoPassEncrypted VmEncryptionType = "TwoPassEncrypted"
+	VMEncryptionTypeNotEncrypted     VMEncryptionType = "NotEncrypted"
+	VMEncryptionTypeOnePassEncrypted VMEncryptionType = "OnePassEncrypted"
+	VMEncryptionTypeTwoPassEncrypted VMEncryptionType = "TwoPassEncrypted"
 )
 
-func PossibleValuesForVmEncryptionType() []string {
+func PossibleValuesForVMEncryptionType() []string {
 	return []string{
-		string(VmEncryptionTypeNotEncrypted),
-		string(VmEncryptionTypeOnePassEncrypted),
-		string(VmEncryptionTypeTwoPassEncrypted),
+		string(VMEncryptionTypeNotEncrypted),
+		string(VMEncryptionTypeOnePassEncrypted),
+		string(VMEncryptionTypeTwoPassEncrypted),
 	}
 }
 
-func parseVmEncryptionType(input string) (*VmEncryptionType, error) {
-	vals := map[string]VmEncryptionType{
-		"notencrypted":     VmEncryptionTypeNotEncrypted,
-		"onepassencrypted": VmEncryptionTypeOnePassEncrypted,
-		"twopassencrypted": VmEncryptionTypeTwoPassEncrypted,
+func parseVMEncryptionType(input string) (*VMEncryptionType, error) {
+	vals := map[string]VMEncryptionType{
+		"notencrypted":     VMEncryptionTypeNotEncrypted,
+		"onepassencrypted": VMEncryptionTypeOnePassEncrypted,
+		"twopassencrypted": VMEncryptionTypeTwoPassEncrypted,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := VmEncryptionType(input)
+	out := VMEncryptionType(input)
 	return &out, nil
 }
 
-type VmReplicationProgressHealth string
+type VMReplicationProgressHealth string
 
 const (
-	VmReplicationProgressHealthInProgress   VmReplicationProgressHealth = "InProgress"
-	VmReplicationProgressHealthNoProgress   VmReplicationProgressHealth = "NoProgress"
-	VmReplicationProgressHealthNone         VmReplicationProgressHealth = "None"
-	VmReplicationProgressHealthSlowProgress VmReplicationProgressHealth = "SlowProgress"
+	VMReplicationProgressHealthInProgress   VMReplicationProgressHealth = "InProgress"
+	VMReplicationProgressHealthNoProgress   VMReplicationProgressHealth = "NoProgress"
+	VMReplicationProgressHealthNone         VMReplicationProgressHealth = "None"
+	VMReplicationProgressHealthSlowProgress VMReplicationProgressHealth = "SlowProgress"
 )
 
-func PossibleValuesForVmReplicationProgressHealth() []string {
+func PossibleValuesForVMReplicationProgressHealth() []string {
 	return []string{
-		string(VmReplicationProgressHealthInProgress),
-		string(VmReplicationProgressHealthNoProgress),
-		string(VmReplicationProgressHealthNone),
-		string(VmReplicationProgressHealthSlowProgress),
+		string(VMReplicationProgressHealthInProgress),
+		string(VMReplicationProgressHealthNoProgress),
+		string(VMReplicationProgressHealthNone),
+		string(VMReplicationProgressHealthSlowProgress),
 	}
 }
 
-func parseVmReplicationProgressHealth(input string) (*VmReplicationProgressHealth, error) {
-	vals := map[string]VmReplicationProgressHealth{
-		"inprogress":   VmReplicationProgressHealthInProgress,
-		"noprogress":   VmReplicationProgressHealthNoProgress,
-		"none":         VmReplicationProgressHealthNone,
-		"slowprogress": VmReplicationProgressHealthSlowProgress,
+func parseVMReplicationProgressHealth(input string) (*VMReplicationProgressHealth, error) {
+	vals := map[string]VMReplicationProgressHealth{
+		"inprogress":   VMReplicationProgressHealthInProgress,
+		"noprogress":   VMReplicationProgressHealthNoProgress,
+		"none":         VMReplicationProgressHealthNone,
+		"slowprogress": VMReplicationProgressHealthSlowProgress,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := VmReplicationProgressHealth(input)
+	out := VMReplicationProgressHealth(input)
 	return &out, nil
 }

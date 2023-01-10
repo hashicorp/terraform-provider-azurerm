@@ -16,7 +16,7 @@ type A2AReprotectInput struct {
 	RecoveryCloudServiceId    *string                  `json:"recoveryCloudServiceId,omitempty"`
 	RecoveryContainerId       *string                  `json:"recoveryContainerId,omitempty"`
 	RecoveryResourceGroupId   *string                  `json:"recoveryResourceGroupId,omitempty"`
-	VmDisks                   *[]A2AVmDiskInputDetails `json:"vmDisks,omitempty"`
+	VMDisks                   *[]A2AVMDiskInputDetails `json:"vmDisks,omitempty"`
 
 	// Fields inherited from ReverseReplicationProviderSpecificInput
 }

@@ -12,9 +12,9 @@ var _ ReplicationProviderSpecificSettings = InMageRcmFailbackReplicationDetails{
 
 type InMageRcmFailbackReplicationDetails struct {
 	AzureVirtualMachineId                      *string                                        `json:"azureVirtualMachineId,omitempty"`
-	DiscoveredVmDetails                        *InMageRcmFailbackDiscoveredProtectedVmDetails `json:"discoveredVmDetails,omitempty"`
+	DiscoveredVMDetails                        *InMageRcmFailbackDiscoveredProtectedVMDetails `json:"discoveredVmDetails,omitempty"`
 	InitialReplicationProcessedBytes           *int64                                         `json:"initialReplicationProcessedBytes,omitempty"`
-	InitialReplicationProgressHealth           *VmReplicationProgressHealth                   `json:"initialReplicationProgressHealth,omitempty"`
+	InitialReplicationProgressHealth           *VMReplicationProgressHealth                   `json:"initialReplicationProgressHealth,omitempty"`
 	InitialReplicationProgressPercentage       *int64                                         `json:"initialReplicationProgressPercentage,omitempty"`
 	InitialReplicationTransferredBytes         *int64                                         `json:"initialReplicationTransferredBytes,omitempty"`
 	InternalIdentifier                         *string                                        `json:"internalIdentifier,omitempty"`
@@ -25,21 +25,21 @@ type InMageRcmFailbackReplicationDetails struct {
 	LastUsedPolicyId                           *string                                        `json:"lastUsedPolicyId,omitempty"`
 	LogStorageAccountId                        *string                                        `json:"logStorageAccountId,omitempty"`
 	MobilityAgentDetails                       *InMageRcmFailbackMobilityAgentDetails         `json:"mobilityAgentDetails,omitempty"`
-	MultiVmGroupName                           *string                                        `json:"multiVmGroupName,omitempty"`
+	MultiVMGroupName                           *string                                        `json:"multiVmGroupName,omitempty"`
 	OsType                                     *string                                        `json:"osType,omitempty"`
 	ProtectedDisks                             *[]InMageRcmFailbackProtectedDiskDetails       `json:"protectedDisks,omitempty"`
 	ReprotectAgentId                           *string                                        `json:"reprotectAgentId,omitempty"`
 	ReprotectAgentName                         *string                                        `json:"reprotectAgentName,omitempty"`
 	ResyncProcessedBytes                       *int64                                         `json:"resyncProcessedBytes,omitempty"`
-	ResyncProgressHealth                       *VmReplicationProgressHealth                   `json:"resyncProgressHealth,omitempty"`
+	ResyncProgressHealth                       *VMReplicationProgressHealth                   `json:"resyncProgressHealth,omitempty"`
 	ResyncProgressPercentage                   *int64                                         `json:"resyncProgressPercentage,omitempty"`
 	ResyncRequired                             *string                                        `json:"resyncRequired,omitempty"`
 	ResyncState                                *ResyncState                                   `json:"resyncState,omitempty"`
 	ResyncTransferredBytes                     *int64                                         `json:"resyncTransferredBytes,omitempty"`
 	TargetDataStoreName                        *string                                        `json:"targetDataStoreName,omitempty"`
-	TargetVmName                               *string                                        `json:"targetVmName,omitempty"`
+	TargetVMName                               *string                                        `json:"targetVmName,omitempty"`
 	TargetvCenterId                            *string                                        `json:"targetvCenterId,omitempty"`
-	VmNics                                     *[]InMageRcmFailbackNicDetails                 `json:"vmNics,omitempty"`
+	VMNics                                     *[]InMageRcmFailbackNicDetails                 `json:"vmNics,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }

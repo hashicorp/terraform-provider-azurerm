@@ -64,9 +64,9 @@ The following arguments are supported:
 
 * `vpn_gateway_id` - (Required) The ID of the VPN Gateway that this VPN Gateway NAT Rule belongs to. Changing this forces a new resource to be created.
 
-* `external_mapping` - (Required) One or more `external_mapping` blocks as documented below.
+* `external_mapping` - (Optional) One or more `external_mapping` blocks as documented below.
 
-* `internal_mapping` - (Required) One or more `internal_mapping` blocks as documented below.
+* `internal_mapping` - (Optional) One or more `internal_mapping` blocks as documented below.
 
 * `ip_configuration_id` - (Optional) The ID of the IP Configuration this VPN Gateway NAT Rule applies to. Possible values are `Instance0` and `Instance1`.
 

@@ -12,7 +12,7 @@ var _ PolicyProviderSpecificDetails = InMagePolicyDetails{}
 
 type InMagePolicyDetails struct {
 	AppConsistentFrequencyInMinutes *int64  `json:"appConsistentFrequencyInMinutes,omitempty"`
-	MultiVmSyncStatus               *string `json:"multiVmSyncStatus,omitempty"`
+	MultiVMSyncStatus               *string `json:"multiVmSyncStatus,omitempty"`
 	RecoveryPointHistory            *int64  `json:"recoveryPointHistory,omitempty"`
 	RecoveryPointThresholdInMinutes *int64  `json:"recoveryPointThresholdInMinutes,omitempty"`
 

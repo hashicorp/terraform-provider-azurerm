@@ -15,7 +15,7 @@ type InMageRcmEnableProtectionInput struct {
 	DisksToInclude                        *[]InMageRcmDiskInput       `json:"disksToInclude,omitempty"`
 	FabricDiscoveryMachineId              string                      `json:"fabricDiscoveryMachineId"`
 	LicenseType                           *LicenseType                `json:"licenseType,omitempty"`
-	MultiVmGroupName                      *string                     `json:"multiVmGroupName,omitempty"`
+	MultiVMGroupName                      *string                     `json:"multiVmGroupName,omitempty"`
 	ProcessServerId                       string                      `json:"processServerId"`
 	RunAsAccountId                        *string                     `json:"runAsAccountId,omitempty"`
 	TargetAvailabilitySetId               *string                     `json:"targetAvailabilitySetId,omitempty"`
@@ -25,8 +25,8 @@ type InMageRcmEnableProtectionInput struct {
 	TargetProximityPlacementGroupId       *string                     `json:"targetProximityPlacementGroupId,omitempty"`
 	TargetResourceGroupId                 string                      `json:"targetResourceGroupId"`
 	TargetSubnetName                      *string                     `json:"targetSubnetName,omitempty"`
-	TargetVmName                          *string                     `json:"targetVmName,omitempty"`
-	TargetVmSize                          *string                     `json:"targetVmSize,omitempty"`
+	TargetVMName                          *string                     `json:"targetVmName,omitempty"`
+	TargetVMSize                          *string                     `json:"targetVmSize,omitempty"`
 	TestNetworkId                         *string                     `json:"testNetworkId,omitempty"`
 	TestSubnetName                        *string                     `json:"testSubnetName,omitempty"`
 

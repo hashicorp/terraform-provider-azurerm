@@ -12,7 +12,7 @@ var _ RecoveryPlanProviderSpecificFailoverInput = RecoveryPlanHyperVReplicaAzure
 
 type RecoveryPlanHyperVReplicaAzureFailbackInput struct {
 	DataSyncOption           DataSyncStatus                  `json:"dataSyncOption"`
-	RecoveryVmCreationOption AlternateLocationRecoveryOption `json:"recoveryVmCreationOption"`
+	RecoveryVMCreationOption AlternateLocationRecoveryOption `json:"recoveryVmCreationOption"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificFailoverInput
 }

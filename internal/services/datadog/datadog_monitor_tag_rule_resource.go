@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog"
+	"github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
@@ -45,7 +45,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  utils.String("default"),
+				Default:  "default",
 			},
 
 			"log": {
@@ -266,7 +266,6 @@ func expandMetricRules(input []interface{}) *datadog.MetricRules {
 }
 
 func expandFilteringTag(input []interface{}) *[]datadog.FilteringTag {
-
 	filteringTags := make([]datadog.FilteringTag, 0)
 
 	for _, v := range input {
@@ -309,7 +308,6 @@ func flattenLogRules(input *datadog.LogRules) []interface{} {
 
 	result["filter"] = flattenFilteringTags(input.FilteringTags)
 	return append(results, result)
-
 }
 
 func flattenMetricRules(input *datadog.MetricRules) []interface{} {

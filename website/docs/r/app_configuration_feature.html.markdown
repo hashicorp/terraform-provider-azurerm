@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `targeting_filter` - (Optional) A `targeting_filter` block as defined below.
 
-* `timewindow_filter` - (Optional) A `targeting_filter` block `timewindow_filter` as defined below.
+* `timewindow_filter` - (Optional) A `timewindow_filter` block as defined below.
 
 ---
 

@@ -142,7 +142,7 @@ A `notification` block supports the following:
 
 * `contact_roles` - (Optional) Specifies a list of contact roles to send the budget notification to when the threshold is exceeded.
 
-* `enabled` - (Optional) Should the notification be enabled?
+* `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
 ~> **NOTE:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
 
@@ -180,7 +180,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Subscription Consumption Budget.
 
-* `etag` - The ETag of the Subscription Consumption Budget.
+* `etag` - (Optional) The ETag of the Subscription Consumption Budget.
 
 ## Timeouts
 

@@ -18,10 +18,10 @@ type InMageRcmUpdateReplicationProtectedItemInput struct {
 	TargetNetworkId                       *string              `json:"targetNetworkId,omitempty"`
 	TargetProximityPlacementGroupId       *string              `json:"targetProximityPlacementGroupId,omitempty"`
 	TargetResourceGroupId                 *string              `json:"targetResourceGroupId,omitempty"`
-	TargetVmName                          *string              `json:"targetVmName,omitempty"`
-	TargetVmSize                          *string              `json:"targetVmSize,omitempty"`
+	TargetVMName                          *string              `json:"targetVmName,omitempty"`
+	TargetVMSize                          *string              `json:"targetVmSize,omitempty"`
 	TestNetworkId                         *string              `json:"testNetworkId,omitempty"`
-	VmNics                                *[]InMageRcmNicInput `json:"vmNics,omitempty"`
+	VMNics                                *[]InMageRcmNicInput `json:"vmNics,omitempty"`
 
 	// Fields inherited from UpdateReplicationProtectedItemProviderInput
 }

@@ -205,7 +205,7 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOhError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.DRSTwoPointOhError(data),
-			ExpectError: regexp.MustCompile("the managed rules 'action' field must be set to 'AnomalyScoring' if the managed rule is DRS 2.0 or above"),
+			ExpectError: regexp.MustCompile("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above"),
 		},
 	})
 }
@@ -218,6 +218,33 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOhTypeError(t *testing.T) {
 		{
 			Config:      r.DRSTwoPointOhTypeError(data),
 			ExpectError: regexp.MustCompile("If you wish to use the 'DefaultRuleSet' type please update your 'version' field to be '1.0' or 'preview-0.1'"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOneAction(t *testing.T) {
+	// NOTE: Regression test case for issue #19561
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.DRSTwoPointOneActionLog(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOneActionError(t *testing.T) {
+	// NOTE: Regression test case for issue #19561
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.DRSTwoPointOneActionError(data),
+			ExpectError: regexp.MustCompile("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above"),
 		},
 	})
 }
@@ -675,6 +702,86 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
         rule_id = "933100"
         enabled = false
         action  = "Block"
+      }
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) DRSTwoPointOneActionLog(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  managed_rule {
+    type    = "Microsoft_DefaultRuleSet"
+    version = "2.1"
+    action  = "Block"
+
+    override {
+      rule_group_name = "PHP"
+
+      rule {
+        rule_id = "933100"
+        enabled = false
+        action  = "AnomalyScoring"
+      }
+
+      rule {
+        rule_id = "933110"
+        enabled = false
+        action  = "Log"
+      }
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) DRSTwoPointOneActionError(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  managed_rule {
+    type    = "Microsoft_DefaultRuleSet"
+    version = "2.1"
+    action  = "Block"
+
+    override {
+      rule_group_name = "PHP"
+
+      rule {
+        rule_id = "933100"
+        enabled = false
+        action  = "AnomalyScoring"
+      }
+
+      rule {
+        rule_id = "933110"
+        enabled = false
+        action  = "Redirect"
       }
     }
   }

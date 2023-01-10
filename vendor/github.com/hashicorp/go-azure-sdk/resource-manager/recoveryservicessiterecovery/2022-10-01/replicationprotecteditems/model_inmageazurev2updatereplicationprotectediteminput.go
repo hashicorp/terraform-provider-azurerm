@@ -18,9 +18,9 @@ type InMageAzureV2UpdateReplicationProtectedItemInput struct {
 	TargetManagedDiskTags           *map[string]string    `json:"targetManagedDiskTags,omitempty"`
 	TargetNicTags                   *map[string]string    `json:"targetNicTags,omitempty"`
 	TargetProximityPlacementGroupId *string               `json:"targetProximityPlacementGroupId,omitempty"`
-	TargetVmTags                    *map[string]string    `json:"targetVmTags,omitempty"`
+	TargetVMTags                    *map[string]string    `json:"targetVmTags,omitempty"`
 	UseManagedDisks                 *string               `json:"useManagedDisks,omitempty"`
-	VmDisks                         *[]UpdateDiskInput    `json:"vmDisks,omitempty"`
+	VMDisks                         *[]UpdateDiskInput    `json:"vmDisks,omitempty"`
 
 	// Fields inherited from UpdateReplicationProtectedItemProviderInput
 }

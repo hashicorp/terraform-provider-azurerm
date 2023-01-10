@@ -127,7 +127,7 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the policy. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the policy. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
@@ -157,11 +157,11 @@ The `custom_rule` block supports the following:
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 
-* `priority` - (Required) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
+* `priority` - (Optional) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
 
 * `type` - (Required) The type of rule. Possible values are `MatchRule` or `RateLimitRule`.
 
-* `match_condition` - (Required) One or more `match_condition` block defined below. Can support up to `10` `match_condition` blocks.
+* `match_condition` - (Optional) One or more `match_condition` block defined below. Can support up to `10` `match_condition` blocks.
 
 * `rate_limit_duration_in_minutes` - (Optional) The rate limit duration in minutes. Defaults to `1`.
 

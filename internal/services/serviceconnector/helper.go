@@ -118,8 +118,10 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 			return nil, fmt.Errorf("`secret` cannot be set when `name` is empty")
 		}
 		return servicelinker.SecretAuthInfo{
-			Name:       utils.String(name),
-			SecretInfo: secret,
+			Name: utils.String(name),
+			SecretInfo: servicelinker.ValueSecretInfo{
+				Value: utils.String(secret),
+			},
 		}, nil
 
 	case servicelinker.AuthTypeSystemAssignedIdentity:
@@ -206,7 +208,7 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 	return nil, fmt.Errorf("unsupported authentication type %q", authType)
 }
 
-func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInfoModel {
+func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd string) []AuthInfoModel {
 	var authType string
 	var name string
 	var secret string
@@ -220,7 +222,7 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInf
 		if value.Name != nil {
 			name = *value.Name
 		}
-		secret = value.SecretInfo.(string)
+		secret = pwd
 	}
 
 	if _, ok := input.(servicelinker.SystemAssignedIdentityAuthInfo); ok {

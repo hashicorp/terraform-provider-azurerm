@@ -15,8 +15,8 @@ type A2ACrossClusterMigrationReplicationDetails struct {
 	LifecycleId                  *string `json:"lifecycleId,omitempty"`
 	OsType                       *string `json:"osType,omitempty"`
 	PrimaryFabricLocation        *string `json:"primaryFabricLocation,omitempty"`
-	VmProtectionState            *string `json:"vmProtectionState,omitempty"`
-	VmProtectionStateDescription *string `json:"vmProtectionStateDescription,omitempty"`
+	VMProtectionState            *string `json:"vmProtectionState,omitempty"`
+	VMProtectionStateDescription *string `json:"vmProtectionStateDescription,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
 }

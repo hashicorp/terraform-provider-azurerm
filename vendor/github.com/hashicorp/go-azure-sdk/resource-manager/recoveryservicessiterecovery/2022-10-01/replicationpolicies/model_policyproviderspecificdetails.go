@@ -108,9 +108,9 @@ func unmarshalPolicyProviderSpecificDetailsImplementation(input []byte) (PolicyP
 	}
 
 	if strings.EqualFold(value, "VMwareCbt") {
-		var out VmwareCbtPolicyDetails
+		var out VMwareCbtPolicyDetails
 		if err := json.Unmarshal(input, &out); err != nil {
-			return nil, fmt.Errorf("unmarshaling into VmwareCbtPolicyDetails: %+v", err)
+			return nil, fmt.Errorf("unmarshaling into VMwareCbtPolicyDetails: %+v", err)
 		}
 		return out, nil
 	}

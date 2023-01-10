@@ -1639,6 +1639,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(9))
 }
 
+//nolint:unused
 func (r WindowsVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

@@ -148,6 +148,8 @@ A `ssh` block supports the following:
 
 * `key_value` - (Optional) SSH public key of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
 
+~> **NOTE:** At least one of `admin_password` and `key_value` shoud be specified.
+
 ---
 
 A `scale_settings` block supports the following:

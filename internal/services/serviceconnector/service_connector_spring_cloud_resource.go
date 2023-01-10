@@ -185,6 +185,7 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
+			pwd := metadata.ResourceData.Get("authentication.0.secret").(string)
 			if model := resp.Model; model != nil {
 				props := model.Properties
 				if props.AuthInfo == nil || props.TargetService == nil {
@@ -195,12 +196,11 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 					Name:             id.LinkerName,
 					SpringCloudId:    id.ResourceUri,
 					TargetResourceId: flattenTargetService(props.TargetService),
-					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo),
+					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
 				}
 
 				if props.ClientType != nil {
 					state.ClientType = string(*props.ClientType)
-
 				}
 
 				if props.VNetSolution != nil && props.VNetSolution.Type != nil {
@@ -226,11 +226,10 @@ func (r SpringCloudConnectorResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.LinkerDelete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.LinkerDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -275,7 +274,7 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 				Properties: &linkerProps,
 			}
 
-			if _, err := client.LinkerUpdate(ctx, *id, props); err != nil {
+			if err := client.LinkerUpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil

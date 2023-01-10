@@ -199,10 +199,15 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
+		return fmt.Errorf("cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
 	}
 
-	d.SetId(*read.ID)
+	secretId, err := parse.ParseNestedItemID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(secretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
@@ -210,7 +215,6 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
@@ -220,17 +224,12 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
-	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
-	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
+
+	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
@@ -290,12 +289,13 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
-	if _, err = parse.ParseNestedItemID(*read.ID); err != nil {
+	secretId, err := parse.ParseNestedItemID(*read.ID)
+	if err != nil {
 		return err
 	}
 
 	// the ID is suffixed with the secret version
-	d.SetId(*read.ID)
+	d.SetId(secretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
@@ -399,17 +399,22 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
+		if utils.ResponseWasNotFound(kv.Response) {
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("checking if key vault %q for Secret %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedSecretsOnDestroy
+	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+		log.Printf("[DEBUG] cannot purge secret %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		shouldPurge = false
+	}
+
 	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeSecret{
 		client:      client,

@@ -51,6 +51,14 @@ func unmarshalFabricSpecificDetailsImplementation(input []byte) (FabricSpecificD
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "VMM") {
+		var out VMmDetails
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into VMmDetails: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "VMware") {
 		var out VMwareDetails
 		if err := json.Unmarshal(input, &out); err != nil {
@@ -63,14 +71,6 @@ func unmarshalFabricSpecificDetailsImplementation(input []byte) (FabricSpecificD
 		var out VMwareV2FabricSpecificDetails
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into VMwareV2FabricSpecificDetails: %+v", err)
-		}
-		return out, nil
-	}
-
-	if strings.EqualFold(value, "VMM") {
-		var out VmmDetails
-		if err := json.Unmarshal(input, &out); err != nil {
-			return nil, fmt.Errorf("unmarshaling into VmmDetails: %+v", err)
 		}
 		return out, nil
 	}

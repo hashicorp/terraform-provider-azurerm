@@ -81,7 +81,7 @@ resource "azurerm_frontdoor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
@@ -96,6 +96,8 @@ The following arguments are supported:
 * `load_balancer_enabled` - (Optional) Should the Front Door Load Balancer be Enabled? Defaults to `true`.
 
 * `friendly_name` - (Optional) A friendly name for the Front Door service.
+
+* `backend_pool_settings` - (Optional) A `backend_pool_settings` block as defined below.
 
 * `frontend_endpoint` - (Required) A `frontend_endpoint` block as defined below.
 
@@ -169,7 +171,7 @@ The `backend_pool_health_probe` block supports the following:
 
 * `protocol` - (Optional) Protocol scheme to use for the Health Probe. Possible values are `Http` and `Https`. Defaults to `Http`.
 
-* `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `Get`.
+* `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `GET`.
 
 -> **NOTE:** Use the `Head` method if you do not need to check the response body of your health probe.
 
@@ -195,9 +197,9 @@ The `routing_rule` block supports the following:
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
-* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`. Defaults to `Http`.
+* `accepted_protocols` - (Required) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`.
 
-* `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
+* `patterns_to_match` - (Required) The route patterns for the Backend Routing Rule.
 
 * `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
 
@@ -231,7 +233,7 @@ The `redirect_configuration` block supports the following:
 
 * `custom_host` - (Optional)  Set this to change the URL for the redirection.
 
-* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
+* `redirect_protocol` - (Required) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`.
 
 * `redirect_type` - (Required) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`.
 
@@ -282,12 +284,6 @@ The `redirect_configuration` block supports the following:
 `frontend_endpoint` exports the following:
 
 * `id` - The ID of the Azure Front Door Frontend Endpoint.
-
-* `provisioning_state` - Provisioning state of the Front Door.
-
-* `provisioning_substate` - Provisioning substate of the Front Door
-
-[//]: *"* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
 ---
 
