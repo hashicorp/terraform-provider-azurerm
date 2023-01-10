@@ -1013,7 +1013,7 @@ resource "azurerm_key_vault_access_policy" "server" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions    = ["Get", "List", "WrapKey", "UnwrapKey"]
+  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -1021,7 +1021,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -1070,12 +1070,12 @@ resource "azurerm_mysql_flexible_server" "test" {
 
   identity {
     type         = "UserAssigned"
-	identity_ids = [azurerm_user_assigned_identity.test.id]
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-	
+
   customer_managed_key {
-    key_vault_key_id                    = azurerm_key_vault_key.test.id
-    primary_user_assigned_identity_id   = azurerm_user_assigned_identity.test.id
+    key_vault_key_id                  = azurerm_key_vault_key.test.id
+    primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.cmkTemplate(data), data.RandomInteger)
