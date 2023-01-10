@@ -70,7 +70,7 @@ The following arguments are supported:
 
 A `policy_definition_reference` block supports the following:
 
-* `policy_definition_id` - (Required) The ID of the policy definition or policy set definition that will be included in this policy set definition.
+* `policy_definition_id` - (Required) The ID of the policy definition that will be included in this policy set definition.
 
 * `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a JSON string that allows you to assign parameters to this policy rule.
 
