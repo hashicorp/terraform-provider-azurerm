@@ -955,7 +955,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
-	// d.GetOk cannot identify whether user sets the property that is added Optional and Computed, and it always gets the property value from the last apply. So it has to identify it using `d.GetRawConfig()`
+	// d.GetOk cannot identify whether user sets the property that is added Optional and Computed when the property isn't set in TF config file. Because d.GetOk always gets the property value from the last apply when the property isn't set in TF config file. So it has to identify it using `d.GetRawConfig()`
 	if v := d.GetRawConfig().AsValueMap()["default_identity_type"]; !v.IsNull() {
 		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = utils.String(v.AsString())
 	}
