@@ -955,8 +955,9 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("default_identity_type"); ok {
-		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = utils.String(v.(string))
+	// d.GetOk cannot identify whether user sets the property that is added Optional and Computed, and it always gets the property value from the last apply. So it has to identify it using `d.GetRawConfig()`
+	if v := d.GetRawConfig().AsValueMap()["default_identity_type"]; !v.IsNull() {
+		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = utils.String(v.AsString())
 	}
 
 	if v, ok := d.GetOk("analytical_storage"); ok {
