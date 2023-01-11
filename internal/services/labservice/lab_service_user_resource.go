@@ -3,13 +3,14 @@ package labservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/user"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -65,7 +66,7 @@ func (r LabServiceUserResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT0S",
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: azValidate.ISO8601Duration,
 		},
 	}
 }
@@ -193,11 +194,11 @@ func (r LabServiceUserResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
+			state.Email = properties.Email
+
 			if properties.AdditionalUsageQuota != nil {
 				state.AdditionalUsageQuota = *properties.AdditionalUsageQuota
 			}
-
-			state.Email = properties.Email
 
 			return metadata.Encode(&state)
 		},

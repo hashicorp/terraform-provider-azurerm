@@ -19,14 +19,39 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_lab_service_lab" "example" {
-  name                = "example-lsl"
+  name                = "example-lab"
   resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  title               = "Test Title"
+
+  security {
+    open_access_enabled = false
+  }
+
+  virtual_machine {
+    admin_user {
+      username = "testadmin"
+      password = "Password1234!"
+    }
+
+    image_reference {
+      offer     = "0001-com-ubuntu-server-focal"
+      publisher = "canonical"
+      sku       = "20_04-lts"
+      version   = "latest"
+    }
+
+    sku {
+      name     = "Classic_Fsv2_2_4GB_128_S_SSD"
+      capacity = 1
+    }
+  }
 }
 
 resource "azurerm_lab_service_user" "example" {
-  name                = "example-lsu"
-  lab_services_lab_id = azurerm_lab_service_lab.test.id
-  email               = "terraform-acctest@hashicorp.com"
+  name   = "example-labuser"
+  lab_id = azurerm_lab_service_lab.example.id
+  email  = "terraform-acctest@hashicorp.com"
 }
 ```
 
@@ -36,17 +61,17 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Lab Service User. Changing this forces a new resource to be created.
 
-* `lab_id` - (Required) The ID of the Lab Service Lab. Changing this forces a new resource to be created.
+* `lab_id` - (Required) The resource ID of the Lab Service Lab. Changing this forces a new resource to be created.
 
-* `email` - (Required) The email address of the user. Changing this forces a new resource to be created.
+* `email` - (Required) The email address of the Lab Service User. Changing this forces a new resource to be created.
 
-* `additional_usage_quota` - (Optional) The amount of usage quota time the user gets in addition to the lab usage quota. Defaults to `PT0S`.
+* `additional_usage_quota` - (Optional) The amount of usage quota time the Lab Service User gets in addition to the lab usage quota. Defaults to `PT0S`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Lab Services User.
+* `id` - The ID of the Lab Service User.
 
 ## Timeouts
 

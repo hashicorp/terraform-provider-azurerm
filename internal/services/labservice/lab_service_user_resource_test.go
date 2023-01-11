@@ -107,13 +107,38 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LSU-%d"
+  name     = "acctestRG-labuser-%d"
   location = "%s"
 }
 
 resource "azurerm_lab_service_lab" "test" {
-  name                = "acctest-lsl-%d"
+  name                = "acctest-lab-%d"
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  title               = "Test Title"
+
+  security {
+    open_access_enabled = false
+  }
+
+  virtual_machine {
+    admin_user {
+      username = "testadmin"
+      password = "Password1234!"
+    }
+
+    image_reference {
+      offer     = "0001-com-ubuntu-server-focal"
+      publisher = "canonical"
+      sku       = "20_04-lts"
+      version   = "latest"
+    }
+
+    sku {
+      name     = "Classic_Fsv2_2_4GB_128_S_SSD"
+      capacity = 1
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -122,8 +147,8 @@ func (r LabServiceUserResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_lab_services_user" "test" {
-  name   = "acctest-lsu-%d"
+resource "azurerm_lab_service_user" "test" {
+  name   = "acctest-labuser-%d"
   lab_id = azurerm_lab_service_lab.test.id
   email  = "terraform-acctest@hashicorp.com"
 }
@@ -134,10 +159,10 @@ func (r LabServiceUserResource) requiresImport(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_lab_services_user" "import" {
-  name   = azurerm_lab_services_user.test.name
-  lab_id = azurerm_lab_service_lab.test.id
-  email  = azurerm_lab_services_user.test.email
+resource "azurerm_lab_service_user" "import" {
+  name   = azurerm_lab_service_user.test.name
+  lab_id = azurerm_lab_service_user.test.lab_id
+  email  = azurerm_lab_service_user.test.email
 }
 `, r.basic(data))
 }
@@ -146,7 +171,7 @@ func (r LabServiceUserResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_lab_services_user" "test" {
+resource "azurerm_lab_service_user" "test" {
   name                   = "acctest-lsu-%d"
   lab_id                 = azurerm_lab_service_lab.test.id
   email                  = "terraform-acctest@hashicorp.com"
@@ -159,7 +184,7 @@ func (r LabServiceUserResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_lab_services_user" "test" {
+resource "azurerm_lab_service_user" "test" {
   name                   = "acctest-lsu-%d"
   lab_id                 = azurerm_lab_service_lab.test.id
   email                  = "terraform-acctest@hashicorp.com"

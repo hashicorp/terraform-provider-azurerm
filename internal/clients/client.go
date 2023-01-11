@@ -189,7 +189,6 @@ type Client struct {
 	Legacy                *legacy.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
-	LabService            *labservice.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
 	Logz                  *logz.Client
@@ -310,7 +309,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.LabService = labservice.NewClient(o)
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
-	client.LabService = labservice.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
 	client.Logic = logic.NewClient(o)
