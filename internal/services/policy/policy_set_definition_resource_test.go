@@ -823,9 +823,6 @@ PARAMETERS
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-///
-
-// //
 func (r PolicySetDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
