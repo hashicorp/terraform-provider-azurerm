@@ -27,6 +27,7 @@ BUG FIXES:
 
 * `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
 * `azurerm_cdn_frontdoor_rule` - handle empty string value for `query_string` [GH-19927]
+* `azurerm_policy_set_definition` - fix update of for empty group names in `policy_definition_reference.policy_group_names` [GH-19890]
 * `azurerm_storage_account` -  `403` is now a valid status code for when permissions to list keys is missing [GH-19645]
 * `azurerm_web_pubsub_hub` - the `event_handler` property is now a list instead of set to respect the input order [GH-19886]
 
