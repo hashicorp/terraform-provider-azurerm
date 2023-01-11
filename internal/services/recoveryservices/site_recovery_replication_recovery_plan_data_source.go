@@ -120,7 +120,7 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Attributes() map[string]*
 			Computed: true,
 		},
 
-		"recovery_groups": {
+		"recovery_group": {
 			Type:     pluginsdk.TypeSet,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
