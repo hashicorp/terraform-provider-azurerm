@@ -664,6 +664,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
     password_auth_enabled         = %[4]t
    %[5]s
   }
+
 }
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }

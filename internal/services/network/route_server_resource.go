@@ -140,8 +140,13 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: t,
 	}
 
-	if _, err := serverClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	serverFuture, err := serverClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating Route Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if err := serverFuture.WaitForCompletionRef(ctx, serverClient.Client); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -153,7 +158,7 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		ContinuousTargetOccurence: 5,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for creation/update of Route Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}

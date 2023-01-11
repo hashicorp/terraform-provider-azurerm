@@ -67,6 +67,7 @@ func resourceArmSubscriptionPolicyExemption() *pluginsdk.Resource {
 			"policy_assignment_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.PolicyAssignmentID,
 			},
 

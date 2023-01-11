@@ -51,6 +51,8 @@ The following arguments are supported:
 
 * `customer_managed_key_identity_id` - (Optional) Specifies the ID of the user assigned identity associated with the Customer Managed Key. Must be supplied if `customer_managed_key_id` is set.
 
+* `purview_id` - (Optional) Specifies the ID of the purview account resource associated with the Data Factory.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

@@ -63,6 +63,7 @@ resource "azurerm_netapp_volume" "example" {
 
   name                       = "example-netappvolume"
   location                   = azurerm_resource_group.example.location
+  zone                       = "1"
   resource_group_name        = azurerm_resource_group.example.name
   account_name               = azurerm_netapp_account.example.name
   pool_name                  = azurerm_netapp_pool.example.name
@@ -105,6 +106,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `zone` - (Optional) Specifies the Availability Zone in which the Volume should be located. Possible values are `1`, `2` and `3`. This feature is currently in preview, for more information on how to enable it, please refer to [Manage availability zone volume placement for Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/manage-availability-zone-volume-placement#register-the-feature) 
+
 * `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created. Changing this forces a new resource to be created.
 
 * `volume_path` - (Required) A unique file path for the volume. Used when creating mount targets. Changing this forces a new resource to be created.
@@ -112,6 +115,8 @@ The following arguments are supported:
 * `pool_name` - (Required) The name of the NetApp pool in which the NetApp Volume should be created. Changing this forces a new resource to be created.
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`. Changing this forces a new resource to be created.
+
+* `azure_vmware_data_store_enabled` - (Optional) Is the NetApp Volume enabled for Azure VMware Solution (AVS) datastore purpose. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost. Dual protocol scenario is supported for CIFS and NFSv3, for more information, please refer to [Create a dual-protocol volume for Azure NetApp Files](https://docs.microsoft.com/azure/azure-netapp-files/create-volumes-dual-protocol) document.
 
@@ -195,10 +200,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the NetApp Volume.
-* `update` - (Defaults to 30 minutes) Used when updating the NetApp Volume.
+* `create` - (Defaults to 60 minutes) Used when creating the NetApp Volume.
+* `update` - (Defaults to 60 minutes) Used when updating the NetApp Volume.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.
-* `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Volume.
+* `delete` - (Defaults to 60 minutes) Used when deleting the NetApp Volume.
 
 ## Import
 

@@ -76,8 +76,7 @@ The following arguments are supported:
 
 * `type` - (Required) Type of Virtual Desktop Application Group. Valid options are `RemoteApp` or `Desktop` application groups. Changing this forces a new resource to be created.
 
-* `host_pool_id` - (Required) Resource ID for a Virtual Desktop Host Pool to associate with the
-    Virtual Desktop Application Group.
+* `host_pool_id` - (Required) Resource ID for a Virtual Desktop Host Pool to associate with the Virtual Desktop Application Group. Changing the name forces a new resource to be created.
 
 * `friendly_name` - (Optional) Option to set a friendly name for the Virtual Desktop Application Group.
 

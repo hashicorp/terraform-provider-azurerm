@@ -129,9 +129,17 @@ This value defines the latest live position that a client can seek to. Using thi
 
 * `unit_timescale_in_miliseconds` - (Optional) Specified as the number of miliseconds in one unit timescale. For example, if you want to set a `start_in_units` at 30 seconds, you would use a value of 30 when using the `unit_timescale_in_miliseconds` in 1000. Or if you want to set `start_in_units` in 30 miliseconds, you would use a value of 30 when using the `unit_timescale_in_miliseconds` in 1.  Applies timescale to `start_in_units`, `start_timescale` and `presentation_window_in_timescale` and `live_backoff_in_timescale`.
 
+
 ---
 
-A `selection` block supports the following:
+A `track_selection` block supports the following:
+
+* `condition` - (Required) One or more `condition` blocks as defined above.
+
+---
+
+
+A `condition` block supports the following:
 
 * `operation` - (Optional) The condition operation to test a track property against. Supported values are `Equal` and `NotEqual`.
 
@@ -139,11 +147,6 @@ A `selection` block supports the following:
 
 * `value` - (Optional) The track property value to match or not match.
 
----
-
-A `track_selection` block supports the following:
-
-* `condition` - (Required) One or more `condition` blocks as defined above.
 
 ## Attributes Reference
 

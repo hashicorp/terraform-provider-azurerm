@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveevents"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -353,7 +353,7 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 }
 
 func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveEvents
+	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -437,7 +437,7 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveEvents
+	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -505,7 +505,7 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceMediaLiveEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveEvents
+	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

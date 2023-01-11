@@ -7,9 +7,11 @@ description: |-
 
 ---
 
-# azurerm_packet_capture
+# azurerm_network_packet_capture
 
 Configures Network Packet Capturing against a Virtual Machine using a Network Watcher.
+
+!> **NOTE:** The `azurerm_network_packet_capture` resource is deprecated and will be removed in favour of `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` in version 4.0 of the AzureRM Provider.
 
 ## Example Usage
 
@@ -149,6 +151,8 @@ A `storage_location` block contains:
 * `storage_account_id` - (Optional) The ID of the storage account to save the packet capture session
 
 ~> **NOTE:** At least one of `file_path` or `storage_account_id` must be specified.
+
+---
 
 A `filter` block contains:
 

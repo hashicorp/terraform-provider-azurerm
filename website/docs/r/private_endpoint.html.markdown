@@ -152,7 +152,7 @@ The following arguments are supported:
 
 ---
 
-A `private_dns_zone_group` supports the following:
+A `private_dns_zone_group` block supports the following:
 
 * `name` - (Required) Specifies the Name of the Private DNS Zone Group. Changing this forces a new `private_dns_zone_group` resource to be created.
 
@@ -160,7 +160,7 @@ A `private_dns_zone_group` supports the following:
 
 ---
 
-A `private_service_connection` supports the following:
+A `private_service_connection` block supports the following:
 
 * `name` - (Required) Specifies the Name of the Private Service Connection. Changing this forces a new resource to be created.
 
@@ -197,7 +197,7 @@ Some resource types (such as Storage Account) only support 1 subresource per pri
 
 ---
 
-An `ip_configuration` supports the following:
+An `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created.
 
@@ -261,11 +261,11 @@ A `private_service_connection` block exports:
 
 An `ip_configuration` block exports:
 
-* `name` - The Name of the IP Configuration.
+* `name` - (Required) The Name of the IP Configuration.
 
-* `private_ip_address` - The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
+* `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
 
-* `subresource_name` - The subresource this IP address applies to, which corresponds to the `group_id`.
+* `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 

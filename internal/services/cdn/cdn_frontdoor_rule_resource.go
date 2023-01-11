@@ -123,7 +123,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the query string to be an empty string.
-									// Leave blank to preserve the incoming query string. Issue #18249
+									// Leave blank to preserve the incoming query string. Issue #18249 & #19682
 									"query_string": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -859,7 +859,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 
 func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeliveryRuleCondition, error) {
 	results := make([]cdn.BasicDeliveryRuleCondition, 0)
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return results, nil
 	}
 

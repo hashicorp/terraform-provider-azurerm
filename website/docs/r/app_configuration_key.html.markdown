@@ -147,7 +147,7 @@ The following attributes are exported:
 
 * `id` - The App Configuration Key ID.
 
-* `etag` - The ETag of the key.
+* `etag` - (Optional) The ETag of the key.
 
 ## Timeouts
 
