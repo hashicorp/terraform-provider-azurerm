@@ -42,7 +42,6 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
-
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, metaModel.ResourceGroupName, metaModel.RecoveryVaultName, metaModel.Name)
@@ -80,7 +79,6 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-
 			return metadata.Encode(&state)
 		},
 	}

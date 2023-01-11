@@ -36,9 +36,9 @@ func (SiteRecoveryReplicationRecoveryPlanDataSource) basic(data acceptance.TestD
 %s
 
 data "azurerm_site_recovery_replication_recovery_plan" "test" {
-  name                = azurerm_site_recovery_replication_policy.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  name                = azurerm_site_recovery_replication_recovery_plan.test.name
+  resource_group_name = azurerm_site_recovery_replication_recovery_plan.test.resource_group_name
+  recovery_vault_name = azurerm_site_recovery_replication_recovery_plan.test.recovery_vault_name
 }
 `, SiteRecoveryReplicationRecoveryPlan{}.basic(data))
 }
