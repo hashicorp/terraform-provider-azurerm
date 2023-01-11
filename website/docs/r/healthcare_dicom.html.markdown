@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled.
+* `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled. Defaults to `true`.
 
 ---
 
@@ -67,7 +67,7 @@ The following attributes are exported:
 * `service_url` - The url of the Healthcare DICOM Services.
 
 ---
-An `authentication` supports the following:
+An `authentication` block supports the following:
 
 * `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
@@ -88,5 +88,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Healthcare DICOM Service can be imported using the resource`id`, e.g.
 
 ```shell
-terraform import azurerm_healthcare_dicom_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/dicomservices/service1
+terraform import azurerm_healthcare_dicom_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/dicomServices/service1
 ```

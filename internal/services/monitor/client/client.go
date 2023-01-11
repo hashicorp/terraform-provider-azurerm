@@ -1,11 +1,11 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
-	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
-	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
-	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"                                               // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"                                      // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"     // nolint: staticcheck
+	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"              // nolint: staticcheck
+	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations"

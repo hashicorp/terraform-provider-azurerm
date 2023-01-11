@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -58,10 +59,13 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"domain_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty, // TODO: proper validation, first prefix must be 15 chars or less
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[0-9a-zA-Z][0-9a-zA-Z-]{1,13}[0-9a-zA-Z](.[0-9a-zA-Z-]+)+$"),
+					"domain_name must be a valid FQDN and the first element must be 15 or fewer characters",
+				),
 			},
 
 			"initial_replica_set": {

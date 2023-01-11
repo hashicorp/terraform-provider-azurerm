@@ -354,7 +354,7 @@ An `identity` block exports the following:
 
 ---
 
-A `shared access policy` block contains the following:
+A `shared_access_policy` block contains the following:
 
 * `key_name` - The name of the shared access policy.
 
@@ -378,5 +378,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 IoTHubs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub.hub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1
+terraform import azurerm_iothub.hub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1
 ```

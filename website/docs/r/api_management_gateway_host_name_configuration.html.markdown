@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `request_client_certificate_enabled` - (Optional) Whether the API Management Gateway requests a client certificate.
 
-* `http2_enabled` - (Optional) Whether HTTP/2.0 is supported.
+* `http2_enabled` - (Optional) Whether HTTP/2.0 is supported. Defaults to `true`.
 
 * `tls10_enabled` - (Optional) Whether TLS 1.0 is supported.
 

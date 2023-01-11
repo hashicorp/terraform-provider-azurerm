@@ -89,7 +89,7 @@ func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.Resour
 		return fmt.Errorf("making read request %s: %+v", id, err)
 	}
 
-	_, err = parse.GatewayHostnameConfigurationID(*resp.ID)
+	_, err = parse.GatewayHostNameConfigurationID(*resp.ID)
 	if err != nil {
 		return fmt.Errorf("parsing GatewayHostnameConfiguration ID %q", *resp.ID)
 	}

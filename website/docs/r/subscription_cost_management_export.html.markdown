@@ -59,13 +59,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Cost Management Export. Changing this forces a new resource to be created.
 
-* `subscription_id` - (Required) The id of the subscription on which to create an export.
+* `subscription_id` - (Required) The id of the subscription on which to create an export. Changing this forces a new resource to be created.
 
 * `recurrence_type` - (Required) How often the requested information will be exported. Valid values include `Annually`, `Daily`, `Monthly`, `Weekly`.
 
 * `recurrence_period_start_date` - (Required) The date the export will start capturing information.
 
-* `recurrence_period_end` - (Required) The date the export will stop capturing information.
+* `recurrence_period_end_date` - (Required) The date the export will stop capturing information.
 
 * `export_data_storage_location` - (Required) A `export_data_storage_location` block as defined below.
 
@@ -77,11 +77,11 @@ The following arguments are supported:
 
 A `export_data_storage_location` block supports the following:
 
-* `container_id` - (Required) The Resource Manager ID of the container where exports will be uploaded.
+* `container_id` - (Required) The Resource Manager ID of the container where exports will be uploaded. Changing this forces a new resource to be created.
 
-* `root_folder_path` - (Required) The path of the directory where exports will be uploaded.
+* `root_folder_path` - (Required) The path of the directory where exports will be uploaded. Changing this forces a new resource to be created.
 
-**Note:** The Resource Manager ID of a Storage Container is exposed via the `resource_manager_id` attribute of the `azurerm_storage_container` resource.
+~> **Note:** The Resource Manager ID of a Storage Container is exposed via the `resource_manager_id` attribute of the `azurerm_storage_container` resource.
 
 ---
 

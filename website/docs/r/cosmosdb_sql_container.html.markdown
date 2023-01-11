@@ -96,7 +96,7 @@ An `autoscale_settings` block supports the following:
 ---
 A `unique_key` block supports the following:
 
-* `paths` - (Required) A list of paths to use for this unique key.
+* `paths` - (Required) A list of paths to use for this unique key. Changing this forces a new resource to be created.
 
 ---
 An `indexing_policy` block supports the following:
@@ -121,27 +121,27 @@ A `spatial_index` block supports the following:
 
 An `included_path` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
 ---
 
 An `excluded_path` block supports the following:
 
-* `path` - Path that is excluded from indexing.
+* `path` - (Required) Path that is excluded from indexing.
 
 ---
 
 A `composite_index` block supports the following:
 
-* `index` - One or more `index` blocks as defined below.
+* `index` - (Required) One or more `index` blocks as defined below.
 
 ---
 
 An `index` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
-* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+* `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
 ---
 

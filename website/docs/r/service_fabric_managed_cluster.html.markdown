@@ -141,7 +141,7 @@ A `lb_rule` block supports the following:
 
 * `probe_protocol` - (Required) Protocol for the probe. Can be one of `tcp`, `udp`, `http`, or `https`.
 
-* `probe_request_path` - (Required) Path for the probe to check, when probe protocol is set to `http`.
+* `probe_request_path` - (Optional) Path for the probe to check, when probe protocol is set to `http`.
 
 * `protocol` - (Required) The transport protocol used in this rule. Can be one of `tcp` or `udp`.
 
@@ -201,10 +201,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Resource Group.
+* `create` - (Defaults to 90 minutes) Used when creating the Resource Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
-* `update` - (Defaults to 1 hour and 30 minutes) Used when updating the Resource Group.
-* `delete` - (Defaults to 1 hour and 30 minutes) Used when deleting the Resource Group.
+* `update` - (Defaults to 90 minutes) Used when updating the Resource Group.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Resource Group.
 
 ## Import
 

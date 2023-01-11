@@ -19,7 +19,7 @@ data "azurerm_linux_function_app" "example" {
 }
 
 output "id" {
-  value = data.linux_function_app.example.id
+  value = data.azurerm_linux_function_app.example.id
 }
 ```
 

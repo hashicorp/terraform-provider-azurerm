@@ -68,9 +68,9 @@ The following arguments are supported:
 
 * `servicebus_namespace` - (Required) The namespace that is associated with the desired Event Hub, Service Bus Queue, Service Bus Topic, etc.
 
-* `shared_access_policy_key` - (Required) The shared access policy key for the specified shared access policy.
+* `shared_access_policy_key` - (Optional) The shared access policy key for the specified shared access policy. Required when `authentication_mode` is set to `ConnectionString`.
 
-* `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
+* `shared_access_policy_name` - (Optional) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc. Required when `authentication_mode` is set to `ConnectionString`.
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
@@ -90,7 +90,7 @@ A `serialization` block supports the following:
 
 -> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
 
-* `field_delimiter` - (Optional) The delimiter that will be used to separate comma-separated value (CSV) records. Possible values are ` ` (space), `,` (comma), `    ` (tab), `|` (pipe) and `;`.
+* `field_delimiter` - (Optional) The delimiter that will be used to separate comma-separated value (CSV) records. Possible values are ` ` (space), `,` (comma), `	` (tab), `|` (pipe) and `;`.
 
 -> **NOTE:** This is required when `type` is set to `Csv`.
 

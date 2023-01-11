@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Custom Provider. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Custom Provider.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Custom Provider. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `validation` - (Optional) Any number of `validation` block as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
 
