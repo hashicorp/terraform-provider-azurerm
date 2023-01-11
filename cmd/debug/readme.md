@@ -3,7 +3,7 @@
 To debug the provider
 ## VSCODE
 
-create debug config:
+create debug config in VSCODE:
 
 
 ```json
@@ -50,5 +50,34 @@ provider_installation {
 
 ```sh
 export TF_CLI_CONFIG_FILE=/Users/ricardol/git/terraform-provider-azurerm/tmp/ex1/terraformrc
+# In terminal 1 there's the value this variable should have
 export TF_REATTACH_PROVIDERS=....
+```
+
+
+In a new folder, create a `provider.tf` with:
+```
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "snyk/azurerm"
+      # version = "=3.0.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+Create a `main.tf` with:
+```
+resource "azurerm_storage_account" "mysa" {
+}
+```
+
+Run in the shell:
+```
+terraform import azurerm_storage_account.mysa "/subscriptions/ec86c868-4762-493c-ae65-411f88b2ffab/resourceGroups/rleal-resources/providers/Microsoft.Storage/storageAccounts/rlealstoraccount"
 ```

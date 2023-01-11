@@ -2117,21 +2117,22 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if supportLevel.supportQueue {
-		queueClient, err := storageClient.QueuesClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("building Queues Client: %s", err)
-		}
+	// We need access to keys to create a storageClient.QueuesClient
+	// if supportLevel.supportQueue {
+	// 	queueClient, err := storageClient.QueuesClient(ctx, *account)
+	// 	if err != nil {
+	// 		return fmt.Errorf("building Queues Client: %s", err)
+	// 	}
 
-		queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("reading queue properties for AzureRM Storage Account %q: %+v", id.Name, err)
-		}
+	// 	queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, id.Name)
+	// 	if err != nil {
+	// 		return fmt.Errorf("reading queue properties for AzureRM Storage Account %q: %+v", id.Name, err)
+	// 	}
 
-		if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
-			return fmt.Errorf("setting `queue_properties`: %+v", err)
-		}
-	}
+	// 	if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
+	// 		return fmt.Errorf("setting `queue_properties`: %+v", err)
+	// 	}
+	// }
 
 	if supportLevel.supportShare {
 		fileServiceClient := storageClient.FileServicesClient
@@ -2147,29 +2148,30 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if supportLevel.supportStaticWebsite {
-		storageClient := meta.(*clients.Client).Storage
-		account, err := storageClient.FindAccount(ctx, id.Name)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
-		}
+	// We need access to keys to create a storageClient.AccountsDataPlaneClient
+	// if supportLevel.supportStaticWebsite {
+	// 	storageClient := meta.(*clients.Client).Storage
+	// 	account, err := storageClient.FindAccount(ctx, id.Name)
+	// 	if err != nil {
+	// 		return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
+	// 	}
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-		}
+	// 	accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+	// 	if err != nil {
+	// 		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+	// 	}
 
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.Name)
-		if err != nil {
-			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
-				return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
-		}
-		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
-		if err := d.Set("static_website", staticWebsite); err != nil {
-			return fmt.Errorf("setting `static_website `for AzureRM Storage Account %q: %+v", id.Name, err)
-		}
-	}
+	// 	staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.Name)
+	// 	if err != nil {
+	// 		if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
+	// 			return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
+	// 		}
+	// 	}
+	// 	staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
+	// 	if err := d.Set("static_website", staticWebsite); err != nil {
+	// 		return fmt.Errorf("setting `static_website `for AzureRM Storage Account %q: %+v", id.Name, err)
+	// 	}
+	// }
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
