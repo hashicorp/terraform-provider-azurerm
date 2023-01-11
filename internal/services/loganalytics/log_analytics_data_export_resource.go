@@ -137,14 +137,23 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if strings.Contains(destinationId, "Microsoft.EventHub") {
-		eventhubId, err := eventhubs.ParseEventhubID(destinationId)
-		if err != nil {
-			return fmt.Errorf("parsing destination eventhub id error: %+v", err)
-		}
-		destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
-		parameters.Properties.Destination.ResourceId = destinationId
-		parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
-			EventHubName: utils.String(eventhubId.EventHubName),
+		_, err := eventhubs.ValidateNamespaceID(destinationId, "destination_resource_id")
+		if err == nil {
+			eventhubNamespace, err := eventhubs.ParseNamespaceID(destinationId)
+			if err != nil {
+				return fmt.Errorf("parsing destination eventhub namespaces id error: %+v", err)
+			}
+			parameters.Properties.Destination.ResourceId = eventhubNamespace.ID()
+		} else {
+			eventhubId, err := eventhubs.ParseEventhubID(destinationId)
+			if err != nil {
+				return fmt.Errorf("parsing destination eventhub id error: %+v", err)
+			}
+			destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
+			parameters.Properties.Destination.ResourceId = destinationId
+			parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
+				EventHubName: utils.String(eventhubId.EventHubName),
+			}
 		}
 	}
 
