@@ -139,18 +139,13 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 
 	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension").([]interface{}))
 
-	parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
-		InstanceType: siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A,
-	}
+	parameters.Properties.ProviderSpecificInput = siterecovery.ReplicationProviderSpecificContainerMappingInput{}
 
 	if autoUpdateEnabledValue == siterecovery.Enabled {
 		parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
+			InstanceType:           siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A,
 			AgentAutoUpdateStatus:  autoUpdateEnabledValue,
 			AutomationAccountArmID: automationAccountArmId,
-		}
-	} else {
-		parameters.Properties.ProviderSpecificInput = siterecovery.A2AContainerMappingInput{
-			AgentAutoUpdateStatus: autoUpdateEnabledValue,
 		}
 	}
 
@@ -260,6 +255,8 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 
 	if detail, ok := resp.Properties.ProviderSpecificDetails.AsA2AProtectionContainerMappingDetails(); ok {
 		d.Set("automatic_update_extension", flattenAutoUpdateSettings(detail))
+	} else {
+		d.Set("automatic_update_extension", flattenAutoUpdateSettings(nil))
 	}
 
 	return nil
@@ -321,6 +318,10 @@ func expandAutoUpdateSettings(input []interface{}) (enabled siterecovery.AgentAu
 
 func flattenAutoUpdateSettings(input *siterecovery.A2AProtectionContainerMappingDetails) []interface{} {
 	output := map[string]interface{}{}
+	if input == nil {
+		output["enabled"] = false
+		return []interface{}{output}
+	}
 	output["enabled"] = input.AgentAutoUpdateStatus == siterecovery.Enabled
 	output["automation_account_id"] = input.AutomationAccountArmID
 	return []interface{}{output}
