@@ -631,7 +631,6 @@ func expandApplicationInsightsStandardWebTestValidations(input []interface{}, is
 		sslCheckEnabled = true
 	}
 	// if sslCheck not enabled, SSLCertRemainingLifetimeCheck cannot be enabled
-	
 	if v, ok := validationsInput["ssl_cert_remaining_lifetime"].(int); ok && sslCheckEnabled {
 		rules.SSLCertRemainingLifetimeCheck = utils.Int64(int64(v))
 	}
