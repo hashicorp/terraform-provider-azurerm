@@ -21,11 +21,11 @@ data "azurerm_private_dns_resolver_outbound_endpoint" "example" {
 
 ## Arguments Reference
 
-The following arguments are required:
+The following arguments are supported:
 
-* `name` - Name of the Private DNS Resolver Outbound Endpoint.
+* `name` - (Required) Name of the Private DNS Resolver Outbound Endpoint.
 
-* `private_dns_resolver_id` - ID of the Private DNS Resolver Outbound Endpoint.
+* `private_dns_resolver_id` - (Required) ID of the Private DNS Resolver Outbound Endpoint.
 
 ## Attributes Reference
 
@@ -33,9 +33,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Private DNS Resolver Outbound Endpoint.
 
-* `location` - Azure Region where the Private DNS Resolver Outbound Endpoint exists.
+* `location` - The Azure Region where the Private DNS Resolver Outbound Endpoint exists.
 
-* `subnet_id` - ID of the Subnet that is linked to the Private DNS Resolver Outbound Endpoint.
+* `subnet_id` - The ID of the Subnet that is linked to the Private DNS Resolver Outbound Endpoint.
 
 * `tags` - Mapping of tags assigned to the Private DNS Resolver Outbound Endpoint.
 

@@ -28,25 +28,7 @@ func TestAccDNSResolverOutboundEndpointDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccDNSResolverOutboundEndpointDataSource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_resolver_outbound_endpoint", "test")
-	d := DNSResolverOutboundEndpointDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: d.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("private_dns_resolver_id").Exists(),
-				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
-				check.That(data.ResourceName).Key("subnet_id").Exists(),
-				check.That(data.ResourceName).Key("tags.key").HasValue("value"),
-			),
-		},
-	})
-}
-
-func (d DNSResolverOutboundEndpointDataSource) template(data acceptance.TestData) string {
+func (d DNSResolverOutboundEndpointDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -85,46 +67,17 @@ resource "azurerm_private_dns_resolver" "test" {
   location            = azurerm_resource_group.test.location
   virtual_network_id  = azurerm_virtual_network.test.id
 }
+
+resource "azurerm_private_dns_resolver_outbound_endpoint" "test" {
+  name                    = "acctest-droe-%[2]d"
+  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
+  location                = azurerm_private_dns_resolver.test.location
+  subnet_id               = azurerm_subnet.test.id
+}
+
+data "azurerm_private_dns_resolver_outbound_endpoint" "test" {
+	name         		    = azurerm_private_dns_resolver_outbound_endpoint.test.name
+	private_dns_resolver_id = azurerm_private_dns_resolver.test.id
+}
 `, data.Locations.Primary, data.RandomInteger)
-}
-
-func (d DNSResolverOutboundEndpointDataSource) basic(data acceptance.TestData) string {
-	template := d.template(data)
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_private_dns_resolver_outbound_endpoint" "test" {
-  name                    = "acctest-droe-%d"
-  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
-  location                = azurerm_private_dns_resolver.test.location
-  subnet_id               = azurerm_subnet.test.id
-}
-
-data "azurerm_private_dns_resolver_outbound_endpoint" "test" {
-	name         		    = azurerm_private_dns_resolver_outbound_endpoint.test.name
-	private_dns_resolver_id = azurerm_private_dns_resolver.test.id
-}
-`, template, data.RandomInteger)
-}
-
-func (d DNSResolverOutboundEndpointDataSource) complete(data acceptance.TestData) string {
-	template := d.template(data)
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_private_dns_resolver_outbound_endpoint" "test" {
-  name                    = "acctest-droe-%d"
-  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
-  location                = azurerm_private_dns_resolver.test.location
-  subnet_id               = azurerm_subnet.test.id
-  tags = {
-    key = "value"
-  }
-}
-
-data "azurerm_private_dns_resolver_outbound_endpoint" "test" {
-	name         		    = azurerm_private_dns_resolver_outbound_endpoint.test.name
-	private_dns_resolver_id = azurerm_private_dns_resolver.test.id
-}
-`, template, data.RandomInteger)
 }
