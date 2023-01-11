@@ -42,13 +42,13 @@ resource "azurerm_site_recovery_fabric" "fabric" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network mapping.
+* `name` - (Required) The name of the network mapping. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
+* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located. Changing this forces a new resource to be created.
 
-* `recovery_vault_name` - (Required) The name of the vault that should be updated.
+* `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
-* `location` - (Required) In what region should the fabric be located.
+* `location` - (Required) In what region should the fabric be located. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

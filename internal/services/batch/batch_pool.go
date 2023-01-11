@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -453,7 +453,7 @@ func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *batch.UserA
 
 // ExpandBatchPoolImageReference expands Batch pool image reference
 func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("Error: storage image reference should be defined")
 	}
 
@@ -591,7 +591,7 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 
 // ExpandBatchPoolStartTask expands Batch pool start task
 func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("batch pool start task should be defined")
 	}
 
@@ -796,7 +796,7 @@ func expandBatchPoolOSDisk(ref interface{}) (*batch.OSDisk, error) {
 }
 
 func expandBatchPoolNodeReplacementConfig(list []interface{}) (*batch.NodePlacementConfiguration, error) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("node_placement is empty")
 	}
 	item := list[0].(map[string]interface{})["policy"].(string)
@@ -806,7 +806,7 @@ func expandBatchPoolNodeReplacementConfig(list []interface{}) (*batch.NodePlacem
 }
 
 func expandBatchPoolWindowsConfiguration(list []interface{}) (*batch.WindowsConfiguration, error) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("windows is empty")
 	}
 
@@ -817,7 +817,7 @@ func expandBatchPoolWindowsConfiguration(list []interface{}) (*batch.WindowsConf
 }
 
 func expandBatchPoolExtensions(list []interface{}) (*[]batch.VMExtension, error) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("extensions is empty")
 	}
 
@@ -836,7 +836,7 @@ func expandBatchPoolExtensions(list []interface{}) (*[]batch.VMExtension, error)
 }
 
 func expandBatchPoolExtension(ref map[string]interface{}) (*batch.VMExtension, error) {
-	if ref == nil || len(ref) == 0 {
+	if len(ref) == 0 {
 		return nil, fmt.Errorf("extension is empty")
 	}
 
@@ -870,7 +870,7 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*batch.VMExtension, e
 }
 
 func expandBatchPoolDiskEncryptionConfiguration(list []interface{}) (*batch.DiskEncryptionConfiguration, error) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("disk_encryption is empty")
 	}
 	var result batch.DiskEncryptionConfiguration
@@ -891,30 +891,26 @@ func expandBatchPoolDiskEncryptionConfiguration(list []interface{}) (*batch.Disk
 }
 
 func expandBatchPoolDataDisks(list []interface{}) (*[]batch.DataDisk, error) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("data_disk is empty")
 	}
 	var result []batch.DataDisk
 
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
-		dataDisk, err := expandBatchPoolDataDisk(item)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, *dataDisk)
+		result = append(result, expandBatchPoolDataDisk(item))
 	}
 
 	return &result, nil
 }
 
-func expandBatchPoolDataDisk(ref map[string]interface{}) (*batch.DataDisk, error) {
-	return &batch.DataDisk{
+func expandBatchPoolDataDisk(ref map[string]interface{}) batch.DataDisk {
+	return batch.DataDisk{
 		Lun:                utils.Int32(int32(ref["lun"].(int))),
 		Caching:            batch.CachingType(ref["caching"].(string)),
 		DiskSizeGB:         utils.Int32(int32(ref["disk_size_gb"].(int))),
 		StorageAccountType: batch.StorageAccountType(ref["storage_account_type"].(string)),
-	}, nil
+	}
 }
 
 func expandCommonEnvironmentProperties(env map[string]interface{}) *[]batch.EnvironmentSetting {
@@ -975,9 +971,7 @@ func ExpandBatchPoolMountConfigurations(d *pluginsdk.ResourceData) (*[]batch.Mou
 		mountConfigList := mountConfigs.([]interface{})
 		for _, tempItem := range mountConfigList {
 			item := tempItem.(map[string]interface{})
-			if mountConfig, err := expandBatchPoolMountConfiguration(item); err == nil {
-				result = append(result, mountConfig)
-			}
+			result = append(result, expandBatchPoolMountConfiguration(item))
 		}
 		return &result, nil
 	}
@@ -985,7 +979,7 @@ func ExpandBatchPoolMountConfigurations(d *pluginsdk.ResourceData) (*[]batch.Mou
 	return nil, fmt.Errorf("mount either is empty or contains parsing errors")
 }
 
-func expandBatchPoolMountConfiguration(ref map[string]interface{}) (batch.MountConfiguration, error) {
+func expandBatchPoolMountConfiguration(ref map[string]interface{}) batch.MountConfiguration {
 	var result batch.MountConfiguration
 	if azureBlobFileSystemConfiguration, err := expandBatchPoolAzureBlobFileSystemConfiguration(ref["azure_blob_file_system"].([]interface{})); err == nil {
 		result.AzureBlobFileSystemConfiguration = azureBlobFileSystemConfiguration
@@ -1003,11 +997,11 @@ func expandBatchPoolMountConfiguration(ref map[string]interface{}) (batch.MountC
 		result.NfsMountConfiguration = nfsMountConfiguration
 	}
 
-	return result, nil
+	return result
 }
 
 func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*batch.AzureBlobFileSystemConfiguration, interface{}) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("azure_blob_file_system is empty")
 	}
 
@@ -1033,7 +1027,7 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*batch
 }
 
 func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*batch.AzureFileShareConfiguration, interface{}) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("azure_file_share is empty")
 	}
 
@@ -1053,7 +1047,7 @@ func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*batch.Azur
 }
 
 func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*batch.CIFSMountConfiguration, interface{}) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("cifs_mount is empty")
 	}
 
@@ -1073,7 +1067,7 @@ func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*batch.CIFSMount
 }
 
 func expandBatchPoolNFSMountConfiguration(list []interface{}) (*batch.NFSMountConfiguration, interface{}) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("nfs_mount is empty")
 	}
 
@@ -1100,7 +1094,7 @@ func expandBatchPoolIdentityReference(ref map[string]interface{}) (*batch.Comput
 
 // ExpandBatchPoolNetworkConfiguration expands Batch pool network configuration
 func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConfiguration, error) {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return nil, nil
 	}
 
@@ -1152,7 +1146,7 @@ func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*batch.Task
 
 	if taskSchedulingPolicyString, ok := d.GetOk("task_scheduling_policy"); ok {
 		taskSchedulingPolicy := taskSchedulingPolicyString.([]interface{})
-		if taskSchedulingPolicy != nil && len(taskSchedulingPolicy) > 0 {
+		if len(taskSchedulingPolicy) > 0 {
 			item := taskSchedulingPolicy[0].(map[string]interface{})
 			result.NodeFillType = batch.ComputeNodeFillType(item["node_fill_type"].(string))
 		}
@@ -1162,7 +1156,7 @@ func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*batch.Task
 }
 
 func expandPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return nil, nil
 	}
 
@@ -1203,7 +1197,7 @@ func expandPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointCon
 }
 
 func expandPoolNetworkSecurityGroupRule(list []interface{}) []batch.NetworkSecurityGroupRule {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return []batch.NetworkSecurityGroupRule{}
 	}
 
@@ -1330,9 +1324,7 @@ func ExpandBatchPoolUserAccounts(d *pluginsdk.ResourceData) (*[]batch.UserAccoun
 		if len(userAccounts) > 0 && userAccounts[0] != nil {
 			for _, tempItem := range userAccounts {
 				item := tempItem.(map[string]interface{})
-				if userAccount, err := expandBatchPoolUserAccount(item); err == nil {
-					result = append(result, userAccount)
-				}
+				result = append(result, expandBatchPoolUserAccount(item))
 			}
 			return &result, nil
 		}
@@ -1341,7 +1333,7 @@ func ExpandBatchPoolUserAccounts(d *pluginsdk.ResourceData) (*[]batch.UserAccoun
 	return nil, fmt.Errorf("user_accounts either is empty or contains parsing errors")
 }
 
-func expandBatchPoolUserAccount(ref map[string]interface{}) (batch.UserAccount, error) {
+func expandBatchPoolUserAccount(ref map[string]interface{}) batch.UserAccount {
 	result := batch.UserAccount{
 		Name:           utils.String(ref["name"].(string)),
 		Password:       utils.String(ref["password"].(string)),
@@ -1374,5 +1366,5 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) (batch.UserAccount, 
 		}
 	}
 
-	return result, nil
+	return result
 }

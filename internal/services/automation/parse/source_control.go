@@ -36,7 +36,7 @@ func (id SourceControlId) String() string {
 }
 
 func (id SourceControlId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/automationAccounts/%s/sourcecontrols/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/automationAccounts/%s/sourceControls/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName, id.Name)
 }
 
@@ -63,7 +63,63 @@ func SourceControlID(input string) (*SourceControlId, error) {
 	if resourceId.AutomationAccountName, err = id.PopSegment("automationAccounts"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("sourcecontrols"); err != nil {
+	if resourceId.Name, err = id.PopSegment("sourceControls"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// SourceControlIDInsensitively parses an SourceControl ID into an SourceControlId struct, insensitively
+// This should only be used to parse an ID for rewriting, the SourceControlID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func SourceControlIDInsensitively(input string) (*SourceControlId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := SourceControlId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'automationAccounts' segment
+	automationAccountsKey := "automationAccounts"
+	for key := range id.Path {
+		if strings.EqualFold(key, automationAccountsKey) {
+			automationAccountsKey = key
+			break
+		}
+	}
+	if resourceId.AutomationAccountName, err = id.PopSegment(automationAccountsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'sourceControls' segment
+	sourceControlsKey := "sourceControls"
+	for key := range id.Path {
+		if strings.EqualFold(key, sourceControlsKey) {
+			sourceControlsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(sourceControlsKey); err != nil {
 		return nil, err
 	}
 

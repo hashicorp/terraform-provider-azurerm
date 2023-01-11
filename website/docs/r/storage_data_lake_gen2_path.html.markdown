@@ -53,13 +53,13 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the ID of the Storage Account in which the Data Lake Gen2 File System should exist. Changing this forces a new resource to be created.
 
-* `resource` - (Required) Specifies the type for path to create. Currently only `directory` is supported.
+* `resource` - (Required) Specifies the type for path to create. Currently only `directory` is supported. Changing this forces a new resource to be created.
 
 * `owner` - (Optional) Specifies the Object ID of the Azure Active Directory User to make the owning user. Possible values also include `$superuser`.
 
 * `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group. Possible values also include `$superuser`.
 
-* `ace` - (Required) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
+* `ace` - (Optional) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
 
 ---
 

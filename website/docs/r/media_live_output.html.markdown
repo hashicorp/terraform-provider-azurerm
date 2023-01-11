@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `manifest_name` - (Optional) The manifest file name. If not provided, the service will generate one automatically. Changing this forces a new Live Output to be created.
 
-* `output_snap_timestamp_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
+* `output_snap_time_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
 
 ## Attributes Reference
 

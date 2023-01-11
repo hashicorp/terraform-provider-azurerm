@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -794,7 +794,6 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
 				}
-
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {

@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `delegated_management_subnet_id` - (Required) The ID of the delegated management subnet for this Cassandra Cluster. Changing this forces a new Cassandra Cluster to be created.
 
-* `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster.
+* `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster. Changing this forces a new resource to be created.
 
 * `authentication_method` - (Optional) The authentication method that is used to authenticate clients. Possible values are `None` and `Cassandra`. Defaults to `Cassandra`.
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster?
+* `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster? Defaults to `true`.
 
 * `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
 

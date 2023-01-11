@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -164,13 +164,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	maintenanceName := "SQL_Default"
-	if d.Get("elastic_pool_id").(string) == "" && d.Get("maintenance_configuration_name").(string) != "" {
-		// get maintenance name only if elastic pool is not used
-		maintenanceName = d.Get("maintenance_configuration_name").(string)
-	}
-	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, maintenanceName)
-
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
@@ -243,7 +236,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
 			RequestedBackupStorageRedundancy: sql.RequestedBackupStorageRedundancy(d.Get("storage_account_type").(string)),
 			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
-			MaintenanceConfigurationID:       utils.String(maintenanceConfigId.ID()),
 			IsLedgerOn:                       utils.Bool(ledgerEnabled),
 		},
 
@@ -259,6 +251,16 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
 		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
+	}
+
+	// we should not specify the value of `maintenance_configuration_name` when `elastic_pool_id` is set since its value depends on the elastic pool's `maintenance_configuration_name` value.
+	if _, ok := d.GetOk("elastic_pool_id"); !ok {
+		// set default value here because `elastic_pool_id` is not specified, API returns default value `SQL_Default` for `maintenance_configuration_name`
+		maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, "SQL_Default")
+		if v, ok := d.GetOk("maintenance_configuration_name"); ok {
+			maintenanceConfigId = publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, v.(string))
+		}
+		params.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
 	}
 
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
@@ -551,13 +553,17 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props.IsLedgerOn != nil {
 			ledgerEnabled = *props.IsLedgerOn
 		}
-		if props.ElasticPoolID == nil {
-			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
+
+		configurationName := ""
+		if v := props.MaintenanceConfigurationID; v != nil {
+			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*v)
 			if err != nil {
 				return err
 			}
-			d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
+			configurationName = maintenanceConfigId.ResourceName
 		}
+		d.Set("maintenance_configuration_name", configurationName)
+
 		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
@@ -736,10 +742,10 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 		if v, ok := securityAlert["retention_days"]; ok {
 			properties.RetentionDays = utils.Int32(int32(v.(int)))
 		}
-		if v, ok := securityAlert["storage_account_access_key"]; ok {
+		if v, ok := securityAlert["storage_account_access_key"]; ok && v.(string) != "" {
 			properties.StorageAccountAccessKey = utils.String(v.(string))
 		}
-		if v, ok := securityAlert["storage_endpoint"]; ok {
+		if v, ok := securityAlert["storage_endpoint"]; ok && v.(string) != "" {
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 

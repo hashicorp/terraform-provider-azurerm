@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `cluster_node_count` - (Required) The count of the VMware Cluster nodes.
 
-* `sku_name` - (Required) The cluster SKU to use. Possible values are `av20`, `av36`, and `av36t`. Changing this forces a new VMware Cluster to be created.
+* `sku_name` - (Required) The cluster SKU to use. Possible values are `av20`, `av36`, `av36t`, `av36p` and `av52`. Changing this forces a new VMware Cluster to be created.
 
 ## Attributes Reference
 

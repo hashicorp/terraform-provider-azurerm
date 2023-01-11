@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -783,8 +783,8 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigLinuxWebAppSlot{siteConfig}
@@ -800,9 +800,14 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 		expanded = existing
 	}
 
+	winSlotSiteConfig := siteConfig[0]
+
 	currentStack := ""
 
-	winSlotSiteConfig := siteConfig[0]
+	if len(winSlotSiteConfig.ApplicationStack) == 1 {
+		winAppStack := winSlotSiteConfig.ApplicationStack[0]
+		currentStack = winAppStack.CurrentStack
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.always_on") {
 		expanded.AlwaysOn = utils.Bool(winSlotSiteConfig.AlwaysOn)
@@ -826,7 +831,6 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(winSlotSiteConfig.ApplicationStack) == 1 {
-
 			winAppStack := winSlotSiteConfig.ApplicationStack[0]
 			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
 			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
@@ -1056,8 +1060,8 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 
 		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			siteConfig.Cors = []CorsSetting{cors}
 		}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	return []SiteConfigWindowsWebAppSlot{siteConfig}

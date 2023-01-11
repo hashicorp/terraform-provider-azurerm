@@ -119,7 +119,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Managed Instance Failover Group. Changing this forces a new resource to be created.
 
-* `location` - The Azure Region where the Managed Instance Failover Group should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the Managed Instance Failover Group should exist. Changing this forces a new resource to be created.
 
 * `managed_instance_id` - (Required) The ID of the Azure SQL Managed Instance which will be replicated using a Managed Instance Failover Group. Changing this forces a new resource to be created.
 
@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as defined below.
 
-* `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `false`.
+* `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `true`.
 
 ---
 

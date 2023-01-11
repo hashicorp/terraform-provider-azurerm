@@ -428,7 +428,6 @@ func TestAccWindowsWebAppSlot_identityKeyVault(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 // Attributes
@@ -574,6 +573,21 @@ func TestAccWindowsWebAppSlot_withDotNet6(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withDotNet7(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v7.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -640,7 +654,7 @@ func TestAccWindowsWebAppSlot_withNode16LTS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "16-LTS"),
+			Config: r.node(data, "18-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

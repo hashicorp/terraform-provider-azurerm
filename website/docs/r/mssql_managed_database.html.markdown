@@ -67,6 +67,14 @@ The following attributes are exported:
 
 * `id` - The Azure SQL Managed Database ID.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Mssql Managed Database.
+* `create` - (Defaults to 30 minutes) Used when creating the Mssql Managed Database.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Mssql Managed Database.
+
 ## Import
 
 SQL Managed Databases can be imported using the `resource id`, e.g.

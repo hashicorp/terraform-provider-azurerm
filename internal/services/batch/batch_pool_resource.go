@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -1064,7 +1064,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", *id)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
+			d.SetId("")
+			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -1521,7 +1523,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		//lintignore:XS003
+		// lintignore:XS003
 		"resource_file": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

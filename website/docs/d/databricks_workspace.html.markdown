@@ -40,7 +40,19 @@ output "databricks_workspace_id" {
 
 * `workspace_url` - URL this Databricks Workspace is accessible on.
 
+* `storage_account_identity` - A `storage_account_identity` block as documented below.
+
 * `tags` - A mapping of tags to assign to the Databricks Workspace.
+
+---
+
+A `storage_account_identity` block exports the following:
+
+* `principal_id` - The principal UUID for the internal databricks storage account needed to provide access to the workspace for enabling Customer Managed Keys.
+
+* `tenant_id` - The UUID of the tenant where the internal databricks storage account was created.
+
+* `type` - The type of the internal databricks storage account.
 
 ## Timeouts
 

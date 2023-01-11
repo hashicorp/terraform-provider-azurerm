@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -29,11 +29,12 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 				podCidr := profile["pod_cidr"].(string)
 				podCidrs := profile["pod_cidrs"].([]interface{})
 				serviceCidrs := profile["service_cidrs"].([]interface{})
+				networkPluginMode := profile["network_plugin_mode"].(string)
 				isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
 
 				// Azure network plugin is not compatible with pod_cidr
-				if podCidr != "" && networkPlugin == "azure" {
-					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together")
+				if podCidr != "" && networkPlugin == "azure" && networkPluginMode != string(managedclusters.NetworkPluginModeOverlay) {
+					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
 				}
 
 				// if not All empty values or All set values.

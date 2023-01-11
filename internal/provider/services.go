@@ -57,6 +57,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer"
@@ -124,12 +125,15 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		cognitive.Registration{},
 		compute.Registration{},
 		consumption.Registration{},
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
+		databoxedge.Registration{},
 		databricks.Registration{},
+		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
@@ -142,6 +146,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loganalytics.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
+		network.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
 		privatednsresolver.Registration{},
@@ -153,6 +158,8 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},
+		springcloud.Registration{},
+		vmware.Registration{},
 		web.Registration{},
 	}
 	services = append(services, autoRegisteredTypedServices()...)

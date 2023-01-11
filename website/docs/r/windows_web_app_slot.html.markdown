@@ -106,7 +106,7 @@ The following arguments are supported:
 
 A `action` block supports the following:
 
-* `action_type` - (Required) Predefined action to be taken to an Auto Heal trigger. Possible values include: `Recycle`.
+* `action_type` - (Required) Predefined action to be taken to an Auto Heal trigger. Possible values are `CustomAction`, `LogEvent` and `Recycle`.
 
 * `custom_action` - (Optional) A `custom_action` block as defined below.
 
@@ -150,17 +150,17 @@ A `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
 
-* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v3.0`, `v4.0`, `v5.0`, and `v6.0`.
+* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values are `v2.0`, `v3.0`, `core3.1`, `v4.0`, `v5.0`, `v6.0` and `v7.0` .
 
 * `java_container` - (Optional) The Java container type to use when `current_stack` is set to `java`. Possible values include `JAVA`, `JETTY`, and `TOMCAT`. Required with `java_version` and `java_container_version`.
 
 * `java_container_version` - (Optional) The Version of the `java_container` to use. Required with `java_version` and `java_container`.
 
-* `java_version` - (Optional) The version of Java to use when `current_stack` is set to `java`. Possible values include `1.7`, `1.8` and `11`. Required with `java_container` and `java_container_version`.
+* `java_version` - (Optional) The version of Java to use when `current_stack` is set to `java`. Possible values include `1.7`, `1.8`, `11` and `17`. Required with `java_container` and `java_container_version`.
 
 ~> **NOTE:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `12-LTS`, `14-LTS`, and `16-LTS`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `12-LTS`, `14-LTS`, `16-LTS` and `18-LTS`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
@@ -210,9 +210,9 @@ A `auth_settings` block supports the following:
 
 A `auto_heal_setting` block supports the following:
 
-* `action` - (Optional) A `action` block as defined above.
+* `action` - (Required) A `action` block as defined above.
 
-* `trigger` - (Optional) A `trigger` block as defined below.
+* `trigger` - (Required) A `trigger` block as defined below.
 
 ---
 
@@ -220,7 +220,7 @@ A `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
+* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
@@ -234,7 +234,7 @@ A `backup` block supports the following:
 
 * `storage_account_url` - (Required) The SAS URL to the container.
 
-* `enabled` - (Optional) Should this backup job be enabled?
+* `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
 
 ---
 
@@ -312,7 +312,7 @@ A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
-* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected.
+* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected. The only possible value is `1`.
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 
@@ -348,7 +348,7 @@ A `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -400,7 +400,7 @@ A `schedule` block supports the following:
 
 * `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of age of backup. Defaults to `false`.
 
-* `retention_period_days` - (Optional) After how many days backups should be deleted.
+* `retention_period_days` - (Optional) After how many days backups should be deleted. Defaults to `30`.
 
 * `start_time` - (Optional) When the schedule should start working in RFC-3339 format.
 
@@ -416,7 +416,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -428,7 +428,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App Slot is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Web App Slot is Always On enabled. Defaults to `true`.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot os associated with.
 
@@ -566,7 +566,7 @@ A `virtual_application` block supports the following:
 
 * `physical_path` - (Required) The physical path for the Virtual Application.
 
-* `preload` - (Required) Should pre-loading be enabled. Defaults to `false`.
+* `preload` - (Required) Should pre-loading be enabled.
 
 * `virtual_directory` - (Optional) One or more `virtual_directory` blocks as defined below.
 
