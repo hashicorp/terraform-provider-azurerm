@@ -279,11 +279,7 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
-		if workspaceId != "" {
-			parameters.Properties.LogAnalyticsDestinationType = &v
-		} else {
-			return fmt.Errorf("`log_analytics_workspace_id` must be set for `log_analytics_destination_type` to be used")
-		}
+		parameters.Properties.LogAnalyticsDestinationType = &v
 	}
 
 	if !valid {

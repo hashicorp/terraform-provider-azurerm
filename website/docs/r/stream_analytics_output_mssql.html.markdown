@@ -68,11 +68,11 @@ The following arguments are supported:
 
 * `server` - (Required) The SQL server url. Changing this forces a new resource to be created.
 
-* `user` - (Required) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+* `user` - (Optional) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created. Required if `authentication_mode` is `ConnectionString`. 
 
 * `database` - (Required) The MS SQL database name where the reference table exists. Changing this forces a new resource to be created.
 
-* `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. 
+* `password` - (Optional) Password used together with username, to login to the Microsoft SQL Server. Required if `authentication_mode` is `ConnectionString`.
 
 * `table` - (Required) Table in the database that the output points to. Changing this forces a new resource to be created.
 

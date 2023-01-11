@@ -113,17 +113,17 @@ The following attributes are exported:
 
 * `id` - The virtual NetworkConfiguration ID.
 
-* `name` - The name of the virtual network.
+* `name` - (Required) The name of the virtual network.
 
-* `resource_group_name` - The name of the resource group in which to create the virtual network.
+* `resource_group_name` - (Required) The name of the resource group in which to create the virtual network.
 
-* `location` - The location/region where the virtual network is created.
+* `location` - (Required) The location/region where the virtual network is created.
 
-* `address_space` - The list of address spaces used by the virtual network.
+* `address_space` - (Required) The list of address spaces used by the virtual network.
 
 * `guid` - The GUID of the virtual network.
 
-* `subnet`- One or more `subnet` blocks as defined below.
+* `subnet` - (Optional) One or more `subnet` blocks as defined below.
 
 ---
 

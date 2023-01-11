@@ -492,6 +492,7 @@ resource "azurerm_recovery_services_vault" "test" {
   }
 
   soft_delete_enabled = false
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Valid options are `Basic`, `Standard`, and `Premium`. Please note that setting this field to `Premium` will force the creation of a new resource.
 
-* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `2`, but can be increased in blocks of 2 on a committed purchase basis.
+* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `2`, but can be increased in blocks of 2 on a committed purchase basis. Defaults to `1`.
 
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
 
-* `local_authentication_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace?
+* `local_authentication_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace? Defaults to `true`.
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
@@ -97,7 +97,7 @@ A `virtual_network_rule` block supports the following:
 
 * `subnet_id` - (Required) The id of the subnet to match on.
 
-* `ignore_missing_virtual_network_service_endpoint` - (Optional) Are missing virtual network service endpoints ignored? Defaults to `false`.
+* `ignore_missing_virtual_network_service_endpoint` - (Optional) Are missing virtual network service endpoints ignored? 
 
 ---
 

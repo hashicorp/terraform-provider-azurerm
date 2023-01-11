@@ -97,6 +97,15 @@ The following attributes are exported:
 
 * `service_bus_suffix` - The suffix for the service bus endpoint.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Hybrid Connection.
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Hybrid Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Hybrid Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Hybrid Connection.
+
 ## Import
 
 App Service Hybrid Connections can be imported using the `resource id`, e.g.

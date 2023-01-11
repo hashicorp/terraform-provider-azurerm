@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,6 +24,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 		Read:   resourceSpringCloudGatewayRouteConfigRead,
 		Update: resourceSpringCloudGatewayRouteConfigCreateUpdate,
 		Delete: resourceSpringCloudGatewayRouteConfigDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudGatewayRouteConfigV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -110,6 +116,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"order": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+
 						"description": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -123,11 +134,6 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-						},
-
-						"order": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
 						},
 
 						"predicates": {

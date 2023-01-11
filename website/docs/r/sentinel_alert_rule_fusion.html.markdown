@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 
-* `source` (Optional) One or more `source` blocks as defined below.
+* `source` - (Optional) One or more `source` blocks as defined below.
 
 ---
 
@@ -77,7 +77,7 @@ A `sub_type` block supports the following:
 
 * `enabled` - (Optional) Whether this source subtype under source signal is enabled or disabled in Fusion detection. Defaults to `true`.
 
-* `severities_allowed` - (Optional) A list of severities that are enabled for this source subtype consumed in Fusion detection. Possible values for each element are `High`, `Medium`, `Low`, `Informational`.
+* `severities_allowed` - (Required) A list of severities that are enabled for this source subtype consumed in Fusion detection. Possible values for each element are `High`, `Medium`, `Low`, `Informational`.
 
 ## Attributes Reference
 

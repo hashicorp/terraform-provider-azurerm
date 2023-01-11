@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/assetsandassetfilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -101,7 +101,7 @@ func resourceMediaAsset() *pluginsdk.Resource {
 }
 
 func resourceMediaAssetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +147,7 @@ func resourceMediaAssetCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -184,7 +184,7 @@ func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceMediaAssetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

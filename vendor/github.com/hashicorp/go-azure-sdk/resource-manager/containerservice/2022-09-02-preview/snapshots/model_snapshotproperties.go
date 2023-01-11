@@ -11,5 +11,5 @@ type SnapshotProperties struct {
 	OsSku             *OSSKU        `json:"osSku,omitempty"`
 	OsType            *OSType       `json:"osType,omitempty"`
 	SnapshotType      *SnapshotType `json:"snapshotType,omitempty"`
-	VmSize            *string       `json:"vmSize,omitempty"`
+	VMSize            *string       `json:"vmSize,omitempty"`
 }

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `storage_share_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
 
-* `path` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created.
+* `path` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created. Defaults to `""`.
 
 * `source` - (Optional) An absolute path to a file on the local system. Changing this forces a new resource to be created.
 

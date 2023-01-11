@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Container Registry Task.
 
-* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to 3600.
+* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to `3600`.
 
 ---
 
