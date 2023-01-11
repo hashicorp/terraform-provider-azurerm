@@ -21,11 +21,11 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "example" {
 
 ## Arguments Reference
 
-The following arguments are required:
+The following arguments are supported:
 
-* `name` - Name of the Private DNS Resolver Inbound Endpoint.
+* `name` - (Required) Name of the Private DNS Resolver Inbound Endpoint.
 
-* `private_dns_resolver_id` - ID of the Private DNS Resolver Inbound Endpoint.
+* `private_dns_resolver_id` - (Required) ID of the Private DNS Resolver Inbound Endpoint.
 
 ## Attributes Reference
 
@@ -33,21 +33,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Private DNS Resolver Inbound Endpoint.
 
-* `ip_configurations` - IP configurations. Each `ip_configurations` block as defined below.
+* `ip_configurations` - A list of `ip_configurations` block as defined below.
 
-* `location` - Azure Region where the Private DNS Resolver Inbound Endpoint exists.
+* `location` - The Azure Region where the Private DNS Resolver Inbound Endpoint exists.
 
-* `tags` - Mapping of tags which should be assigned to the Private DNS Resolver Inbound Endpoint.
+* `tags` - Mapping of tags assigned to the Private DNS Resolver Inbound Endpoint.
 
 ---
 
 An `ip_configurations` block exports the following:
 
-* `private_ip_allocation_method` - Private IP address allocation method.
+* `private_ip_allocation_method` - The private IP address allocation method.
 
-* `subnet_id` - Subnet ID of the IP configuration.
+* `subnet_id` - The subnet ID of the IP configuration.
 
-* `private_ip_address` - Private IP address of the IP configuration.
+* `private_ip_address` - The private IP address of the IP configuration.
 
 ## Timeouts
 
