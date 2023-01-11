@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `siterecovery`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19571]
 * `siterecovery`: updating to API version `2021-11-01` [GH-19571]
 * Data Source: `azurerm_shared_image` - add support for the `purchase_plan` block [GH-19873]
+* `azurerm_kubernetes_cluster` - add support for the `vnet_integration_enabled` and `subnet_id` properties [GH-19438]
 * `azurerm_logic_app_action_http` - add support for `@` in the `body` property [GH-19754]
 * `azurerm_maintenance_configuration` - support for the `in_guest_user_patch_mode` and `install_patches` properties [GH-19865]
 * `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties [GH-19891]
@@ -24,6 +25,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
+* `azurerm_cdn_frontdoor_rule` - handle empty string value for `query_string` [GH-19927]
 * `azurerm_storage_account` -  `403` is now a valid status code for when permissions to list keys is missing [GH-19645]
 * `azurerm_web_pubsub_hub` - the `event_handler` property is now a list instead of set to respect the input order [GH-19886]
 
