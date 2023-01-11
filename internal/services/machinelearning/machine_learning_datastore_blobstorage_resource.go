@@ -2,6 +2,7 @@ package machinelearning
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -143,8 +143,37 @@ func resourceMachineLearningDataStoreCreateOrUpdate(d *pluginsdk.ResourceData, m
 		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
 	}
 
-	prop := expandBlobStorage(d)
-	datastoreRaw.Properties = prop
+	props := &datastore.AzureBlobDatastore{
+		AccountName:                   utils.String(d.Get("storage_account_name").(string)),
+		ContainerName:                 utils.String(d.Get("container_name").(string)),
+		Description:                   utils.String(d.Get("description").(string)),
+		ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(d.Get("service_data_auth_identity").(string))),
+		IsDefault:                     utils.Bool(d.Get("is_default").(bool)),
+		Tags:                          utils.ToPtr(expandTags(d.Get("tags").(map[string]interface{}))),
+	}
+
+	accountKey := d.Get("account_key").(string)
+	if accountKey != "" {
+		props.Credentials = map[string]interface{}{
+			"credentialsType": string(datastore.CredentialsTypeAccountKey),
+			"secrets": map[string]interface{}{
+				"secretsType": "AccountKey",
+				"key":         accountKey,
+			},
+		}
+	}
+
+	sasToken := d.Get("shared_access_signature").(string)
+	if sasToken != "" {
+		props.Credentials = map[string]interface{}{
+			"credentialsType": string(datastore.CredentialsTypeSas),
+			"secrets": map[string]interface{}{
+				"secretsType": "Sas",
+				"sasToken":    sasToken,
+			},
+		}
+	}
+	datastoreRaw.Properties = props
 
 	_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
@@ -163,7 +192,7 @@ func resourceMachineLearningDataStoreRead(d *pluginsdk.ResourceData, meta interf
 
 	id, err := datastore.ParseDataStoreID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Machine Learning Data Store ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, *id)
@@ -172,13 +201,20 @@ func resourceMachineLearningDataStoreRead(d *pluginsdk.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Machine Learning Data Store %q (Resource Group %q): %+v", id.Name, id.ResourceGroupName, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("name", resp.Model.Name)
 	d.Set("workspace_id", workspaceId.ID())
-	return flattenBlobStorage(d, resp.Model.Properties.(datastore.AzureBlobDatastore))
+
+	data := resp.Model.Properties.(datastore.AzureBlobDatastore)
+	d.Set("storage_account_name", data.AccountName)
+	d.Set("container_name", data.ContainerName)
+	d.Set("description", data.Description)
+	d.Set("is_default", data.IsDefault)
+	d.Set("service_data_auth_identity", string(*data.ServiceDataAccessAuthIdentity))
+	return flattenAndSetTags(d, *data.Tags)
 }
 
 func resourceMachineLearningDataStoreDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -188,58 +224,14 @@ func resourceMachineLearningDataStoreDelete(d *pluginsdk.ResourceData, meta inte
 
 	id, err := datastore.ParseDataStoreID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Machine Learning Workspace Date Store ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 
 	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting Machine Learning Workspace Date Strore %q (Resource Group %q): %+v", id.Name, id.ResourceGroupName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
-}
-
-func expandBlobStorage(d *pluginsdk.ResourceData) *datastore.AzureBlobDatastore {
-	storeProps := &datastore.AzureBlobDatastore{
-		AccountName:                   utils.String(d.Get("storage_account_name").(string)),
-		ContainerName:                 utils.String(d.Get("container_name").(string)),
-		Description:                   utils.String(d.Get("description").(string)),
-		ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(d.Get("service_data_auth_identity").(string))),
-		IsDefault:                     utils.Bool(d.Get("is_default").(bool)),
-		Tags:                          utils.ToPtr(expandTags(d.Get("tags").(map[string]interface{}))),
-	}
-
-	accountKey := d.Get("account_key").(string)
-	if accountKey != "" {
-		storeProps.Credentials = map[string]interface{}{
-			"credentialsType": string(datastore.CredentialsTypeAccountKey),
-			"secrets": map[string]interface{}{
-				"secretsType": "AccountKey",
-				"key":         accountKey,
-			},
-		}
-	}
-
-	sasToken := d.Get("shared_access_signature").(string)
-	if sasToken != "" {
-		storeProps.Credentials = map[string]interface{}{
-			"credentialsType": string(datastore.CredentialsTypeSas),
-			"secrets": map[string]interface{}{
-				"secretsType": "Sas",
-				"sasToken":    sasToken,
-			},
-		}
-	}
-
-	return storeProps
-}
-
-func flattenBlobStorage(d *pluginsdk.ResourceData, data datastore.AzureBlobDatastore) error {
-	d.Set("description", data.Description)
-	d.Set("is_default", data.IsDefault)
-	d.Set("service_data_auth_identity", string(*data.ServiceDataAccessAuthIdentity))
-	d.Set("storage_account_name", *data.AccountName)
-	d.Set("container_name", *data.ContainerName)
-	return flattenAndSetTags(d, *data.Tags)
 }
 
 func expandTags(tagsMap map[string]interface{}) map[string]string {
