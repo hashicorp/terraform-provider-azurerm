@@ -244,6 +244,8 @@ A `private_link` block supports the following:
 
 * `private_link_target_id` - (Required) The ID of the Azure Resource to connect to via the Private Link.
 
+-> **Note:** the `private_link_target_id` property must specify the Resource ID of the Private Link Service when using Load Balancer as an Origin.
+
 ---
 
 ## Example HCL Configurations
