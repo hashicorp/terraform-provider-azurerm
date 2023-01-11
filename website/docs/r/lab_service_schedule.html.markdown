@@ -19,12 +19,37 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_lab_service_lab" "example" {
-  name                = "example-lsl"
+  name                = "example-lab"
   resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  title               = "Test Title"
+
+  security {
+    open_access_enabled = false
+  }
+
+  virtual_machine {
+    admin_user {
+      username = "testadmin"
+      password = "Password1234!"
+    }
+
+    image_reference {
+      offer     = "0001-com-ubuntu-server-focal"
+      publisher = "canonical"
+      sku       = "20_04-lts"
+      version   = "latest"
+    }
+
+    sku {
+      name     = "Classic_Fsv2_2_4GB_128_S_SSD"
+      capacity = 1
+    }
+  }
 }
 
 resource "azurerm_lab_service_schedule" "example" {
-  name         = "example-lss"
+  name         = "example-labschedule"
   lab_id       = azurerm_lab_service_lab.example.id
   stop_at      = "2022-11-28T00:00:00Z"
   time_zone_id = "America/Los_Angeles"

@@ -170,9 +170,9 @@ func (r LabServiceScheduleResource) Create() sdk.ResourceFunc {
 
 			properties := &schedule.Schedule{
 				Properties: schedule.ScheduleProperties{
-					StartAt:    &model.StartAt,
-					StopAt:     model.StopAt,
-					TimeZoneId: model.TimeZoneId,
+					StopAt:            model.StopAt,
+					TimeZoneId:        model.TimeZoneId,
+					RecurrencePattern: expandRecurrencePattern(model.RecurrencePattern),
 				},
 			}
 
@@ -180,11 +180,9 @@ func (r LabServiceScheduleResource) Create() sdk.ResourceFunc {
 				properties.Properties.Notes = &model.Notes
 			}
 
-			recurrencePatternValue, err := expandRecurrencePattern(model.RecurrencePattern)
-			if err != nil {
-				return err
+			if model.StartAt != "" {
+				properties.Properties.StartAt = &model.StartAt
 			}
-			properties.Properties.RecurrencePattern = recurrencePatternValue
 
 			if _, err := client.CreateOrUpdate(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -231,11 +229,7 @@ func (r LabServiceScheduleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("recurrence_pattern") {
-				recurrencePatternValue, err := expandRecurrencePattern(model.RecurrencePattern)
-				if err != nil {
-					return err
-				}
-				properties.Properties.RecurrencePattern = recurrencePatternValue
+				properties.Properties.RecurrencePattern = expandRecurrencePattern(model.RecurrencePattern)
 			}
 
 			if metadata.ResourceData.HasChange("start_at") {
@@ -249,8 +243,6 @@ func (r LabServiceScheduleResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("time_zone_id") {
 				properties.Properties.TimeZoneId = model.TimeZoneId
 			}
-
-			properties.SystemData = nil
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -292,23 +284,18 @@ func (r LabServiceScheduleResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
+
+			state.StopAt = properties.StopAt
+			state.TimeZoneId = properties.TimeZoneId
+			state.RecurrencePattern = flattenRecurrencePattern(properties.RecurrencePattern)
+
 			if properties.Notes != nil {
 				state.Notes = *properties.Notes
 			}
 
-			recurrencePatternValue, err := flattenRecurrencePattern(properties.RecurrencePattern)
-			if err != nil {
-				return err
-			}
-			state.RecurrencePattern = recurrencePatternValue
-
 			if properties.StartAt != nil {
 				state.StartAt = *properties.StartAt
 			}
-
-			state.StopAt = properties.StopAt
-
-			state.TimeZoneId = properties.TimeZoneId
 
 			return metadata.Encode(&state)
 		},
@@ -335,9 +322,9 @@ func (r LabServiceScheduleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRecurrencePattern(input []RecurrencePattern) (*schedule.RecurrencePattern, error) {
+func expandRecurrencePattern(input []RecurrencePattern) *schedule.RecurrencePattern {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	recurrencePattern := input[0]
@@ -349,13 +336,13 @@ func expandRecurrencePattern(input []RecurrencePattern) (*schedule.RecurrencePat
 
 	result.WeekDays = &recurrencePattern.WeekDays
 
-	return &result, nil
+	return &result
 }
 
-func flattenRecurrencePattern(input *schedule.RecurrencePattern) ([]RecurrencePattern, error) {
+func flattenRecurrencePattern(input *schedule.RecurrencePattern) []RecurrencePattern {
 	var recurrencePatterns []RecurrencePattern
 	if input == nil {
-		return recurrencePatterns, nil
+		return recurrencePatterns
 	}
 
 	recurrencePattern := RecurrencePattern{
@@ -369,5 +356,5 @@ func flattenRecurrencePattern(input *schedule.RecurrencePattern) ([]RecurrencePa
 
 	recurrencePattern.WeekDays = *input.WeekDays
 
-	return append(recurrencePatterns, recurrencePattern), nil
+	return append(recurrencePatterns, recurrencePattern)
 }

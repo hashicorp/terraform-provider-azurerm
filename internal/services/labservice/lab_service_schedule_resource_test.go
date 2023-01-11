@@ -20,10 +20,11 @@ type LabServiceScheduleResource struct{}
 func TestAccLabServiceSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_schedule", "test")
 	r := LabServiceScheduleResource{}
+	stopTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, stopTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -35,15 +36,19 @@ func TestAccLabServiceSchedule_basic(t *testing.T) {
 func TestAccLabServiceSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_schedule", "test")
 	r := LabServiceScheduleResource{}
+	stopTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, stopTime),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			Config:      r.requiresImport(data, stopTime),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
 	})
 }
 
@@ -120,31 +125,56 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-lss-%d"
+  name     = "acctestRG-labschedule-%d"
   location = "%s"
 }
 
 resource "azurerm_lab_service_lab" "test" {
-  name                = "acctest-lsl-%d"
+  name                = "acctest-lab-%d"
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  title               = "Test Title"
+
+  security {
+    open_access_enabled = false
+  }
+
+  virtual_machine {
+    admin_user {
+      username = "testadmin"
+      password = "Password1234!"
+    }
+
+    image_reference {
+      offer     = "0001-com-ubuntu-server-focal"
+      publisher = "canonical"
+      sku       = "20_04-lts"
+      version   = "latest"
+    }
+
+    sku {
+      name     = "Classic_Fsv2_2_4GB_128_S_SSD"
+      capacity = 1
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r LabServiceScheduleResource) basic(data acceptance.TestData) string {
+func (r LabServiceScheduleResource) basic(data acceptance.TestData, stopTime string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lab_service_schedule" "test" {
-  name         = "acctest-lss-%d"
+  name         = "acctest-labschedule-%d"
   lab_id       = azurerm_lab_service_lab.test.id
-  stop_at      = ""
+  stop_at      = "%s"
   time_zone_id = "America/Los_Angeles"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, stopTime)
 }
 
-func (r LabServiceScheduleResource) requiresImport(data acceptance.TestData) string {
+func (r LabServiceScheduleResource) requiresImport(data acceptance.TestData, stopTime string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -154,7 +184,7 @@ resource "azurerm_lab_service_schedule" "import" {
   stop_at      = azurerm_lab_service_schedule.test.stop_at
   time_zone_id = azurerm_lab_service_schedule.test.time_zone_id
 }
-`, r.basic(data))
+`, r.basic(data, stopTime))
 }
 
 func (r LabServiceScheduleResource) complete(data acceptance.TestData, startTime, stopTime, expirationDate string) string {
@@ -162,7 +192,7 @@ func (r LabServiceScheduleResource) complete(data acceptance.TestData, startTime
 %s
 
 resource "azurerm_lab_service_schedule" "test" {
-  name         = "acctest-lss-%d"
+  name         = "acctest-labschedule-%d"
   lab_id       = azurerm_lab_service_lab.test.id
   notes        = "Testing"
   start_at     = "%s"
@@ -184,7 +214,7 @@ func (r LabServiceScheduleResource) update(data acceptance.TestData, startTime, 
 %s
 
 resource "azurerm_lab_service_schedule" "test" {
-  name         = "acctest-lss-%d"
+  name         = "acctest-labschedule-%d"
   lab_id       = azurerm_lab_service_lab.test.id
   notes        = "Testing2"
   start_at     = "%s"
