@@ -461,7 +461,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	err = client.UpdateThenPoll(ctx, id, vault)
 	if err != nil {
-		return fmt.Errorf("updating Recovery Service Encryption %s: %+v", id, err)
+		return fmt.Errorf("updating  %s: %+v", id, err)
 	}
 
 	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
@@ -599,11 +599,9 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Deleting Recovery Service  %s", id.String())
 
-	resp, err := client.Delete(ctx, *id)
+	_, err = client.Delete(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("issuing delete request for Recovery Service %s: %+v", id.String(), err)
-		}
+		return fmt.Errorf("deleting %s: %+v", id.String(), err)
 	}
 
 	return nil
