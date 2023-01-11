@@ -21,23 +21,23 @@ data "azurerm_private_dns_resolver_forwarding_rule" "example" {
 
 ## Arguments Reference
 
-The following arguments are required:
+The following arguments are supported:
 
-* `name` - Name of the Private DNS Resolver Forwarding Rule.
+* `name` - (Required) Name of the Private DNS Resolver Forwarding Rule.
 
-* `dns_forwarding_ruleset_id` - ID of the Private DNS Resolver Forwarding Ruleset.
+* `dns_forwarding_ruleset_id` - (Required) ID of the Private DNS Resolver Forwarding Ruleset.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - ID of the Private DNS Resolver Forwarding Rule.
+* `id` - The ID of the Private DNS Resolver Forwarding Rule.
 
-* `domain_name` - Domain name for the Private DNS Resolver Forwarding Rule.
+* `domain_name` - The domain name for the Private DNS Resolver Forwarding Rule.
 
-* `target_dns_servers` - Target DNS servers. Each `target_dns_servers` block as defined below.
+* `target_dns_servers` - A list of `target_dns_servers` block as defined below.
 
-* `enabled` - State of the Private DNS Resolver Forwarding Rule. Defaults to `true`.
+* `enabled` - Is the Private DNS Resolver Forwarding Rule enabled?
 
 * `metadata` - Metadata attached to the Private DNS Resolver Forwarding Rule.
 
@@ -45,9 +45,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `target_dns_servers` block exports the following:
 
-* `ip_address` - DNS server IP address.
+* `ip_address` - The DNS server IP address.
 
-* `port` - DNS server port.
+* `port` - The DNS server port.
 
 ## Timeouts
 

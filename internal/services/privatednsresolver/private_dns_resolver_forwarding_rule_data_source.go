@@ -13,17 +13,12 @@ import (
 )
 
 type PrivateDNSResolverForwardingRuleDataSourceModel struct {
-	Name                   string                           `tfschema:"name"`
-	DnsForwardingRulesetId string                           `tfschema:"dns_forwarding_ruleset_id"`
-	DomainName             string                           `tfschema:"domain_name"`
-	Enabled                bool                             `tfschema:"enabled"`
-	Metadata               map[string]string                `tfschema:"metadata"`
-	TargetDnsServers       []TargetDnsServerDataSourceModel `tfschema:"target_dns_servers"`
-}
-
-type TargetDnsServerDataSourceModel struct {
-	IPAddress string `tfschema:"ip_address"`
-	Port      int64  `tfschema:"port"`
+	Name                   string                 `tfschema:"name"`
+	DnsForwardingRulesetId string                 `tfschema:"dns_forwarding_ruleset_id"`
+	DomainName             string                 `tfschema:"domain_name"`
+	Enabled                bool                   `tfschema:"enabled"`
+	Metadata               map[string]string      `tfschema:"metadata"`
+	TargetDnsServers       []TargetDnsServerModel `tfschema:"target_dns_servers"`
 }
 
 type PrivateDNSResolverForwardingRuleDataSource struct{}
@@ -114,24 +109,21 @@ func (r PrivateDNSResolverForwardingRuleDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var top int64 = 1
-			resp, err := client.ListCompleteMatchingPredicate(ctx, *dnsForwardingRulesetId,
-				forwardingrules.ListOperationOptions{Top: &top},
-				forwardingrules.ForwardingRuleOperationPredicate{Name: &state.Name})
+			id := forwardingrules.NewForwardingRuleID(
+				dnsForwardingRulesetId.SubscriptionId,
+				dnsForwardingRulesetId.ResourceGroupName,
+				dnsForwardingRulesetId.DnsForwardingRulesetName,
+				state.Name)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", state.Name, err)
-			}
-			if len(resp.Items) != int(top) {
-				return fmt.Errorf("retrieving %s: resource not found", state.Name)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Items[0]
-			id, err := forwardingrules.ParseForwardingRuleID(*model.Id)
-			if err != nil {
-				return err
+			model := resp.Model
+			if model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state.DnsForwardingRulesetId = forwardingrules.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID()
 			properties := &model.Properties
 			state.DomainName = properties.DomainName
 
@@ -144,32 +136,11 @@ func (r PrivateDNSResolverForwardingRuleDataSource) Read() sdk.ResourceFunc {
 				state.Metadata = *properties.Metadata
 			}
 
-			state.TargetDnsServers = flattenTargetDnsServerDataSouceModel(&properties.TargetDnsServers)
+			state.TargetDnsServers = flattenTargetDnsServerModel(&properties.TargetDnsServers)
 
 			metadata.SetID(id)
 
 			return metadata.Encode(&state)
 		},
 	}
-}
-
-func flattenTargetDnsServerDataSouceModel(inputList *[]forwardingrules.TargetDnsServer) []TargetDnsServerDataSourceModel {
-	var outputList []TargetDnsServerDataSourceModel
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		output := TargetDnsServerDataSourceModel{
-			IPAddress: input.IPAddress,
-		}
-
-		if input.Port != nil {
-			output.Port = *input.Port
-		}
-
-		outputList = append(outputList, output)
-	}
-
-	return outputList
 }
