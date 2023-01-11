@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets"
@@ -78,22 +77,16 @@ func (r PrivateDNSResolverDnsForwardingRulesetDataSource) Read() sdk.ResourceFun
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var top int64 = 1
-			resp, err := client.ListByResourceGroupCompleteMatchingPredicate(ctx,
-				commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName),
-				dnsforwardingrulesets.ListByResourceGroupOperationOptions{Top: &top},
-				dnsforwardingrulesets.DnsForwardingRulesetOperationPredicate{Name: &state.Name})
+			id := dnsforwardingrulesets.NewDnsForwardingRulesetID(
+				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", state.Name, err)
-			}
-			if len(resp.Items) != int(top) {
-				return fmt.Errorf("retrieving %s: resource not found", state.Name)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Items[0]
-			id, err := dnsforwardingrulesets.ParseDnsForwardingRulesetID(*model.Id)
-			if err != nil {
-				return err
+			model := resp.Model
+			if model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			state.Location = location.Normalize(model.Location)

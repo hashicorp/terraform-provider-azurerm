@@ -21,11 +21,11 @@ data "azurerm_private_dns_resolver_dns_forwarding_ruleset" "example" {
 
 ## Arguments Reference
 
-The following arguments are required:
+The following arguments are supported:
 
-* `name` - Name of the existing Private DNS Resolver Dns Forwarding Ruleset.
+* `name` - (Required) Name of the existing Private DNS Resolver Dns Forwarding Ruleset.
 
-* `resource_group_name` - Name of the Resource Group where the Private DNS Resolver Dns Forwarding Ruleset exists.
+* `resource_group_name` - (Required) Name of the Resource Group where the Private DNS Resolver Dns Forwarding Ruleset exists.
 
 ## Attributes Reference
 
@@ -33,11 +33,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Private DNS Resolver Dns Forwarding Ruleset.
 
-* `private_dns_resolver_outbound_endpoint_ids` - List of IDs of the Private DNS Resolver Outbound Endpoint that is linked to the Private DNS Resolver Dns Forwarding Ruleset.
+* `private_dns_resolver_outbound_endpoint_ids` - The IDs list of the Private DNS Resolver Outbound Endpoints that are linked to the Private DNS Resolver Dns Forwarding Ruleset.
 
-* `location` - Azure Region where the Private DNS Resolver Dns Forwarding Ruleset exists.
+* `location` - The Azure Region where the Private DNS Resolver Dns Forwarding Ruleset exists.
 
-* `tags` - Mapping of tags assigned to the Private DNS Resolver Dns Forwarding Ruleset.
+* `tags` - The tags assigned to the Private DNS Resolver Dns Forwarding Ruleset.
 
 ## Timeouts
 
