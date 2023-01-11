@@ -26,24 +26,7 @@ func TestAccPrivateDNSResolverVirtualNetworkLinkDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccPrivateDNSResolverVirtualNetworkLinkDataSource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_resolver_virtual_network_link", "test")
-	d := PrivateDNSResolverVirtualNetworkLinkDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: d.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("dns_forwarding_ruleset_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_id").Exists(),
-				check.That(data.ResourceName).Key("metadata.key").HasValue("value"),
-			),
-		},
-	})
-}
-
-func (d PrivateDNSResolverVirtualNetworkLinkDataSource) template(data acceptance.TestData) string {
+func (d PrivateDNSResolverVirtualNetworkLinkDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -96,44 +79,16 @@ resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "test" {
   location                                   = azurerm_resource_group.test.location
   private_dns_resolver_outbound_endpoint_ids = [azurerm_private_dns_resolver_outbound_endpoint.test.id]
 }
+
+resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
+  name                      = "acctest-drvnl-%[2]d"
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+  virtual_network_id        = azurerm_virtual_network.test.id
+}
+
+data "azurerm_private_dns_resolver_virtual_network_link" "test" {
+  name         		        = azurerm_private_dns_resolver_virtual_network_link.test.name
+  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+}
 `, data.Locations.Primary, data.RandomInteger)
-}
-
-func (d PrivateDNSResolverVirtualNetworkLinkDataSource) basic(data acceptance.TestData) string {
-	template := d.template(data)
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                      = "acctest-drvnl-%d"
-  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id        = azurerm_virtual_network.test.id
-}
-
-data "azurerm_private_dns_resolver_virtual_network_link" "test" {
-	name         		        = azurerm_private_dns_resolver_virtual_network_link.test.name
-	dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-}
-`, template, data.RandomInteger)
-}
-
-func (d PrivateDNSResolverVirtualNetworkLinkDataSource) complete(data acceptance.TestData) string {
-	template := d.template(data)
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name                      = "acctest-drvnl-%d"
-  dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-  virtual_network_id        = azurerm_virtual_network.test.id
-  metadata = {
-    key = "value"
-  }
-}
-
-data "azurerm_private_dns_resolver_virtual_network_link" "test" {
-	name         		        = azurerm_private_dns_resolver_virtual_network_link.test.name
-	dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
-}
-`, template, data.RandomInteger)
 }

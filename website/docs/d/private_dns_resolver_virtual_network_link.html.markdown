@@ -21,19 +21,19 @@ data "azurerm_private_dns_resolver_virtual_network_link" "example" {
 
 ## Arguments Reference
 
-The following arguments are required:
+The following arguments are supported:
 
-* `name` - Name of the Private DNS Resolver Virtual Network Link.
+* `name` - (Required) Name of the Private DNS Resolver Virtual Network Link.
 
-* `dns_forwarding_ruleset_id` - ID of the Private DNS Resolver DNS Forwarding Ruleset.
+* `dns_forwarding_ruleset_id` - (Required) ID of the Private DNS Resolver DNS Forwarding Ruleset.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - ID of the Private DNS Resolver Virtual Network Link.
+* `id` - The ID of the Private DNS Resolver Virtual Network Link.
 
-* `virtual_network_id` - ID of the Virtual Network that is linked to the Private DNS Resolver Virtual Network Link.
+* `virtual_network_id` - The ID of the Virtual Network that is linked to the Private DNS Resolver Virtual Network Link.
 
 * `metadata` - Metadata attached to the Private DNS Resolver Virtual Network Link.
 
