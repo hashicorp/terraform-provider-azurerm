@@ -209,11 +209,31 @@ func resourceMachineLearningDataStoreRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("workspace_id", workspaceId.ID())
 
 	data := resp.Model.Properties.(datastore.AzureBlobDatastore)
-	d.Set("storage_account_name", data.AccountName)
-	d.Set("container_name", data.ContainerName)
-	d.Set("description", data.Description)
+
+	serviceDataAuth := ""
+	if v := data.ServiceDataAccessAuthIdentity; v != nil {
+		serviceDataAuth = string(*v)
+	}
+	d.Set("service_data_auth_identity", serviceDataAuth)
+
+	storageAccountName := ""
+	if v := data.AccountName; v != nil {
+		storageAccountName = *v
+	}
+	d.Set("storage_account_name", storageAccountName)
+
+	containerName := ""
+	if v := data.ContainerName; v != nil {
+		containerName = *v
+	}
+	d.Set("container_name", containerName)
+
+	desc := ""
+	if v := data.Description; v != nil {
+		d.Set("description", desc)
+	}
+
 	d.Set("is_default", data.IsDefault)
-	d.Set("service_data_auth_identity", string(*data.ServiceDataAccessAuthIdentity))
 	return flattenAndSetTags(d, *data.Tags)
 }
 
