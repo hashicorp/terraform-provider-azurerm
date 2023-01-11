@@ -149,6 +149,8 @@ The following arguments are supported:
 
 * `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 
+* `custom_route` - (Optional) A `custom_route` block as defined below. Specifies a custom routes address space for a virtual network gateway and a VpnClient.
+
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`. Changing this forces a new resource to be created.
 
 -> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
@@ -252,6 +254,14 @@ The `root_certificate` block supports:
 
 ---
 
+The `revoked_certificate` block supports:
+
+* `name` - (Required) Specifies the name of the certificate resource.
+
+* `public_cert_data` - (Required) Specifies the public data of the certificate.
+
+---
+
 The `root_revoked_certificate` block supports:
 
 * `name` - (Required) A user-defined name of the revoked certificate. Changing this forces a new resource to be created.
@@ -271,7 +281,7 @@ The following attributes are exported:
 
 The `bgp_settings` block supports:
 
-* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below.
+* `peering_addresses` - A list of `peering_addresses` as defined below.
 
 ---
 

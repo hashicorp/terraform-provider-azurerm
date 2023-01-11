@@ -148,7 +148,7 @@ The `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - (Optional) The host key algorithm, should be `ssh-dss`, `ssh-rsa`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`. Required only if `host-key` exists.
 
-* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match.
+* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match. Defaults to `true`.
 
 ---
 
@@ -178,7 +178,7 @@ The `required_network_traffic_rules` block supports the following:
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The IP list of required traffic.
+* `ip_addresses` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 

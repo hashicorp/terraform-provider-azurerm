@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as defined below.
 
-* `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `false`.
+* `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `true`.
 
 ---
 

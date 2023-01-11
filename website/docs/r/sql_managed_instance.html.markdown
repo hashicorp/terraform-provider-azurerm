@@ -275,6 +275,15 @@ The following attributes are exported:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Sql Managed Instance.
+* `create` - (Defaults to 24 hours) Used when creating the Sql Managed Instance.
+* `update` - (Defaults to 24 hours) Used when updating the Sql Managed Instance.
+* `delete` - (Defaults to 24 hours) Used when deleting the Sql Managed Instance.
+
 ## Import
 
 SQL Servers can be imported using the `resource id`, e.g.

@@ -81,6 +81,7 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 			"host_pool_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: hostpool.ValidateHostPoolID,
 			},
 

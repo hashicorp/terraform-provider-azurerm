@@ -163,7 +163,7 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should the App Service Slot send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `enabled` - (Optional) Is the App Service Slot Enabled?
+* `enabled` - (Optional) Is the App Service Slot Enabled? Defaults to `true`.
 
 * `https_only` - (Optional) Can the App Service Slot only be accessed via HTTPS? Defaults to `false`.
 
@@ -239,7 +239,7 @@ A `site_config` block supports the following:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to false.  
+* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to `false`.  
 
 -> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
 
@@ -323,9 +323,9 @@ A `auth_settings` block supports the following:
 
 * `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
 
-* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to 72.
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72`.
 
-* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to false.
+* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 

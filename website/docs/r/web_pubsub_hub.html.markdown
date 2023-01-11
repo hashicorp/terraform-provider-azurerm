@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_hub"
 description: |-
@@ -70,6 +70,8 @@ The following arguments are supported:
   Possible values are `true`, `false`.
 
 * `event_handler` - (Optional) An `event_handler` block as defined below.
+
+-> **NOTE:** User can change the order of `event_handler` to change the priority accordingly.
 
 ---
 

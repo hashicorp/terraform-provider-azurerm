@@ -238,7 +238,7 @@ A `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the ID of the Key Vault to use.
 
-* `vault_certificates` - (Required) One or more `vault_certificates` blocks as defined below.
+* `vault_certificates` - (Optional) One or more `vault_certificates` blocks as defined below.
 
 ---
 
@@ -403,8 +403,6 @@ The following attributes are exported:
 An `identity` block exports the following:
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
-
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 -> You can access the Principal ID via `${azurerm_virtual_machine.example.identity.0.principal_id}`
 

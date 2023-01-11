@@ -51,9 +51,14 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
-	maintenance_configuration_name := "SQL_Default"
-	if data.Locations.Primary == "westeurope" {
+	maintenance_configuration_name := ""
+	switch data.Locations.Primary {
+	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
+	case "francecentral":
+		maintenance_configuration_name = "SQL_FranceCentral_DB_1"
+	default:
+		maintenance_configuration_name = "SQL_Default"
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -796,6 +801,16 @@ resource "azurerm_mssql_database" "import" {
 }
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
+	configName := ""
+	switch data.Locations.Primary {
+	case "westeurope":
+		configName = "SQL_WestEurope_DB_2"
+	case "francecentral":
+		configName = "SQL_FranceCentral_DB_1"
+	default:
+		configName = "SQL_Default"
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -808,7 +823,7 @@ resource "azurerm_mssql_database" "test" {
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
-  maintenance_configuration_name = azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
+  maintenance_configuration_name = "%[3]s"
 
   storage_account_type = "Local"
 
@@ -816,7 +831,7 @@ resource "azurerm_mssql_database" "test" {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, configName)
 }
 
 func (r MsSqlDatabaseResource) update(data acceptance.TestData) string {

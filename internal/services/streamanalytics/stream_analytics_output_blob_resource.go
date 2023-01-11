@@ -181,7 +181,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
-		props.Properties.SizeWindow = utils.Int64(batchMinRows.(int64))
+		props.Properties.SizeWindow = utils.Int64(int64(batchMinRows.(int)))
 	}
 
 	// timeWindow and sizeWindow must be set for Parquet serialization

@@ -54,7 +54,7 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
 
 			"event_handler": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -146,7 +146,7 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	parameters := webpubsub.WebPubSubHub{
 		Properties: webpubsub.WebPubSubHubProperties{
-			EventHandlers:          expandEventHandler(d.Get("event_handler").(*pluginsdk.Set).List()),
+			EventHandlers:          expandEventHandler(d.Get("event_handler").([]interface{})),
 			AnonymousConnectPolicy: &anonymousPolicyEnabled,
 		},
 	}

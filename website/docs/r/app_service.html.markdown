@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `client_cert_mode` - (Optional) Mode of client certificates for this App Service. Possible values are `Required`, `Optional` and `OptionalInteractiveUser`. If this parameter is set, `client_cert_enabled` must be set to `true`, otherwise this parameter is ignored.
 
-* `enabled` - (Optional) Is the App Service Enabled?
+* `enabled` - (Optional) Is the App Service Enabled? Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -219,7 +219,7 @@ A `site_config` block supports the following:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to false.  
+* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to `false`.  
 
 -> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
 
@@ -303,9 +303,9 @@ A `auth_settings` block supports the following:
 
 * `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
 
-* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to 72.
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72`.
 
-* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to false.
+* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -377,7 +377,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
 
-* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to `Allow`.
 
 * `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
 
@@ -409,7 +409,7 @@ A `backup` block supports the following:
 
 * `name` - (Required) Specifies the name for this Backup.
 
-* `enabled` - (Optional) Is this Backup enabled?
+* `enabled` - (Optional) Is this Backup enabled? Defaults to `true`.
 
 * `storage_account_url` - (Required) The SAS URL to a Storage Container where Backups should be saved.
 
@@ -425,7 +425,7 @@ A `schedule` block supports the following:
 
 * `keep_at_least_one_backup` - (Optional) Should at least one backup always be kept in the Storage Account by the Retention Policy, regardless of how old it is?
 
-* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
+* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted. Defaults to `30`.
 
 * `start_time` - (Optional) Sets when the schedule should start working.
 
@@ -491,8 +491,8 @@ A `site_credential` block exports the following:
 
 A `source_control` block exports the following:
 
-* `repo_url` - (Optional) URL of the Git repository for this App Service.
-* `branch` - (Optional) Branch name of the Git repository for this App Service.
+* `repo_url` - URL of the Git repository for this App Service.
+* `branch` - Branch name of the Git repository for this App Service.
 
 ## Timeouts
 
