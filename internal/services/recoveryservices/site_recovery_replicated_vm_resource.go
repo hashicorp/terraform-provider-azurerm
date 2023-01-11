@@ -279,7 +279,21 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
+			"test_static_ip": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 			"target_static_ip": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"test_subnet_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     false,
@@ -291,12 +305,20 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"test_public_ip_address_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 			"recovery_public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
 			"is_primary": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -516,6 +538,10 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
 		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
+		testStaticIp := vmNicInput["target_static_ip"].(string)
+		testSubNetName := vmNicInput["target_subnet_name"].(string)
+		testPublicIpAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
+
 		isPrimary := vmNicInput["is_primary"].(bool)
 		if len(nicList) == 1 {
 			isPrimary = true
@@ -531,6 +557,9 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				RecoveryStaticIPAddress:   &targetStaticIp,
 				RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
 				IsPrimary:                 &isPrimary,
+				TfoStaticIPAddress:        &testStaticIp,
+				TfoPublicIPAddressId:      &testPublicIpAddressID,
+				TfoSubnetName:             &testSubNetName,
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
@@ -729,6 +758,15 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 						}
 						if ipConfig.RecoveryPublicIPAddressId != nil {
 							nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
+						}
+						if ipConfig.TfoStaticIPAddress != nil {
+							nicOutput["test_static_ip"] = *ipConfig.TfoStaticIPAddress
+						}
+						if ipConfig.TfoSubnetName != nil {
+							nicOutput["test_subnet_name"] = *ipConfig.TfoSubnetName
+						}
+						if ipConfig.TfoPublicIPAddressId != nil {
+							nicOutput["test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
 						}
 					}
 					nicsOutput = append(nicsOutput, nicOutput)

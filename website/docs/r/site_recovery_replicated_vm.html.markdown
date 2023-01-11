@@ -306,6 +306,12 @@ A `network_interface` block supports the following:
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
 
+* `test_static_ip` - (Optional) Static IP to assign when a test failover is done.
+
+* `test_subnet_name` - (Optional) Name of the subnet to to use when a test failover is done.
+
+* `test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
+
 * `is_primary` - (Optional) If this is the primary network interface used for failover. If there is only one `network_interface` block, this is automatically set to `true`.
 
 ---
