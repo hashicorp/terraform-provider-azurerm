@@ -1082,7 +1082,6 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 			} else {
 				winAppStack.DockerContainerName = dockerRegistry
 			}
-			winAppStack.DockerContainerName = path[0]
 		}
 	}
 	winAppStack.CurrentStack = currentStack
