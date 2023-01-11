@@ -96,7 +96,7 @@ An `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
-* `subnet_id` - (Optional) Reference to the subnet associated with the IP Configuration.
+* `subnet_id` - (Optional) Reference to the subnet associated with the IP Configuration. Changing this forces a new resource to be created.
 
 -> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least a `/26`.
 

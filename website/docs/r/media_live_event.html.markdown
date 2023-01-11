@@ -90,7 +90,7 @@ The following arguments are supported:
 
 ---
 
-* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation. Default is `false`.
+* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation. Default is `false`. Changing this forces a new resource to be created.
 
 * `cross_site_access_policy` - (Optional) A `cross_site_access_policy` block as defined below.
 
@@ -156,7 +156,7 @@ A `ip_access_control_allow` block supports the following:
 
 A `preview` block supports the following:
 
-* `alternative_media_id` - (Optional) An alternative media identifier associated with the streaming locator created for the preview. The identifier can be used in the `CustomLicenseAcquisitionUrlTemplate` or the `CustomKeyAcquisitionUrlTemplate` of the Streaming Policy specified in the `streaming_policy_name` field. Changing this forces a new resource to be created.
+* `alternative_media_id` - (Optional) An alternative media identifier associated with the streaming locator created for the preview. The identifier can be used in the `CustomLicenseAcquisitionUrlTemplate` or the `CustomKeyAcquisitionUrlTemplate` of the Streaming Policy specified in the `streaming_policy_name` field. 
 
 * `ip_access_control_allow` - (Optional) One or more `ip_access_control_allow` blocks as defined above.
 

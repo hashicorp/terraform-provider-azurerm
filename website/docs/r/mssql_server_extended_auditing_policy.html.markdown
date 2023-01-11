@@ -163,19 +163,19 @@ The following arguments are supported:
 
 * `server_id` - (Required) The ID of the SQL Server to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
+* `enabled` - (Optional) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
 ->**NOTE:**  If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
 
 * `storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
 
-* `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
+* `retention_in_days` - (Optional) The number of days to retain logs for in the storage account. Defaults to `0`.
 
 * `storage_account_access_key` - (Optional) The access key to use for the auditing storage account.
 
 * `storage_account_access_key_is_secondary` - (Optional) Is `storage_account_access_key` value the storage's secondary key?
 
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor. Defaults to `true`.
 
 * `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 

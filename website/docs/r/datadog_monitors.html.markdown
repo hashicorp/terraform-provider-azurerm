@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The name which should be used for this sku.
 
-* `identity` - (Required) A `identity` block as defined below.
+* `identity` - (Optional) A `identity` block as defined below.
 
 * `user` - (Required) A `user` block as defined below.
 

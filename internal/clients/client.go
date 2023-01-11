@@ -2,13 +2,13 @@ package clients
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
+	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -66,6 +66,7 @@ import (
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
+	labservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/client"
 	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
@@ -173,7 +174,7 @@ type Client struct {
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
-	FluidRelay            *fluidrelay.Client
+	FluidRelay            *fluidrelay_2022_05_26.Client
 	Frontdoor             *frontdoor.Client
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
@@ -184,6 +185,7 @@ type Client struct {
 	IoTTimeSeriesInsights *timeseriesinsights.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
+	LabService            *labservice.Client
 	Legacy                *legacy.Client
 	Lighthouse            *lighthouse.Client
 	LoadBalancers         *loadbalancers.Client
@@ -244,9 +246,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
 
-	if err := buildAutoClients(&client.autoClient, o); err != nil {
-		return fmt.Errorf("building auto-sdk clients: %+v", err)
-	}
+	buildAutoClients(&client.autoClient, o)
 
 	client.Features = o.Features
 	client.StopContext = ctx
@@ -306,6 +306,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
+	client.LabService = labservice.NewClient(o)
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)

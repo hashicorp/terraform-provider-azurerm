@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,9 +23,15 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputEventHubRead,
 		Update: resourceStreamAnalyticsOutputEventHubCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputEventHubDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OutputID(id)
+
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := outputs.ParseOutputID(id)
 			return err
+		}, importStreamAnalyticsOutput(outputs.EventHubOutputDataSource{})),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsOutputEventHubV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -66,14 +72,14 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 
 			"shared_access_policy_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -94,10 +100,10 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(streamanalytics.AuthenticationModeConnectionString),
+				Default:  string(outputs.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.AuthenticationModeMsi),
-					string(streamanalytics.AuthenticationModeConnectionString),
+					string(outputs.AuthenticationModeMsi),
+					string(outputs.AuthenticationModeConnectionString),
 				}, false),
 			},
 
@@ -112,16 +118,16 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_output_eventhub", id.ID())
 		}
 	}
@@ -139,32 +145,41 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := streamanalytics.Output{
-		Name: utils.String(id.Name),
-		OutputProperties: &streamanalytics.OutputProperties{
-			Datasource: &streamanalytics.EventHubOutputDataSource{
-				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftServiceBusEventHub,
-				EventHubOutputDataSourceProperties: &streamanalytics.EventHubOutputDataSourceProperties{
-					EventHubName:           utils.String(eventHubName),
-					ServiceBusNamespace:    utils.String(serviceBusNamespace),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-					PropertyColumns:        utils.ExpandStringSlice(propertyColumns),
-					PartitionKey:           utils.String(partitionKey),
-					AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
-				},
+	eventHubOutputDataSourceProps := &outputs.EventHubOutputDataSourceProperties{
+		PartitionKey:        utils.String(partitionKey),
+		PropertyColumns:     utils.ExpandStringSlice(propertyColumns),
+		EventHubName:        utils.String(eventHubName),
+		ServiceBusNamespace: utils.String(serviceBusNamespace),
+		AuthenticationMode:  utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	}
+
+	if sharedAccessPolicyKey != "" {
+		eventHubOutputDataSourceProps.SharedAccessPolicyKey = &sharedAccessPolicyKey
+	}
+
+	if sharedAccessPolicyName != "" {
+		eventHubOutputDataSourceProps.SharedAccessPolicyName = &sharedAccessPolicyName
+	}
+
+	props := outputs.Output{
+		Name: utils.String(id.OutputName),
+		Properties: &outputs.OutputProperties{
+			Datasource: &outputs.EventHubOutputDataSource{
+				Properties: eventHubOutputDataSourceProps,
 			},
 			Serialization: serialization,
 		},
 	}
 
+	var createOpts outputs.CreateOrReplaceOperationOptions
+	var updateOpts outputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -176,14 +191,14 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OutputID(d.Id())
+	id, err := outputs.ParseOutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -192,28 +207,58 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("stream_analytics_job_name", id.StreamingjobName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.OutputName)
+	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.OutputProperties; props != nil {
-		v, ok := props.Datasource.AsEventHubOutputDataSource()
-		if !ok {
-			return fmt.Errorf("converting Output Data Source to a EventHub Output: %+v", err)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			output, ok := props.Datasource.(outputs.EventHubOutputDataSource)
+			if !ok {
+				return fmt.Errorf("converting %s to a EventHub Output", *id)
+			}
 
-		d.Set("eventhub_name", v.EventHubName)
-		d.Set("servicebus_namespace", v.ServiceBusNamespace)
-		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
-		d.Set("property_columns", v.PropertyColumns)
-		d.Set("partition_key", v.PartitionKey)
-		d.Set("authentication_mode", v.AuthenticationMode)
+			eventHubName := ""
+			if v := output.Properties.EventHubName; v != nil {
+				eventHubName = *v
+			}
+			d.Set("eventhub_name", eventHubName)
 
-		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
-			return fmt.Errorf("setting `serialization`: %+v", err)
+			serviceBusNamespace := ""
+			if v := output.Properties.ServiceBusNamespace; v != nil {
+				serviceBusNamespace = *v
+			}
+			d.Set("servicebus_namespace", serviceBusNamespace)
+
+			sharedAccessPolicyName := ""
+			if v := output.Properties.SharedAccessPolicyName; v != nil {
+				sharedAccessPolicyName = *v
+			}
+			d.Set("shared_access_policy_name", sharedAccessPolicyName)
+
+			partitionKey := ""
+			if v := output.Properties.PartitionKey; v != nil {
+				partitionKey = *v
+			}
+			d.Set("partition_key", partitionKey)
+
+			authMode := ""
+			if v := output.Properties.AuthenticationMode; v != nil {
+				authMode = string(*v)
+			}
+			d.Set("authentication_mode", authMode)
+
+			var propertyColumns []string
+			if v := output.Properties.PropertyColumns; v != nil {
+				propertyColumns = *v
+			}
+			d.Set("property_columns", propertyColumns)
+
+			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+				return fmt.Errorf("setting `serialization`: %+v", err)
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -222,13 +267,13 @@ func resourceStreamAnalyticsOutputEventHubDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OutputID(d.Id())
+	id, err := outputs.ParseOutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
-		if !response.WasNotFound(resp.Response) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}

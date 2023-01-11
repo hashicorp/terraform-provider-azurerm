@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_hub"
 description: |-
@@ -71,6 +71,8 @@ The following arguments are supported:
 
 * `event_handler` - (Optional) An `event_handler` block as defined below.
 
+-> **NOTE:** User can change the order of `event_handler` to change the priority accordingly.
+
 ---
 
 An `event_handler` block supports the following:
@@ -84,8 +86,7 @@ An `event_handler` block supports the following:
   * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
   * The single event name, for example `event1`, it matches `event1`.
 
-* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected`
-  and `disconnected`.
+* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
 
 * `auth` - (Optional) An `auth` block as defined below.
 
@@ -103,7 +104,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Web Pubsub Hub resource.
 
-* `name` - The name of the Web Pubsub Hub resource
+* `name` - (Required) The name of the Web Pubsub Hub resource
 
 ## Timeouts
 

@@ -15,6 +15,38 @@ import (
 
 type SecurityCenterSubscriptionPricingResource struct{}
 
+func TestAccServerVulnerabilityAssessment(t *testing.T) {
+	// these tests need to change `azurerm_security_center_subscription_pricing` of `VirtualMachines` in their test configs, so we need to run them serially.
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"securityCenterAssessment": {
+			"basic":          testAccSecurityCenterAssessment_basic,
+			"complete":       testAccSecurityCenterAssessment_complete,
+			"update":         testAccSecurityCenterAssessment_update,
+			"requiresImport": testAccSecurityCenterAssessment_requiresImport,
+		},
+		"serverVulnerabilityAssessment": {
+			"basic":          testAccServerVulnerabilityAssessment_basic,
+			"requiresImport": testAccServerVulnerabilityAssessment_requiresImport,
+		},
+		"serverVulnerabilityAssessmentVirtualMachine": {
+			"basic":          testAccServerVulnerabilityAssessmentVirtualMachine_basic,
+			"requiresImport": testAccServerVulnerabilityAssessmentVirtualMachine_requiresImport,
+		},
+		"workSpace": {
+			"basic":          testAccSecurityCenterWorkspace_basic,
+			"update":         testAccSecurityCenterWorkspace_update,
+			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
+		},
+	})
+	// reset pricing tier to free after all tests.
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
+		},
+	})
+}
+
 func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
@@ -86,7 +118,7 @@ resource "azurerm_security_center_subscription_pricing" "test" {
 }
 
 func (SecurityCenterSubscriptionPricingResource) storageAccountSubplan() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -96,5 +128,5 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
 }
-`)
+`
 }

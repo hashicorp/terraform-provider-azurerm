@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `redis_cache_name` - (Required) The name of the Redis Cache. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which this Redis Cache exists.
+* `resource_group_name` - (Required) The name of the resource group in which this Redis Cache exists. Changing this forces a new resource to be created.
 
 * `start_ip` - (Required) The lowest IP address included in the range
 

@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `content_embedded` - (Required) The PowerShell DSC Configuration script.
 
-* `location` - (Required) Must be the same location as the Automation Account.
+* `location` - (Required) Must be the same location as the Automation Account. Changing this forces a new resource to be created.
 
 * `log_verbose` - (Optional) Verbose log option.
 

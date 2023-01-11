@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `actions` - (Required) A list of actions to attach to the scope map (e.g. `repo/content/read`, `repo2/content/delete`).
 
+* `description` - (Optional) The description of the Container Registry.
+
 ---
 
 ## Attributes Reference

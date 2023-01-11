@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -182,7 +182,6 @@ func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceD
 }
 
 func getMaintenanceAssignmentVirtualMachine(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, vmId *parseCompute.VirtualMachineId, virtualMachineId string) (result *[]configurationassignments.ConfigurationAssignment, err error) {
-
 	id := configurationassignments.NewProviderID(vmId.SubscriptionId, vmId.ResourceGroup, "Microsoft.Compute", "virtualMachines", vmId.Name)
 	resp, err := client.List(ctx, id)
 	if err != nil {

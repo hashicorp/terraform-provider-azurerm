@@ -367,9 +367,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		diskTypesNotAllowed := make([]string, 0)
 		if disallowed := props.Disallowed; disallowed != nil {
 			if disallowed.DiskTypes != nil {
-				for _, v := range *disallowed.DiskTypes {
-					diskTypesNotAllowed = append(diskTypesNotAllowed, v)
-				}
+				diskTypesNotAllowed = append(diskTypesNotAllowed, *disallowed.DiskTypes...)
 			}
 		}
 		d.Set("disk_types_not_allowed", diskTypesNotAllowed)

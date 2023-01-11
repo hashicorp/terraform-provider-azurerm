@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `virtual_wan_id` - (Required) The ID of the Virtual Wan where this VPN site resides in. Changing this forces a new VPN Site to be created.
 
-* `link` - (Required) One or more `link` blocks as defined below.
+* `link` - (Optional) One or more `link` blocks as defined below.
 
 ---
 
@@ -96,7 +96,7 @@ A `link` block supports the following:
 
 * `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: `ATT`, `Verizon`.
 
-* `speed_in_mbps` - (Optional) The speed of the VPN device at the branch location in unit of mbps.
+* `speed_in_mbps` - (Optional) The speed of the VPN device at the branch location in unit of mbps. Defaults to `0`.
 
 ---
 

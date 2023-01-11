@@ -29,7 +29,7 @@ type SysctlConfig struct {
 	NetIPv4TcpkeepaliveIntvl       *int64  `json:"netIpv4TcpkeepaliveIntvl,omitempty"`
 	NetNetfilterNfConntrackBuckets *int64  `json:"netNetfilterNfConntrackBuckets,omitempty"`
 	NetNetfilterNfConntrackMax     *int64  `json:"netNetfilterNfConntrackMax,omitempty"`
-	VmMaxMapCount                  *int64  `json:"vmMaxMapCount,omitempty"`
-	VmSwappiness                   *int64  `json:"vmSwappiness,omitempty"`
-	VmVfsCachePressure             *int64  `json:"vmVfsCachePressure,omitempty"`
+	VMMaxMapCount                  *int64  `json:"vmMaxMapCount,omitempty"`
+	VMSwappiness                   *int64  `json:"vmSwappiness,omitempty"`
+	VMVfsCachePressure             *int64  `json:"vmVfsCachePressure,omitempty"`
 }

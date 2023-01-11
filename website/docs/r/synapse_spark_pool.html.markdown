@@ -91,9 +91,9 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Synapse Spark Pool should exist. Changing this forces a new Synapse Spark Pool to be created.
 
-* `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible value is `MemoryOptimized`.
+* `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible values are `MemoryOptimized` and `None`.
 
-* `node_size` - (Required) The level of node in the Spark Pool. Possible value is `Small`, `Medium` and `Large`.
+* `node_size` - (Required) The level of node in the Spark Pool. Possible values are `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
 
 * `node_count` - (Optional) The number of nodes in the Spark Pool. Exactly one of `node_count` or `auto_scale` must be specified.
 
@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `spark_events_folder` - (Optional) The Spark events folder. Defaults to `/events`.
 
-* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` and `3.1` and `3.2`. Defaults to `2.4`.
+* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` , `3.1` , `3.2` and `3.3`. Defaults to `2.4`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Spark Pool.
 

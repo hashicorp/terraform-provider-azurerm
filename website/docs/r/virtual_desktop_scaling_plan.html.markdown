@@ -145,7 +145,7 @@ A `host_pool` block supports the following:
 
 A `schedule` block supports the following:
 
-* `days_of_week` - (Required) A list of Days of the Week on which this schedule will be used..Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`
+* `days_of_week` - (Required) A list of Days of the Week on which this schedule will be used. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`
 
 * `name` - (Required) The name of the schedule.
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -951,6 +951,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 							"12-LTS",
 							"14-LTS",
 							"16-LTS",
+							"18-LTS",
 						}, false),
 						AtLeastOneOf: []string{
 							"site_config.0.application_stack.0.docker_container_name",
@@ -1234,6 +1235,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"12-lts",
 						"14-lts",
 						"16-lts",
+						"18-lts",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
@@ -2922,16 +2924,20 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded = existing
 	}
 
-	currentStack := ""
-
 	winSiteConfig := siteConfig[0]
+
+	currentStack := ""
+	if len(winSiteConfig.ApplicationStack) == 1 {
+		winAppStack := winSiteConfig.ApplicationStack[0]
+		currentStack = winAppStack.CurrentStack
+	}
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if winSiteConfig.AlwaysOn == true {
+			if winSiteConfig.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
 				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}
@@ -3112,10 +3118,10 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if linuxSiteConfig.AlwaysOn == true {
+			if linuxSiteConfig.AlwaysOn {
 				return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
 				return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 			}
 		}
@@ -3896,6 +3902,9 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, st
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
 		"WEBSITE_VNET_ROUTE_ALL",
+		"spring.datasource.password",
+		"spring.datasource.url",
+		"spring.datasource.username",
 		maxPingFailures,
 	}
 

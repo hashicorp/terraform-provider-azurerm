@@ -18,7 +18,7 @@ func testAccDataSourceMonitorLogProfile_storageaccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.storageaccountConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -39,7 +39,7 @@ func testAccDataSourceMonitorLogProfile_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.eventhubConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -1,30 +1,34 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
 )
 
 type Client struct {
-	APIPortalClient             *appplatform.APIPortalsClient
-	APIPortalCustomDomainClient *appplatform.APIPortalCustomDomainsClient
-	AppsClient                  *appplatform.AppsClient
-	BindingsClient              *appplatform.BindingsClient
-	BuildPackBindingClient      *appplatform.BuildpackBindingClient
-	BuildServiceAgentPoolClient *appplatform.BuildServiceAgentPoolClient
-	BuildServiceBuilderClient   *appplatform.BuildServiceBuilderClient
-	CertificatesClient          *appplatform.CertificatesClient
-	ConfigServersClient         *appplatform.ConfigServersClient
-	ConfigurationServiceClient  *appplatform.ConfigurationServicesClient
-	CustomDomainsClient         *appplatform.CustomDomainsClient
-	GatewayClient               *appplatform.GatewaysClient
-	GatewayCustomDomainClient   *appplatform.GatewayCustomDomainsClient
-	GatewayRouteConfigClient    *appplatform.GatewayRouteConfigsClient
-	MonitoringSettingsClient    *appplatform.MonitoringSettingsClient
-	DeploymentsClient           *appplatform.DeploymentsClient
-	ServicesClient              *appplatform.ServicesClient
-	ServiceRegistryClient       *appplatform.ServiceRegistriesClient
-	StoragesClient              *appplatform.StoragesClient
+	APIPortalClient              *appplatform.APIPortalsClient
+	APIPortalCustomDomainClient  *appplatform.APIPortalCustomDomainsClient
+	ApplicationAcceleratorClient *appplatform.ApplicationAcceleratorsClient
+	ApplicationLiveViewsClient   *appplatform.ApplicationLiveViewsClient
+	AppsClient                   *appplatform.AppsClient
+	BindingsClient               *appplatform.BindingsClient
+	BuildPackBindingClient       *appplatform.BuildpackBindingClient
+	BuildServiceAgentPoolClient  *appplatform.BuildServiceAgentPoolClient
+	BuildServiceBuilderClient    *appplatform.BuildServiceBuilderClient
+	CertificatesClient           *appplatform.CertificatesClient
+	ConfigServersClient          *appplatform.ConfigServersClient
+	ConfigurationServiceClient   *appplatform.ConfigurationServicesClient
+	CustomDomainsClient          *appplatform.CustomDomainsClient
+	CustomizedAcceleratorClient  *appplatform.CustomizedAcceleratorsClient
+	DevToolPortalClient          *appplatform.DevToolPortalsClient
+	GatewayClient                *appplatform.GatewaysClient
+	GatewayCustomDomainClient    *appplatform.GatewayCustomDomainsClient
+	GatewayRouteConfigClient     *appplatform.GatewayRouteConfigsClient
+	MonitoringSettingsClient     *appplatform.MonitoringSettingsClient
+	DeploymentsClient            *appplatform.DeploymentsClient
+	ServicesClient               *appplatform.ServicesClient
+	ServiceRegistryClient        *appplatform.ServiceRegistriesClient
+	StoragesClient               *appplatform.StoragesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -33,6 +37,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	apiPortalCustomDomainClient := appplatform.NewAPIPortalCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiPortalCustomDomainClient.Client, o.ResourceManagerAuthorizer)
+
+	applicationAcceleratorClient := appplatform.NewApplicationAcceleratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&applicationAcceleratorClient.Client, o.ResourceManagerAuthorizer)
+
+	applicationLiveViewsClient := appplatform.NewApplicationLiveViewsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&applicationLiveViewsClient.Client, o.ResourceManagerAuthorizer)
 
 	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
@@ -61,8 +71,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	customDomainsClient := appplatform.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customDomainsClient.Client, o.ResourceManagerAuthorizer)
 
+	customizedAcceleratorClient := appplatform.NewCustomizedAcceleratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&customizedAcceleratorClient.Client, o.ResourceManagerAuthorizer)
+
 	deploymentsClient := appplatform.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
+
+	devToolPortalClient := appplatform.NewDevToolPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&devToolPortalClient.Client, o.ResourceManagerAuthorizer)
 
 	gatewayClient := appplatform.NewGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
@@ -86,24 +102,28 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&storageClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		APIPortalClient:             &apiPortalClient,
-		APIPortalCustomDomainClient: &apiPortalCustomDomainClient,
-		AppsClient:                  &appsClient,
-		BindingsClient:              &bindingsClient,
-		BuildPackBindingClient:      &buildpackBindingClient,
-		BuildServiceAgentPoolClient: &buildServiceAgentPoolClient,
-		BuildServiceBuilderClient:   &buildServiceBuilderClient,
-		CertificatesClient:          &certificatesClient,
-		ConfigServersClient:         &configServersClient,
-		ConfigurationServiceClient:  &configurationServiceClient,
-		CustomDomainsClient:         &customDomainsClient,
-		DeploymentsClient:           &deploymentsClient,
-		GatewayClient:               &gatewayClient,
-		GatewayCustomDomainClient:   &gatewayCustomDomainClient,
-		GatewayRouteConfigClient:    &gatewayRouteConfigClient,
-		MonitoringSettingsClient:    &monitoringSettingsClient,
-		ServicesClient:              &servicesClient,
-		ServiceRegistryClient:       &serviceRegistryClient,
-		StoragesClient:              &storageClient,
+		APIPortalClient:              &apiPortalClient,
+		APIPortalCustomDomainClient:  &apiPortalCustomDomainClient,
+		ApplicationAcceleratorClient: &applicationAcceleratorClient,
+		ApplicationLiveViewsClient:   &applicationLiveViewsClient,
+		AppsClient:                   &appsClient,
+		BindingsClient:               &bindingsClient,
+		BuildPackBindingClient:       &buildpackBindingClient,
+		BuildServiceAgentPoolClient:  &buildServiceAgentPoolClient,
+		BuildServiceBuilderClient:    &buildServiceBuilderClient,
+		CertificatesClient:           &certificatesClient,
+		ConfigServersClient:          &configServersClient,
+		ConfigurationServiceClient:   &configurationServiceClient,
+		CustomDomainsClient:          &customDomainsClient,
+		CustomizedAcceleratorClient:  &customizedAcceleratorClient,
+		DeploymentsClient:            &deploymentsClient,
+		DevToolPortalClient:          &devToolPortalClient,
+		GatewayClient:                &gatewayClient,
+		GatewayCustomDomainClient:    &gatewayCustomDomainClient,
+		GatewayRouteConfigClient:     &gatewayRouteConfigClient,
+		MonitoringSettingsClient:     &monitoringSettingsClient,
+		ServicesClient:               &servicesClient,
+		ServiceRegistryClient:        &serviceRegistryClient,
+		StoragesClient:               &storageClient,
 	}
 }

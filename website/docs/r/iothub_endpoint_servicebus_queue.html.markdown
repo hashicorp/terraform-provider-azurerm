@@ -71,7 +71,7 @@ resource "azurerm_iothub_endpoint_servicebus_queue" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
+* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group under which the Service Bus Queue has been created. Changing this forces a new resource to be created.
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
 
-* `iothub_id` - (Required) The IoTHub ID for the endpoint.
+* `iothub_id` - (Required) The IoTHub ID for the endpoint. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -107,7 +107,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 ## Import
 
 IoTHub ServiceBus Queue Endpoint can be imported using the `resource id`, e.g.
-
+g
 ```shell
-terraform import azurerm_iothub_endpoint_servicebus_queue.servicebus_queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/servicebusqueue_endpoint1
+terraform import azurerm_iothub_endpoint_servicebus_queue.servicebus_queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/endpoints/servicebusqueue_endpoint1
 ```

@@ -782,7 +782,7 @@ func TestAccLinuxWebAppSlot_withNode16LTS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "16-lts"),
+			Config: r.node(data, "18-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

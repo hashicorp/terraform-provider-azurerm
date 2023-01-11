@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 )
 
@@ -141,8 +141,6 @@ func CdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (_ []stri
 		if len(v) > 2048 {
 			return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q cannot be longer than 2048 characters in length, got %d", k, len(v))}
 		}
-	} else {
-		return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q must not be empty, got %q", k, v)}
 	}
 
 	return nil, nil
