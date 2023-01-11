@@ -199,8 +199,8 @@ func TestAccAzureRMPolicySetDefinition_customWithGroupsInDefinitionReferenceUpda
 			),
 		},
 		data.ImportStep(),
-		// test if group_names were correctly added
 		{
+			// test if group_names were correctly added
 			Config: r.customWithDefinitionGroupsUsedInPolicyReference(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
