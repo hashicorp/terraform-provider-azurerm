@@ -38,7 +38,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(120 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -210,9 +210,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			if response.WasNotFound(resp.HttpResponse) {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
 			}
-			if response.WasNotFound(resp.HttpResponse) {
-				return pluginsdk.RetryableError(fmt.Errorf("updating Recovery Service Storage Cfg %s: %+v", id.String(), err))
-			}
 
 			return pluginsdk.NonRetryableError(err)
 		}
@@ -231,7 +228,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			if resp.Model.Properties == nil {
 				return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
 			}
-			if resp.Model.Properties.StorageType != storageCfg.Properties.StorageModelType {
+			if *resp.Model.Properties.StorageType != *storageCfg.Properties.StorageModelType {
 				return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
 			}
 			if *resp.Model.Properties.CrossRegionRestoreFlag != *storageCfg.Properties.CrossRegionRestoreFlag {
@@ -402,7 +399,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 				if resp.Model.Properties == nil {
 					return pluginsdk.NonRetryableError(fmt.Errorf("updating %s Storage Config: `properties` was nil", id))
 				}
-				if resp.Model.Properties.StorageType != storageCfg.Properties.StorageModelType {
+				if *resp.Model.Properties.StorageType != *storageCfg.Properties.StorageModelType {
 					return pluginsdk.RetryableError(fmt.Errorf("updating Storage Config: %+v", err))
 				}
 				if *resp.Model.Properties.CrossRegionRestoreFlag != *storageCfg.Properties.CrossRegionRestoreFlag {
