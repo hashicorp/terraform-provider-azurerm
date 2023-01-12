@@ -153,13 +153,41 @@ func TestAccMonitorDiagnosticSetting_activityLog(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDiagnosticSetting_enabledLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enabledLogs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enabledLogsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enabledLogs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
+			),
+		},
+	})
+}
+
 func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitor.ParseMonitorDiagnosticId(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	// actualResourceId := id.ResourceUri
-	// targetResourceId := strings.TrimPrefix(actualResourceId, "/")
 
 	resp, err := clients.Monitor.DiagnosticSettingsClient.Get(ctx, *id)
 	if err != nil {
@@ -227,6 +255,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -331,6 +360,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -352,6 +382,7 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -360,6 +391,7 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -408,6 +440,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -426,6 +459,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -559,6 +593,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -607,6 +642,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -625,6 +661,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -673,6 +710,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     enabled  = false
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -691,6 +729,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
 
     retention_policy {
+      days    = 0
       enabled = false
     }
   }
@@ -770,6 +809,165 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "ServiceHealth"
     enabled  = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) enabledLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "example"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+  log_analytics_destination_type = "AzureDiagnostics"
+
+  enabled_log {
+    category = "AuditEvent"
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  enabled_log {
+    category = "AzurePolicyEvaluationDetails"
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+      days    = 7
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) enabledLogsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "example"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+  log_analytics_destination_type = "AzureDiagnostics"
+
+  enabled_log {
+    category = "AuditEvent"
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+      days    = 7
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))

@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -302,6 +303,13 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			if *currentStack == helpers.CurrentStackNode {
+				if webApp.AppSettings == nil {
+					webApp.AppSettings = make(map[string]string, 0)
+				}
+				webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = webApp.SiteConfig[0].ApplicationStack[0].NodeVersion
+			}
+
 			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -356,6 +364,10 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
+			}
+
 			if appSettings != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
@@ -389,7 +401,11 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(webApp.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(webApp.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
+			}
+
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
@@ -539,7 +555,10 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			if err != nil {
+				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
+			}
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -557,7 +576,17 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			state.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
+				if state.SiteConfig[0].ApplicationStack == nil {
+					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
+				}
+				state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
+				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
+			}
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -729,8 +758,9 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
+			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
 				}
@@ -778,7 +808,11 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Windows %s: %+v", *id, err)
+				}
+
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)

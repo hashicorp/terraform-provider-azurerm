@@ -157,7 +157,7 @@ redis_configuration {
 }
 ```
 
-## Default Redis Configuration Values
+### Default Redis Configuration Values
 
 | Redis Value                     | Basic        | Standard     | Premium      |
 | ------------------------------- | ------------ | ------------ | ------------ |
