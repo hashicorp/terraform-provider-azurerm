@@ -19,12 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceMachineLearningDataStore() *pluginsdk.Resource {
+func resourceMachineLearningDataStoreBlobStorage() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceMachineLearningDataStoreCreate,
-		Read:   resourceMachineLearningDataStoreRead,
-		Update: resourceMachineLearningDataStoreUpdate,
-		Delete: resourceMachineLearningDataStoreDelete,
+		Create: resourceMachineLearningDataStoreBlobStorageCreate,
+		Read:   resourceMachineLearningDataStoreBlobStorageRead,
+		Update: resourceMachineLearningDataStoreBlobStorageUpdate,
+		Delete: resourceMachineLearningDataStoreBlobStorageDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := datastore.ParseDataStoreID(id)
@@ -106,7 +106,7 @@ func resourceMachineLearningDataStore() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceMachineLearningDataStoreCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningDataStoreBlobStorageCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.DatastoreClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -178,10 +178,10 @@ func resourceMachineLearningDataStoreCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
-	return resourceMachineLearningDataStoreRead(d, meta)
+	return resourceMachineLearningDataStoreBlobStorageRead(d, meta)
 }
 
-func resourceMachineLearningDataStoreUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningDataStoreBlobStorageUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.DatastoreClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -242,10 +242,10 @@ func resourceMachineLearningDataStoreUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
-	return resourceMachineLearningDataStoreRead(d, meta)
+	return resourceMachineLearningDataStoreBlobStorageRead(d, meta)
 }
 
-func resourceMachineLearningDataStoreRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningDataStoreBlobStorageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.DatastoreClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -289,7 +289,7 @@ func resourceMachineLearningDataStoreRead(d *pluginsdk.ResourceData, meta interf
 	return flattenAndSetTags(d, *data.Tags)
 }
 
-func resourceMachineLearningDataStoreDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningDataStoreBlobStorageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.DatastoreClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
