@@ -80,7 +80,7 @@ A `recurrence_pattern` block supports the following:
 
 * `expiration_date` - (Required) When the recurrence will expire in RFC-3339 format.
 
-* `frequency` - (Optional) The frequency of the recurrence. Possible values are `Daily` and `Weekly`. Defaults to `Daily`.
+* `frequency` - (Required) The frequency of the recurrence. Possible values are `Daily` and `Weekly`.
 
 * `interval` - (Optional) The interval to invoke the schedule on. Possible values are between `1` and `365`.
 

@@ -3,6 +3,7 @@ package labservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -99,8 +100,7 @@ func (r LabServiceScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"frequency": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(schedule.RecurrenceFrequencyDaily),
+						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(schedule.RecurrenceFrequencyDaily),
 							string(schedule.RecurrenceFrequencyWeekly),
@@ -116,15 +116,18 @@ func (r LabServiceScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 					"week_days": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(schedule.WeekDaySunday),
-							string(schedule.WeekDayMonday),
-							string(schedule.WeekDayTuesday),
-							string(schedule.WeekDayWednesday),
-							string(schedule.WeekDayThursday),
-							string(schedule.WeekDayFriday),
-							string(schedule.WeekDaySaturday),
-						}, false),
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(schedule.WeekDaySunday),
+								string(schedule.WeekDayMonday),
+								string(schedule.WeekDayTuesday),
+								string(schedule.WeekDayWednesday),
+								string(schedule.WeekDayThursday),
+								string(schedule.WeekDayFriday),
+								string(schedule.WeekDaySaturday),
+							}, false),
+						},
 					},
 				},
 			},
@@ -331,10 +334,15 @@ func expandRecurrencePattern(input []RecurrencePattern) *schedule.RecurrencePatt
 	result := schedule.RecurrencePattern{
 		ExpirationDate: recurrencePattern.ExpirationDate,
 		Frequency:      recurrencePattern.Frequency,
-		Interval:       &recurrencePattern.Interval,
 	}
 
-	result.WeekDays = &recurrencePattern.WeekDays
+	if recurrencePattern.Interval != 0 {
+		result.Interval = utils.Int64(recurrencePattern.Interval)
+	}
+
+	if recurrencePattern.WeekDays != nil {
+		result.WeekDays = &recurrencePattern.WeekDays
+	}
 
 	return &result
 }
@@ -354,7 +362,9 @@ func flattenRecurrencePattern(input *schedule.RecurrencePattern) []RecurrencePat
 		recurrencePattern.Interval = *input.Interval
 	}
 
-	recurrencePattern.WeekDays = *input.WeekDays
+	if input.WeekDays != nil {
+		recurrencePattern.WeekDays = *input.WeekDays
+	}
 
 	return append(recurrencePatterns, recurrencePattern)
 }
