@@ -45,6 +45,7 @@ FEATURES:
 * **New Resource:** `azurerm_network_manager_management_group_connection` [GH-19621]
 * **New Resource:** `azurerm_media_services_account_filter` [GH-19964]
 * **New Resource:** `azurerm_private_endpoint_application_security_group_association` [GH-19825]
+* **New Resource:** `azurerm_sentinel_data_connector_threat_intelligence_taxii` [GH-19209]
 * **New Resource:** `azurerm_storage_account_local_user` [GH-19592]
 
 ENHANCEMENTS:
