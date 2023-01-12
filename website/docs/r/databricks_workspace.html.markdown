@@ -50,7 +50,7 @@ The following arguments are supported:
 
 ~> **NOTE** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
-* `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts). Changing this forces a new resource to be created.
+* `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 
 * `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed disks. Changing this forces a new resource to be created.
 
@@ -64,9 +64,9 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Is the Databricks File System root file system enabled with a secondary layer of encryption with platform managed keys? Possible values are `true` or `false`. Defaults to `false`. This field is only valid if the Databricks Workspace `sku` is set to `premium`. Changing this forces a new resource to be created.
 
-* `public_network_access_enabled` - (Optional) Allow public access for accessing workspace. Set value to `false` to access workspace only via private link endpoint. Possible values include `true` or `false`. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Allow public access for accessing workspace. Set value to `false` to access workspace only via private link endpoint. Possible values include `true` or `false`. Defaults to `true`.
 
-* `network_security_group_rules_required` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`. Changing this forces a new resource to be created.
+* `network_security_group_rules_required` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
@@ -116,6 +116,8 @@ A `custom_parameters` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Databricks Workspace in the Azure management plane.
+
+* `disk_encryption_set_id` - The ID of Managed Disk Encryption Set created by the Databricks Workspace.
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
 

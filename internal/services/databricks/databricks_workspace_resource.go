@@ -87,7 +87,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"managed_services_cmk_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
 
@@ -113,7 +112,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
 				Optional: true,
 				Default:  true,
 			},
@@ -121,7 +119,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"network_security_group_rules_required": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.RequiredNsgRulesAllRules),
@@ -255,6 +252,11 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"disk_encryption_set_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"storage_account_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -290,6 +292,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			_, requireNsgRules := d.GetChange("network_security_group_rules_required")
 			_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
 			_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
+			_, managedDiskCMK := d.GetChange("managed_disk_cmk_key_vault_key_id")
 
 			oldSku, newSku := d.GetChange("sku")
 
@@ -315,7 +318,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
+			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
 				return fmt.Errorf("'customer_managed_key_enabled', 'infrastructure_encryption_enabled' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
 			}
 
@@ -447,7 +450,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	diskKeyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
+	diskKeyIdRaw := d.Get("managed_disk_cmk_key_vault_key_id").(string)
 	if diskKeyIdRaw != "" {
 		setEncrypt = true
 		key, err := keyVaultParse.ParseNestedItemID(diskKeyIdRaw)
@@ -495,10 +498,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if requireNsgRules != "" {
 		requiredNsgRulesConst := workspaces.RequiredNsgRules(requireNsgRules)
 		workspace.Properties.RequiredNsgRules = &requiredNsgRulesConst
-	}
-
-	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if setEncrypt {

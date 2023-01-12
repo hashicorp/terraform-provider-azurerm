@@ -1275,13 +1275,6 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.databricks]
-
-  workspace_id     = azurerm_databricks_workspace.test.id
-  key_vault_key_id = azurerm_key_vault_key.test.id
-}
-
 resource "azurerm_key_vault" "test" {
   name                = "acctest-kv-%[3]s"
   location            = azurerm_resource_group.test.location
@@ -1340,6 +1333,9 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+	"List",
+	"Encrypt",
+	"Decrypt",
     "UnwrapKey",
     "WrapKey",
   ]
