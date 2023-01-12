@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Private DNS Resolver Inbound Endpoint exists.
 
-* `tags` - Mapping of tags assigned to the Private DNS Resolver Inbound Endpoint.
+* `tags` - The tags assigned to the Private DNS Resolver Inbound Endpoint.
 
 ---
 
@@ -53,4 +53,4 @@ An `ip_configurations` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS SRV Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS Resolver Inbound Endpoint.
