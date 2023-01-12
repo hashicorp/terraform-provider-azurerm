@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -642,7 +641,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	if existing != nil {
 		expanded = existing
 		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
-		expanded.WindowsFxVersion = utils.String("")
+		expanded.LinuxFxVersion = utils.String("")
 	}
 
 	appSettings := make([]web.NameValuePair, 0)
@@ -716,39 +715,68 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.AppCommandLine = utils.String(windowsSlotSiteConfig.AppCommandLine)
 	}
 
-	if len(windowsSlotSiteConfig.ApplicationStack) > 0 {
-		windowsAppStack := windowsSlotSiteConfig.ApplicationStack[0]
-		if windowsAppStack.DotNetVersion != "" {
-			if windowsAppStack.DotNetIsolated {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
-			} else {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(windowsSlotSiteConfig.ApplicationStack) > 0 {
+		if len(windowsSlotSiteConfig.ApplicationStack) > 0 {
+			windowsAppStack := windowsSlotSiteConfig.ApplicationStack[0]
+			if windowsAppStack.DotNetVersion != "" {
+				if windowsAppStack.DotNetIsolated {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet-isolated"),
+					})
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion))
+
+				} else {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet"),
+					})
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion))
+				}
 			}
-			expanded.NetFrameworkVersion = pointer.To(windowsAppStack.DotNetVersion)
-		}
 
-		if windowsAppStack.NodeVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", windowsAppStack.NodeVersion, false)
-		}
+			if windowsAppStack.NodeVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("node"),
+				})
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
+					Value: utils.String(windowsAppStack.NodeVersion),
+				})
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion))
+			}
 
-		if windowsAppStack.JavaVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
-			expanded.JavaVersion = pointer.To(windowsAppStack.JavaVersion)
-		}
+			if windowsAppStack.JavaVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("java"),
+				})
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion))
+			}
 
-		if windowsAppStack.PowerShellCoreVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
-			expanded.PowerShellVersion = pointer.To(strings.TrimPrefix(windowsAppStack.PowerShellCoreVersion, "~"))
-		}
+			if windowsAppStack.PowerShellCoreVersion != "" {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("powershell"),
+				})
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion))
+			}
 
-		if windowsAppStack.CustomHandler {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
-			expanded.WindowsFxVersion = utils.String("") // Custom needs an explicit empty string here
+			if windowsAppStack.CustomHandler {
+				appSettings = append(appSettings, web.NameValuePair{
+					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+					Value: utils.String("custom"),
+				})
+				expanded.WindowsFxVersion = utils.String("") // Custom needs an explicit empty string here
+			}
+		} else {
+			appSettings = append(appSettings, web.NameValuePair{
+				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+				Value: utils.String(""),
+			})
+			expanded.WindowsFxVersion = utils.String("")
 		}
-	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
-		expanded.WindowsFxVersion = utils.String("")
 	}
 
 	expanded.VnetRouteAllEnabled = utils.Bool(windowsSlotSiteConfig.VnetRouteAllEnabled)
@@ -888,41 +916,27 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 	}
 
 	if functionAppSlotSiteConfig.Cors != nil {
-		corsEmpty := false
 		corsSettings := functionAppSlotSiteConfig.Cors
 		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
+			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
-		if !corsEmpty {
-			result.Cors = []CorsSetting{cors}
-		}
+		result.Cors = []CorsSetting{cors}
 	}
 
-	powershellVersion := ""
-	if p := functionAppSlotSiteConfig.PowerShellVersion; p != nil {
-		powershellVersion = *p
-		if powershellVersion == "~7" {
-			powershellVersion = "7"
+	var appStack []ApplicationStackWindowsFunctionApp
+	if functionAppSlotSiteConfig.WindowsFxVersion != nil {
+		decoded, err := DecodeFunctionAppWindowsFxVersion(*functionAppSlotSiteConfig.WindowsFxVersion)
+		if err != nil {
+			return nil, fmt.Errorf("flattening site config: %s", err)
 		}
+		appStack = decoded
 	}
-
-	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
-		DotNetVersion:         pointer.From(functionAppSlotSiteConfig.NetFrameworkVersion),
-		DotNetIsolated:        false, // Note: this is set later from app_settings.FUNCTIONS_WORKER_RUNTIME in unpackWindowsFunctionAppSettings
-		NodeVersion:           "",    // Note: this will be set from app_settings later in unpackWindowsFunctionAppSettings
-		JavaVersion:           pointer.From(functionAppSlotSiteConfig.JavaVersion),
-		PowerShellCoreVersion: powershellVersion,
-		CustomHandler:         false, // Note: this is set later from app_settings
-	}}
+	result.ApplicationStack = appStack
 
 	return result, nil
 }
@@ -1088,6 +1102,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 			})
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
 		}
+
 	} else {
 		appSettings = append(appSettings, web.NameValuePair{
 			Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
@@ -1242,22 +1257,15 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 
 	if functionAppSlotSiteConfig.Cors != nil {
 		corsSettings := functionAppSlotSiteConfig.Cors
-		corsEmpty := false
 		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
 
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
+		if corsSettings.AllowedOrigins != nil && len(*corsSettings.AllowedOrigins) != 0 {
+			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
-		if !corsEmpty {
-			result.Cors = []CorsSetting{cors}
-		}
+		result.Cors = []CorsSetting{cors}
 	}
 
 	var appStack []ApplicationStackLinuxFunctionApp

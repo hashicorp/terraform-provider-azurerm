@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,15 +23,9 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputServiceBusTopicRead,
 		Update: resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputServiceBusTopicDelete,
-
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := outputs.ParseOutputID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.OutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.ServiceBusTopicOutputDataSource{})),
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsOutputServiceBusTopicV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -106,10 +100,10 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(outputs.AuthenticationModeConnectionString),
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(outputs.AuthenticationModeMsi),
-					string(outputs.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+					string(streamanalytics.AuthenticationModeConnectionString),
 				}, false),
 			},
 		},
@@ -123,17 +117,17 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Topic creation.")
-	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_topic", id.ID())
 		}
 	}
@@ -144,33 +138,30 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	systemPropertyColumns := d.Get("system_property_columns").(map[string]interface{})
-	props := outputs.Output{
-		Name: utils.String(id.OutputName),
-		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.ServiceBusTopicOutputDataSource{
-				Properties: &outputs.ServiceBusTopicOutputDataSourceProperties{
+	props := streamanalytics.Output{
+		Name: utils.String(id.Name),
+		OutputProperties: &streamanalytics.OutputProperties{
+			Datasource: &streamanalytics.ServiceBusTopicOutputDataSource{
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftServiceBusTopic,
+				ServiceBusTopicOutputDataSourceProperties: &streamanalytics.ServiceBusTopicOutputDataSourceProperties{
 					TopicName:              utils.String(d.Get("topic_name").(string)),
 					ServiceBusNamespace:    utils.String(d.Get("servicebus_namespace").(string)),
 					SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
-					SystemPropertyColumns:  expandSystemPropertyColumns(systemPropertyColumns),
-					//SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
-					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
+					AuthenticationMode:     streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
 		},
 	}
 
-	var createOpts outputs.CreateOrReplaceOperationOptions
-	var updateOpts outputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -184,14 +175,14 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := outputs.ParseOutputID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -200,56 +191,31 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.OutputName)
-	d.Set("stream_analytics_job_name", id.JobName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.ServiceBusTopicOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a ServiceBus Topic Output", *id)
-			}
+	if props := resp.OutputProperties; props != nil {
+		v, ok := props.Datasource.AsServiceBusTopicOutputDataSource()
+		if !ok {
+			return fmt.Errorf("converting Output Data Source to a ServiceBus Topic Output: %+v", err)
+		}
 
-			topicName := ""
-			if v := output.Properties.TopicName; v != nil {
-				topicName = *v
-			}
-			d.Set("topic_name", topicName)
+		d.Set("topic_name", v.TopicName)
+		d.Set("servicebus_namespace", v.ServiceBusNamespace)
+		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
+		d.Set("property_columns", v.PropertyColumns)
+		d.Set("authentication_mode", v.AuthenticationMode)
 
-			namespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				namespace = *v
-			}
-			d.Set("servicebus_namespace", namespace)
+		if err = d.Set("system_property_columns", utils.FlattenMapStringPtrString(v.SystemPropertyColumns)); err != nil {
+			return err
+		}
 
-			accessPolicy := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				accessPolicy = *v
-			}
-			d.Set("shared_access_policy_name", accessPolicy)
-
-			var propertyColumns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				propertyColumns = *v
-			}
-			d.Set("property_columns", propertyColumns)
-
-			authMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authMode = string(*v)
-			}
-			d.Set("authentication_mode", authMode)
-
-			if err = d.Set("system_property_columns", output.Properties.SystemPropertyColumns); err != nil {
-				return err
-			}
-
-			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
-				return fmt.Errorf("setting `serialization`: %+v", err)
-			}
+		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
+
 	return nil
 }
 
@@ -258,24 +224,16 @@ func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := outputs.ParseOutputID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
 	return nil
-}
-
-func expandSystemPropertyColumns(input map[string]interface{}) *map[string]string {
-	output := make(map[string]string)
-	for k, v := range input {
-		output[k] = v.(string)
-	}
-	return &output
 }

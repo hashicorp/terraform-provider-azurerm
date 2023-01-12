@@ -5,16 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveevents"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -36,14 +34,9 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := liveevents.ParseLiveEventID(id)
+			_, err := parse.LiveEventID(id)
 			return err
 		}),
-
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.LiveEventV0ToV1{},
-		}),
-		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -149,8 +142,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(liveevents.LiveEventInputProtocolRTMP),
-								string(liveevents.LiveEventInputProtocolFragmentedMPFour),
+								string(media.LiveEventInputProtocolRTMP),
+								string(media.LiveEventInputProtocolFragmentedMP4),
 							}, false),
 							AtLeastOneOf: []string{
 								"input.0.ip_access_control_allow", "input.0.access_token",
@@ -201,11 +194,11 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(liveevents.LiveEventEncodingTypeNone),
-								string(liveevents.LiveEventEncodingTypePremiumOneZeroEightZerop),
-								string(liveevents.LiveEventEncodingTypeStandard),
+								string(media.LiveEventEncodingTypeNone),
+								string(media.LiveEventEncodingTypePremium1080p),
+								string(media.LiveEventEncodingTypeStandard),
 							}, false),
-							Default: string(liveevents.LiveEventEncodingTypeNone),
+							Default: string(media.LiveEventEncodingTypeNone),
 						},
 
 						"key_frame_interval": {
@@ -226,11 +219,11 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(liveevents.StretchModeAutoFit),
-								string(liveevents.StretchModeAutoSize),
-								string(liveevents.StretchModeNone),
+								string(media.StretchModeAutoFit),
+								string(media.StretchModeAutoSize),
+								string(media.StretchModeNone),
 							}, false),
-							Default: string(liveevents.StretchModeNone),
+							Default: string(media.StretchModeNone),
 						},
 					},
 				},
@@ -347,37 +340,38 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
+	client := meta.(*clients.Client).Media.LiveEventsClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := liveevents.NewLiveEventID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	resourceID := parse.NewLiveEventID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceID, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_media_live_event", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_media_live_event", resourceID.ID())
 		}
 	}
 
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	payload := liveevents.LiveEvent{
-		Properties: &liveevents.LiveEventProperties{},
-		Location:   location.Normalize(d.Get("location").(string)),
-		Tags:       tags.Expand(t),
+	parameters := media.LiveEvent{
+		LiveEventProperties: &media.LiveEventProperties{},
+		Location:            utils.String(location),
+		Tags:                tags.Expand(t),
 	}
 
 	autoStart := utils.Bool(false)
@@ -386,69 +380,75 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if input, ok := d.GetOk("input"); ok {
-		payload.Properties.Input = expandLiveEventInput(input.([]interface{}))
+		parameters.LiveEventProperties.Input = expandLiveEventInput(input.([]interface{}))
 	}
 
 	if crossSitePolicies, ok := d.GetOk("cross_site_access_policy"); ok {
-		payload.Properties.CrossSiteAccessPolicies = expandLiveEventCrossSiteAccessPolicies(crossSitePolicies.([]interface{}))
+		parameters.LiveEventProperties.CrossSiteAccessPolicies = expandCrossSiteAccessPolicies(crossSitePolicies.([]interface{}))
 	}
 
 	if description, ok := d.GetOk("description"); ok {
-		payload.Properties.Description = utils.String(description.(string))
+		parameters.LiveEventProperties.Description = utils.String(description.(string))
 	}
 
 	if encoding, ok := d.GetOk("encoding"); ok {
-		payload.Properties.Encoding = expandEncoding(encoding.([]interface{}))
+		parameters.LiveEventProperties.Encoding = expandEncoding(encoding.([]interface{}))
 	}
 
 	if hostNamePrefix, ok := d.GetOk("hostname_prefix"); ok {
-		payload.Properties.HostnamePrefix = utils.String(hostNamePrefix.(string))
+		parameters.LiveEventProperties.HostnamePrefix = utils.String(hostNamePrefix.(string))
 	}
 
 	if preview, ok := d.GetOk("preview"); ok {
-		payload.Properties.Preview = expandPreview(preview.([]interface{}))
+		parameters.LiveEventProperties.Preview = expandPreview(preview.([]interface{}))
 	}
 
 	if transcriptionLanguages, ok := d.GetOk("transcription_languages"); ok {
-		payload.Properties.Transcriptions = expandTranscriptions(transcriptionLanguages.([]interface{}))
+		parameters.LiveEventProperties.Transcriptions = expandTranscriptions(transcriptionLanguages.([]interface{}))
 	}
 
 	if useStaticHostName, ok := d.GetOk("use_static_hostname"); ok {
-		payload.Properties.UseStaticHostname = utils.Bool(useStaticHostName.(bool))
+		parameters.LiveEventProperties.UseStaticHostname = utils.Bool(useStaticHostName.(bool))
 	}
 
 	if d.IsNewResource() {
-		options := liveevents.CreateOperationOptions{
-			AutoStart: autoStart,
+		future, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters, autoStart)
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", resourceID, err)
 		}
-		if err := client.CreateThenPoll(ctx, id, payload, options); err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation %s: %+v", resourceID, err)
 		}
 	} else {
-		// TODO: split this into a separate update method
-		if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
+		future, err := client.Update(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", resourceID, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for %s to update: %+v", resourceID, err)
 		}
 	}
 
-	d.SetId(id.ID())
+	d.SetId(resourceID.ID())
 
 	return resourceMediaLiveEventRead(d, meta)
 }
 
 func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
+	client := meta.(*clients.Client).Media.LiveEventsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := liveevents.ParseLiveEventID(d.Id())
+	id, err := parse.LiveEventID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -457,96 +457,105 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.LiveEventName)
-	d.Set("media_services_account_name", id.AccountName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("media_services_account_name", id.MediaserviceName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
 
-		if props := model.Properties; props != nil {
-			input := flattenLiveEventInput(props.Input)
-			if err := d.Set("input", input); err != nil {
-				return fmt.Errorf("flattening `input`: %s", err)
-			}
-
-			crossSiteAccessPolicies := flattenLiveEventCrossSiteAccessPolicies(props.CrossSiteAccessPolicies)
-			if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
-				return fmt.Errorf("flattening `cross_site_access_policy`: %s", err)
-			}
-
-			encoding := flattenEncoding(props.Encoding)
-			if err := d.Set("encoding", encoding); err != nil {
-				return fmt.Errorf("flattening `encoding`: %s", err)
-			}
-
-			d.Set("description", props.Description)
-			d.Set("hostname_prefix", props.HostnamePrefix)
-
-			preview := flattenPreview(props.Preview)
-			if err := d.Set("preview", preview); err != nil {
-				return fmt.Errorf("flattening `preview`: %s", err)
-			}
-
-			transcriptions := flattenTranscriptions(props.Transcriptions)
-			if err := d.Set("transcription_languages", transcriptions); err != nil {
-				return fmt.Errorf("flattening `transcription_languages`: %s", err)
-			}
-
-			useStaticHostName := false
-			if props.UseStaticHostname != nil {
-				useStaticHostName = *props.UseStaticHostname
-			}
-			d.Set("use_static_hostname", useStaticHostName)
+	if props := resp.LiveEventProperties; props != nil {
+		input := flattenLiveEventInput(props.Input)
+		if err := d.Set("input", input); err != nil {
+			return fmt.Errorf("flattening `input`: %s", err)
 		}
+
+		crossSiteAccessPolicies := flattenLiveEventCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
+		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
+			return fmt.Errorf("flattening `cross_site_access_policy`: %s", err)
+		}
+
+		encoding := flattenEncoding(resp.Encoding)
+		if err := d.Set("encoding", encoding); err != nil {
+			return fmt.Errorf("flattening `encoding`: %s", err)
+		}
+
+		d.Set("description", props.Description)
+		d.Set("hostname_prefix", props.HostnamePrefix)
+
+		preview := flattenPreview(resp.Preview)
+		if err := d.Set("preview", preview); err != nil {
+			return fmt.Errorf("flattening `preview`: %s", err)
+		}
+
+		transcriptions := flattenTranscriptions(resp.Transcriptions)
+		if err := d.Set("transcription_languages", transcriptions); err != nil {
+			return fmt.Errorf("flattening `transcription_languages`: %s", err)
+		}
+
+		useStaticHostName := false
+		if props.UseStaticHostname != nil {
+			useStaticHostName = *props.UseStaticHostname
+		}
+		d.Set("use_static_hostname", useStaticHostName)
 	}
 
 	return nil
 }
 
 func resourceMediaLiveEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
+	client := meta.(*clients.Client).Media.LiveEventsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := liveevents.ParseLiveEventID(d.Id())
+	id, err := parse.LiveEventID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Stop Live Event before we attempt to delete it.
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			if props.ResourceState != nil && *props.ResourceState == liveevents.LiveEventResourceStateRunning {
-				payload := liveevents.LiveEventActionInput{
-					RemoveOutputsOnStop: utils.Bool(false),
-				}
-				if err := client.StopThenPoll(ctx, *id, payload); err != nil {
-					return fmt.Errorf("stopping %s: %+v", *id, err)
-				}
+	if props := resp.LiveEventProperties; props != nil {
+		if props.ResourceState == media.LiveEventResourceStateRunning {
+			stopFuture, err := client.Stop(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, media.LiveEventActionInput{RemoveOutputsOnStop: utils.Bool(false)})
+			if err != nil {
+				return fmt.Errorf("stopping %s: %+v", id, err)
+			}
+
+			if err = stopFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for %s to stop: %+v", id, err)
 			}
 		}
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for %s to delete: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandLiveEventInput(input []interface{}) liveevents.LiveEventInput {
+func expandLiveEventInput(input []interface{}) *media.LiveEventInput {
+	if len(input) == 0 {
+		return nil
+	}
+
 	liveInput := input[0].(map[string]interface{})
 
-	var inputAccessControl *liveevents.LiveEventInputAccessControl
+	var inputAccessControl *media.LiveEventInputAccessControl
 	if v := liveInput["ip_access_control_allow"]; v != nil {
 		ipRanges := expandIPRanges(v.([]interface{}))
-		inputAccessControl = &liveevents.LiveEventInputAccessControl{
-			IP: &liveevents.IPAccessControl{
+		inputAccessControl = &media.LiveEventInputAccessControl{
+			IP: &media.IPAccessControl{
 				Allow: &ipRanges,
 			},
 		}
@@ -567,20 +576,20 @@ func expandLiveEventInput(input []interface{}) liveevents.LiveEventInput {
 		streamingProtocol = v.(string)
 	}
 
-	return liveevents.LiveEventInput{
+	return &media.LiveEventInput{
 		AccessControl:            inputAccessControl,
 		AccessToken:              utils.String(accessToken),
 		KeyFrameIntervalDuration: utils.String(keyFrameInterval),
-		StreamingProtocol:        liveevents.LiveEventInputProtocol(streamingProtocol),
+		StreamingProtocol:        media.LiveEventInputProtocol(streamingProtocol),
 	}
 }
 
-func expandIPRanges(input []interface{}) []liveevents.IPRange {
+func expandIPRanges(input []interface{}) []media.IPRange {
 	if len(input) == 0 {
 		return nil
 	}
 
-	ipRanges := make([]liveevents.IPRange, 0)
+	ipRanges := make([]media.IPRange, 0)
 	for _, ipAllow := range input {
 		if ipAllow == nil {
 			continue
@@ -589,13 +598,13 @@ func expandIPRanges(input []interface{}) []liveevents.IPRange {
 		address := allow["address"].(string)
 		name := allow["name"].(string)
 
-		ipRange := liveevents.IPRange{
+		ipRange := media.IPRange{
 			Name:    utils.String(name),
 			Address: utils.String(address),
 		}
 		subnetPrefixLengthRaw := allow["subnet_prefix_length"]
 		if subnetPrefixLengthRaw != "" {
-			ipRange.SubnetPrefixLength = pointer.To(int64(subnetPrefixLengthRaw.(int)))
+			ipRange.SubnetPrefixLength = utils.Int32(int32(subnetPrefixLengthRaw.(int)))
 		}
 		ipRanges = append(ipRanges, ipRange)
 	}
@@ -603,7 +612,7 @@ func expandIPRanges(input []interface{}) []liveevents.IPRange {
 	return ipRanges
 }
 
-func expandEncoding(input []interface{}) *liveevents.LiveEventEncoding {
+func expandEncoding(input []interface{}) *media.LiveEventEncoding {
 	if len(input) == 0 {
 		return nil
 	}
@@ -620,9 +629,9 @@ func expandEncoding(input []interface{}) *liveevents.LiveEventEncoding {
 		stretchMode = v.(string)
 	}
 
-	liveEventEncoding := &liveevents.LiveEventEncoding{
-		EncodingType: pointer.To(liveevents.LiveEventEncodingType(encodingType)),
-		StretchMode:  pointer.To(liveevents.StretchMode(stretchMode)),
+	liveEventEncoding := &media.LiveEventEncoding{
+		EncodingType: media.LiveEventEncodingType(encodingType),
+		StretchMode:  media.StretchMode(stretchMode),
 	}
 
 	if v := liveEncoding["key_frame_interval"]; v != nil && v.(string) != "" {
@@ -636,17 +645,17 @@ func expandEncoding(input []interface{}) *liveevents.LiveEventEncoding {
 	return liveEventEncoding
 }
 
-func expandPreview(input []interface{}) *liveevents.LiveEventPreview {
+func expandPreview(input []interface{}) *media.LiveEventPreview {
 	if len(input) == 0 {
 		return nil
 	}
 
 	livePreview := input[0].(map[string]interface{})
-	var inputAccessControl *liveevents.LiveEventPreviewAccessControl
+	var inputAccessControl *media.LiveEventPreviewAccessControl
 	if v := livePreview["ip_access_control_allow"]; v != nil {
 		ipRanges := expandIPRanges(v.([]interface{}))
-		inputAccessControl = &liveevents.LiveEventPreviewAccessControl{
-			IP: &liveevents.IPAccessControl{
+		inputAccessControl = &media.LiveEventPreviewAccessControl{
+			IP: &media.IPAccessControl{
 				Allow: &ipRanges,
 			},
 		}
@@ -667,38 +676,29 @@ func expandPreview(input []interface{}) *liveevents.LiveEventPreview {
 		streamingPolicyName = v.(string)
 	}
 
-	return &liveevents.LiveEventPreview{
+	return &media.LiveEventPreview{
 		AccessControl:       inputAccessControl,
-		AlternativeMediaId:  utils.String(alternativeMediaID),
+		AlternativeMediaID:  utils.String(alternativeMediaID),
 		PreviewLocator:      utils.String(previewLocator),
 		StreamingPolicyName: utils.String(streamingPolicyName),
 	}
 }
 
-func expandLiveEventCrossSiteAccessPolicies(input []interface{}) *liveevents.CrossSiteAccessPolicies {
-	if len(input) == 0 {
-		return nil
-	}
-
-	crossSiteAccessPolicy := input[0].(map[string]interface{})
-	clientAccessPolicy := crossSiteAccessPolicy["client_access_policy"].(string)
-	crossDomainPolicy := crossSiteAccessPolicy["cross_domain_policy"].(string)
-	return &liveevents.CrossSiteAccessPolicies{
-		ClientAccessPolicy: &clientAccessPolicy,
-		CrossDomainPolicy:  &crossDomainPolicy,
-	}
-}
-func expandTranscriptions(input []interface{}) *[]liveevents.LiveEventTranscription {
-	transcriptions := make([]liveevents.LiveEventTranscription, 0)
+func expandTranscriptions(input []interface{}) *[]media.LiveEventTranscription {
+	transcriptions := make([]media.LiveEventTranscription, 0)
 	for _, v := range input {
-		transcriptions = append(transcriptions, liveevents.LiveEventTranscription{
+		transcriptions = append(transcriptions, media.LiveEventTranscription{
 			Language: utils.String(v.(string)),
 		})
 	}
 	return &transcriptions
 }
 
-func flattenLiveEventInput(input liveevents.LiveEventInput) []interface{} {
+func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
 	ipAccessControlAllow := flattenEventAccessControl(input.AccessControl)
 
 	accessToken := ""
@@ -724,7 +724,7 @@ func flattenLiveEventInput(input liveevents.LiveEventInput) []interface{} {
 	}
 }
 
-func flattenEventAccessControl(input *liveevents.LiveEventInputAccessControl) []interface{} {
+func flattenEventAccessControl(input *media.LiveEventInputAccessControl) []interface{} {
 	if input == nil || input.IP == nil || input.IP.Allow == nil {
 		return make([]interface{}, 0)
 	}
@@ -732,7 +732,7 @@ func flattenEventAccessControl(input *liveevents.LiveEventInputAccessControl) []
 	return flattenIPAllow(input.IP.Allow)
 }
 
-func flattenEndpoints(input *[]liveevents.LiveEventEndpoint) []interface{} {
+func flattenEndpoints(input *[]media.LiveEventEndpoint) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -745,8 +745,8 @@ func flattenEndpoints(input *[]liveevents.LiveEventEndpoint) []interface{} {
 		}
 
 		url := ""
-		if v.Url != nil {
-			url = *v.Url
+		if v.URL != nil {
+			url = *v.URL
 		}
 
 		endpoints = append(endpoints, map[string]interface{}{
@@ -758,14 +758,9 @@ func flattenEndpoints(input *[]liveevents.LiveEventEndpoint) []interface{} {
 	return endpoints
 }
 
-func flattenEncoding(input *liveevents.LiveEventEncoding) []interface{} {
-	if input == nil || (input.KeyFrameInterval == nil && input.PresetName == nil && (input.EncodingType == nil || *input.EncodingType == liveevents.LiveEventEncodingTypeNone)) {
+func flattenEncoding(input *media.LiveEventEncoding) []interface{} {
+	if input == nil || (input.KeyFrameInterval == nil && input.PresetName == nil && input.EncodingType == media.LiveEventEncodingTypeNone) {
 		return make([]interface{}, 0)
-	}
-
-	encodingType := ""
-	if input.EncodingType != nil {
-		encodingType = string(*input.EncodingType)
 	}
 
 	keyFrameInterval := ""
@@ -778,22 +773,17 @@ func flattenEncoding(input *liveevents.LiveEventEncoding) []interface{} {
 		presetName = *input.PresetName
 	}
 
-	stretchMode := ""
-	if input.StretchMode != nil {
-		stretchMode = string(*input.StretchMode)
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"type":               encodingType,
+			"type":               string(input.EncodingType),
 			"key_frame_interval": keyFrameInterval,
 			"preset_name":        presetName,
-			"stretch_mode":       stretchMode,
+			"stretch_mode":       string(input.StretchMode),
 		},
 	}
 }
 
-func flattenPreview(input *liveevents.LiveEventPreview) []interface{} {
+func flattenPreview(input *media.LiveEventPreview) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -801,8 +791,8 @@ func flattenPreview(input *liveevents.LiveEventPreview) []interface{} {
 	iPAccessControlAllow := flattenPreviewAccessControl(input.AccessControl)
 
 	alternativeMediaID := ""
-	if input.AlternativeMediaId != nil {
-		alternativeMediaID = *input.AlternativeMediaId
+	if input.AlternativeMediaID != nil {
+		alternativeMediaID = *input.AlternativeMediaID
 	}
 
 	endpoints := flattenEndpoints(input.Endpoints)
@@ -828,7 +818,7 @@ func flattenPreview(input *liveevents.LiveEventPreview) []interface{} {
 	}
 }
 
-func flattenPreviewAccessControl(input *liveevents.LiveEventPreviewAccessControl) []interface{} {
+func flattenPreviewAccessControl(input *media.LiveEventPreviewAccessControl) []interface{} {
 	if input == nil || input.IP == nil || input.IP.Allow == nil {
 		return make([]interface{}, 0)
 	}
@@ -836,7 +826,7 @@ func flattenPreviewAccessControl(input *liveevents.LiveEventPreviewAccessControl
 	return flattenIPAllow(input.IP.Allow)
 }
 
-func flattenIPAllow(input *[]liveevents.IPRange) []interface{} {
+func flattenIPAllow(input *[]media.IPRange) []interface{} {
 	ipAllow := make([]interface{}, 0)
 
 	for _, v := range *input {
@@ -850,7 +840,7 @@ func flattenIPAllow(input *[]liveevents.IPRange) []interface{} {
 			address = *v.Address
 		}
 
-		var subnetPrefixLength int64
+		var subnetPrefixLength int32
 		if v.SubnetPrefixLength != nil {
 			subnetPrefixLength = *v.SubnetPrefixLength
 		}
@@ -865,7 +855,7 @@ func flattenIPAllow(input *[]liveevents.IPRange) []interface{} {
 	return ipAllow
 }
 
-func flattenLiveEventCrossSiteAccessPolicies(input *liveevents.CrossSiteAccessPolicies) []interface{} {
+func flattenLiveEventCrossSiteAccessPolicies(input *media.CrossSiteAccessPolicies) []interface{} {
 	if input == nil || (input.ClientAccessPolicy == nil && input.CrossDomainPolicy == nil) {
 		return make([]interface{}, 0)
 	}
@@ -888,7 +878,7 @@ func flattenLiveEventCrossSiteAccessPolicies(input *liveevents.CrossSiteAccessPo
 	}
 }
 
-func flattenTranscriptions(input *[]liveevents.LiveEventTranscription) []string {
+func flattenTranscriptions(input *[]media.LiveEventTranscription) []string {
 	if input == nil {
 		return make([]string, 0)
 	}

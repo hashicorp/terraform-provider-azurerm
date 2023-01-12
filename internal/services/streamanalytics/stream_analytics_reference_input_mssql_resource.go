@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,16 +24,10 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsReferenceInputMsSqlRead,
 		Update: resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate,
 		Delete: resourceStreamAnalyticsReferenceInputMsSqlDelete,
-
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := inputs.ParseInputID(id)
+			_, err := parse.StreamInputID(id)
 			return err
-		}, importStreamAnalyticsReferenceInput("Microsoft.Sql/Server/Database")),
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsReferenceInputMsSqlV0ToV1{},
-		}),
+		}, importStreamAnalyticsReferenceInput(streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftSQLServerDatabase)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -128,16 +122,16 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input MsSql creation.")
-	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := parse.NewStreamInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_mssql", id.ID())
 		}
 	}
@@ -150,12 +144,12 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("delta_snapshot_query cannot be set if refresh_type is Static")
 	}
 
-	properties := &inputs.AzureSqlReferenceInputDataSourceProperties{
+	properties := &streamanalytics.AzureSQLReferenceInputDataSourceProperties{
 		Server:      utils.String(d.Get("server").(string)),
 		Database:    utils.String(d.Get("database").(string)),
 		User:        utils.String(d.Get("username").(string)),
 		Password:    utils.String(d.Get("password").(string)),
-		RefreshType: utils.ToPtr(inputs.RefreshType(refreshType)),
+		RefreshType: streamanalytics.RefreshType(refreshType),
 	}
 
 	if v, ok := d.GetOk("refresh_interval_duration"); ok {
@@ -174,17 +168,18 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 		properties.Table = utils.String(v.(string))
 	}
 
-	props := inputs.Input{
+	props := streamanalytics.Input{
 		Name: utils.String(id.InputName),
-		Properties: &inputs.ReferenceInputProperties{
-			Datasource: &inputs.AzureSqlReferenceInputDataSource{
-				Properties: properties,
+		Properties: &streamanalytics.ReferenceInputProperties{
+			Type: streamanalytics.TypeBasicInputPropertiesTypeReference,
+			Datasource: &streamanalytics.AzureSQLReferenceInputDataSource{
+				Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftSQLServerDatabase,
+				AzureSQLReferenceInputDataSourceProperties: properties,
 			},
 		},
 	}
 
-	var opts inputs.CreateOrReplaceOperationOptions
-	if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
+	if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.InputName, "", ""); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -197,14 +192,14 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := inputs.ParseInputID(d.Id())
+	id, err := parse.StreamInputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -215,78 +210,29 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 
 	d.SetId(id.ID())
 	d.Set("name", id.InputName)
-	d.Set("stream_analytics_job_name", id.JobName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
-
-			reference, ok := input.(inputs.ReferenceInputProperties)
-			if !ok {
-				return fmt.Errorf("converting %s to Reference Input", *id)
-			}
-
-			referenceInputAzureSql, ok := reference.Datasource.(inputs.AzureSqlReferenceInputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to an Azure Sql Reference Input", *id)
-			}
-
-			if referenceInputAzureSql.Properties != nil {
-				server := ""
-				if v := referenceInputAzureSql.Properties.Server; v != nil {
-					server = *v
-				}
-				d.Set("server", server)
-
-				database := ""
-				if v := referenceInputAzureSql.Properties.Database; v != nil {
-					database = *v
-				}
-				d.Set("database", database)
-
-				username := ""
-				if v := referenceInputAzureSql.Properties.User; v != nil {
-					username = *v
-				}
-				d.Set("username", username)
-
-				refreshType := ""
-				if v := referenceInputAzureSql.Properties.RefreshType; v != nil {
-					refreshType = string(*v)
-				}
-				d.Set("refresh_type", refreshType)
-
-				intervalDuration := ""
-				if v := referenceInputAzureSql.Properties.RefreshRate; v != nil {
-					intervalDuration = *v
-				}
-				d.Set("refresh_interval_duration", intervalDuration)
-
-				fullSnapshotQuery := ""
-				if v := referenceInputAzureSql.Properties.FullSnapshotQuery; v != nil {
-					fullSnapshotQuery = *v
-				}
-				d.Set("full_snapshot_query", fullSnapshotQuery)
-
-				deltaSnapshotQuery := ""
-				if v := referenceInputAzureSql.Properties.DeltaSnapshotQuery; v != nil {
-					deltaSnapshotQuery = *v
-				}
-				d.Set("delta_snapshot_query", deltaSnapshotQuery)
-
-				table := ""
-				if v := referenceInputAzureSql.Properties.Table; v != nil {
-					table = *v
-				}
-				d.Set("table", table)
-			}
+	if props := resp.Properties; props != nil {
+		v, ok := props.AsReferenceInputProperties()
+		if !ok {
+			return fmt.Errorf("converting Reference Input MS SQL to a Reference Input: %+v", err)
 		}
-	}
 
+		inputDataSource, ok := v.Datasource.AsAzureSQLReferenceInputDataSource()
+		if !ok {
+			return fmt.Errorf("converting Reference Input MS SQL to a MS SQL Stream Input: %+v", err)
+		}
+
+		d.Set("server", inputDataSource.AzureSQLReferenceInputDataSourceProperties.Server)
+		d.Set("database", inputDataSource.AzureSQLReferenceInputDataSourceProperties.Database)
+		d.Set("username", inputDataSource.AzureSQLReferenceInputDataSourceProperties.User)
+		d.Set("refresh_type", inputDataSource.AzureSQLReferenceInputDataSourceProperties.RefreshType)
+		d.Set("refresh_interval_duration", inputDataSource.AzureSQLReferenceInputDataSourceProperties.RefreshRate)
+		d.Set("full_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.FullSnapshotQuery)
+		d.Set("delta_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.DeltaSnapshotQuery)
+		d.Set("table", inputDataSource.AzureSQLReferenceInputDataSourceProperties.Table)
+	}
 	return nil
 }
 
@@ -295,13 +241,13 @@ func resourceStreamAnalyticsReferenceInputMsSqlDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := inputs.ParseInputID(d.Id())
+	id, err := parse.StreamInputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName); err != nil {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

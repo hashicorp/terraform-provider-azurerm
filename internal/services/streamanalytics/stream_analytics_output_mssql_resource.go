@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -22,15 +22,9 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputSqlRead,
 		Update: resourceStreamAnalyticsOutputSqlCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputSqlDelete,
-
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := outputs.ParseOutputID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.OutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.AzureSqlDatabaseOutputDataSource{})),
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsOutputMsSqlV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -85,14 +79,14 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 
 			"user": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"password": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -114,10 +108,10 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(outputs.AuthenticationModeConnectionString),
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(outputs.AuthenticationModeMsi),
-					string(outputs.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
+					string(streamanalytics.AuthenticationModeConnectionString),
 				}, false),
 			},
 		},
@@ -130,51 +124,50 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+		if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_output_mssql", id.ID())
 		}
 	}
 
-	dataSourceProperties := outputs.AzureSqlDatabaseDataSourceProperties{
-		Server:             utils.String(d.Get("server").(string)),
-		Database:           utils.String(d.Get("database").(string)),
-		Table:              utils.String(d.Get("table").(string)),
-		MaxBatchCount:      utils.Float(d.Get("max_batch_count").(float64)),
-		MaxWriterCount:     utils.Float(d.Get("max_writer_count").(float64)),
-		AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-	}
+	server := d.Get("server").(string)
+	databaseName := d.Get("database").(string)
+	tableName := d.Get("table").(string)
+	sqlUser := d.Get("user").(string)
+	sqlUserPassword := d.Get("password").(string)
 
-	// Add user/password dataSourceProperties only if authentication mode requires them
-	if *dataSourceProperties.AuthenticationMode == outputs.AuthenticationModeConnectionString {
-		dataSourceProperties.User = utils.String(d.Get("user").(string))
-		dataSourceProperties.Password = utils.String(d.Get("password").(string))
-	}
-
-	props := outputs.Output{
-		Name: utils.String(id.OutputName),
-		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.AzureSqlDatabaseOutputDataSource{
-				Properties: &dataSourceProperties,
+	props := streamanalytics.Output{
+		Name: utils.String(id.Name),
+		OutputProperties: &streamanalytics.OutputProperties{
+			Datasource: &streamanalytics.AzureSQLDatabaseOutputDataSource{
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDatabase,
+				AzureSQLDatabaseOutputDataSourceProperties: &streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
+					Server:             utils.String(server),
+					Database:           utils.String(databaseName),
+					User:               utils.String(sqlUser),
+					Password:           utils.String(sqlUserPassword),
+					Table:              utils.String(tableName),
+					MaxBatchCount:      utils.Float(d.Get("max_batch_count").(float64)),
+					MaxWriterCount:     utils.Float(d.Get("max_writer_count").(float64)),
+					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
+				},
 			},
 		},
 	}
 
-	var createOpts outputs.CreateOrReplaceOperationOptions
-	var updateOpts outputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -186,14 +179,14 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := outputs.ParseOutputID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -202,60 +195,35 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retreving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.OutputName)
-	d.Set("stream_analytics_job_name", id.JobName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.AzureSqlDatabaseOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a SQL Output", *id)
-			}
-
-			server := ""
-			if v := output.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
-
-			database := ""
-			if v := output.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
-
-			table := ""
-			if v := output.Properties.Table; v != nil {
-				table = *v
-			}
-			d.Set("table", table)
-
-			user := ""
-			if v := output.Properties.User; v != nil {
-				user = *v
-			}
-			d.Set("user", user)
-
-			authMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authMode = string(*v)
-			}
-			d.Set("authentication_mode", authMode)
-
-			maxBatchCount := float64(10000)
-			if v := output.Properties.MaxBatchCount; v != nil {
-				maxBatchCount = *v
-			}
-			d.Set("max_batch_count", maxBatchCount)
-
-			maxWriterCount := float64(1)
-			if v := output.Properties.MaxWriterCount; v != nil {
-				maxWriterCount = *v
-			}
-			d.Set("max_writer_count", maxWriterCount)
+	if props := resp.OutputProperties; props != nil {
+		v, ok := props.Datasource.AsAzureSQLDatabaseOutputDataSource()
+		if !ok {
+			return fmt.Errorf("converting Output Data Source to SQL Output: %+v", err)
 		}
+
+		d.Set("server", v.Server)
+		d.Set("database", v.Database)
+		d.Set("table", v.Table)
+		d.Set("user", v.User)
+		d.Set("authentication_mode", v.AuthenticationMode)
+
+		maxBatchCount := float64(10000)
+		if v.MaxBatchCount != nil {
+			maxBatchCount = *v.MaxBatchCount
+		}
+		d.Set("max_batch_count", maxBatchCount)
+
+		maxWriterCount := float64(1)
+		if v.MaxWriterCount != nil {
+			maxWriterCount = *v.MaxWriterCount
+		}
+		d.Set("max_writer_count", maxWriterCount)
 	}
+
 	return nil
 }
 
@@ -264,13 +232,13 @@ func resourceStreamAnalyticsOutputSqlDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := outputs.ParseOutputID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}

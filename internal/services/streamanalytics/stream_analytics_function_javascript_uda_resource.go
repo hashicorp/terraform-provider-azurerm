@@ -5,12 +5,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,13 +25,8 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 		Delete: resourceStreamAnalyticsFunctionUDADelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := functions.ParseFunctionID(id)
+			_, err := parse.FunctionID(id)
 			return err
-		}),
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsFunctionJavaScriptUDAV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -54,7 +48,7 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: streamingjobs.ValidateStreamingJobID,
+				ValidateFunc: validate.StreamingJobID,
 			},
 
 			"input": {
@@ -124,29 +118,31 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	jobId, err := streamingjobs.ParseStreamingJobID(d.Get("stream_analytics_job_id").(string))
+	jobId, err := parse.StreamingJobID(d.Get("stream_analytics_job_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := functions.NewFunctionID(subscriptionId, jobId.ResourceGroupName, jobId.JobName, d.Get("name").(string))
+	id := parse.NewFunctionID(subscriptionId, jobId.ResourceGroup, jobId.Name, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
+	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_uda", id.ID())
 	}
 
-	props := functions.Function{
-		Properties: &functions.AggregateFunctionProperties{
-			Properties: &functions.FunctionConfiguration{
-				Binding: &functions.JavaScriptFunctionBinding{
-					Properties: &functions.JavaScriptFunctionBindingProperties{
+	props := streamanalytics.Function{
+		Properties: &streamanalytics.AggregateFunctionProperties{
+			Type: streamanalytics.TypeBasicFunctionPropertiesTypeAggregate,
+			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
+				Binding: &streamanalytics.JavaScriptFunctionBinding{
+					Type: streamanalytics.TypeBasicFunctionBindingTypeMicrosoftStreamAnalyticsJavascriptUdf,
+					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
 						Script: utils.String(d.Get("script").(string)),
 					},
 				},
@@ -156,8 +152,7 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	var opts functions.CreateOrReplaceOperationOptions
-	if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
+	if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -171,14 +166,14 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := functions.ParseFunctionID(d.Id())
+	id, err := parse.FunctionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -187,35 +182,35 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.FunctionName)
+	d.Set("name", id.Name)
 
-	jobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+	jobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
 	d.Set("stream_analytics_job_id", jobId.ID())
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			function, ok := props.(functions.AggregateFunctionProperties)
-			if !ok {
-				return fmt.Errorf("converting to an Aggregate Function")
-			}
+	if props := resp.Properties; props != nil {
+		aggregateProps, ok := props.AsAggregateFunctionProperties()
+		if !ok {
+			return fmt.Errorf("converting Props to a Aggregate Function")
+		}
 
-			binding := function.Properties.Binding.(functions.JavaScriptFunctionBinding)
+		binding, ok := aggregateProps.Binding.AsJavaScriptFunctionBinding()
+		if !ok {
+			return fmt.Errorf("converting Binding to a JavaScript Function Binding")
+		}
 
-			script := ""
-			if v := binding.Properties.Script; v != nil {
-				script = *v
-			}
-			d.Set("script", script)
+		if bindingProps := binding.JavaScriptFunctionBindingProperties; bindingProps != nil {
+			d.Set("script", bindingProps.Script)
+		}
 
-			if err := d.Set("input", flattenStreamAnalyticsFunctionUDAInputs(function.Properties.Inputs)); err != nil {
-				return fmt.Errorf("flattening `input`: %+v", err)
-			}
+		if err := d.Set("input", flattenStreamAnalyticsFunctionUDAInputs(aggregateProps.Inputs)); err != nil {
+			return fmt.Errorf("flattening `input`: %+v", err)
+		}
 
-			if err := d.Set("output", flattenStreamAnalyticsFunctionUDAOutput(function.Properties.Output)); err != nil {
-				return fmt.Errorf("flattening `output`: %+v", err)
-			}
+		if err := d.Set("output", flattenStreamAnalyticsFunctionUDAOutput(aggregateProps.Output)); err != nil {
+			return fmt.Errorf("flattening `output`: %+v", err)
 		}
 	}
+
 	return nil
 }
 
@@ -224,16 +219,18 @@ func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := functions.ParseFunctionID(d.Id())
+	id, err := parse.FunctionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := functions.Function{
-		Properties: &functions.AggregateFunctionProperties{
-			Properties: &functions.FunctionConfiguration{
-				Binding: &functions.JavaScriptFunctionBinding{
-					Properties: &functions.JavaScriptFunctionBindingProperties{
+	props := streamanalytics.Function{
+		Properties: &streamanalytics.AggregateFunctionProperties{
+			Type: streamanalytics.TypeBasicFunctionPropertiesTypeAggregate,
+			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
+				Binding: &streamanalytics.JavaScriptFunctionBinding{
+					Type: streamanalytics.TypeBasicFunctionBindingTypeMicrosoftStreamAnalyticsJavascriptUdf,
+					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
 						Script: utils.String(d.Get("script").(string)),
 					},
 				},
@@ -243,8 +240,7 @@ func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	var opts functions.UpdateOperationOptions
-	if _, err := client.Update(ctx, *id, props, opts); err != nil {
+	if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -256,13 +252,13 @@ func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := functions.ParseFunctionID(d.Id())
+	id, err := parse.FunctionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
@@ -270,13 +266,13 @@ func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]functions.FunctionInput {
-	outputs := make([]functions.FunctionInput, 0)
+func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]streamanalytics.FunctionInput {
+	outputs := make([]streamanalytics.FunctionInput, 0)
 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 		variableType := v["type"].(string)
-		outputs = append(outputs, functions.FunctionInput{
+		outputs = append(outputs, streamanalytics.FunctionInput{
 			DataType:                 utils.String(variableType),
 			IsConfigurationParameter: utils.Bool(v["configuration_parameter"].(bool)),
 		})
@@ -285,7 +281,7 @@ func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]functions.Fu
 	return &outputs
 }
 
-func flattenStreamAnalyticsFunctionUDAInputs(input *[]functions.FunctionInput) []interface{} {
+func flattenStreamAnalyticsFunctionUDAInputs(input *[]streamanalytics.FunctionInput) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -312,16 +308,16 @@ func flattenStreamAnalyticsFunctionUDAInputs(input *[]functions.FunctionInput) [
 	return outputs
 }
 
-func expandStreamAnalyticsFunctionUDAOutput(input []interface{}) *functions.FunctionOutput {
+func expandStreamAnalyticsFunctionUDAOutput(input []interface{}) *streamanalytics.FunctionOutput {
 	output := input[0].(map[string]interface{})
 
 	dataType := output["type"].(string)
-	return &functions.FunctionOutput{
+	return &streamanalytics.FunctionOutput{
 		DataType: utils.String(dataType),
 	}
 }
 
-func flattenStreamAnalyticsFunctionUDAOutput(input *functions.FunctionOutput) []interface{} {
+func flattenStreamAnalyticsFunctionUDAOutput(input *streamanalytics.FunctionOutput) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

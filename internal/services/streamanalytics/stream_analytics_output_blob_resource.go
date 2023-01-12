@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,15 +24,9 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputBlobRead,
 		Update: resourceStreamAnalyticsOutputBlobCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputBlobDelete,
-
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := outputs.ParseOutputID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.OutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.BlobOutputDataSource{})),
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsOutputBlobV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -93,10 +87,10 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(outputs.AuthenticationModeConnectionString),
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(outputs.AuthenticationModeConnectionString),
-					string(outputs.AuthenticationModeMsi),
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
 				}, false),
 			},
 
@@ -106,9 +100,9 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				ValidateFunc: validate.BatchMaxWaitTime,
 			},
 			"batch_min_rows": {
-				Type:         pluginsdk.TypeInt,
+				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 10000),
+				ValidateFunc: validation.FloatBetween(0, 10000),
 			},
 
 			"storage_account_key": {
@@ -127,17 +121,17 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", id.ID())
 		}
 	}
@@ -154,12 +148,13 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := outputs.Output{
-		Name: utils.String(id.OutputName),
-		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.BlobOutputDataSource{
-				Properties: &outputs.BlobOutputDataSourceProperties{
-					StorageAccounts: &[]outputs.StorageAccount{
+	props := streamanalytics.Output{
+		Name: utils.String(id.Name),
+		OutputProperties: &streamanalytics.OutputProperties{
+			Datasource: &streamanalytics.BlobOutputDataSource{
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageBlob,
+				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
+					StorageAccounts: &[]streamanalytics.StorageAccount{
 						{
 							AccountKey:  getStorageAccountKey(d.Get("storage_account_key").(string)),
 							AccountName: utils.String(storageAccountName),
@@ -169,7 +164,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 					DateFormat:         utils.String(dateFormat),
 					PathPattern:        utils.String(pathPattern),
 					TimeFormat:         utils.String(timeFormat),
-					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -177,28 +172,26 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if batchMaxWaitTime, ok := d.GetOk("batch_max_wait_time"); ok {
-		props.Properties.TimeWindow = utils.String(batchMaxWaitTime.(string))
+		props.TimeWindow = utils.String(batchMaxWaitTime.(string))
 	}
 
 	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
-		props.Properties.SizeWindow = utils.Int64(int64(batchMinRows.(int)))
+		props.SizeWindow = utils.Float(batchMinRows.(float64))
 	}
 
 	// timeWindow and sizeWindow must be set for Parquet serialization
-	_, isParquet := serialization.(outputs.ParquetSerialization)
-	if isParquet && (props.Properties.TimeWindow == nil || props.Properties.SizeWindow == nil) {
+	_, isParquet := serialization.AsParquetSerialization()
+	if isParquet && (props.TimeWindow == nil || props.SizeWindow == nil) {
 		return fmt.Errorf("cannot create %s: batch_min_rows and batch_time_window must be set for Parquet serialization", id)
 	}
 
-	var createOpts outputs.CreateOrReplaceOperationOptions
-	var updateOpts outputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -210,14 +203,14 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := outputs.ParseOutputID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -226,59 +219,34 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.OutputName)
-	d.Set("stream_analytics_job_name", id.JobName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.BlobOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a Blob Output", *id)
-			}
-
-			dateFormat := ""
-			if v := output.Properties.DateFormat; v != nil {
-				dateFormat = *v
-			}
-			d.Set("date_format", dateFormat)
-
-			pathPattern := ""
-			if v := output.Properties.PathPattern; v != nil {
-				pathPattern = *v
-			}
-			d.Set("path_pattern", pathPattern)
-
-			containerName := ""
-			if v := output.Properties.Container; v != nil {
-				containerName = *v
-			}
-			d.Set("storage_container_name", containerName)
-
-			timeFormat := ""
-			if v := output.Properties.TimeFormat; v != nil {
-				timeFormat = *v
-			}
-			d.Set("time_format", timeFormat)
-
-			authenticationMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authenticationMode = string(*v)
-			}
-			d.Set("authentication_mode", authenticationMode)
-
-			if accounts := output.Properties.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-				account := (*accounts)[0]
-				d.Set("storage_account_name", account.AccountName)
-			}
-
-			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
-				return fmt.Errorf("setting `serialization`: %+v", err)
-			}
-			d.Set("batch_max_wait_time", props.TimeWindow)
-			d.Set("batch_min_rows", props.SizeWindow)
+	if props := resp.OutputProperties; props != nil {
+		v, ok := props.Datasource.AsBlobOutputDataSource()
+		if !ok {
+			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", err)
 		}
+
+		d.Set("date_format", v.DateFormat)
+		d.Set("path_pattern", v.PathPattern)
+		d.Set("storage_container_name", v.Container)
+		d.Set("time_format", v.TimeFormat)
+		d.Set("authentication_mode", v.AuthenticationMode)
+
+		if accounts := v.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+			account := (*accounts)[0]
+			d.Set("storage_account_name", account.AccountName)
+		}
+
+		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
+			return fmt.Errorf("setting `serialization`: %+v", err)
+		}
+		d.Set("batch_max_wait_time", props.TimeWindow)
+		d.Set("batch_min_rows", props.SizeWindow)
 	}
+
 	return nil
 }
 
@@ -287,13 +255,13 @@ func resourceStreamAnalyticsOutputBlobDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := outputs.ParseOutputID(d.Id())
+	id, err := parse.OutputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}

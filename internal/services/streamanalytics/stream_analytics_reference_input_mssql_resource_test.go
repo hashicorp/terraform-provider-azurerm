@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -83,17 +82,17 @@ func TestAccStreamAnalyticsReferenceInputMsSql_requiresImport(t *testing.T) {
 }
 
 func (r StreamAnalyticsReferenceInputMsSqlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := inputs.ParseInputID(state.ID)
+	id, err := parse.StreamInputID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
+	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -114,9 +113,9 @@ resource "azurerm_stream_analytics_reference_input_mssql" "test" {
   refresh_type              = "RefreshPeriodicallyWithFull"
   refresh_interval_duration = "00:10:00"
   full_snapshot_query       = <<QUERY
-   SELECT *
-   INTO [YourOutputAlias]
-   FROM [YourInputAlias]
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
 QUERY
 
 }
@@ -139,14 +138,14 @@ resource "azurerm_stream_analytics_reference_input_mssql" "test" {
   refresh_type              = "RefreshPeriodicallyWithDelta"
   refresh_interval_duration = "00:20:00"
   full_snapshot_query       = <<QUERY
-   SELECT *
-   INTO [YourOutputAlias]
-   FROM [YourInputAlias]
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
 QUERY
   delta_snapshot_query      = <<QUERY
-   SELECT *
-   INTO [YourOutputAlias]
-   FROM [YourInputAlias]
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
 QUERY
 
 }
@@ -197,9 +196,9 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units                          = 3
 
   transformation_query = <<QUERY
-   SELECT *
-   INTO [YourOutputAlias]
-   FROM [YourInputAlias]
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
 QUERY
 }
 

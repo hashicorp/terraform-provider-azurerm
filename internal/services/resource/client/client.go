@@ -6,13 +6,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"                         // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	DeploymentsClient           *resources.DeploymentsClient
-	DeploymentScriptsClient     *deploymentscripts.DeploymentScriptsClient
 	FeaturesClient              *features.Client
 	GroupsClient                *resources.GroupsClient
 	LocksClient                 *locks.ManagementLocksClient
@@ -28,9 +26,6 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
-
-	deploymentScriptsClient := deploymentscripts.NewDeploymentScriptsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&deploymentScriptsClient.Client, o.ResourceManagerAuthorizer)
 
 	featuresClient := features.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&featuresClient.Client, o.ResourceManagerAuthorizer)
@@ -61,7 +56,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		GroupsClient:                &groupsClient,
 		DeploymentsClient:           &deploymentsClient,
-		DeploymentScriptsClient:     &deploymentScriptsClient,
 		FeaturesClient:              &featuresClient,
 		LocksClient:                 &locksClient,
 		ProvidersClient:             &providersClient,

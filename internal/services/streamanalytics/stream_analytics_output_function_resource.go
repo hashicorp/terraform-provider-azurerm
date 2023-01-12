@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -18,10 +18,7 @@ import (
 type OutputFunctionResource struct {
 }
 
-var (
-	_ sdk.ResourceWithCustomImporter = OutputFunctionResource{}
-	_ sdk.ResourceWithStateMigration = OutputFunctionResource{}
-)
+var _ sdk.ResourceWithCustomImporter = OutputFunctionResource{}
 
 type OutputFunctionResourceModel struct {
 	Name               string `tfschema:"name"`
@@ -98,7 +95,7 @@ func (r OutputFunctionResource) ResourceType() string {
 }
 
 func (r OutputFunctionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return outputs.ValidateOutputID
+	return validate.OutputID
 }
 
 func (r OutputFunctionResource) Create() sdk.ResourceFunc {
@@ -113,25 +110,26 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := outputs.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
+			id := parse.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			props := outputs.Output{
+			props := streamanalytics.Output{
 				Name: utils.String(model.Name),
-				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.AzureFunctionOutputDataSource{
-						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
+				OutputProperties: &streamanalytics.OutputProperties{
+					Datasource: &streamanalytics.AzureFunctionOutputDataSource{
+						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftAzureFunction,
+						AzureFunctionOutputDataSourceProperties: &streamanalytics.AzureFunctionOutputDataSourceProperties{
 							FunctionAppName: utils.String(model.FunctionApp),
 							FunctionName:    utils.String(model.FunctionName),
-							ApiKey:          utils.String(model.ApiKey),
+							APIKey:          utils.String(model.ApiKey),
 							MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
 							MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
 						},
@@ -139,8 +137,7 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			var opts outputs.CreateOrReplaceOperationOptions
-			if _, err = client.CreateOrReplace(ctx, id, props, opts); err != nil {
+			if _, err = client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -156,65 +153,40 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+			id, err := parse.OutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource)
-					if !ok {
-						return fmt.Errorf("converting %s to a Function Output", *id)
-					}
-
-					if output.Properties != nil {
-						if output.Properties.FunctionAppName == nil || output.Properties.FunctionName == nil || output.Properties.MaxBatchCount == nil || output.Properties.MaxBatchSize == nil {
-							return nil
-						}
-
-						state := OutputFunctionResourceModel{
-							Name:               id.OutputName,
-							ResourceGroup:      id.ResourceGroupName,
-							StreamAnalyticsJob: id.JobName,
-							ApiKey:             metadata.ResourceData.Get("api_key").(string),
-						}
-
-						functionApp := ""
-						if v := output.Properties.FunctionAppName; v != nil {
-							functionApp = *v
-						}
-						state.FunctionApp = functionApp
-
-						functionName := ""
-						if v := output.Properties.FunctionName; v != nil {
-							functionName = *v
-						}
-						state.FunctionName = functionName
-
-						batchMaxInBytes := 0
-						if v := output.Properties.MaxBatchSize; v != nil {
-							batchMaxInBytes = int(*v)
-						}
-						state.BatchMaxInBytes = batchMaxInBytes
-
-						batchMaxCount := 0
-						if v := output.Properties.MaxBatchCount; v != nil {
-							batchMaxCount = int(*v)
-						}
-						state.BatchMaxCount = batchMaxCount
-
-						return metadata.Encode(&state)
-					}
+			if props := resp.OutputProperties; props != nil && props.Datasource != nil {
+				v, ok := props.Datasource.AsAzureFunctionOutputDataSource()
+				if !ok {
+					return fmt.Errorf("converting output data source to a function output: %+v", err)
 				}
+
+				if v.FunctionAppName == nil || v.FunctionName == nil || v.MaxBatchCount == nil || v.MaxBatchSize == nil {
+					return nil
+				}
+
+				state := OutputFunctionResourceModel{
+					Name:               id.Name,
+					ResourceGroup:      id.ResourceGroup,
+					StreamAnalyticsJob: id.StreamingjobName,
+					FunctionApp:        *v.FunctionAppName,
+					FunctionName:       *v.FunctionName,
+					ApiKey:             metadata.ResourceData.Get("api_key").(string),
+					BatchMaxInBytes:    int(*v.MaxBatchSize),
+					BatchMaxCount:      int(*v.MaxBatchCount),
+				}
+				return metadata.Encode(&state)
 			}
 			return nil
 		},
@@ -226,7 +198,7 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+			id, err := parse.OutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -236,14 +208,15 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props := outputs.Output{
+			props := streamanalytics.Output{
 				Name: utils.String(state.Name),
-				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.AzureFunctionOutputDataSource{
-						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
+				OutputProperties: &streamanalytics.OutputProperties{
+					Datasource: &streamanalytics.AzureFunctionOutputDataSource{
+						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
+						AzureFunctionOutputDataSourceProperties: &streamanalytics.AzureFunctionOutputDataSourceProperties{
 							FunctionAppName: utils.String(state.FunctionApp),
 							FunctionName:    utils.String(state.FunctionName),
-							ApiKey:          utils.String(state.ApiKey),
+							APIKey:          utils.String(state.ApiKey),
 							MaxBatchSize:    utils.Float(float64(state.BatchMaxInBytes)),
 							MaxBatchCount:   utils.Float(float64(state.BatchMaxCount)),
 						},
@@ -251,8 +224,7 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			var opts outputs.UpdateOperationOptions
-			if _, err = client.Update(ctx, *id, props, opts); err != nil {
+			if _, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -266,14 +238,14 @@ func (r OutputFunctionResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+			id, err := parse.OutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 			return nil
@@ -283,30 +255,21 @@ func (r OutputFunctionResource) Delete() sdk.ResourceFunc {
 
 func (r OutputFunctionResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+		id, err := parse.OutputID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
 		client := metadata.Client.StreamAnalytics.OutputsClient
-		resp, err := client.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+		if err != nil || resp.OutputProperties == nil {
 			return fmt.Errorf("reading %s: %+v", *id, err)
 		}
 
-		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource); !ok {
-			return fmt.Errorf("specified output is not of type")
+		props := resp.OutputProperties
+		if _, ok := props.Datasource.AsAzureFunctionOutputDataSource(); !ok {
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftAzureFunction)
 		}
 		return nil
-	}
-}
-
-func (r OutputFunctionResource) StateUpgraders() sdk.StateUpgradeData {
-	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
-		Upgraders: map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsOutputFunctionV0ToV1{},
-		},
 	}
 }

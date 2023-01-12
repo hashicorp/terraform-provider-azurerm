@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,15 +23,9 @@ func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsStreamInputBlobRead,
 		Update: resourceStreamAnalyticsStreamInputBlobCreateUpdate,
 		Delete: resourceStreamAnalyticsStreamInputBlobDelete,
-
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := inputs.ParseInputID(id)
+			_, err := parse.StreamInputID(id)
 			return err
-		}),
-
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsStreamInputBlobV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -106,17 +100,17 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
-	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+	id := parse.NewStreamInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", id.ID())
 		}
 	}
@@ -134,18 +128,18 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := inputs.Input{
+	props := streamanalytics.Input{
 		Name: utils.String(id.InputName),
-		Properties: &inputs.StreamInputProperties{
-			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
-			Datasource: &inputs.BlobStreamInputDataSource{
-				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
-				Properties: &inputs.BlobStreamInputDataSourceProperties{
+		Properties: &streamanalytics.StreamInputProperties{
+			Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
+			Datasource: &streamanalytics.BlobStreamInputDataSource{
+				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
+				BlobStreamInputDataSourceProperties: &streamanalytics.BlobStreamInputDataSourceProperties{
 					Container:   utils.String(containerName),
 					DateFormat:  utils.String(dateFormat),
 					PathPattern: utils.String(pathPattern),
 					TimeFormat:  utils.String(timeFormat),
-					StorageAccounts: &[]inputs.StorageAccount{
+					StorageAccounts: &[]streamanalytics.StorageAccount{
 						{
 							AccountName: utils.String(storageAccountName),
 							AccountKey:  utils.String(storageAccountKey),
@@ -157,15 +151,13 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 		},
 	}
 
-	var createOpts inputs.CreateOrReplaceOperationOptions
-	var updateOpts inputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.InputName, "", ""); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+	} else if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.InputName, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -177,14 +169,14 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := inputs.ParseInputID(d.Id())
+	id, err := parse.StreamInputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -194,60 +186,32 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.InputName)
-	d.Set("stream_analytics_job_name", id.JobName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
+	if props := resp.Properties; props != nil {
+		v, ok := props.AsStreamInputProperties()
+		if !ok {
+			return fmt.Errorf("converting Stream Input Blob to an Stream Input: %+v", err)
+		}
 
-			streamInput, ok := input.(inputs.StreamInputProperties)
-			if !ok {
-				return fmt.Errorf("converting %s to a Stream Input", *id)
-			}
+		eventHub, ok := v.Datasource.AsBlobStreamInputDataSource()
+		if !ok {
+			return fmt.Errorf("converting Stream Input Blob to an Blob Stream Input: %+v", err)
+		}
 
-			streamBlobInput, ok := streamInput.Datasource.(inputs.BlobStreamInputDataSource)
-			if !ok {
-				return fmt.Errorf("converting Stream Input Blob to an Stream Input: %+v", err)
-			}
+		d.Set("date_format", eventHub.DateFormat)
+		d.Set("path_pattern", eventHub.PathPattern)
+		d.Set("storage_container_name", eventHub.Container)
+		d.Set("time_format", eventHub.TimeFormat)
 
-			if streamBlobInputProps := streamBlobInput.Properties; streamBlobInputProps != nil {
-				dateFormat := ""
-				if v := streamBlobInput.Properties.DateFormat; v != nil {
-					dateFormat = *v
-				}
-				d.Set("date_format", dateFormat)
+		if accounts := eventHub.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+			account := (*accounts)[0]
+			d.Set("storage_account_name", account.AccountName)
+		}
 
-				pathPattern := ""
-				if v := streamBlobInputProps.PathPattern; v != nil {
-					pathPattern = *v
-				}
-				d.Set("path_pattern", pathPattern)
-
-				containerName := ""
-				if v := streamBlobInputProps.Container; v != nil {
-					containerName = *v
-				}
-				d.Set("storage_container_name", containerName)
-
-				timeFormat := ""
-				if v := streamBlobInputProps.TimeFormat; v != nil {
-					timeFormat = *v
-				}
-				d.Set("time_format", timeFormat)
-
-				if accounts := streamBlobInputProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-					account := (*accounts)[0]
-					d.Set("storage_account_name", account.AccountName)
-				}
-
-				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
-					return fmt.Errorf("setting `serialization`: %+v", err)
-				}
-			}
+		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
 
@@ -259,13 +223,13 @@ func resourceStreamAnalyticsStreamInputBlobDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := inputs.ParseInputID(d.Id())
+	id, err := parse.StreamInputID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName); err != nil {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}

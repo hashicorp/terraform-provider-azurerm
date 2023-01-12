@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
@@ -82,7 +82,6 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 }
 
 func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("recovery_fabric_name").(string)
@@ -91,102 +90,104 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 	targetContainerId := d.Get("recovery_target_protection_container_id").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
+	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(subscriptionId, resGroup, vaultName, fabricName, protectionContainerName, name)
-
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, fabricName, protectionContainerName, name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing site recovery protection container mapping %s (fabric %s, container %s): %+v", name, fabricName, protectionContainerName, err)
 			}
 		}
 
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container_mapping", *existing.Model.Id)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container_mapping", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
-	parameters := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
-		Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
-			TargetProtectionContainerId: &targetContainerId,
-			PolicyId:                    &policyId,
-			ProviderSpecificInput:       replicationprotectioncontainermappings.A2AContainerMappingInput{},
+	parameters := siterecovery.CreateProtectionContainerMappingInput{
+		Properties: &siterecovery.CreateProtectionContainerMappingInputProperties{
+			TargetProtectionContainerID: &targetContainerId,
+			PolicyID:                    &policyId,
+			ProviderSpecificInput:       siterecovery.ReplicationProviderSpecificContainerMappingInput{},
 		},
 	}
-	err := client.CreateThenPoll(ctx, id, parameters)
+	future, err := client.Create(ctx, fabricName, protectionContainerName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+	}
 
-	d.SetId(id.ID())
+	resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
+	if err != nil {
+		return fmt.Errorf("retrieving site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+	}
+
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceSiteRecoveryContainerMappingRead(d, meta)
 }
 
 func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(d.Id())
+	id, err := parse.ReplicationProtectionContainerMappingsID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
+	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient(id.ResourceGroup, id.VaultName)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.ReplicationProtectionContainerMappingName)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request on site recovery protection container mapping %s : %+v", id.String(), err)
 	}
 
-	model := resp.Model
-	if model == nil {
-		return fmt.Errorf("retrieving site recovery protection container mapping %s (vault %s): model is nil", id.MappingName, id.ResourceName)
-	}
-
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
-	d.Set("recovery_fabric_name", id.FabricName)
-	d.Set("name", model.Name)
-	if prop := model.Properties; prop != nil {
-		d.Set("recovery_source_protection_container_name", model.Properties.SourceProtectionContainerFriendlyName)
-		d.Set("recovery_replication_policy_id", model.Properties.PolicyId)
-		d.Set("recovery_target_protection_container_id", model.Properties.TargetProtectionContainerId)
-	}
-
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("recovery_vault_name", id.VaultName)
+	d.Set("recovery_fabric_name", id.ReplicationFabricName)
+	d.Set("recovery_source_protection_container_name", resp.Properties.SourceProtectionContainerFriendlyName)
+	d.Set("name", resp.Name)
+	d.Set("recovery_replication_policy_id", resp.Properties.PolicyID)
+	d.Set("recovery_target_protection_container_id", resp.Properties.TargetProtectionContainerID)
 	return nil
 }
 
 func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(d.Id())
+	id, err := parse.ReplicationProtectionContainerMappingsID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	instanceType := "A2A"
+	instanceType := string(siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A)
 
-	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
+	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient(id.ResourceGroup, id.VaultName)
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	input := replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{
-		Properties: &replicationprotectioncontainermappings.RemoveProtectionContainerMappingInputProperties{
-			ProviderSpecificInput: &replicationprotectioncontainermappings.ReplicationProviderContainerUnmappingInput{
+	input := siterecovery.RemoveProtectionContainerMappingInput{
+		Properties: &siterecovery.RemoveProtectionContainerMappingInputProperties{
+			ProviderSpecificInput: &siterecovery.ReplicationProviderContainerUnmappingInput{
 				InstanceType: &instanceType,
 			},
 		},
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, input)
+	future, err := client.Delete(ctx, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.ReplicationProtectionContainerMappingName, input)
 	if err != nil {
 		return fmt.Errorf("deleting site recovery protection container mapping %s : %+v", id.String(), err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of site recovery protection container mapping %s : %+v", id.String(), err)
 	}
 
 	return nil

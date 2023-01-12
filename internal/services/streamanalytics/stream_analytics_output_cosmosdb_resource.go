@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -20,10 +20,7 @@ import (
 
 type OutputCosmosDBResource struct{}
 
-var (
-	_ sdk.ResourceWithCustomImporter = OutputCosmosDBResource{}
-	_ sdk.ResourceWithStateMigration = OutputCosmosDBResource{}
-)
+var _ sdk.ResourceWithCustomImporter = OutputCosmosDBResource{}
 
 type OutputCosmosDBResourceModel struct {
 	Name               string `tfschema:"name"`
@@ -48,7 +45,7 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: streamingjobs.ValidateStreamingJobID,
+			ValidateFunc: validate.StreamingJobID,
 		},
 
 		"cosmosdb_account_key": {
@@ -108,18 +105,18 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			streamingJobId, err := streamingjobs.ParseStreamingJobID(model.StreamAnalyticsJob)
+			streamingJobId, err := parse.StreamingJobID(model.StreamAnalyticsJob)
 			if err != nil {
 				return err
 			}
-			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.JobName, model.Name)
+			id := parse.NewOutputID(subscriptionId, streamingJobId.ResourceGroup, streamingJobId.Name, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -128,26 +125,26 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			documentDbOutputProps := &outputs.DocumentDbOutputDataSourceProperties{
-				AccountId:             utils.String(databaseId.DatabaseAccountName),
+			documentDbOutputProps := &streamanalytics.DocumentDbOutputDataSourceProperties{
+				AccountID:             utils.String(databaseId.DatabaseAccountName),
 				AccountKey:            utils.String(model.AccountKey),
 				Database:              utils.String(databaseId.Name),
 				CollectionNamePattern: utils.String(model.ContainerName),
-				DocumentId:            utils.String(model.DocumentID),
+				DocumentID:            utils.String(model.DocumentID),
 				PartitionKey:          utils.String(model.PartitionKey),
 			}
 
-			props := outputs.Output{
+			props := streamanalytics.Output{
 				Name: utils.String(model.Name),
-				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.DocumentDbOutputDataSource{
-						Properties: documentDbOutputProps,
+				OutputProperties: &streamanalytics.OutputProperties{
+					Datasource: &streamanalytics.DocumentDbOutputDataSource{
+						DocumentDbOutputDataSourceProperties: documentDbOutputProps,
+						Type:                                 streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageDocumentDB,
 					},
 				},
 			}
 
-			var opts outputs.CreateOrReplaceOperationOptions
-			if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
+			if _, err := client.CreateOrReplace(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, "", ""); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
@@ -163,57 +160,49 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 
-			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+			id, err := parse.OutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.DocumentDbOutputDataSource)
-					if !ok {
-						return fmt.Errorf("converting %s to a CosmosDb Output", *id)
-					}
-
-					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
-					state := OutputCosmosDBResourceModel{
-						Name:               id.OutputName,
-						StreamAnalyticsJob: streamingJobId.ID(),
-					}
-
-					state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
-
-					databaseId := cosmosParse.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
-					state.Database = databaseId.ID()
-
-					collectionName := ""
-					if v := output.Properties.CollectionNamePattern; v != nil {
-						collectionName = *v
-					}
-					state.ContainerName = collectionName
-
-					document := ""
-					if v := output.Properties.DocumentId; v != nil {
-						document = *v
-					}
-					state.DocumentID = document
-
-					partitionKey := ""
-					if v := output.Properties.PartitionKey; v != nil {
-						partitionKey = *v
-					}
-					state.PartitionKey = partitionKey
-
-					return metadata.Encode(&state)
+			if props := resp.OutputProperties; props != nil && props.Datasource != nil {
+				v, ok := props.Datasource.AsDocumentDbOutputDataSource()
+				if !ok {
+					return fmt.Errorf("converting output data source to a document DB output: %+v", err)
 				}
+
+				streamingJobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+				state := OutputCosmosDBResourceModel{
+					Name:               id.Name,
+					StreamAnalyticsJob: streamingJobId.ID(),
+				}
+
+				state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
+
+				databaseId := cosmosParse.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, *v.AccountID, *v.Database)
+				state.Database = databaseId.ID()
+
+				if v.CollectionNamePattern != nil {
+					state.ContainerName = *v.CollectionNamePattern
+				}
+
+				if v.DocumentID != nil {
+					state.DocumentID = *v.DocumentID
+				}
+
+				if v.PartitionKey != nil {
+					state.PartitionKey = *v.PartitionKey
+				}
+
+				return metadata.Encode(&state)
 			}
 			return nil
 		},
@@ -225,15 +214,15 @@ func (r OutputCosmosDBResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+			id, err := parse.OutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
+			if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.Name); err != nil {
+				if !response.WasNotFound(resp.Response) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}
@@ -243,7 +232,7 @@ func (r OutputCosmosDBResource) Delete() sdk.ResourceFunc {
 }
 
 func (r OutputCosmosDBResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return outputs.ValidateOutputID
+	return validate.OutputID
 }
 
 func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
@@ -251,7 +240,7 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.OutputsClient
-			id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+			id, err := parse.OutputID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -267,21 +256,21 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChangesExcept("name", "stream_analytics_job_id") {
-				props := outputs.Output{
-					Properties: &outputs.OutputProperties{
-						Datasource: outputs.DocumentDbOutputDataSource{
-							Properties: &outputs.DocumentDbOutputDataSourceProperties{
+				props := streamanalytics.Output{
+					OutputProperties: &streamanalytics.OutputProperties{
+						Datasource: streamanalytics.DocumentDbOutputDataSource{
+							Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageDocumentDB,
+							DocumentDbOutputDataSourceProperties: &streamanalytics.DocumentDbOutputDataSourceProperties{
 								AccountKey:            &state.AccountKey,
 								Database:              &databaseId.Name,
 								CollectionNamePattern: &state.ContainerName,
-								DocumentId:            &state.DocumentID,
+								DocumentID:            &state.DocumentID,
 								PartitionKey:          &state.PartitionKey,
 							},
 						},
 					},
 				}
-				var opts outputs.UpdateOperationOptions
-				if _, err := client.Update(ctx, *id, props, opts); err != nil {
+				if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}
@@ -293,30 +282,21 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 
 func (r OutputCosmosDBResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := outputs.ParseOutputID(metadata.ResourceData.Id())
+		id, err := parse.OutputID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
 		client := metadata.Client.StreamAnalytics.OutputsClient
-		resp, err := client.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+		if err != nil || resp.OutputProperties == nil {
 			return fmt.Errorf("reading %s: %+v", *id, err)
 		}
 
-		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.DocumentDbOutputDataSource); !ok {
-			return fmt.Errorf("specified output is not of type")
+		props := resp.OutputProperties
+		if _, ok := props.Datasource.AsDocumentDbOutputDataSource(); !ok {
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageDocumentDB)
 		}
 		return nil
-	}
-}
-
-func (r OutputCosmosDBResource) StateUpgraders() sdk.StateUpgradeData {
-	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
-		Upgraders: map[int]pluginsdk.StateUpgrade{
-			0: migration.StreamAnalyticsOutputCosmosDbV0ToV1{},
-		},
 	}
 }

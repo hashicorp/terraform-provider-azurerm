@@ -178,6 +178,7 @@ func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialPrope
 }
 
 func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredential(input FederatedIdentityCredentialResourceSchema, output *managedidentities.FederatedIdentityCredential) {
+
 	if output.Properties == nil {
 		output.Properties = &managedidentities.FederatedIdentityCredentialProperties{}
 	}
@@ -185,6 +186,7 @@ func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialResou
 }
 
 func (r FederatedIdentityCredentialResource) mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(input managedidentities.FederatedIdentityCredential, output *FederatedIdentityCredentialResourceSchema) {
+
 	if input.Properties == nil {
 		input.Properties = &managedidentities.FederatedIdentityCredentialProperties{}
 	}

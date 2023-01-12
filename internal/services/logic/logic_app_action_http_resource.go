@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -68,14 +67,10 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 			},
 
 			"body": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-					if json.Valid([]byte(oldValue)) && json.Valid([]byte(newValue)) {
-						return pluginsdk.SuppressJsonDiff(k, oldValue, newValue, d)
-					}
-					return false
-				},
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"headers": {
@@ -148,18 +143,13 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		"queries": queries,
 	}
 
-	// if it's json object then storing action's body in json object to keep consistent with azure portal
-	// if starts with dynamic function (starts with "@") then store it as string
+	// storing action's body in json object to keep consistent with azure portal
 	if bodyRaw, ok := d.GetOk("body"); ok {
-		if json.Valid([]byte(bodyRaw.(string))) {
-			var body map[string]interface{}
-			if err := json.Unmarshal([]byte(bodyRaw.(string)), &body); err != nil {
-				return fmt.Errorf("unmarshalling JSON for Action %q: %+v", id.Name, err)
-			}
-			inputs["body"] = body
-		} else {
-			inputs["body"] = bodyRaw.(string)
+		var body map[string]interface{}
+		if err := json.Unmarshal([]byte(bodyRaw.(string)), &body); err != nil {
+			return fmt.Errorf("unmarshalling JSON for Action %q: %+v", id.Name, err)
 		}
+		inputs["body"] = body
 	}
 
 	action := map[string]interface{}{
@@ -225,17 +215,12 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if body := inputs["body"]; body != nil {
-		switch body.(type) {
-		case map[string]interface{}:
-			// if user edit workflow in portal, the body becomes json object
-			v, err := json.Marshal(body)
-			if err != nil {
-				return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
-			}
-			d.Set("body", string(v))
-		case string:
-			d.Set("body", body)
+		// if user edit workflow in portal, the body becomes json object
+		v, err := json.Marshal(body)
+		if err != nil {
+			return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
 		}
+		d.Set("body", string(v))
 	}
 
 	if headers := inputs["headers"]; headers != nil {

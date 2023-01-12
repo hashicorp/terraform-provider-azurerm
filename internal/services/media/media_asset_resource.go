@@ -6,12 +6,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/assetsandassetfilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,7 +24,7 @@ func resourceMediaAsset() *pluginsdk.Resource {
 		Create: resourceMediaAssetCreateUpdate,
 		Read:   resourceMediaAssetRead,
 		Update: resourceMediaAssetCreateUpdate,
-		Delete: resourceMediaAssetDelete,
+		Delete: resourceAssetDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -34,14 +34,9 @@ func resourceMediaAsset() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := assetsandassetfilters.ParseAssetID(id)
+			_, err := parse.AssetID(id)
 			return err
 		}),
-
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.AssetV0ToV1{},
-		}),
-		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -101,100 +96,101 @@ func resourceMediaAsset() *pluginsdk.Resource {
 }
 
 func resourceMediaAssetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.AssetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := assetsandassetfilters.NewAssetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	resourceId := parse.NewAssetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.AssetsGet(ctx, id)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_media_asset", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_media_asset", resourceId.ID())
 		}
 	}
 
-	payload := assetsandassetfilters.Asset{
-		Properties: &assetsandassetfilters.AssetProperties{
+	parameters := media.Asset{
+		AssetProperties: &media.AssetProperties{
 			Description: utils.String(d.Get("description").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("container"); ok {
-		payload.Properties.Container = utils.String(v.(string))
+		parameters.Container = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("alternate_id"); ok {
-		payload.Properties.AlternateId = utils.String(v.(string))
+		parameters.AlternateID = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_name"); ok {
-		payload.Properties.StorageAccountName = utils.String(v.(string))
+		parameters.StorageAccountName = utils.String(v.(string))
 	}
 
-	if _, err := client.AssetsCreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(resourceId.ID())
 	return resourceMediaAssetRead(d, meta)
 }
 
 func resourceMediaAssetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.AssetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := assetsandassetfilters.ParseAssetID(d.Id())
+	id, err := parse.AssetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.AssetsGet(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] %s was not found - removing from state", *id)
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.AssetName)
-	d.Set("media_services_account_name", id.AccountName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("media_services_account_name", id.MediaserviceName)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("description", props.Description)
-			d.Set("alternate_id", props.AlternateId)
-			d.Set("container", props.Container)
-			d.Set("storage_account_name", props.StorageAccountName)
-		}
+	if props := resp.AssetProperties; props != nil {
+		d.Set("description", props.Description)
+		d.Set("alternate_id", props.AlternateID)
+		d.Set("container", props.Container)
+		d.Set("storage_account_name", props.StorageAccountName)
 	}
 
 	return nil
 }
 
-func resourceMediaAssetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
+func resourceAssetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Media.AssetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := assetsandassetfilters.ParseAssetID(d.Id())
+	id, err := parse.AssetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.AssetsDelete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("deleting %s: %+v", id, err)
+		}
 	}
 
 	return nil

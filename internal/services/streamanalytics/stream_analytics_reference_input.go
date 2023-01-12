@@ -4,48 +4,43 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func importStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFunc {
+func importStreamAnalyticsReferenceInput(expectType streamanalytics.TypeBasicReferenceInputDataSource) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := inputs.ParseInputID(d.Id())
+		id, err := parse.StreamInputID(d.Id())
 		if err != nil {
 			return nil, err
 		}
 
 		client := meta.(*clients.Client).StreamAnalytics.InputsClient
-		resp, err := client.Get(ctx, *id)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if model := resp.Model; model != nil {
-			if props := model.Properties; props != nil {
-				input, ok := props.(inputs.InputProperties) // nolint: gosimple
-				if !ok {
-					return nil, fmt.Errorf("failed to convert to Input")
-				}
+		if props := resp.Properties; props != nil {
+			v, ok := props.AsReferenceInputProperties()
+			if !ok {
+				return nil, fmt.Errorf("converting properties to a Reference Input: %+v", err)
+			}
 
-				reference, ok := input.(inputs.ReferenceInputProperties)
-				if !ok {
-					return nil, fmt.Errorf("failed to convert to Reference Input")
-				}
+			var actualType streamanalytics.TypeBasicReferenceInputDataSource
 
-				var actualType string
+			if inputMsSql, ok := v.Datasource.AsAzureSQLReferenceInputDataSource(); ok {
+				actualType = inputMsSql.Type
+			} else if inputBlob, ok := v.Datasource.AsBlobReferenceInputDataSource(); ok {
+				actualType = inputBlob.Type
+			} else {
+				return nil, fmt.Errorf("unable to convert input data source: %+v", v)
+			}
 
-				if _, ok := reference.Datasource.(inputs.BlobReferenceInputDataSource); ok {
-					actualType = "Microsoft.Storage/Blob"
-				}
-				if _, ok := reference.Datasource.(inputs.AzureSqlReferenceInputDataSource); ok {
-					actualType = "Microsoft.Sql/Server/Database"
-				}
-
-				if actualType != expectType {
-					return nil, fmt.Errorf("stream analytics reference input has mismatched type, expected: %q, got %q", expectType, actualType)
-				}
+			if actualType != expectType {
+				return nil, fmt.Errorf("stream analytics reference input has mismatched type, expected: %q, got %q", expectType, actualType)
 			}
 		}
 		return []*pluginsdk.ResourceData{d}, nil
