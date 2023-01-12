@@ -1,5 +1,69 @@
 ## 3.39.0 (Unreleased)
 
+Breaking Change Notes - App Service APp Stack Re-alignment
+
+Due to a number of changes in how the Service manages App and Stack settings, the Terraform resource schema and validation needs to be updated to re-align with the service. Whist we ordinarily avoid breaking changes outside a major release, the drift has made several aspects of these resources in an unworkable position resulting in a poor experience for many users.
+
+* `azurerm_windows_web_app`
+    * `node_version` Valid values are now `~12`, `~14`, `~16`, and  `~18`. This is due to an underlying change to where the Service reads the Node value from in the API request.
+    * `dotnet_version` valid values are now `v2.0`, `v3.0`, `v4.0`, `v5.0`, `v6.0`, and `v7.0`
+    * New setting `dotnet_core_version` - Valid values are `v4.0`. This setting replaces the hybrid setting of `core3.1` in `dotnet_version` since the removal of core3.1 from the supported versions.
+    * `tomcat_version` - Configured the Web App to use Tomcat as the JWS at the specified version. See the official docs for supported versions. Examples include `10.0`, and `10.0.20`
+    * `java_embedded_server_enabled` - configures the JWS to be the Embedded server at the version specified by `java_version`. Defaults to `false`. Note: One of `java_embedded_server_enabled` or `tomcat_version` is required when `java_version` is set.
+
+* `azurerm_windows_web_app_slot`
+    * `node_version` Valid values are now `~12`, `~14`, `~16`, and  `~18`. This is due to an underlying change to where the Service reads the Node value from in the API request.
+    * `dotnet_version` valid values are now `v2.0`, `v3.0`, `v4.0`, `v5.0`, `v6.0`, and `v7.0`
+    * New setting `dotnet_core_version` - Valid values are `v4.0`. This setting replaces the hybrid setting of `core3.1` in `dotnet_version` since the removal of core3.1 from the supported versions.
+    * `tomcat_version` - Configured the Web App to use Tomcat as the JWS at the specified version. See the official docs for supported versions. Examples include `10.0`, and `10.0.20`
+    * `java_embedded_server_enabled` - configures the JWS to be the Embedded server at the version specified by `java_version`. Defaults to `false`. Note: One of `java_embedded_server_enabled` or `tomcat_version` is required when `java_version` is set.
+
+* `azurerm_windows_function_app`
+    * `dotnet_version` - Valid values are now `v3.0`, `v4.0`, `v6.0`, and `v7.0`, defaulting to `v4.0`
+    * `java_version` - Valid values are now `1.8`, `11`, and `17`
+
+* `azurerm_windows_function_app_slot`
+    * `dotnet_version` - Valid values are now `v3.0`, `v4.0`, `v6.0`, and `v7.0`, defaulting to `v4.0`
+    * `java_version` - Valid values are now `1.8`, `11`, and `17`
+
+* `azurerm_linux_web_app`
+    * `java_version` - input validation has been introduced based on supported values within the service. Valid values are now: `8`,`11`, and `17`. 
+
+Additional Changes
+* `azurerm_linux_web_app` 
+    * Added `application_stack` support for `go_version`
+    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
+    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service
+
+* `azurerm_linux_web_app_slot`
+    * Added `application_stack` support for `go_version`
+    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
+    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service
+
+* `azurerm_windows_web_app`
+    * `php_version` - Supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image.
+    * `python_version` - This property has been deprecated and is no longer used by the service
+    * `python` - Supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image.
+    * `java_container` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
+    * `java_container_version` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
+    * `current_stack` - will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack.
+    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
+    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update 
+    * Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to 99:59:59.
+
+* `azurerm_windows_web_app_slot`
+    * `php_version` - Supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image.
+    * `python_version` - This property has been deprecated and is no longer used by the service
+    * `python` - Supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image.
+    * `java_container` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
+    * `java_container_version` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
+    * `current_stack` - will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack.
+    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
+    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update 
+    * Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to 99:59:59.
+
+
+
 FEATURES:
 
 * **New Data Source:** `azurerm_private_dns_resolver` [GH-19885]
