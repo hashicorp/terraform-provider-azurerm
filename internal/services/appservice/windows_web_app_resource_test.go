@@ -519,7 +519,6 @@ func TestAccWindowsWebApp_identityKeyVault(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 // Windows Specific

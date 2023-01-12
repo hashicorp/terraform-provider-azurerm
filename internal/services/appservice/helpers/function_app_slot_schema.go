@@ -725,7 +725,6 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 						Value: utils.String("dotnet-isolated"),
 					})
 					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion))
-
 				} else {
 					appSettings = append(appSettings, web.NameValuePair{
 						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
@@ -1102,7 +1101,6 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 			})
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
 		}
-
 	} else {
 		appSettings = append(appSettings, web.NameValuePair{
 			Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),

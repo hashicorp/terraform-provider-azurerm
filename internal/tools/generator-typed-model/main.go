@@ -9,10 +9,6 @@ import (
 	"strings"
 
 	. "github.com/dave/jennifer/jen"
-<<<<<<< HEAD
-=======
-
->>>>>>> f5e381b979 (Tool: generate typed SDK model for a given resource's schema)
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
@@ -121,10 +117,6 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 		default:
 			panic(fmt.Errorf("unhandled type: %s", sch.Type))
 		}
-<<<<<<< HEAD
-=======
-
->>>>>>> f5e381b979 (Tool: generate typed SDK model for a given resource's schema)
 	}
 	thisStmt = *Type().Id(name).Struct(fields...)
 

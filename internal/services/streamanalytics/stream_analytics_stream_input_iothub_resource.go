@@ -231,7 +231,6 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
 			}
-
 		}
 	}
 
