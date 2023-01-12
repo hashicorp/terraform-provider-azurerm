@@ -11,19 +11,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceMachineLearningFileShare() *pluginsdk.Resource {
+func resourceMachineLearningDataStoreFileShare() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceMachineLearningFileShareCreateOrUpdate,
-		Read:   resourceMachineLearningFileShareRead,
-		Update: resourceMachineLearningFileShareCreateOrUpdate,
-		Delete: resourceMachineLearningFileShareDelete,
+		Create: resourceMachineLearningDataStoreFileShareCreate,
+		Read:   resourceMachineLearningDataStoreFileShareRead,
+		Update: resourceMachineLearningDataStoreFileShareUpdate,
+		Delete: resourceMachineLearningDataStoreFileShareDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := datastore.ParseDataStoreID(id)
@@ -52,15 +52,7 @@ func resourceMachineLearningFileShare() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"storage_account_name": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validation.StringIsNotEmpty,
-			},
-
-			"file_share_name": {
+			"storage_fileshare_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -113,7 +105,7 @@ func resourceMachineLearningFileShare() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceMachineLearningFileShareCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningDataStoreFileShareCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.DatastoreClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -137,70 +129,19 @@ func resourceMachineLearningFileShareCreateOrUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
+	fileShareId, err := storageparse.StorageShareResourceManagerID(d.Get("storage_fileshare_id").(string))
+	if err != nil {
+		return err
+	}
+
 	datastoreRaw := datastore.DatastoreResource{
 		Name: utils.String(d.Get("name").(string)),
 		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureFile)),
 	}
 
-	prop := expandFileShare(d)
-	datastoreRaw.Properties = prop
-
-	_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	return resourceMachineLearningFileShareRead(d, meta)
-}
-
-func resourceMachineLearningFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.DatastoreClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := datastore.ParseDataStoreID(d.Id())
-	if err != nil {
-		return fmt.Errorf("parsing Machine Learning Data Store ID `%q`: %+v", d.Id(), err)
-	}
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("making Read request on Machine Learning Data Store File Share %q (Resource Group %q): %+v", id.Name, id.ResourceGroupName, err)
-	}
-
-	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
-	d.Set("name", resp.Model.Name)
-	d.Set("workspace_id", workspaceId.ID())
-	return flattenFileShare(d, resp.Model.Properties.(datastore.AzureFileDatastore))
-}
-
-func resourceMachineLearningFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.DatastoreClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := datastore.ParseDataStoreID(d.Id())
-	if err != nil {
-		return fmt.Errorf("parsing Machine Learning Workspace Date Store ID `%q`: %+v", d.Id(), err)
-	}
-
-	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting Machine Learning Workspace Date Strore  File Share %q (Resource Group %q): %+v", id.Name, id.ResourceGroupName, err)
-	}
-
-	return nil
-}
-
-func expandFileShare(d *pluginsdk.ResourceData) *datastore.AzureFileDatastore {
-	storeProps := &datastore.AzureFileDatastore{
-		AccountName:                   d.Get("storage_account_name").(string),
-		FileShareName:                 d.Get("file_share_name").(string),
+	props := &datastore.AzureFileDatastore{
+		AccountName:                   fileShareId.StorageAccountName,
+		FileShareName:                 fileShareId.FileshareName,
 		Description:                   utils.String(d.Get("description").(string)),
 		ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(d.Get("service_data_auth_identity").(string))),
 		IsDefault:                     utils.Bool(d.Get("is_default").(bool)),
@@ -209,7 +150,7 @@ func expandFileShare(d *pluginsdk.ResourceData) *datastore.AzureFileDatastore {
 
 	accountKey := d.Get("account_key").(string)
 	if accountKey != "" {
-		storeProps.Credentials = map[string]interface{}{
+		props.Credentials = map[string]interface{}{
 			"credentialsType": string(datastore.CredentialsTypeAccountKey),
 			"secrets": map[string]interface{}{
 				"secretsType": "AccountKey",
@@ -220,7 +161,7 @@ func expandFileShare(d *pluginsdk.ResourceData) *datastore.AzureFileDatastore {
 
 	sasToken := d.Get("shared_access_signature").(string)
 	if sasToken != "" {
-		storeProps.Credentials = map[string]interface{}{
+		props.Credentials = map[string]interface{}{
 			"credentialsType": string(datastore.CredentialsTypeSas),
 			"secrets": map[string]interface{}{
 				"secretsType": "Sas",
@@ -228,15 +169,138 @@ func expandFileShare(d *pluginsdk.ResourceData) *datastore.AzureFileDatastore {
 			},
 		}
 	}
+	datastoreRaw.Properties = props
 
-	return storeProps
+	_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceMachineLearningDataStoreFileShareRead(d, meta)
 }
 
-func flattenFileShare(d *pluginsdk.ResourceData, data datastore.AzureFileDatastore) error {
-	d.Set("description", data.Description)
+func resourceMachineLearningDataStoreFileShareUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.DatastoreClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
+
+	fileShareId, err := storageparse.StorageShareResourceManagerID(d.Get("storage_fileshare_id").(string))
+	if err != nil {
+		return err
+	}
+
+	datastoreRaw := datastore.DatastoreResource{
+		Name: utils.String(id.Name),
+		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureFile)),
+	}
+
+	props := &datastore.AzureFileDatastore{
+		AccountName:                   fileShareId.StorageAccountName,
+		FileShareName:                 fileShareId.FileshareName,
+		Description:                   utils.String(d.Get("description").(string)),
+		ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(d.Get("service_data_auth_identity").(string))),
+		IsDefault:                     utils.Bool(d.Get("is_default").(bool)),
+		Tags:                          utils.ToPtr(expandTags(d.Get("tags").(map[string]interface{}))),
+	}
+
+	accountKey := d.Get("account_key").(string)
+	if accountKey != "" {
+		props.Credentials = map[string]interface{}{
+			"credentialsType": string(datastore.CredentialsTypeAccountKey),
+			"secrets": map[string]interface{}{
+				"secretsType": "AccountKey",
+				"key":         accountKey,
+			},
+		}
+	}
+
+	sasToken := d.Get("shared_access_signature").(string)
+	if sasToken != "" {
+		props.Credentials = map[string]interface{}{
+			"credentialsType": string(datastore.CredentialsTypeSas),
+			"secrets": map[string]interface{}{
+				"secretsType": "Sas",
+				"sasToken":    sasToken,
+			},
+		}
+	}
+	datastoreRaw.Properties = props
+
+	_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceMachineLearningDataStoreFileShareRead(d, meta)
+}
+
+func resourceMachineLearningDataStoreFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.DatastoreClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := datastore.ParseDataStoreID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("reading %s: %+v", *id, err)
+	}
+
+	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
+	d.Set("name", resp.Model.Name)
+	d.Set("workspace_id", workspaceId.ID())
+
+	data := resp.Model.Properties.(datastore.AzureFileDatastore)
+
+	serviceDataAuth := ""
+	if v := data.ServiceDataAccessAuthIdentity; v != nil {
+		serviceDataAuth = string(*v)
+	}
+	d.Set("service_data_auth_identity", serviceDataAuth)
+
+	containerId := storageparse.NewStorageShareResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
+	d.Set("storage_fileshare_id", containerId.ID())
+
+	desc := ""
+	if v := data.Description; v != nil {
+		d.Set("description", desc)
+	}
+
 	d.Set("is_default", data.IsDefault)
-	d.Set("service_data_auth_identity", string(*data.ServiceDataAccessAuthIdentity))
-	d.Set("storage_account_name", data.AccountName)
-	d.Set("file_share_name", data.FileShareName)
 	return flattenAndSetTags(d, *data.Tags)
+}
+
+func resourceMachineLearningDataStoreFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.DatastoreClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := datastore.ParseDataStoreID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
 }

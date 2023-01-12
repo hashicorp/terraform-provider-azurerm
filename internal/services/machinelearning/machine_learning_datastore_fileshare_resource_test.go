@@ -115,8 +115,7 @@ resource "azurerm_storage_share" "test" {
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_account_name = azurerm_storage_account.test.name
-  file_share_name      = azurerm_storage_share.test.name
+  storage_fileshare_id = azurerm_storage_share.test.resource_manager_id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
@@ -171,10 +170,12 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_account_name    = azurerm_storage_account.test.name
-  file_share_name         = azurerm_storage_share.test.name
+  storage_fileshare_id    = azurerm_storage_share.test.resource_manager_id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
+
+
+
 
 `, template, data.RandomInteger)
 }
@@ -187,8 +188,7 @@ func (r MachineLearningDataStoreFileShare) requiresImport(data acceptance.TestDa
 resource "azurerm_machine_learning_datastore_fileshare" "import" {
   name                 = azurerm_machine_learning_datastore_fileshare.test.name
   workspace_id         = azurerm_machine_learning_datastore_fileshare.test.workspace_id
-  storage_account_name = azurerm_machine_learning_datastore_fileshare.test.storage_account_name
-  file_share_name      = azurerm_machine_learning_datastore_fileshare.test.file_share_name
+  storage_fileshare_id = azurerm_machine_learning_datastore_fileshare.test.storage_fileshare_id
   account_key          = azurerm_machine_learning_datastore_fileshare.test.account_key
 }
 

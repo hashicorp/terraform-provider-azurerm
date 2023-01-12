@@ -69,8 +69,7 @@ resource "azurerm_storage_container" "example" {
 resource "azurerm_machine_learning_datastore_blobstorage" "example" {
   name                 = "example-datastore"
   workspace_id         = azurerm_machine_learning_workspace.example.id
-  storage_account_name = azurerm_storage_account.example.name
-  container_name       = azurerm_storage_container.example.name
+  storage_container_id = azurerm_storage_account.example.resource_manager_id
   account_key          = azurerm_storage_account.example.primary_access_key
 }
 ```
@@ -81,24 +80,22 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Machine Learning DataStore. Changing this forces a new Machine Learning DataStore to be created.
 
-* `workspace_id` - (Required) The ID of the machine learning workspace. Changing this forces a new Machine Learning DataStore to be created.
+* `workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning DataStore to be created.
 
 ---
-* `storage_account_name` - (Required) The name of the storage account. Changing this forces a new Machine Learning DataStore to be created.
+* `storage_container_id` - (Required) The ID of the Storage Account Container. Changing this forces a new Machine Learning DataStore to be created.
 
-* `container_name` - (Required) The name of the storage account container. Changing this forces a new Machine Learning DataStore to be created.
+* `account_key` - (Optional) The access key of the Storage Account. Conflicts with `shared_access_signature`.
 
-* `account_key` - (Optional) The access key of the storage account. Conflicts with `shared_access_signature`.
-
-* `shared_access_signature` - (Optional) The shared access signature of the storage account. Conflicts with `account_key`.
+* `shared_access_signature` - (Optional) The Shared Access Signature of the Storage Account. Conflicts with `account_key`.
 
 * `description` - (Optional) Text used to describe the asset. Changing this forces a new Machine Learning DataStore to be created.
 
-* `is_default` - (Optional) A bool indicate if datastore is the workspace default datastore. Defaults to `false`.
+* `is_default` - (Optional) Specifies whether this Machines Learning DataStore is the default for the Workspace. Defaults to `false`.
 
-~> **Note:** `is_default` can only be set to `true` on update. 
+~> **Note:** `is_default` can only be set to `true` on update.
 
-* `service_data_auth_identity` - (Optional) Indicates which identity to use to authenticate service data access to customer's storage. Defaults to `None`. Possible values are `None`, `WorkspaceSystemAssignedIdentity` and `WorkspaceUserAssignedIdentity`.
+* `service_data_auth_identity` - (Optional) Specifies which identity to use when retrieving data from the specified source. Defaults to `None`. Possible values are `None`, `WorkspaceSystemAssignedIdentity` and `WorkspaceUserAssignedIdentity`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning DataStore. Changing this forces a new Machine Learning DataStore to be created.
 
