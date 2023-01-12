@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `recurrence_period_start_date` - (Required) The date the export will start capturing information.
 
-* `recurrence_period_end` - (Required) The date the export will stop capturing information.
+* `recurrence_period_end_date` - (Required) The date the export will stop capturing information.
 
 * `export_data_storage_location` - (Required) A `export_data_storage_location` block as defined below.
 

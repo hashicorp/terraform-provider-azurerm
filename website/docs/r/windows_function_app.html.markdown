@@ -146,15 +146,17 @@ An `active_directory` block supports the following:
 
 A `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6` and `7`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `v3.0`, `v4.0` `v6.0` and `v7.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11` & `17` (In-Preview).
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `1.8`, `11` & `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16` and `~18`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
+
+~> **NOTE:** A value of `7` will provide the latest stable version. `7.2` is in preview at the time of writing.
 
 * `use_custom_runtime` - (Optional) Should the Windows Function App use a custom runtime?
 

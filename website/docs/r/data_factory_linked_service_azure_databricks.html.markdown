@@ -174,6 +174,10 @@ A `new_cluster_config` block supports the following:
 
 * `log_destination` - (Optional) Location to deliver Spark driver, worker, and event logs.
 
+* `max_number_of_workers` - (Optional) Specifies the maximum number of worker nodes. It should be between 1 and 25000. 
+
+* `min_number_of_workers` - (Optional) Specifies the minimum number of worker nodes. It should be between 1 and 25000. It defaults to 1.
+
 * `spark_config` - (Optional) User-specified Spark configuration variables key-value pairs.
 
 * `spark_environment_variables` - (Optional) User-specified Spark environment variables key-value pairs.

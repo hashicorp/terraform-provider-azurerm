@@ -161,7 +161,7 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -506,7 +506,7 @@ A `ssl_profile` block supports the following:
 
 * `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified?  Defaults to `false`.
 
-* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
 
 ---
 

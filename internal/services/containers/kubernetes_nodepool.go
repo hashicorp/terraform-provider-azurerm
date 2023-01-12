@@ -245,7 +245,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"scale_down_mode": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						Default:  string(managedclusters.ScaleDownModeDelete),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.ScaleDownModeDeallocate),

@@ -71,8 +71,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cluster_id` - The GUID of the cluster.
 
-* `type` - The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
-
 ---
 
 An `identity` block exports the following:
@@ -99,5 +97,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Log Analytics Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.OperationalInsights/clusters/cluster1
+terraform import azurerm_log_analytics_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/clusters/cluster1
 ```

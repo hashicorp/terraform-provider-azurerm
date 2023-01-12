@@ -249,8 +249,6 @@ The following attributes are exported:
 
 * `id` - The ID of the Front Door Firewall Policy.
 
-* `location` - The Azure Region where this Front Door Firewall Policy exists.
-
 * `frontend_endpoint_ids` - The Front Door Profiles frontend endpoints associated with this Front Door Firewall Policy.
 
 ## Timeouts
@@ -267,5 +265,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Front Door Firewall Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/frontdoorWebApplicationFirewallPolicies/firewallPolicy1
+terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/firewallPolicy1
 ```

@@ -103,9 +103,11 @@ The following arguments are supported:
 
 * `daily_recurrence_time` - (Required) The time each day when the schedule takes effect. Must match the format HHmm where HH is 00-23 and mm is 00-59 (e.g. 0930, 2300, etc.)
 
+* `notification_settings` - (Required) The notification setting of a schedule. A `notification_settings` as defined below.
+
 ---
 
-A `notification_settings` - (Required)  - block supports the following:
+A `notification_settings` block supports the following:
 
 * `enabled` - (Required) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`. Defaults to `false`
 

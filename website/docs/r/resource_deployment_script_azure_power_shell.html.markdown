@@ -114,9 +114,9 @@ An `environment_variable` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Type of the managed identity.
+* `type` - (Required) Type of the managed identity. The only possible value is `UserAssigned`.
 
-* `user_assigned_identities` - (Optional) Specifies the list of user-assigned managed identities associated with the resource. Key is the Azure resource Id of the managed identity.
+* `identity_ids` - (Required) Specifies the list of user-assigned managed identity IDs associated with the resource.
 
 ---
 
@@ -148,5 +148,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Resource Deployment Script can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_resource_deployment_script_azure_power_shell.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.Resources/deploymentScripts/script1
+terraform import azurerm_resource_deployment_script_azure_power_shell.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Resources/deploymentScripts/script1
 ```

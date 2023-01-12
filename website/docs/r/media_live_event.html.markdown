@@ -184,5 +184,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Live Events can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1
+terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaServices/account1/liveEvents/event1
 ```

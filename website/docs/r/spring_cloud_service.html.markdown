@@ -178,7 +178,7 @@ The `required_network_traffic_rules` block supports the following:
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The IP list of required traffic.
+* `ip_addresses` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 

@@ -404,8 +404,6 @@ An `identity` block exports the following:
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
-
 -> You can access the Principal ID via `${azurerm_virtual_machine.example.identity.0.principal_id}`
 
 ## Timeouts
