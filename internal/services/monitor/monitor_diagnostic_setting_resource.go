@@ -247,6 +247,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
+	resourceId := fmt.Sprintf("%s|%s", id.ResourceUri, id.Name)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -255,8 +256,8 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-		return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", *existing.Model.Id)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", resourceId)
 	}
 
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
@@ -346,7 +347,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s|%s", id.ResourceUri, id.Name))
+	d.SetId(resourceId)
 
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
