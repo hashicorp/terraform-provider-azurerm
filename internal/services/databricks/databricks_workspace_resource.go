@@ -497,6 +497,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		workspace.Properties.RequiredNsgRules = &requiredNsgRulesConst
 	}
 
+	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
 	if setEncrypt {
 		workspace.Properties.Encryption = encrypt
 	}
