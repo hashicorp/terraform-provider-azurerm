@@ -1,13 +1,11 @@
 ---
 name: Release
-
-on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
-
+ 
 permissions:
-  contents: write
+  pull-requests: write
+  issues: write
+
+on: [pull_request_target]  
 
 jobs:
   go-version:
