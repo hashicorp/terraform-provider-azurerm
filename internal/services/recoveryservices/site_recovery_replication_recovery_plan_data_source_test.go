@@ -10,7 +10,7 @@ import (
 
 type SiteRecoveryReplicationRecoveryPlanDataSource struct{}
 
-func TestAccDataSourceSiteRecoveryReplicationRecoverPlan_basic(t *testing.T) {
+func TestAccDataSourceSiteRecoveryReplicationRecoveryPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
 	r := SiteRecoveryReplicationRecoveryPlanDataSource{}
 
