@@ -9,7 +9,6 @@ edit_uri: "https://github.com/hashicorp/terraform-provider-azurerm/tree/main/con
 docs_dir: contributing
 site_dir: site
 
-
 remote_branch: main-gh-pages
 
 dev_addr: 127.0.0.1:47000
