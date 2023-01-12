@@ -37,10 +37,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `subnet_id` - The ID of the Subnet that is linked to the Private DNS Resolver Outbound Endpoint.
 
-* `tags` - Mapping of tags assigned to the Private DNS Resolver Outbound Endpoint.
+* `tags` - The tags assigned to the Private DNS Resolver Outbound Endpoint.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS SRV Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS Resolver Outbound Endpoint.
