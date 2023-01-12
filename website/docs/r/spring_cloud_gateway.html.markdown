@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `api_metadata` - (Optional) A `api_metadata` block as defined below.
 
-* `apm_types` - (Optional) Specifies a list of APM type used in the Spring Cloud Gateway. The allowed values are `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
+* `application_performance_monitoring_types` - (Optional) Specifies a list of application performance monitoring types used in the Spring Cloud Gateway. The allowed values are `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
 
 * `cors` - (Optional) A `cors` block as defined below.
 

@@ -161,10 +161,10 @@ resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
 
-  https_only                    = false
-  public_network_access_enabled = false
-  instance_count                = 2
-  apm_types                     = ["ApplicationInsights", "NewRelic"]
+  https_only                               = false
+  public_network_access_enabled            = false
+  instance_count                           = 2
+  application_performance_monitoring_types = ["ApplicationInsights", "NewRelic"]
 
   api_metadata {
     description       = "test description"

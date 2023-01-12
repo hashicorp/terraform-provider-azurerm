@@ -97,7 +97,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"apm_types": {
+			"application_performance_monitoring_types": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -316,7 +316,7 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	gatewayResource := appplatform.GatewayResource{
 		Properties: &appplatform.GatewayProperties{
 			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
-			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("apm_types").([]interface{})),
+			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{})),
 			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{})),
 			EnvironmentVariables:  expandGatewayGatewayEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}), d.Get("sensitive_environment_variables").(map[string]interface{})),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
@@ -372,8 +372,8 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		if err := d.Set("api_metadata", flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)); err != nil {
 			return fmt.Errorf("setting `api_metadata`: %+v", err)
 		}
-		if err := d.Set("apm_types", flattenGatewayGatewayApmTypess(props.ApmTypes)); err != nil {
-			return fmt.Errorf("setting `apm_types`: %+v", err)
+		if err := d.Set("application_performance_monitoring_types", flattenGatewayGatewayApmTypess(props.ApmTypes)); err != nil {
+			return fmt.Errorf("setting `application_performance_monitoring_types`: %+v", err)
 		}
 		if err := d.Set("cors", flattenGatewayGatewayCorsProperties(props.CorsProperties)); err != nil {
 			return fmt.Errorf("setting `cors`: %+v", err)
