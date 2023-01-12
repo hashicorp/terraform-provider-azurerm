@@ -45,7 +45,7 @@ resource "azurerm_storage_account_local_user" "example" {
   home_directory       = "example_path"
   ssh_authorized_key {
     description = "key1"
-    key         = local.second_public_key
+    key         = local.first_public_key
   }
   ssh_authorized_key {
     description = "key2"
