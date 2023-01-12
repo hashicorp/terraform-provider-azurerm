@@ -73,6 +73,7 @@ FEATURES:
 * **New Resource:** `azurerm_cost_anomaly_alert` [GH-19899]
 * **New Resource:** `azurerm_lab_service_lab` [GH-19852]
 * **New Resource:** `azurerm_network_manager_subscription_connection` [GH-19617]
+* **New Resource:** `azurerm_media_services_account_filter` [GH-19964]
 * **New Resource:** `azurerm_private_endpoint_application_security_group_association` [GH-19825]
 
 ENHANCEMENTS:
