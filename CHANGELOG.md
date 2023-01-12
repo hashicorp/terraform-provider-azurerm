@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_storage_account` - support for the `allowed_copy_scope` property [GH-19906]
 * `azurerm_storage_queue` - exporting `resource_manager_id` [GH-19969]
 * `azurerm_synapse_spark_pool` - add support for Spark 3.3 [GH-19866]
+* `azurerm_monitor_diagnostic_setting` - deprecate `log` in favour of `enabled_log` [GH-19504]
 
 BUG FIXES:
 
