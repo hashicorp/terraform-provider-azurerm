@@ -14,6 +14,13 @@ const (
 	SchemaPath = "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+<<<<<<< HEAD
+=======
+type SchemaFile struct {
+	*File
+}
+
+>>>>>>> 0dfd6d62c9 (Rebase)
 func main() {
 	if len(os.Args) != 2 {
 		log.Fatal("Usage: generator-schema-snapshot <reource_type>")
@@ -98,9 +105,12 @@ func SchemaValue(sch *pluginsdk.Schema) Dict {
 		out[Id("Elem")] = Op("&").Qual(SchemaPath, "Resource").Values(ResourceValue(sch))
 	}
 
+<<<<<<< HEAD
 	if sch.Set != nil {
 		out[Id("Set")] = Id("TODO")
 	}
 
+=======
+>>>>>>> 0dfd6d62c9 (Rebase)
 	return out
 }
