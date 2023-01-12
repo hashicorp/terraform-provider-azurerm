@@ -84,7 +84,7 @@ A `recurrence_pattern` block supports the following:
 
 * `interval` - (Optional) The interval to invoke the schedule on. Possible values are between `1` and `365`.
 
-* `week_days` - (Optional) The interval to invoke the schedule on. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thrusday`, `Friday` and `Saturday`.
+* `week_days` - (Optional) The interval to invoke the schedule on. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
 ## Attributes Reference
 
