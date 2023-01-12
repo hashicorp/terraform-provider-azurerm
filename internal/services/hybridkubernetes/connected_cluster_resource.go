@@ -44,7 +44,7 @@ func (r ConnectedClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequiredForceNew(),
 
 		"agent_public_key_certificate": {
 			Type:         pluginsdk.TypeString,

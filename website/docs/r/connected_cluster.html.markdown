@@ -3,7 +3,7 @@ subcategory: "Hybrid Kubernetes"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_connected_cluster"
 description: |-
-Manages a Connected Cluster.
+  Manages a Connected Cluster.
 ---
 
 # azurerm_connected_cluster
