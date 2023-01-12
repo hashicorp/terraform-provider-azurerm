@@ -115,8 +115,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_account_name = azurerm_storage_account.test.name
-  container_name       = azurerm_storage_container.test.name
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
@@ -171,14 +170,9 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_account_name    = azurerm_storage_account.test.name
-  container_name          = azurerm_storage_container.test.name
+  storage_container_id    = azurerm_storage_container.test.resource_manager_id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
-
-
-
-
 `, template, data.RandomInteger)
 }
 
@@ -192,12 +186,9 @@ func (r MachineLearningDataStoreBlobStorage) requiresImport(data acceptance.Test
 resource "azurerm_machine_learning_datastore_blobstorage" "import" {
   name                 = azurerm_machine_learning_datastore_blobstorage.test.name
   workspace_id         = azurerm_machine_learning_datastore_blobstorage.test.workspace_id
-  storage_account_name = azurerm_machine_learning_datastore_blobstorage.test.storage_account_name
-  container_name       = azurerm_machine_learning_datastore_blobstorage.test.container_name
+  storage_container_id = azurerm_machine_learning_datastore_blobstorage.test.storage_container_id
   account_key          = azurerm_machine_learning_datastore_blobstorage.test.account_key
 }
-
-
 `, template)
 }
 

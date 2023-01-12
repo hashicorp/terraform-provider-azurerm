@@ -69,8 +69,7 @@ resource "azurerm_storage_container" "example" {
 resource "azurerm_machine_learning_datastore_blobstorage" "example" {
   name                 = "example-datastore"
   workspace_id         = azurerm_machine_learning_workspace.example.id
-  storage_account_name = azurerm_storage_account.example.name
-  container_name       = azurerm_storage_container.example.name
+  storage_container_id = azurerm_storage_account.example.resource_manager_id
   account_key          = azurerm_storage_account.example.primary_access_key
 }
 ```
@@ -84,9 +83,7 @@ The following arguments are supported:
 * `workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning DataStore to be created.
 
 ---
-* `storage_account_name` - (Required) The name of the Storage Account. Changing this forces a new Machine Learning DataStore to be created.
-
-* `container_name` - (Required) The name of the Storage Account Container. Changing this forces a new Machine Learning DataStore to be created.
+* `storage_container_id` - (Required) The ID of the Storage Account Container. Changing this forces a new Machine Learning DataStore to be created.
 
 * `account_key` - (Optional) The access key of the Storage Account. Conflicts with `shared_access_signature`.
 

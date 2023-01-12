@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -53,15 +53,7 @@ func resourceMachineLearningDataStore() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"storage_account_name": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validation.StringIsNotEmpty,
-			},
-
-			"container_name": {
+			"storage_container_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -138,14 +130,19 @@ func resourceMachineLearningDataStoreCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	containerId, err := storageparse.StorageContainerResourceManagerID(d.Get("storage_container_id").(string))
+	if err != nil {
+		return err
+	}
+
 	datastoreRaw := datastore.DatastoreResource{
 		Name: utils.String(d.Get("name").(string)),
 		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
 	}
 
 	props := &datastore.AzureBlobDatastore{
-		AccountName:                   utils.String(d.Get("storage_account_name").(string)),
-		ContainerName:                 utils.String(d.Get("container_name").(string)),
+		AccountName:                   utils.String(containerId.StorageAccountName),
+		ContainerName:                 utils.String(containerId.ContainerName),
 		Description:                   utils.String(d.Get("description").(string)),
 		ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(d.Get("service_data_auth_identity").(string))),
 		IsDefault:                     utils.Bool(d.Get("is_default").(bool)),
@@ -197,14 +194,19 @@ func resourceMachineLearningDataStoreUpdate(d *pluginsdk.ResourceData, meta inte
 
 	id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 
+	containerId, err := storageparse.StorageContainerResourceManagerID(d.Get("storage_container_id").(string))
+	if err != nil {
+		return err
+	}
+
 	datastoreRaw := datastore.DatastoreResource{
 		Name: utils.String(id.Name),
 		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
 	}
 
 	props := &datastore.AzureBlobDatastore{
-		AccountName:                   utils.String(d.Get("storage_account_name").(string)),
-		ContainerName:                 utils.String(d.Get("container_name").(string)),
+		AccountName:                   utils.String(containerId.StorageAccountName),
+		ContainerName:                 utils.String(containerId.ContainerName),
 		Description:                   utils.String(d.Get("description").(string)),
 		ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(d.Get("service_data_auth_identity").(string))),
 		IsDefault:                     utils.Bool(d.Get("is_default").(bool)),
@@ -275,17 +277,8 @@ func resourceMachineLearningDataStoreRead(d *pluginsdk.ResourceData, meta interf
 	}
 	d.Set("service_data_auth_identity", serviceDataAuth)
 
-	storageAccountName := ""
-	if v := data.AccountName; v != nil {
-		storageAccountName = *v
-	}
-	d.Set("storage_account_name", storageAccountName)
-
-	containerName := ""
-	if v := data.ContainerName; v != nil {
-		containerName = *v
-	}
-	d.Set("container_name", containerName)
+	containerId := storageparse.NewStorageContainerResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, *data.AccountName, "default", *data.ContainerName)
+	d.Set("storage_container_id", containerId.ID())
 
 	desc := ""
 	if v := data.Description; v != nil {
