@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `ssh_key_enabled` - (Optional) Specifies whether SSH Key Authentication is enabled. Defaults to `false`.
 
-* `ssh_password_enabled` - (Optional) Should the SSh password be enabled?
+* `ssh_password_enabled` - (Optional) Specifies whether SSH Password Authentication is enabled. Defaults to `false`.
 
 ---
 
