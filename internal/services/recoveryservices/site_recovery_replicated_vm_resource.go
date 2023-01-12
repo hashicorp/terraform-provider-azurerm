@@ -133,6 +133,13 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"test_network_id": {
+				Type:         pluginsdk.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"target_edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"unmanaged_disk": {
@@ -283,6 +290,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"test_static_ip": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -296,6 +304,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"test_subnet_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -309,6 +318,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"test_public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -519,6 +529,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	fabricName := d.Get("source_recovery_fabric_name").(string)
 	sourceProtectionContainerName := d.Get("source_recovery_protection_container_name").(string)
 	targetNetworkId := d.Get("target_network_id").(string)
+	testNetworkId := d.Get("test_network_id").(string)
 
 	id := replicationprotecteditems.NewReplicationProtectedItemID(subscriptionId, resGroup, vaultName, fabricName, sourceProtectionContainerName, name)
 
@@ -596,10 +607,20 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		}
 	}
 
+	if testNetworkId == "" {
+		// No test network id was specified, so we want to preserve what was selected
+		if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+			if a2aDetails.SelectedTfoAzureNetworkId != nil {
+				testNetworkId = *a2aDetails.SelectedTfoAzureNetworkId
+			}
+		}
+	}
+
 	parameters := replicationprotecteditems.UpdateReplicationProtectedItemInput{
 		Properties: &replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
 			RecoveryAzureVMName:            &name,
 			SelectedRecoveryAzureNetworkId: &targetNetworkId,
+			SelectedTfoAzureNetworkId:      &testNetworkId,
 			VMNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
