@@ -60,6 +60,7 @@ ENHANCEMENTS:
 * `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties [GH-19891]
 * `azurerm_mysql_flexible_server` - support for the `customer_managed_key` properties [GH-19905]
 * `azurerm_sentinel_automation_rule` - support for the `triggers_on`, `triggers_when`, and `condition_json` properties [GH-19309]
+* `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_types`, `environment_variables`, and `sensitive_environment_variables` properties [GH-19884]
 * `azurerm_storage_account` - support for the `allowed_copy_scope` property [GH-19906]
 * `azurerm_storage_queue` - exporting `resource_manager_id` [GH-19969]
 * `azurerm_synapse_spark_pool` - add support for Spark 3.3 [GH-19866]
@@ -77,7 +78,7 @@ ENHANCEMENTS:
 * `azurerm_windows_web_app_slot` - the `java_container_version` property This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  [GH-19685]
 * `azurerm_windows_web_app_slot` - the `current_stack` property will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack  [GH-19685]
 * `azurerm_windows_web_app_slot` - Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to `99:59:59` [GH-19685]
-* 
+
 BUG FIXES:
 
 * `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
