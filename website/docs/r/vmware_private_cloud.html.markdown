@@ -132,5 +132,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 VMware Private Clouds can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/PrivateClouds/privateCloud1
+terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/privateClouds/privateCloud1
 ```

@@ -148,5 +148,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Resource Deployment Script can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_resource_deployment_script_azure_power_shell.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.Resources/deploymentScripts/script1
+terraform import azurerm_resource_deployment_script_azure_power_shell.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Resources/deploymentScripts/script1
 ```
