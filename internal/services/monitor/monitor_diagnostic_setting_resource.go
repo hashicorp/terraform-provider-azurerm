@@ -193,7 +193,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			AtLeastOneOf: []string{"enabled_log", "log", "metric"},
-			Deprecated:   "`log` will be removed in favour of the properties `enabled_log` in version 4.0 of the AzureRM Provider.",
+			Deprecated:   "`log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"category": {
@@ -265,9 +265,9 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	var logs []diagnosticsettings.LogSettings
 	hasEnabledLogs := false
 	if !features.FourPointOhBeta() {
-		logsRaw := d.Get("log").(*pluginsdk.Set).List()
-		if len(logsRaw) > 0 {
-			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
+		logsRaw, ok := d.GetOk("log")
+		if ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
+			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw.(*pluginsdk.Set).List())
 			for _, v := range logs {
 				if v.Enabled {
 					hasEnabledLogs = true
@@ -297,7 +297,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if !valid && !hasEnabledLogs {
-		return fmt.Errorf("at least one `log` or `metric` must be enabled")
+		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
 	parameters := diagnosticsettings.DiagnosticSettingsResource{
@@ -398,7 +398,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if !valid && !hasEnabledLogs {
-		return fmt.Errorf("at least one `log` or `metric` must be enabled")
+		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
 	if d.HasChange("enabled_log") {
