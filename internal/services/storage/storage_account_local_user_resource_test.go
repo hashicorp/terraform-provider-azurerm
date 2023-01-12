@@ -187,7 +187,7 @@ resource "azurerm_storage_account_local_user" "test" {
   ssh_key_enabled    = true
   ssh_authorized_key {
     description = "key1"
-    key         = local.second_public_key
+    key         = local.first_public_key
   }
 }
 `, template)
@@ -205,7 +205,7 @@ resource "azurerm_storage_account_local_user" "test" {
   ssh_password_enabled = true
   ssh_authorized_key {
     description = "key1"
-    key         = local.second_public_key
+    key         = local.first_public_key
   }
 }
 `, template)
@@ -223,7 +223,7 @@ resource "azurerm_storage_account_local_user" "test" {
   ssh_password_enabled = true
   ssh_authorized_key {
     description = "key1"
-    key         = local.second_public_key
+    key         = local.first_public_key
   }
   ssh_authorized_key {
     description = "key2"
