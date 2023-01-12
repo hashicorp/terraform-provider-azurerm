@@ -141,13 +141,15 @@ An `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
 
+* `go_version` - (Optional) The version of Go to use. Possible values include `1.18`, and `1.19`.
+
 * `java_server` - (Optional) The Java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
 ~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option.
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions of Java vary depending on the `java_server` and `java_server_version`, as well as security and fixes to major versions. Please see Azure documentation for the latest information.
+* `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, and `17`.
 
 ~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`.
 

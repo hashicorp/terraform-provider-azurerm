@@ -196,5 +196,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Transforms can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_transform.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/media1/transforms/transform1
+terraform import azurerm_media_transform.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/media1/transforms/transform1
 ```
