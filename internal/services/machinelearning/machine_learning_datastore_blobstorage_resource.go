@@ -21,9 +21,9 @@ import (
 
 func resourceMachineLearningDataStore() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceMachineLearningDataStoreCreateOrUpdate,
+		Create: resourceMachineLearningDataStoreCreate,
 		Read:   resourceMachineLearningDataStoreRead,
-		Update: resourceMachineLearningDataStoreCreateOrUpdate,
+		Update: resourceMachineLearningDataStoreUpdate,
 		Delete: resourceMachineLearningDataStoreDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -114,7 +114,7 @@ func resourceMachineLearningDataStore() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceMachineLearningDataStoreCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningDataStoreCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.DatastoreClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -140,6 +140,65 @@ func resourceMachineLearningDataStoreCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 	datastoreRaw := datastore.DatastoreResource{
 		Name: utils.String(d.Get("name").(string)),
+		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
+	}
+
+	props := &datastore.AzureBlobDatastore{
+		AccountName:                   utils.String(d.Get("storage_account_name").(string)),
+		ContainerName:                 utils.String(d.Get("container_name").(string)),
+		Description:                   utils.String(d.Get("description").(string)),
+		ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(d.Get("service_data_auth_identity").(string))),
+		IsDefault:                     utils.Bool(d.Get("is_default").(bool)),
+		Tags:                          utils.ToPtr(expandTags(d.Get("tags").(map[string]interface{}))),
+	}
+
+	accountKey := d.Get("account_key").(string)
+	if accountKey != "" {
+		props.Credentials = map[string]interface{}{
+			"credentialsType": string(datastore.CredentialsTypeAccountKey),
+			"secrets": map[string]interface{}{
+				"secretsType": "AccountKey",
+				"key":         accountKey,
+			},
+		}
+	}
+
+	sasToken := d.Get("shared_access_signature").(string)
+	if sasToken != "" {
+		props.Credentials = map[string]interface{}{
+			"credentialsType": string(datastore.CredentialsTypeSas),
+			"secrets": map[string]interface{}{
+				"secretsType": "Sas",
+				"sasToken":    sasToken,
+			},
+		}
+	}
+	datastoreRaw.Properties = props
+
+	_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceMachineLearningDataStoreRead(d, meta)
+}
+
+func resourceMachineLearningDataStoreUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.DatastoreClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
+
+	datastoreRaw := datastore.DatastoreResource{
+		Name: utils.String(id.Name),
 		Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
 	}
 
