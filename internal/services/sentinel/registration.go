@@ -69,5 +69,6 @@ func (r Registration) Resources() []sdk.Resource {
 		DataConnectorOffice365ProjectResource{},
 		DataConnectorOfficePowerBIResource{},
 		DataConnectorOfficeIRMResource{},
+		DataConnectorThreatIntelligenceTAXIIResource{},
 	}
 }
