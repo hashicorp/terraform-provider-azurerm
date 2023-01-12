@@ -161,7 +161,7 @@ resource "azurerm_vmware_netapp_volume_attachment" "test" {
 ```
 
 ## Arguments Reference
----
+
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this VMware Private Cloud Netapp File Volume Attachment. Changing this forces a new VMware Private Cloud Netapp File Volume Attachment to be created.
