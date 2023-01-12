@@ -780,13 +780,13 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 						if ipConfig.RecoveryPublicIPAddressId != nil {
 							nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
 						}
-						if ipConfig.TfoStaticIPAddress != nil {
+						if ipConfig.TfoStaticIPAddress != nil && *ipConfig.TfoStaticIPAddress != "" {
 							nicOutput["test_static_ip"] = *ipConfig.TfoStaticIPAddress
 						}
-						if ipConfig.TfoSubnetName != nil {
+						if ipConfig.TfoSubnetName != nil && *ipConfig.TfoSubnetName != "" {
 							nicOutput["test_subnet_name"] = *ipConfig.TfoSubnetName
 						}
-						if ipConfig.TfoPublicIPAddressId != nil {
+						if ipConfig.TfoPublicIPAddressId != nil && *ipConfig.TfoPublicIPAddressId != "" {
 							nicOutput["test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
 						}
 					}
