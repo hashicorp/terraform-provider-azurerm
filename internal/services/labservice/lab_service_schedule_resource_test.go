@@ -58,7 +58,7 @@ func TestAccLabServiceSchedule_complete(t *testing.T) {
 
 	startTime := time.Now().Format(time.RFC3339)
 	stopTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
-	expirationDate := time.Now().Add(time.Hour * 2).Format(time.RFC3339)
+	expirationDate := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,10 +77,10 @@ func TestAccLabServiceSchedule_update(t *testing.T) {
 
 	startTime := time.Now().Format(time.RFC3339)
 	stopTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
-	expirationDate := time.Now().Add(time.Hour * 2).Format(time.RFC3339)
+	expirationDate := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
 
-	updatedStartTime := time.Now().Format(time.RFC3339)
-	updatedStopTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
+	updatedStartTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
+	updatedStopTime := time.Now().Add(time.Hour * 2).Format(time.RFC3339)
 	updatedExpirationDate := time.Now().Add(time.Hour * 2).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -158,7 +158,7 @@ resource "azurerm_lab_service_lab" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func (r LabServiceScheduleResource) basic(data acceptance.TestData, stopTime string) string {
