@@ -116,7 +116,7 @@ A `presentation_time_range` block supports the following:
 * `end_in_units` - (Optional) The absolute end time boundary. Applies to Video on Demand (VoD).
 For the Live Streaming presentation, it is silently ignored and applied when the presentation ends and the stream becomes VoD. This is a long value that represents an absolute end point of the presentation, rounded to the closest next GOP start. The unit is defined by `unit_timescale_in_milliseconds`, so an `end_in_units` of 180 would be for 3 minutes. Use `start_in_units` and `end_in_units` to trim the fragments that will be in the playlist (manifest). For example, `start_in_units` set to 20 and `end_in_units` set to 60 using `unit_timescale_in_milliseconds` in 1000 will generate a playlist that contains fragments from between 20 seconds and 60 seconds of the VoD presentation. If a fragment straddles the boundary, the entire fragment will be included in the manifest.
 
-* `force_end` - (Optional) Indicates whether the `end_in_units` property must be present. If true, `end_in_units` must be specified or a bad request code is returned. Applies to Live Streaming only. Allowed values: false, true.
+* `force_end` - (Optional) Indicates whether the `end_in_units` property must be present. If true, `end_in_units` must be specified or a bad request code is returned. Applies to Live Streaming only. Allowed values: `false`, `true`.
 
 * `live_backoff_in_units` - (Optional) The relative to end right edge. Applies to Live Streaming only.
 This value defines the latest live position that a client can seek to. Using this property, you can delay live playback position and create a server-side buffer for players. The unit is defined by `unit_timescale_in_milliseconds`. The maximum live back off duration is 300 seconds. For example, a value of 20 means that the latest available content is 20 seconds delayed from the real live edge.
@@ -161,5 +161,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Account Filters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_asset_filter.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/assets/asset1/assetFilters/filter1
+terraform import azurerm_media_services_account_filter.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/account1/accountFilters/filter1
 ```
