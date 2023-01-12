@@ -31,7 +31,7 @@ type RecurrencePattern struct {
 	ExpirationDate string                       `tfschema:"expiration_date"`
 	Frequency      schedule.RecurrenceFrequency `tfschema:"frequency"`
 	Interval       int64                        `tfschema:"interval"`
-	WeekDays       []schedule.WeekDay           `tfschema:"week_days"`
+	WeekDays       []string                     `tfschema:"week_days"`
 }
 
 type LabServiceScheduleResource struct{}
@@ -334,14 +334,11 @@ func expandRecurrencePattern(input []RecurrencePattern) *schedule.RecurrencePatt
 	result := schedule.RecurrencePattern{
 		ExpirationDate: recurrencePattern.ExpirationDate,
 		Frequency:      recurrencePattern.Frequency,
+		WeekDays:       expandWeekDays(recurrencePattern.WeekDays),
 	}
 
 	if recurrencePattern.Interval != 0 {
 		result.Interval = utils.Int64(recurrencePattern.Interval)
-	}
-
-	if recurrencePattern.WeekDays != nil {
-		result.WeekDays = &recurrencePattern.WeekDays
 	}
 
 	return &result
@@ -356,15 +353,40 @@ func flattenRecurrencePattern(input *schedule.RecurrencePattern) []RecurrencePat
 	recurrencePattern := RecurrencePattern{
 		ExpirationDate: input.ExpirationDate,
 		Frequency:      input.Frequency,
+		WeekDays:       flattenWeekDays(input.WeekDays),
 	}
 
 	if input.Interval != nil {
 		recurrencePattern.Interval = *input.Interval
 	}
 
-	if input.WeekDays != nil {
-		recurrencePattern.WeekDays = *input.WeekDays
+	return append(recurrencePatterns, recurrencePattern)
+}
+
+func expandWeekDays(input []string) *[]schedule.WeekDay {
+	if len(input) == 0 {
+		return nil
 	}
 
-	return append(recurrencePatterns, recurrencePattern)
+	result := make([]schedule.WeekDay, 0)
+
+	for _, item := range input {
+		result = append(result, schedule.WeekDay(item))
+	}
+
+	return &result
+}
+
+func flattenWeekDays(input *[]schedule.WeekDay) []string {
+	if input == nil {
+		return nil
+	}
+
+	result := make([]string, 0)
+
+	for _, item := range *input {
+		result = append(result, string(item))
+	}
+
+	return result
 }

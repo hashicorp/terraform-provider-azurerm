@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestValidateLabPlanName(t *testing.T) {
+func TestValidateScheduleNotes(t *testing.T) {
 	cases := []struct {
 		Input       string
 		ExpectError bool
