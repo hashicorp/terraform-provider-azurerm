@@ -3,6 +3,7 @@ package appconfiguration
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -251,6 +252,9 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
 		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 		if err != nil {
+			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
+				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+			}
 			if !response.WasNotFound(deleted.HttpResponse) {
 				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
 			}
@@ -661,4 +665,16 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	// otherwise presume it's an undefined value and best-effort it
 	out := configurationstores.PublicNetworkAccess(input)
 	return &out
+}
+
+func userIsMissingNecessaryPermission(name, location string) string {
+	return fmt.Sprintf(`
+An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
+the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
+You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
+can be found here:
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
+this into Terraform via "terraform import".
+`, name, location)
 }
