@@ -70,6 +70,7 @@ FEATURES:
 * **New Data Source:** `azurerm_private_dns_resolver_dns_forwarding_ruleset` [GH-19941]
 * **New Data Source:** `azurerm_private_dns_resolver_inbound_endpoint` [GH-19948]
 * **New Data Source:** `azurerm_private_dns_resolver_outbound_endpoint` [GH-19950]
+* **New Data Source:** `azurerm_private_dns_resolver_virtual_network_link` [GH-19951]
 * **New Resource:** `azurerm_cost_anomaly_alert` [GH-19899]
 * **New Resource:** `azurerm_lab_service_lab` [GH-19852]
 * **New Resource:** `azurerm_lab_service_user` [GH-19957]
