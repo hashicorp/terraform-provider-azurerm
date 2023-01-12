@@ -586,11 +586,13 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `ip_versions` - (Optional) Specifies a list of IP versions the Kubernetes Cluster will use to assign IP addresses to its nodes and pods. Possible values are `IPv4` and/or `IPv6`. `IPv4` must always be specified. Changing this forces a new resource to be created.
 
-->**Note:** To configure dual-stack networking `ip_versions` should be set to `["IPv4", "IPv6"]`
+->**Note:** To configure dual-stack networking `ip_versions` should be set to `["IPv4", "IPv6"]`.
 
 ->**Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
 
-* `kube_proxy` - (Optional) A `kube_proxy` block. 
+* `kube_proxy` - (Optional) A `kube_proxy` block.
+
+->**Note:** `kube_proxy` can only be disabled if the cluster is configured with its own (BYO) CNI, i.e. if `network_plugin` is set to `none`.
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`. Changing this forces a new resource to be created.
 
