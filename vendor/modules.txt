@@ -453,10 +453,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsit
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs
-github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/privateendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations
+github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs
 github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/geographichierarchies
 github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles
