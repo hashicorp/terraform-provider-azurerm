@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of this API Management Group.
 
-* `external_id` - (Optional) The identifier of the external Group. For example, an Azure Active Directory group `aad://<tenant>.onmicrosoft.com/groups/<group object id>`. Changing this forces a new resource to be created.
+* `external_id` - (Optional) The identifier of the external Group. For example, an Azure Active Directory group `aad://<tenant id>/groups/<group object id>`. Changing this forces a new resource to be created.
 
 * `type` - (Optional) The type of this API Management Group. Possible values are `custom`, `external` and `system`. Default is `custom`. Changing this forces a new resource to be created.
 
