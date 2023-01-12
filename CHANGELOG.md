@@ -1,8 +1,8 @@
 ## 3.39.0 (Unreleased)
 
-Breaking Change Notes - App Service APp Stack Re-alignment
+BREAKING CHANGES:
 
-Due to a number of changes in how the Service manages App and Stack settings, the Terraform resource schema and validation needs to be updated to re-align with the service. Whist we ordinarily avoid breaking changes outside a major release, the drift has made several aspects of these resources in an unworkable position resulting in a poor experience for many users.
+* **App Service App Stack Re-alignment** - due to a number of changes in how the Service manages App and Stack settings, the Terraform resource schema and validation needs to be updated to re-align with the service. Whist we ordinarily avoid breaking changes outside a major release, the drift has made several aspects of these resources in an unworkable position resulting in a poor experience for many users [GH-19685]
 
 * `azurerm_windows_web_app`
     * `node_version` Valid values are now `~12`, `~14`, `~16`, and  `~18`. This is due to an underlying change to where the Service reads the Node value from in the API request.
@@ -29,41 +29,6 @@ Due to a number of changes in how the Service manages App and Stack settings, th
 * `azurerm_linux_web_app`
     * `java_version` - input validation has been introduced based on supported values within the service. Valid values are now: `8`,`11`, and `17`. 
 
-Additional Changes
-* `azurerm_linux_web_app` 
-    * Added `application_stack` support for `go_version`
-    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
-    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service
-
-* `azurerm_linux_web_app_slot`
-    * Added `application_stack` support for `go_version`
-    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
-    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service
-
-* `azurerm_windows_web_app`
-    * `php_version` - Supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image.
-    * `python_version` - This property has been deprecated and is no longer used by the service
-    * `python` - Supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image.
-    * `java_container` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
-    * `java_container_version` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
-    * `current_stack` - will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack.
-    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
-    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update 
-    * Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to 99:59:59.
-
-* `azurerm_windows_web_app_slot`
-    * `php_version` - Supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image.
-    * `python_version` - This property has been deprecated and is no longer used by the service
-    * `python` - Supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image.
-    * `java_container` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
-    * `java_container_version` - This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`
-    * `current_stack` - will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack.
-    * Fixed a bug where `backup_config` could silently fail to expand resulting in the config not being sent
-    * Fixed a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update 
-    * Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to 99:59:59.
-
-
-
 FEATURES:
 
 * **New Data Source:** `azurerm_private_dns_resolver` [GH-19885]
@@ -85,26 +50,50 @@ ENHANCEMENTS:
 * Data Source: `azurerm_shared_image` - add support for the `purchase_plan` block [GH-19873]
 * `azurerm_kubernetes_cluster` - add support for the `vnet_integration_enabled` and `subnet_id` properties [GH-19438]
 * `azurerm_log_analytics_data_export_rule` - `destination_resource_id` accepts an Event Hub Namespace ID [GH-19868]
+* `azurerm_linux_web_app`- support for the `application_stack.go_version` property [GH-19685]
+* `azurerm_linux_web_app_slot` -support for the `application_stack.go_version` property [GH-19685]
 * `azurerm_logic_app_action_http` - add support for `@` in the `body` property [GH-19754]
 * `azurerm_maintenance_configuration` - support for the `in_guest_user_patch_mode` and `install_patches` properties [GH-19865]
+* `azurerm_monitor_diagnostic_setting` - deprecate `log` in favour of `enabled_log` [GH-19504]
 * `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties [GH-19891]
 * `azurerm_mysql_flexible_server` - support for the `customer_managed_key` properties [GH-19905]
 * `azurerm_sentinel_automation_rule` - support for the `triggers_on`, `triggers_when`, and `condition_json` properties [GH-19309]
 * `azurerm_storage_account` - support for the `allowed_copy_scope` property [GH-19906]
 * `azurerm_storage_queue` - exporting `resource_manager_id` [GH-19969]
 * `azurerm_synapse_spark_pool` - add support for Spark 3.3 [GH-19866]
-* `azurerm_monitor_diagnostic_setting` - deprecate `log` in favour of `enabled_log` [GH-19504]
-
+* `azurerm_windows_web_app` - the `php_version` property supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image [GH-19685]
+* `azurerm_windows_web_app` - the `python_version` property has been deprecated and is no longer used by the service  [GH-19685]
+* `azurerm_windows_web_app` - the `python` property supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image  [GH-19685]
+* `azurerm_windows_web_app` - the `java_container` property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  [GH-19685]
+* `azurerm_windows_web_app` - the `java_container_version` property This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  [GH-19685]
+* `azurerm_windows_web_app` - the `current_stack` property will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack  [GH-19685]
+* `azurerm_windows_web_app` - Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to `99:59:59` [GH-19685]
+* `azurerm_windows_web_app_slot` - the `php_version` property supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image [GH-19685]
+* `azurerm_windows_web_app_slot` - the `python_version` property has been deprecated and is no longer used by the service  [GH-19685]
+* `azurerm_windows_web_app_slot` - the `python` property supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image  [GH-19685]
+* `azurerm_windows_web_app_slot` - the `java_container` property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  [GH-19685]
+* `azurerm_windows_web_app_slot` - the `java_container_version` property This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  [GH-19685]
+* `azurerm_windows_web_app_slot` - the `current_stack` property will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack  [GH-19685]
+* `azurerm_windows_web_app_slot` - Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to `99:59:59` [GH-19685]
+* 
 BUG FIXES:
 
 * `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
 * `azurerm_cdn_frontdoor_rule` - handle empty string value for `query_string` [GH-19927]
 * `azurerm_cosmosdb_account` - `default_identity_type` is now computed to allow for restores [GH-19956]
+* `azurerm_linux_web_app`- prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent [GH-19685]
+* `azurerm_linux_web_app`- prevent a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service [GH-19685]
+* `azurerm_linux_web_app_slot`- prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent [GH-19685]
+* `azurerm_linux_web_app_slot`- prevent a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service [GH-19685]
 * `azurerm_policy_set_definition` - fix update of for empty group names in `policy_definition_reference.policy_group_names` [GH-19890]
 * `azurerm_storage_account` -  `403` is now a valid status code for when permissions to list keys is missing [GH-19645]
 * `azurerm_storage_data_lake_gen2_path` - `ace` generated by default are no longer stored in state to prevent perpetual state diffs [GH-18494]
 * `azurerm_storage_data_lake_gen2_filesystem` - `ace` generated by default are no longer stored in state to prevent perpetual state diffs [GH-18494]
 * `azurerm_web_pubsub_hub` - the `event_handler` property is now a list instead of set to respect the input order [GH-19886]
+* `azurerm_windows_web_app` - prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent  [GH-19685]
+* `azurerm_windows_web_app` - prevent a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update  [GH-19685]
+* `azurerm_windows_web_app_slot` - prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent  [GH-19685]
+* `azurerm_windows_web_app_slot` - prevent a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update  [GH-19685]
 
 ## 3.38.0 (January 05, 2023)
 
@@ -210,7 +199,7 @@ BUG FIXES:
 
 ## 3.35.0 (December 09, 2022)
 
-BREAKING CHANGES
+BREAKING CHANGES:
 
 * `azurerm_stream_analytics_output_blob` - the field `batch_min_rows` is now an integer rather than a float due to a [breaking change in the API Specifications](https://github.com/Azure/azure-rest-api-specs) - we believe this was only previously valid as an integer, as such whilst this is a breaking change we believe this shouldn't cause an issue for most users (since the API required that this was an integer) ([#19602](https://github.com/hashicorp/terraform-provider-azurerm/issues/19602))
 
