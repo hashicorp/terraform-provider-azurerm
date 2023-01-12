@@ -33,6 +33,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_private_dns_resolver` [GH-19885]
 * **New Data Source:** `azurerm_private_dns_resolver_dns_forwarding_ruleset` [GH-19941]
+* **New Data Source:** `azurerm_private_dns_resolver_forwarding_rule` [GH-19947]
 * **New Data Source:** `azurerm_private_dns_resolver_inbound_endpoint` [GH-19948]
 * **New Data Source:** `azurerm_private_dns_resolver_outbound_endpoint` [GH-19950]
 * **New Data Source:** `azurerm_private_dns_resolver_virtual_network_link` [GH-19951]
