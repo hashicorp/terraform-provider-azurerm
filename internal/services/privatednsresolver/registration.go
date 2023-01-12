@@ -45,7 +45,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		PrivateDNSResolverDnsResolverDataSource{},
 		PrivateDNSResolverInboundEndpointDataSource{},
 		PrivateDNSResolverOutboundEndpointDataSource{},
-    PrivateDNSResolverVirtualNetworkLinkDataSource{},
+		PrivateDNSResolverVirtualNetworkLinkDataSource{},
 	}
 }
 
