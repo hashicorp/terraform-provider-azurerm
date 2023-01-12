@@ -5,6 +5,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  deployments: write
+  pages: write
+
 jobs:
   build:
     name: Publish Contributor GitHub Pages
