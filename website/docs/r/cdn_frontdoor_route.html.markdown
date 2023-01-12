@@ -34,9 +34,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
-  name                                  = "example-origin"
-  cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  enabled                               = true
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                       = true
 
   certificate_name_check_enabled = false
 
