@@ -77,7 +77,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_core_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+					ValidateFunc: validation.StringInSlice([]string{
 						"v4.0",
 					}, false),
 					AtLeastOneOf: []string{
@@ -154,7 +154,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"node_version": {
-					// Not used directly - Sets app_settings.0.WEBSITE_NODE_DEFAULT_VERSION - Breaking change
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -404,7 +403,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+					ValidateFunc: validation.StringInSlice([]string{
 						"3.1",
 						"5.0", // deprecated
 						"6.0",
@@ -425,7 +424,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"go_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+					ValidateFunc: validation.StringInSlice([]string{
 						"1.19",
 						"1.18",
 					}, false),
@@ -444,7 +443,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 						"8.0",
 						"8.1",
@@ -464,7 +463,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"python_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+					ValidateFunc: validation.StringInSlice([]string{
 						"3.7",
 						"3.8",
 						"3.9",
@@ -506,7 +505,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"ruby_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{ // TODO replace with major.minor regex?
+					ValidateFunc: validation.StringInSlice([]string{
 						"2.6", // Deprecated - accepted but not offered in the portal. Remove in 4.0
 						"2.7", // EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
 					}, false),
@@ -530,7 +529,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"11",
 						"17",
 					}, false),
-					// TODO - Needs notes in the docs for this to help users navigate the inconsistencies in the service. e.g. jre8 va java8 etc
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
 						"site_config.0.application_stack.0.dotnet_version",
