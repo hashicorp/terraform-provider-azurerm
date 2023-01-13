@@ -1,3 +1,9 @@
+## 3.39.1 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_log_analytics `- fixing crash during read [GH-20011]
+
 ## 3.39.0 (January 12, 2023)
 
 BREAKING CHANGES:
