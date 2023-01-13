@@ -550,7 +550,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
 }
 
-func (CosmosSqlContainerResource) indexing_policy_update_includedPath(data acceptance.TestData, includedPath, excludedPath string) string {
+func (CosmosSqlContainerResource) indexing_policy_update_includedPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -564,8 +564,8 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   indexing_policy {
     indexing_mode = "none"
   }
-}
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
+}git 
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
 func (CosmosSqlContainerResource) partition_key_version(data acceptance.TestData, version int) string {
