@@ -25,6 +25,7 @@ func (r Registration) Resources() []sdk.Resource {
 		LabServiceLabResource{},
 		LabServicePlanResource{},
 		LabServiceScheduleResource{},
+		LabServiceUserResource{},
 	}
 }
 

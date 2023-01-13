@@ -72,5 +72,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Log Analytics Windows Event DataSources can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_datasource_windows_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/datasources/datasource1
+terraform import azurerm_log_analytics_datasource_windows_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/datasource1
 ```
