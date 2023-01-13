@@ -564,7 +564,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   indexing_policy {
     indexing_mode = "none"
   }
-}git 
+}
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
 
