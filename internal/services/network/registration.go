@@ -34,10 +34,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagerResource{},
-		PrivateEndpointApplicationSecurityGroupAssociationResource{},
+		ManagerManagementGroupConnectionResource{},
 		ManagerNetworkGroupResource{},
+		ManagerResource{},
 		ManagerSubscriptionConnectionResource{},
+		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 	}
 }

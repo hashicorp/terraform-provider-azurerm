@@ -70,5 +70,6 @@ func (r Registration) Resources() []sdk.Resource {
 		DataConnectorOfficePowerBIResource{},
 		DataConnectorOfficeIRMResource{},
 		LogAnalyticsWorkspaceOnboardResource{},
+		DataConnectorThreatIntelligenceTAXIIResource{},
 	}
 }

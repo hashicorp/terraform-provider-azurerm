@@ -120,5 +120,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Web Pubsub Hub can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_web_pubsub_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/hubs/webpubsubhub1
+terraform import azurerm_web_pubsub_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/webPubSub1/hubs/webPubSubhub1
 ```
