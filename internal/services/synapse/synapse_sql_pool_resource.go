@@ -194,7 +194,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
 	}
 
 	mode := d.Get("create_mode").(string)
@@ -392,16 +392,6 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	if props := resp.SQLPoolResourceProperties; props != nil {
 		d.Set("collation", props.Collation)
-
-		recoverableDatabaseId := ""
-		if props.RecoverableDatabaseID != nil && *props.RecoverableDatabaseID != "" {
-			id, err := parse.SqlPoolRecoverableDatabaseID(*props.RecoverableDatabaseID)
-			if err != nil {
-				return err
-			}
-			recoverableDatabaseId = id.ID()
-		}
-		d.Set("recovery_database_id", recoverableDatabaseId)
 	}
 
 	geoBackupEnabled := true
