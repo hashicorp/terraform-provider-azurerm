@@ -88,13 +88,13 @@ func resourceIpGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	for _, fw := range d.Get("firewall_ids").(*pluginsdk.Set).List() {
+	for _, fw := range d.Get("firewall_ids").([]interface{}) {
 		id, _ := firewallParse.FirewallID(fw.(string))
 		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 	}
 
-	for _, fwpol := range d.Get("firewall_policy_ids").(*pluginsdk.Set).List() {
+	for _, fwpol := range d.Get("firewall_policy_ids").([]interface{}) {
 		id, _ := firewallParse.FirewallPolicyID(fwpol.(string))
 		locks.ByName(id.Name, firewall.AzureFirewallPolicyResourceName)
 		defer locks.UnlockByName(id.Name, firewall.AzureFirewallPolicyResourceName)
