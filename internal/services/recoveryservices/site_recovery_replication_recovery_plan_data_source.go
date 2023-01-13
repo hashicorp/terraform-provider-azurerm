@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -97,12 +94,10 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Arguments() map[string]*p
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"recovery_vault_name": {
+		"recovery_vault_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.RecoveryServicesVaultName,
+			ValidateFunc: replicationrecoveryplans.ValidateVaultID,
 		},
 	}
 }
@@ -129,7 +124,7 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Attributes() map[string]*
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"group_type": {
+					"type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -165,7 +160,7 @@ func dataSourceSiteRecoveryReplicationPlanActions() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-				"action_detail_type": {
+				"type": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
