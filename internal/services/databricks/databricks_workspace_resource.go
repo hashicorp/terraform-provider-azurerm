@@ -666,19 +666,13 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		}
 
-		if encryptKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
-			if err == nil {
-				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
-			}
-		}
-
 		if encryptDiskKeyVaultURI != "" {
 			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, "keys", encryptDiskKeyName, encryptDiskKeyVersion)
 			if err == nil {
 				d.Set("managed_disk_cmk_key_vault_key_id", key.ID())
 			}
 			d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
+			d.Set("disk_encryption_set_id", model.Properties.DiskEncryptionSetId)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
