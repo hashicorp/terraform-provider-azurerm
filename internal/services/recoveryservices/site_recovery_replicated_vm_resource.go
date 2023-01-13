@@ -239,11 +239,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			"is_primary": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
 		},
 	}
 }
@@ -435,10 +430,6 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
 		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
-		isPrimary := vmNicInput["is_primary"].(bool)
-		if len(nicList) == 1 {
-			isPrimary = true
-		}
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -449,7 +440,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				RecoverySubnetName:        &targetSubnetName,
 				RecoveryStaticIPAddress:   &targetStaticIp,
 				RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
-				IsPrimary:                 &isPrimary,
+				IsPrimary:                 utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
