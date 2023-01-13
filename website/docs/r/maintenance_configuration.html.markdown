@@ -50,6 +50,12 @@ The following arguments are supported:
 
 * `window` - (Optional) A `window` block as defined below.
 
+* `install_patches` - (Optional) An `install_patches` block as defined below.
+
+-> **NOTE:** `install_patches` must be specified when `scope` is `InGuestPatch`.
+
+* `in_guest_user_patch_mode` - (Optional) The in guest user patch mode. Possible values are `Platform` or `User`. Must be specified when `scope` is `InGuestPatch`.
+
 * `properties` - (Optional) A mapping of properties to assign to the resource.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. The key could not contain upper case letter.
@@ -67,6 +73,36 @@ A `window` block supports:
 * `time_zone` - (Required) The time zone for the maintenance window. A list of timezones can be obtained by executing [System.TimeZoneInfo]::GetSystemTimeZones() in PowerShell.
 
 * `recur_every` - (Optional) The rate at which a maintenance window is expected to recur. The rate can be expressed as daily, weekly, or monthly schedules.
+
+---
+
+A `install_patches` block supports:
+
+* `linux` - (Optional) A `linux` block as defined above. This property only applies when `scope` is set to `InGuestPatch`
+
+* `windows` - (Optional) A `windows` block as defined above. This property only applies when `scope` is set to `InGuestPatch`
+
+* `reboot` - (Optional) Possible reboot preference as defined by the user based on which it would be decided to reboot the machine or not after the patch operation is completed. Possible values are `Always`, `IfRequired` and `Never`. This property only applies when `scope` is set to `InGuestPatch`.
+
+---
+
+A `linux` block supports:
+
+* `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are `Critical`, `Security` and `Other`.
+
+* `package_names_mask_to_exclude` - (Optional) List of package names to be excluded from patching.
+
+* `package_names_mask_to_include` - (Optional) List of package names to be included for patching.
+
+---
+
+A `windows` block supports:
+
+* `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+
+* `kb_numbers_to_exclude` (Optional) List of KB numbers to be excluded from patching.
+
+* `kb_numbers_to_include` (Optional) List of KB numbers to be included for patching.
 
 ---
 
@@ -90,5 +126,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Maintenance Configuration can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_maintenance_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.maintenance/maintenanceconfigurations/example-mc
+terraform import azurerm_maintenance_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Maintenance/maintenanceConfigurations/example-mc
 ```

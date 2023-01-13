@@ -39,6 +39,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_lb":                      dataSourceArmLoadBalancer(),
 		"azurerm_lb_backend_address_pool": dataSourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_rule":                 dataSourceArmLoadBalancerRule(),
+		"azurerm_lb_outbound_rule":        dataSourceArmLoadBalancerOutboundRule(),
 	}
 }
 

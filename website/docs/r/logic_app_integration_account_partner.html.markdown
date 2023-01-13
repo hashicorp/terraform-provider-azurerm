@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `integration_account_name` - (Required) The name of the Logic App Integration Account. Changing this forces a new Logic App Integration Account Partner to be created.
 
-* `business_identity` - (Optional) A `business_identity` block as documented below.
+* `business_identity` - (Required) A `business_identity` block as documented below.
 
 * `metadata` - (Optional) A JSON mapping of any Metadata for this Logic App Integration Account Partner.
 

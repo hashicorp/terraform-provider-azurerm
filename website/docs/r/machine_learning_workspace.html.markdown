@@ -370,6 +370,8 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of this Machine Learning Workspace.
 
+* `encryption` - (Optional) An `encryption` block as defined below.
+
 * `friendly_name` - (Optional) Display name for this Machine Learning Workspace.
 
 * `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service

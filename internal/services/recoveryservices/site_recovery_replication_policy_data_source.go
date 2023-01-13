@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
@@ -48,27 +48,31 @@ func dataSourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 
 func dataSourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewReplicationPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
+	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(id.ResourceGroup, id.VaultName)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-		if utils.ResponseWasNotFound(resp.Response) || utils.ResponseWasBadRequestWithServiceCode(resp.Response, err, "SubscriptionIdNotRegisteredWithSrs") {
+		if response.WasNotFound(resp.HttpResponse) || wasBadRequestWithNotExist(resp.HttpResponse, err) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on site recovery replication policy %s : %+v", id.String(), err)
 	}
+
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("recovery_vault_name", id.VaultName)
-	if a2APolicyDetails, isA2A := resp.Properties.ProviderSpecificDetails.AsA2APolicyDetails(); isA2A {
-		d.Set("recovery_point_retention_in_minutes", a2APolicyDetails.RecoveryPointHistory)
-		d.Set("application_consistent_snapshot_frequency_in_minutes", a2APolicyDetails.AppConsistentFrequencyInMinutes)
+	d.Set("name", id.PolicyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("recovery_vault_name", id.ResourceName)
+
+	if model := resp.Model; model != nil {
+		a2APolicyDetails, isA2A := expandA2APolicyDetail(model)
+		if isA2A {
+			d.Set("recovery_point_retention_in_minutes", a2APolicyDetails.RecoveryPointHistory)
+			d.Set("application_consistent_snapshot_frequency_in_minutes", a2APolicyDetails.AppConsistentFrequencyInMinutes)
+		}
 	}
 
 	return nil

@@ -85,7 +85,7 @@ The `auto_backup` block supports the following:
 
 * `storage_account_access_key` - (Required) Access key for the storage account where backups will be kept.
 
-* `system_databases_backup_enabled` - (Optional) Include or exclude system databases from auto backup. Defaults to `false`.
+* `system_databases_backup_enabled` - (Optional) Include or exclude system databases from auto backup.
 
 ---
 
@@ -101,7 +101,7 @@ The `manual_schedule` block supports the following:
 
 * `days_of_week` - (Optional) A list of days on which backup can take place. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`
 
-* ~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
+~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
 
 ---
 
@@ -207,9 +207,9 @@ The `schedule` block supports the following:
 
 ~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
-* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
+* `day_of_week` - (Required) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
-* `start_time` - (Optional) What time the assessment will be run. Must be in the format `HH:mm`.
+* `start_time` - (Required) What time the assessment will be run. Must be in the format `HH:mm`.
 
 ## Attributes Reference
 

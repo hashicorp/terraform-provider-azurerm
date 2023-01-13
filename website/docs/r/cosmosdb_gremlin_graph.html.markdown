@@ -76,7 +76,7 @@ The following arguments are supported:
 
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 
-* `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below.
+* `index_policy` - (Optional) The configuration of the indexing policy. One or more `index_policy` blocks as defined below.
 
 * `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
@@ -130,15 +130,15 @@ An `unique_key` block supports the following:
 
 A `composite_index` block supports the following:
 
-* `index` - One or more `index` blocks as defined below.
+* `index` - (Required) One or more `index` blocks as defined below.
 
 ---
 
 An `index` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
-* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+* `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
 ## Attributes Reference
 
