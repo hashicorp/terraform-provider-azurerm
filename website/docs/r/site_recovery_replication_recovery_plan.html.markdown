@@ -3,7 +3,7 @@ subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_site_recovery_replication_recovery_plan"
 description: |-
-    Manages a Site Recovery Replication Recovery Plan on Azure.
+    Manages an Azure Site Recovery Plan within a Recovery Services vault.
 ---
 
 # azurerm_site_recovery_replication_recovery_plan
@@ -48,13 +48,12 @@ resource "azurerm_site_recovery_fabric" "target" {
 
 resource "azurerm_site_recovery_replication_recovery_plan" "example" {
   name                      = "example-recover-plan"
-  resource_group_name       = azurerm_resource_group.target.name
-  recovery_vault_name       = azurerm_recovery_services_vault.target.name
+  recovery_vault_id         = azurerm_recovery_services_vault.target.id
   source_recovery_fabric_id = azurerm_site_recovery_fabric.source.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.target.id
 
   recovery_group {
-    type                 = "Boot"
+    type                       = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
   recovery_group {
@@ -73,9 +72,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Replication Plan.
 
-* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
-
-* `recovery_vault_name` - (Required) The name of the vault that should be updated.
+* `recovery_vault_id` - (Required) The ID of the vault that should be updated.
 
 * `source_recovery_fabric_id` - (Required) ID of source fabric to be recovered from. Changing this forces a new Replication Plan to be created.
 
@@ -103,7 +100,7 @@ An `action` block supports the following:
 
 * `type` - (Required) Type of the action detail. Possible values are `AutomationRunbookActionDetails`, `ManualActionDetails` and `ScriptActionDetails`.
 
-* `fail_over_directions` - (Required) Directions of fail over. Must be one of `PrimaryToRecovery` and `RecoveryToPrimary`
+* `fail_over_directions` - (Required) Directions of fail over. Possible values are `PrimaryToRecovery` and `RecoveryToPrimary`
 
 * `fail_over_types` - (Required) Types of fail over. Possible values are `TestFailover`, `PlannedFailover` and `UnplannedFailover`
 
