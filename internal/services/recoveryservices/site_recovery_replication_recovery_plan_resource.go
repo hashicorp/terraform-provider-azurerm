@@ -92,6 +92,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		"recovery_group": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			Computed: true,
 			MinItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

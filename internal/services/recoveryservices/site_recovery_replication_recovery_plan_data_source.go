@@ -44,7 +44,12 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, metaModel.ResourceGroupName, metaModel.RecoveryVaultName, metaModel.Name)
+			vaultId, err := replicationrecoveryplans.ParseVaultID(metaModel.RecoveryVaultId)
+			if err != nil {
+				return err
+			}
+
+			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.ResourceName, metaModel.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -60,9 +65,8 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := SiteRecoveryReplicationRecoveryPlanModel{
-				Name:              id.RecoveryPlanName,
-				ResourceGroupName: id.ResourceGroupName,
-				RecoveryVaultName: id.ResourceName,
+				Name:            id.RecoveryPlanName,
+				RecoveryVaultId: vaultId.ID(),
 			}
 
 			if prop := model.Properties; prop != nil {

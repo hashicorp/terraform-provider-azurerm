@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `target_recovery_fabric_id` - (Required) ID of target fabric to recover. Changing this forces a new Replication Plan to be created.
 
-* `recovery_group` - (Required) Three or more `recovery_group` block. At least one `recovery_group` for every `type` needed.
+* `recovery_group` - (Required) Three or more `recovery_group` block.
 
 ---
 

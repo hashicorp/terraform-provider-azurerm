@@ -298,15 +298,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
     type                       = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
-
-  recovery_group {
-    type = "Failover"
-  }
-
-  recovery_group {
-    type = "Shutdown"
-  }
-
 }
 `, r.template(data), data.RandomInteger)
 }
