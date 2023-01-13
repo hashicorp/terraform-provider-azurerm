@@ -18,7 +18,7 @@ import (
 type SecurityInsightsSentinelOnboardingStateResource struct{}
 
 func TestAccSecurityInsightsSentinelOnboardingState_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
 	r := SecurityInsightsSentinelOnboardingStateResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.
 		return
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
 	r := SecurityInsightsSentinelOnboardingStateResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.
 }
 
 func TestAccSecurityInsightsSentinelOnboardingState_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
 	r := SecurityInsightsSentinelOnboardingStateResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -100,7 +100,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
 }
@@ -231,7 +231,7 @@ resource "azurerm_log_analytics_linked_service" "test" {
   depends_on = [azurerm_log_analytics_cluster_customer_managed_key.test]
 }
 
-resource "azurerm_sentinel_log_analytics_workspace_onboard" "test" {
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   workspace_name               = azurerm_log_analytics_workspace.test.name
   customer_managed_key_enabled = true
@@ -247,7 +247,7 @@ func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acc
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_sentinel_log_analytics_workspace_onboard" "import" {
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "import" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
 }

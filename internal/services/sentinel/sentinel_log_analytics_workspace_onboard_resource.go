@@ -25,7 +25,7 @@ type LogAnalyticsWorkspaceOnboardResource struct{}
 var _ sdk.Resource = LogAnalyticsWorkspaceOnboardResource{}
 
 func (r LogAnalyticsWorkspaceOnboardResource) ResourceType() string {
-	return "azurerm_sentinel_log_analytics_workspace_onboard"
+	return "azurerm_sentinel_log_analytics_workspace_onboarding"
 }
 
 func (r LogAnalyticsWorkspaceOnboardResource) ModelObject() interface{} {

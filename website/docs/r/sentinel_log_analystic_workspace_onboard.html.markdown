@@ -1,12 +1,12 @@
 ---
 subcategory: "Sentinel"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sentinel_log_analytics_workspace_onboard"
+page_title: "Azure Resource Manager: azurerm_sentinel_log_analytics_workspace_onboarding"
 description: |-
   Manages a Security Insights Sentinel Onboarding States.
 ---
 
-# azurerm_sentinel_log_analytics_workspace_onboard
+# azurerm_sentinel_log_analytics_workspace_onboarding
 
 Manages a Security Insights Sentinel Onboarding.
 
@@ -25,7 +25,7 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_security_insights_sentinel_onboarding_state" "example" {
+resource "azurerm_security_insights_sentinel_onboarding" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   workspace_name       = azurerm_log_analytics_workspace.example.name
   customer_managed_key = false
