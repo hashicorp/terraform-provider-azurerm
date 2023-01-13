@@ -1,3 +1,9 @@
+## 3.40.0 (Unreleased)
+
+BUG FIXES: 
+
+* `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue [GH-20002]
+
 ## 3.39.1 (January 13, 2023)
 
 BUG FIXES:
