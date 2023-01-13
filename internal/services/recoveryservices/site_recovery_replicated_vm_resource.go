@@ -267,7 +267,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"network_interface": {
-				Type:       pluginsdk.TypeSet,
+				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Computed:   true,
 				Optional:   true,
@@ -542,7 +542,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	}
 
 	var vmNics []replicationprotecteditems.VMNicInputDetails
-	nicList := d.Get("network_interface").(*pluginsdk.Set).List()
+	nicList := d.Get("network_interface").([]interface{})
 	for _, raw := range nicList {
 		vmNicInput := raw.(map[string]interface{})
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
@@ -792,7 +792,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					}
 					nicsOutput = append(nicsOutput, nicOutput)
 				}
-				d.Set("network_interface", pluginsdk.NewSet(pluginsdk.HashResource(networkInterfaceResource()), nicsOutput))
+				d.Set("network_interface", nicsOutput)
 			}
 		}
 	}
