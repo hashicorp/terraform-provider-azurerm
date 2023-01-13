@@ -532,7 +532,7 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
-    no_public_ip        = true
+    no_public_ip        = false
     public_subnet_name  = azurerm_subnet.public.name
     private_subnet_name = azurerm_subnet.private.name
     virtual_network_id  = azurerm_virtual_network.test.id
