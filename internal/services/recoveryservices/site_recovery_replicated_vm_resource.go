@@ -267,7 +267,8 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"network_interface": {
-				Type:       pluginsdk.TypeList,
+				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
+				Set:        resourceSiteRecoveryReplicatedVMNicHash,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Computed:   true,
 				Optional:   true,
@@ -542,7 +543,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 	}
 
 	var vmNics []replicationprotecteditems.VMNicInputDetails
-	nicList := d.Get("network_interface").([]interface{})
+	nicList := d.Get("network_interface").(*pluginsdk.Set).List()
 	for _, raw := range nicList {
 		vmNicInput := raw.(map[string]interface{})
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
@@ -780,19 +781,19 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 						if ipConfig.RecoveryPublicIPAddressId != nil {
 							nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
 						}
-						if ipConfig.TfoStaticIPAddress != nil && *ipConfig.TfoStaticIPAddress != "" {
+						if ipConfig.TfoStaticIPAddress != nil {
 							nicOutput["test_static_ip"] = *ipConfig.TfoStaticIPAddress
 						}
-						if ipConfig.TfoSubnetName != nil && *ipConfig.TfoSubnetName != "" {
+						if ipConfig.TfoSubnetName != nil {
 							nicOutput["test_subnet_name"] = *ipConfig.TfoSubnetName
 						}
-						if ipConfig.TfoPublicIPAddressId != nil && *ipConfig.TfoPublicIPAddressId != "" {
+						if ipConfig.TfoPublicIPAddressId != nil {
 							nicOutput["test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
 						}
 					}
 					nicsOutput = append(nicsOutput, nicOutput)
 				}
-				d.Set("network_interface", nicsOutput)
+				d.Set("network_interface", pluginsdk.NewSet(pluginsdk.HashResource(networkInterfaceResource()), nicsOutput))
 			}
 		}
 	}
@@ -836,6 +837,24 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["disk_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func resourceSiteRecoveryReplicatedVMNicHash(v interface{}) int {
+	// to ignore the computed or empty ones
+	var buf bytes.Buffer
+	schema := networkInterfaceResource().Schema
+
+	if m, ok := v.(map[string]interface{}); ok {
+		for k, v := range m {
+			if s, ok := schema[k]; ok {
+				if !s.Computed && v != "" {
+					buf.WriteString(fmt.Sprintf("%s-%v", k, v))
+				}
+			}
 		}
 	}
 
