@@ -19,13 +19,12 @@ func TestAccDataSourceSiteRecoveryReplicationRecoveryPlan_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("recovery_vault_name").Exists(),
+				check.That(data.ResourceName).Key("recovery_vault_id").Exists(),
 				check.That(data.ResourceName).Key("source_recovery_fabric_id").Exists(),
 				check.That(data.ResourceName).Key("target_recovery_fabric_id").Exists(),
-				check.That(data.ResourceName).Key("recovery_group.0.group_type").HasValue("Boot"),
-				check.That(data.ResourceName).Key("recovery_group.1.group_type").HasValue("Failover"),
-				check.That(data.ResourceName).Key("recovery_group.2.group_type").HasValue("Shutdown"),
+				check.That(data.ResourceName).Key("recovery_group.0.type").HasValue("Boot"),
+				check.That(data.ResourceName).Key("recovery_group.1.type").HasValue("Failover"),
+				check.That(data.ResourceName).Key("recovery_group.2.type").HasValue("Shutdown"),
 			),
 		},
 	})
@@ -36,9 +35,8 @@ func (SiteRecoveryReplicationRecoveryPlanDataSource) basic(data acceptance.TestD
 %s
 
 data "azurerm_site_recovery_replication_recovery_plan" "test" {
-  name                = azurerm_site_recovery_replication_recovery_plan.test.name
-  resource_group_name = azurerm_site_recovery_replication_recovery_plan.test.resource_group_name
-  recovery_vault_name = azurerm_site_recovery_replication_recovery_plan.test.recovery_vault_name
+  name              = azurerm_site_recovery_replication_recovery_plan.test.name
+  recovery_vault_id = azurerm_site_recovery_replication_recovery_plan.test.recovery_vault_id
 }
 `, SiteRecoveryReplicationRecoveryPlan{}.basic(data))
 }
