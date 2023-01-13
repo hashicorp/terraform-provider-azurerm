@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -213,7 +214,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 }
 
 func networkInterfaceResource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	out := &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
@@ -241,6 +242,16 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		out.Schema["is_primary"] = &pluginsdk.Schema{
+			Deprecated: "this property is not used and will be removed in version 4.0 of the provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+		}
+	}
+	return out
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
