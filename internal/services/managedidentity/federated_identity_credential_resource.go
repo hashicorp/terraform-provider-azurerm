@@ -87,13 +87,13 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+			if err != nil {
+				return fmt.Errorf("parsing parent resource ID: %+v", err)
+			}
 
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
 
-			if err != nil {
-				return fmt.Errorf("parsing parent resource ID: %+v", err)
-			}
 			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.ResourceName, config.Name)
 
 			existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
@@ -162,6 +162,9 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 			}
 
 			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+			if err != nil {
+				return fmt.Errorf("parsing parent resource ID: %+v", err)
+			}
 
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
