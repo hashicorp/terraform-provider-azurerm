@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_site_recovery_replication_recovery_plan
 
-Manages a Azure Site Recovery Plan within a Recovery Services vault. A recovery plan gathers machines into recovery groups for the purpose of failover.
+Manages an Azure Site Recovery Plan within a Recovery Services vault. A recovery plan gathers machines into recovery groups for the purpose of failover.
 
 ## Example Usage
 
@@ -53,14 +53,14 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.source.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.target.id
 
-  recovery_groups {
+  recovery_group {
     group_type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
-  recovery_groups {
+  recovery_group {
     group_type = "Failover"
   }
-  recovery_groups {
+  recovery_group {
     group_type = "Shutdown"
   }
 
@@ -103,11 +103,11 @@ An `action` block supports the following:
 
 * `action_detail_type` - (Required) Type of the action detail. Possible values are `AutomationRunbookActionDetails`, `ManualActionDetails` and `ScriptActionDetails`.
 
-* `fail_over_directions` - (Required) Directions of fail over. Must be one of `PrimaryToRecovery` or `RecoveryToPrimary`
+* `fail_over_directions` - (Required) Directions of fail over. Must be one of `PrimaryToRecovery` and `RecoveryToPrimary`
 
 * `fail_over_types` - (Required) Types of fail over. Possible values are `TestFailover`, `PlannedFailover` and `UnplannedFailover`
 
-* `fabric_location` - (Optional) The fabric location of runbook or script. Must be one of `Primary` or `Recovery`.
+* `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`.
 
 -> **NOTE:** This is required when `action_detail_type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
 
