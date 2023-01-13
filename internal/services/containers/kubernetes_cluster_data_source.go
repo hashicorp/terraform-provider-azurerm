@@ -393,10 +393,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"key_vault_resource_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -860,7 +856,6 @@ func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.AzureK
 		azureKeyVaultKms = append(azureKeyVaultKms, map[string]interface{}{
 			"key_vault_key_id":         input.KeyId,
 			"key_vault_network_access": input.KeyVaultNetworkAccess,
-			"key_vault_resource_id":    input.KeyVaultResourceId,
 		})
 	}
 

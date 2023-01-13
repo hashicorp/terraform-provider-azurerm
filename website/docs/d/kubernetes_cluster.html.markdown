@@ -186,8 +186,6 @@ A `key_management_service` block supports the following:
 
 * `key_vault_network_access` - Network access of the key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link.
 
-* `key_vault_resource_id` - Resource ID of key vault. This in only relevant when `key_vault_network_access` is `Private`. When keyVaultNetworkAccess is `Public`, the field is empty.
-
 ---
 
 A `key_vault_secrets_provider` block exports the following:

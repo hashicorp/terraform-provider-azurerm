@@ -31,8 +31,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -728,11 +731,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKeyVaultNetworkAccessTypes(), false),
 						},
-						"key_vault_resource_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
 					},
 				},
 			},
@@ -1253,6 +1251,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1388,7 +1388,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
-	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
+	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
 	if err != nil {
 		return err
 	}
@@ -1518,6 +1518,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	containersClient := meta.(*clients.Client).Containers
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1867,7 +1869,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChanges("key_management_service") {
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
-		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(d, azureKeyVaultKmsRaw)
+		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
@@ -3417,7 +3419,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	}
 }
 
-func expandKubernetesClusterAzureKeyVaultKms(d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
+func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
 	if ((input == nil) || len(input) == 0) && d.HasChanges("key_management_service") {
 		return &managedclusters.AzureKeyVaultKms{
 			Enabled: utils.Bool(false),
@@ -3433,12 +3435,20 @@ func expandKubernetesClusterAzureKeyVaultKms(d *pluginsdk.ResourceData, input []
 		Enabled:               utils.Bool(true),
 		KeyId:                 utils.String(raw["key_vault_key_id"].(string)),
 		KeyVaultNetworkAccess: &kvAccess,
-		KeyVaultResourceId:    utils.String(raw["key_vault_resource_id"].(string)),
 	}
 
-	private := managedclusters.KeyVaultNetworkAccessTypesPrivate
-	if kvAccess == private && len(*azureKeyVaultKms.KeyVaultResourceId) == 0 {
-		return nil, fmt.Errorf("a valid  `key_vault_resource_id` is required when `key_vault_network_access` is `%s`", private)
+	// Set Key vault Resource ID in case public access is disabled
+	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
+		keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(*azureKeyVaultKms.KeyId)
+		if err != nil {
+			return nil, err
+		}
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+		}
+
+		azureKeyVaultKms.KeyVaultResourceId = keyVaultID
 	}
 
 	return azureKeyVaultKms, nil
