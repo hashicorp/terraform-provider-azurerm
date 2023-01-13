@@ -507,8 +507,7 @@ The `storage_profile_data_disk` block supports the following:
 
 The `storage_profile_image_reference` block supports the following:
 
-* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
-machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 * `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.

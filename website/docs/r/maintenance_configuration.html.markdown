@@ -100,9 +100,9 @@ A `windows` block supports:
 
 * `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
-* `kb_numbers_to_exclude` (Optional) List of KB numbers to be excluded from patching.
+* `kb_numbers_to_exclude` - (Optional) List of KB numbers to be excluded from patching.
 
-* `kb_numbers_to_include` (Optional) List of KB numbers to be included for patching.
+* `kb_numbers_to_include` - (Optional) List of KB numbers to be included for patching.
 
 ---
 

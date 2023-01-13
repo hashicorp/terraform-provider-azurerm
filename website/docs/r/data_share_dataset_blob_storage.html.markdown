@@ -97,9 +97,9 @@ The following arguments are supported:
 
 A `storage_account` block supports the following:
 
-* `name` - (Required)  The name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
+* `name` - (Required) The name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
-* `resource_group_name` - (Required)  The resource group name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
+* `resource_group_name` - (Required) The resource group name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
 * `subscription_id` - (Required) The subscription id of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 

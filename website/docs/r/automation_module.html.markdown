@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Module is created. Changing this forces a new resource to be created.
 
-* `module_link` - (Required) A `module_link` block as defined blow.
+* `module_link` - (Required) A `module_link` block as defined below.
 
 ---
 

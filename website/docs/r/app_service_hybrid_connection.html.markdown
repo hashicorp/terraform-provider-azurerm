@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `app_service_name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.  Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service. Changing this forces a new resource to be created.
 
 * `relay_id` - (Required) The ID of the Service Bus Relay. Changing this forces a new resource to be created.
 

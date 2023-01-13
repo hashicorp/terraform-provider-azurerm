@@ -117,7 +117,7 @@ A `rule` block supports the following:
 
 * `destination_ports` - (Required) A list of destination ports.
 
-* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.  If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
+* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`. If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
 
 * `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
 

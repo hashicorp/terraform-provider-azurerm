@@ -88,7 +88,7 @@ A `github_action_configuration` block supports the following:
 
 * `generate_workflow_file` - (Optional) Should the service generate the GitHub Action Workflow file. Defaults to `true` Changing this forces a new resource to be created.
 
-* `linux_action` -  Denotes this action uses a Linux base image.
+* `linux_action` - Denotes this action uses a Linux base image.
 
 ---
 

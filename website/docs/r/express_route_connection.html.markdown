@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `enable_internet_security` - (Optional) Is Internet security enabled for this Express Route Connection?
 
-* `routing` - (Optional)  A `routing` block as defined below.
+* `routing` - (Optional) A `routing` block as defined below.
 
 * `routing_weight` - (Optional) The routing weight associated to the Express Route Connection. Possible value is between `0` and `32000`. Defaults to `0`.
 
@@ -106,7 +106,7 @@ A `routing` block supports the following:
 
 * `associated_route_table_id` - (Optional) The ID of the Virtual Hub Route Table associated with this Express Route Connection.
 
-* `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
+* `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 
 ---
 

@@ -61,8 +61,7 @@ resource "azurerm_postgresql_firewall_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the PostgreSQL Firewall Rule. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the PostgreSQL Firewall Rule. Changing this forces a new resource to be created.
 
 * `server_name` - (Required) Specifies the name of the PostgreSQL Server. Changing this forces a new resource to be created.
 

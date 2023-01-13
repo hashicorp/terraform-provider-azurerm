@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Live Event should exist. Changing this forces a new Live Event to be created.
 
-* `media_services_account_name` - (Required)  The Media Services account name. Changing this forces a new Live Event to be created.
+* `media_services_account_name` - (Required) The Media Services account name. Changing this forces a new Live Event to be created.
 
 * `name` - (Required) The name which should be used for this Live Event. Changing this forces a new Live Event to be created.
 

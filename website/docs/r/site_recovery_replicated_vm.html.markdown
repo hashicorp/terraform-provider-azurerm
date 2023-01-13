@@ -238,11 +238,11 @@ The following arguments are supported:
 
 * `target_resource_group_id` - (Required) Id of resource group where the VM should be created when a failover is done. Changing this forces a new resource to be created.
 
-* `target_recovery_fabric_id` - (Required)  Id of fabric where the VM replication should be handled when a failover is done. Changing this forces a new resource to be created.
+* `target_recovery_fabric_id` - (Required) Id of fabric where the VM replication should be handled when a failover is done. Changing this forces a new resource to be created.
 
-* `target_recovery_protection_container_id` - (Required)  Id of protection container where the VM replication should be created when a failover is done. Changing this forces a new resource to be created.
+* `target_recovery_protection_container_id` - (Required) Id of protection container where the VM replication should be created when a failover is done. Changing this forces a new resource to be created.
 
-* `target_availability_set_id` - (Optional)  Id of availability set that the new VM should belong to when a failover is done.
+* `target_availability_set_id` - (Optional) Id of availability set that the new VM should belong to when a failover is done.
 
 * `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. Changing this forces a new resource to be created.
 
@@ -266,7 +266,7 @@ A `managed_disk` block supports the following:
 
 * `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`.
 
-* `target_disk_encryption_set_id` - (Optional)  The Disk Encryption Set that the Managed Disk will be associated with.
+* `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with.
 
 * `target_disk_encryption` - (Optional) A `target_disk_encryption` block as defined below.
 

@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
 
-* `branch_to_branch_traffic_enabled` - (Optional)  Whether to enable route exchange between Azure Route Server and the gateway(s)
+* `branch_to_branch_traffic_enabled` - (Optional) Whether to enable route exchange between Azure Route Server and the gateway(s)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

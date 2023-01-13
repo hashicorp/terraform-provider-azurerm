@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `password` - (Optional) Administrator password for the VMs that will be created as part of this cluster.
 
-* `sku` - (Optional) SKU for this cluster.  Changing this forces a new resource to be created. Default is `Basic`, allowed values are either `Basic` or `Standard`.
+* `sku` - (Optional) SKU for this cluster. Changing this forces a new resource to be created. Default is `Basic`, allowed values are either `Basic` or `Standard`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 

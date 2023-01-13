@@ -81,7 +81,7 @@ A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
 
-* `public_network_access_enabled` - (Optional)  Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
 * ~> **Note:** The public network access setting at the network rule sets level should be the same as it's at the namespace level.
 
@@ -118,19 +118,15 @@ The following attributes are exported:
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.
 
-* `default_primary_connection_string` - The primary connection string for the authorization
-    rule `RootManageSharedAccessKey`.
+* `default_primary_connection_string` - The primary connection string for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization
-    rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
+* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_secondary_connection_string` - The secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`.
+* `default_secondary_connection_string` - The secondary connection string for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
+* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 

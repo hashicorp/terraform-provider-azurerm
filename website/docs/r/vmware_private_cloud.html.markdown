@@ -114,7 +114,7 @@ A `circuit` block exports the following:
 
 A `management_cluster` block exports the following:
 
-* `id` - The ID of the  management cluster.
+* `id` - The ID of the management cluster.
 
 * `hosts` - A list of hosts in the management cluster.
 

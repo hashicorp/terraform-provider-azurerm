@@ -77,7 +77,7 @@ The following arguments are supported:
 
 -> **NOTE:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
 
-* `replication_mode` - (Optional)  Mode to be used for replication. Possible values are `Full` and `Shallow`. Defaults to `Full`. Changing this forces a new resource to be created.
+* `replication_mode` - (Optional) Mode to be used for replication. Possible values are `Full` and `Shallow`. Defaults to `Full`. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where the Blob exists. Changing this forces a new resource to be created.
 

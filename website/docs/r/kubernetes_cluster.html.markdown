@@ -366,9 +366,9 @@ A `default_node_pool` block supports the following:
 
 -> **Note:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `node_count` field.
 
-* `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled?  Changing this forces a new resource to be created.
+* `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? Changing this forces a new resource to be created.
 
-* `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address?  Changing this forces a new resource to be created.
+* `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Changing this forces a new resource to be created.
 
 * `host_group_id` - (Optional) Specifies the ID of the Host Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 

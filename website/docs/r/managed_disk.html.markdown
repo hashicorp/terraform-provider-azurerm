@@ -136,7 +136,7 @@ The following arguments are supported:
 
 * `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`. Changing this forces a new resource to be created.
 
-* `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`.  Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`. Changing this forces a new resource to be created.
 
 * `tier` - (Optional) The disk performance tier to use. Possible values are documented [here](https://docs.microsoft.com/azure/virtual-machines/disks-change-performance). This feature is currently supported only for premium SSDs.
 

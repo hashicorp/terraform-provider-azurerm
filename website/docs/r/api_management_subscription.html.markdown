@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Optional) An Identifier which should used as the ID of this Subscription. If not specified a new Subscription ID will be generated. Changing this forces a new resource to be created.
 
-* `allow_tracing` - (Optional) Determines whether tracing can be enabled.  Defaults to `true`.
+* `allow_tracing` - (Optional) Determines whether tracing can be enabled. Defaults to `true`.
 
 ## Attributes Reference
 

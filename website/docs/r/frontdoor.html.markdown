@@ -205,7 +205,7 @@ The `routing_rule` block supports the following:
 
 * `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below.
 
-* `redirect_configuration`   - (Optional) A `redirect_configuration` block as defined below.
+* `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 ---
 
@@ -231,7 +231,7 @@ The `forwarding_configuration` block supports the following:
 
 The `redirect_configuration` block supports the following:
 
-* `custom_host` - (Optional)  Set this to change the URL for the redirection.
+* `custom_host` - (Optional) Set this to change the URL for the redirection.
 
 * `redirect_protocol` - (Required) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`.
 

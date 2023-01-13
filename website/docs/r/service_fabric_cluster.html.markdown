@@ -221,7 +221,7 @@ A `node_type` block supports the following:
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
 
-* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint for this Node Type. Changing this will upgrade the cluster.
 
 ---
 

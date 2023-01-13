@@ -97,9 +97,9 @@ The following arguments are supported:
 
 * `node_count` - (Optional) The number of nodes in the Spark Pool. Exactly one of `node_count` or `auto_scale` must be specified.
 
-* `auto_scale` - (Optional)  An `auto_scale` block as defined below. Exactly one of `node_count` or `auto_scale` must be specified.
+* `auto_scale` - (Optional) An `auto_scale` block as defined below. Exactly one of `node_count` or `auto_scale` must be specified.
 
-* `auto_pause` - (Optional)  An `auto_pause` block as defined below.
+* `auto_pause` - (Optional) An `auto_pause` block as defined below.
 
 * `cache_size` - (Optional) The cache size in the Spark Pool.
 
@@ -113,11 +113,11 @@ The following arguments are supported:
 
 * `max_executors` - (Optional) The maximum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`.
   
-* `library_requirement` - (Optional)  A `library_requirement` block as defined below.
+* `library_requirement` - (Optional) A `library_requirement` block as defined below.
 
 * `session_level_packages_enabled` - (Optional) Indicates whether session level packages are enabled or not. Defaults to `false`.
 
-* `spark_config` - (Optional)  A `spark_config` block as defined below.
+* `spark_config` - (Optional) A `spark_config` block as defined below.
 
 * `spark_log_folder` - (Optional) The default folder where Spark logs will be written. Defaults to `/logs`.
 
