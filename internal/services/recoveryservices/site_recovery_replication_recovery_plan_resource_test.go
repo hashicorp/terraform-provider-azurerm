@@ -295,7 +295,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    type                 = "Boot"
+    type                       = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
@@ -322,11 +322,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    type                 = "Boot"
+    type                       = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     pre_action {
       name                      = "testPreAction"
-      action_detail_type        = "ManualActionDetails"
+      type                      = "ManualActionDetails"
       fail_over_directions      = ["PrimaryToRecovery"]
       fail_over_types           = ["TestFailover"]
       manual_action_instruction = "test instruction"
@@ -355,11 +355,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    type                 = "Boot"
+    type                       = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     post_action {
       name                      = "testPreAction"
-      action_detail_type        = "ManualActionDetails"
+      type                      = "ManualActionDetails"
       fail_over_directions      = ["PrimaryToRecovery"]
       fail_over_types           = ["TestFailover"]
       manual_action_instruction = "test instruction"

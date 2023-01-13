@@ -33,7 +33,7 @@ type RecoveryGroupModel struct {
 }
 
 type ActionModel struct {
-	ActionDetailType        string                                              `tfschema:"action_detail_type"`
+	ActionDetailType        string                                              `tfschema:"type"`
 	FabricLocation          replicationrecoveryplans.RecoveryPlanActionLocation `tfschema:"fabric_location"`
 	FailOverDirections      []string                                            `tfschema:"fail_over_directions"`
 	FailOverTypes           []string                                            `tfschema:"fail_over_types"`
@@ -137,7 +137,7 @@ func schemaAction() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"action_detail_type": {
+			"type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{

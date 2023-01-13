@@ -101,7 +101,7 @@ An `action` block supports the following:
 
 * `name` - (Required) Name of the Action.
 
-* `action_detail_type` - (Required) Type of the action detail. Possible values are `AutomationRunbookActionDetails`, `ManualActionDetails` and `ScriptActionDetails`.
+* `type` - (Required) Type of the action detail. Possible values are `AutomationRunbookActionDetails`, `ManualActionDetails` and `ScriptActionDetails`.
 
 * `fail_over_directions` - (Required) Directions of fail over. Must be one of `PrimaryToRecovery` and `RecoveryToPrimary`
 
@@ -109,19 +109,19 @@ An `action` block supports the following:
 
 * `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`.
 
--> **NOTE:** This is required when `action_detail_type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
+-> **NOTE:** This is required when `type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
 
 * `runbook_id` - (Optional) Id of runbook.
 
--> **NOTE:** This property is required when `action_detail_type` is set to `AutomationRunbookActionDetails`.
+-> **NOTE:** This property is required when `type` is set to `AutomationRunbookActionDetails`.
 
 * `manual_action_instruction` - (Optional) Instructions of manual action.
 
--> **NOTE:** This property is required when `action_detail_type` is set to `ManualActionDetails`.
+-> **NOTE:** This property is required when `type` is set to `ManualActionDetails`.
 
 * `script_path` - (Optional) Path of action script.
 
--> **NOTE:** This property is required when `action_detail_type` is set to `ScriptActionDetails`.
+-> **NOTE:** This property is required when `type` is set to `ScriptActionDetails`.
 
 
 ## Attributes Reference
