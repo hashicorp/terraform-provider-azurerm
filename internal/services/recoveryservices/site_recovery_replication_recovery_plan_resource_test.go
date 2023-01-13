@@ -290,22 +290,21 @@ func (r SiteRecoveryReplicationRecoveryPlan) basic(data acceptance.TestData) str
 
 resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   name                      = "acctest-%[2]d"
-  resource_group_name       = azurerm_resource_group.test2.name
-  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    group_type                 = "Boot"
+    type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
   recovery_group {
-    group_type = "Failover"
+    type = "Failover"
   }
 
   recovery_group {
-    group_type = "Shutdown"
+    type = "Shutdown"
   }
 
 }
@@ -318,13 +317,12 @@ func (r SiteRecoveryReplicationRecoveryPlan) withPreActions(data acceptance.Test
 
 resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   name                      = "acctest-%[2]d"
-  resource_group_name       = azurerm_resource_group.test2.name
-  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    group_type                 = "Boot"
+    type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     pre_action {
       name                      = "testPreAction"
@@ -336,11 +334,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   }
 
   recovery_group {
-    group_type = "Failover"
+    type = "Failover"
   }
 
   recovery_group {
-    group_type = "Shutdown"
+    type = "Shutdown"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -352,13 +350,12 @@ func (r SiteRecoveryReplicationRecoveryPlan) withPostActions(data acceptance.Tes
 
 resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   name                      = "acctest-%[2]d"
-  resource_group_name       = azurerm_resource_group.test2.name
-  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    group_type                 = "Boot"
+    type                 = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     post_action {
       name                      = "testPreAction"
@@ -370,11 +367,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   }
 
   recovery_group {
-    group_type = "Failover"
+    type = "Failover"
   }
 
   recovery_group {
-    group_type = "Shutdown"
+    type = "Shutdown"
   }
 
 }

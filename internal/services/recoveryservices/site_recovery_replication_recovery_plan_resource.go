@@ -6,14 +6,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,14 +20,13 @@ import (
 type SiteRecoveryReplicationRecoveryPlanModel struct {
 	Name                   string               `tfschema:"name"`
 	RecoveryGroup          []RecoveryGroupModel `tfschema:"recovery_group"`
-	RecoveryVaultName      string               `tfschema:"recovery_vault_name"`
-	ResourceGroupName      string               `tfschema:"resource_group_name"`
+	RecoveryVaultId        string               `tfschema:"recovery_vault_id"`
 	SourceRecoveryFabricId string               `tfschema:"source_recovery_fabric_id"`
 	TargetRecoveryFabricId string               `tfschema:"target_recovery_fabric_id"`
 }
 
 type RecoveryGroupModel struct {
-	GroupType                replicationrecoveryplans.RecoveryPlanGroupType `tfschema:"group_type"`
+	GroupType                replicationrecoveryplans.RecoveryPlanGroupType `tfschema:"type"`
 	PostAction               []ActionModel                                  `tfschema:"post_action"`
 	PreAction                []ActionModel                                  `tfschema:"pre_action"`
 	ReplicatedProtectedItems []string                                       `tfschema:"replicated_protected_items"`
@@ -70,13 +67,12 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"recovery_vault_name": {
+		"recovery_vault_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.RecoveryServicesVaultName,
+			ValidateFunc: replicationfabrics.ValidateVaultID,
 		},
 
 		"source_recovery_fabric_id": {
@@ -99,7 +95,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			MinItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"group_type": {
+					"type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
@@ -218,7 +214,12 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.RecoveryServices.ReplicationRecoveryPlansClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, model.ResourceGroupName, model.RecoveryVaultName, model.Name)
+			vaultId, err := replicationrecoveryplans.ParseVaultID(model.RecoveryVaultId)
+			if err != nil {
+				return err
+			}
+
+			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.ResourceName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -271,6 +272,8 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			vaultId := replicationrecoveryplans.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -285,9 +288,8 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 			}
 
 			state := SiteRecoveryReplicationRecoveryPlanModel{
-				Name:              id.RecoveryPlanName,
-				ResourceGroupName: id.ResourceGroupName,
-				RecoveryVaultName: id.ResourceName,
+				Name:            id.RecoveryPlanName,
+				RecoveryVaultId: vaultId.ID(),
 			}
 
 			if prop := model.Properties; prop != nil {
