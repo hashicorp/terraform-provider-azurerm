@@ -181,7 +181,7 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.indexing_policy_update_includedPath(data, "/includedPath02/*", "/excludedPath02/?"),
+			Config: r.indexing_policy_update_includedPath(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
