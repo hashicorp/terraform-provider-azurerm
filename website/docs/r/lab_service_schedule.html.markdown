@@ -49,10 +49,10 @@ resource "azurerm_lab_service_lab" "example" {
 }
 
 resource "azurerm_lab_service_schedule" "example" {
-  name         = "example-labschedule"
-  lab_id       = azurerm_lab_service_lab.example.id
-  stop_at      = "2022-11-28T00:00:00Z"
-  time_zone_id = "America/Los_Angeles"
+  name      = "example-labschedule"
+  lab_id    = azurerm_lab_service_lab.example.id
+  stop_time = "2022-11-28T00:00:00Z"
+  time_zone = "America/Los_Angeles"
 }
 ```
 
@@ -64,19 +64,19 @@ The following arguments are supported:
 
 * `lab_id` - (Required) The resource ID of the Lab Service Schedule. Changing this forces a new resource to be created.
 
-* `stop_at` - (Required) When Lab User Virtual Machines will be stopped in RFC-3339 format.
+* `stop_time` - (Required) When Lab User Virtual Machines will be stopped in RFC-3339 format.
 
-* `time_zone_id` - (Required) The IANA Time Zone ID for the Schedule.
+* `time_zone` - (Required) The IANA Time Zone ID for the Schedule.
 
 * `notes` - (Optional) The notes for the Schedule.
 
-* `recurrence_pattern` - (Optional) A `recurrence_pattern` block as defined below.
+* `recurrence` - (Optional) A `recurrence` block as defined below.
 
-* `start_at` - (Optional) When Lab User Virtual Machines will be started in RFC-3339 format.
+* `start_time` - (Optional) When Lab User Virtual Machines will be started in RFC-3339 format.
 
 ---
 
-A `recurrence_pattern` block supports the following:
+A `recurrence` block supports the following:
 
 * `expiration_date` - (Required) When the recurrence will expire in RFC-3339 format.
 

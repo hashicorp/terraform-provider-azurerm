@@ -166,10 +166,10 @@ func (r LabServiceScheduleResource) basic(data acceptance.TestData, stopTime str
 %s
 
 resource "azurerm_lab_service_schedule" "test" {
-  name         = "acctest-labschedule-%d"
-  lab_id       = azurerm_lab_service_lab.test.id
-  stop_at      = "%s"
-  time_zone_id = "America/Los_Angeles"
+  name      = "acctest-labschedule-%d"
+  lab_id    = azurerm_lab_service_lab.test.id
+  stop_time = "%s"
+  time_zone = "America/Los_Angeles"
 }
 `, r.template(data), data.RandomInteger, stopTime)
 }
@@ -179,10 +179,10 @@ func (r LabServiceScheduleResource) requiresImport(data acceptance.TestData, sto
 %s
 
 resource "azurerm_lab_service_schedule" "import" {
-  name         = azurerm_lab_service_schedule.test.name
-  lab_id       = azurerm_lab_service_schedule.test.lab_id
-  stop_at      = azurerm_lab_service_schedule.test.stop_at
-  time_zone_id = azurerm_lab_service_schedule.test.time_zone_id
+  name      = azurerm_lab_service_schedule.test.name
+  lab_id    = azurerm_lab_service_schedule.test.lab_id
+  stop_time = azurerm_lab_service_schedule.test.stop_time
+  time_zone = azurerm_lab_service_schedule.test.time_zone
 }
 `, r.basic(data, stopTime))
 }
@@ -192,14 +192,14 @@ func (r LabServiceScheduleResource) complete(data acceptance.TestData, startTime
 %s
 
 resource "azurerm_lab_service_schedule" "test" {
-  name         = "acctest-labschedule-%d"
-  lab_id       = azurerm_lab_service_lab.test.id
-  notes        = "Testing"
-  start_at     = "%s"
-  stop_at      = "%s"
-  time_zone_id = "America/Los_Angeles"
+  name       = "acctest-labschedule-%d"
+  lab_id     = azurerm_lab_service_lab.test.id
+  notes      = "Testing"
+  start_time = "%s"
+  stop_time  = "%s"
+  time_zone  = "America/Los_Angeles"
 
-  recurrence_pattern {
+  recurrence {
     expiration_date = "%s"
     frequency       = "Weekly"
     interval        = 1
@@ -214,14 +214,14 @@ func (r LabServiceScheduleResource) update(data acceptance.TestData, startTime, 
 %s
 
 resource "azurerm_lab_service_schedule" "test" {
-  name         = "acctest-labschedule-%d"
-  lab_id       = azurerm_lab_service_lab.test.id
-  notes        = "Testing2"
-  start_at     = "%s"
-  stop_at      = "%s"
-  time_zone_id = "America/Grenada"
+  name       = "acctest-labschedule-%d"
+  lab_id     = azurerm_lab_service_lab.test.id
+  notes      = "Testing2"
+  start_time = "%s"
+  stop_time  = "%s"
+  time_zone  = "America/Grenada"
 
-  recurrence_pattern {
+  recurrence {
     expiration_date = "%s"
     frequency       = "Daily"
     interval        = 2

@@ -18,16 +18,16 @@ import (
 )
 
 type LabServiceScheduleModel struct {
-	Name              string              `tfschema:"name"`
-	LabId             string              `tfschema:"lab_id"`
-	Notes             string              `tfschema:"notes"`
-	RecurrencePattern []RecurrencePattern `tfschema:"recurrence_pattern"`
-	StartAt           string              `tfschema:"start_at"`
-	StopAt            string              `tfschema:"stop_at"`
-	TimeZoneId        string              `tfschema:"time_zone_id"`
+	Name       string       `tfschema:"name"`
+	LabId      string       `tfschema:"lab_id"`
+	Notes      string       `tfschema:"notes"`
+	Recurrence []Recurrence `tfschema:"recurrence"`
+	StartTime  string       `tfschema:"start_time"`
+	StopTime   string       `tfschema:"stop_time"`
+	TimeZone   string       `tfschema:"time_zone"`
 }
 
-type RecurrencePattern struct {
+type Recurrence struct {
 	ExpirationDate string                       `tfschema:"expiration_date"`
 	Frequency      schedule.RecurrenceFrequency `tfschema:"frequency"`
 	Interval       int64                        `tfschema:"interval"`
@@ -66,14 +66,14 @@ func (r LabServiceScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: lab.ValidateLabID,
 		},
 
-		"stop_at": {
+		"stop_time": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
 		},
 
-		"time_zone_id": {
+		"time_zone": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: azValidate.AzureTimeZoneString(),
@@ -85,7 +85,7 @@ func (r LabServiceScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ScheduleNotes,
 		},
 
-		"recurrence_pattern": {
+		"recurrence": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -133,7 +133,7 @@ func (r LabServiceScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"start_at": {
+		"start_time": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			DiffSuppressFunc: suppress.RFC3339MinuteTime,
@@ -173,9 +173,9 @@ func (r LabServiceScheduleResource) Create() sdk.ResourceFunc {
 
 			properties := &schedule.Schedule{
 				Properties: schedule.ScheduleProperties{
-					StopAt:            model.StopAt,
-					TimeZoneId:        model.TimeZoneId,
-					RecurrencePattern: expandRecurrencePattern(model.RecurrencePattern),
+					StopAt:            model.StopTime,
+					TimeZoneId:        model.TimeZone,
+					RecurrencePattern: expandRecurrencePattern(model.Recurrence),
 				},
 			}
 
@@ -183,8 +183,8 @@ func (r LabServiceScheduleResource) Create() sdk.ResourceFunc {
 				properties.Properties.Notes = &model.Notes
 			}
 
-			if model.StartAt != "" {
-				properties.Properties.StartAt = &model.StartAt
+			if model.StartTime != "" {
+				properties.Properties.StartAt = &model.StartTime
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, *properties); err != nil {
@@ -231,20 +231,20 @@ func (r LabServiceScheduleResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("recurrence_pattern") {
-				properties.Properties.RecurrencePattern = expandRecurrencePattern(model.RecurrencePattern)
+			if metadata.ResourceData.HasChange("recurrence") {
+				properties.Properties.RecurrencePattern = expandRecurrencePattern(model.Recurrence)
 			}
 
-			if metadata.ResourceData.HasChange("start_at") {
-				properties.Properties.StartAt = &model.StartAt
+			if metadata.ResourceData.HasChange("start_time") {
+				properties.Properties.StartAt = &model.StartTime
 			}
 
-			if metadata.ResourceData.HasChange("stop_at") {
-				properties.Properties.StopAt = model.StopAt
+			if metadata.ResourceData.HasChange("stop_time") {
+				properties.Properties.StopAt = model.StopTime
 			}
 
-			if metadata.ResourceData.HasChange("time_zone_id") {
-				properties.Properties.TimeZoneId = model.TimeZoneId
+			if metadata.ResourceData.HasChange("time_zone") {
+				properties.Properties.TimeZoneId = model.TimeZone
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
@@ -288,16 +288,16 @@ func (r LabServiceScheduleResource) Read() sdk.ResourceFunc {
 
 			properties := &model.Properties
 
-			state.StopAt = properties.StopAt
-			state.TimeZoneId = properties.TimeZoneId
-			state.RecurrencePattern = flattenRecurrencePattern(properties.RecurrencePattern)
+			state.StopTime = properties.StopAt
+			state.TimeZone = properties.TimeZoneId
+			state.Recurrence = flattenRecurrencePattern(properties.RecurrencePattern)
 
 			if properties.Notes != nil {
 				state.Notes = *properties.Notes
 			}
 
 			if properties.StartAt != nil {
-				state.StartAt = *properties.StartAt
+				state.StartTime = *properties.StartAt
 			}
 
 			return metadata.Encode(&state)
@@ -325,7 +325,7 @@ func (r LabServiceScheduleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRecurrencePattern(input []RecurrencePattern) *schedule.RecurrencePattern {
+func expandRecurrencePattern(input []Recurrence) *schedule.RecurrencePattern {
 	if len(input) == 0 {
 		return nil
 	}
@@ -344,13 +344,13 @@ func expandRecurrencePattern(input []RecurrencePattern) *schedule.RecurrencePatt
 	return &result
 }
 
-func flattenRecurrencePattern(input *schedule.RecurrencePattern) []RecurrencePattern {
-	var recurrencePatterns []RecurrencePattern
+func flattenRecurrencePattern(input *schedule.RecurrencePattern) []Recurrence {
+	var recurrencePatterns []Recurrence
 	if input == nil {
 		return recurrencePatterns
 	}
 
-	recurrencePattern := RecurrencePattern{
+	recurrencePattern := Recurrence{
 		ExpirationDate: input.ExpirationDate,
 		Frequency:      input.Frequency,
 		WeekDays:       flattenWeekDays(input.WeekDays),
