@@ -79,7 +79,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 			"customer_managed_key_enabled": {
 				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
 				Optional: true,
 				Default:  false,
 			},
