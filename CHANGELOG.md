@@ -1,3 +1,32 @@
+## 3.39.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_private_dns_resolver` [GH-19885]
+* **New Resource:** `azurerm_cost_anomaly_alert` [GH-19899]
+* **New Resource:** `azurerm_lab_service_lab` [GH-19852]
+* **New Resource:** `azurerm_network_manager_subscription_connection` [GH-19617]
+* **New Resource:** `azurerm_private_endpoint_application_security_group_association` [GH-19825]
+
+ENHANCEMENTS:
+
+* `siterecovery`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-19571]
+* `siterecovery`: updating to API version `2021-11-01` [GH-19571]
+* Data Source: `azurerm_shared_image` - add support for the `purchase_plan` block [GH-19873]
+* `azurerm_logic_app_action_http` - add support for `@` in the `body` property [GH-19754]
+* `azurerm_maintenance_configuration` - support for the `in_guest_user_patch_mode` and `install_patches` properties [GH-19865]
+* `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties [GH-19891]
+* `azurerm_mysql_flexible_server` - suport for the `customer_managed_key` properties [GH-19905]
+* `azurerm_storage_account` - support for the `allowed_copy_scope` property [GH-19906]
+* `azurerm_synapse_spark_pool` - add support for Spark 3.3 [GH-19866]
+* `azurerm_sentinel_automation_rule` - support for the `triggers_on`, `triggers_when`, and `condition_json` properties [GH-19309]
+
+BUG FIXES:
+
+* `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted [GH-19900]
+* `azurerm_storage_account` -  `403` is now a valid status code for when permissions to list keys is missing [GH-19645]
+* `azurerm_web_pubsub_hub` - the `event_handler` property is now a list instead of set to respect the input order [GH-19886]
+
 ## 3.38.0 (January 05, 2023)
 
 FEATURES:
@@ -6,14 +35,14 @@ FEATURES:
 * **New Data Source:** `azurerm_network_manager_network_group` ([#19593](https://github.com/hashicorp/terraform-provider-azurerm/issues/19593))
 * **New Data Source:** `azurerm_virtual_hub_route_table` ([#19628](https://github.com/hashicorp/terraform-provider-azurerm/issues/19628))
 
-ENHANCEMENTS
+ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230105.1121404` of `github.com/hashicorp/go-azure-sdk` ([#19872](https://github.com/hashicorp/terraform-provider-azurerm/issues/19872))
 * dependencies: updating to `v0.20221207.1110610` of `github.com/tombuildsstuff/kermit` ([#19698](https://github.com/hashicorp/terraform-provider-azurerm/issues/19698))
 * `azurerm_dedicated_host` - add support for`LSv3-Type1` type ([#19875](https://github.com/hashicorp/terraform-provider-azurerm/issues/19875))
 * `azurerm_proximity_placement_group` - support for the `allowed_vm_sizes` and `zone` properties ([#19675](https://github.com/hashicorp/terraform-provider-azurerm/issues/19675))
 
-BUG FIXES
+BUG FIXES:
 
 * `azurerm_automation_software_update_configuration` - correctly handle empty `expiry_time` api values ([#19774](https://github.com/hashicorp/terraform-provider-azurerm/issues/19774))
 * `azurerm_app_service_connection` - polling until the resource is fully created, updated and deleted ([#19792](https://github.com/hashicorp/terraform-provider-azurerm/issues/19792))

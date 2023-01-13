@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,6 +26,21 @@ func TestAccMaintenanceConfiguration_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
 				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMaintenanceConfiguration_basicWithInGuestPatch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
+	r := MaintenanceConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_withInGuestPatch(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -154,6 +169,48 @@ resource "azurerm_maintenance_configuration" "test" {
   location            = azurerm_resource_group.test.location
   scope               = "SQLDB"
   visibility          = "Custom"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (MaintenanceConfigurationResource) basic_withInGuestPatch(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-maint-%d"
+  location = "%s"
+}
+
+resource "azurerm_maintenance_configuration" "test" {
+  name                = "acctest-MC%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope               = "InGuestPatch"
+  visibility          = "Custom"
+
+  window {
+    start_date_time      = "5555-12-31 00:00"
+    expiration_date_time = "6666-12-31 00:00"
+    duration             = "02:00"
+    time_zone            = "Pacific Standard Time"
+    recur_every          = "2Days"
+  }
+
+  install_patches {
+    reboot = "IfRequired"
+    linux {
+      classifications_to_include = ["Critical", "Security"]
+    }
+    windows {
+      classifications_to_include = ["Critical", "Security"]
+    }
+  }
+
+  in_guest_user_patch_mode = "User"
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

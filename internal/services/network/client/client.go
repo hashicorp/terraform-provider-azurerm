@@ -27,6 +27,7 @@ type Client struct {
 	LocalNetworkGatewaysClient             *network.LocalNetworkGatewaysClient
 	ManagersClient                         *network.ManagersClient
 	ManagerNetworkGroupsClient             *network.GroupsClient
+	ManagerSubscriptionConnectionsClient   *network.SubscriptionNetworkManagerConnectionsClient
 	NatRuleClient                          *network.NatRulesClient
 	PointToSiteVpnGatewaysClient           *network.P2sVpnGatewaysClient
 	ProfileClient                          *network.ProfilesClient
@@ -130,6 +131,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ManagerNetworkGroupsClient := network.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerNetworkGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagerSubscriptionConnectionsClient := network.NewSubscriptionNetworkManagerConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerSubscriptionConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
 	NatRuleClient := network.NewNatRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&NatRuleClient.Client, o.ResourceManagerAuthorizer)
@@ -267,6 +271,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		LocalNetworkGatewaysClient:             &LocalNetworkGatewaysClient,
 		ManagersClient:                         &ManagersClient,
 		ManagerNetworkGroupsClient:             &ManagerNetworkGroupsClient,
+		ManagerSubscriptionConnectionsClient:   &ManagerSubscriptionConnectionsClient,
 		NatRuleClient:                          &NatRuleClient,
 		PointToSiteVpnGatewaysClient:           &pointToSiteVpnGatewaysClient,
 		ProfileClient:                          &ProfileClient,

@@ -119,7 +119,7 @@ A `azure_query` block supports the following:
 
 * `tag_filter` - (Optional) Specifies how the specified tags to filter VMs. Possible values are `Any` and `All`.
 
-* `tags` - (Optional) A mapping of tags used for query filter.
+* `tags` - (Optional) A mapping of tags used for query filter as defined below.
 
 ---
 
@@ -175,11 +175,11 @@ A `schedule` block supports the following:
 
 * `advanced_month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 
-* `monthly_occurrence` - (Optional) List of occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields documented below.
+* `monthly_occurrence` - (Optional) List of occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields as defined below.
 
 ---
 
-The `monthly_occurrence` block supports:
+The `monthly_occurrence` block supports the following:
 
 * `day` - (Required) Day of the occurrence. Must be one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
 
