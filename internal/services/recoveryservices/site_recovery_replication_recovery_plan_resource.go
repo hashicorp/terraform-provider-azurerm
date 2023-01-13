@@ -3,6 +3,7 @@ package recoveryservices
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -65,7 +66,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z][a-zA-Z0-9-]{1,63}[a-zA-Z0-9]$`), "The name can contain only letters, numbers, and hyphens. It should start with a letter and end with a letter or a number."),
 		},
 
 		"recovery_vault_id": {

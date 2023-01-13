@@ -70,7 +70,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Replication Plan.
+* `name` - (Required) The name of the Replication Plan. The name can contain only letters, numbers, and hyphens. It should start with a letter and end with a letter or a number. Can be a maximum of 63 characters.
 
 * `recovery_vault_id` - (Required) The ID of the vault that should be updated.
 
