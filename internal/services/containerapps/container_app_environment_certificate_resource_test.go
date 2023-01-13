@@ -64,11 +64,8 @@ func (r ContainerAppEnvironmentCertificateResource) Exists(ctx context.Context, 
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if response.WasNotFound(resp.HttpResponse) {
-		return pointer.To(false), nil
-	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ContainerAppEnvironmentCertificateResource) basic(data acceptance.TestData) string {
@@ -98,7 +95,7 @@ provider "azurerm" {
 
 resource "azurerm_container_app_environment_certificate" "test" {
   name                         = "acctest-cacert%[2]d"
-  container_app_environment_id = azurerm_container_app_environment.test.id // TODO - self signed are not valid?	
+  container_app_environment_id = azurerm_container_app_environment.test.id	
   certificate_blob             = filebase64("testdata/testacc.pfx")
   certificate_password         = "TestAcc"
 

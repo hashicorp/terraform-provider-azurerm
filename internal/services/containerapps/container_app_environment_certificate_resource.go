@@ -3,7 +3,6 @@ package containerapps
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -141,12 +140,11 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			env, err := environmentsClient.Get(ctx, *envId)
-			if err != nil || env.Model == nil {
-				return fmt.Errorf("reading Managed Environment %s for %s: %+v", envId.EnvironmentName, cert.Name, err)
-			}
-
 			id := certificates.NewCertificateID(metadata.Client.Account.SubscriptionId, envId.ResourceGroupName, envId.EnvironmentName, cert.Name)
+			env, err := environmentsClient.Get(ctx, *envId)
+			if err != nil {
+				return fmt.Errorf("reading %s for %s: %+v", *envId, id, err)
+			}
 
 			model := certificates.Certificate{
 				Location: env.Model.Location,
@@ -158,8 +156,7 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(cert.Tags),
 			}
 
-			if resp, err := client.CreateOrUpdate(ctx, id, model); err != nil {
-				log.Printf("[STEBUG] resp: %+v", resp)
+			if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -230,10 +227,8 @@ func (r ContainerAppEnvironmentCertificateResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -263,8 +258,7 @@ func (r ContainerAppEnvironmentCertificateResource) Update() sdk.ResourceFunc {
 					Tags: tags.Expand(cert.Tags),
 				}
 
-				_, err = client.Update(ctx, *id, patch)
-				if err != nil {
+				if _, err = client.Update(ctx, *id, patch); err != nil {
 					return fmt.Errorf("updating tags for %s: %+v", *id, err)
 				}
 			}
