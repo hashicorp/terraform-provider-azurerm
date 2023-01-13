@@ -355,12 +355,11 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name   = "acctest-cont-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.25
-      memory = "0.5Gi"
-      //args    = ["HOSTNAME", "APPLICATION_PORT"]
-      //command = ["node"]
+      name              = "acctest-cont-%[2]d"
+      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu               = 0.25
+      memory            = "0.5Gi"
+      ephemeral_storage = "1Gi"
 
       readiness_probe {
         transport = "http"
@@ -446,10 +445,12 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name   = "acctest-cont-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.5
-      memory = "1Gi"
+      name  = "acctest-cont-%[2]d"
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+
+      cpu               = 0.5
+      memory            = "1Gi"
+      ephemeral_storage = "1Gi"
 
       readiness_probe {
         transport               = "http"
@@ -553,10 +554,12 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name   = "acctest-cont-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.5
-      memory = "1Gi"
+      name  = "acctest-cont-%[2]d"
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+
+      cpu               = 0.5
+      memory            = "1Gi"
+      ephemeral_storage = "1Gi"
 
       readiness_probe {
         transport               = "http"

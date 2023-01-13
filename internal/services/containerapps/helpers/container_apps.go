@@ -631,10 +631,14 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				},
 
 				"ephemeral_storage": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Description: "The amount of ephemeral storage available to the Container App.",
-				}, // Not supported?
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "1Gi",
+					ValidateFunc: validation.StringInSlice([]string{
+						"1Gi",
+					}, false),
+					Description: "The amount of ephemeral storage available to the Container App. Possible Values include `1Gi`. Defaults to `1Gi`",
+				},
 
 				"env": ContainerEnvVarSchema(),
 
