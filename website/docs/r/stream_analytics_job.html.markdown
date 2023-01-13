@@ -85,6 +85,8 @@ The following arguments are supported:
 
 ---
 
+A `job_storage_account` supports the following:
+
 * `authentication_mode` - (Optional) The authentication mode of the storage account. The only supported value is `ConnectionString`. Defaults to `ConnectionString`.
 
 * `account_name` - (Required) The name of the Azure storage account.
@@ -135,5 +137,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Stream Analytics Job's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1
+terraform import azurerm_stream_analytics_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1
 ```

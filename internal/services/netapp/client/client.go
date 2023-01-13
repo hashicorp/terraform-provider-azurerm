@@ -1,12 +1,12 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/netappaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshotpolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

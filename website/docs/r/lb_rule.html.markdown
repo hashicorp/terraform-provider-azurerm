@@ -67,7 +67,7 @@ The following arguments are supported:
 * `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `30` minutes. Defaults to `4` minutes.
 * `load_distribution` - (Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are: `Default` – The load balancer is configured to use a 5 tuple hash to map traffic to available servers. `SourceIP` – The load balancer is configured to use a 2 tuple hash to map traffic to available servers. `SourceIPProtocol` – The load balancer is configured to use a 3 tuple hash to map traffic to available servers. Also known as Session Persistence, where  the options are called `None`, `Client IP` and `Client IP and Protocol` respectively.
 * `disable_outbound_snat` - (Optional) Is snat enabled for this Load Balancer Rule? Default `false`.
-* `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? Defaults to `false`.
+* `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
 ## Attributes Reference
 

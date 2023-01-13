@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -42,9 +42,7 @@ func (a *AzureQuery) LoadSDKTags(tags map[string][]string) {
 	for k, vs := range tags {
 		t := Tag{}
 		t.Tag = k
-		for _, v := range vs {
-			t.Values = append(t.Values, v)
-		}
+		t.Values = append(t.Values, vs...)
 		a.Tags = append(a.Tags, t)
 	}
 }
@@ -191,6 +189,9 @@ func (s *Schedule) ToSDKModel() *automation.SUCScheduleProperties {
 	}
 
 	parseTime := func(s string) *date.Time {
+		if s == "" {
+			return nil
+		}
 		t, _ := time.Parse(time.RFC3339, s)
 		return &date.Time{Time: t}
 	}
@@ -730,6 +731,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"expiry_time": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
+						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},

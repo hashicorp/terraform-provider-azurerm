@@ -63,10 +63,12 @@ func (r Registration) Resources() []sdk.Resource {
 		WatchlistResource{},
 		WatchlistItemResource{},
 		DataConnectorAwsS3Resource{},
+		DataConnectorMicrosoftThreatProtectionResource{},
 		DataConnectorIOTResource{},
 		DataConnectorDynamics365Resource{},
 		DataConnectorOffice365ProjectResource{},
 		DataConnectorOfficePowerBIResource{},
 		DataConnectorOfficeIRMResource{},
+		DataConnectorThreatIntelligenceTAXIIResource{},
 	}
 }

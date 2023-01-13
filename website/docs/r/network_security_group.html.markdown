@@ -62,7 +62,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Elements of `security_rule` support:
+---
+
+A `security_rule` block support:
 
 * `name` - (Required) The name of the security rule. Changing this forces a new resource to be created.
 

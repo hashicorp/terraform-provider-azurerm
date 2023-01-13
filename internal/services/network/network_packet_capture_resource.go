@@ -19,9 +19,11 @@ import (
 
 func resourceNetworkPacketCapture() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkPacketCaptureCreate,
-		Read:   resourceNetworkPacketCaptureRead,
-		Delete: resourceNetworkPacketCaptureDelete,
+		Create:             resourceNetworkPacketCaptureCreate,
+		Read:               resourceNetworkPacketCaptureRead,
+		Delete:             resourceNetworkPacketCaptureDelete,
+		DeprecationMessage: "The \"azurerm_network_packet_capture\" resource is deprecated and will be removed in favour of the `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` resources in version 4.0 of the AzureRM Provider.",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PacketCaptureID(id)
 			return err

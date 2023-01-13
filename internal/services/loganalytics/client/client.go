@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/savedsearches"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	featureWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -26,7 +27,8 @@ type Client struct {
 	SolutionsClient            *solution.SolutionClient
 	StorageInsightsClient      *storageinsights.StorageInsightsClient
 	QueryPackQueriesClient     *querypackqueries.QueryPackQueriesClient
-	WorkspacesClient           *workspaces.WorkspacesClient
+	SharedKeyWorkspacesClient  *workspaces.WorkspacesClient
+	WorkspaceClient            *featureWorkspaces.WorkspacesClient // 2022-10-01 API version does not contain sharedkeys related API, so we keep two versions SDK of this API
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -41,6 +43,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	WorkspacesClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+
+	featureWorkspaceClient := featureWorkspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&featureWorkspaceClient.Client, o.ResourceManagerAuthorizer)
 
 	SavedSearchesClient := savedsearches.NewSavedSearchesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&SavedSearchesClient.Client, o.ResourceManagerAuthorizer)
@@ -74,6 +79,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SavedSearchesClient:        &SavedSearchesClient,
 		SolutionsClient:            &SolutionsClient,
 		StorageInsightsClient:      &StorageInsightsClient,
-		WorkspacesClient:           &WorkspacesClient,
+		SharedKeyWorkspacesClient:  &WorkspacesClient,
+		WorkspaceClient:            &featureWorkspaceClient,
 	}
 }

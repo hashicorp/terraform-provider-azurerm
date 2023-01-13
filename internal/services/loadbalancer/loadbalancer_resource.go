@@ -86,7 +86,6 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := parse.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	log.Printf("elena: is new resource : %t", d.IsNewResource())
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
@@ -117,11 +116,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	properties := network.LoadBalancerPropertiesFormat{}
 
 	if _, ok := d.GetOk("frontend_ip_configuration"); ok {
-		frontendIPConfigurations, err := expandAzureRmLoadBalancerFrontendIpConfigurations(d)
-		if err != nil {
-			return err
-		}
-		properties.FrontendIPConfigurations = frontendIPConfigurations
+		properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
 	}
 
 	loadBalancer := network.LoadBalancer{
@@ -226,7 +221,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) (*[]network.FrontendIPConfiguration, error) {
+func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) *[]network.FrontendIPConfiguration {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
 	frontEndConfigs := make([]network.FrontendIPConfiguration, 0, len(configs))
 
@@ -283,7 +278,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
 	}
 
-	return &frontEndConfigs, nil
+	return &frontEndConfigs
 }
 
 func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {

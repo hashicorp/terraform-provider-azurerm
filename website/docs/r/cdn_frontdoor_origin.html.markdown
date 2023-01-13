@@ -234,7 +234,7 @@ A `private_link` block supports the following:
 
 !> **IMPORTANT:** To associate a Load Balancer with a Front Door Origin via Private Link you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the Front Door Service.
 
-* `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for Front Door Private Link Origin`.
+* `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for CDN FrontDoor Private Link Origin`.
 
 * `target_type` - (Optional) Specifies the type of target for this Private Link Endpoint. Possible values are `blob`, `blob_secondary`, `web` and `sites`.
 
@@ -243,6 +243,8 @@ A `private_link` block supports the following:
 * `location` - (Required) Specifies the location where the Private Link resource should exist. Changing this forces a new resource to be created.
 
 * `private_link_target_id` - (Required) The ID of the Azure Resource to connect to via the Private Link.
+
+-> **Note:** the `private_link_target_id` property must specify the Resource ID of the Private Link Service when using Load Balancer as an Origin.
 
 ---
 

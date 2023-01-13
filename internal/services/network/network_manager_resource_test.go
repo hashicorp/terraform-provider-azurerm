@@ -27,6 +27,24 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManager_update,
 			"requiresImport": testAccNetworkManager_requiresImport,
 		},
+		"NetworkGroup": {
+			"basic":          testAccNetworkManagerNetworkGroup_basic,
+			"complete":       testAccNetworkManagerNetworkGroup_complete,
+			"update":         testAccNetworkManagerNetworkGroup_update,
+			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
+		},
+		"SubscriptionConnection": {
+			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,
+			"complete":       testAccNetworkSubscriptionNetworkManagerConnection_complete,
+			"update":         testAccNetworkSubscriptionNetworkManagerConnection_update,
+			"requiresImport": testAccNetworkSubscriptionNetworkManagerConnection_requiresImport,
+		},
+		"ManagementGroupConnection": {
+			"basic":          testAccNetworkManagerManagementGroupConnection_basic,
+			"complete":       testAccNetworkManagerManagementGroupConnection_complete,
+			"update":         testAccNetworkManagerManagementGroupConnection_update,
+			"requiresImport": testAccNetworkManagerManagementGroupConnection_requiresImport,
+		},
 		"ScopeConnection": {
 			"basic":          testAccNetworkManagerScopeConnection_basic,
 			"complete":       testAccNetworkManagerScopeConnection_complete,
@@ -169,7 +187,6 @@ resource "azurerm_network_manager" "import" {
 }
 
 func (r ManagerResource) complete(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 %s
 resource "azurerm_network_manager" "test" {

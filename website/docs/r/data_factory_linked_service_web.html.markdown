@@ -59,6 +59,10 @@ The following supported arguments are specific to Web Linked Service:
 
 * `url` - (Required) The URL of the web service endpoint (e.g. <https://www.microsoft.com>).
 
+* `password` - (Optional) The password for Basic authentication. Required if `authentication_type` sets to `Basic`.
+
+* `username` - (Optional) The username for Basic authentication. Required if `authentication_type` sets to `Basic`.
+
 ## Attributes Reference
 
 The following attributes are exported:

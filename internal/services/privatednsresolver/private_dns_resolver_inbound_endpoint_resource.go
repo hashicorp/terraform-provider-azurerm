@@ -133,10 +133,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			iPConfigurationsValue, err := expandIPConfigurationModel(model.IPConfigurations)
-			if err != nil {
-				return err
-			}
+			iPConfigurationsValue := expandIPConfigurationModel(model.IPConfigurations)
 
 			if iPConfigurationsValue != nil {
 				properties.Properties.IPConfigurations = *iPConfigurationsValue
@@ -179,10 +176,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("ip_configurations") {
-				iPConfigurationsValue, err := expandIPConfigurationModel(model.IPConfigurations)
-				if err != nil {
-					return err
-				}
+				iPConfigurationsValue := expandIPConfigurationModel(model.IPConfigurations)
 
 				if iPConfigurationsValue != nil {
 					properties.Properties.IPConfigurations = *iPConfigurationsValue
@@ -236,12 +230,8 @@ func (r PrivateDNSResolverInboundEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
-			iPConfigurationsValue, err := flattenIPConfigurationModel(&properties.IPConfigurations)
-			if err != nil {
-				return err
-			}
 
-			state.IPConfigurations = iPConfigurationsValue
+			state.IPConfigurations = flattenIPConfigurationModel(&properties.IPConfigurations)
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -301,7 +291,7 @@ func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *in
 	}
 }
 
-func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundendpoints.IPConfiguration, error) {
+func expandIPConfigurationModel(inputList []IPConfigurationModel) *[]inboundendpoints.IPConfiguration {
 	var outputList []inboundendpoints.IPConfiguration
 	for _, v := range inputList {
 		input := v
@@ -322,13 +312,13 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundend
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) ([]IPConfigurationModel, error) {
+func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) []IPConfigurationModel {
 	var outputList []IPConfigurationModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -347,5 +337,5 @@ func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) 
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
