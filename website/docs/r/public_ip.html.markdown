@@ -10,6 +10,8 @@ description: |-
 
 Manages a Public IP Address.
 
+~> **Note** If this resource is to be associated with a resource that requires disassociation before destruction (such as `azurerm_network_interface`) it is recommended to set the `lifecycle` argument `create_before_destroy = true`. Otherwise, it can fail to disassociate on destruction.
+
 ## Example Usage
 
 ```hcl
