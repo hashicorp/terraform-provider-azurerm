@@ -19,7 +19,7 @@ type ManagerScopeConnectionModel struct {
 	NetworkManagerId string `tfschema:"network_manager_id"`
 	ConnectionState  string `tfschema:"connection_state"`
 	Description      string `tfschema:"description"`
-	ResourceId       string `tfschema:"resource_id"`
+	ResourceId       string `tfschema:"target_scope_id"`
 	TenantId         string `tfschema:"tenant_id"`
 }
 
@@ -55,7 +55,7 @@ func (r ManagerScopeConnectionResource) Arguments() map[string]*pluginsdk.Schema
 			ValidateFunc: validate.NetworkManagerID,
 		},
 
-		"resource_id": {
+		"target_scope_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -165,28 +165,20 @@ func (r ManagerScopeConnectionResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
 					properties.Description = &model.Description
-				} else {
-					properties.Description = nil
 				}
 			}
 
-			if metadata.ResourceData.HasChange("resource_id") {
+			if metadata.ResourceData.HasChange("target_scope_id") {
 				if model.ResourceId != "" {
 					properties.ResourceID = &model.ResourceId
-				} else {
-					properties.ResourceID = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("tenant_id") {
 				if model.TenantId != "" {
 					properties.TenantID = &model.TenantId
-				} else {
-					properties.TenantID = nil
 				}
 			}
-
-			existing.SystemData = nil
 
 			if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

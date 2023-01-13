@@ -42,7 +42,7 @@ resource "azurerm_network_manager_scope_connection" "example" {
   name               = "example-nsc"
   network_manager_id = azurerm_network_manager.example.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
-  resource_id        = data.azurerm_subscription.alt.id
+  target_scope_id    = data.azurerm_subscription.alt.id
   description        = "example"
 }
 ```
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `network_manager_id` - (Required) Specifies the ID of the Network Manager Scope Connection. Changing this forces a new Network Manager Scope Connection to be created.
 
-* `resource_id` - (Required) Specifies the Resource ID which the Network Manager is connected to.
+* `target_scope_id` - (Required) Specifies the Resource ID of the target scope which the Network Manager is connected to. It should be either Subscription ID or Management Group ID.
 
 * `tenant_id` - (Required) Specifies the Tenant ID of the Resource which the Network Manager is connected to.
 
