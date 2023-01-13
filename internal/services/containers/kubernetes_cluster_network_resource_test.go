@@ -795,26 +795,26 @@ func TestAccKubernetesCluster_apiServerInBYOSubnet(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_kubeProxy(t *testing.T) {
- 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
- 	r := KubernetesClusterResource{}
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
 
- 	data.ResourceTest(t, r, []acceptance.TestStep{
- 		{
- 			Config: r.kubeProxy(data),
- 			Check: acceptance.ComposeTestCheckFunc(
- 				check.That(data.ResourceName).ExistsInAzure(r),
- 			),
- 		},
- 		data.ImportStep(),
- 		{
- 			Config: r.kubeProxyDisabled(data),
- 			Check: acceptance.ComposeTestCheckFunc(
- 				check.That(data.ResourceName).ExistsInAzure(r),
- 			),
- 		},
- 		data.ImportStep(),
- 	})
- }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kubeProxy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.kubeProxyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func (KubernetesClusterResource) apiServerInBYOSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -3410,9 +3410,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, "westcentralus", data.RandomInteger)
 }
 
-
- func (KubernetesClusterResource) kubeProxy(data acceptance.TestData) string {
- 	return fmt.Sprintf(`
+func (KubernetesClusterResource) kubeProxy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
  provider "azurerm" {
    features {}
  }
@@ -3448,10 +3447,10 @@ resource "azurerm_kubernetes_cluster" "test" {
    }
  }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
- }
+}
 
- func (KubernetesClusterResource) kubeProxyDisabled(data acceptance.TestData) string {
- 	return fmt.Sprintf(`
+func (KubernetesClusterResource) kubeProxyDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
  provider "azurerm" {
    features {}
  }
@@ -3478,4 +3477,4 @@ resource "azurerm_kubernetes_cluster" "test" {
    }
  }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
- }
+}
