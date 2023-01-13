@@ -697,6 +697,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 			d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
+			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
 			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
 			d.Set("target_boot_diag_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
 			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
