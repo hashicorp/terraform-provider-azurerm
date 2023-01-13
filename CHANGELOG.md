@@ -1,9 +1,9 @@
-## 3.39.1 (Unreleased)
+## 3.39.1 (January 13, 2023)
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_sql_container` - Fix property `included_path` can not be removed issue [GH-19998]
-* `azurerm_log_analytics `- fixing crash during read [GH-20011]
+* `azurerm_cosmosdb_sql_container` - Fix property `included_path` can not be removed issue ([#19998](https://github.com/hashicorp/terraform-provider-azurerm/issues/19998))
+* `azurerm_log_analytics `- fixing crash during read ([#20011](https://github.com/hashicorp/terraform-provider-azurerm/issues/20011))
 
 ## 3.39.0 (January 12, 2023)
 
