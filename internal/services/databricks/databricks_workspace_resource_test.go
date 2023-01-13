@@ -234,14 +234,14 @@ func TestAccDatabricksWorkspace_managedServicesAndDbfsCMK(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_managedServicesAndDiskCMK(t *testing.T) {
+func TestAccDatabricksWorkspace_managedDiskCMK(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
 	r := DatabricksWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managedServicesAndDiskCMK(data, databricksPrincipalID),
+			Config: r.managedDiskCMK(data, databricksPrincipalID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1244,7 +1244,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) managedServicesAndDiskCMK(data acceptance.TestData, databricksPrincipalID string) string {
+func (DatabricksWorkspaceResource) managedDiskCMK(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
