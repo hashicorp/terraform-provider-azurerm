@@ -42,6 +42,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_mssql_database":                                        resourceMsSqlDatabase(),
 		"azurerm_mssql_database_extended_auditing_policy":               resourceMsSqlDatabaseExtendedAuditingPolicy(),
+		"azurerm_mssql_database_transparent_data_encryption":            resourceMsSqlDatabaseTransparentDataEncryption(),
 		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceMsSqlDatabaseVulnerabilityAssessmentRuleBaseline(),
 		"azurerm_mssql_elasticpool":                                     resourceMsSqlElasticPool(),
 		"azurerm_mssql_firewall_rule":                                   resourceMsSqlFirewallRule(),
