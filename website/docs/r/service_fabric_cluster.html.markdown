@@ -83,7 +83,7 @@ The following arguments are supported:
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
-* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below. Changing this forces a new resource to be created.
+* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below.
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 

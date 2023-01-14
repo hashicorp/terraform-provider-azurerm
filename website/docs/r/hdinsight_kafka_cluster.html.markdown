@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `rest_proxy` - (Optional) A `rest_proxy` block as defined below.
 
-* `security_profile` - (Optional) A `security_profile` block as defined below.
+* `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

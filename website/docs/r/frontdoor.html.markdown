@@ -127,7 +127,7 @@ The `backend` block supports the following:
 
 The `backend_pool` block supports the following:
 
-* `name` - (Required) Specifies the name of the Backend Pool. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Backend Pool.
 
 * `backend` - (Required) A `backend` block as defined below.
 
@@ -149,7 +149,7 @@ The `backend_pool_settings` block supports the following:
 
 The `frontend_endpoint` block supports the following:
 
-* `name` - (Required) Specifies the name of the `frontend_endpoint`. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the `frontend_endpoint`.
 
 * `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name. In order to use a name.azurefd.net domain, the name value must match the Front Door name.
 
@@ -163,7 +163,7 @@ The `frontend_endpoint` block supports the following:
 
 The `backend_pool_health_probe` block supports the following:
 
-* `name` - (Required) Specifies the name of the Health Probe. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Health Probe.
 
 * `enabled` - (Optional) Is this health probe enabled? Defaults to `true`.
 
@@ -181,7 +181,7 @@ The `backend_pool_health_probe` block supports the following:
 
 The `backend_pool_load_balancing` block supports the following:
 
-* `name` - (Required) Specifies the name of the Load Balancer. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Load Balancer.
 
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
 
@@ -193,7 +193,7 @@ The `backend_pool_load_balancing` block supports the following:
 
 The `routing_rule` block supports the following:
 
-* `name` - (Required) Specifies the name of the Routing Rule. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Routing Rule.
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 

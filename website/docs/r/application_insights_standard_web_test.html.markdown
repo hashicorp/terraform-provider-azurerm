@@ -99,13 +99,13 @@ A `request` block supports the following:
 
 * `body` - (Optional) The WebTest request body.
 
-* `follow_redirects_enabled` - (Optional) Should the following of redirects be enabled?
+* `follow_redirects_enabled` - (Optional) Should the following of redirects be enabled? Defaults to `true`.
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 
 * `http_verb` - (Optional) Which HTTP verb to use for the call. Options are 'GET', 'POST', 'PUT', 'PATCH', and 'DELETE'.
 
-* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependend requests be enabled?
+* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependend requests be enabled? Defaults to `true`.
 
 ---
 

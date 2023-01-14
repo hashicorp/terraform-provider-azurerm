@@ -56,9 +56,9 @@ The following arguments are supported:
 
 * `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which duplicates can be detected. Defaults to 10 minutes. (`PT10M`)
 
-* `enable_batched_operations` - (Optional) Boolean flag which controls if server-side batched operations are enabled. Defaults to `false`.
+* `enable_batched_operations` - (Optional) Boolean flag which controls if server-side batched operations are enabled.
 
-* `enable_express` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage. Defaults to `false`.
+* `enable_express` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.
 
 * `enable_partitioning` - (Optional) Boolean flag which controls whether to enable Changing this forces a new resource to be created.
     the topic to be partitioned across multiple message brokers. Defaults to false.
@@ -74,7 +74,7 @@ The following arguments are supported:
     the Topic requires duplicate detection. Defaults to false. Changing this forces
     a new resource to be created.
 
-* `support_ordering` - (Optional) Boolean flag which controls whether the Topic supports ordering. Defaults to `false`.
+* `support_ordering` - (Optional) Boolean flag which controls whether the Topic supports ordering.
 
 ## Attributes Reference
 

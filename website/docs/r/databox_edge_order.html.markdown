@@ -75,7 +75,7 @@ An `contact` block includes the following:
 
 An `shipment_address` block includes the following:
 
-* `address` - (Required) The list of upto 3 lines for address information. Changing this forces a new Databox Edge Order to be created.
+* `address` - (Required) The list of upto 3 lines for address information.
 
 * `city` - (Required) The city name. Changing this forces a new Databox Edge Order to be created.
 

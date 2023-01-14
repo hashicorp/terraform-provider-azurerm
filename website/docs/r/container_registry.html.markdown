@@ -185,11 +185,11 @@ The following arguments are supported:
 
 The `georeplications` block supports the following:
 
-* `location` - (Required) A location where the container registry should be geo-replicated. Changing this forces a new resource to be created.
+* `location` - (Required) A location where the container registry should be geo-replicated.
 
 * `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? 
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`. Changing this forces a new resource to be created.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
   ~> **NOTE:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
 

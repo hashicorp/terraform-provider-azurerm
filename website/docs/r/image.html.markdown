@@ -106,7 +106,7 @@ The following arguments are supported:
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
     Changing this forces a new resource to be created.
 * `source_virtual_machine_id` - (Optional) The Virtual Machine ID from which to create the image.
-* `os_disk` - (Optional) One or more `os_disk` elements as defined below.
+* `os_disk` - (Optional) One or more `os_disk` elements as defined below. Changing this forces a new resource to be created.
 * `data_disk` - (Optional) One or more `data_disk` elements as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zone_resilient` - (Optional) Is zone resiliency enabled? Defaults to `false`. Changing this forces a new resource to be created.
@@ -121,7 +121,7 @@ The `os_disk` block supports the following:
 * `os_type` - (Optional) Specifies the type of operating system contained in the virtual machine image. Possible values are: `Windows` or `Linux`.
 * `os_state` - (Optional) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized. Possible values are `Generalized` and `Specialized`.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
-* `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
+* `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image. Changing this forces a new resource to be created.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
 
@@ -130,7 +130,7 @@ The `os_disk` block supports the following:
 The `data_disk` block supports the following:
 
 * `lun` - (Optional) Specifies the logical unit number of the data disk.
-* `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
+* `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image. Changing this forces a new resource to be created.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.

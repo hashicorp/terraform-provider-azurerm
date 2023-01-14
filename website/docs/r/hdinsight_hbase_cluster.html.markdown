@@ -119,7 +119,7 @@ The following arguments are supported:
 
 * `extension` - (Optional) An `extension` block as defined below.
 
-* `security_profile` - (Optional) A `security_profile` block as defined below.
+* `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -157,7 +157,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster.
+* `script_actions` - (Optional) The script action which will run on the cluster. Changing this forces a new resource to be created.
 
 ---
 

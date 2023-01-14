@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/rest/api/trafficmanager/geographichierarchies/getdefault).
 
-* `subnet` - (Optional) One or more `subnet` blocks as defined below
+* `subnet` - (Optional) One or more `subnet` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 

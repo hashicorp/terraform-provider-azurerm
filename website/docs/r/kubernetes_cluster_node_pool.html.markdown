@@ -90,9 +90,9 @@ The following arguments are supported:
 
 * `host_group_id` - (Optional) The fully qualified resource ID of the Dedicated Host Group to provision virtual machines from. Changing this forces a new resource to be created.
 
-* `kubelet_config` - (Optional) A `kubelet_config` block as defined below.
+* `kubelet_config` - (Optional) A `kubelet_config` block as defined below. Changing this forces a new resource to be created.
 
-* `linux_os_config` - (Optional) A `linux_os_config` block as defined below.
+* `linux_os_config` - (Optional) A `linux_os_config` block as defined below. Changing this forces a new resource to be created.
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
 
@@ -152,7 +152,7 @@ The following arguments are supported:
 
 ~> **NOTE:** A route table must be configured on this Subnet.
 
-* `windows_profile` - (Optional) A `windows_profile` block as documented below.
+* `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
 * `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
 

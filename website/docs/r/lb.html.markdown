@@ -64,9 +64,9 @@ The following arguments are supported:
 
 The `frontend_ip_configuration` block supports the following:
 
-* `name` - (Required) Specifies the name of the frontend IP configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the frontend IP configuration.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located. Changing this forces a new Load Balancer to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located.
 
 -> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
 

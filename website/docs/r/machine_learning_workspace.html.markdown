@@ -370,7 +370,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of this Machine Learning Workspace.
 
-* `encryption` - (Optional) An `encryption` block as defined below.
+* `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new resource to be created.
 
 * `friendly_name` - (Optional) Display name for this Machine Learning Workspace.
 

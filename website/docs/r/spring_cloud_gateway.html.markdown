@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Gateway as a map of key-value pairs.
+* `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
 * `https_only` - (Optional) is only https is allowed?
 
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `quota` - (Optional) A `quota` block as defined below.
 
-* `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs.
+* `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
 * `sso` - (Optional) A `sso` block as defined below.
 

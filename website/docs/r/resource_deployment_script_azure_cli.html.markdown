@@ -110,9 +110,9 @@ An `environment_variable` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Type of the managed identity. The only possible value is `UserAssigned`.
+* `type` - (Required) Type of the managed identity. The only possible value is `UserAssigned`. Changing this forces a new resource to be created.
 
-* `identity_ids` - (Required) Specifies the list of user-assigned managed identity IDs associated with the resource.
+* `identity_ids` - (Required) Specifies the list of user-assigned managed identity IDs associated with the resource. Changing this forces a new resource to be created.
 
 ---
 

@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `container_name` - (Required) The name of the storage account container to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
-* `storage_account` - (Required) A `storage_account` block as defined below.
+* `storage_account` - (Required) A `storage_account` block as defined below. Changing this forces a new resource to be created.
 
 * `file_path` - (Optional) The path of the file in the storage container to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 

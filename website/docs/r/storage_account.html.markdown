@@ -92,7 +92,7 @@ The following arguments are supported:
 
 -> **NOTE:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
-* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`.
 
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
 
@@ -161,7 +161,7 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage`.
 
-* `immutability_policy` - (Optional) An `immutability_policy` block as defined below.
+* `immutability_policy` - (Optional) An `immutability_policy` block as defined below. Changing this forces a new resource to be created.
 
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
 
@@ -250,13 +250,13 @@ A `container_delete_retention_policy` block supports the following:
 
 A `hour_metrics` block supports the following:
 
-* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service. Changing this forces a new resource.
+* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
@@ -286,27 +286,27 @@ An `immutability_policy` block supports the following:
 
 A `logging` block supports the following:
 
-* `delete` - (Required) Indicates whether all delete requests should be logged. Changing this forces a new resource.
+* `delete` - (Required) Indicates whether all delete requests should be logged.
 
-* `read` - (Required) Indicates whether all read requests should be logged. Changing this forces a new resource.
+* `read` - (Required) Indicates whether all read requests should be logged.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
-* `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
+* `write` - (Required) Indicates whether all write requests should be logged.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
 A `minute_metrics` block supports the following:
 
-* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service. Changing this forces a new resource.
+* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 

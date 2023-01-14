@@ -109,7 +109,7 @@ The following attributes are exported:
 
 * `id` - The failover group ID.
 * `location` - the location of the failover group.
-* `server_name` - (Required) the name of the primary SQL Database Server.
+* `server_name` - (Required) the name of the primary SQL Database Server. Changing this forces a new resource to be created.
 * `role` - local replication role of the failover group instance.
 * `databases` - (Optional) list of databases in the failover group.
 * `partner_servers` - (Required) list of partner server information for the failover group.

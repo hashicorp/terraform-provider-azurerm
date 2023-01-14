@@ -89,7 +89,7 @@ The following arguments are supported:
 
 The `target_region` block supports the following:
 
-* `name` - (Required) The Azure Region in which this Image Version should exist. Changing this forces a new resource to be created.
+* `name` - (Required) The Azure Region in which this Image Version should exist.
 
 * `regional_replica_count` - (Required) The number of replicas of the Image Version to be created per region.
 

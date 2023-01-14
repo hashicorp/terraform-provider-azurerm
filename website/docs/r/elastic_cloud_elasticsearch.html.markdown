@@ -55,7 +55,7 @@ The `filtering_tag` block supports the following:
 
 * `action` - (Required) Specifies the type of action which should be taken when the Tag matches the `name` and `value`. Possible values are `Exclude` and `Include`.
 
-* `name` - (Required) Specifies the name (key) of the Tag which should be filtered. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name (key) of the Tag which should be filtered.
 
 * `value` - (Required) Specifies the value of the Tag which should be filtered.
 

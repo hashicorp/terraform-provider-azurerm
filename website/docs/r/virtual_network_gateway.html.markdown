@@ -153,7 +153,7 @@ The following arguments are supported:
 
 The `ip_configuration` block supports:
 
-* `name` - (Optional) A user-defined name of the IP configuration. Defaults to `vnetGatewayConfig`. Changing this forces a new resource to be created.
+* `name` - (Optional) A user-defined name of the IP configuration. Defaults to `vnetGatewayConfig`.
 
 * `private_ip_address_allocation` - (Optional) Defines how the private IP address of the gateways virtual interface is assigned. Valid options are `Static` or `Dynamic`. Defaults to `Dynamic`.
 
@@ -222,7 +222,7 @@ A `peering_addresses` block supports the following:
 
 The `root_certificate` block supports:
 
-* `name` - (Required) A user-defined name of the root certificate. Changing this forces a new resource to be created.
+* `name` - (Required) A user-defined name of the root certificate.
 
 * `public_cert_data` - (Required) The public certificate of the root certificate authority. The certificate must be provided in Base-64 encoded X.509 format (PEM). In particular, this argument *must not* include the `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers.
 

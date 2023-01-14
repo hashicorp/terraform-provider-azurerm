@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `priority` - (Optional) Specifies the priority of this Endpoint, this must be specified for Profiles using the `Priority` traffic routing method. Supports values between 1 and 1000, with no Endpoints sharing the same value. If omitted the value will be computed in order of creation.
 
-* `subnet` - (Optional) One or more `subnet` blocks as defined below
+* `subnet` - (Optional) One or more `subnet` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 

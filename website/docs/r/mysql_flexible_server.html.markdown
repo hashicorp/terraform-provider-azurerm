@@ -135,9 +135,9 @@ The following arguments are supported:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key.
 
-* `primary_user_assigned_identity_id` - (Required) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
