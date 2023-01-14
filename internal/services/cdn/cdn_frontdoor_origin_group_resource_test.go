@@ -87,6 +87,7 @@ func TestAccCdnFrontDoorOriginGroup_disableHealthProbe(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("health_probe.0.interval_in_seconds").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -94,7 +95,7 @@ func TestAccCdnFrontDoorOriginGroup_disableHealthProbe(t *testing.T) {
 			Config: r.disableHealthProbe(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("health_probe").IsEmpty(),
+				check.That(data.ResourceName).Key("health_probe.0.interval_in_seconds").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),

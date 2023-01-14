@@ -21,8 +21,8 @@ func NewCdnFrontDoorOriginGroupsWorkaroundClient(client *cdn.AFDOriginGroupsClie
 	}
 }
 
-func (c *CdnFrontDoorOriginGroupsWorkaroundClient) Update(ctx context.Context, resourceGroupName string, profileName string, originGroupName string, AFDoriginGroupUpdateProperties AFDOriginGroupUpdateParameters) (result cdn.AFDOriginGroupsUpdateFuture, err error) {
-	req, err := c.UpdatePreparer(ctx, resourceGroupName, profileName, originGroupName, AFDoriginGroupUpdateProperties)
+func (c *CdnFrontDoorOriginGroupsWorkaroundClient) Update(ctx context.Context, resourceGroupName string, profileName string, originGroupName string, afdOriginGroupUpdateProperties AFDOriginGroupUpdateParameters) (result cdn.AFDOriginGroupsUpdateFuture, err error) {
+	req, err := c.UpdatePreparer(ctx, resourceGroupName, profileName, originGroupName, afdOriginGroupUpdateProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginGroupsClient", "Update", nil, "Failure preparing request")
 		return
@@ -38,7 +38,7 @@ func (c *CdnFrontDoorOriginGroupsWorkaroundClient) Update(ctx context.Context, r
 }
 
 // UpdatePreparer prepares the Update request.
-func (client CdnFrontDoorOriginGroupsWorkaroundClient) UpdatePreparer(ctx context.Context, resourceGroupName string, profileName string, originGroupName string, originGroupUpdateProperties AFDOriginGroupUpdateParameters) (*http.Request, error) {
+func (client CdnFrontDoorOriginGroupsWorkaroundClient) UpdatePreparer(ctx context.Context, resourceGroupName string, profileName string, originGroupName string, afdOriginGroupUpdateProperties AFDOriginGroupUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"originGroupName":   autorest.Encode("path", originGroupName),
 		"profileName":       autorest.Encode("path", profileName),
@@ -56,7 +56,7 @@ func (client CdnFrontDoorOriginGroupsWorkaroundClient) UpdatePreparer(ctx contex
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.sdkClient.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/originGroups/{originGroupName}", pathParameters),
-		autorest.WithJSON(originGroupUpdateProperties),
+		autorest.WithJSON(afdOriginGroupUpdateProperties),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -83,7 +83,7 @@ func (ogup *AFDOriginGroupUpdateParameters) UnmarshalJSON(body []byte) error {
 		return err
 	}
 	for k, v := range m {
-		switch k {
+		switch k { // nolint gocritic
 		case "properties":
 			if v != nil {
 				var afdOriginGroupUpdatePropertiesParameters AFDOriginGroupUpdatePropertiesParameters
