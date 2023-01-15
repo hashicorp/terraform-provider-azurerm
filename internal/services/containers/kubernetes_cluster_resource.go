@@ -864,6 +864,60 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							}, false),
 						},
 
+						"kube_proxy": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"mode": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.ModeIPVS),
+											string(managedclusters.ModeIPTABLES),
+										}, false),
+									},
+
+									"ipvs": {
+										Type:     pluginsdk.TypeList,
+										MaxItems: 1,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"scheduler": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(managedclusters.IPvsSchedulerLeastConnection),
+														string(managedclusters.IPvsSchedulerRoundRobin),
+													}, false),
+												},
+
+												"tcp_fin_timeout_in_seconds": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+
+												"tcp_timeout_in_seconds": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+
+												"udp_timeout_in_seconds": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
 						"load_balancer_profile": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
@@ -1763,6 +1817,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
+		}
+
+		if key := "network_profile.0.kube_proxy"; d.HasChange(key) {
+			existing.Model.Properties.NetworkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(d.Get(key).([]interface{}))
 		}
 	}
 
@@ -2671,6 +2729,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		IPFamilies:      ipVersions,
 	}
 
+	if kubeProxyRaw := config["kube_proxy"].([]interface{}); len(kubeProxyRaw) != 0 {
+		networkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(kubeProxyRaw)
+	}
+
 	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
 		networkProfile.EbpfDataplane = utils.ToPtr(managedclusters.EbpfDataplane(ebpfDataPlane))
 	}
@@ -2964,6 +3026,8 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 	}
 
+	kubeProxy := flattenKubernetesClusterKubeProxyConfig(profile.KubeProxyConfig)
+
 	networkPluginMode := ""
 	if profile.NetworkPluginMode != nil {
 		// The returned value has inconsistent casing
@@ -2977,11 +3041,13 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	if profile.EbpfDataplane != nil {
 		ebpfDataPlane = string(*profile.EbpfDataplane)
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"dns_service_ip":        dnsServiceIP,
 			"docker_bridge_cidr":    dockerBridgeCidr,
 			"ebpf_data_plane":       ebpfDataPlane,
+			"kube_proxy":            kubeProxy,
 			"load_balancer_sku":     string(*sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
@@ -3665,6 +3731,49 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 	}
 }
 
+func expandKubernetesClusterKubeProxyConfig(input []interface{}) *managedclusters.ContainerServiceNetworkProfileKubeProxyConfig {
+	if len(input) == 0 {
+		return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfig{
+			Enabled: utils.Bool(false),
+		}
+	}
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfig{
+		Enabled:    utils.Bool(true),
+		IPvsConfig: expandKubernetesClusterKubeProxyIPvsConfig(config["ipvs"].([]interface{})),
+		Mode:       utils.ToPtr(managedclusters.Mode(config["mode"].(string))),
+	}
+}
+
+func expandKubernetesClusterKubeProxyIPvsConfig(input []interface{}) *managedclusters.ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig{
+		Scheduler:            utils.ToPtr(managedclusters.IPvsScheduler(config["scheduler"].(string))),
+		TcpFinTimeoutSeconds: utils.Int64(int64(config["tcp_fin_timeout_in_seconds"].(int))),
+		TcpTimeoutSeconds:    utils.Int64(int64(config["tcp_timeout_in_seconds"].(int))),
+		UdpTimeoutSeconds:    utils.Int64(int64(config["udp_timeout_in_seconds"].(int))),
+	}
+}
+
+func flattenKubernetesClusterKubeProxyConfig(input *managedclusters.ContainerServiceNetworkProfileKubeProxyConfig) []interface{} {
+	if input == nil || input.Enabled == nil || !*input.Enabled {
+		return []interface{}{}
+	}
+	mode := ""
+	if input.Mode != nil {
+		mode = string(*input.Mode)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"mode": mode,
+			"ipvs": flattenKubernetesClusterKubeProxyIPvsConfig(input.IPvsConfig),
+		},
+	}
+}
+
 func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclusters.ManagedClusterAzureMonitorProfile {
 	if len(input) == 0 {
 		return &managedclusters.ManagedClusterAzureMonitorProfile{
@@ -3688,6 +3797,34 @@ func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclu
 				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
 				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
 			},
+		},
+	}
+}
+
+func flattenKubernetesClusterKubeProxyIPvsConfig(input *managedclusters.ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	scheduler := ""
+	if input.Scheduler != nil {
+		scheduler = string(*input.Scheduler)
+	}
+	var tcpFinTimeout, tcpTimeout, udpTimeout int64
+	if input.TcpFinTimeoutSeconds != nil {
+		tcpFinTimeout = *input.TcpFinTimeoutSeconds
+	}
+	if input.TcpTimeoutSeconds != nil {
+		tcpTimeout = *input.TcpTimeoutSeconds
+	}
+	if input.UdpTimeoutSeconds != nil {
+		udpTimeout = *input.UdpTimeoutSeconds
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"scheduler":                  scheduler,
+			"tcp_fin_timeout_in_seconds": tcpFinTimeout,
+			"tcp_timeout_in_seconds":     tcpTimeout,
+			"udp_timeout_in_seconds":     udpTimeout,
 		},
 	}
 }
