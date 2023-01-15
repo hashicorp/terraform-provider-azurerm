@@ -85,7 +85,7 @@ An `ip_filter_rule` block supports the following:
 
 * `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
 
-* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
+* `action` - (Required) The desired action for requests captured by this rule. Possible values are `Accept`, `Reject`
 
 * `target` - (Optional) Target for requests captured by this rule. Possible values are `All`, `DeviceApi` and `ServiceApi`.
 

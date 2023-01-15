@@ -134,9 +134,9 @@ You must specify exactly one of the following modes for cluster integration:
 
 * `existing_cluster_id` - (Optional) The cluster_id of an existing cluster within the linked ADB instance.
 
-* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by  `instance_pool` block below.
+* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by `instance_pool` block below.
 
-* `new_cluster_config` - (Optional) Creates new clusters within the linked ADB instance as defined in the  `new_cluster_config` block below.
+* `new_cluster_config` - (Optional) Creates new clusters within the linked ADB instance as defined in the `new_cluster_config` block below.
 
 ---
 
@@ -176,7 +176,7 @@ A `new_cluster_config` block supports the following:
 
 * `max_number_of_workers` - (Optional) Specifies the maximum number of worker nodes. It should be between 1 and 25000. 
 
-* `min_number_of_workers` - (Optional) Specifies the minimum number of worker nodes. It should be between 1 and 25000. It defaults to 1.
+* `min_number_of_workers` - (Optional) Specifies the minimum number of worker nodes. It should be between 1 and 25000. It defaults to `1`.
 
 * `spark_config` - (Optional) User-specified Spark configuration variables key-value pairs.
 

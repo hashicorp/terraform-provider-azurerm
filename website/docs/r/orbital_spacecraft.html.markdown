@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `norad_id` - (Required) NORAD ID of the Spacecraft.
 
-* `links` - (Required) A `links` block as defined below.
+* `links` - (Required) A `links` block as defined below. Changing this forces a new resource to be created.
 
-* `two_line_elements` - (Required) A list of the two line elements (TLE), the first string being the first of the TLE, the second string being the second line of the TLE.
+* `two_line_elements` - (Required) A list of the two line elements (TLE), the first string being the first of the TLE, the second string being the second line of the TLE. Changing this forces a new resource to be created.
 
 * `title_line` - (Required) Title of the two line elements (TLE).
 
@@ -73,7 +73,7 @@ A `links` block supports the following:
 
 * `polarization` - (Required) Polarization. Possible values are `RHCP`, `LHCP`, `linearVertical` and `linearHorizontal`.
 
-* `name` - (Required) Name of the link. Changing this forces a new resource to be created.
+* `name` - (Required) Name of the link.
 
 ---
 

@@ -121,11 +121,11 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Dedicated Hardware Security Module should exist. Changing this forces a new Dedicated Hardware Security Module to be created.
 
-* `network_profile` - (Required)  A `network_profile` block as defined below.
+* `network_profile` - (Required) A `network_profile` block as defined below.
 
 * `sku_name` - (Required) The SKU name of the dedicated hardware security module. Possible values are `payShield10K_LMK1_CPS60`,`payShield10K_LMK1_CPS250`,`payShield10K_LMK1_CPS2500`,`payShield10K_LMK2_CPS60`,`payShield10K_LMK2_CPS250`,`payShield10K_LMK2_CPS2500` and `SafeNet Luna Network HSM A790`. Changing this forces a new Dedicated Hardware Security Module to be created.
 
-* `management_network_profile` - (Optional)  A `management_network_profile` block as defined below.
+* `management_network_profile` - (Optional) A `management_network_profile` block as defined below.
 
 ->**NOTE:**  The `management_network_profile` should not be specified when `sku_name` is `SafeNet Luna Network HSM A790`.
 

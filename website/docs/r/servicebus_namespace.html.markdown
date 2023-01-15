@@ -38,8 +38,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the ServiceBus Namespace resource . Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the ServiceBus Namespace resource . Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the namespace.
@@ -107,11 +106,9 @@ A `identity` block exports the following:
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.
 
-* `default_primary_connection_string` - The primary connection string for the authorization
-    rule `RootManageSharedAccessKey`.
+* `default_primary_connection_string` - The primary connection string for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_secondary_connection_string` - The secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`.
+* `default_secondary_connection_string` - The secondary connection string for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 

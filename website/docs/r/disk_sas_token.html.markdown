@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `managed_disk_id` - (Required) The ID of an existing Managed Disk which should be exported. Changing this forces a new resource to be created.
 
-* `duration_in_seconds` - (Required) The duration for which the export should be allowed. Should be between 30 & 4294967295 seconds.
+* `duration_in_seconds` - (Required) The duration for which the export should be allowed. Should be between 30 & 4294967295 seconds. Changing this forces a new resource to be created.
 
-* `access_level` - (Required) The level of access required on the disk. Supported are Read, Write.
+* `access_level` - (Required) The level of access required on the disk. Supported are Read, Write. Changing this forces a new resource to be created.
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/compute/disks/grant-access)
 for additional details on the fields above.

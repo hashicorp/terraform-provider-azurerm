@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `logz_monitor_id` - (Required) The ID of the Logz Monitor. Changing this forces a new logz Sub Account to be created.
 
-* `user` - (Required) A `user` block as defined below.
+* `user` - (Required) A `user` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

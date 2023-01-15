@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `type` - (Required) The type of the Virtual Desktop Host Pool. Valid options are `Personal` or `Pooled`. Changing the type forces a new resource to be created.
 
-* `load_balancer_type` -  (Required) `BreadthFirst` load balancing distributes new user sessions across all available session hosts in the host pool. Possible values are `BreadthFirst`, `DepthFirst` and `Persistent`.
+* `load_balancer_type` - (Required) `BreadthFirst` load balancing distributes new user sessions across all available session hosts in the host pool. Possible values are `BreadthFirst`, `DepthFirst` and `Persistent`. Changing this forces a new resource to be created.
     `DepthFirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
     `Persistent` should be used if the host pool type is `Personal`
 
@@ -62,9 +62,9 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Desktop Host Pool.
 
-* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
+* `validate_environment` - (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
 
-* `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.
+* `start_vm_on_connect` - (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.
 
 * `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/windows-server/remote/remote-desktop-services/clients/rdp-files).
 

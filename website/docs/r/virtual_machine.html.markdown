@@ -147,7 +147,7 @@ The following arguments are supported:
 
 ~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
 
-* `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below.
+* `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below. Changing this forces a new resource to be created.
 
 * `storage_os_disk` - (Required) A `storage_os_disk` block as defined below.
 

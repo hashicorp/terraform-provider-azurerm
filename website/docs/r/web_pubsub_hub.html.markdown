@@ -77,14 +77,9 @@ The following arguments are supported:
 
 An `event_handler` block supports the following:
 
-* `url_template` - (Required) The Event Handler URL Template. Two predefined parameters `{hub}` and `{event}` are
-  available to use in the template. The value of the EventHandler URL is dynamically calculated when the client request
-  comes in. Example: `http://example.com/api/{hub}/{event}`.
+* `url_template` - (Required) The Event Handler URL Template. Two predefined parameters `{hub}` and `{event}` are available to use in the template. The value of the EventHandler URL is dynamically calculated when the client request comes in. Example: `http://example.com/api/{hub}/{event}`.
 
-* `user_event_pattern` - (Optional) Specify the matching event names. There are 3 kind of patterns supported:
-  * `*` matches any event name
-  * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
-  * The single event name, for example `event1`, it matches `event1`.
+* `user_event_pattern` - (Optional) Specify the matching event names. There are 3 kind of patterns supported: * `*` matches any event name * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2` * The single event name, for example `event1`, it matches `event1`.
 
 * `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
 
@@ -104,7 +99,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Web Pubsub Hub resource.
 
-* `name` - (Required) The name of the Web Pubsub Hub resource
+* `name` - (Required) The name of the Web Pubsub Hub resource. Changing this forces a new resource to be created.
 
 ## Timeouts
 

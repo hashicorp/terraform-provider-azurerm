@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
 
-* `min_api_version` - (Optional)  The version which the control plane API calls to API Management service are limited with version equal to or newer than.
+* `min_api_version` - (Optional) The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located. Changing this forces a new API Management service to be created.
 
@@ -119,7 +119,7 @@ A `additional_location` block supports the following:
 
 ~> **NOTE:** Availability zones and custom public IPs are only supported in the Premium tier.
 
-* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
 * `gateway_disabled` - (Optional) Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
 
@@ -383,7 +383,7 @@ An `additional_location` block exports the following:
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
 
-* `private_ip_addresses` - The Private IP addresses of the API Management Service.  Available only when the API Manager instance is using Virtual Network mode.
+* `private_ip_addresses` - The Private IP addresses of the API Management Service. Available only when the API Manager instance is using Virtual Network mode.
 
 ---
 
