@@ -1,5 +1,9 @@
 ## 3.40.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_kubernetes_cluster` - support for the `kube_proxy` block [GH-19567]
+
 BUG FIXES: 
 
 * `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue [GH-20002]
