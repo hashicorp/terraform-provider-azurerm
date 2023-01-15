@@ -610,6 +610,8 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `kube_proxy` - (Optional) A `kube_proxy` block.
 
+->**Note:** `kube_proxy` requires that the Preview Feature `Microsoft.ContainerService/KubeProxyConfigurationPreview` is enabled and the Resource Provider re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/configure-kube-proxy#register-the-kubeproxyconfigurationpreview-feature-flag) for more information.
+
 ->**Note:** `kube_proxy` can only be disabled if the cluster is configured with its own (BYO) CNI, i.e. if `network_plugin` is set to `none`.
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`. Changing this forces a new resource to be created.
