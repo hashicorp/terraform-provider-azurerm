@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `kube_proxy` block [GH-19567]
 * `azurerm_linux_web_app` - Add Python 3.11 support [GH-20001]
 * `azurerm_linux_web_app_slot` - Add Python 3.11 support [GH-20001]
+* `azurerm_synapse_sql_pool` - add support for `geo_backup_policy_enabled` and fix `recovery_database_id` [[GH-20010]
 
 BUG FIXES: 
 
