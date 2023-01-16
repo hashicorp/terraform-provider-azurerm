@@ -57,11 +57,10 @@ func (r ContactResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_orbital_contact" "test" {
   name                   = "testcontact-%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
   spacecraft_id          = "%[3]s"
-  reservation_start_time = "2020-07-16T20:35:00.00Z"
-  reservation_end_time   = "2020-07-16T20:55:00.00Z"
-  ground_station_name    = "WESTUS2_0"
+  reservation_start_time = "2025-07-16T20:35:00Z"
+  reservation_end_time   = "2025-07-16T20:55:00Z"
+  ground_station_name    = "Microsoft_Quincy"
   contact_profile_id     = azurerm_orbital_contact_profile.test.id
 }
 `, template, data.RandomInteger, os.Getenv("ARM_TEST_SPACECRAFT_ID"))
