@@ -82,9 +82,9 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning DataStore to be created.
 
----
 * `storage_fileshare_id` - (Required) The ID of the Storage Account File Share. Changing this forces a new Machine Learning DataStore to be created.
 
+---
 * `account_key` - (Optional) The access key of the Storage Account. Conflicts with `shared_access_signature`.
 
 * `shared_access_signature` - (Optional) The Shared Access Signature of the Storage Account. Conflicts with `account_key`.
