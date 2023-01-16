@@ -844,18 +844,13 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
+// the default hash function will not ignore Option + Computed properties, which will casue diff.
 func resourceSiteRecoveryReplicatedVMNicHash(v interface{}) int {
-	// to ignore the computed or empty ones
 	var buf bytes.Buffer
-	schema := networkInterfaceResource().Schema
 
 	if m, ok := v.(map[string]interface{}); ok {
-		for k, v := range m {
-			if s, ok := schema[k]; ok {
-				if !s.Computed && v != "" {
-					buf.WriteString(fmt.Sprintf("%s-%v", k, v))
-				}
-			}
+		if v, ok := m["source_network_interface_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
 		}
 	}
 
