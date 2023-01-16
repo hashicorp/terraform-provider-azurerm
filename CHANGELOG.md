@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `azurerm_application_gateway` - add TLS 1.3 and CustomV2 support [GH-20029]
 * `azurerm_kubernetes_cluster` - support for the `kube_proxy` block [GH-19567]
 * `azurerm_linux_web_app` - Add Python 3.11 support [GH-20001]
 * `azurerm_linux_web_app_slot` - Add Python 3.11 support [GH-20001]
