@@ -259,5 +259,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 MS SQL Managed Instance Security Alert Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_managed_instance_security_alert_policy.example  /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/managedInstances/instance1/securityAlertPolicies/Default
+terraform import azurerm_mssql_managed_instance_security_alert_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/managedInstances/instance1/securityAlertPolicies/Default
 ```

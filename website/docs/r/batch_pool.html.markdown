@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool. Changing this forces a new resource to be created.
 
-* `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
+* `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool. Changing this forces a new resource to be created.
 
 * `data_disks` - (Optional) A `data_disks` block describes the data disk settings as defined below.
 
@@ -156,7 +156,7 @@ The following arguments are supported:
 
 * `mount` - (Optional) A `mount` block defined as below.
 
-* `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool as defined below.
+* `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool as defined below. Changing this forces a new resource to be created.
 
 * `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool as defined below.
 
@@ -367,7 +367,7 @@ A `resource_file` block supports the following:
 
 A `container_registries` block supports the following:
 
-* `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
+* `registry_server` - (Required) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
 
 * `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
 
@@ -483,7 +483,7 @@ A `network_security_group_rules` block supports the following:
 
 * `source_address_prefix` - (Required) The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
 
-* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are `*` (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be `*`.
+* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are `*` (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be `*`. Changing this forces a new resource to be created.
 
 ---
 

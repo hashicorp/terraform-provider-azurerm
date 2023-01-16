@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name which should be used for this Network Subscription Network Manager Connection. Changing this forces a new Network Subscription Network Manager Connection to be created.
 
-* `subscription_id` (Required) Specifies the ID of the target Subscription.
+* `subscription_id` - (Required) Specifies the ID of the target Subscription. Changing this forces a new resource to be created.
 
 * `network_manager_id` - (Required) Specifies the ID of the Network Manager which the Subscription is connected to.
 

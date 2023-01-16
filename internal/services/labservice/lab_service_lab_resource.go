@@ -172,6 +172,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
+									Sensitive:    true,
 									ValidateFunc: validate.LabPassword,
 								},
 							},
@@ -296,6 +297,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 								"password": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
+									Sensitive:    true,
 									ValidateFunc: validate.LabPassword,
 								},
 							},
@@ -610,42 +612,33 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			properties := &model.Properties
-
 			state := LabServiceLabModel{
 				Name:              id.LabName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-				AutoShutdown:      flattenAutoShutdownProfile(&properties.AutoShutdownProfile),
-				ConnectionSetting: flattenConnectionProfile(&properties.ConnectionProfile),
-				Security:          flattenSecurityProfile(&properties.SecurityProfile),
-				Title:             *properties.Title,
-				VirtualMachine:    flattenVirtualMachineProfile(&properties.VirtualMachineProfile, metadata.ResourceData),
 			}
+			if model := resp.Model; model != nil {
+				props := model.Properties
 
-			if properties.NetworkProfile != nil {
-				state.Network = flattenNetworkProfile(properties.NetworkProfile)
-			}
+				state.Location = location.Normalize(model.Location)
+				state.AutoShutdown = flattenAutoShutdownProfile(props.AutoShutdownProfile)
+				state.ConnectionSetting = flattenConnectionProfile(props.ConnectionProfile)
+				state.Network = flattenNetworkProfile(props.NetworkProfile)
+				state.Roster = flattenRosterProfile(props.RosterProfile)
+				state.Security = flattenSecurityProfile(props.SecurityProfile)
+				state.VirtualMachine = flattenVirtualMachineProfile(props.VirtualMachineProfile, metadata.ResourceData)
 
-			if properties.RosterProfile != nil {
-				state.Roster = flattenRosterProfile(properties.RosterProfile)
-			}
-
-			if properties.Description != nil {
-				state.Description = *properties.Description
-			}
-
-			if properties.LabPlanId != nil {
-				state.LabPlanId = *properties.LabPlanId
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
+				if props.Description != nil {
+					state.Description = *props.Description
+				}
+				if props.LabPlanId != nil {
+					state.LabPlanId = *props.LabPlanId
+				}
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
+				if props.Title != nil {
+					state.Title = *props.Title
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -758,9 +751,14 @@ func expandAutoShutdownProfile(input []AutoShutdown) lab.AutoShutdownProfile {
 	return result
 }
 
-func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) []AutoShutdown {
-	if input == nil || (*input.ShutdownOnDisconnect == lab.EnableStateDisabled && *input.ShutdownWhenNotConnected == lab.EnableStateDisabled && *input.ShutdownOnIdle == lab.ShutdownOnIdleModeNone && input.IdleDelay == nil) {
-		return nil
+func flattenAutoShutdownProfile(input lab.AutoShutdownProfile) []AutoShutdown {
+	// default values
+	shutdownOnDisconnectEnabled := input.ShutdownOnDisconnect != nil && *input.ShutdownOnDisconnect != lab.EnableStateDisabled
+	shutdownWhenNotConnectedEnabled := input.ShutdownWhenNotConnected != nil && *input.ShutdownWhenNotConnected != lab.EnableStateDisabled
+	shutdownOnIdleModeConfigured := input.ShutdownOnIdle != nil && *input.ShutdownOnIdle != lab.ShutdownOnIdleModeNone
+	idleDelayConfigured := input.IdleDelay != nil
+	if !shutdownOnDisconnectEnabled && !shutdownWhenNotConnectedEnabled && shutdownOnIdleModeConfigured && !idleDelayConfigured {
+		return []AutoShutdown{}
 	}
 
 	var autoShutdownProfiles []AutoShutdown
@@ -819,12 +817,11 @@ func expandConnectionProfile(input []ConnectionSetting) lab.ConnectionProfile {
 	return result
 }
 
-func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting {
-	if input == nil || (*input.ClientRdpAccess == lab.ConnectionTypeNone && *input.ClientSshAccess == lab.ConnectionTypeNone) {
-		return nil
+func flattenConnectionProfile(input lab.ConnectionProfile) []ConnectionSetting {
+	if (input.ClientRdpAccess == nil || *input.ClientRdpAccess == lab.ConnectionTypeNone) && (input.ClientSshAccess == nil || *input.ClientSshAccess == lab.ConnectionTypeNone) {
+		return []ConnectionSetting{}
 	}
 
-	var connectionProfiles []ConnectionSetting
 	connectionProfile := ConnectionSetting{}
 
 	if clientRdpAccess := input.ClientRdpAccess; clientRdpAccess != nil && *clientRdpAccess != lab.ConnectionTypeNone {
@@ -835,7 +832,9 @@ func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting 
 		connectionProfile.ClientSshAccess = *clientSshAccess
 	}
 
-	return append(connectionProfiles, connectionProfile)
+	return []ConnectionSetting{
+		connectionProfile,
+	}
 }
 
 func expandSecurityProfile(input []Security) lab.SecurityProfile {
@@ -856,11 +855,7 @@ func expandSecurityProfile(input []Security) lab.SecurityProfile {
 	return result
 }
 
-func flattenSecurityProfile(input *lab.SecurityProfile) []Security {
-	if input == nil {
-		return nil
-	}
-
+func flattenSecurityProfile(input lab.SecurityProfile) []Security {
 	var securityProfiles []Security
 	securityProfile := Security{}
 
@@ -970,11 +965,7 @@ func expandSku(input []Sku) lab.Sku {
 	return result
 }
 
-func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *pluginsdk.ResourceData) []VirtualMachine {
-	if input == nil {
-		return nil
-	}
-
+func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, d *pluginsdk.ResourceData) []VirtualMachine {
 	var virtualMachineProfiles []VirtualMachine
 
 	virtualMachineProfile := VirtualMachine{
@@ -1002,7 +993,7 @@ func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, d *pluginsdk
 
 func flattenCredential(input *lab.Credentials, originalPassword string) []Credential {
 	if input == nil {
-		return nil
+		return []Credential{}
 	}
 
 	var credentials []Credential
@@ -1017,7 +1008,7 @@ func flattenCredential(input *lab.Credentials, originalPassword string) []Creden
 
 func flattenImageReference(input *lab.ImageReference) []ImageReference {
 	if input == nil {
-		return nil
+		return []ImageReference{}
 	}
 
 	var imageReferences []ImageReference
@@ -1048,7 +1039,7 @@ func flattenImageReference(input *lab.ImageReference) []ImageReference {
 
 func flattenSku(input *lab.Sku) []Sku {
 	if input == nil {
-		return nil
+		return []Sku{}
 	}
 
 	var skus []Sku
@@ -1082,7 +1073,7 @@ func expandNetworkProfile(input []Network, isUpdate bool, existingNetwork *lab.L
 
 func flattenNetworkProfile(input *lab.LabNetworkProfile) []Network {
 	if input == nil {
-		return nil
+		return []Network{}
 	}
 
 	var networkProfiles []Network
@@ -1136,7 +1127,7 @@ func expandRosterProfile(input []Roster) *lab.RosterProfile {
 
 func flattenRosterProfile(input *lab.RosterProfile) []Roster {
 	if input == nil {
-		return nil
+		return []Roster{}
 	}
 
 	var rosterProfiles []Roster

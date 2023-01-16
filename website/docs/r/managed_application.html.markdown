@@ -87,7 +87,7 @@ The following arguments are supported:
 
 The `plan` block exports the following:
 
-* `name` - (Required) Specifies the name of the plan from the marketplace. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the plan from the marketplace.
 
 * `product` - (Required) Specifies the product of the plan from the marketplace.
 

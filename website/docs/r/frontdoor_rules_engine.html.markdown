@@ -123,7 +123,7 @@ The following arguments are supported:
 
 The `rule` block supports the following:
 
-* `name` - (Required) The name of the rule. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the rule.
 
 * `priority` - (Required) Priority of the rule, must be unique per rules engine definition.
 

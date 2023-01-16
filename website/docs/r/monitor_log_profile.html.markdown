@@ -65,8 +65,7 @@ resource "azurerm_monitor_log_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Log Profile. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the Log Profile. Changing this forces a new resource to be created.
 
 * `categories` - (Required) List of categories of the logs.
 

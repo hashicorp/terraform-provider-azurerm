@@ -161,7 +161,7 @@ resource "azurerm_vmware_netapp_volume_attachment" "test" {
 ```
 
 ## Arguments Reference
----
+
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this VMware Private Cloud Netapp File Volume Attachment. Changing this forces a new VMware Private Cloud Netapp File Volume Attachment to be created.
@@ -186,5 +186,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 VMware Private Clouds Netapp File Volume Attachment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_vmware_netapp_volume_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/PrivateClouds/privateCloud1/clusters/Cluster1/dataStores/datastore1
+terraform import azurerm_vmware_netapp_volume_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/privateClouds/privateCloud1/clusters/Cluster1/dataStores/datastore1
 ```

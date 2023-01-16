@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
  
-* `public_network_access_enabled` - (Optional)  Whether public network access is allowed for this server. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
 * `storage_authentication_type` - (Optional) Specifies the storage authentication type. Possible value is `ManagedIdentity` or `System`.
 

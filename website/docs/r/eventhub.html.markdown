@@ -73,9 +73,9 @@ A `capture_description` block supports the following:
 
 * `interval_in_seconds` - (Optional) Specifies the time interval in seconds at which the capture will happen. Values can be between `60` and `900` seconds. Defaults to `300` seconds.
 
-* `size_limit_in_bytes` - (Optional) Specifies the amount of data built up in your EventHub before a Capture Operation occurs. Value should be between `10485760` and `524288000`  bytes. Defaults to `314572800` bytes.
+* `size_limit_in_bytes` - (Optional) Specifies the amount of data built up in your EventHub before a Capture Operation occurs. Value should be between `10485760` and `524288000` bytes. Defaults to `314572800` bytes.
 
-* `skip_empty_archives` - (Optional) Specifies if empty files should not be emitted if no events occur during the Capture time window.  Defaults to `false`.
+* `skip_empty_archives` - (Optional) Specifies if empty files should not be emitted if no events occur during the Capture time window. Defaults to `false`.
 
 * `destination` - (Required) A `destination` block as defined below.
 

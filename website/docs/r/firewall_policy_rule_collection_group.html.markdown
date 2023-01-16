@@ -153,7 +153,7 @@ A `application_rule` (application rule) block supports the following:
 
 * `destination_fqdn_tags` - (Optional) Specifies a list of destination FQDN tags.
 
-* `terminate_tls` - (Optional) Boolean specifying if TLS shall be terminated (true) or not (false). Must be  `true` when using `destination_urls`. Needs Premium SKU for Firewall Policy.
+* `terminate_tls` - (Optional) Boolean specifying if TLS shall be terminated (true) or not (false). Must be `true` when using `destination_urls`. Needs Premium SKU for Firewall Policy.
 
 * `web_categories` - (Optional) Specifies a list of web categories to which access is denied or allowed depending on the value of `action` above. Needs Premium SKU for Firewall Policy.
 

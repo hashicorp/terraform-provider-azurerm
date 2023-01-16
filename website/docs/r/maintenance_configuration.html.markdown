@@ -100,9 +100,9 @@ A `windows` block supports:
 
 * `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
-* `kb_numbers_to_exclude` (Optional) List of KB numbers to be excluded from patching.
+* `kb_numbers_to_exclude` - (Optional) List of KB numbers to be excluded from patching.
 
-* `kb_numbers_to_include` (Optional) List of KB numbers to be included for patching.
+* `kb_numbers_to_include` - (Optional) List of KB numbers to be included for patching.
 
 ---
 
@@ -126,5 +126,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Maintenance Configuration can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_maintenance_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.maintenance/maintenanceconfigurations/example-mc
+terraform import azurerm_maintenance_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Maintenance/maintenanceConfigurations/example-mc
 ```

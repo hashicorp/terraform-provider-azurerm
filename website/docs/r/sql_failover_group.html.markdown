@@ -109,7 +109,7 @@ The following attributes are exported:
 
 * `id` - The failover group ID.
 * `location` - the location of the failover group.
-* `server_name` - (Required) the name of the primary SQL Database Server.
+* `server_name` - (Required) the name of the primary SQL Database Server. Changing this forces a new resource to be created.
 * `role` - local replication role of the failover group instance.
 * `databases` - (Optional) list of databases in the failover group.
 * `partner_servers` - (Required) list of partner server information for the failover group.
@@ -128,5 +128,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 SQL Failover Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sql_failover_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failovergroups/group1
+terraform import azurerm_sql_failover_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failoverGroups/group1
 ```

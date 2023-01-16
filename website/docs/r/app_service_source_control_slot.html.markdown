@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `branch` - (Optional) The URL for the repository. Changing this forces a new resource to be created.
 
-* `github_action_configuration` - (Optional) A `github_action_configuration` block as detailed below.
+* `github_action_configuration` - (Optional) A `github_action_configuration` block as detailed below. Changing this forces a new resource to be created.
 
 * `repo_url` - (Optional) The branch name to use for deployments. Changing this forces a new resource to be created.
 
@@ -82,13 +82,13 @@ The following arguments are supported:
 
 A `github_action_configuration` block supports the following:
 
-* `code_configuration` - (Optional) A `code_configuration` block as detailed below.
+* `code_configuration` - (Optional) A `code_configuration` block as detailed below. Changing this forces a new resource to be created.
 
 * `container_configuration` - (Optional) A `container_configuration` block as detailed below.
 
 * `generate_workflow_file` - (Optional) Should the service generate the GitHub Action Workflow file. Defaults to `true` Changing this forces a new resource to be created.
 
-* `linux_action` -  Denotes this action uses a Linux base image.
+* `linux_action` - Denotes this action uses a Linux base image.
 
 ---
 

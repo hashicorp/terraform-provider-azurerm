@@ -44,10 +44,10 @@ func KeyId(input string) (*AppConfigurationKeyId, error) {
 		Label: label,
 	}
 
-	// Label will have a "%00" placeholder if we're dealing with an empty label,
-	// so we set the label to the expected value (empty string) and trim the input
-	// string, so we can properly extract the configuration store ID out of it.
-	if label == "%00" {
+	// Golang's URL parser will translate %00 to \000 (NUL). This will only happen if we're dealing with an empty
+	// label, so we set the label to the expected value (empty string) and trim the input string, so we can properly
+	// extract the configuration store ID out of it.
+	if label == "\000" {
 		appcfgID.Label = ""
 		input = strings.TrimSuffix(input, "%00")
 	}
