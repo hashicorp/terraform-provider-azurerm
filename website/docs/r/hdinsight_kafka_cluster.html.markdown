@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `rest_proxy` - (Optional) A `rest_proxy` block as defined below.
 
-* `security_profile` - (Optional) A `security_profile` block as defined below.
+* `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -146,7 +146,7 @@ A `gateway` block supports the following:
 
 A `compute_isolation` block supports the following:
 
-* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+* `compute_isolation_enabled` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
 
 * `host_sku` - (Optional) The name of the host SKU.
 
@@ -182,6 +182,8 @@ A `roles` block supports the following:
 
 * `kafka_management_node` - (Optional) A `kafka_management_node` block as defined below.
 
+  ~> **Note:** This property has been deprecated and will be removed in version 4.0.
+
 ---
 
 A `network` block supports the following:
@@ -205,6 +207,8 @@ A `storage_account` block supports the following:
 * `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+
+* `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
 ---
 
@@ -268,7 +272,7 @@ A `zookeeper_node` block supports the following:
 
 ---
 
-A `display_encryption_properties` block supports the following:
+A `disk_encryption` block supports the following:
 
 * `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
 
@@ -312,37 +316,37 @@ A `metastores` block supports the following:
 
 A `hive` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.  Changing this forces a new resource to be created.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+* `database_name` - (Required) The external Hive metastore's existing SQL database. Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+* `username` - (Required) The external Hive metastore's existing SQL server admin username. Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+* `password` - (Required) The external Hive metastore's existing SQL server admin password. Changing this forces a new resource to be created.
 
 ---
 
 An `oozie` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.  Changing this forces a new resource to be created.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Oozie metastore's existing SQL database.  Changing this forces a new resource to be created.
+* `database_name` - (Required) The external Oozie metastore's existing SQL database. Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Oozie metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+* `username` - (Required) The external Oozie metastore's existing SQL server admin username. Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Oozie metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+* `password` - (Required) The external Oozie metastore's existing SQL server admin password. Changing this forces a new resource to be created.
 
 ---
 
 An `ambari` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.  Changing this forces a new resource to be created.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+* `database_name` - (Required) The external Hive metastore's existing SQL database. Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Ambari metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+* `username` - (Required) The external Ambari metastore's existing SQL server admin username. Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+* `password` - (Required) The external Ambari metastore's existing SQL server admin password. Changing this forces a new resource to be created.
 
 ---
 

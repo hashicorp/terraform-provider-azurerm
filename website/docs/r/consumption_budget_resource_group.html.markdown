@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
-* `time_grain` - (Optional) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `BillingAnnual`, `BillingMonth`, `BillingQuarter`, `Annually`, `Monthly` and `Quarterly`. Defaults to `Monthly`.
+* `time_grain` - (Optional) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `BillingAnnual`, `BillingMonth`, `BillingQuarter`, `Annually`, `Monthly` and `Quarterly`. Defaults to `Monthly`. Changing this forces a new resource to be created.
 
 * `time_period` - (Required) A `time_period` block as defined below.
 
@@ -138,7 +138,7 @@ A `notification` block supports the following:
 
 * `contact_roles` - (Optional) Specifies a list of contact roles to send the budget notification to when the threshold is exceeded.
 
-* `enabled` - (Optional) Should the notification be enabled?
+* `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
 ~> **NOTE:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
 

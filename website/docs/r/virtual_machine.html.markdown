@@ -147,7 +147,7 @@ The following arguments are supported:
 
 ~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
 
-* `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below.
+* `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below. Changing this forces a new resource to be created.
 
 * `storage_os_disk` - (Required) A `storage_os_disk` block as defined below.
 
@@ -238,7 +238,7 @@ A `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the ID of the Key Vault to use.
 
-* `vault_certificates` - (Required) One or more `vault_certificates` blocks as defined below.
+* `vault_certificates` - (Optional) One or more `vault_certificates` blocks as defined below.
 
 ---
 
@@ -403,8 +403,6 @@ The following attributes are exported:
 An `identity` block exports the following:
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
-
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 -> You can access the Principal ID via `${azurerm_virtual_machine.example.identity.0.principal_id}`
 

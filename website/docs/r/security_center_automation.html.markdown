@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies the description for the Security Center Automation.
 
-* `enabled` - (Optional) Boolean to enable or disable this Security Center Automation.
+* `enabled` - (Optional) Boolean to enable or disable this Security Center Automation. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 

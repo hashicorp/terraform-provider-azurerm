@@ -307,7 +307,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) A plan block as documented below.
 
-* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Defaults to `Regular`. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
+* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is only applicable when the `upgrade_policy_mode` is `Rolling`.
 
@@ -327,7 +327,7 @@ The following arguments are supported:
 
 The `sku` block supports the following:
 
-* `name` - (Required) Specifies the size of virtual machines in a scale set. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the size of virtual machines in a scale set.
 * `tier` - (Optional) Specifies the tier of virtual machines in a scale set. Possible values, `standard` or `basic`.
 * `capacity` - (Required) Specifies the number of virtual machines in the scale set.
 
@@ -438,10 +438,10 @@ The `os_profile_linux_config` block supports the following:
 
 The `network_profile` block supports the following:
 
-* `name` - (Required) Specifies the name of the network interface configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not.
 * `dns_settings` - (Optional) A dns_settings block as documented below.
 * `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
@@ -456,7 +456,7 @@ The `dns_settings` block supports the following:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Required) Specifies name of the IP configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies name of the IP configuration.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
 * `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of multiple application gateways. Multiple scale sets can use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
@@ -475,7 +475,7 @@ The `ip_configuration` block supports the following:
 
 The `public_ip_address_configuration` block supports the following:
 
-* `name` - (Required) The name of the public IP address configuration Changing this forces a new resource to be created.
+* `name` - (Required) The name of the public IP address configuration
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the DNS settings.
 
@@ -483,7 +483,7 @@ The `public_ip_address_configuration` block supports the following:
 
 The `storage_profile_os_disk` block supports the following:
 
-* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set). Changing this forces a new resource to be created.
+* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
 * `vhd_containers` - (Optional) Specifies the VHD URI. Cannot be used when `image` or `managed_disk_type` is specified.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.
@@ -507,8 +507,7 @@ The `storage_profile_data_disk` block supports the following:
 
 The `storage_profile_image_reference` block supports the following:
 
-* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
-machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 * `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
@@ -518,7 +517,7 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 
 The `boot_diagnostics` block supports the following:
 
-* `enabled` - (Optional) Whether to enable boot diagnostics for the virtual machine.
+* `enabled` - (Optional) Whether to enable boot diagnostics for the virtual machine. Defaults to `true`.
 
 * `storage_uri` - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
 
@@ -526,7 +525,7 @@ The `boot_diagnostics` block supports the following:
 
 The `extension` block supports the following:
 
-* `name` - (Required) Specifies the name of the extension. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the extension.
 * `publisher` - (Required) The publisher of the extension, available publishers can be found by using the Azure CLI.
 * `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
@@ -539,7 +538,7 @@ The `extension` block supports the following:
 
 The `plan` block supports the following:
 
-* `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the image from the marketplace.
 * `publisher` - (Required) Specifies the publisher of the image.
 * `product` - (Required) Specifies the product of the image from the marketplace.
 

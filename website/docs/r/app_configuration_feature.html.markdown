@@ -40,11 +40,11 @@ The following arguments are supported:
 
 * `configuration_store_id` - (Required) Specifies the id of the App Configuration. Changing this forces a new resource to be created.
 
-* `description` - (Optional) The description of the App Configuration Feature.  
+* `description` - (Optional) The description of the App Configuration Feature. 
 
 * `enabled` - (Optional) The status of the App Configuration Feature. By default, this is set to false.
 
-* `label` - (Optional) The label of the App Configuration Feature.  Changing this forces a new resource to be created.
+* `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
 * `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `targeting_filter` - (Optional) A `targeting_filter` block as defined below.
 
-* `timewindow_filter` - (Optional) A `targeting_filter` block `timewindow_filter` as defined below.
+* `timewindow_filter` - (Optional) A `timewindow_filter` block as defined below.
 
 ---
 
@@ -82,7 +82,7 @@ A `timewindow_filter` represents a feature filter of type `Microsoft.TimeWindow`
 
 * `start` - (Optional) The earliest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 
-* `end` - (Optional) The latest timestamp the feature is enabled.  The timestamp must be in RFC3339 format.
+* `end` - (Optional) The latest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 
 ---
 

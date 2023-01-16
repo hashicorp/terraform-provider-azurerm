@@ -83,7 +83,7 @@ The following arguments are supported:
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
-* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below. Changing this forces a new resource to be created.
+* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below.
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
@@ -165,7 +165,7 @@ A `client_certificate_common_name` block supports the following:
 
 * `common_name` - (Required) The common or subject name of the certificate.
 
-* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+* `issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
 -> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
@@ -221,7 +221,7 @@ A `node_type` block supports the following:
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
 
-* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint for this Node Type. Changing this will upgrade the cluster.
 
 ---
 
@@ -243,7 +243,7 @@ A `ephemeral_ports` block supports the following:
 
 A `upgrade_policy` block supports the following:
 
-* `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
+* `force_restart_enabled` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
 
 * `health_check_retry_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, after which Service Fabric retries the health check if the previous health check fails. Defaults to `00:45:00`.
 

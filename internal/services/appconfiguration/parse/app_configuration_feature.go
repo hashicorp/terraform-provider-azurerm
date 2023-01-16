@@ -64,7 +64,9 @@ func handleSlashInIdForFeature(input string) string {
 	}
 
 	oldNames = regexp.MustCompile(`AppConfigurationFeature\/.+\/Label\/(.+)`).FindStringSubmatch(input)
-	if len(oldNames) == 2 {
+
+	// Label will have a "%00" placeholder if we're dealing with an empty label,
+	if len(oldNames) == 2 && oldNames[1] != "%00" {
 		input = strings.Replace(input, oldNames[1], url.QueryEscape(oldNames[1]), 1)
 	}
 

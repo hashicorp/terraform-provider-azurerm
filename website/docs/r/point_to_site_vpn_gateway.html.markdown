@@ -119,7 +119,7 @@ A `connection_configuration` block supports the following:
 
 * `route` - (Optional) A `route` block as defined below.
 
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to false.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
 ---
 
@@ -167,5 +167,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Point-to-Site VPN Gateway's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2svpnGateways/gateway1
+terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2sVpnGateways/gateway1
 ```

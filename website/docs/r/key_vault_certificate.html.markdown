@@ -238,7 +238,7 @@ The following arguments are supported:
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 
-* `certificate_policy` - (Optional) A `certificate_policy` block as defined below.
+* `certificate_policy` - (Optional) A `certificate_policy` block as defined below. Changing this forces a new resource to be created.
 
 ~> **NOTE:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
 
@@ -310,7 +310,7 @@ The `x509_certificate_properties` block supports the following:
 * `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages. Changing this forces a new resource to be created.
 * `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive. Changing this forces a new resource to be created.
 * `subject` - (Required) The Certificate's Subject. Changing this forces a new resource to be created.
-* `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below.
+* `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below. Changing this forces a new resource to be created.
 * `validity_in_months` - (Required) The Certificates Validity Period in Months. Changing this forces a new resource to be created.
 
 ---
@@ -350,7 +350,7 @@ A `certificate_attribute` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate.
+* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate.

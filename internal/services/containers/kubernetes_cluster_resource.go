@@ -26,10 +26,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,6 +65,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("windows_profile.0.gmsa.0.root_domain", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			pluginsdk.ForceNewIfChange("api_server_access_profile.0.subnet_id", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -90,12 +95,41 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"api_server_authorized_ip_ranges": {
-				Type:     pluginsdk.TypeSet,
+			"api_server_access_profile": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.CIDR,
+				Computed: !features.FourPointOhBeta(),
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"vnet_integration_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: networkValidate.SubnetID,
+						},
+
+						"authorized_ip_ranges": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Computed: !features.FourPointOhBeta(),
+							ConflictsWith: func() []string {
+								if !features.FourPointOhBeta() {
+									return []string{"api_server_authorized_ip_ranges"}
+								}
+								return []string{}
+							}(),
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.CIDR,
+							},
+						},
+					},
 				},
 			},
 
@@ -354,10 +388,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_pod_security_policy": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Type:       pluginsdk.TypeBool,
+				Deprecated: "The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy.",
+				Optional:   true,
 			},
 
 			"fqdn": {
@@ -830,6 +864,60 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							}, false),
 						},
 
+						"kube_proxy": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"mode": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.ModeIPVS),
+											string(managedclusters.ModeIPTABLES),
+										}, false),
+									},
+
+									"ipvs": {
+										Type:     pluginsdk.TypeList,
+										MaxItems: 1,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"scheduler": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(managedclusters.IPvsSchedulerLeastConnection),
+														string(managedclusters.IPvsSchedulerRoundRobin),
+													}, false),
+												},
+
+												"tcp_fin_timeout_in_seconds": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+
+												"tcp_timeout_in_seconds": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+
+												"udp_timeout_in_seconds": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
 						"load_balancer_profile": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
@@ -1170,6 +1258,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema[k] = v
 	}
 
+	if !features.FourPointOhBeta() {
+		resource.Schema["api_server_authorized_ip_ranges"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.CIDR,
+			},
+			Deprecated:    "This property has been renamed to `authorized_ip_ranges` within the `api_server_access_profile` block and will be removed in v4.0 of the provider",
+			ConflictsWith: []string{"api_server_access_profile.0.authorized_ip_ranges"},
+		}
+	}
+
 	return resource
 }
 
@@ -1252,23 +1354,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
 	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
 
-	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
-	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
-
-	enablePrivateCluster := false
-	if v, ok := d.GetOk("private_cluster_enabled"); ok {
-		enablePrivateCluster = v.(bool)
-	}
-
-	if !enablePrivateCluster && dnsPrefix == "" {
+	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
+	if !(*apiAccessProfile.EnablePrivateCluster) && dnsPrefix == "" {
 		return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
-	}
-
-	apiAccessProfile := managedclusters.ManagedClusterAPIServerAccessProfile{
-		EnablePrivateCluster:           &enablePrivateCluster,
-		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
-		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
-		DisableRunCommand:              utils.Bool(!d.Get("run_command_enabled").(bool)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -1338,7 +1426,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
-			ApiServerAccessProfile:    &apiAccessProfile,
+			ApiServerAccessProfile:    apiAccessProfile,
 			AadProfile:                azureADProfile,
 			AddonProfiles:             addonProfiles,
 			AgentPoolProfiles:         agentProfiles,
@@ -1412,7 +1500,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("dns_prefix_private_cluster"); ok {
-		if !enablePrivateCluster || apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
+		if !(*apiAccessProfile.EnablePrivateCluster) || apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
 			return fmt.Errorf("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
 		}
 		parameters.Properties.FqdnSubdomain = utils.String(v.(string))
@@ -1575,34 +1663,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AddonProfiles = addonProfiles
 	}
 
-	if d.HasChange("api_server_authorized_ip_ranges") {
+	if d.HasChange("api_server_authorized_ip_ranges") || d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access_profile") {
 		updateCluster = true
-		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
 
-		enablePrivateCluster := false
-		if v, ok := d.GetOk("private_cluster_enabled"); ok {
-			enablePrivateCluster = v.(bool)
-		}
-		existing.Model.Properties.ApiServerAccessProfile = &managedclusters.ManagedClusterAPIServerAccessProfile{
-			AuthorizedIPRanges:   utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
-			EnablePrivateCluster: &enablePrivateCluster,
-		}
-		if v, ok := d.GetOk("private_dns_zone_id"); ok {
-			existing.Model.Properties.ApiServerAccessProfile.PrivateDNSZone = utils.String(v.(string))
-		}
-	}
-
-	if d.HasChange("private_cluster_public_fqdn_enabled") {
-		updateCluster = true
-		existing.Model.Properties.ApiServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
-	}
-
-	if d.HasChange("run_command_enabled") {
-		updateCluster = true
-		if existing.Model.Properties.ApiServerAccessProfile == nil {
-			existing.Model.Properties.ApiServerAccessProfile = &managedclusters.ManagedClusterAPIServerAccessProfile{}
-		}
-		existing.Model.Properties.ApiServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
+		apiServerProfile := expandKubernetesClusterAPIAccessProfile(d)
+		existing.Model.Properties.ApiServerAccessProfile = apiServerProfile
 	}
 
 	if d.HasChange("auto_scaler_profile") {
@@ -1752,6 +1817,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
+		}
+
+		if key := "network_profile.0.kube_proxy"; d.HasChange(key) {
+			existing.Model.Properties.NetworkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(d.Get(key).([]interface{}))
 		}
 	}
 
@@ -2054,10 +2123,17 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		enablePrivateCluster := false
 		enablePrivateClusterPublicFQDN := false
 		runCommandEnabled := true
+
+		apiServerAccessProfile := flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)
+		if err := d.Set("api_server_access_profile", apiServerAccessProfile); err != nil {
+			return fmt.Errorf("setting `api_server_access_profile`: %+v", err)
+		}
 		if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
-			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
-				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
+			if !features.FourPointOhBeta() {
+				apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
+				if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
+					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
+				}
 			}
 			if accessProfile.EnablePrivateCluster != nil {
 				enablePrivateCluster = *accessProfile.EnablePrivateCluster
@@ -2077,7 +2153,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 			}
 		}
-
 		d.Set("private_cluster_enabled", enablePrivateCluster)
 		d.Set("private_cluster_public_fqdn_enabled", enablePrivateClusterPublicFQDN)
 		d.Set("run_command_enabled", runCommandEnabled)
@@ -2451,6 +2526,79 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *managedclusters
 	}
 }
 
+func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managedclusters.ManagedClusterAPIServerAccessProfile {
+	apiServerAuthorizedIPRangesRaw := []interface{}{}
+	if !features.FourPointOhBeta() {
+		apiServerAuthorizedIPRangesRaw = d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
+	}
+	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
+
+	enablePrivateCluster := false
+	if v, ok := d.GetOk("private_cluster_enabled"); ok {
+		enablePrivateCluster = v.(bool)
+	}
+
+	apiAccessProfile := &managedclusters.ManagedClusterAPIServerAccessProfile{
+		EnablePrivateCluster:           &enablePrivateCluster,
+		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
+		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
+		DisableRunCommand:              utils.Bool(!d.Get("run_command_enabled").(bool)),
+	}
+
+	apiServerAccessProfileRaw := d.Get("api_server_access_profile").([]interface{})
+	if len(apiServerAccessProfileRaw) == 0 {
+		return apiAccessProfile
+	}
+
+	config := apiServerAccessProfileRaw[0].(map[string]interface{})
+
+	if v := config["authorized_ip_ranges"]; v != nil {
+		apiServerAuthorizedIPRangesRaw := v.(*pluginsdk.Set).List()
+		if apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw); len(*apiServerAuthorizedIPRanges) > 0 {
+			apiAccessProfile.AuthorizedIPRanges = apiServerAuthorizedIPRanges
+		}
+	}
+
+	enableVnetIntegration := false
+	if v := config["vnet_integration_enabled"]; v != nil {
+		enableVnetIntegration = v.(bool)
+	}
+	apiAccessProfile.EnableVnetIntegration = utils.Bool(enableVnetIntegration)
+
+	subnetId := ""
+	if v := config["subnet_id"]; v != nil {
+		subnetId = v.(string)
+	}
+	apiAccessProfile.SubnetId = utils.String(subnetId)
+
+	return apiAccessProfile
+}
+
+func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
+
+	enableVnetIntegration := false
+	if profile.EnableVnetIntegration != nil {
+		enableVnetIntegration = *profile.EnableVnetIntegration
+	}
+	subnetId := ""
+	if profile.SubnetId != nil && *profile.SubnetId != "" {
+		subnetId = *profile.SubnetId
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"authorized_ip_ranges":     apiServerAuthorizedIPRanges,
+			"subnet_id":                subnetId,
+			"vnet_integration_enabled": enableVnetIntegration,
+		},
+	}
+}
+
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
 	if len(input) == 0 {
 		return nil
@@ -2579,6 +2727,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		LoadBalancerSku: utils.ToPtr(managedclusters.LoadBalancerSku(loadBalancerSku)),
 		OutboundType:    utils.ToPtr(managedclusters.OutboundType(outboundType)),
 		IPFamilies:      ipVersions,
+	}
+
+	if kubeProxyRaw := config["kube_proxy"].([]interface{}); len(kubeProxyRaw) != 0 {
+		networkProfile.KubeProxyConfig = expandKubernetesClusterKubeProxyConfig(kubeProxyRaw)
 	}
 
 	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
@@ -2874,6 +3026,8 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 	}
 
+	kubeProxy := flattenKubernetesClusterKubeProxyConfig(profile.KubeProxyConfig)
+
 	networkPluginMode := ""
 	if profile.NetworkPluginMode != nil {
 		// The returned value has inconsistent casing
@@ -2887,11 +3041,13 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	if profile.EbpfDataplane != nil {
 		ebpfDataPlane = string(*profile.EbpfDataplane)
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"dns_service_ip":        dnsServiceIP,
 			"docker_bridge_cidr":    dockerBridgeCidr,
 			"ebpf_data_plane":       ebpfDataPlane,
+			"kube_proxy":            kubeProxy,
 			"load_balancer_sku":     string(*sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
@@ -3575,6 +3731,49 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 	}
 }
 
+func expandKubernetesClusterKubeProxyConfig(input []interface{}) *managedclusters.ContainerServiceNetworkProfileKubeProxyConfig {
+	if len(input) == 0 {
+		return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfig{
+			Enabled: utils.Bool(false),
+		}
+	}
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfig{
+		Enabled:    utils.Bool(true),
+		IPvsConfig: expandKubernetesClusterKubeProxyIPvsConfig(config["ipvs"].([]interface{})),
+		Mode:       utils.ToPtr(managedclusters.Mode(config["mode"].(string))),
+	}
+}
+
+func expandKubernetesClusterKubeProxyIPvsConfig(input []interface{}) *managedclusters.ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	config := input[0].(map[string]interface{})
+	return &managedclusters.ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig{
+		Scheduler:            utils.ToPtr(managedclusters.IPvsScheduler(config["scheduler"].(string))),
+		TcpFinTimeoutSeconds: utils.Int64(int64(config["tcp_fin_timeout_in_seconds"].(int))),
+		TcpTimeoutSeconds:    utils.Int64(int64(config["tcp_timeout_in_seconds"].(int))),
+		UdpTimeoutSeconds:    utils.Int64(int64(config["udp_timeout_in_seconds"].(int))),
+	}
+}
+
+func flattenKubernetesClusterKubeProxyConfig(input *managedclusters.ContainerServiceNetworkProfileKubeProxyConfig) []interface{} {
+	if input == nil || input.Enabled == nil || !*input.Enabled {
+		return []interface{}{}
+	}
+	mode := ""
+	if input.Mode != nil {
+		mode = string(*input.Mode)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"mode": mode,
+			"ipvs": flattenKubernetesClusterKubeProxyIPvsConfig(input.IPvsConfig),
+		},
+	}
+}
+
 func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclusters.ManagedClusterAzureMonitorProfile {
 	if len(input) == 0 {
 		return &managedclusters.ManagedClusterAzureMonitorProfile{
@@ -3598,6 +3797,34 @@ func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclu
 				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
 				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
 			},
+		},
+	}
+}
+
+func flattenKubernetesClusterKubeProxyIPvsConfig(input *managedclusters.ContainerServiceNetworkProfileKubeProxyConfigIPvsConfig) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	scheduler := ""
+	if input.Scheduler != nil {
+		scheduler = string(*input.Scheduler)
+	}
+	var tcpFinTimeout, tcpTimeout, udpTimeout int64
+	if input.TcpFinTimeoutSeconds != nil {
+		tcpFinTimeout = *input.TcpFinTimeoutSeconds
+	}
+	if input.TcpTimeoutSeconds != nil {
+		tcpTimeout = *input.TcpTimeoutSeconds
+	}
+	if input.UdpTimeoutSeconds != nil {
+		udpTimeout = *input.UdpTimeoutSeconds
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"scheduler":                  scheduler,
+			"tcp_fin_timeout_in_seconds": tcpFinTimeout,
+			"tcp_timeout_in_seconds":     tcpTimeout,
+			"udp_timeout_in_seconds":     udpTimeout,
 		},
 	}
 }

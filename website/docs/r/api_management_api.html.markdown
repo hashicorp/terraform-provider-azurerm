@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
-* `subscription_required` - (Optional) Should this API require a subscription key?
+* `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
 
 * `terms_of_service_url` - (Optional) Absolute URL of the Terms of Service for the API.
 

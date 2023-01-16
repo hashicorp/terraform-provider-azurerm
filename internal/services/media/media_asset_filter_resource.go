@@ -17,14 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// define constants based on docs https://docs.microsoft.com/en-us/azure/media-services/latest/filters-concept
-const incrementsInASecond = 10000000
-
-const (
-	nanoSecondsInAIncrement = 100
-	milliSecondsInASecond   = 1000
-)
-
 func resourceMediaAssetFilter() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMediaAssetFilterCreateUpdate,

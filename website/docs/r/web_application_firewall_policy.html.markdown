@@ -178,7 +178,7 @@ The `policy_settings` block supports the following:
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
-* `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `8` to `2000`. Defaults to `128`.
+* `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `8` to `2000`. Defaults to `128`.
 
 ---
 
@@ -242,7 +242,7 @@ The `rule` block supports the following:
 
 * `id` - (Required) Identifier for the managed rule.
 
-* `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state. Defaults to `false`.
+* `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state.
 
 * `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block` and `Log`.
 

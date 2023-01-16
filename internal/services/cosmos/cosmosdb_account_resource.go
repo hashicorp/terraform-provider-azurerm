@@ -232,7 +232,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"default_identity_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "FirstPartyIdentity",
+				Computed: true,
 				ValidateFunc: validation.Any(
 					validation.StringMatch(regexp.MustCompile(`^UserAssignedIdentity(.)+$`), "It may start with `UserAssignedIdentity`"),
 					validation.StringInSlice([]string{
@@ -750,9 +750,12 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
-			DefaultIdentity:                    utils.String(d.Get("default_identity_type").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("default_identity_type"); ok {
+		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("analytical_storage"); ok {
@@ -948,9 +951,13 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
-			DefaultIdentity:                    utils.String(d.Get("default_identity_type").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	// d.GetOk cannot identify whether user sets the property that is added Optional and Computed when the property isn't set in TF config file. Because d.GetOk always gets the property value from the last apply when the property isn't set in TF config file. So it has to identify it using `d.GetRawConfig()`
+	if v := d.GetRawConfig().AsValueMap()["default_identity_type"]; !v.IsNull() {
+		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = utils.String(v.AsString())
 	}
 
 	if v, ok := d.GetOk("analytical_storage"); ok {
@@ -1089,11 +1096,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("enable_free_tier", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
-		defaultIdentity := props.DefaultIdentity
-		if defaultIdentity == nil || *defaultIdentity == "" {
-			defaultIdentity = utils.String("FirstPartyIdentity")
-		}
-		d.Set("default_identity_type", defaultIdentity)
+		d.Set("default_identity_type", props.DefaultIdentity)
 		d.Set("create_mode", props.CreateMode)
 
 		if v := resp.IsVirtualNetworkFilterEnabled; v != nil {

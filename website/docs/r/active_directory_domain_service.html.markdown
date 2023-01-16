@@ -166,7 +166,7 @@ The following arguments are supported:
 
 * `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations. Changing this forces a new resource to be created.
 
-* `domain_configuration_type` - (Optional)  The configuration type of this Active Directory Domain. Possible values are `FullySynced` and `ResourceTrusting`. Changing this forces a new resource to be created.
+* `domain_configuration_type` - (Optional) The configuration type of this Active Directory Domain. Possible values are `FullySynced` and `ResourceTrusting`. Changing this forces a new resource to be created.
 
 * `filtered_sync_enabled` - (Optional) Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
 
@@ -192,7 +192,7 @@ The following arguments are supported:
 
 A `secure_ldap` block supports the following:
 
-* `enabled` - (Required) Whether to enable secure LDAP for the managed domain. Defaults to `false`. For more information, please see [official documentation on enabling LDAPS](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-configure-ldaps), paying particular attention to the section on network security to avoid unnecessarily exposing your service to Internet-borne bruteforce attacks.
+* `enabled` - (Required) Whether to enable secure LDAP for the managed domain. For more information, please see [official documentation on enabling LDAPS](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-configure-ldaps), paying particular attention to the section on network security to avoid unnecessarily exposing your service to Internet-borne bruteforce attacks.
 
 * `external_access_enabled` - (Optional) Whether to enable external access to LDAPS over the Internet. Defaults to `false`.
 
@@ -248,7 +248,11 @@ In addition to all arguments above, the following attributes are exported:
 
 A `secure_ldap` block exports the following:
 
-* `external_access_ip_address` - The publicly routable IP address for LDAPS clients to connect to.
+* `certificate_expiry` - The expiry time of the certificate.
+
+* `certificate_thumbprint` - The thumbprint of the certificate.
+
+* `public_certificate` - The public certificate.
 
 ---
 
@@ -260,7 +264,7 @@ An `initial_replica_set` block exports the following:
 
 * `location` - The Azure location in which the initialreplica set resides.
 
-* `replica_set_id` - A unique ID for the replica set.
+* `id` - A unique ID for the replica set.
 
 * `service_status` - The current service status for the initial replica set.
 
@@ -268,10 +272,10 @@ An `initial_replica_set` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Domain Service.
+* `create` - (Defaults to 3 hours) Used when creating the Domain Service.
 * `update` - (Defaults to 2 hours) Used when updating the Domain Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Domain Service.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Domain Service.
 
 ## Import
 

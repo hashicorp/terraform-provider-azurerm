@@ -107,7 +107,7 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Spark Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
-* `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
+* `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
 
 ~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
 
@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `extension` - (Optional) An `extension` block as defined below.
 
-* `security_profile` - (Optional) A `security_profile` block as defined below.
+* `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -159,7 +159,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional)  The script action which will run on the cluster.
+* `script_actions` - (Optional) The script action which will run on the cluster. Changing this forces a new resource to be created.
 
 ---
 
@@ -195,7 +195,7 @@ A `network` block supports the following:
 
 A `compute_isolation` block supports the following:
 
-* `enable_compute_isolation` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
+* `compute_isolation_enabled` - (Optional) This field indicates whether enable compute isolation or not. Possible values are `true` or `false`.
 
 * `host_sku` - (Optional) The name of the host SKU.
 
@@ -277,7 +277,7 @@ A `zookeeper_node` block supports the following:
 
 ---
 
-A `display_encryption_properties` block supports the following:
+A `disk_encryption` block supports the following:
 
 * `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
 
@@ -301,37 +301,37 @@ A `metastores` block supports the following:
 
 A `hive` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.  Changing this forces a new resource to be created.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+* `database_name` - (Required) The external Hive metastore's existing SQL database. Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+* `username` - (Required) The external Hive metastore's existing SQL server admin username. Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+* `password` - (Required) The external Hive metastore's existing SQL server admin password. Changing this forces a new resource to be created.
 
 ---
 
 An `oozie` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.  Changing this forces a new resource to be created.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Oozie metastore's existing SQL database.  Changing this forces a new resource to be created.
+* `database_name` - (Required) The external Oozie metastore's existing SQL database. Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Oozie metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+* `username` - (Required) The external Oozie metastore's existing SQL server admin username. Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Oozie metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+* `password` - (Required) The external Oozie metastore's existing SQL server admin password. Changing this forces a new resource to be created.
 
 ---
 
 An `ambari` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.  Changing this forces a new resource to be created.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+* `database_name` - (Required) The external Hive metastore's existing SQL database. Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Ambari metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+* `username` - (Required) The external Ambari metastore's existing SQL server admin username. Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+* `password` - (Required) The external Ambari metastore's existing SQL server admin password. Changing this forces a new resource to be created.
 
 ---
 

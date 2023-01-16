@@ -62,7 +62,7 @@ The following arguments are supported:
 
 -> **NOTE:** One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
 
-* `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
+* `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to.
 
 -> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 

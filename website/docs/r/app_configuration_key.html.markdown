@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the App Configuration Key. This should only be set when type is set to `kv`.
 
-* `label` - (Optional) The label of the App Configuration Key.  Changing this forces a new resource to be created.
+* `label` - (Optional) The label of the App Configuration Key. Changing this forces a new resource to be created.
 
 * `value` - (Optional) The value of the App Configuration Key. This should only be set when type is set to `kv`.
 

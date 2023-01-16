@@ -105,14 +105,14 @@ A `resource_health` block supports the following:
 
 * `current` - (Optional) The current resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
 * `previous` - (Optional) The previous resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
-* `reason` - (Optional)  The reason that will log an alert. Possible values are `PlatformInitiated` (such as a problem with the resource in an affected region of an Azure incident), `UserInitiated` (such as a shutdown request of a VM) and `Unknown`.
+* `reason` - (Optional) The reason that will log an alert. Possible values are `PlatformInitiated` (such as a problem with the resource in an affected region of an Azure incident), `UserInitiated` (such as a shutdown request of a VM) and `Unknown`.
 
 ---
 
 A `service_health` block supports the following:
 
 * `events` - (Optional) Events this alert will monitor Possible values are `Incident`, `Maintenance`, `Informational`, `ActionRequired` and `Security`.
-* `locations` - (Optional) Locations this alert will monitor. For example, `West Europe`. Defaults to `Global`.
+* `locations` - (Optional) Locations this alert will monitor. For example, `West Europe`.
 * `services` - (Optional) Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`. Defaults to all Services.
 
 ## Attributes Reference

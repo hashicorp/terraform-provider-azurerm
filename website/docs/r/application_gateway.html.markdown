@@ -161,7 +161,7 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -313,7 +313,7 @@ A `http_listener` block supports the following:
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
-* `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.
+* `require_sni` - (Optional) Should Server Name Indication be Required? 
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
@@ -463,7 +463,7 @@ A `ssl_certificate` block supports the following:
 
 * `data` - (Optional) PFX certificate. Required if `key_vault_secret_id` is not set.
 
-* `password` - (Optional) Password for the pfx file specified in data.  Required if `data` is set.
+* `password` - (Optional) Password for the pfx file specified in data. Required if `data` is set.
 
 * `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
 
@@ -504,9 +504,9 @@ A `ssl_profile` block supports the following:
 
 * `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
-* `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified?  Defaults to `false`.
+* `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
 
-* `ssl_policy` - (Optional) a `ssl policy` block as defined below.
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
 
 ---
 
@@ -522,8 +522,7 @@ A `ssl_policy` block supports the following:
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
-* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and
-are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
+* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
 
@@ -547,9 +546,9 @@ A `waf_configuration` block supports the following:
 
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
 
-* `request_body_check` - (Optional) Is Request Body Inspection enabled?  Defaults to `true`.
+* `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
-* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `1`KB to `128`KB.  Defaults to `128`KB.
+* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `1`KB to `128`KB. Defaults to `128`KB.
 
 * `exclusion` - (Optional) one or more `exclusion` blocks as defined below.
 
@@ -687,7 +686,7 @@ The following attributes are exported:
 
 * `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
 
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? 
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 

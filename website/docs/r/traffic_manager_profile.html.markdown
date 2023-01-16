@@ -114,7 +114,7 @@ The `monitor_config` block supports:
 
 A `custom_header` block supports the following:
 
-* `name` - (Required) The name of the custom header. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the custom header.
 
 * `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 

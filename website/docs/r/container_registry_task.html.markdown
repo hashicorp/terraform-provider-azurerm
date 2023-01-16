@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Container Registry Task.
 
-* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to 3600.
+* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to `3600`.
 
 ---
 
@@ -143,7 +143,7 @@ A `docker_step` block supports the following:
 
 * `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
 
-* `dockerfile_path` - (Required) The  Dockerfile path relative to the source context.
+* `dockerfile_path` - (Required) The Dockerfile path relative to the source context.
 
 * `arguments` - (Optional) Specifies a map of arguments to be used when executing this step.
 

@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
-* `authentication` - (Optional)  An `authentication` block as defined below.
+* `authentication` - (Optional) An `authentication` block as defined below.
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 

@@ -40,13 +40,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare DICOM Service. Changing this forces a new Healthcare DICOM Service to be created.
 
-* `workspace_id`  - (Required) Specifies the id of the Healthcare Workspace where the Healthcare DICOM Service should exist. Changing this forces a new Healthcare DICOM Service to be created.
+* `workspace_id` - (Required) Specifies the id of the Healthcare Workspace where the Healthcare DICOM Service should exist. Changing this forces a new Healthcare DICOM Service to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare DICOM Service should be created. Changing this forces a new Healthcare DICOM Service to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled.
+* `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled. Defaults to `true`.
 
 ---
 
