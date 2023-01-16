@@ -852,10 +852,20 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.AzureKeyVaultKms) []interface{} {
 	azureKeyVaultKms := make([]interface{}, 0)
 
-	if input != nil && *input.Enabled {
+	if input != nil && input.Enabled != nil && *input.Enabled {
+		keyId := ""
+		if v := input.KeyId; v != nil {
+			keyId = *v
+		}
+
+		networkAccess := ""
+		if v := input.KeyVaultNetworkAccess; v != nil {
+			networkAccess = string(*v)
+		}
+
 		azureKeyVaultKms = append(azureKeyVaultKms, map[string]interface{}{
-			"key_vault_key_id":         input.KeyId,
-			"key_vault_network_access": input.KeyVaultNetworkAccess,
+			"key_vault_key_id":         keyId,
+			"key_vault_network_access": networkAccess,
 		})
 	}
 
