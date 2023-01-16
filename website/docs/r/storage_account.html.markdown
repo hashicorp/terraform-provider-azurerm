@@ -501,13 +501,13 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location.
 
-~> **NOTE:** If there's a write lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
+~> **NOTE:** If there's a write-lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 
-* `identity` - An `identity` block as defined below..
+* `identity` - An `identity` block as defined below.
 
 ---
 
-An `identity` exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
 

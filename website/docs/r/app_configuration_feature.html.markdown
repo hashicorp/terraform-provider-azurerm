@@ -78,7 +78,7 @@ A `groups` block represents a group that can be used in a `targeting_filter` and
 
 ---
 
-A `timewindow_filter` represents a feature filter of type `Microsoft.TimeWindow` and takes the following attributes:
+A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeWindow` and takes the following attributes:
 
 * `start` - (Optional) The earliest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 

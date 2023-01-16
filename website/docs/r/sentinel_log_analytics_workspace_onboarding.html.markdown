@@ -38,9 +38,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Security Insights Sentinel Onboarding States should exist. Changing this forces the Log Analytics Workspace off the board and onboard again.
 
-* `workspace_name` - (Required) Specifies the Workspace Name. Changing this forces the Log Analytics Workspace off the board and onboard again.
+* `workspace_name` - (Required) Specifies the Workspace Name. Changing this forces the Log Analytics Workspace off the board and onboard again. Changing this forces a new resource to be created.
 
-* `customer_managed_key_enabled` - (Optional) Specifies if the Workspace is using Customer managed key. Defaults to `false`.
+* `customer_managed_key_enabled` - (Optional) Specifies if the Workspace is using Customer managed key. Defaults to `false`. Changing this forces a new resource to be created.
 
 -> **Note:** To set up Microsoft Sentinel customer-managed key it needs to enable CMK on the workspace and add access policy to your Azure Key Vault. Details could be found on [this document](https://learn.microsoft.com/en-us/azure/sentinel/customer-managed-keys)
 
