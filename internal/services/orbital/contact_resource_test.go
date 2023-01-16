@@ -3,6 +3,7 @@ package orbital_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -17,6 +18,8 @@ import (
 type ContactResource struct{}
 
 func TestAccContact_basic(t *testing.T) {
+	skipContact(t)
+
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact", "test")
 	r := ContactResource{}
 
@@ -55,13 +58,13 @@ func (r ContactResource) basic(data acceptance.TestData) string {
 resource "azurerm_orbital_contact" "test" {
   name                   = "testcontact-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
-  spacecraft_id          = "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/spaceymcspaceface/providers/Microsoft.Orbital/spacecrafts/spaceymcspaceface"
+  spacecraft_id          = "%[3]s"
   reservation_start_time = "2020-07-16T20:35:00.00Z"
   reservation_end_time   = "2020-07-16T20:55:00.00Z"
   ground_station_name    = "WESTUS2_0"
   contact_profile_id     = azurerm_orbital_contact_profile.test.id
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, os.Getenv("ARM_TEST_SPACECRAFT_ID"))
 }
 
 func (r ContactResource) template(data acceptance.TestData) string {
@@ -128,4 +131,10 @@ resource "azurerm_orbital_contact_profile" "test" {
   network_configuration_subnet_id = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func skipContact(t *testing.T) {
+	if os.Getenv("ARM_TEST_SPACECRAFT_ID") == "" {
+		t.Skip("Skipping as one of ")
+	}
 }
