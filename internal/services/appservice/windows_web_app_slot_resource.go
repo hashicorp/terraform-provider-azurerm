@@ -516,10 +516,12 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
 			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
-				if state.SiteConfig[0].ApplicationStack == nil {
-					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
+				if nodeVer != "6.9.1" {
+					if state.SiteConfig[0].ApplicationStack == nil {
+						state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
+					}
+					state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
 				}
-				state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
 				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
 			}
 
