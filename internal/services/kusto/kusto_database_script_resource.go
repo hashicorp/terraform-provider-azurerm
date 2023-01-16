@@ -198,6 +198,10 @@ func resourceKustoDatabaseScriptDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	// DELETE operation for script does not support running concurrently at cluster level
+	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
+
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
