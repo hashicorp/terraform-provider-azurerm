@@ -76,6 +76,7 @@ func resourceMachineLearningDataStoreDataLakeGen1() *pluginsdk.Resource {
 			"client_secret": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 				RequiredWith: []string{"tenant_id", "client_id"},
 			},
