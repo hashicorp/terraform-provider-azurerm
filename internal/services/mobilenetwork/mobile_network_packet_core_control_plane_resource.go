@@ -33,6 +33,7 @@ type PacketCoreControlPlaneModel struct {
 	Sku                         string                                     `tfschema:"sku"`
 	UeMtu                       int64                                      `tfschema:"user_equipment_mtu_in_bytes"`
 	InteropSettings             string                                     `tfschema:"interop_settings"`
+	Identity                    []identity.ModelUserAssigned               `tfschema:"identity"`
 	Tags                        map[string]string                          `tfschema:"tags"`
 	Version                     string                                     `tfschema:"version"`
 }
@@ -237,7 +238,7 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := expandMobileNetworkLegacyToUserAssignedIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -322,7 +323,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := expandMobileNetworkLegacyToUserAssignedIdentity(model.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -427,14 +428,12 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 				state.UeMtu = *model.Properties.UeMtu
 			}
 
-			identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+			identityValue, err := flattenMobileNetworkUserAssignedToNetworkLegacyIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
 
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
+			state.Identity = identityValue
 
 			properties := &model.Properties
 			state.ControlPlaneAccessInterface = flattenPacketCoreControlPlaneInterfacePropertiesModel(properties.ControlPlaneAccessInterface)

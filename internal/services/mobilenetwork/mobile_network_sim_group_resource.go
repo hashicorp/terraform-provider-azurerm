@@ -99,7 +99,7 @@ func (r SimGroupResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identityValue, err := expandSimGroupIdentity(model.Identity)
+			identityValue, err := expandMobileNetworkLegacyToUserAssignedIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -223,7 +223,7 @@ func (r SimGroupResource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			identityValue, err := flattenSimGroupIdentity(model.Identity)
+			identityValue, err := flattenMobileNetworkUserAssignedToNetworkLegacyIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -274,40 +274,4 @@ func (r SimGroupResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandSimGroupIdentity(input []identity.ModelUserAssigned) (*identity.LegacySystemAndUserAssignedMap, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
-	identityValue, err := identity.ExpandUserAssignedMapFromModel(input)
-	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	output := identity.LegacySystemAndUserAssignedMap{
-		Type:        identityValue.Type,
-		IdentityIds: identityValue.IdentityIds,
-	}
-
-	return &output, nil
-}
-
-func flattenSimGroupIdentity(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
-	if input == nil {
-		return nil, nil
-	}
-
-	tmp := identity.UserAssignedMap{
-		Type:        input.Type,
-		IdentityIds: input.IdentityIds,
-	}
-
-	output, err := identity.FlattenUserAssignedMapToModel(&tmp)
-	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	return *output, nil
 }
