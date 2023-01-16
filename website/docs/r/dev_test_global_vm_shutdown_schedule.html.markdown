@@ -109,7 +109,7 @@ The following arguments are supported:
 
 A `notification_settings` block supports the following:
 
-* `enabled` - (Required) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`. Defaults to `false`
+* `enabled` - (Required) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`.
 
 * `email` - (Optional) E-mail address to which the notification will be sent.
 

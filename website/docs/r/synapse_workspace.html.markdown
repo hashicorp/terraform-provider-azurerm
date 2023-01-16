@@ -201,7 +201,7 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group. Changing this forces a new resource to be created.
 
-* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace?  Changing this forces a new resource to be created.
+* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
 

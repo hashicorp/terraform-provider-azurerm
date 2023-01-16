@@ -155,5 +155,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 DevTest Windows Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualmachines/machine1
+terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualMachines/machine1
 ```

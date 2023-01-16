@@ -143,7 +143,7 @@ A `docker_step` block supports the following:
 
 * `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
 
-* `dockerfile_path` - (Required) The  Dockerfile path relative to the source context.
+* `dockerfile_path` - (Required) The Dockerfile path relative to the source context.
 
 * `arguments` - (Optional) Specifies a map of arguments to be used when executing this step.
 

@@ -5,16 +5,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
@@ -162,7 +161,7 @@ func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -173,69 +172,72 @@ func dataSourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFlexibleServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := servers.NewFlexibleServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
 
-	if props := resp.ServerProperties; props != nil {
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("zone", props.AvailabilityZone)
-		d.Set("version", props.Version)
-		d.Set("fqdn", props.FullyQualifiedDomainName)
+		if props := model.Properties; props != nil {
+			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("zone", props.AvailabilityZone)
+			d.Set("version", props.Version)
+			d.Set("fqdn", props.FullyQualifiedDomainName)
 
-		if network := props.Network; network != nil {
-			d.Set("public_network_access_enabled", network.PublicNetworkAccess == mysqlflexibleservers.EnableStatusEnumEnabled)
-			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
-			d.Set("private_dns_zone_id", network.PrivateDNSZoneResourceID)
+			if network := props.Network; network != nil {
+				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
+				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+			}
+
+			if err := d.Set("maintenance_window", flattenDataSourceArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
+				return fmt.Errorf("setting `maintenance_window`: %+v", err)
+			}
+
+			if err := d.Set("storage", flattenDataSourceArmServerStorage(props.Storage)); err != nil {
+				return fmt.Errorf("setting `storage`: %+v", err)
+			}
+
+			if backup := props.Backup; backup != nil {
+				d.Set("backup_retention_days", backup.BackupRetentionDays)
+				d.Set("geo_redundant_backup_enabled", *backup.GeoRedundantBackup == servers.EnableStatusEnumEnabled)
+			}
+
+			if err := d.Set("high_availability", flattenDataSourceFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
+				return fmt.Errorf("setting `high_availability`: %+v", err)
+			}
+			d.Set("replication_role", props.ReplicationRole)
+			d.Set("replica_capacity", props.ReplicaCapacity)
 		}
 
-		if err := d.Set("maintenance_window", flattenDataSourceArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
-			return fmt.Errorf("setting `maintenance_window`: %+v", err)
+		sku, err := flattenDataSourceFlexibleServerSku(model.Sku)
+		if err != nil {
+			return fmt.Errorf("flattening `sku_name` for %q: %v", id, err)
 		}
 
-		if err := d.Set("storage", flattenDataSourceArmServerStorage(props.Storage)); err != nil {
-			return fmt.Errorf("setting `storage`: %+v", err)
-		}
+		d.Set("sku_name", sku)
 
-		if backup := props.Backup; backup != nil {
-			d.Set("backup_retention_days", backup.BackupRetentionDays)
-			d.Set("geo_redundant_backup_enabled", backup.GeoRedundantBackup == mysqlflexibleservers.EnableStatusEnumEnabled)
-		}
-
-		if err := d.Set("high_availability", flattenDataSourceFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
-			return fmt.Errorf("setting `high_availability`: %+v", err)
-		}
-		d.Set("replication_role", props.ReplicationRole)
-		d.Set("replica_capacity", props.ReplicaCapacity)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	sku, err := flattenDataSourceFlexibleServerSku(resp.Sku)
-	if err != nil {
-		return fmt.Errorf("flattening `sku_name` for %q: %v", id, err)
-	}
-
-	d.Set("sku_name", sku)
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenDataSourceArmServerStorage(storage *mysqlflexibleservers.Storage) []interface{} {
+func flattenDataSourceArmServerStorage(storage *servers.Storage) []interface{} {
 	if storage == nil {
 		return []interface{}{}
 	}
 
-	var size, iops int32
+	var size, iops int64
 	if storage.StorageSizeGB != nil {
 		size = *storage.StorageSizeGB
 	}
@@ -248,45 +250,45 @@ func flattenDataSourceArmServerStorage(storage *mysqlflexibleservers.Storage) []
 		map[string]interface{}{
 			"size_gb":           size,
 			"iops":              iops,
-			"auto_grow_enabled": storage.AutoGrow == mysqlflexibleservers.EnableStatusEnumEnabled,
+			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
 		},
 	}
 }
 
-func flattenDataSourceFlexibleServerSku(sku *mysqlflexibleservers.Sku) (string, error) {
-	if sku == nil || sku.Name == nil || sku.Tier == "" {
+func flattenDataSourceFlexibleServerSku(sku *servers.Sku) (string, error) {
+	if sku == nil || sku.Name == "" || sku.Tier == "" {
 		return "", nil
 	}
 
 	var tier string
 	switch sku.Tier {
-	case mysqlflexibleservers.SkuTierBurstable:
+	case servers.SkuTierBurstable:
 		tier = "B"
-	case mysqlflexibleservers.SkuTierGeneralPurpose:
+	case servers.SkuTierGeneralPurpose:
 		tier = "GP"
-	case mysqlflexibleservers.SkuTierMemoryOptimized:
+	case servers.SkuTierMemoryOptimized:
 		tier = "MO"
 	default:
 		return "", fmt.Errorf("sku_name has unknown sku tier %s", sku.Tier)
 	}
 
-	return strings.Join([]string{tier, *sku.Name}, "_"), nil
+	return strings.Join([]string{tier, sku.Name}, "_"), nil
 }
 
-func flattenDataSourceArmServerMaintenanceWindow(input *mysqlflexibleservers.MaintenanceWindow) []interface{} {
+func flattenDataSourceArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []interface{} {
 	if input == nil || input.CustomWindow == nil || *input.CustomWindow == string(ServerMaintenanceWindowDisabled) {
 		return make([]interface{}, 0)
 	}
 
-	var dayOfWeek int32
+	var dayOfWeek int64
 	if input.DayOfWeek != nil {
 		dayOfWeek = *input.DayOfWeek
 	}
-	var startHour int32
+	var startHour int64
 	if input.StartHour != nil {
 		startHour = *input.StartHour
 	}
-	var startMinute int32
+	var startMinute int64
 	if input.StartMinute != nil {
 		startMinute = *input.StartMinute
 	}
@@ -299,8 +301,8 @@ func flattenDataSourceArmServerMaintenanceWindow(input *mysqlflexibleservers.Mai
 	}
 }
 
-func flattenDataSourceFlexibleServerHighAvailability(ha *mysqlflexibleservers.HighAvailability) []interface{} {
-	if ha == nil || ha.Mode == mysqlflexibleservers.HighAvailabilityModeDisabled {
+func flattenDataSourceFlexibleServerHighAvailability(ha *servers.HighAvailability) []interface{} {
+	if ha == nil || *ha.Mode == servers.HighAvailabilityModeDisabled {
 		return []interface{}{}
 	}
 
@@ -311,7 +313,7 @@ func flattenDataSourceFlexibleServerHighAvailability(ha *mysqlflexibleservers.Hi
 
 	return []interface{}{
 		map[string]interface{}{
-			"mode":                      string(ha.Mode),
+			"mode":                      string(*ha.Mode),
 			"standby_availability_zone": zone,
 		},
 	}

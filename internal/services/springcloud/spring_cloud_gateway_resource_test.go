@@ -57,7 +57,7 @@ func TestAccSpringCloudGateway_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret", "sensitive_environment_variables.%", "sensitive_environment_variables.NEW_RELIC_APP_NAME"),
 	})
 }
 
@@ -80,7 +80,7 @@ func TestAccSpringCloudGateway_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret", "sensitive_environment_variables.%", "sensitive_environment_variables.NEW_RELIC_APP_NAME"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -161,9 +161,10 @@ resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
 
-  https_only                    = false
-  public_network_access_enabled = true
-  instance_count                = 2
+  https_only                               = false
+  public_network_access_enabled            = false
+  instance_count                           = 2
+  application_performance_monitoring_types = ["ApplicationInsights", "NewRelic"]
 
   api_metadata {
     description       = "test description"
@@ -181,6 +182,15 @@ resource "azurerm_spring_cloud_gateway" "test" {
     exposed_headers     = ["x-test-header"]
     max_age_seconds     = 86400
   }
+
+  environment_variables = {
+    APPLICATIONINSIGHTS_SAMPLE_RATE = "10"
+  }
+
+  sensitive_environment_variables = {
+    NEW_RELIC_APP_NAME = "scg-asa"
+  }
+
   quota {
     cpu    = "1"
     memory = "2Gi"

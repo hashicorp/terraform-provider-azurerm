@@ -109,19 +109,19 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance. Changing this forces a new resource to be created.
 * `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
-* `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated.  Values must be between 5 and 1440 (inclusive).
+* `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated. Values must be between 5 and 1440 (inclusive).
 * `query` - (Required) Log search query.
-* `time_window` - (Required) Time window for which data needs to be fetched for query (must be greater than or equal to `frequency`).  Values must be between 5 and 2880 (inclusive).
+* `time_window` - (Required) Time window for which data needs to be fetched for query (must be greater than or equal to `frequency`). Values must be between 5 and 2880 (inclusive).
 * `trigger` - (Required) A `trigger` block as defined below.
 * `action` - (Required) An `action` block as defined below.
 * `authorized_resource_ids` - (Optional) List of Resource IDs referred into query.
 * `auto_mitigation_enabled` - (Optional) Should the alerts in this Metric Alert be auto resolved? Defaults to `false`.
 -> **NOTE** `auto_mitigation_enabled` and `throttling` are mutually exclusive and cannot both be set.
 * `description` - (Optional) The description of the scheduled query rule.
-* `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
+* `enabled` - (Optional) Whether this scheduled query rule is enabled. Default is `true`.
 * `query_type` - (Optional) The type of query results. Possible values are `ResultCount` and `Number`. Default is `ResultCount`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
-* `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (inclusive).
+* `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed. Values must be between 0 and 10000 (inclusive).
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -139,7 +139,7 @@ The `metric_trigger` block supports the following:
 * `metric_column` - (Required) Evaluation of metric on a particular column.
 * `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
 * `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.
-* `threshold` - (Required) The threshold of the metric trigger.    Values must be between 0 and 10000 inclusive.
+* `threshold` - (Required) The threshold of the metric trigger. Values must be between 0 and 10000 inclusive.
 
 ---
 
@@ -147,7 +147,7 @@ The `trigger` block supports the following:
 
 * `metric_trigger` - (Optional) A `metric_trigger` block as defined above. Trigger condition for metric query rule.
 * `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.
-* `threshold` - (Required) Result or count threshold based on which rule should be triggered.  Values must be between 0 and 10000 inclusive.
+* `threshold` - (Required) Result or count threshold based on which rule should be triggered. Values must be between 0 and 10000 inclusive.
 
 ## Attributes Reference
 

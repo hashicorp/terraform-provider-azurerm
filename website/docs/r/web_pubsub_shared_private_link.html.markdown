@@ -102,5 +102,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Web Pubsub Shared Private Link Resource can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_web_pubsub_shared_private_link_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/sharedPrivateLinkResources/resource1
+terraform import azurerm_web_pubsub_shared_private_link_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/webPubSub1/sharedPrivateLinkResources/resource1
 ```

@@ -33,6 +33,18 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerNetworkGroup_update,
 			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
 		},
+		"SubscriptionConnection": {
+			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,
+			"complete":       testAccNetworkSubscriptionNetworkManagerConnection_complete,
+			"update":         testAccNetworkSubscriptionNetworkManagerConnection_update,
+			"requiresImport": testAccNetworkSubscriptionNetworkManagerConnection_requiresImport,
+		},
+		"ManagementGroupConnection": {
+			"basic":          testAccNetworkManagerManagementGroupConnection_basic,
+			"complete":       testAccNetworkManagerManagementGroupConnection_complete,
+			"update":         testAccNetworkManagerManagementGroupConnection_update,
+			"requiresImport": testAccNetworkManagerManagementGroupConnection_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

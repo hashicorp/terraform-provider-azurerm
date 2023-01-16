@@ -319,7 +319,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
+				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
 			}
 
 			if appSettings.Properties != nil {
@@ -344,7 +344,10 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(webAppSlot.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(webAppSlot.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Linux %s: %+v", id, err)
+			}
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
 					return fmt.Errorf("adding Backup Settings for Linux %s: %+v", id, err)
@@ -472,7 +475,10 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			if err != nil {
+				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
+			}
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -630,11 +636,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
+			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
-				}
+				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
 				}
@@ -658,7 +663,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
+				}
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)

@@ -1,3 +1,123 @@
+## 3.40.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_kubernetes_cluster` - support for the `kube_proxy` block [GH-19567]
+
+BUG FIXES: 
+
+* `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue [GH-20002]
+
+## 3.39.1 (January 13, 2023)
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_sql_container` - Fix property `included_path` can not be removed issue ([#19998](https://github.com/hashicorp/terraform-provider-azurerm/issues/19998))
+* `azurerm_log_analytics `- fixing crash during read ([#20011](https://github.com/hashicorp/terraform-provider-azurerm/issues/20011))
+
+## 3.39.0 (January 12, 2023)
+
+BREAKING CHANGES:
+
+* **App Service App Stack Re-alignment** - due to a number of changes in how the Service manages App and Stack settings, the Terraform resource schema and validation needs to be updated to re-align with the service. Whist we ordinarily avoid breaking changes outside a major release, the drift has made several aspects of these resources in an unworkable position resulting in a poor experience for many users ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+
+* `azurerm_windows_web_app`
+    * `node_version` Valid values are now `~12`, `~14`, `~16`, and  `~18`. This is due to an underlying change to where the Service reads the Node value from in the API request.
+    * `dotnet_version` valid values are now `v2.0`, `v3.0`, `v4.0`, `v5.0`, `v6.0`, and `v7.0`
+    * New setting `dotnet_core_version` - Valid values are `v4.0`. This setting replaces the hybrid setting of `core3.1` in `dotnet_version` since the removal of core3.1 from the supported versions.
+    * `tomcat_version` - Configured the Web App to use Tomcat as the JWS at the specified version. See the official docs for supported versions. Examples include `10.0`, and `10.0.20`
+    * `java_embedded_server_enabled` - configures the JWS to be the Embedded server at the version specified by `java_version`. Defaults to `false`. Note: One of `java_embedded_server_enabled` or `tomcat_version` is required when `java_version` is set.
+
+* `azurerm_windows_web_app_slot`
+    * `node_version` Valid values are now `~12`, `~14`, `~16`, and  `~18`. This is due to an underlying change to where the Service reads the Node value from in the API request.
+    * `dotnet_version` valid values are now `v2.0`, `v3.0`, `v4.0`, `v5.0`, `v6.0`, and `v7.0`
+    * New setting `dotnet_core_version` - Valid values are `v4.0`. This setting replaces the hybrid setting of `core3.1` in `dotnet_version` since the removal of core3.1 from the supported versions.
+    * `tomcat_version` - Configured the Web App to use Tomcat as the JWS at the specified version. See the official docs for supported versions. Examples include `10.0`, and `10.0.20`
+    * `java_embedded_server_enabled` - configures the JWS to be the Embedded server at the version specified by `java_version`. Defaults to `false`. Note: One of `java_embedded_server_enabled` or `tomcat_version` is required when `java_version` is set.
+
+* `azurerm_windows_function_app`
+    * `dotnet_version` - Valid values are now `v3.0`, `v4.0`, `v6.0`, and `v7.0`, defaulting to `v4.0`
+    * `java_version` - Valid values are now `1.8`, `11`, and `17`
+
+* `azurerm_windows_function_app_slot`
+    * `dotnet_version` - Valid values are now `v3.0`, `v4.0`, `v6.0`, and `v7.0`, defaulting to `v4.0`
+    * `java_version` - Valid values are now `1.8`, `11`, and `17`
+
+* `azurerm_linux_web_app`
+    * `java_version` - input validation has been introduced based on supported values within the service. Valid values are now: `8`,`11`, and `17`. 
+
+FEATURES:
+
+* **New Data Source:** `azurerm_private_dns_resolver` ([#19885](https://github.com/hashicorp/terraform-provider-azurerm/issues/19885))
+* **New Data Source:** `azurerm_private_dns_resolver_dns_forwarding_ruleset` ([#19941](https://github.com/hashicorp/terraform-provider-azurerm/issues/19941))
+* **New Data Source:** `azurerm_private_dns_resolver_forwarding_rule` ([#19947](https://github.com/hashicorp/terraform-provider-azurerm/issues/19947))
+* **New Data Source:** `azurerm_private_dns_resolver_inbound_endpoint` ([#19948](https://github.com/hashicorp/terraform-provider-azurerm/issues/19948))
+* **New Data Source:** `azurerm_private_dns_resolver_outbound_endpoint` ([#19950](https://github.com/hashicorp/terraform-provider-azurerm/issues/19950))
+* **New Data Source:** `azurerm_private_dns_resolver_virtual_network_link` ([#19951](https://github.com/hashicorp/terraform-provider-azurerm/issues/19951))
+* **New Resource:** `azurerm_application_insights_standard_web_test` ([#19954](https://github.com/hashicorp/terraform-provider-azurerm/issues/19954))
+* **New Resource:** `azurerm_cost_anomaly_alert` ([#19899](https://github.com/hashicorp/terraform-provider-azurerm/issues/19899))
+* **New Resource:** `azurerm_lab_service_lab` ([#19852](https://github.com/hashicorp/terraform-provider-azurerm/issues/19852))
+* **New Resource:** `azurerm_lab_service_user` ([#19957](https://github.com/hashicorp/terraform-provider-azurerm/issues/19957))
+* **New Resource:** `azurerm_network_manager_subscription_connection` ([#19617](https://github.com/hashicorp/terraform-provider-azurerm/issues/19617))
+* **New Resource:** `azurerm_network_manager_management_group_connection` ([#19621](https://github.com/hashicorp/terraform-provider-azurerm/issues/19621))
+* **New Resource:** `azurerm_media_services_account_filter` ([#19964](https://github.com/hashicorp/terraform-provider-azurerm/issues/19964))
+* **New Resource:** `azurerm_private_endpoint_application_security_group_association` ([#19825](https://github.com/hashicorp/terraform-provider-azurerm/issues/19825))
+* **New Resource:** `azurerm_sentinel_data_connector_threat_intelligence_taxii` ([#19209](https://github.com/hashicorp/terraform-provider-azurerm/issues/19209))
+* **New Resource:** `azurerm_storage_account_local_user` ([#19592](https://github.com/hashicorp/terraform-provider-azurerm/issues/19592))
+
+ENHANCEMENTS:
+
+* `siterecovery`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#19571](https://github.com/hashicorp/terraform-provider-azurerm/issues/19571))
+* `siterecovery`: updating to API version `2021-11-01` ([#19571](https://github.com/hashicorp/terraform-provider-azurerm/issues/19571))
+* Data Source: `azurerm_shared_image` - add support for the `purchase_plan` block ([#19873](https://github.com/hashicorp/terraform-provider-azurerm/issues/19873))
+* `azurerm_kubernetes_cluster` - add support for the `vnet_integration_enabled` and `subnet_id` properties ([#19438](https://github.com/hashicorp/terraform-provider-azurerm/issues/19438))
+* `azurerm_log_analytics_data_export_rule` - `destination_resource_id` accepts an Event Hub Namespace ID ([#19868](https://github.com/hashicorp/terraform-provider-azurerm/issues/19868))
+* `azurerm_linux_web_app`- support for the `application_stack.go_version` property ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_linux_web_app_slot` -support for the `application_stack.go_version` property ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_logic_app_action_http` - add support for `@` in the `body` property ([#19754](https://github.com/hashicorp/terraform-provider-azurerm/issues/19754))
+* `azurerm_maintenance_configuration` - support for the `in_guest_user_patch_mode` and `install_patches` properties ([#19865](https://github.com/hashicorp/terraform-provider-azurerm/issues/19865))
+* `azurerm_monitor_diagnostic_setting` - deprecate `log` in favour of `enabled_log` ([#19504](https://github.com/hashicorp/terraform-provider-azurerm/issues/19504))
+* `azurerm_media_services_account` - support for the `encryption` and `public_network_access_enabled` properties ([#19891](https://github.com/hashicorp/terraform-provider-azurerm/issues/19891))
+* `azurerm_mysql_flexible_server` - support for the `customer_managed_key` properties ([#19905](https://github.com/hashicorp/terraform-provider-azurerm/issues/19905))
+* `azurerm_sentinel_automation_rule` - support for the `triggers_on`, `triggers_when`, and `condition_json` properties ([#19309](https://github.com/hashicorp/terraform-provider-azurerm/issues/19309))
+* `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_types`, `environment_variables`, and `sensitive_environment_variables` properties ([#19884](https://github.com/hashicorp/terraform-provider-azurerm/issues/19884))
+* `azurerm_storage_account` - support for the `allowed_copy_scope` property ([#19906](https://github.com/hashicorp/terraform-provider-azurerm/issues/19906))
+* `azurerm_storage_queue` - exporting `resource_manager_id` ([#19969](https://github.com/hashicorp/terraform-provider-azurerm/issues/19969))
+* `azurerm_synapse_spark_pool` - add support for Spark 3.3 ([#19866](https://github.com/hashicorp/terraform-provider-azurerm/issues/19866))
+* `azurerm_windows_web_app` - the `php_version` property supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app` - the `python_version` property has been deprecated and is no longer used by the service  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app` - the `python` property supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app` - the `java_container` property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app` - the `java_container_version` property This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app` - the `current_stack` property will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app` - Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to `99:59:59` ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - the `php_version` property supported values now include: `7.1`, `7.4`, and `Off`. Note: `7.1` is currently deprecated. `Off` will configure the system to use the latest available to the App service image ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - the `python_version` property has been deprecated and is no longer used by the service  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - the `python` property supersedes `python_version`. Defaults to `false`. When true uses the latest Python version supported by the Windows App image  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - the `java_container` property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - the `java_container_version` property This property has been deprecated in favour of `tomcat_version` and `java_embedded_server_enabled`  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - the `current_stack` property will now be computed if only one stack is configured on the Windows Web App. This will ensure the portal displays the appropriate metadata and configuration for this stack  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - Added input validation for `interval` values in the `auto_heal` block. These properties now enforce HH:MM:SS values up to `99:59:59` ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+
+BUG FIXES:
+
+* `azurerm_app_configuration_feature` - handle updates correctly where the label ID is omitted ([#19900](https://github.com/hashicorp/terraform-provider-azurerm/issues/19900))
+* `azurerm_cdn_frontdoor_rule` - handle empty string value for `query_string` ([#19927](https://github.com/hashicorp/terraform-provider-azurerm/issues/19927))
+* `azurerm_cosmosdb_account` - `default_identity_type` is now computed to allow for restores ([#19956](https://github.com/hashicorp/terraform-provider-azurerm/issues/19956))
+* `azurerm_linux_web_app`- prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_linux_web_app`- prevent a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_linux_web_app_slot`- prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_linux_web_app_slot`- prevent a bug where `health_check_eviction_time_in_min` would not be correctly read back from the service ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_policy_set_definition` - fix update of for empty group names in `policy_definition_reference.policy_group_names` ([#19890](https://github.com/hashicorp/terraform-provider-azurerm/issues/19890))
+* `azurerm_storage_account` -  `403` is now a valid status code for when permissions to list keys is missing ([#19645](https://github.com/hashicorp/terraform-provider-azurerm/issues/19645))
+* `azurerm_storage_data_lake_gen2_path` - `ace` generated by default are no longer stored in state to prevent perpetual state diffs ([#18494](https://github.com/hashicorp/terraform-provider-azurerm/issues/18494))
+* `azurerm_storage_data_lake_gen2_filesystem` - `ace` generated by default are no longer stored in state to prevent perpetual state diffs ([#18494](https://github.com/hashicorp/terraform-provider-azurerm/issues/18494))
+* `azurerm_web_pubsub_hub` - the `event_handler` property is now a list instead of set to respect the input order ([#19886](https://github.com/hashicorp/terraform-provider-azurerm/issues/19886))
+* `azurerm_windows_web_app` - prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app` - prevent a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - prevent a bug where `backup_config` could silently fail to expand resulting in the config not being sent  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+* `azurerm_windows_web_app_slot` - prevent a bug where `health_check_eviction_time_in_min` would not be correctly set on Crete or Update  ([#19685](https://github.com/hashicorp/terraform-provider-azurerm/issues/19685))
+
 ## 3.38.0 (January 05, 2023)
 
 FEATURES:
@@ -6,14 +126,14 @@ FEATURES:
 * **New Data Source:** `azurerm_network_manager_network_group` ([#19593](https://github.com/hashicorp/terraform-provider-azurerm/issues/19593))
 * **New Data Source:** `azurerm_virtual_hub_route_table` ([#19628](https://github.com/hashicorp/terraform-provider-azurerm/issues/19628))
 
-ENHANCEMENTS
+ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230105.1121404` of `github.com/hashicorp/go-azure-sdk` ([#19872](https://github.com/hashicorp/terraform-provider-azurerm/issues/19872))
 * dependencies: updating to `v0.20221207.1110610` of `github.com/tombuildsstuff/kermit` ([#19698](https://github.com/hashicorp/terraform-provider-azurerm/issues/19698))
 * `azurerm_dedicated_host` - add support for`LSv3-Type1` type ([#19875](https://github.com/hashicorp/terraform-provider-azurerm/issues/19875))
 * `azurerm_proximity_placement_group` - support for the `allowed_vm_sizes` and `zone` properties ([#19675](https://github.com/hashicorp/terraform-provider-azurerm/issues/19675))
 
-BUG FIXES
+BUG FIXES:
 
 * `azurerm_automation_software_update_configuration` - correctly handle empty `expiry_time` api values ([#19774](https://github.com/hashicorp/terraform-provider-azurerm/issues/19774))
 * `azurerm_app_service_connection` - polling until the resource is fully created, updated and deleted ([#19792](https://github.com/hashicorp/terraform-provider-azurerm/issues/19792))
@@ -102,7 +222,7 @@ BUG FIXES:
 
 ## 3.35.0 (December 09, 2022)
 
-BREAKING CHANGES
+BREAKING CHANGES:
 
 * `azurerm_stream_analytics_output_blob` - the field `batch_min_rows` is now an integer rather than a float due to a [breaking change in the API Specifications](https://github.com/Azure/azure-rest-api-specs) - we believe this was only previously valid as an integer, as such whilst this is a breaking change we believe this shouldn't cause an issue for most users (since the API required that this was an integer) ([#19602](https://github.com/hashicorp/terraform-provider-azurerm/issues/19602))
 
