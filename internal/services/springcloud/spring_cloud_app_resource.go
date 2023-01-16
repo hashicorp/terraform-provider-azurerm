@@ -560,7 +560,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	for _, item := range *input {
 		var storageName string
 		if item.StorageID != nil {
-			if id, err := parse.SpringCloudStorageID(*item.StorageID); err == nil {
+			if id, err := parse.SpringCloudStorageIDInsensitively(*item.StorageID); err == nil {
 				storageName = id.StorageName
 			}
 		}
