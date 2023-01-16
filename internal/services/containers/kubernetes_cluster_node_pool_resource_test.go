@@ -2489,7 +2489,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   enable_node_public_ip = true
-  network_profile {
+  node_network_profile {
     node_public_ip_tags = {
       RoutingPreference = "Internet"
     }

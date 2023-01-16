@@ -189,7 +189,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
-			"network_profile": schemaNodePoolNetworkProfile(),
+			"node_network_profile": schemaNodePoolNetworkProfile(),
 
 			"node_labels": {
 				Type:     pluginsdk.TypeMap,
@@ -577,7 +577,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
-	if networkProfile := d.Get("network_profile").([]interface{}); len(networkProfile) > 0 {
+	if networkProfile := d.Get("node_network_profile").([]interface{}); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
@@ -716,8 +716,8 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.NodeLabels = expandNodeLabels(d.Get("node_labels").(map[string]interface{}))
 	}
 
-	if d.HasChange("network_profile") {
-		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("network_profile").([]interface{}))
+	if d.HasChange("node_network_profile") {
+		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
@@ -948,8 +948,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
-		if err := d.Set("network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
-			return fmt.Errorf("setting `network_profile`: %+v", err)
+		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 	}
 
@@ -1467,7 +1467,7 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{})
 }
 
 func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
-	if input == nil {
+	if input == nil || input.NodePublicIPTags == nil || len(*input.NodePublicIPTags) != 0 {
 		return []interface{}{}
 	}
 

@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
-* `network_profile` - (Optional) A `network_profile` block as documented below.
+* `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
 
@@ -216,7 +216,7 @@ A `linux_os_config` block supports the following:
 
 ---
 
-A `network_profile` block supports the following:
+A `node_network_profile` block supports the following:
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs.
 

@@ -3251,7 +3251,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count            = 1
     vm_size               = "Standard_DS2_v2"
     enable_node_public_ip = true
-    network_profile {
+    node_network_profile {
       node_public_ip_tags = {
         RoutingPreference = "Internet"
       }

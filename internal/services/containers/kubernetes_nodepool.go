@@ -137,7 +137,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(1, 1000),
 					},
 
-					"network_profile": schemaNodePoolNetworkProfile(),
+					"node_network_profile": schemaNodePoolNetworkProfile(),
 
 					"node_count": {
 						Type:         pluginsdk.TypeInt,
@@ -934,7 +934,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
-	if networkProfile := raw["network_profile"].([]interface{}); len(networkProfile) > 0 {
+	if networkProfile := raw["node_network_profile"].([]interface{}); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
 	}
 
@@ -1295,9 +1295,9 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"message_of_the_day":            messageOfTheDay,
 		"min_count":                     minCount,
 		"name":                          name,
-		"network_profile":               networkProfile,
 		"node_count":                    count,
 		"node_labels":                   nodeLabels,
+		"node_network_profile":          networkProfile,
 		"node_public_ip_prefix_id":      nodePublicIPPrefixID,
 		"node_taints":                   []string{},
 		"os_disk_size_gb":               osDiskSizeGB,
@@ -1726,7 +1726,7 @@ func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{
 }
 
 func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []interface{} {
-	if input == nil {
+	if input == nil || input.NodePublicIPTags == nil || len(*input.NodePublicIPTags) != 0 {
 		return []interface{}{}
 	}
 
