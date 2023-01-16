@@ -30,6 +30,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare Workspace should be created. Changing this forces a new Healthcare Workspace to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the Healthcare Workspace.
+
 ## Attributes Reference
 
 The following attributes are exported:

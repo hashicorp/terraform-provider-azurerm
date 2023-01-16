@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `device_mapping_json` - (Required) Specifies the Device Mappings of the Med Tech Service.
 
+* `tags` - (Optional) A mapping of tags to assign to the Healthcare Med Tech Service.
+
 ---
 A `identity` block supports the following:
 

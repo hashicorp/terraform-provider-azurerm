@@ -159,6 +159,9 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
+		if props.HostingEnvironmentProfile != nil {
+			d.Set("hosting_environment_profile_id", props.HostingEnvironmentProfile.ID)
+		}
 		issueDate := ""
 		if props.IssueDate != nil {
 			issueDate = props.IssueDate.Format(time.RFC3339)
@@ -274,6 +277,11 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"thumbprint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_profile_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

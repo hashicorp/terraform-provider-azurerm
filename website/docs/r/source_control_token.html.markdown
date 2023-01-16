@@ -29,6 +29,8 @@ The following arguments are supported:
 
 * `token` - (Required) The Access Token.
 
+* `token_secret` - (Optional) The Access Token Secret.
+
 ~> **NOTE:** The token used for deploying App Service needs the following permissions: `repo` and `workflow`.
 
 ## Attributes Reference
