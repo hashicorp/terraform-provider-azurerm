@@ -119,5 +119,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Maintenance Assignment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_maintenance_assignment_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1/providers/Microsoft.Maintenance/configurationAssignments/assign1
+terraform import azurerm_maintenance_assignment_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Maintenance/configurationAssignments/assign1
 ```
