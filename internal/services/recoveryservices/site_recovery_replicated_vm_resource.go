@@ -844,7 +844,7 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-// the default hash function will not ignore Option + Computed properties, which will casue diff.
+// the default hash function will not ignore Option + Computed properties, which will cause diff.
 func resourceSiteRecoveryReplicatedVMNicHash(v interface{}) int {
 	var buf bytes.Buffer
 
