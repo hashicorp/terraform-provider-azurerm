@@ -21,7 +21,7 @@ func TestDataSourcesHaveSensitiveFieldsMarkedAsSensitive(t *testing.T) {
 
 	for _, dataSourceName := range dataSourceNames {
 		dataSource := provider.DataSourcesMap[dataSourceName]
-		if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(t, dataSource.Schema); err != nil {
+		if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(dataSource.Schema); err != nil {
 			t.Fatalf("the Data Source %q contains a sensitive field which isn't marked as sensitive: %+v", dataSourceName, err)
 		}
 	}
@@ -39,13 +39,13 @@ func TestResourcesHaveSensitiveFieldsMarkedAsSensitive(t *testing.T) {
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
-		if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(t, resource.Schema); err != nil {
+		if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(resource.Schema); err != nil {
 			t.Fatalf("the Resource %q contains a sensitive field which isn't marked as sensitive: %+v", resourceName, err)
 		}
 	}
 }
 
-func schemaContainsSensitiveFieldsNotMarkedAsSensitive(t *testing.T, input map[string]*pluginsdk.Schema) error {
+func schemaContainsSensitiveFieldsNotMarkedAsSensitive(input map[string]*pluginsdk.Schema) error {
 	exactMatchFieldNames := []string{
 		"api_key",
 		"api_secret_key",
@@ -77,7 +77,7 @@ func schemaContainsSensitiveFieldsNotMarkedAsSensitive(t *testing.T, input map[s
 
 		if field.Type == pluginsdk.TypeList && field.Elem != nil {
 			if val, ok := field.Elem.(*pluginsdk.Resource); ok && val.Schema != nil {
-				if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(t, val.Schema); err != nil {
+				if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(val.Schema); err != nil {
 					return fmt.Errorf("the field %q is a List: %+v", fieldName, err)
 				}
 			}
@@ -85,7 +85,7 @@ func schemaContainsSensitiveFieldsNotMarkedAsSensitive(t *testing.T, input map[s
 
 		if field.Type == pluginsdk.TypeSet && field.Elem != nil {
 			if val, ok := field.Elem.(*pluginsdk.Resource); ok && val.Schema != nil {
-				if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(t, val.Schema); err != nil {
+				if err := schemaContainsSensitiveFieldsNotMarkedAsSensitive(val.Schema); err != nil {
 					return fmt.Errorf("the field %q is a Set: %+v", fieldName, err)
 				}
 			}
