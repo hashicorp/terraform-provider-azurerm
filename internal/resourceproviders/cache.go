@@ -8,16 +8,19 @@ import (
 )
 
 // cachedResourceProviders can be (validly) nil - as such this shouldn't be relied on
-var cachedResourceProviders *[]string
+var cachedResourceProviders *[]resources.Provider
 
 // CacheSupportedProviders attempts to retrieve the supported Resource Providers from the Resource Manager API
 // and caches them, for used in enhanced validation
-func CacheSupportedProviders(ctx context.Context, client *resources.ProvidersClient) {
+func CacheSupportedProviders(ctx context.Context, client *resources.ProvidersClient) ([]resources.Provider, error) {
+	if cachedResourceProviders != nil {
+		return *cachedResourceProviders, nil
+	}
 	providers, err := availableResourceProviders(ctx, client)
 	if err != nil {
 		log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
-		return
+		return nil, err
 	}
-
-	cachedResourceProviders = providers
+	cachedResourceProviders = &providers
+	return providers, nil
 }
