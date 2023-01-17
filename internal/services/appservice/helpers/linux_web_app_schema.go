@@ -2,13 +2,12 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1127,12 +1126,12 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 		slowRequestWithPathTriggers := make([]web.SlowRequestsBasedTrigger, 0)
 		for _, sr := range triggers.SlowRequestsWithPath {
 			trigger := web.SlowRequestsBasedTrigger{
-				TimeTaken:    utils.String(sr.TimeTaken),
-				TimeInterval: utils.String(sr.Interval),
-				Count:        utils.Int32(int32(sr.Count)),
+				TimeTaken:    pointer.To(sr.TimeTaken),
+				TimeInterval: pointer.To(sr.Interval),
+				Count:        pointer.To(int32(sr.Count)),
 			}
 			if sr.Path != "" {
-				trigger.Path = utils.String(sr.Path)
+				trigger.Path = pointer.To(sr.Path)
 			}
 			slowRequestWithPathTriggers = append(slowRequestWithPathTriggers, trigger)
 		}
@@ -1264,10 +1263,10 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 		if triggers.SlowRequestsWithPath != nil {
 			for _, v := range *triggers.SlowRequestsWithPath {
 				sr := AutoHealSlowRequestWithPath{
-					TimeTaken: utils.NormalizeNilableString(v.TimeTaken),
-					Interval:  utils.NormalizeNilableString(v.TimeInterval),
-					Count:     int(utils.NormaliseNilableInt32(v.Count)),
-					Path:      utils.NormalizeNilableString(v.Path),
+					TimeTaken: pointer.From(v.TimeTaken),
+					Interval:  pointer.From(v.TimeInterval),
+					Count:     int(pointer.From(v.Count)),
+					Path:      pointer.From(v.Path),
 				}
 				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)
 			}
