@@ -118,6 +118,16 @@ func (t thatWithKeyType) IsEmpty() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttr(t.resourceName, t.key, "")
 }
 
+// IsNotEmpty returns a TestCheckFunc which validates that the specific key is not empty on the resource
+func (t thatWithKeyType) IsNotEmpty() pluginsdk.TestCheckFunc {
+	return resource.TestCheckResourceAttrWith(t.resourceName, t.key, func(value string) error {
+		if value == "" {
+			return fmt.Errorf("value is empty")
+		}
+		return nil
+	})
+}
+
 // IsSet returns a TestCheckFunc which validates that the specific key is set on the resource
 func (t thatWithKeyType) IsSet() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(t.resourceName, t.key)

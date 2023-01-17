@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Bastion Host. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.  Review [Azure Bastion Host FAQ](https://docs.microsoft.com/azure/bastion/bastion-faq) for supported locations.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Review [Azure Bastion Host FAQ](https://docs.microsoft.com/azure/bastion/bastion-faq) for supported locations.
 
 * `copy_paste_enabled` - (Optional) Is Copy/Paste feature enabled for the Bastion Host. Defaults to `true`.
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
-* `ip_configuration` - (Optional) A `ip_configuration` block as defined below.
+* `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
@@ -104,7 +104,7 @@ A `ip_configuration` block supports the following:
 
 ~> **Note:** The Subnet used for the Bastion Host must have the name `AzureBastionSubnet` and the subnet mask must be at least a `/26`.
 
-* `public_ip_address_id` - (Required)  Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Required) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

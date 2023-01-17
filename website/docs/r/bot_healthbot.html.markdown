@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies The name of the Healthbot Service resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies The name of the Resource Group in which to create the Healthbot Service. changing this  forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies The name of the Resource Group in which to create the Healthbot Service. changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies The Azure Region where the resource exists. Changing this force a new resource to be created.
 

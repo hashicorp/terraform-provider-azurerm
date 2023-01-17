@@ -10,7 +10,7 @@ Each of these Data Sources and Resources has both Acceptance Tests and Documenta
 
 The Azure Provider is a large codebase which has evolved over time - but tends to follow consistent patterns for the most-part.
 
-The Provider is split up into Service Packages (see [terminology](basic-glossary.md)) - with some other logic sprinkled across several packages.
+The Provider is split up into Service Packages (see [terminology](reference-glossary.md)) - with some other logic sprinkled across several packages.
 
 At a high-level, the Provider structure is:
 

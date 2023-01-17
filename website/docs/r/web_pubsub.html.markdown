@@ -52,8 +52,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Specifies which SKU to use. Possible values are `Free_F1` and `Standard_S1`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this Web PubSub resource. Valid values are:
-  Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
+* `capacity` - (Optional) Specifies the number of units associated with this Web PubSub resource. Valid values are: Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
 * `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
 
@@ -67,8 +66,7 @@ The following arguments are supported:
 
 * `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
 
-* `tls_client_cert_enabled` - (Optional)  Whether to request client certificate during TLS handshake? Defaults
-  to `false`.
+* `tls_client_cert_enabled` - (Optional) Whether to request client certificate during TLS handshake? Defaults to `false`.
 
 ---
 

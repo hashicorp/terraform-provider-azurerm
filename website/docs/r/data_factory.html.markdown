@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `github_configuration` - (Optional) A `github_configuration` block as defined below.
 
-* `global_parameter` - (Optional)  A list of `global_parameter` blocks as defined above.
+* `global_parameter` - (Optional) A list of `global_parameter` blocks as defined above.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
 
-* `customer_managed_key_id` -  (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
+* `customer_managed_key_id` - (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
 
 * `customer_managed_key_identity_id` - (Optional) Specifies the ID of the user assigned identity associated with the Customer Managed Key. Must be supplied if `customer_managed_key_id` is set.
 

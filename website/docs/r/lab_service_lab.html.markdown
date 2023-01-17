@@ -161,9 +161,9 @@ An `image_reference` block supports the following:
 
 A `non_admin_user` block supports the following:
 
-* `username` - (Required) The username to use when signing in to Lab Service Lab VMs. Changing this forces a new resource to be created.
+* `username` - (Required) The username to use when signing in to Lab Service Lab VMs.
 
-* `password` - (Required) The password for the user. Changing this forces a new resource to be created.
+* `password` - (Required) The password for the user.
 
 ---
 
@@ -179,7 +179,7 @@ A `sku` block supports the following:
 
 A `network` block supports the following:
 
-* `subnet_id` - (Optional) The resource ID of the Subnet for the network profile of the Lab Service Lab. Changing this forces a new resource to be created.
+* `subnet_id` - (Optional) The resource ID of the Subnet for the network profile of the Lab Service Lab.
 
 ---
 

@@ -148,7 +148,7 @@ A `microsoft_peering_config` block contains:
 
 * `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
 ---
 
@@ -160,7 +160,7 @@ A `ipv6` block contains:
 
 * `enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
 
-* `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below.  
+* `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below. 
 
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
@@ -174,7 +174,7 @@ A `microsoft_peering` block contains:
 
 * `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example:  `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
 ## Attributes Reference
 

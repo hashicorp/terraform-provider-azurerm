@@ -59,7 +59,7 @@ An `identity` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Databricks Access Connector in the Azure management plane.
-* `identity`  - A list of `identity` blocks containing the system-assigned managed identities as defined below.
+* `identity` - A list of `identity` blocks containing the system-assigned managed identities as defined below.
 
 ---
 

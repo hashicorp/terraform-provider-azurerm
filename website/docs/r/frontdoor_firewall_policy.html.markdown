@@ -151,7 +151,7 @@ The following arguments are supported:
 
 The `custom_rule` block supports the following:
 
-* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource. Changing this forces a new resource to be created.
+* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
 * `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 

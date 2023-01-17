@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy set definition.
 
-* `management_group_id` -  (Optional) The id of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
+* `management_group_id` - (Optional) The id of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) The metadata for the policy set definition. This is a JSON object representing additional metadata that should be stored with the policy definition.
 
