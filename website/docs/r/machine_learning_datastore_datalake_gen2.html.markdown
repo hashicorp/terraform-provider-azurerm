@@ -3,7 +3,7 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_datastore_datalake_gen2"
 description: |-
-  Manages a Machine Learning Blob Storage DataStore.
+  Manages a Machine Learning Data Lake Gen2 DataStore.
 ---
 
 # azurerm_machine_learning_datastore_datalake_gen2
