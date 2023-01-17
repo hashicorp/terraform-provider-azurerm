@@ -784,13 +784,13 @@ func expandFlexibleServerAuthConfig(authRaw []interface{}) *servers.AuthConfig {
 	out := servers.AuthConfig{}
 
 	activeDirectoryAuthEnabled := servers.ActiveDirectoryAuthEnumDisabled
-	if v := authConfigs["active_directory_auth_enabled"].(bool); v {
+	if v, ok := authConfigs["active_directory_auth_enabled"]; ok && v.(bool) {
 		activeDirectoryAuthEnabled = servers.ActiveDirectoryAuthEnumEnabled
 	}
 	out.ActiveDirectoryAuth = &activeDirectoryAuthEnabled
 
 	passwordAuthEnabled := servers.PasswordAuthEnumDisabled
-	if v := authConfigs["password_auth_enabled"].(bool); v {
+	if v, ok := authConfigs["password_auth_enabled"]; ok && v.(bool) {
 		passwordAuthEnabled = servers.PasswordAuthEnumEnabled
 	}
 	out.PasswordAuth = &passwordAuthEnabled
@@ -818,7 +818,7 @@ func flattenFlexibleServerAuthConfig(ac *servers.AuthConfig) interface{} {
 	// It is by design if PasswordAuthEnabled is not returned or undefined, we consider it as true.
 	pwdEnabled := true
 	if ac.PasswordAuth != nil {
-		pwdEnabled = *ac.PasswordAuth == servers.PasswordAuthEnumDisabled
+		pwdEnabled = *ac.PasswordAuth == servers.PasswordAuthEnumEnabled
 	}
 	out["password_auth_enabled"] = pwdEnabled
 
