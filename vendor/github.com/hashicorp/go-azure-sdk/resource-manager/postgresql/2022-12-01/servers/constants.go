@@ -5,6 +5,34 @@ import "strings"
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type ActiveDirectoryAuthEnum string
+
+const (
+	ActiveDirectoryAuthEnumDisabled ActiveDirectoryAuthEnum = "Disabled"
+	ActiveDirectoryAuthEnumEnabled  ActiveDirectoryAuthEnum = "Enabled"
+)
+
+func PossibleValuesForActiveDirectoryAuthEnum() []string {
+	return []string{
+		string(ActiveDirectoryAuthEnumDisabled),
+		string(ActiveDirectoryAuthEnumEnabled),
+	}
+}
+
+func parseActiveDirectoryAuthEnum(input string) (*ActiveDirectoryAuthEnum, error) {
+	vals := map[string]ActiveDirectoryAuthEnum{
+		"disabled": ActiveDirectoryAuthEnumDisabled,
+		"enabled":  ActiveDirectoryAuthEnumEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ActiveDirectoryAuthEnum(input)
+	return &out, nil
+}
+
 type ArmServerKeyType string
 
 const (
@@ -188,6 +216,34 @@ func parseIdentityType(input string) (*IdentityType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := IdentityType(input)
+	return &out, nil
+}
+
+type PasswordAuthEnum string
+
+const (
+	PasswordAuthEnumDisabled PasswordAuthEnum = "Disabled"
+	PasswordAuthEnumEnabled  PasswordAuthEnum = "Enabled"
+)
+
+func PossibleValuesForPasswordAuthEnum() []string {
+	return []string{
+		string(PasswordAuthEnumDisabled),
+		string(PasswordAuthEnumEnabled),
+	}
+}
+
+func parsePasswordAuthEnum(input string) (*PasswordAuthEnum, error) {
+	vals := map[string]PasswordAuthEnum{
+		"disabled": PasswordAuthEnumDisabled,
+		"enabled":  PasswordAuthEnumEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PasswordAuthEnum(input)
 	return &out, nil
 }
 
