@@ -33,8 +33,8 @@ func (d PrivateDNSResolverDnsForwardingRulesetDataSource) basic(data acceptance.
 %s
 
 data "azurerm_private_dns_resolver_dns_forwarding_ruleset" "test" {
-	name         		  = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.name
-	resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, PrivateDNSResolverDnsForwardingRulesetResource{}.basic(data))
 }
