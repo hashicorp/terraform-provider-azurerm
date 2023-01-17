@@ -1,5 +1,9 @@
 ## 3.40.0 (Unreleased)
 
+FEATURES
+
+* **New Resource:** `azurerm_network_manager_scope_connection` [GH-19610]
+
 ENHANCEMENTS:
 
 * `azurerm_application_gateway` - add TLS 1.3 and CustomV2 support [GH-20029]
