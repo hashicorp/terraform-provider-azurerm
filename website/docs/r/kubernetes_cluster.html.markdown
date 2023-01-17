@@ -608,37 +608,11 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 ->**Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
 
-* `kube_proxy` - (Optional) A `kube_proxy` block.
-
-->**Note:** `kube_proxy` requires that the Preview Feature `Microsoft.ContainerService/KubeProxyConfigurationPreview` is enabled and the Resource Provider re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/configure-kube-proxy#register-the-kubeproxyconfigurationpreview-feature-flag) for more information.
-
-->**Note:** `kube_proxy` can only be disabled if the cluster is configured with its own (BYO) CNI, i.e. if `network_plugin` is set to `none`.
-
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`. Changing this forces a new resource to be created.
 
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard`. Changing this forces a new resource to be created.
 
 * `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
-
----
-
-A `kube_proxy` block supports the following:
-
-* `mode` - (Required) Specifies which proxy mode to use. Possible values are `IPTABLES` and `IPVS`(Must be using Kubernetes version >= 1.22).
-
-* `ipvs` - (Optional) An `ipvs` block.
-
----
-
-An `ipvs` block supports the following:
-
-* `scheduler` - (Optional) Specifies the IPVS scheduler, more information please see [this document](http://www.linuxvirtualserver.org/docs/scheduling.html).
-
-* `tcp_fin_timeout_in_seconds` - (Optional) Specifies the timeout value used for IPVS TCP sessions after receiving a FIN in seconds.
-
-* `tcp_timeout_in_seconds` - (Optional) Specifies the timeout value used for idle IPVS TCP sessions in seconds.
-
-* `udp_timeout_in_seconds` - (Optional) Specifies the timeout value used for IPVS UDP packets in seconds.
 
 ---
 
