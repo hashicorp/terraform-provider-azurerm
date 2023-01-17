@@ -19,11 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-// a work around for https://github.com/hashicorp/pandora/issues/1864
-type basicProtectionContainerMappingProviderSpecificInput struct {
-	InstanceType string `json:"instanceType"`
-}
-
 func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryContainerMappingCreate,
@@ -142,7 +137,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
 			TargetProtectionContainerId: &targetContainerId,
 			PolicyId:                    &policyId,
-			ProviderSpecificInput:       basicProtectionContainerMappingProviderSpecificInput{},
+			ProviderSpecificInput:       replicationprotectioncontainermappings.A2AContainerMappingInput{},
 		},
 	}
 
