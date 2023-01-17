@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"strconv"
 	"strings"
 
@@ -17,10 +19,11 @@ type AutoHealSettingWindows struct {
 }
 
 type AutoHealTriggerWindows struct {
-	Requests        []AutoHealRequestTrigger    `tfschema:"requests"`
-	PrivateMemoryKB int                         `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
-	StatusCodes     []AutoHealStatusCodeTrigger `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests    []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests             []AutoHealRequestTrigger      `tfschema:"requests"`
+	PrivateMemoryKB      int                           `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
+	StatusCodes          []AutoHealStatusCodeTrigger   `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests         []AutoHealSlowRequest         `tfschema:"slow_request"`
+	SlowRequestsWithPath []AutoHealSlowRequestWithPath `tfschema:"slow_request_with_path"`
 }
 
 type AutoHealRequestTrigger struct {
@@ -38,6 +41,13 @@ type AutoHealStatusCodeTrigger struct {
 }
 
 type AutoHealSlowRequest struct {
+	TimeTaken string `tfschema:"time_taken"`
+	Interval  string `tfschema:"interval"`
+	Count     int    `tfschema:"count"`
+	Path      string `tfschema:"path"`
+}
+
+type AutoHealSlowRequestWithPath struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
 	Count     int    `tfschema:"count"`
@@ -176,7 +186,7 @@ func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -274,6 +284,32 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 								Required:     true,
 								ValidateFunc: validation.IntAtLeast(1),
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								// ValidateFunc: validation.IsRFC3339Time,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								// ValidateFunc: validation.IsRFC3339Time,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
 
 							"path": {
 								Type:         pluginsdk.TypeString,
@@ -286,10 +322,45 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						// ValidateFunc: validation.IsRFC3339Time,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						// ValidateFunc: validation.IsRFC3339Time,
+					},
+
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -374,6 +445,29 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
 							"path": {
 								Type:     pluginsdk.TypeString,
@@ -385,6 +479,36 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"path": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *web.AutoHealRules {
@@ -413,9 +537,27 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
 			Count:        pointer.To(int32(triggers.SlowRequests[0].Count)),
 		}
-		if triggers.SlowRequests[0].Path != "" {
-			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
+		if !features.FourPointOh() {
+			if triggers.SlowRequests[0].Path != "" {
+				result.Triggers.SlowRequests.Path = utils.String(triggers.SlowRequests[0].Path)
+			}
 		}
+	}
+
+	if len(triggers.SlowRequestsWithPath) > 0 {
+		slowRequestWithPathTriggers := make([]web.SlowRequestsBasedTrigger, 0)
+		for _, sr := range triggers.SlowRequestsWithPath {
+			trigger := web.SlowRequestsBasedTrigger{
+				TimeTaken:    utils.String(sr.TimeTaken),
+				TimeInterval: utils.String(sr.Interval),
+				Count:        utils.Int32(int32(sr.Count)),
+			}
+			if sr.Path != "" {
+				trigger.Path = utils.String(sr.Path)
+			}
+			slowRequestWithPathTriggers = append(slowRequestWithPathTriggers, trigger)
+		}
+		result.Triggers.SlowRequestsWithPath = &slowRequestWithPathTriggers
 	}
 
 	if triggers.PrivateMemoryKB != 0 {
@@ -444,6 +586,12 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 				}
 				statusCodeTrigger.Count = pointer.To(int32(s.Count))
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
+				if s.Win32Status != "" {
+					win32Code, err := strconv.Atoi(s.Win32Status)
+					if err == nil {
+						statusCodeTrigger.Win32Status = utils.Int32(int32(win32Code))
+					}
+				}
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
@@ -512,6 +660,10 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 				if s.SubStatus != nil {
 					t.SubStatus = int(*s.SubStatus)
 				}
+
+				if s.Win32Status != nil {
+					t.Win32Status = strconv.Itoa(int(*s.Win32Status))
+				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
 		}
@@ -542,7 +694,22 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
+
+		slowRequestTriggersWithPaths := make([]AutoHealSlowRequestWithPath, 0)
+		if triggers.SlowRequestsWithPath != nil {
+			for _, v := range *triggers.SlowRequestsWithPath {
+				sr := AutoHealSlowRequestWithPath{
+					TimeTaken: utils.NormalizeNilableString(v.TimeTaken),
+					Interval:  utils.NormalizeNilableString(v.TimeInterval),
+					Count:     int(utils.NormaliseNilableInt32(v.Count)),
+					Path:      utils.NormalizeNilableString(v.Path),
+				}
+				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)
+			}
+		}
+
 		resultTrigger.SlowRequests = slowRequestTriggers
+		resultTrigger.SlowRequestsWithPath = slowRequestTriggersWithPaths
 		result.Triggers = []AutoHealTriggerWindows{resultTrigger}
 	}
 

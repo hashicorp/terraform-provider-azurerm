@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"strconv"
 	"strings"
 
@@ -431,9 +433,10 @@ type AutoHealSettingLinux struct {
 }
 
 type AutoHealTriggerLinux struct {
-	Requests     []AutoHealRequestTrigger    `tfschema:"requests"`
-	StatusCodes  []AutoHealStatusCodeTrigger `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests             []AutoHealRequestTrigger      `tfschema:"requests"`
+	StatusCodes          []AutoHealStatusCodeTrigger   `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests         []AutoHealSlowRequest         `tfschema:"slow_request"`
+	SlowRequestsWithPath []AutoHealSlowRequestWithPath `tfschema:"slow_request_with_path"`
 }
 
 type AutoHealActionLinux struct {
@@ -521,7 +524,7 @@ func autoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -615,6 +618,32 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 								Required:     true,
 								ValidateFunc: validation.IntAtLeast(1),
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								// ValidateFunc: validation.IsRFC3339Time,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								// ValidateFunc: validation.IsRFC3339Time,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
 
 							"path": {
 								Type:         pluginsdk.TypeString,
@@ -627,10 +656,45 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						// ValidateFunc: validation.IsRFC3339Time,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						// ValidateFunc: validation.IsRFC3339Time,
+					},
+
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -710,6 +774,29 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
 							"path": {
 								Type:     pluginsdk.TypeString,
@@ -721,6 +808,36 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"path": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, error) {
@@ -1006,6 +1123,22 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 		}
 	}
 
+	if len(triggers.SlowRequestsWithPath) > 0 {
+		slowRequestWithPathTriggers := make([]web.SlowRequestsBasedTrigger, 0)
+		for _, sr := range triggers.SlowRequestsWithPath {
+			trigger := web.SlowRequestsBasedTrigger{
+				TimeTaken:    utils.String(sr.TimeTaken),
+				TimeInterval: utils.String(sr.Interval),
+				Count:        utils.Int32(int32(sr.Count)),
+			}
+			if sr.Path != "" {
+				trigger.Path = utils.String(sr.Path)
+			}
+			slowRequestWithPathTriggers = append(slowRequestWithPathTriggers, trigger)
+		}
+		result.Triggers.SlowRequestsWithPath = &slowRequestWithPathTriggers
+	}
+
 	if len(triggers.StatusCodes) > 0 {
 		statusCodeTriggers := make([]web.StatusCodesBasedTrigger, 0)
 		statusCodeRangeTriggers := make([]web.StatusCodesRangeBasedTrigger, 0)
@@ -1025,6 +1158,12 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 				statusCode, err := strconv.Atoi(s.StatusCodeRange)
 				if err == nil {
 					statusCodeTrigger.Status = pointer.To(int32(statusCode))
+				}
+				if s.Win32Status != "" {
+					win32Code, err := strconv.Atoi(s.Win32Status)
+					if err == nil {
+						statusCodeTrigger.Win32Status = pointer.To(int32(win32Code))
+					}
 				}
 				statusCodeTrigger.Count = pointer.To(int32(s.Count))
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
@@ -1086,6 +1225,10 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 				if s.SubStatus != nil {
 					t.SubStatus = int(*s.SubStatus)
 				}
+
+				if s.Win32Status != nil {
+					t.Win32Status = strconv.Itoa(int(*s.Win32Status))
+				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
 		}
@@ -1116,7 +1259,21 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
+
+		slowRequestTriggersWithPaths := make([]AutoHealSlowRequestWithPath, 0)
+		if triggers.SlowRequestsWithPath != nil {
+			for _, v := range *triggers.SlowRequestsWithPath {
+				sr := AutoHealSlowRequestWithPath{
+					TimeTaken: utils.NormalizeNilableString(v.TimeTaken),
+					Interval:  utils.NormalizeNilableString(v.TimeInterval),
+					Count:     int(utils.NormaliseNilableInt32(v.Count)),
+					Path:      utils.NormalizeNilableString(v.Path),
+				}
+				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)
+			}
+		}
 		resultTrigger.SlowRequests = slowRequestTriggers
+		resultTrigger.SlowRequestsWithPath = slowRequestTriggersWithPaths
 		result.Triggers = []AutoHealTriggerLinux{resultTrigger}
 	}
 
