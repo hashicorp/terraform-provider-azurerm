@@ -397,7 +397,7 @@ The `os_profile_secrets` block supports the following:
 
 ---
 
-The `vault_certificates` block support the following:
+A `vault_certificates` block support the following:
 
 * `certificate_url` - (Required) It is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be `data`, `dataType` and `password`.
 * `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
@@ -433,9 +433,11 @@ The `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Optional) Specifies whether password authentication should be disabled. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `ssh_keys` - (Optional) One or more `ssh_keys` blocks as defined below. This field is required if `disable_password_authentication` is set to `true`.
+* `ssh_keys` - (Optional) One or more `ssh_keys` blocks as defined below.
 
-~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_
+~> **Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure.
+
+~> **NOTE:** At least one `ssh_keys` block is required if `disable_password_authentication` is set to `true`.
 
 ---
 
