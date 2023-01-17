@@ -17,19 +17,21 @@ type CustomIpPrefixResource struct {
 }
 
 func TestAccCustomIpPrefixIpv4(t *testing.T) {
-	// Only one test IPv4 range "194.41.20.0/24" could be provided to run tests, and the IP range could only create one resource at a time, so run the tests sequentially.
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"ipv4": {
-			"basic":                             testAccCustomIpPrefix_withIpv4,
-			"update":                            testAccCustomIpPrefix_ipv4Update,
-			"fromCommissionedTodoProvision":     testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_provision,
-			"fromDeprovisionedTodoCommission":   testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_commission,
-			"fromDeprovisionedTodoDecommission": testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_decommission,
-			"fromCommissionedTodoDeprovision":   testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_deprovision,
-			"complete":                          testAccCustomIpPrefix_ipv4Complete,
-			"requiresImport":                    testAccCustomIpPrefix_requiresImport,
-		},
-	})
+	t.Error("@tombuildsstuff: disabling these tests so we can track down an issue where the specified CIDR isn't released")
+
+	//// Only one test IPv4 range "194.41.20.0/24" could be provided to run tests, and the IP range could only create one resource at a time, so run the tests sequentially.
+	//acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+	//	"ipv4": {
+	//		"basic":                             testAccCustomIpPrefix_withIpv4,
+	//		"update":                            testAccCustomIpPrefix_ipv4Update,
+	//		"fromCommissionedTodoProvision":     testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_provision,
+	//		"fromDeprovisionedTodoCommission":   testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_commission,
+	//		"fromDeprovisionedTodoDecommission": testAccCustomIpPrefix_ipv4Update_from_deprovisioned_todo_decommission,
+	//		"fromCommissionedTodoDeprovision":   testAccCustomIpPrefix_ipv4Update_from_commissioned_todo_deprovision,
+	//		"complete":                          testAccCustomIpPrefix_ipv4Complete,
+	//		"requiresImport":                    testAccCustomIpPrefix_requiresImport,
+	//	},
+	//})
 }
 
 func testAccCustomIpPrefix_withIpv4(t *testing.T) {
