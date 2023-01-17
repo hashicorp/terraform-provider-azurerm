@@ -92,9 +92,9 @@ The following arguments are supported:
 
 -> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
 
-* `log_analytics_destination_type` - (Optional) When set to 'Dedicated' logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table.
+* `log_analytics_destination_type` - (Optional) Possible values are `AzureDiagnostics` and `Dedicated`, default to `AzureDiagnostics`. When set to `Dedicated`, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table.
 
--> **NOTE:** This setting will only have an effect if a `log_analytics_workspace_id` is provided, and the resource is available for resource-specific logs.  As of July 2019, this only includes Azure Data Factory. Please [see the documentation](https://docs.microsoft.com/azure/azure-monitor/platform/diagnostic-logs-stream-log-store#azure-diagnostics-vs-resource-specific) for more information.
+-> **NOTE:** This setting will only have an effect if a `log_analytics_workspace_id` is provided. Please see [resource types](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/azurediagnostics#resource-types) for services that use each method. Please [see the documentation](https://docs.microsoft.com/azure/azure-monitor/platform/diagnostic-logs-stream-log-store#azure-diagnostics-vs-resource-specific) for details on the differences between destination types.
 
 * `partner_solution_id` - (Optional) The ID of the market partner solution where Diagnostics Data should be sent. For potential partner integrations, [click to learn more about partner integration](https://learn.microsoft.com/en-us/azure/partner-solutions/overview).
 
