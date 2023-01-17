@@ -3412,69 +3412,69 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) kubeProxy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
- provider "azurerm" {
-   features {}
- }
- resource "azurerm_resource_group" "test" {
-   name     = "acctestRG-aks-%d"
-   location = "%s"
- }
- resource "azurerm_kubernetes_cluster" "test" {
-   name                = "acctestaks%d"
-   location            = azurerm_resource_group.test.location
-   resource_group_name = azurerm_resource_group.test.name
-   dns_prefix          = "acctestaks%d"
-   default_node_pool {
-     name       = "default"
-     node_count = 1
-     vm_size    = "Standard_D2s_v3"
-   }
-   identity {
-     type = "SystemAssigned"
-   }
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
 
-   network_profile {
-     network_plugin = "none"
-     kube_proxy {
-       mode = "IPVS"
-       ipvs {
-         scheduler                  = "LeastConnection"
-         tcp_fin_timeout_in_seconds = 1000
-         tcp_timeout_in_seconds     = 1000
-         udp_timeout_in_seconds     = 1000
-       }
-     }
-   }
- }
+  network_profile {
+    network_plugin = "none"
+    kube_proxy {
+      mode = "IPVS"
+      ipvs {
+        scheduler                  = "LeastConnection"
+        tcp_fin_timeout_in_seconds = 1000
+        tcp_timeout_in_seconds     = 1000
+        udp_timeout_in_seconds     = 1000
+      }
+    }
+  }
+}
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) kubeProxyDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
- provider "azurerm" {
-   features {}
- }
- resource "azurerm_resource_group" "test" {
-   name     = "acctestRG-aks-%d"
-   location = "%s"
- }
- resource "azurerm_kubernetes_cluster" "test" {
-   name                = "acctestaks%d"
-   location            = azurerm_resource_group.test.location
-   resource_group_name = azurerm_resource_group.test.name
-   dns_prefix          = "acctestaks%d"
-   default_node_pool {
-     name       = "default"
-     node_count = 1
-     vm_size    = "Standard_D2s_v3"
-   }
-   identity {
-     type = "SystemAssigned"
-   }
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
 
-   network_profile {
-     network_plugin = "none"
-   }
- }
+  network_profile {
+    network_plugin = "none"
+  }
+}
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
