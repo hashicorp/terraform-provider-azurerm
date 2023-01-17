@@ -107,17 +107,17 @@ resource "azurerm_orbital_contact" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Contact. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Contact. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
 
-* `spacecraft_id` - (Required) The ID of the spacecraft which the contact will be made to.
+* `spacecraft_id` - (Required) The ID of the spacecraft which the contact will be made to. Changing this forces a new resource to be created.
 
-* `reservation_start_time` - (Required) Reservation start time of the Contact.
+* `reservation_start_time` - (Required) Reservation start time of the Contact. Changing this forces a new resource to be created.
 
-* `reservation_end_time` - (Required) Reservation end time of the Contact.
+* `reservation_end_time` - (Required) Reservation end time of the Contact. Changing this forces a new resource to be created.
 
-* `ground_station_name` - (Required) Name of the Azure ground station.
+* `ground_station_name` - (Required) Name of the Azure ground station. Changing this forces a new resource to be created.
 
-* `contact_profile_id` - (Required) ID of the orbital contact profile.
+* `contact_profile_id` - (Required) ID of the orbital contact profile. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

@@ -45,7 +45,7 @@ func (r ContactResource) Exists(ctx context.Context, client *clients.Client, sta
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retreiving %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -134,6 +134,6 @@ resource "azurerm_orbital_contact_profile" "test" {
 
 func skipContact(t *testing.T) {
 	if os.Getenv("ARM_TEST_SPACECRAFT_ID") == "" {
-		t.Skip("Skipping as one of ")
+		t.Skip("Skipping as `ARM_TEST_SPACECRAFT_ID` was not specified")
 	}
 }
