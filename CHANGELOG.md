@@ -11,6 +11,8 @@ ENHANCEMENTS:
 BUG FIXES: 
 
 * `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue [GH-20002]
+* `azurerm_windows_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
+* `azurerm_linux_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
 
 ## 3.39.1 (January 13, 2023)
 
