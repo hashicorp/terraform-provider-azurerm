@@ -143,12 +143,12 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
-  name                    = "accdatastore%[2]d"
-  workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_container_id    = azurerm_storage_container.test.resource_manager_id
-  tenant_id     = "%[3]s"
-  client_id     = "%[4]s"
-  client_secret = "%[5]s"
+  name                 = "accdatastore%[2]d"
+  workspace_id         = azurerm_machine_learning_workspace.test.id
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  tenant_id            = "%[3]s"
+  client_id            = "%[4]s"
+  client_secret        = "%[5]s"
 }
 `, template, data.RandomInteger, os.Getenv("ARM_TENANT_ID"), os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
 }
