@@ -34,9 +34,8 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   target_resource_id = data.azurerm_key_vault.example.id
   storage_account_id = data.azurerm_storage_account.example.id
 
-  log {
+  enabled_log {
     category = "AuditEvent"
-    enabled  = false
 
     retention_policy {
       enabled = false
@@ -75,9 +74,11 @@ The following arguments are supported:
 
 * `log` - (Optional) One or more `log` blocks as defined below.
 
+-> **NOTE:** `log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.
+
 * `enabled_log` - (Optional) One or more `enabled_log` blocks as defined below.
 
--> **NOTE:** At least one `log`, `enabled_log` or `metric` block must be specified.
+-> **NOTE:** At least one `log`, `enabled_log` or `metric` block must be specified. At least one type of Log or Metric must be enabled.
 
 * `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent.
 
@@ -85,7 +86,7 @@ The following arguments are supported:
 
 * `metric` - (Optional) One or more `metric` blocks as defined below.
 
--> **NOTE:** At least one `log` or `metric` block must be specified.
+-> **NOTE:** At least one `log`, `enabled_log` or `metric` block must be specified.
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. Changing this forces a new resource to be created.
 

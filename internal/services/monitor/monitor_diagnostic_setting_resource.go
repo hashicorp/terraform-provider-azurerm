@@ -97,6 +97,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: false,
+				Default:  "AzureDiagnostics",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",
 					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
@@ -286,18 +287,18 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	// if no logs/metrics are not enabled the API "creates" but 404's on Read
-	valid := false
+	// if no logs/metrics are enabled the API "creates" but 404's on Read
+	hasEnabledMetrics := false
 	if !hasEnabledLogs {
 		for _, v := range metrics {
 			if v.Enabled {
-				valid = true
+				hasEnabledMetrics = true
 				break
 			}
 		}
 	}
 
-	if !valid && !hasEnabledLogs {
+	if !hasEnabledMetrics && !hasEnabledLogs {
 		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
@@ -308,7 +309,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	valid = false
+	valid := false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
@@ -363,13 +364,23 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+	}
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("unexpected null model of Monitor Diagnostics Setting %q for Resource %q", id.Name, id.ResourceUri)
+	}
+
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
 
 	var logs []diagnosticsettings.LogSettings
 	hasEnabledLogs := false
+	logChanged := false
 	if !features.FourPointOhBeta() {
 		if d.HasChange("log") {
+			logChanged = true
 			logsRaw := d.Get("log").(*pluginsdk.Set).List()
 			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
 			for _, v := range logs {
@@ -383,22 +394,31 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("enabled_log") {
 		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
-		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
-		hasEnabledLogs = true
+		if len(enabledLogs) > 0 {
+			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+			hasEnabledLogs = true
+		}
+	} else if !logChanged && existing.Model.Properties.Logs != nil {
+		logs = *existing.Model.Properties.Logs
+		for _, v := range logs {
+			if v.Enabled {
+				hasEnabledLogs = true
+			}
+		}
 	}
 
-	// if no logs/metrics are not enabled the API "creates" but 404's on Read
-	valid := false
+	// if no logs/metrics are enabled the API "creates" but 404's on Read
+	hasEnabledMetrics := false
 	if !hasEnabledLogs {
 		for _, v := range metrics {
 			if v.Enabled {
-				valid = true
+				hasEnabledMetrics = true
 				break
 			}
 		}
 	}
 
-	if !valid && !hasEnabledLogs {
+	if !hasEnabledMetrics && !hasEnabledLogs {
 		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
@@ -455,7 +475,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	valid = false
+	valid := false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
