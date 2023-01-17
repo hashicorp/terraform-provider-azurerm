@@ -3,6 +3,7 @@
 FEATURES
 
 * **New Resource:** `azurerm_network_manager_scope_connection` [GH-19610]
+* **New Resource:** `azurerm_sentinel_log_analytics_workspace_onboarding` [GH-19692]
 
 ENHANCEMENTS:
 
