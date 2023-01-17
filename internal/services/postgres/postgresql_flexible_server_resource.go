@@ -784,13 +784,13 @@ func expandFlexibleServerAuthConfig(authRaw []interface{}) *servers.AuthConfig {
 	out := servers.AuthConfig{}
 
 	activeDirectoryAuthEnabled := servers.ActiveDirectoryAuthEnumDisabled
-	if v, ok := authConfigs["active_directory_auth_enabled"]; ok && v.(bool) {
+	if authConfigs["active_directory_auth_enabled"].(bool) {
 		activeDirectoryAuthEnabled = servers.ActiveDirectoryAuthEnumEnabled
 	}
 	out.ActiveDirectoryAuth = &activeDirectoryAuthEnabled
 
 	passwordAuthEnabled := servers.PasswordAuthEnumDisabled
-	if v, ok := authConfigs["password_auth_enabled"]; ok && v.(bool) {
+	if authConfigs["password_auth_enabled"].(bool) {
 		passwordAuthEnabled = servers.PasswordAuthEnumEnabled
 	}
 	out.PasswordAuth = &passwordAuthEnabled
