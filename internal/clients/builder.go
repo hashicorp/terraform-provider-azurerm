@@ -152,7 +152,10 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	if features.EnhancedValidationEnabled() {
 		location.CacheSupportedLocations(ctx, env.ResourceManagerEndpoint)
-		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
+		_, err := resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
+		if err != nil {
+			log.Printf("[DEBUG] error caching providers: %s", err)
+		}
 	}
 
 	return &client, nil
