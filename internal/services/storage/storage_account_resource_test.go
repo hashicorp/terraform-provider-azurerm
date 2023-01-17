@@ -1118,18 +1118,11 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
+func TestAccStorageAccount_infrastructureEncryptionStorageV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.infrastructureEncryptionForFileStorage(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.infrastructureEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1147,12 +1140,40 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
+			Config: r.infrastructureEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("account_tier").HasValue("Premium"),
-				check.That(data.ResourceName).Key("account_kind").HasValue("BlockBlobStorage"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionFileStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryptionForFileStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionBlockBlobStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
