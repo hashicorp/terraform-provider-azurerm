@@ -151,7 +151,7 @@ A `virtual_network_rules` block supports the following:
 
 * `id` - (Required) Specifies the subnet ID for this rule.
 
-* `ignore_missing_vnet_service_endpoint_enabled` - (Optional) Should ignore missing virtual network service endpoint for this rule.
+* `ignore_missing_vnet_service_endpoint_enabled` - (Optional) Whether NRP will ignore the check if parent subnet has serviceEndpoints configured.
 
 ---
 
