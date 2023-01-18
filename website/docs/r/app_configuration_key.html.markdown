@@ -127,6 +127,8 @@ The following arguments are supported:
 
 * `label` - (Optional) The label of the App Configuration Key. Changing this forces a new resource to be created.
 
+~> **NOTE:** `label` property should not contain `/Label/` literal to avoid conflict in ID parsing.
+
 * `value` - (Optional) The value of the App Configuration Key. This should only be set when type is set to `kv`.
 
 * `locked` - (Optional) Should this App Configuration Key be Locked to prevent changes?

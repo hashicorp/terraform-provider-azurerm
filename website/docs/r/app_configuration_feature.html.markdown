@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
+~> **NOTE:** `label` property should not contain `/Label/` literal to avoid conflict in ID parsing.
+
 * `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
 
 * `name` - (Required) The name of the App Configuration Feature. Changing this forces a new resource to be created.
