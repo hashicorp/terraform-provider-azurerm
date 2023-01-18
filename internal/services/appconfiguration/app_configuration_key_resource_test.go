@@ -45,6 +45,21 @@ func TestAccAppConfigurationKey_basicNoLabel(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationKey_complicatedKeyLabel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complicatedKeyLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("etag").IsSet(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationKey_basicNoLabel_afterLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
 	r := AppConfigurationKeyResource{}
@@ -207,6 +222,20 @@ resource "azurerm_app_configuration_key" "test" {
   key                    = "acctest-ackey-%d"
   content_type           = "test"
   label                  = "acctest-ackeylabel-%d"
+  value                  = "a test"
+}
+`, t.base(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (t AppConfigurationKeyResource) complicatedKeyLabel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_key" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
+  content_type           = "test"
+  label                  = "/AppConfigurationKey/acctest-ackeylabel-%d"
   value                  = "a test"
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger)

@@ -75,9 +75,10 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"label": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AppConfigurationLabel,
 		},
 		"value": {
 			Type:     pluginsdk.TypeString,
