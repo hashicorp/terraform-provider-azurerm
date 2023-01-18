@@ -81,6 +81,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
+				AtLeastOneOf: []string{
+					"authentication.0.active_directory_auth_enabled",
+					"authentication.0.password_auth_enabled",
+				},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"active_directory_auth_enabled": {
