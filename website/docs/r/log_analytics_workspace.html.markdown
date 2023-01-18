@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `retention_in_days` - (Optional) The workspace data retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
 
-* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited) if omitted.
+* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB. Defaults to -1 (unlimited) if omitted.
 
 ~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`.
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
 
-* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
+* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace. Must be in increments of 100 between 100 and 5000.
 
 ~> **NOTE:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
 

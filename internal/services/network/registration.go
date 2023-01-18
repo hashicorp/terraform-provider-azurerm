@@ -34,8 +34,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagerResource{},
+		ManagerManagementGroupConnectionResource{},
 		ManagerNetworkGroupResource{},
+		ManagerResource{},
+		ManagerScopeConnectionResource{},
+		ManagerSubscriptionConnectionResource{},
+		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 	}
 }
@@ -45,6 +49,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_application_gateway":                       dataSourceApplicationGateway(),
 		"azurerm_application_security_group":                dataSourceApplicationSecurityGroup(),
+		"azurerm_bastion_host":                              dataSourceBastionHost(),
 		"azurerm_express_route_circuit":                     dataSourceExpressRouteCircuit(),
 		"azurerm_ip_group":                                  dataSourceIpGroup(),
 		"azurerm_nat_gateway":                               dataSourceNatGateway(),

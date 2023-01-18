@@ -345,6 +345,10 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 			output["key_vault_id"] = *config.KeyVaultID
 		}
 
+		if config.IdentityClientID != nil {
+			output["ssl_keyvault_identity_client_id"] = *config.IdentityClientID
+		}
+
 		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):

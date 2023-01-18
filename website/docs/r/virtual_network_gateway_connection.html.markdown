@@ -203,8 +203,7 @@ resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the connection. Changing the name forces a
-    new resource to be created.
+* `name` - (Required) The name of the connection. Changing the name forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the connection Changing this forces a new resource to be created.
 
@@ -214,9 +213,7 @@ The following arguments are supported:
 
 * `virtual_network_gateway_id` - (Required) The ID of the Virtual Network Gateway in which the connection will be created. Changing this forces a new resource to be created.
 
-* `authorization_key` - (Optional) The authorization key associated with the
-    Express Route Circuit. This field is required only if the type is an
-    ExpressRoute connection.
+* `authorization_key` - (Optional) The authorization key associated with the Express Route Circuit. This field is required only if the type is an ExpressRoute connection.
 
 * `dpd_timeout_seconds` - (Optional) The dead peer detection timeout of this connection in seconds. Changing this forces a new resource to be created.
 
@@ -226,21 +223,18 @@ The following arguments are supported:
 
 * `local_azure_ip_address_enabled` - (Optional) Use private local Azure IP for the connection. Changing this forces a new resource to be created.
 
-* `local_network_gateway_id` - (Optional) The ID of the local network gateway
-    when creating Site-to-Site connection (i.e. when `type` is `IPsec`).
+* `local_network_gateway_id` - (Optional) The ID of the local network gateway when creating Site-to-Site connection (i.e. when `type` is `IPsec`).
 
 * `routing_weight` - (Optional) The routing weight. Defaults to `10`.
 
-* `shared_key` - (Optional) The shared IPSec key. A key could be provided if a
-    Site-to-Site, VNet-to-VNet or ExpressRoute connection is created.
+* `shared_key` - (Optional) The shared IPSec key. A key could be provided if a Site-to-Site, VNet-to-VNet or ExpressRoute connection is created.
 
 * `connection_mode` - (Optional) Connection mode to use. Possible values are `Default`, `InitiatorOnly` and `ResponderOnly`. Defaults to `Default`. Changing this value will force a resource to be created.
 
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`, values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. Changing this forces a new resource to be created.
 -> **Note:** Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`.
 
-* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
-    for this connection. Defaults to `false`.
+* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
 
 * `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` (Border Gateway Protocol custom IP Addresses) block which is documented below.
     The block can only be used on `IPSec` / `activeactive` connections,
@@ -252,9 +246,7 @@ The following arguments are supported:
 
 * `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.
 
-* `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic
-    selectors are enabled for this connection. Enabling policy-based traffic
-    selectors requires an `ipsec_policy` block. Defaults to `false`.
+* `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic selectors are enabled for this connection. Enabling policy-based traffic selectors requires an `ipsec_policy` block. Defaults to `false`.
 
 * `ipsec_policy` - (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
@@ -277,31 +269,23 @@ The `custom_bgp_addresses` block supports:
 
 The `ipsec_policy` block supports:
 
-* `dh_group` - (Required) The DH group used in IKE phase 1 for initial SA. Valid
-    options are `DHGroup1`, `DHGroup14`, `DHGroup2`, `DHGroup2048`, `DHGroup24`,
-    `ECP256`, `ECP384`, or `None`.
+* `dh_group` - (Required) The DH group used in IKE phase 1 for initial SA. Valid options are `DHGroup1`, `DHGroup14`, `DHGroup2`, `DHGroup2048`, `DHGroup24`, `ECP256`, `ECP384`, or `None`.
 
-* `ike_encryption` - (Required) The IKE encryption algorithm. Valid
-    options are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, or `GCMAES256`.
+* `ike_encryption` - (Required) The IKE encryption algorithm. Valid options are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, or `GCMAES256`.
 
-* `ike_integrity` - (Required) The IKE integrity algorithm. Valid
-    options are `GCMAES128`, `GCMAES256`, `MD5`, `SHA1`, `SHA256`, or `SHA384`.
+* `ike_integrity` - (Required) The IKE integrity algorithm. Valid options are `GCMAES128`, `GCMAES256`, `MD5`, `SHA1`, `SHA256`, or `SHA384`.
 
-* `ipsec_encryption` - (Required) The IPSec encryption algorithm. Valid
-    options are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256`, or `None`.
+* `ipsec_encryption` - (Required) The IPSec encryption algorithm. Valid options are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256`, or `None`.
 
-* `ipsec_integrity` - (Required) The IPSec integrity algorithm. Valid
-    options are `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1`, or `SHA256`.
+* `ipsec_integrity` - (Required) The IPSec integrity algorithm. Valid options are `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1`, or `SHA256`.
 
 * `pfs_group` - (Required) The DH group used in IKE phase 2 for new child SA.
     Valid options are `ECP256`, `ECP384`, `PFS1`, `PFS14`, `PFS2`, `PFS2048`, `PFS24`, `PFSMM`,
     or `None`.
 
-* `sa_datasize` - (Optional) The IPSec SA payload size in KB. Must be at least
-    `1024` KB. Defaults to `102400000` KB.
+* `sa_datasize` - (Optional) The IPSec SA payload size in KB. Must be at least `1024` KB. Defaults to `102400000` KB.
 
-* `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least
-    `300` seconds. Defaults to `27000` seconds.
+* `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least `300` seconds. Defaults to `27000` seconds.
 
 ---
 

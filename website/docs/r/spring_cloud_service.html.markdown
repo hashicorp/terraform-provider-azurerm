@@ -92,7 +92,7 @@ The `network` block supports the following:
 
 * `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps. Changing this forces a new resource to be created.
 
-* `read_timeout_seconds` - (Optional) Ingress read time out in seconds. Changing this forces a new resource to be created.
+* `read_timeout_seconds` - (Optional) Ingress read time out in seconds.
 
 * `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime. Changing this forces a new resource to be created.
 
@@ -116,7 +116,7 @@ The `config_server_git_setting` block supports the following:
 
 The `repository` block supports the following:
 
-* `name` - (Required) A name to identify on the Git repository, required only if repos exists. Changing this forces a new resource to be created.
+* `name` - (Required) A name to identify on the Git repository, required only if repos exists.
 
 * `uri` - (Required) The URI of the Git repository that's used as the Config Server back end should be started with `http://`, `https://`, `git@`, or `ssh://`.
 

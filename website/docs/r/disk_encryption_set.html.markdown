@@ -138,7 +138,7 @@ In this case, `azurerm_key_vault_access_policy` is not needed.
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set.  Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). 
+* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). 
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Disk Encryption Set.
 

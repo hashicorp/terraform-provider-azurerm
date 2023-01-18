@@ -37,11 +37,9 @@ The following arguments are supported:
 
 * `location` - (Required) The location/region where the local network gateway is created. Changing this forces a new resource to be created.
 
-* `address_space` - (Optional) The list of string CIDRs representing the
-    address spaces the gateway exposes.
+* `address_space` - (Optional) The list of string CIDRs representing the address spaces the gateway exposes.
 
-* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
-    Local Network Gateway's BGP speaker settings.
+* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the Local Network Gateway's BGP speaker settings.
 
 * `gateway_address` - (Optional) The gateway IP address to connect with.
 
@@ -57,11 +55,9 @@ The `bgp_settings` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
-* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier
-    of this BGP speaker.
+* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier of this BGP speaker.
 
-* `peer_weight` - (Optional) The weight added to routes learned from this
-    BGP speaker.
+* `peer_weight` - (Optional) The weight added to routes learned from this BGP speaker.
 
 ## Attributes Reference
 

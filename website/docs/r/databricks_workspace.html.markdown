@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `load_balancer_backend_address_pool_id` - (Optional) Resource ID of the Outbound Load balancer Backend Address Pool for Secure Cluster Connectivity (No Public IP) workspace. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this can force a new resource to be created in some circumstances.
+* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`.
 
 ~> **NOTE** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 

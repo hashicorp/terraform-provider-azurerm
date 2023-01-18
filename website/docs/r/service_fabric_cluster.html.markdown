@@ -83,7 +83,7 @@ The following arguments are supported:
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
-* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below. Changing this forces a new resource to be created.
+* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below.
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
@@ -221,7 +221,7 @@ A `node_type` block supports the following:
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
 
-* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint for this Node Type. Changing this will upgrade the cluster.
 
 ---
 

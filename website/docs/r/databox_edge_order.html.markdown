@@ -55,9 +55,9 @@ The following arguments are supported:
 
 * `device_name` - (Required) The name of the Databox Edge Device this order is for. Changing this forces a new Databox Edge Order to be created.
 
-* `contact` - (Required)  A `contact` block as defined below.
+* `contact` - (Required) A `contact` block as defined below.
 
-* `shipment_address` - (Required)  A `shipment_address` block as defined below.
+* `shipment_address` - (Required) A `shipment_address` block as defined below.
 
 ---
 
@@ -75,7 +75,7 @@ An `contact` block includes the following:
 
 An `shipment_address` block includes the following:
 
-* `address` - (Required) The list of upto 3 lines for address information. Changing this forces a new Databox Edge Order to be created.
+* `address` - (Required) The list of upto 3 lines for address information.
 
 * `city` - (Required) The city name. Changing this forces a new Databox Edge Order to be created.
 

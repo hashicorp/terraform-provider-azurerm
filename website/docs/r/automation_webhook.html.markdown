@@ -82,7 +82,7 @@ The following attributes are exported:
 
 * `id` - The Automation Webhook ID.
 
-* `uri` - (Optional) (Sensitive) Generated URI for this Webhook.
+* `uri` - (Optional) (Sensitive) Generated URI for this Webhook. Changing this forces a new resource to be created.
 
 ## Timeouts
 
