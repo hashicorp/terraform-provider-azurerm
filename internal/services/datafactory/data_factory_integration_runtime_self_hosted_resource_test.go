@@ -73,11 +73,7 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
 func (IntegrationRuntimeSelfHostedResource) rbac(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -120,11 +116,12 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm%s"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_F4"
+  name                          = "acctvm%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
+  vm_size                       = "Standard_F4"
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
