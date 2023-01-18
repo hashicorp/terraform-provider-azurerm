@@ -40,11 +40,11 @@ The following arguments are supported:
 
 * `configuration_store_id` - (Required) Specifies the id of the App Configuration. Changing this forces a new resource to be created.
 
-* `description` - (Optional) The description of the App Configuration Feature.  
+* `description` - (Optional) The description of the App Configuration Feature. 
 
 * `enabled` - (Optional) The status of the App Configuration Feature. By default, this is set to false.
 
-* `label` - (Optional) The label of the App Configuration Feature.  Changing this forces a new resource to be created.
+* `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
 * `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
 
@@ -82,7 +82,7 @@ A `timewindow_filter` represents a feature filter of type `Microsoft.TimeWindow`
 
 * `start` - (Optional) The earliest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 
-* `end` - (Optional) The latest timestamp the feature is enabled.  The timestamp must be in RFC3339 format.
+* `end` - (Optional) The latest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 
 ---
 
@@ -106,11 +106,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Configuration Features can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/label1
+terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/label1
 ```
 
 If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
+terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
 ```

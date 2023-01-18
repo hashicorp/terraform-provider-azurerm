@@ -82,7 +82,7 @@ The following arguments are supported:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Required) A name used for this IP Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) A name used for this IP Configuration.
 
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 

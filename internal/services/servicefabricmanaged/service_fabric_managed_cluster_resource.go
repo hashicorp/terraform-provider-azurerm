@@ -154,17 +154,15 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@")),
 		},
 		"password": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:      pluginsdk.TypeString,
+			Optional:  true,
+			Sensitive: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(8, 123),
-				validation.StringIsNotWhiteSpace),
+				validation.StringIsNotWhiteSpace,
+			),
 		},
-		"resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
-		},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"node_type":      nodeTypeSchema(),
 		"authentication": authSchema(),

@@ -147,8 +147,8 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("expanding Firewall Application Rules: %+v", err)
 	}
 
-	locks.ByName(firewallName, azureFirewallResourceName)
-	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, AzureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, AzureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
@@ -324,8 +324,8 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
-	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
+	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {

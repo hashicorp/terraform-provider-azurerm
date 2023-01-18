@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
-* `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet. Changing this forces a new resource to be created.
+* `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -154,7 +154,7 @@ The following arguments are supported:
 
 A `private_dns_zone_group` block supports the following:
 
-* `name` - (Required) Specifies the Name of the Private DNS Zone Group. Changing this forces a new `private_dns_zone_group` resource to be created.
+* `name` - (Required) Specifies the Name of the Private DNS Zone Group.
 
 * `private_dns_zone_ids` - (Required) Specifies the list of Private DNS Zones to include within the `private_dns_zone_group`.
 

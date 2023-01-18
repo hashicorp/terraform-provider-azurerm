@@ -68,7 +68,7 @@ A `datadog_organization` block exports the following:
 
 * `application_key` - (Required) Application key associated to the Datadog organization. Changing this forces a new Datadog Monitor to be created.
 
-* `enterprise_app_id` - (Optional) The ID of the enterprise_app.
+* `enterprise_app_id` - (Optional) The ID of the enterprise_app. Changing this forces a new resource to be created.
 
 * `linking_auth_code` - (Optional) The auth code used to linking to an existing Datadog organization. Changing this forces a new Datadog Monitor to be created.
 
@@ -87,11 +87,11 @@ An `identity` block supports the following:
 
 An `user` block exports the following:
 
-* `name` - (Required) The name which should be used for this user_info.
+* `name` - (Required) The name which should be used for this user_info. Changing this forces a new resource to be created.
 
 * `email` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new Datadog Monitor to be created.
 
-* `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed.
+* `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

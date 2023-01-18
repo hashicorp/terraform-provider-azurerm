@@ -101,7 +101,7 @@ A `ddos_protection_plan` block supports the following:
 
 The `subnet` block supports:
 
-* `name` - (Required) The name of the subnet. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the subnet.
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
@@ -113,11 +113,11 @@ The following attributes are exported:
 
 * `id` - The virtual NetworkConfiguration ID.
 
-* `name` - (Required) The name of the virtual network.
+* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual network.
 
-* `location` - (Required) The location/region where the virtual network is created.
+* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
 * `address_space` - (Required) The list of address spaces used by the virtual network.
 

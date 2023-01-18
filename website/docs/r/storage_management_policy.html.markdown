@@ -95,7 +95,7 @@ The following arguments are supported:
 The `rule` block supports the following:
 
 * `name` - (Required) The name of the rule. Rule name is case-sensitive. It must be unique within a policy.
-* `enabled` - (Required)  Boolean to specify whether the rule is enabled.
+* `enabled` - (Required) Boolean to specify whether the rule is enabled.
 * `filters` - (Optional) A `filters` block as documented below.
 * `actions` - (Required) An `actions` block as documented below.
 
@@ -158,7 +158,7 @@ The `version` block supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - (Optional) The age in days after creation to tier blob version to archive storage. Must be between 0 and 99999. Defaults to `-1`.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - (Optional) The age in days after last tier change to the blobs to skip to be archved. Must be between 0 and 99999. Defaults to `-1`.
-* `change_tier_to_cool_after_days_since_creation` - (Optional) The age in days creation create to  tier blob version to cool storage. Must be between 0 and 99999. Defaults to `-1`.
+* `change_tier_to_cool_after_days_since_creation` - (Optional) The age in days creation create to tier blob version to cool storage. Must be between 0 and 99999. Defaults to `-1`.
 * `delete_after_days_since_creation` - (Optional) The age in days after creation to delete the blob version. Must be between 0 and 99999. Defaults to `-1`.
 
 ---
@@ -167,7 +167,7 @@ The `match_blob_index_tag` block supports the following:
 
 * `name` - (Required) The filter tag name used for tag based filtering for blob objects.
 * `operation` - (Optional) The comparison operator which is used for object comparison and filtering. Possible value is `==`. Defaults to `==`.
-* `value` - (Required)  The filter tag value used for tag based filtering for blob objects.
+* `value` - (Required) The filter tag value used for tag based filtering for blob objects.
 
 ## Attributes Reference
 

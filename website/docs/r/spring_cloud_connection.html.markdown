@@ -99,9 +99,9 @@ The following arguments are supported:
 
 An `authentication` block supports the following:
 
-* `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`.
+* `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`. Changing this forces a new resource to be created.
 
-* `name` - (Required) Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.
+* `name` - (Optional) Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.
 
 * `secret` - (Optional) Password or account key for secret auth. `secret` and `name` should be either both specified or both not specified when `type` is set to `secret`.
 

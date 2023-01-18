@@ -548,6 +548,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 								"password": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
+									Sensitive:    true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"identity": {

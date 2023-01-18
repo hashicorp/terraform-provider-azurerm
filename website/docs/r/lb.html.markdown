@@ -64,9 +64,9 @@ The following arguments are supported:
 
 The `frontend_ip_configuration` block supports the following:
 
-* `name` - (Required) Specifies the name of the frontend IP configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the frontend IP configuration.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located. Changing this forces a new Load Balancer to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located.
 
 -> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
 
@@ -98,7 +98,7 @@ A `frontend_ip_configuration` block exports the following:
 * `outbound_rules` - The list of IDs outbound rules that use this frontend IP.
 * `private_ip_address` - Private IP Address to assign to the Load Balancer.
 * `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer. Possible values are `Dynamic` and `Static`.
-* `public_ip_address_id` - The ID of a  Public IP Address which is associated with this Load Balancer.
+* `public_ip_address_id` - The ID of a Public IP Address which is associated with this Load Balancer.
 * `public_ip_prefix_id` - The ID of a Public IP Prefix which is associated with the Load Balancer.
 * `subnet_id` - The ID of the Subnet which is associated with the IP Configuration.
 

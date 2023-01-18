@@ -622,6 +622,11 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	// need to wait for namespace status to be ready before deleting.
+	if err := waitForEventHubNamespaceStatusToBeReady(ctx, meta, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for eventHub namespace %s state to be ready error: %+v", *id, err)
+	}
+
 	future, err := client.Delete(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(future.HttpResponse) {
@@ -631,6 +636,27 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return waitForEventHubNamespaceToBeDeleted(ctx, client, *id)
+}
+
+func waitForEventHubNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
+	namespaceClient := meta.(*clients.Client).Eventhub.NamespacesClient
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(namespaces.EndPointProvisioningStateUpdating),
+			string(namespaces.EndPointProvisioningStateCreating),
+			string(namespaces.EndPointProvisioningStateDeleting),
+		},
+		Target:                    []string{string(namespaces.EndPointProvisioningStateSucceeded)},
+		Refresh:                   eventHubNamespaceProvisioningStateRefreshFunc(ctx, namespaceClient, id),
+		Timeout:                   timeout,
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
 func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
