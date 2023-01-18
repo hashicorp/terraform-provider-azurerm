@@ -41,19 +41,13 @@ func enhancedValidation(i interface{}, k string) ([]string, []error) {
 
 	found := false
 	for _, provider := range *cachedResourceProviders {
-		if provider.Namespace != nil && *provider.Namespace == v {
+		if provider == v {
 			found = true
 		}
 	}
 
 	if !found {
-		providerNames := make([]string, 0)
-		for _, provider := range *cachedResourceProviders {
-			if provider.Namespace != nil {
-				providerNames = append(providerNames, *provider.Namespace)
-			}
-		}
-		providersJoined := strings.Join(providerNames, ", ")
+		providersJoined := strings.Join(*cachedResourceProviders, ", ")
 		return nil, []error{
 			fmt.Errorf("%q was not found in the list of supported Resource Providers: %q", v, providersJoined),
 		}

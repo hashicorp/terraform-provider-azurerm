@@ -416,13 +416,17 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		if !skipProviderRegistration {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
-			availableResourceProviders, err := resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
+			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
 				return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
 					"error: %s", err)
 			}
-
+			err = resourceproviders.CacheSupportedProviders(resourceproviders.SavedResourceProvidersCacheFunc(providerList.Values()))
+			if err != nil {
+				log.Printf("[DEBUG] error caching resource providers: %+v", err)
+			}
+			availableResourceProviders := providerList.Values()
 			requiredResourceProviders := resourceproviders.Required()
 
 			if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
