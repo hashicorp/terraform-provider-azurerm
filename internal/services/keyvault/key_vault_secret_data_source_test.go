@@ -63,7 +63,7 @@ func (KeyVaultSecretDataSource) complete(data acceptance.TestData) string {
 data "azurerm_key_vault_secret" "test" {
   name         = azurerm_key_vault_secret.test.name
   key_vault_id = azurerm_key_vault.test.id
-  key_vault_uri = azurerm_key_vault.vault_uri
+  key_vault_uri = azurerm_key_vault.test.vault_uri
 }
 `, KeyVaultSecretResource{}.complete(data))
 }
