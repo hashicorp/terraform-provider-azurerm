@@ -72,6 +72,21 @@ func TestAccKeyVault_networkAcls(t *testing.T) {
 	})
 }
 
+func TestAccKeyVault_networkAclsWithNetworkRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+	r := KeyVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkAclsWithNetworkRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKeyVault_networkAclsAllowed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 	r := KeyVaultResource{}
@@ -616,10 +631,63 @@ resource "azurerm_key_vault" "test" {
     bypass         = "AzureServices"
     ip_rules       = ["123.0.0.102/32", "123.0.0.101"]
     virtual_network_rules {
-      id = azurerm_subnet.test_a.id
+      subnet_id = azurerm_subnet.test_a.id
     }
     virtual_network_rules {
-      id                                           = azurerm_subnet.test_b.id
+      subnet_id                                    = azurerm_subnet.test_b.id
+      ignore_missing_vnet_service_endpoint_enabled = true
+    }
+  }
+}
+`, r.networkAclsTemplate(data), data.RandomInteger)
+}
+
+func (r KeyVaultResource) networkAclsWithNetworkRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_subnet" "test_c" {
+  name                 = "acctestsubnetc%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.3.0/24"]
+  service_endpoints    = ["Microsoft.KeyVault"]
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+    ]
+
+    secret_permissions = [
+      "Set",
+    ]
+  }
+
+  network_acls {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+    ip_rules       = ["123.0.0.102/32", "123.0.0.101"]
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id                                    = azurerm_subnet.test_c.id
+      ignore_missing_vnet_service_endpoint_enabled = true
+    }
+    virtual_network_rules {
+      subnet_id                                    = azurerm_subnet.test_b.id
       ignore_missing_vnet_service_endpoint_enabled = true
     }
   }

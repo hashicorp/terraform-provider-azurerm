@@ -200,7 +200,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 							ConflictsWith: []string{"network_acls.virtual_network_subnet_ids"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"id": {
+									"subnet_id": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
@@ -902,10 +902,9 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, [
 
 	networkRules := make([]keyvault.VirtualNetworkRule, 0)
 	// only one of virtual_network_subnet_ids or virtual_network_rules exists
-
 	for _, val := range v["virtual_network_rules"].([]interface{}) {
 		rawRule := val.(map[string]interface{})
-		id := rawRule["id"].(string)
+		id := rawRule["subnet_id"].(string)
 		subnetIds = append(subnetIds, id)
 		var ignore *bool
 		if ignoreVal, ok := rawRule["ignore_missing_vnet_service_endpoint_enabled"]; ok {
@@ -997,7 +996,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 			virtualNetworkSubnetIDs = append(virtualNetworkSubnetIDs, id)
 
 			rule := map[string]interface{}{}
-			rule["id"] = id
+			rule["subnet_id"] = id
 			if b := v.IgnoreMissingVnetServiceEndpoint; b != nil {
 				rule["ignore_missing_vnet_service_endpoint_enabled"] = *b
 			}
