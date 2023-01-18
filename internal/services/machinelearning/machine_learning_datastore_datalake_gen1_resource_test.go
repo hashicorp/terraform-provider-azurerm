@@ -47,7 +47,7 @@ func TestAccMachineLearningDataStoreDataLakeGen1_spn(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dataLakeGen2WithSpn(data),
+			Config: r.dataLakeGen1WithSpn(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -112,7 +112,7 @@ resource "azurerm_machine_learning_datastore_datalake_gen1" "test" {
 `, template, data.RandomInteger, os.Getenv("ARM_DATA_LAKE_GEN1"))
 }
 
-func (r MachineLearningDataStoreDataLakeGen1) dataLakeGen2WithSpn(data acceptance.TestData) string {
+func (r MachineLearningDataStoreDataLakeGen1) dataLakeGen1WithSpn(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -158,6 +158,10 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+
   }
 }
 
