@@ -173,6 +173,12 @@ func TestAccFlexibleServerConfiguration_restartServerForStaticParameters(t *test
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+			),
+		},
 	})
 }
 
