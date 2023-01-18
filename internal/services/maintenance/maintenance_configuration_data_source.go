@@ -7,7 +7,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -81,6 +82,82 @@ func dataSourceMaintenanceConfiguration() *pluginsdk.Resource {
 				},
 			},
 
+			"install_patches": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"linux": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"classifications_to_include": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+									"package_names_mask_to_exclude": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+									"package_names_mask_to_include": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
+						},
+						"windows": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"classifications_to_include": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"kb_numbers_to_exclude": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+									"kb_numbers_to_include": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
+						},
+						"reboot": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"in_guest_user_patch_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -110,11 +187,22 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 		if props := model.Properties; props != nil {
 			d.Set("scope", props.MaintenanceScope)
 			d.Set("visibility", props.Visibility)
-			d.Set("properties", props.ExtensionProperties)
+
+			properties := flattenExtensionProperties(props.ExtensionProperties)
+			if properties["InGuestPatchMode"] != nil {
+				d.Set("in_guest_user_patch_mode", properties["InGuestPatchMode"])
+				delete(properties, "InGuestPatchMode")
+			}
+			d.Set("properties", properties)
 
 			window := flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)
 			if err := d.Set("window", window); err != nil {
 				return fmt.Errorf("setting `window`: %+v", err)
+			}
+
+			installPatches := flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)
+			if err := d.Set("install_patches", installPatches); err != nil {
+				return fmt.Errorf("setting `install_patches`: %+v", err)
 			}
 		}
 		d.Set("location", location.NormalizeNilable(model.Location))
@@ -122,6 +210,5 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 			return err
 		}
 	}
-
 	return nil
 }

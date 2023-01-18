@@ -239,7 +239,7 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
 
@@ -253,7 +253,7 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction` - (Optional) a `scm_ip_restriction` block as detailed below.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `scm_type` - The SCM Type in use by the Windows Function App.
 
@@ -321,7 +321,7 @@ A `google` block supports the following:
 
 * `client_id` - (Required) The OpenID Connect Client ID for the Google web application.
 
-* `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The client secret associated with the Google web application. Cannot be specified with `client_secret_setting_name`.
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
@@ -381,11 +381,11 @@ An `app_service_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6` and `7`
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0` and `v7.0`. Defaults to `v4.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
+* `java_version` - (Optional) The version of Java to use. Possible values are `1.8`, `11` and `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16` and `~18`.
 

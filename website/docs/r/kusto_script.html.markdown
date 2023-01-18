@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property. Changing this forces a new resource to be created.
 
-* `url` - (Optional) The url to the KQL script blob file.  Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
+* `url` - (Optional) The url to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
 
 ## Attributes Reference
 

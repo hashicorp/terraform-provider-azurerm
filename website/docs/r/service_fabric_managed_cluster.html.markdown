@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Resource Group should exist.
+* `resource_group_name` - (Required) The name of the Resource Group where the Resource Group should exist. Changing this forces a new Resource Group to be created.
 
 ---
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `password` - (Optional) Administrator password for the VMs that will be created as part of this cluster.
 
-* `sku` - (Optional) SKU for this cluster.  Changing this forces a new resource to be created. Default is `Basic`, allowed values are either `Basic` or `Standard`.
+* `sku` - (Optional) SKU for this cluster. Changing this forces a new resource to be created. Default is `Basic`, allowed values are either `Basic` or `Standard`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 

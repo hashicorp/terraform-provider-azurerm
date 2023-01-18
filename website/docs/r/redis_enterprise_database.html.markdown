@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) Redis eviction policy - default is `VolatileLRU`. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Changing this forces a new Redis Enterprise Database to be created.
 
-* `module` - (Optional)  A `module` block as defined below.
+* `module` - (Optional) A `module` block as defined below. Changing this forces a new resource to be created.
 
 -> **NOTE:** Only RediSearch module is allowed with geo-replication
 

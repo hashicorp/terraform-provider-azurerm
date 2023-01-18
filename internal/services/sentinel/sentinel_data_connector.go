@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
@@ -17,7 +18,7 @@ func importSentinelDataConnector(expectKind securityinsight.DataConnectorKind) p
 			return nil, err
 		}
 
-		client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+		client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
@@ -65,6 +66,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindMicrosoftDefenderAdvancedThreatProtection
 	case securityinsight.AwsS3DataConnector:
 		kind = securityinsight.DataConnectorKindAmazonWebServicesS3
+	case azuresdkhacks.TiTaxiiDataConnector:
+		kind = securityinsight.DataConnectorKindThreatIntelligenceTaxii
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Data Connector has mismatched kind, expected: %q, got %q", expectKind, kind)

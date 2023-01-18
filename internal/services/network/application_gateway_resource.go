@@ -63,6 +63,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 							string(network.ApplicationGatewaySslProtocolTLSv10),
 							string(network.ApplicationGatewaySslProtocolTLSv11),
 							string(network.ApplicationGatewaySslProtocolTLSv12),
+							string(network.ApplicationGatewaySslProtocolTLSv13),
 						}, false),
 					},
 				},
@@ -72,6 +73,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.ApplicationGatewaySslPolicyTypeCustom),
+						string(network.ApplicationGatewaySslPolicyTypeCustomV2),
 						string(network.ApplicationGatewaySslPolicyTypePredefined),
 					}, false),
 				},
@@ -97,6 +99,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 						string(network.ApplicationGatewaySslProtocolTLSv10),
 						string(network.ApplicationGatewaySslProtocolTLSv11),
 						string(network.ApplicationGatewaySslProtocolTLSv12),
+						string(network.ApplicationGatewaySslProtocolTLSv13),
 					}, false),
 				},
 			},

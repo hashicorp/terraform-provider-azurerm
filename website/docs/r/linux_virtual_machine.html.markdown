@@ -116,7 +116,7 @@ The following arguments are supported:
 -> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
-* `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below.
+* `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below. Changing this forces a new resource to be created.
 
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
@@ -328,13 +328,13 @@ A `secret` block supports the following:
 
 The `source_image_reference` block supports the following:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines.
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `version` - (Required) Specifies the version of the image used to create the virtual machines.
+* `version` - (Required) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 ---
 

@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`.  Defaults to `StorageV2`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Defaults to `StorageV2`.
 
 -> **NOTE:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 -> **NOTE:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
-* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`.
 
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
 
@@ -100,8 +100,7 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
-* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/)
-    for more information. Defaults to `true`.
+* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
 
@@ -162,9 +161,11 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage`.
 
-* `immutability_policy` - (Optional) An `immutability_policy` block as defined below.
+* `immutability_policy` - (Optional) An `immutability_policy` block as defined below. Changing this forces a new resource to be created.
 
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
+
+* `allowed_copy_scope` - (Optional) Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values are `AAD` and `PrivateLink`.
 
 * `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
@@ -180,7 +181,7 @@ A `blob_properties` block supports the following:
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
-* `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set and `versioning_enabled` set to `true`.
+* `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set, `versioning_enabled` and `change_feed_enabled` set to `true`.
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
@@ -249,13 +250,13 @@ A `container_delete_retention_policy` block supports the following:
 
 A `hour_metrics` block supports the following:
 
-* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service. Changing this forces a new resource.
+* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
@@ -285,34 +286,34 @@ An `immutability_policy` block supports the following:
 
 A `logging` block supports the following:
 
-* `delete` - (Required) Indicates whether all delete requests should be logged. Changing this forces a new resource.
+* `delete` - (Required) Indicates whether all delete requests should be logged.
 
-* `read` - (Required) Indicates whether all read requests should be logged. Changing this forces a new resource.
+* `read` - (Required) Indicates whether all read requests should be logged.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
-* `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
+* `write` - (Required) Indicates whether all write requests should be logged.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
 A `minute_metrics` block supports the following:
 
-* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service. Changing this forces a new resource.
+* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
 A `network_rules` block supports the following:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
-* `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
+* `bypass` - (Optional) Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 

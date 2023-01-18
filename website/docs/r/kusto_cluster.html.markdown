@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `allowed_ip_ranges` - (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
 
-* `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled?  Changing this forces a new resource to be created.
+* `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

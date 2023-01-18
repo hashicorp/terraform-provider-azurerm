@@ -105,12 +105,14 @@ func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 						"password": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"private_key": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 

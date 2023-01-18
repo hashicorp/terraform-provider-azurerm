@@ -203,7 +203,7 @@ The following arguments are supported:
 
 * `vtpm_enabled` - (Optional) Specifies if vTPM (virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
-* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.
+* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
 * `zone` - * `zones` - (Optional) Specifies the Availability Zone in which this Windows Virtual Machine should be located. Changing this forces a new Windows Virtual Machine to be created.
 
@@ -329,13 +329,13 @@ A `secret` block supports the following:
 
 The `source_image_reference` block supports the following:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines.
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `version` - (Required) Specifies the version of the image used to create the virtual machines.
+* `version` - (Required) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 ---
 
@@ -351,7 +351,7 @@ A `termination_notification` block supports the following:
 
 A `winrm_listener` block supports the following:
 
-* `protocol` - (Required) Specifies the protocol of listener. Possible values are `Http` or `Https`
+* `protocol` - (Required) Specifies the protocol of listener. Possible values are `Http` or `Https`. Changing this forces a new resource to be created.
 
 * `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`. Changing this forces a new resource to be created.
 

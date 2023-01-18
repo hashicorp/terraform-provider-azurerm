@@ -146,15 +146,17 @@ An `active_directory` block supports the following:
 
 A `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6` and `7`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `v3.0`, `v4.0` `v6.0` and `v7.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11` & `17` (In-Preview).
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `1.8`, `11` & `17` (In-Preview).
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16` and `~18`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
+
+~> **NOTE:** A value of `7` will provide the latest stable version. `7.2` is in preview at the time of writing.
 
 * `use_custom_runtime` - (Optional) Should the Windows Function App use a custom runtime?
 
@@ -266,7 +268,7 @@ A `google` block supports the following:
 
 * `client_id` - (Required) The OpenID Connect Client ID for the Google web application.
 
-* `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The client secret associated with the Google web application. Cannot be specified with `client_secret_setting_name`.
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
@@ -408,7 +410,7 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 
-* `minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this Windows Function App. Only affects apps on an Elastic Premium plan.
 
@@ -422,7 +424,7 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Windows Function App `ip_restriction` configuration be used for the SCM also.
 
