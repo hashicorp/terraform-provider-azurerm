@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -26,10 +27,10 @@ import (
 )
 
 func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceMonitorDiagnosticSettingCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceMonitorDiagnosticSettingCreate,
 		Read:   resourceMonitorDiagnosticSettingRead,
-		Update: resourceMonitorDiagnosticSettingCreateUpdate,
+		Update: resourceMonitorDiagnosticSettingUpdate,
 		Delete: resourceMonitorDiagnosticSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -102,9 +103,12 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"log": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+			"enabled_log": {
+				Type:          pluginsdk.TypeSet,
+				Optional:      true,
+				Computed:      !features.FourPointOhBeta(),
+				ConflictsWith: []string{"log"},
+				AtLeastOneOf:  []string{"enabled_log", "log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -115,12 +119,6 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						"category_group": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-						},
-
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
 						},
 
 						"retention_policy": {
@@ -148,8 +146,9 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"metric": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"enabled_log", "log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -188,50 +187,108 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		resource.Schema["log"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			Computed:     true,
+			AtLeastOneOf: []string{"enabled_log", "log", "metric"},
+			Deprecated:   "`log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"category": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"category_group": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"retention_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+
+								"days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
+								},
+							},
+						},
+					},
+				},
+			},
+			Set: resourceMonitorDiagnosticLogSettingHash,
+		}
+	}
+
+	return resource
 }
 
-func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
-	name := d.Get("name").(string)
-	actualResourceId := d.Get("target_resource_id").(string)
-	diagnosticSettingId := diagnosticsettings.NewScopedDiagnosticSettingID(actualResourceId, name)
+	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
+	resourceId := fmt.Sprintf("%s|%s", id.ResourceUri, id.Name)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, diagnosticSettingId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", diagnosticSettingId.Name, diagnosticSettingId.ResourceUri, err)
-			}
-		}
-
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", *existing.Model.Id)
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", id.Name, id.ResourceUri, err)
 		}
 	}
 
-	logsRaw := d.Get("log").(*pluginsdk.Set).List()
-	logs := expandMonitorDiagnosticsSettingsLogs(logsRaw)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", resourceId)
+	}
+
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
 
-	// if no blocks are specified  the API "creates" but 404's on Read
-	if len(logs) == 0 && len(metrics) == 0 {
-		return fmt.Errorf("At least one `log` or `metric` block must be specified")
-	}
-
-	// also if there's none enabled
-	valid := false
-	for _, v := range logs {
-		if v.Enabled {
-			valid = true
-			break
+	var logs []diagnosticsettings.LogSettings
+	hasEnabledLogs := false
+	if !features.FourPointOhBeta() {
+		logsRaw, ok := d.GetOk("log")
+		if ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
+			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw.(*pluginsdk.Set).List())
+			for _, v := range logs {
+				if v.Enabled {
+					hasEnabledLogs = true
+					break
+				}
+			}
 		}
 	}
-	if !valid {
+
+	if enabledLogs, ok := d.GetOk("enabled_log"); ok {
+		enabledLogsList := enabledLogs.(*pluginsdk.Set).List()
+		if len(enabledLogsList) > 0 {
+			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogsList)
+			hasEnabledLogs = true
+		}
+	}
+
+	// if no logs/metrics are not enabled the API "creates" but 404's on Read
+	valid := false
+	if !hasEnabledLogs {
 		for _, v := range metrics {
 			if v.Enabled {
 				valid = true
@@ -240,8 +297,8 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	if !valid {
-		return fmt.Errorf("At least one `log` or `metric` must be enabled")
+	if !valid && !hasEnabledLogs {
+		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
 	parameters := diagnosticsettings.DiagnosticSettingsResource{
@@ -286,20 +343,156 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, diagnosticSettingId, parameters); err != nil {
-		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", name, actualResourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
 	}
 
-	read, err := client.Get(ctx, diagnosticSettingId)
+	d.SetId(resourceId)
+
+	return resourceMonitorDiagnosticSettingRead(d, meta)
+}
+
+func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
+
+	id, err := ParseMonitorDiagnosticId(d.Id())
 	if err != nil {
 		return err
 	}
-	if read.Model == nil && read.Model.Id == nil {
-		return fmt.Errorf("Cannot read ID for Monitor Diagnostics %q for Resource ID %q", diagnosticSettingId.Name, diagnosticSettingId.ResourceUri)
+
+	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
+	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
+
+	var logs []diagnosticsettings.LogSettings
+	hasEnabledLogs := false
+	if !features.FourPointOhBeta() {
+		if d.HasChange("log") {
+			logsRaw := d.Get("log").(*pluginsdk.Set).List()
+			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
+			for _, v := range logs {
+				if v.Enabled {
+					hasEnabledLogs = true
+					break
+				}
+			}
+		}
 	}
 
-	d.SetId(fmt.Sprintf("%s|%s", actualResourceId, name))
+	if d.HasChange("enabled_log") {
+		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
+		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+		hasEnabledLogs = true
+	}
 
+	// if no logs/metrics are not enabled the API "creates" but 404's on Read
+	valid := false
+	if !hasEnabledLogs {
+		for _, v := range metrics {
+			if v.Enabled {
+				valid = true
+				break
+			}
+		}
+	}
+
+	if !valid && !hasEnabledLogs {
+		return fmt.Errorf("at least one type of Log or Metric must be enabled")
+	}
+
+	if d.HasChange("enabled_log") {
+		oldEnabledLogs, newEnabledLogs := d.GetChange("enabled_log")
+
+		for _, oldLog := range oldEnabledLogs.(*pluginsdk.Set).List() {
+			logRemoved := true
+			oldLogMap := oldLog.(map[string]interface{})
+
+			for _, newLog := range newEnabledLogs.(*pluginsdk.Set).List() {
+				newLogMap := newLog.(map[string]interface{})
+
+				// check if an enabled_log has been removed from config and if so, set to disabled
+				if (oldLogMap["category"].(string) != "" && strings.EqualFold(oldLogMap["category"].(string), newLogMap["category"].(string))) || (oldLogMap["category_group"].(string) != "" && strings.EqualFold(oldLogMap["category_group"].(string), newLogMap["category_group"].(string))) {
+					logRemoved = false
+					break
+				}
+			}
+
+			if logRemoved {
+
+				disabledLog := diagnosticsettings.LogSettings{
+					Category:      utils.String(oldLogMap["category"].(string)),
+					CategoryGroup: utils.String(oldLogMap["category_group"].(string)),
+					Enabled:       false,
+				}
+
+				retentionPolicy := diagnosticsettings.RetentionPolicy{}
+				if v, ok := oldLogMap["retention_policy"].([]interface{}); ok {
+					if len(v) > 0 {
+
+						policyMap := v[0].(map[string]interface{})
+						if days, ok := policyMap["days"].(int); ok {
+							retentionPolicy.Days = int64(days)
+						}
+
+						if enabled, ok := policyMap["enabled"].(bool); ok {
+							retentionPolicy.Enabled = enabled
+						}
+					}
+				}
+				disabledLog.RetentionPolicy = &retentionPolicy
+
+				logs = append(logs, disabledLog)
+			}
+		}
+	}
+
+	parameters := diagnosticsettings.DiagnosticSettingsResource{
+		Properties: &diagnosticsettings.DiagnosticSettings{
+			Logs:    &logs,
+			Metrics: &metrics,
+		},
+	}
+
+	valid = false
+	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
+	eventHubName := d.Get("eventhub_name").(string)
+	if eventHubAuthorizationRuleId != "" {
+		parameters.Properties.EventHubAuthorizationRuleId = utils.String(eventHubAuthorizationRuleId)
+		parameters.Properties.EventHubName = utils.String(eventHubName)
+		valid = true
+	}
+
+	workspaceId := d.Get("log_analytics_workspace_id").(string)
+	if workspaceId != "" {
+		parameters.Properties.WorkspaceId = utils.String(workspaceId)
+		valid = true
+	}
+
+	storageAccountId := d.Get("storage_account_id").(string)
+	if storageAccountId != "" {
+		parameters.Properties.StorageAccountId = utils.String(storageAccountId)
+		valid = true
+	}
+
+	partnerSolutionId := d.Get("partner_solution_id").(string)
+	if partnerSolutionId != "" {
+		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
+		valid = true
+	}
+
+	if v := d.Get("log_analytics_destination_type").(string); v != "" {
+		parameters.Properties.LogAnalyticsDestinationType = &v
+	}
+
+	if !valid {
+		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+	}
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
@@ -313,16 +506,15 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	actualResourceId := id.ResourceUri
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.Name, actualResourceId)
+			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.Name, id.ResourceUri)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, actualResourceId, err)
+		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
 	}
 
 	d.Set("name", id.Name)
@@ -372,8 +564,15 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 			d.Set("log_analytics_destination_type", resp.Model.Properties.LogAnalyticsDestinationType)
 
-			if err := d.Set("log", flattenMonitorDiagnosticLogs(resp.Model.Properties.Logs)); err != nil {
-				return fmt.Errorf("setting `log`: %+v", err)
+			enabledLogs := flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)
+			if err = d.Set("enabled_log", enabledLogs); err != nil {
+				return fmt.Errorf("setting `enabled_log`: %+v", err)
+			}
+
+			if !features.FourPointOhBeta() {
+				if err = d.Set("log", flattenMonitorDiagnosticLogs(resp.Model.Properties.Logs)); err != nil {
+					return fmt.Errorf("setting `log`: %+v", err)
+				}
 			}
 
 			if err := d.Set("metric", flattenMonitorDiagnosticMetrics(resp.Model.Properties.Metrics)); err != nil {
@@ -471,6 +670,42 @@ func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []diagnosticsetti
 	return results
 }
 
+func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnosticsettings.LogSettings {
+	results := make([]diagnosticsettings.LogSettings, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]interface{})
+
+		category := v["category"].(string)
+		categoryGroup := v["category_group"].(string)
+		policiesRaw := v["retention_policy"].([]interface{})
+		var retentionPolicy *diagnosticsettings.RetentionPolicy
+		if len(policiesRaw) != 0 {
+			policyRaw := policiesRaw[0].(map[string]interface{})
+			retentionDays := policyRaw["days"].(int)
+			retentionEnabled := policyRaw["enabled"].(bool)
+			retentionPolicy = &diagnosticsettings.RetentionPolicy{
+				Days:    int64(retentionDays),
+				Enabled: retentionEnabled,
+			}
+		}
+
+		output := diagnosticsettings.LogSettings{
+			Enabled:         true,
+			RetentionPolicy: retentionPolicy,
+		}
+		if category != "" {
+			output.Category = utils.String(category)
+		} else {
+			output.CategoryGroup = utils.String(categoryGroup)
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
 func flattenMonitorDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -508,6 +743,50 @@ func flattenMonitorDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []int
 	}
 
 	return results
+}
+
+func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
+	enabledLogs := make([]interface{}, 0)
+	if input == nil {
+		return enabledLogs
+	}
+
+	for _, v := range *input {
+		output := make(map[string]interface{})
+
+		if !v.Enabled {
+			continue
+		}
+
+		category := ""
+		if v.Category != nil {
+			category = *v.Category
+		}
+		output["category"] = category
+
+		categoryGroup := ""
+		if v.CategoryGroup != nil {
+			categoryGroup = *v.CategoryGroup
+		}
+		output["category_group"] = categoryGroup
+
+		policies := make([]interface{}, 0)
+
+		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
+			outputPolicy := make(map[string]interface{})
+
+			outputPolicy["days"] = int(inputPolicy.Days)
+
+			outputPolicy["enabled"] = inputPolicy.Enabled
+
+			policies = append(policies, outputPolicy)
+		}
+
+		output["retention_policy"] = policies
+
+		enabledLogs = append(enabledLogs, output)
+	}
+	return enabledLogs
 }
 
 func expandMonitorDiagnosticsSettingsMetrics(input []interface{}) []diagnosticsettings.MetricSettings {
@@ -580,7 +859,7 @@ func flattenMonitorDiagnosticMetrics(input *[]diagnosticsettings.MetricSettings)
 func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagnosticSettingId, error) {
 	v := strings.Split(monitorId, "|")
 	if len(v) != 2 {
-		return nil, fmt.Errorf("Expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
+		return nil, fmt.Errorf("expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
 	}
 
 	identifier := diagnosticsettings.ScopedDiagnosticSettingId{

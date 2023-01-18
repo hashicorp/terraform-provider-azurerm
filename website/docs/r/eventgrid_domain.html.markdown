@@ -44,9 +44,9 @@ The following arguments are supported:
 
 * `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `eventgridschema`. Changing this forces a new resource to be created.
 
-* `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below.
+* `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below. Changing this forces a new resource to be created.
 
-* `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below.
+* `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 

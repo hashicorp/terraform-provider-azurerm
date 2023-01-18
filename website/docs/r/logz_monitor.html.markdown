@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the logz Monitor should exist. Changing this forces a new logz Monitor to be created.
 
-* `plan` - (Required) A `plan` block as defined below.
+* `plan` - (Required) A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `user` - (Required) A `user` block as defined below.
+* `user` - (Required) A `user` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

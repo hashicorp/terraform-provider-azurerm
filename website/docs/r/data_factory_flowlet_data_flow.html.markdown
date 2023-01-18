@@ -197,8 +197,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description for the Data Factory Flowlet Data Flow.
 
-* `folder` - (Optional) The folder that this Data Flow is in. If not specified, the Data Flow will appear at the
-root level.
+* `folder` - (Optional) The folder that this Data Flow is in. If not specified, the Data Flow will appear at the root level.
 
 * `source` - (Required) One or more `source` blocks as defined below.
 

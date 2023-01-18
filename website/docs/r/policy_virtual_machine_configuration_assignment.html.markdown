@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `virtual_machine_id` - (Required) The resource ID of the Policy Virtual Machine which this Guest Configuration Assignment should apply to. Changing this forces a new resource to be created.
 
-* `configuration` - (Required)  A `configuration` block as defined below.
+* `configuration` - (Required) A `configuration` block as defined below.
 
 ---
 

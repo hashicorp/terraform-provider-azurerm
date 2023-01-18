@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `password` - (Required) The password associated with this Automation Credential.
 
-* `description` -  (Optional) The description associated with this Automation Credential.
+* `description` - (Optional) The description associated with this Automation Credential.
 
 ## Attributes Reference
 

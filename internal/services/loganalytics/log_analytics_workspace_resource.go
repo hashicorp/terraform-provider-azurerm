@@ -335,11 +335,6 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := workspaces.ParseWorkspaceID(d.Id())
-	sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		WorkspaceName:     id.WorkspaceName,
-	}
 	if err != nil {
 		return err
 	}
@@ -421,6 +416,11 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 
+			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
+				SubscriptionId:    id.SubscriptionId,
+				ResourceGroupName: id.ResourceGroupName,
+				WorkspaceName:     id.WorkspaceName,
+			}
 			sharedKeysResp, err := sharedKeyClient.SharedKeysGetSharedKeys(ctx, sharedKeyId)
 			if err != nil {
 				log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)

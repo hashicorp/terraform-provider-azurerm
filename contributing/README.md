@@ -20,29 +20,30 @@ More granular documentation covers how these fit together - and the most common 
 
 Basics:
 
-* [High-level overview of the Provider](topics/high-level-overview.md).
-* [Building the Provider](topics/building-the-provider.md).
-* [Running the Tests](topics/running-the-tests.md).
-* [Our recommendations for opening a Pull Request](topics/guide-opening-a-pr.md).
-* [Debugging the Provider](topics/debugging-the-provider.md).
-* [Frequently Asked Questions](topics/frequently-asked-questions.md).
+* [High-level overview of the Provider](topics/high-level-overview.md)
+* [Building the Provider](topics/building-the-provider.md)
+* [Running the Tests](topics/running-the-tests.md)
+* [Debugging the Provider](topics/debugging-the-provider.md)
+* [Frequently Asked Questions](topics/frequently-asked-questions.md)
+* [Opening a PR](topics/guide-opening-a-pr.md)
 
 Common Topics/Guides:
 
-* [Adding a new Service Package](topics/guide-new-service-package.md).
-* [Adding a new Data Source](topics/guide-new-data-source.md).
-* [Adding a new Resource](topics/guide-new-resource.md).
-* [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md).
-* [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md).
-* [Opening a PR](topics/guide-opening-a-pr.md).
+* [Adding a new Service Package](topics/guide-new-service-package.md)
+* [Adding a new Data Source](topics/guide-new-data-source.md)
+* [Adding a new Resource](topics/guide-new-resource.md)
+* [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md)
+* [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md)
+* [When to create a new Resource vs Inline Block](topics/guide-new-resource-vs-inline.md)
 
 References:
 
-* [Acceptance Testing](topics/reference-acceptance-testing.md).
-* [Working with Errors](topics/reference-errors.md).
-* [Glossary](topics/reference-glossary.md).
-* [Naming](topics/reference-naming.md).
+* [Acceptance Testing](topics/reference-acceptance-testing.md)
+* [Working with Errors](topics/reference-errors.md)
+* [Glossary](topics/reference-glossary.md)
+* [Naming](topics/reference-naming.md)
+* [Schema Design](topics/schema-design-considerations.md)
 
 Maintainer specific:
 
-* [Updates to the Changelog](topics/maintainer-changelog.md).
+* [Updates to the Changelog](topics/maintainer-changelog.md)

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
@@ -68,151 +68,135 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 }
 
 func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, resGroup, vaultName, name)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasBadRequestWithServiceCode(existing.Response, err, "SubscriptionIdNotRegisteredWithSrs") {
+			if !response.WasNotFound(existing.HttpResponse) && !wasBadRequestWithNotExist(existing.HttpResponse, err) {
 				return fmt.Errorf("checking for presence of existing site recovery replication policy %s: %+v", name, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy", handleAzureSdkForGoBug2824(*existing.ID))
+		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy", *existing.Model.Id)
 		}
 	}
 
-	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
-	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
-	if appConsitency > recoveryPoint {
+	recoveryPoint := int64(d.Get("recovery_point_retention_in_minutes").(int))
+	appConsistency := int64(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
+	if appConsistency > recoveryPoint {
 		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 	}
-
-	parameters := siterecovery.CreatePolicyInput{
-		Properties: &siterecovery.CreatePolicyInputProperties{
-			ProviderSpecificInput: &siterecovery.A2APolicyCreationInput{
+	parameters := replicationpolicies.CreatePolicyInput{
+		Properties: &replicationpolicies.CreatePolicyInputProperties{
+			ProviderSpecificInput: &replicationpolicies.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
-				AppConsistentFrequencyInMinutes: &appConsitency,
-				MultiVMSyncStatus:               siterecovery.Enable,
-				InstanceType:                    siterecovery.InstanceTypeBasicPolicyProviderSpecificInputInstanceTypeA2A,
+				AppConsistentFrequencyInMinutes: &appConsistency,
+				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
 			},
 		},
 	}
-	future, err := client.Create(ctx, name, parameters)
+	err := client.CreateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
-	}
 
-	resp, err := client.Get(ctx, name)
-	if err != nil {
-		return fmt.Errorf("retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
-	}
-
-	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(id.ID())
 
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
 func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
-	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
-	if appConsitency > recoveryPoint {
+	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, resGroup, vaultName, name)
+
+	recoveryPoint := int64(d.Get("recovery_point_retention_in_minutes").(int))
+	appConsistency := int64(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
+	if appConsistency > recoveryPoint {
 		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 	}
 
-	parameters := siterecovery.UpdatePolicyInput{
-		Properties: &siterecovery.UpdatePolicyInputProperties{
-			ReplicationProviderSettings: &siterecovery.A2APolicyCreationInput{
+	parameters := replicationpolicies.UpdatePolicyInput{
+		Properties: &replicationpolicies.UpdatePolicyInputProperties{
+			ReplicationProviderSettings: &replicationpolicies.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
-				AppConsistentFrequencyInMinutes: &appConsitency,
-				MultiVMSyncStatus:               siterecovery.Enable,
-				InstanceType:                    siterecovery.InstanceTypeBasicPolicyProviderSpecificInputInstanceTypeA2A,
+				AppConsistentFrequencyInMinutes: &appConsistency,
+				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
 			},
 		},
 	}
-	future, err := client.Update(ctx, name, parameters)
+	err := client.UpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
-	}
-
-	resp, err := client.Get(ctx, name)
-	if err != nil {
-		return fmt.Errorf("retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
-	}
-
-	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
 func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.ReplicationPolicyID(d.Id())
+	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(id.ResourceGroup, id.VaultName)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request on site recovery replication policy %s : %+v", id.String(), err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("recovery_vault_name", id.VaultName)
-	if a2APolicyDetails, isA2A := resp.Properties.ProviderSpecificDetails.AsA2APolicyDetails(); isA2A {
-		d.Set("recovery_point_retention_in_minutes", a2APolicyDetails.RecoveryPointHistory)
-		d.Set("application_consistent_snapshot_frequency_in_minutes", a2APolicyDetails.AppConsistentFrequencyInMinutes)
+	d.Set("name", id.PolicyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("recovery_vault_name", id.ResourceName)
+
+	if model := resp.Model; model != nil {
+		if a2APolicyDetails, isA2A := expandA2APolicyDetail(resp.Model); isA2A {
+			d.Set("recovery_point_retention_in_minutes", a2APolicyDetails.RecoveryPointHistory)
+			d.Set("application_consistent_snapshot_frequency_in_minutes", a2APolicyDetails.AppConsistentFrequencyInMinutes)
+		}
 	}
 	return nil
 }
 
 func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.ReplicationPolicyID(d.Id())
+	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(id.ResourceGroup, id.VaultName)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	future, err := client.Delete(ctx, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting site recovery replication policy %s : %+v", id.String(), err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of site recovery replication policy %s : %+v", id.String(), err)
 	}
 
 	return nil
@@ -227,4 +211,18 @@ func resourceSiteRecoveryReplicationPolicyCustomDiff(ctx context.Context, d *plu
 	}
 
 	return nil
+}
+
+func expandA2APolicyDetail(input *replicationpolicies.Policy) (out *replicationpolicies.A2APolicyDetails, isA2A bool) {
+	if input.Properties == nil {
+		return nil, false
+	}
+	if input.Properties.ProviderSpecificDetails == nil {
+		return nil, false
+	}
+	detail, isA2A := input.Properties.ProviderSpecificDetails.(replicationpolicies.A2APolicyDetails)
+	if isA2A {
+		out = &detail
+	}
+	return
 }

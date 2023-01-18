@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the App Configuration Key. This should only be set when type is set to `kv`.
 
-* `label` - (Optional) The label of the App Configuration Key.  Changing this forces a new resource to be created.
+* `label` - (Optional) The label of the App Configuration Key. Changing this forces a new resource to be created.
 
 * `value` - (Optional) The value of the App Configuration Key. This should only be set when type is set to `kv`.
 
@@ -163,11 +163,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Configuration Keys can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/label1
+terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/label1
 ```
 
 If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
 
 ```shell
-terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/%00
+terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/%00
 ```

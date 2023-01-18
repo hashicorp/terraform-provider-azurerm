@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `default_message_ttl` - (Optional) The Default message timespan to live as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 
-* `lock_duration` - (Optional) The lock duration for the subscription as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The default value is `1` minute or  `P0DT0H1M0S` . The maximum value is `5` minutes or `P0DT0H5M0S` .
+* `lock_duration` - (Optional) The lock duration for the subscription as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The default value is `1` minute or `P0DT0H1M0S` . The maximum value is `5` minutes or `P0DT0H5M0S` .
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Subscription has dead letter support when a message expires.
 
@@ -73,17 +73,17 @@ The following arguments are supported:
 
 * `status` - (Optional) The status of the Subscription. Possible values are `Active`,`ReceiveDisabled`, or `Disabled`. Defaults to `Active`.
 
-* `client_scoped_subscription_enabled` - (Optional)  whether the subscription is scoped to a client id. Defaults to `False`.
+* `client_scoped_subscription_enabled` - (Optional) whether the subscription is scoped to a client id. Defaults to `False`.
 
 ~> **NOTE:** Client Scoped Subscription can only be used for JMS subscription (Java Message Service).
 
-* `client_scoped_subscription` - (Optional)  A `client_scoped_subscription` block as defined below.
+* `client_scoped_subscription` - (Optional) A `client_scoped_subscription` block as defined below.
 
 ---
 
 A `client_scoped_subscription` block supports the following:
 
-* `client_id` - (Optional)  Specifies the Client ID of the application that created the client-scoped subscription. Changing this forces a new resource to be created.
+* `client_id` - (Optional) Specifies the Client ID of the application that created the client-scoped subscription. Changing this forces a new resource to be created.
 
 ~> **NOTE:** Client ID can be null or empty, but it must match the client ID set on the JMS client application. From the Azure Service Bus perspective, a null client ID and an empty client id have the same behavior. If the client ID is set to null or empty, it is only accessible to client applications whose client ID is also set to null or empty.
 
