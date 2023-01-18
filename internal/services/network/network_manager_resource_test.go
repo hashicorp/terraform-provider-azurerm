@@ -51,6 +51,11 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerScopeConnection_update,
 			"requiresImport": testAccNetworkManagerScopeConnection_requiresImport,
 		},
+		"StaticMember": {
+			"basic":          testAccNetworkManagerStaticMember_basic,
+			"update":         testAccNetworkManagerStaticMember_update,
+			"requiresImport": testAccNetworkManagerStaticMember_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {
