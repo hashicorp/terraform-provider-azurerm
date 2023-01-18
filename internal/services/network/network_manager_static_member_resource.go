@@ -17,7 +17,7 @@ import (
 type ManagerStaticMemberModel struct {
 	Name           string `tfschema:"name"`
 	NetworkGroupId string `tfschema:"network_group_id"`
-	ResourceId     string `tfschema:"target_network_id"`
+	TargetVNetId   string `tfschema:"target_virtual_network_id"`
 	Region         string `tfschema:"region"`
 }
 
@@ -53,7 +53,7 @@ func (r ManagerStaticMemberResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.NetworkManagerNetworkGroupID,
 		},
 
-		"target_network_id": {
+		"target_virtual_network_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -97,11 +97,9 @@ func (r ManagerStaticMemberResource) Create() sdk.ResourceFunc {
 			}
 
 			staticMember := &network.StaticMember{
-				StaticMemberProperties: &network.StaticMemberProperties{},
-			}
-
-			if model.ResourceId != "" {
-				staticMember.StaticMemberProperties.ResourceID = &model.ResourceId
+				StaticMemberProperties: &network.StaticMemberProperties{
+					ResourceID: &model.TargetVNetId,
+				},
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *staticMember, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName, id.StaticMemberName); err != nil {
@@ -149,7 +147,7 @@ func (r ManagerStaticMemberResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties.ResourceID != nil {
-				state.ResourceId = *properties.ResourceID
+				state.TargetVNetId = *properties.ResourceID
 			}
 
 			return metadata.Encode(&state)

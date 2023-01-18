@@ -53,7 +53,6 @@ func TestAccNetworkManager(t *testing.T) {
 		},
 		"StaticMember": {
 			"basic":          testAccNetworkManagerStaticMember_basic,
-			"update":         testAccNetworkManagerStaticMember_update,
 			"requiresImport": testAccNetworkManagerStaticMember_requiresImport,
 		},
 	}
