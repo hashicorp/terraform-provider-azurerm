@@ -110,7 +110,7 @@ A `log` block supports the following:
 
 * `category_group` - (Optional) The name of a Diagnostic Log Category Group for this Resource.
 
--> **NOTE:** Not all resources have category groups available.****
+-> **NOTE:** Not all resources have category groups available.
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
