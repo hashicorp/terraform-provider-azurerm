@@ -82,7 +82,7 @@ The following arguments are supported:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Required) A name used for this IP Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) A name used for this IP Configuration.
 
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 
@@ -106,7 +106,7 @@ When `private_ip_address_allocation` is set to `Static` the following fields can
 
 When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
 
-* `subnet_id` - (Required) The ID of the Subnet where this Network Interface should be located in.
+* `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 
 ## Attributes Reference
 

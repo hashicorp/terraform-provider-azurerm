@@ -25,7 +25,6 @@ resource "azurerm_logz_monitor" "example" {
   plan {
     billing_cycle  = "MONTHLY"
     effective_date = "2022-06-06T00:00:00Z"
-    plan_id        = "100gb14days"
     usage_type     = "COMMITTED"
   }
 
@@ -48,9 +47,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the logz Monitor should exist. Changing this forces a new logz Monitor to be created.
 
-* `plan` - (Required) A `plan` block as defined below.
+* `plan` - (Required) A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `user` - (Required) A `user` block as defined below.
+* `user` - (Required) A `user` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -60,7 +59,7 @@ The following arguments are supported:
 
 ~> **NOTE** Please follow [Set up Logz.io single sign-on](https://docs.microsoft.com/azure/partner-solutions/logzio/setup-sso) to create the ID of the Enterprise App.
 
-* `enabled` - (Optional) Whether the resource monitoring is enabled?
+* `enabled` - (Optional) Whether the resource monitoring is enabled? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the logz Monitor.
 
@@ -72,9 +71,9 @@ An `plan` block exports the following:
 
 * `effective_date` - (Required) Date when plan was applied. Changing this forces a new logz Monitor to be created.
 
-* `plan_id` - (Required) Plan id as published by Logz. Possible values are `100gb14days`. Changing this forces a new logz Monitor to be created.
-
 * `usage_type` - (Required) Different usage types. Possible values are `PAYG` or `COMMITTED`. Changing this forces a new logz Monitor to be created.
+
+* `plan_id` - (Optional) Plan id as published by Logz. The only possible value is `100gb14days`. Defaults to `100gb14days`. Changing this forces a new logz Monitor to be created.
 
 ---
 

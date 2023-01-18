@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2021-08-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -291,17 +291,17 @@ func TestAccRecoveryServicesVault_updateSkuWithExistingEncryption(t *testing.T) 
 }
 
 func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VaultID(state.ID)
+	id, err := vaults.ParseVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func TestAccRecoveryServicesVault_encryptionWithKeyVaultKey(t *testing.T) {
@@ -492,6 +492,7 @@ resource "azurerm_recovery_services_vault" "test" {
   }
 
   soft_delete_enabled = false
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

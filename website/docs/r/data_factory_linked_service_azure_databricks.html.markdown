@@ -134,9 +134,9 @@ You must specify exactly one of the following modes for cluster integration:
 
 * `existing_cluster_id` - (Optional) The cluster_id of an existing cluster within the linked ADB instance.
 
-* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by  `instance_pool` block below.
+* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by `instance_pool` block below.
 
-* `new_cluster_config` - (Optional) Creates new clusters within the linked ADB instance as defined in the  `new_cluster_config` block below.
+* `new_cluster_config` - (Optional) Creates new clusters within the linked ADB instance as defined in the `new_cluster_config` block below.
 
 ---
 
@@ -174,6 +174,10 @@ A `new_cluster_config` block supports the following:
 
 * `log_destination` - (Optional) Location to deliver Spark driver, worker, and event logs.
 
+* `max_number_of_workers` - (Optional) Specifies the maximum number of worker nodes. It should be between 1 and 25000. 
+
+* `min_number_of_workers` - (Optional) Specifies the minimum number of worker nodes. It should be between 1 and 25000. It defaults to `1`.
+
 * `spark_config` - (Optional) User-specified Spark configuration variables key-value pairs.
 
 * `spark_environment_variables` - (Optional) User-specified Spark environment variables key-value pairs.
@@ -186,7 +190,7 @@ A `instance_pool` block supports the following:
 
 * `cluster_version` - (Required) Spark version of a the cluster.
 
-* `min_number_of_workers` - (Optional) The minimum number of worker nodes. Defaults to 1.
+* `min_number_of_workers` - (Optional) The minimum number of worker nodes. Defaults to `1`.
 
 * `max_number_of_workers` - (Optional) The max number of worker nodes. Set this value if you want to enable autoscaling between the `min_number_of_workers` and this value. Omit this value to use a fixed number of workers defined in the `min_number_of_workers` property.
 

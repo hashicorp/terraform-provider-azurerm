@@ -302,10 +302,10 @@ In addition to all arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Domain Service.
+* `create` - (Defaults to 3 hours) Used when creating the Domain Service.
 * `update` - (Defaults to 2 hours) Used when updating the Domain Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Domain Service.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Domain Service.
 
 ## Import
 

@@ -96,9 +96,9 @@ An `ingress_settings` block supports the following:
 
 * `backend_protocol` - (Optional) Specifies how ingress should communicate with this app backend service. Allowed values are `GRPC` and `Default`. Defaults to `Default`.
 
-* `read_timeout_in_seconds` - (Optional) Specifies the ingress read time out in seconds. Defaults to 300.
+* `read_timeout_in_seconds` - (Optional) Specifies the ingress read time out in seconds. Defaults to `300`.
 
-* `send_timeout_in_seconds` - (Optional) Specifies the ingress send time out in seconds. Defaults to 60.
+* `send_timeout_in_seconds` - (Optional) Specifies the ingress send time out in seconds. Defaults to `60`.
 
 * `session_affinity` - (Optional) Specifies the type of the affinity, set this to `Cookie` to enable session affinity. Allowed values are `Cookie` and `None`. Defaults to `None`.
 

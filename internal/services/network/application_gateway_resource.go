@@ -63,6 +63,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 							string(network.ApplicationGatewaySslProtocolTLSv10),
 							string(network.ApplicationGatewaySslProtocolTLSv11),
 							string(network.ApplicationGatewaySslProtocolTLSv12),
+							string(network.ApplicationGatewaySslProtocolTLSv13),
 						}, false),
 					},
 				},
@@ -72,6 +73,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.ApplicationGatewaySslPolicyTypeCustom),
+						string(network.ApplicationGatewaySslPolicyTypeCustomV2),
 						string(network.ApplicationGatewaySslPolicyTypePredefined),
 					}, false),
 				},
@@ -97,6 +99,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 						string(network.ApplicationGatewaySslProtocolTLSv10),
 						string(network.ApplicationGatewaySslProtocolTLSv11),
 						string(network.ApplicationGatewaySslProtocolTLSv12),
+						string(network.ApplicationGatewaySslProtocolTLSv13),
 					}, false),
 				},
 			},
@@ -137,7 +140,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
 
-			//lintignore:S016,S023
+			// lintignore:S016,S023
 			"backend_address_pool": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -175,7 +178,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Set: applicationGatewayBackendAddressPool,
 			},
 
-			//lintignore:S016,S017,S023
+			// lintignore:S016,S017,S023
 			"backend_http_settings": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -428,7 +431,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S016,S023
+			// lintignore:S016,S023
 			"http_listener": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -899,7 +902,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
 			// TODO 4.0: change this from enable_* to *_enabled
@@ -913,7 +916,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			//lintignore:S016,S023
+			// lintignore:S016,S023
 			"probe": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -976,7 +979,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Default:  0,
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"match": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -1142,7 +1145,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S016,S023
+			// lintignore:S016,S023
 			"ssl_certificate": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -1236,7 +1239,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"ssl_policy": sslProfileSchema(false),
 
 						"id": {
@@ -1597,10 +1600,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
-	globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `global`: %+v", err)
-	}
+	globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
 
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 	if err != nil {
@@ -1836,11 +1836,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("global") {
-		globalConfiguration, err := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `global`: %+v", err)
-		}
-
+		globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
 		applicationGateway.ApplicationGatewayPropertiesFormat.GlobalConfiguration = globalConfiguration
 	}
 
@@ -3021,16 +3017,16 @@ func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatew
 	return results
 }
 
-func expandApplicationGatewayGlobalConfiguration(input []interface{}) (*network.ApplicationGatewayGlobalConfiguration, error) {
+func expandApplicationGatewayGlobalConfiguration(input []interface{}) *network.ApplicationGatewayGlobalConfiguration {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 	return &network.ApplicationGatewayGlobalConfiguration{
 		EnableRequestBuffering:  utils.Bool(v["request_buffering_enabled"].(bool)),
 		EnableResponseBuffering: utils.Bool(v["response_buffering_enabled"].(bool)),
-	}, nil
+	}
 }
 
 func flattenApplicationGatewayGlobalConfiguration(input *network.ApplicationGatewayGlobalConfiguration) []interface{} {
@@ -4895,7 +4891,6 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 				config := ac.(map[string]interface{})
 				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
 				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
-
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {

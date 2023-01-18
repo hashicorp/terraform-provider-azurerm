@@ -41,8 +41,7 @@ resource "azurerm_redis_cache" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Redis instance. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the Redis instance. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location of the resource group. Changing this forces a new resource to be created.
 
@@ -62,7 +61,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `minimum_tls_version` - (Optional) The minimum TLS version.  Possible values are `1.0`, `1.1` and `1.2`. Defaults to `1.0`.
+* `minimum_tls_version` - (Optional) The minimum TLS version. Possible values are `1.0`, `1.1` and `1.2`. Defaults to `1.0`.
 
 * `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
 
@@ -126,7 +125,7 @@ redis_configuration {
 
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
-* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
+* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below. Defaults to `volatile-lru`.
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
@@ -157,7 +156,7 @@ redis_configuration {
 }
 ```
 
-## Default Redis Configuration Values
+### Default Redis Configuration Values
 
 | Redis Value                     | Basic        | Standard     | Premium      |
 | ------------------------------- | ------------ | ------------ | ------------ |

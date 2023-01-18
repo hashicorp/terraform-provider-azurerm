@@ -50,9 +50,13 @@ The following arguments are supported:
 
 * `storage_account` - (Required) One or more `storage_account` blocks as defined below.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `encryption` - (Optional) An `encryption` block as defined below.
 
-* `storage_authentication_type` - (Optional) Specifies the storage authentication type. Possible value is  `ManagedIdentity` or `System`.
+* `identity` - (Optional) An `identity` block as defined below.
+ 
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
+
+* `storage_authentication_type` - (Optional) Specifies the storage authentication type. Possible value is `ManagedIdentity` or `System`.
 
 * `key_delivery_access_control` - (Optional) A `key_delivery_access_control` block as defined below.
 
@@ -68,11 +72,25 @@ A `storage_account` block supports the following:
 
 ~> **NOTE:** Whilst multiple `storage_account` blocks can be specified - one of them must be set to the primary
 
+* `managed_identity` - (Optional) A `managed_identity` block as defined below.
+
+---
+
+A `encryption` block supports the following:
+
+* `type` - (Optional) Specifies the type of key used to encrypt the account data. Possible values are `SystemKey` and `CustomerKey`.
+
+* `key_vault_key_identifier` - (Optional) Specifies the URI of the Key Vault Key used to encrypt data. The key may either be versioned (for example https://vault/keys/mykey/version1) or reference a key without a version (for example https://vault/keys/mykey).
+
+* `managed_identity` - (Optional) A `managed_identity` block as defined below.
+
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Media Services Account. Possible value is  `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Media Services Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Media Services Account.
 
 ---
 
@@ -84,6 +102,14 @@ A `key_delivery_access_control` block supports the following:
 
 ---
 
+A `managed_identity` block supports the following:
+
+* `user_assigned_identity_id` - (Optional) The ID of the User Assigned Identity. This value can only be set when `use_system_assigned_identity` is `false`
+
+* `use_system_assigned_identity` - (Optional) Whether to use System Assigned Identity. Possible Values are `true` and `false`.
+
+---
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -91,6 +117,12 @@ The following attributes are exported:
 * `id` - The ID of the Media Services Account.
 
 * `identity` - An `identity` block as defined below.
+
+---
+
+An `encryption` block exports the following:
+
+* `current_key_identifier` - The current key used to encrypt the Media Services Account, including the key version.
 
 ---
 

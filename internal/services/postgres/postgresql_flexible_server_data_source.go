@@ -124,7 +124,6 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 				}
 				d.Set("public_network_access_enabled", publicNetworkAccess)
 			}
-
 		}
 
 		sku, err := flattenFlexibleServerSku(model.Sku)

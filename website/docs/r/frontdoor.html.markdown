@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `friendly_name` - (Optional) A friendly name for the Front Door service.
 
+* `backend_pool_settings` - (Optional) A `backend_pool_settings` block as defined below.
+
 * `frontend_endpoint` - (Required) A `frontend_endpoint` block as defined below.
 
 * `routing_rule` - (Required) A `routing_rule` block as defined below.
@@ -125,7 +127,7 @@ The `backend` block supports the following:
 
 The `backend_pool` block supports the following:
 
-* `name` - (Required) Specifies the name of the Backend Pool. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Backend Pool.
 
 * `backend` - (Required) A `backend` block as defined below.
 
@@ -147,7 +149,7 @@ The `backend_pool_settings` block supports the following:
 
 The `frontend_endpoint` block supports the following:
 
-* `name` - (Required) Specifies the name of the `frontend_endpoint`. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the `frontend_endpoint`.
 
 * `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name. In order to use a name.azurefd.net domain, the name value must match the Front Door name.
 
@@ -161,7 +163,7 @@ The `frontend_endpoint` block supports the following:
 
 The `backend_pool_health_probe` block supports the following:
 
-* `name` - (Required) Specifies the name of the Health Probe. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Health Probe.
 
 * `enabled` - (Optional) Is this health probe enabled? Defaults to `true`.
 
@@ -169,7 +171,7 @@ The `backend_pool_health_probe` block supports the following:
 
 * `protocol` - (Optional) Protocol scheme to use for the Health Probe. Possible values are `Http` and `Https`. Defaults to `Http`.
 
-* `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `Get`.
+* `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `GET`.
 
 -> **NOTE:** Use the `Head` method if you do not need to check the response body of your health probe.
 
@@ -179,7 +181,7 @@ The `backend_pool_health_probe` block supports the following:
 
 The `backend_pool_load_balancing` block supports the following:
 
-* `name` - (Required) Specifies the name of the Load Balancer. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Load Balancer.
 
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
 
@@ -191,19 +193,19 @@ The `backend_pool_load_balancing` block supports the following:
 
 The `routing_rule` block supports the following:
 
-* `name` - (Required) Specifies the name of the Routing Rule. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Routing Rule.
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
-* `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`. Defaults to `Http`.
+* `accepted_protocols` - (Required) Protocol schemes to match for the Backend Routing Rule. Possible values are `Http` and `Https`.
 
-* `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
+* `patterns_to_match` - (Required) The route patterns for the Backend Routing Rule.
 
 * `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
 
 * `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below.
 
-* `redirect_configuration`   - (Optional) A `redirect_configuration` block as defined below.
+* `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 ---
 
@@ -229,9 +231,9 @@ The `forwarding_configuration` block supports the following:
 
 The `redirect_configuration` block supports the following:
 
-* `custom_host` - (Optional)  Set this to change the URL for the redirection.
+* `custom_host` - (Optional) Set this to change the URL for the redirection.
 
-* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
+* `redirect_protocol` - (Required) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`.
 
 * `redirect_type` - (Required) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`.
 
@@ -283,12 +285,6 @@ The `redirect_configuration` block supports the following:
 
 * `id` - The ID of the Azure Front Door Frontend Endpoint.
 
-* `provisioning_state` - Provisioning state of the Front Door.
-
-* `provisioning_substate` - Provisioning substate of the Front Door
-
-[//]: *"* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
-
 ---
 
 `routing_rule` exports the following:
@@ -319,5 +315,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Front Doors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1
+terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1
 ```

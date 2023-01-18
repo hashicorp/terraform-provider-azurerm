@@ -151,17 +151,17 @@ The following arguments are supported:
 
 The `custom_rule` block supports the following:
 
-* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource. Changing this forces a new resource to be created.
+* `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
 * `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 
-* `priority` - (Required) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
+* `priority` - (Optional) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
 
 * `type` - (Required) The type of rule. Possible values are `MatchRule` or `RateLimitRule`.
 
-* `match_condition` - (Required) One or more `match_condition` block defined below. Can support up to `10` `match_condition` blocks.
+* `match_condition` - (Optional) One or more `match_condition` block defined below. Can support up to `10` `match_condition` blocks.
 
 * `rate_limit_duration_in_minutes` - (Optional) The rate limit duration in minutes. Defaults to `1`.
 

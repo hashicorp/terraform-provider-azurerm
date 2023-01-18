@@ -50,11 +50,11 @@ The following arguments are supported:
 
 * `allowed_ip_ranges` - (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
 
-* `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
+* `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days).
+* `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days). Defaults to `true`.
 
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted.
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
-* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
 

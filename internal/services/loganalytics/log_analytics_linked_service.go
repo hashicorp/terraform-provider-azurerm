@@ -23,7 +23,6 @@ func logAnalyticsLinkedServiceDeleteWaitForState(ctx context.Context, client *li
 
 func logAnalyticsLinkedServiceRefresh(ctx context.Context, client *linkedservices.LinkedServicesClient, id linkedservices.LinkedServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-
 		log.Printf("[INFO] checking on state of %s", id)
 
 		resp, err := client.Get(ctx, id)

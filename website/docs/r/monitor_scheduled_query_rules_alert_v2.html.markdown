@@ -146,7 +146,7 @@ An `action` block supports the following:
 
 A `criteria` block supports the following:
 
-* `operator` - (Required) Specifies the criteria operator. Possible values are `Equals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`,and `LessThanOrEqual`.
+* `operator` - (Required) Specifies the criteria operator. Possible values are `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`,and `LessThanOrEqual`.
 
 * `query` - (Required) The query to run on logs. The results returned by this query are used to populate the alert.
 

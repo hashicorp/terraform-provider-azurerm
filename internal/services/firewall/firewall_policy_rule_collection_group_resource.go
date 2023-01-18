@@ -442,8 +442,8 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	locks.ByName(policyId.Name, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(policyId.Name, azureFirewallPolicyResourceName)
+	locks.ByName(policyId.Name, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(policyId.Name, AzureFirewallPolicyResourceName)
 
 	param := network.FirewallPolicyRuleCollectionGroup{
 		FirewallPolicyRuleCollectionGroupProperties: &network.FirewallPolicyRuleCollectionGroupProperties{
@@ -540,8 +540,8 @@ func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	locks.ByName(id.FirewallPolicyName, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.FirewallPolicyName, azureFirewallPolicyResourceName)
+	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
 	if err != nil {

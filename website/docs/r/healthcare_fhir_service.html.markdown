@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare FHIR Service. Changing this forces a new Healthcare FHIR Service to be created.
 
-* `workspace_id`  - (Required) Specifies the id of the Healthcare Workspace where the Healthcare FHIR Service should exist. Changing this forces a new Healthcare FHIR Service to be created.
+* `workspace_id` - (Required) Specifies the id of the Healthcare Workspace where the Healthcare FHIR Service should exist. Changing this forces a new Healthcare FHIR Service to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare FHIR Service should be created. Changing this forces a new Healthcare FHIR Service to be created.
 
@@ -102,7 +102,7 @@ A `cors` block supports the following:
 * `credentials_allowed` - (Optional) If credentials are allowed via CORS.
 
 ---
-An `authentication` supports the following:
+An `authentication` block supports the following:
 
 * `authority` - (Required) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
@@ -130,8 +130,8 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare FHIR Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare FHIR Service.
+* `create` - (Defaults to 90 minutes) Used when creating the Healthcare FHIR Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare FHIR Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare FHIR Service.
 

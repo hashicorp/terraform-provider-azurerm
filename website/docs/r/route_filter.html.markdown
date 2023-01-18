@@ -39,7 +39,7 @@ The following arguments are supported:
 
 ---
 
-* `rule` - (Optional) A `rules` block as defined below.
+* `rule` - (Optional) A `rule` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Route Filter.
 
