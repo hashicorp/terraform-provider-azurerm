@@ -11,6 +11,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230117.1125206` of `github.com/hashicorp/go-azure-sdk` [GH-20081]
 * `azurerm_application_gateway` - add TLS 1.3 and CustomV2 support [GH-20029]
+* `azurerm_kubernetes_cluster` - support for the `key_management_service` block [GH-19893]
 * `azurerm_linux_web_app` - Add Python 3.11 support [GH-20001]
 * `azurerm_linux_web_app_slot` - Add Python 3.11 support [GH-20001]
 * `azurerm_ip_group` - support for the `firewall_ids` and `firewall_policy_ids` properties [GH-19845]
