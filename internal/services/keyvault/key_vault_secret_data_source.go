@@ -35,6 +35,12 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
+			"key_vault_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.VaultURI,
+			},
+
 			"value": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -83,16 +89,22 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
-	if err != nil {
-		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
+	// If Vault URI is provided, avoid making calls via BaseUriForKeyVault since the client might not have
+	// read permissions over the key vault
+	keyVaultBaseUri := d.Get("key_vault_uri").(string)
+	if keyVaultBaseUri == "" {
+		baseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+		if err != nil {
+			return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
+		}
+		keyVaultBaseUri = *baseUri
 	}
 
 	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, *keyVaultBaseUri, name, "")
+	resp, err := client.GetSecret(ctx, keyVaultBaseUri, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
+			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, keyVaultBaseUri)
 		}
 		return fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", name, err)
 	}
