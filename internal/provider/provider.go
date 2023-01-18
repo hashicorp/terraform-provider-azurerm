@@ -422,10 +422,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
 					"error: %s", err)
 			}
-			err = resourceproviders.CacheSupportedProviders(resourceproviders.SavedResourceProvidersCacheFunc(providerList.Values()))
-			if err != nil {
-				log.Printf("[DEBUG] error caching resource providers: %+v", err)
-			}
+			resourceproviders.CacheSupportedProviders(resourceproviders.SavedResourceProvidersCacheFunc(providerList.Values()))
 			availableResourceProviders := providerList.Values()
 			requiredResourceProviders := resourceproviders.Required()
 

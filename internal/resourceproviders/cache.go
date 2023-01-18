@@ -12,11 +12,10 @@ var cachedResourceProviders *[]string
 
 // CacheSupportedProviders attempts to retrieve the supported Resource Providers from the Resource Manager API
 // and caches them, for used in enhanced validation
-func CacheSupportedProviders(cacheFunc CacheFunc) error {
+func CacheSupportedProviders(cacheFunc CacheFunc) {
 	providers, err := cacheFunc()
 	if err != nil {
 		log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
-		return err
 	}
 	providerNames := make([]string, 0)
 	for _, provider := range providers {
@@ -25,7 +24,6 @@ func CacheSupportedProviders(cacheFunc CacheFunc) error {
 		}
 	}
 	cachedResourceProviders = &providerNames
-	return nil
 }
 
 // CacheFunc provides an interface to cache resource providers
