@@ -271,7 +271,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
-  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category = "AuditEvent"
@@ -357,7 +356,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
-  log_analytics_destination_type = "AzureDiagnostics"
 
   log {
     category_group = "Audit"
@@ -390,6 +388,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
+
 func (r MonitorDiagnosticSettingResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -655,10 +654,9 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctest-DS-%[1]d"
-  target_resource_id             = azurerm_key_vault.test.id
-  partner_solution_id            = azurerm_elastic_cloud_elasticsearch.test.id
-  log_analytics_destination_type = "AzureDiagnostics"
+  name                = "acctest-DS-%[1]d"
+  target_resource_id  = azurerm_key_vault.test.id
+  partner_solution_id = azurerm_elastic_cloud_elasticsearch.test.id
 
   log {
     category = "AuditEvent"
@@ -723,10 +721,9 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctest-DS-%[1]d"
-  target_resource_id             = azurerm_key_vault.test.id
-  storage_account_id             = azurerm_storage_account.test.id
-  log_analytics_destination_type = "AzureDiagnostics"
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = azurerm_key_vault.test.id
+  storage_account_id = azurerm_storage_account.test.id
 
   log {
     category = "AuditEvent"
@@ -789,10 +786,9 @@ resource "azurerm_storage_account" "test" {
 
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctest-DS-%[1]d"
-  target_resource_id             = data.azurerm_subscription.current.id
-  storage_account_id             = azurerm_storage_account.test.id
-  log_analytics_destination_type = "AzureDiagnostics"
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = data.azurerm_subscription.current.id
+  storage_account_id = azurerm_storage_account.test.id
 
   log {
     category = "Administrative"

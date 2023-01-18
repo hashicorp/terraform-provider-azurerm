@@ -72,12 +72,14 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"log_analytics_workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"storage_account_id": {
@@ -85,12 +87,14 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"partner_solution_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"log_analytics_destination_type": {
@@ -309,39 +313,30 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	valid := false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
 		parameters.Properties.EventHubAuthorizationRuleId = utils.String(eventHubAuthorizationRuleId)
 		parameters.Properties.EventHubName = utils.String(eventHubName)
-		valid = true
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
 		parameters.Properties.WorkspaceId = utils.String(workspaceId)
-		valid = true
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.Properties.StorageAccountId = utils.String(storageAccountId)
-		valid = true
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
 		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
-		valid = true
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
 		parameters.Properties.LogAnalyticsDestinationType = &v
-	}
-
-	if !valid {
-		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -398,7 +393,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
 			hasEnabledLogs = true
 		}
-	} else if !logChanged && existing.Model.Properties.Logs != nil {
+	} else if !logChanged && existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
 		logs = *existing.Model.Properties.Logs
 		for _, v := range logs {
 			if v.Enabled {
@@ -475,39 +470,30 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	valid := false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
 		parameters.Properties.EventHubAuthorizationRuleId = utils.String(eventHubAuthorizationRuleId)
 		parameters.Properties.EventHubName = utils.String(eventHubName)
-		valid = true
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
 		parameters.Properties.WorkspaceId = utils.String(workspaceId)
-		valid = true
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.Properties.StorageAccountId = utils.String(storageAccountId)
-		valid = true
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
 		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
-		valid = true
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
 		parameters.Properties.LogAnalyticsDestinationType = &v
-	}
-
-	if !valid {
-		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {

@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `log` - (Optional) One or more `log` blocks as defined below.
 
--> **NOTE:** `log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.
+-> **NOTE:** `log` is deprecated in favour of the `enabled_log` property and will be removed in version 4.0 of the AzureRM Provider.
 
 * `enabled_log` - (Optional) One or more `enabled_log` blocks as defined below.
 
