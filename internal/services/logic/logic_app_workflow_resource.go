@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -203,7 +204,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.IntegrationAccountID,
+				ValidateFunc: integrationaccounts.ValidateIntegrationAccountID,
 			},
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
