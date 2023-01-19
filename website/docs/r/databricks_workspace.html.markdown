@@ -119,6 +119,8 @@ The following attributes are exported:
 
 * `disk_encryption_set_id` - The ID of Managed Disk Encryption Set created by the Databricks Workspace.
 
+* `managed_disk_identity` - A `managed_disk_identity` block as documented below.
+
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
 
 * `workspace_url` - The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
@@ -126,6 +128,16 @@ The following attributes are exported:
 * `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
 
 * `storage_account_identity` - A `storage_account_identity` block as documented below.
+
+---
+
+A `managed_disk_identity` block exports the following:
+
+* `principal_id` - The principal UUID for the internal databricks disks identity needed to provide access to the workspace for enabling Customer Managed Keys.
+
+* `tenant_id` - The UUID of the tenant where the internal databricks disks identity was created.
+
+* `type` - The type of the internal databricks disks identity.
 
 ---
 

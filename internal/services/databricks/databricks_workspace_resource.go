@@ -96,6 +96,31 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
 
+			"managed_disk_identity": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"principal_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+							Computed:  true,
+						},
+
+						"tenant_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+							Computed:  true,
+						},
+
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"managed_disk_cmk_rotation_to_latest_version_enabled": {
 				Type:         pluginsdk.TypeBool,
 				Optional:     true,
@@ -618,8 +643,12 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 		}
 
-		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(model.Properties.StorageAccountIdentity)); err != nil {
+		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+		}
+
+		if err := d.Set("managed_disk_identity", flattenWorkspaceManagedIdentity(model.Properties.ManagedDiskIdentity)); err != nil {
+			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
 
 		if model.Properties.WorkspaceUrl != nil {
@@ -697,7 +726,7 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenWorkspaceStorageAccountIdentity(input *workspaces.ManagedIdentityConfiguration) []interface{} {
+func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfiguration) []interface{} {
 	if input == nil {
 		return nil
 	}
