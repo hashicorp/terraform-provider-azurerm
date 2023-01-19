@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -122,10 +121,9 @@ func (r SimResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sim_policy_id": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ValidateFunc:     simpolicy.ValidateSimPolicyID,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: simpolicy.ValidateSimPolicyID,
 		},
 
 		"static_ip_configuration": {
