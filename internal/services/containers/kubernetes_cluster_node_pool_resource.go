@@ -716,10 +716,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.NodeLabels = expandNodeLabels(d.Get("node_labels").(map[string]interface{}))
 	}
 
-	if d.HasChange("node_network_profile") {
-		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
-	}
-
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
 	maxCount := 0
 	if props.MaxCount != nil {
