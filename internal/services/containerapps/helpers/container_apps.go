@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -109,13 +111,7 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Description: "Should this ingress allow insecure connections?",
 				},
 
-				"custom_domain": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
+				"custom_domain": ContainerAppIngressCustomDomainSchema(),
 
 				"external_enabled": {
 					Type:        pluginsdk.TypeBool,
@@ -198,6 +194,38 @@ type CustomDomain struct {
 	CertBinding   string `tfschema:"certificate_binding_type"`
 	CertificateId string `tfschema:"certificate_id"`
 	Name          string `tfschema:"name"`
+}
+
+func ContainerAppIngressCustomDomainSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"certificate_binding_type": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      containerapps.BindingTypeDisabled,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
+					Description:  "The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`",
+				},
+
+				"certificate_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: managedenvironments.ValidateCertificateID,
+				},
+
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The hostname of the Certificate.  Must be the CN or a named SAN in the certificate.",
+				},
+			},
+		},
+	}
 }
 
 func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapps.CustomDomain {
@@ -610,7 +638,7 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				"cpu": {
 					Type:         pluginsdk.TypeFloat,
 					Required:     true,
-					ValidateFunc: ValidateContainerCpu,
+					ValidateFunc: validate.ValidateContainerCpu,
 					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
 				},
 
@@ -1581,7 +1609,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: ValidateSecretName,
+					ValidateFunc: validate.ValidateSecretName,
 					Sensitive:    true,
 					Description:  "The Secret name.",
 				},

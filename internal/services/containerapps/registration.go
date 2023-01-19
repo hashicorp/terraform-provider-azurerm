@@ -22,7 +22,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentCertificateDataSource{},
-		ContainerAppEnvironmentDaprComponentDataSource{},
 	}
 }
 

@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Container App Environment is to be created. Changing this forces a new resource to be created.
 
-* `revision_mode` - (Required) The revisions operational mode for the Container App. Possible values include `Single` and `Multiple`.
+* `revision_mode` - (Required) The revisions operational mode for the Container App. Possible values include `Single` and `Multiple`. In `Single` mode, a single revision is in operation at any given time. In `Multiple` mode, more than one revision can be active at a time and can be configured with load distribution via the `traffic_weight` block in the `ingress` configuration.
 
 * `template` - (Required) A `template` block as detailed below.
 
@@ -71,9 +71,9 @@ The following arguments are supported:
 
 * `registry` - (Optional) A `registry` block as detailed below.
 
-* `secret` - (Optional) A `secret` block as detailed below.
+* `secret` - (Optional) One or more `secret` block as detailed below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the Container App.
 
 ---
 
@@ -113,11 +113,13 @@ A `volume` block supports the following:
 
 A `container` block supports the following:
 
-* `args` - (Optional) A list of args to pass to the container.
+* `args` - (Optional) A list of extra arguments to pass to the container.
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. 
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
 * `env` - (Optional) An `env` block as detailed below.
 
@@ -127,7 +129,9 @@ A `container` block supports the following:
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. 
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
 * `name` - (Required) The name of the container
 
@@ -157,7 +161,7 @@ A `liveness_probe` block supports the following:
 
 * `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
-* `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.
+* `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - (Required) Type of probe. Possible values are `tcp`, `http`, and `https`.
 
@@ -177,7 +181,9 @@ An `env` block supports the following:
 
 * `secret_name` - (Optional) The name of the secret that contains the value for this environment variable.
 
-* `value` - (Optional) The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used
+* `value` - (Optional) The value for this environment variable.
+
+~> **NOTE:** This value is ignored if `secret_name` is used
 
 ---
 
@@ -197,7 +203,7 @@ A `readiness_probe` block supports the following:
 
 * `success_count_threshold` - (Optional) The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.
 
-* `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.
+* `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - (Required) Type of probe. Possible values are `tcp`, `http`, and `https`.
 
@@ -217,7 +223,7 @@ A `startup_probe` block supports the following:
 
 * `header` - (Optional) A `header` block as detailed below.
 
-* `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.
+* `host` - (Optional) The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.
 
 * `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
@@ -227,7 +233,7 @@ A `startup_probe` block supports the following:
 
 * `termination_grace_period` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
-* `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are between `1` an `240`. Defaults to `1`.
+* `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - (Required) Type of probe. Possible values are `tcp`, `http`, and `https`.
 
@@ -253,7 +259,7 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
-* `custom_domain` -  // TODO - Add missing `Description` to schema for this property and regenerate this file.
+* `custom_domain` -  (Optional) One or more `custom_domain` block as detailed below.
 
 * `fqdn` -  The FQDN of the ingress.
 
@@ -262,6 +268,8 @@ An `ingress` block supports the following:
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
 
 * `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
+
+~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
 
 * `transport` - (Optional) The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
 
@@ -277,7 +285,7 @@ A `traffic_weight` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix string to which this `traffic_weight` applies.
 
-* `percentage` - (Required) The amount (%) of traffic to send to this revision. 
+* `percentage` - (Required) The percentage of traffic which should be sent this revision.
 
 ~> **Note:** The cumulative values for `weight` must equal 100 exactly and explicitly, no default weights are assumed. 
 
@@ -306,9 +314,9 @@ A `registry` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Container App
+* `id` - The ID of the Container App.
 
-* `custom_domain_verification_id` - The Custom Domain Verification ID for the Container App.
+* `custom_domain_verification_id` - The ID of the Custom Domain Verification for this Container App.
 
 * `latest_revision_fqdn` - The FQDN of the Latest Revision of the Container App.
 
@@ -316,7 +324,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The location this Container App is deployed in. This is the same as the Environment in which it is deployed.
 
-* `outbound_ip_addresses` - An list of IP Addresses which the Container App can use.
+* `outbound_ip_addresses` - A list of the Public IP Addresses which the Container App uses for outbound network access.
 
 
 ## Timeouts
@@ -330,7 +338,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-a Container App can be imported using the `resource id`, e.g.
+A Container App can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_container_app.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/containerApps/myContainerApp"
