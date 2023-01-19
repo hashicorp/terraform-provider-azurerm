@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -45,7 +46,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty, // TODO - all lower + other rules...
+			ValidateFunc: validate.ValidateManagedEnvironmentStorageName,
 			Description:  "The name for this Storage.",
 		},
 
@@ -130,7 +131,6 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 			accessMode := managedenvironmentsstorages.AccessMode(storage.AccessMode)
 
 			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{
-				Name: pointer.To(id.StorageName),
 				Properties: &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
@@ -198,7 +198,7 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 
 func (r ContainerAppEnvironmentStorageResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.StorageClient
 
@@ -207,10 +207,8 @@ func (r ContainerAppEnvironmentStorageResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -235,12 +233,12 @@ func (r ContainerAppEnvironmentStorageResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil || existing.Model == nil {
+			if err != nil {
 				return fmt.Errorf("reading %s for update: %+v", *id, err)
 			}
 
 			if existing.Model.Properties == nil || existing.Model.Properties.AzureFile == nil {
-				return fmt.Errorf("could not update %s: %+v", *id, err)
+				return fmt.Errorf("could not update %s: existing resource is missing `AzureFile` properties", *id)
 			}
 
 			// This *must* be sent, and is currently the only updatable property on the resource.

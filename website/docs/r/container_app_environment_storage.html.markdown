@@ -61,7 +61,7 @@ resource "azurerm_container_app_environment_storage" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name for this Storage. Changing this forces a new resource to be created.
+* `name` - (Required) The name for this Container App Environment Storage. Changing this forces a new resource to be created.
 
 * `container_app_environment_id` - (Required) The ID of the Container App Environment to which this storage belongs. Changing this forces a new resource to be created.
 
@@ -87,12 +87,12 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Storage.
 * `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Storage.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Storage.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Container App Environment Storage.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Storage.
 
 ## Import
 
-a Container App Environment Storage can be imported using the `resource id`, e.g.
+A Container App Environment Storage can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_app_environment_storage.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironmentstorages/mystorage"
+terraform import azurerm_container_app_environment_storage.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironment/storages/mystorage"
 ```
