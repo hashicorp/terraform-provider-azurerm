@@ -570,6 +570,7 @@ func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
 	return map[string]interface{}{
 		"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
 		"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
+		"confidential_computing_enabled":   d.Get("confidential_computing_enabled").(bool),
 		"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
 		"oms_agent":                        d.Get("oms_agent").([]interface{}),
 		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
