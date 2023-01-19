@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -2480,7 +2479,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 `, data.RandomInteger, data.Locations.Primary, diskSizeGB)
 }
 
-func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	activityLogsClient := client.Monitor.ActivityLogsClient
 	filter := fmt.Sprintf("eventTimestamp ge '%s' and resourceUri eq '%s'", time.Now().Add(-1*time.Hour).Format(time.RFC3339), state.ID)
 	logs, err := activityLogsClient.ListComplete(ctx, filter, "")
