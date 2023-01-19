@@ -28,6 +28,7 @@ BUG FIXES:
 * `azurerm_container_registry_task` - the field `password` is now correctly marked as a sensitive value [GH-20061]
 * `azurerm_dev_test_windows_virtual_machine` - the `password` field is now correctly marked as a sensitive value [GH-20061]
 * `azurerm_linux_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
+* `azurerm_kubernetes_cluster` - prevent panic while importing [GH-20107]
 * `azurerm_service_fabric_managed_cluster` - the `password` field is now correctly marked as a sensitive value [GH-20061]
 * `azurerm_service_fabric_managed_cluster` - the `resource_group_name` field is now correctly marked as ForceNew [GH-20061]
 * `azurerm_spring_cloud_configuration_service ` - the field `password` is now correctly marked as a sensitive value [GH-20061]
