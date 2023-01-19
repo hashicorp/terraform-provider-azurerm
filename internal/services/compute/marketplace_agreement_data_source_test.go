@@ -13,10 +13,17 @@ type MarketplaceAgreementDataSource struct{}
 func TestAccDataSourceMarketplaceAgreement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_marketplace_agreement", "test")
 	r := MarketplaceAgreementDataSource{}
+	offer := "barracuda-email-security-gateway"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(),
+			Config: MarketplaceAgreementResource{}.empty(),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientWithoutResource(MarketplaceAgreementResource{}.cancelExistingAgreement(offer)),
+			),
+		},
+		{
+			Config: r.basic(offer),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("license_text_link").Exists(),
 				check.That(data.ResourceName).Key("privacy_policy_link").Exists(),
@@ -25,14 +32,14 @@ func TestAccDataSourceMarketplaceAgreement_basic(t *testing.T) {
 	})
 }
 
-func (MarketplaceAgreementDataSource) basic() string {
+func (MarketplaceAgreementDataSource) basic(offer string) string {
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_marketplace_agreement" "test" {
   publisher = "barracudanetworks"
-  offer     = "waf"
+  offer     = "%s"
   plan      = "hourly"
 }
-`, MarketplaceAgreementResource{}.basic("waf"))
+`, MarketplaceAgreementResource{}.basic(offer), offer)
 }
