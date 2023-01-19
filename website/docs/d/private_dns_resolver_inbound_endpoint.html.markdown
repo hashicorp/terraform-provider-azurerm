@@ -13,7 +13,7 @@ Gets information about an existing Private DNS Resolver Inbound Endpoint.
 ## Example Usage
 
 ```hcl
-resource "azurerm_private_dns_resolver_inbound_endpoint" "example" {
+data "azurerm_private_dns_resolver_inbound_endpoint" "example" {
   name                    = "example-drie"
   private_dns_resolver_id = "example-private-dns-resolver-id"
 }
