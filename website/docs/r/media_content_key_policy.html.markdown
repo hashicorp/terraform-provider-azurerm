@@ -89,13 +89,13 @@ resource "azurerm_media_content_key_policy" "example" {
       audience                    = "urn:audience"
       token_type                  = "Swt"
       primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
-    }
-    alternate_key {
-      rsa_token_key_exponent = "AQAB"
-      rsa_token_key_modulus  = "AQAD"
-    }
-    alternate_key {
-      symmetric_token_key = "BBAAAAAAAAAAAAAAAAAAAA=="
+      alternate_key {
+        rsa_token_key_exponent = "AQAB"
+        rsa_token_key_modulus  = "AQAD"
+      }
+      alternate_key {
+        symmetric_token_key = "BBAAAAAAAAAAAAAAAAAAAA=="
+      }
     }
   }
   policy_option {
