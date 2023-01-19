@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -20,10 +19,10 @@ type CapacityReservationResource struct{}
 func TestAccCapacityReservation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "test")
 	r := CapacityReservationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,10 +33,10 @@ func TestAccCapacityReservation_basic(t *testing.T) {
 func TestAccCapacityReservation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "test")
 	r := CapacityReservationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -48,10 +47,10 @@ func TestAccCapacityReservation_requiresImport(t *testing.T) {
 func TestAccCapacityReservation_zone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "test")
 	r := CapacityReservationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.zone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -62,17 +61,17 @@ func TestAccCapacityReservation_zone(t *testing.T) {
 func TestAccCapacityReservation_skuCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "test")
 	r := CapacityReservationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.skuCapacity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.skuCapacityUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -83,17 +82,17 @@ func TestAccCapacityReservation_skuCapacity(t *testing.T) {
 func TestAccCapacityReservation_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "test")
 	r := CapacityReservationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.tagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

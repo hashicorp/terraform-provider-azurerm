@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -19,10 +18,10 @@ type SpringCloudBuildPackBindingResource struct{}
 func TestAccSpringCloudBuildPackBinding_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_build_pack_binding", "test")
 	r := SpringCloudBuildPackBindingResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -33,10 +32,10 @@ func TestAccSpringCloudBuildPackBinding_basic(t *testing.T) {
 func TestAccSpringCloudBuildPackBinding_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_build_pack_binding", "test")
 	r := SpringCloudBuildPackBindingResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,10 +46,10 @@ func TestAccSpringCloudBuildPackBinding_requiresImport(t *testing.T) {
 func TestAccSpringCloudBuildPackBinding_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_build_pack_binding", "test")
 	r := SpringCloudBuildPackBindingResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,24 +60,24 @@ func TestAccSpringCloudBuildPackBinding_complete(t *testing.T) {
 func TestAccSpringCloudBuildPackBinding_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_build_pack_binding", "test")
 	r := SpringCloudBuildPackBindingResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("launch.0.secrets.%", "launch.0.secrets.connection-string"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

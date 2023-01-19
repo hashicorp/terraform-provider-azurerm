@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -19,10 +18,10 @@ type SpringCloudGatewayCustomDomainResource struct{}
 func TestAccSpringCloudGatewayCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway_custom_domain", "test")
 	r := SpringCloudGatewayCustomDomainResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -33,10 +32,10 @@ func TestAccSpringCloudGatewayCustomDomain_basic(t *testing.T) {
 func TestAccSpringCloudGatewayCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway_custom_domain", "test")
 	r := SpringCloudGatewayCustomDomainResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
