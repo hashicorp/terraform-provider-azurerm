@@ -2096,10 +2096,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("public_network_access_enabled", publicNetworkAccess != managedclusters.PublicNetworkAccessDisabled)
 
 		upgradeChannel := ""
-		if profile := props.AutoUpgradeProfile; profile != nil {
-			if v := profile.UpgradeChannel; v != nil {
-				upgradeChannel = string(*profile.UpgradeChannel)
-			}
+		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
+			upgradeChannel = string(*profile.UpgradeChannel)
 		}
 		d.Set("automatic_channel_upgrade", upgradeChannel)
 
