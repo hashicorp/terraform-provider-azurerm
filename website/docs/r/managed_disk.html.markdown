@@ -153,7 +153,8 @@ The following arguments are supported:
 
 * `security_type` - (Optional) Security Type of the Managed Disk when it is used for a Confidential VM. Possible values are `VMGuestStateOnlyEncryptedWithPlatformKey`, `ConfidentialVM_DiskEncryptedWithPlatformKey` and `ConfidentialVM_DiskEncryptedWithCustomerKey`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `create_option` can be only `FromImage` or `ImportSecure` when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`.
+~> **NOTE:** When `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey` the value of `create_option` must be one of `FromImage` or `ImportSecure`.
+
 
 ~> **NOTE:** `security_type` cannot be specified when `trusted_launch_enabled` is set to true.
 
