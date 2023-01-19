@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountagreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -10,7 +11,7 @@ import (
 type Client struct {
 	IntegrationAccountClient                   *integrationaccounts.IntegrationAccountsClient
 	IntegrationAccountAgreementClient          *integrationaccountagreements.IntegrationAccountAgreementsClient
-	IntegrationAccountAssemblyClient           *logic.IntegrationAccountAssembliesClient
+	IntegrationAccountAssemblyClient           *integrationaccountassemblies.IntegrationAccountAssembliesClient
 	IntegrationAccountBatchConfigurationClient *logic.IntegrationAccountBatchConfigurationsClient
 	IntegrationAccountCertificateClient        *logic.IntegrationAccountCertificatesClient
 	IntegrationAccountMapClient                *logic.IntegrationAccountMapsClient
@@ -29,7 +30,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountAgreementClient := integrationaccountagreements.NewIntegrationAccountAgreementsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountAgreementClient.Client, o.ResourceManagerAuthorizer)
 
-	integrationAccountAssemblyClient := logic.NewIntegrationAccountAssembliesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	integrationAccountAssemblyClient := integrationaccountassemblies.NewIntegrationAccountAssembliesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountAssemblyClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationAccountBatchConfigurationClient := logic.NewIntegrationAccountBatchConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
