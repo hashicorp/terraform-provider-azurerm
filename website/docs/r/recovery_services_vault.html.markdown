@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 
+* `public_network_access_enabled` - (Optional) Is it enabled to access the vault from public networks. Defaults to `true`.
+
 * `immutability` - (Optional)  Immutability Settings of vault, possible values include: `Locked`, `Unlocked` and `Disabled`.
 
 * `storage_mode_type` - (Optional) The storage type of the Recovery Services Vault. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Defaults to `GeoRedundant`.

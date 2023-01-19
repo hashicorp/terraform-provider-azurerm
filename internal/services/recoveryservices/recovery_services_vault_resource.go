@@ -89,6 +89,12 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			// set `immutability` to Computed, because it will start to return from the service once it has been set.
 			"immutability": {
 				Type:     pluginsdk.TypeString,
@@ -193,7 +199,9 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		Sku: &vaults.Sku{
 			Name: vaults.SkuName(sku),
 		},
-		Properties: &vaults.VaultProperties{},
+		Properties: &vaults.VaultProperties{
+			PublicNetworkAccess: expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool)),
+		},
 	}
 
 	if vaults.SkuName(sku) == vaults.SkuNameRSZero {
@@ -463,6 +471,10 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		Properties: &vaults.VaultProperties{},
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		vault.Properties.PublicNetworkAccess = expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool))
+	}
+
 	if d.HasChange("identity") {
 		vault.Identity = expandedIdentity
 	}
@@ -573,6 +585,10 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
 		d.Set("immutability", *model.Properties.SecuritySettings.ImmutabilitySettings.State)
+	}
+
+	if model.Properties != nil && model.Properties.PublicNetworkAccess != nil {
+		d.Set("public_network_access_enabled", flattenRecoveryServicesVaultPublicNetworkAccess(model.Properties.PublicNetworkAccess))
 	}
 
 	cfg, err := cfgsClient.Get(ctx, cfgId)
@@ -733,6 +749,21 @@ func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.Secu
 			State: &immutabilityState,
 		},
 	}
+}
+
+func expandRecoveryServicesVaultPublicNetworkAccess(input bool) *vaults.PublicNetworkAccess {
+	out := vaults.PublicNetworkAccessDisabled
+	if input {
+		out = vaults.PublicNetworkAccessEnabled
+	}
+	return &out
+}
+
+func flattenRecoveryServicesVaultPublicNetworkAccess(input *vaults.PublicNetworkAccess) bool {
+	if input == nil {
+		return false
+	}
+	return *input == vaults.PublicNetworkAccessEnabled
 }
 
 func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfgsClient *backupresourcevaultconfigs.BackupResourceVaultConfigsClient, id backupresourcevaultconfigs.VaultId) pluginsdk.StateRefreshFunc {
