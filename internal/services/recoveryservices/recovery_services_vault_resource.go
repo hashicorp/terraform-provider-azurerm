@@ -454,7 +454,9 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			Sku: &vaults.Sku{
 				Name: vaults.SkuName(sku),
 			},
-			Properties: &vaults.VaultProperties{},
+			Properties: &vaults.VaultProperties{
+				PublicNetworkAccess: expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool)), // It's required to call CreateOrUpdate.
+			},
 		}
 
 		if vaults.SkuName(sku) == vaults.SkuNameRSZero {
@@ -713,9 +715,11 @@ func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncrypti
 		},
 		KekIdentity: &vaults.CmkKekIdentity{
 			UseSystemAssignedIdentity: utils.Bool(encryptionMap["use_system_assigned_identity"].(bool)),
-			UserAssignedIdentity:      utils.String(encryptionMap["user_assigned_identity_id"].(string)),
 		},
 		InfrastructureEncryption: &infraEncryptionState,
+	}
+	if v, ok := encryptionMap["user_assigned_identity_id"].(string); ok && v != "" {
+		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
 	}
 	return encryption
 }

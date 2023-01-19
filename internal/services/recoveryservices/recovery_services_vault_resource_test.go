@@ -841,11 +841,12 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  identity {
-    type = "UserAssigned"
-  }
-
   soft_delete_enabled = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   encryption {
     key_id                            = azurerm_key_vault_key.test[%[5]d].id
