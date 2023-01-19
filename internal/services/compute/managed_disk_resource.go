@@ -493,7 +493,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		case disks.DiskCreateOptionImport:
 		case disks.DiskCreateOptionImportSecure:
 		default:
-			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import, ImportSecure", createOption)
+			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are `FromImage`, `Import`, `ImportSecure`", createOption)
 		}
 	}
 
