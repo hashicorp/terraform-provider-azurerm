@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app` - Add Python 3.11 support [GH-20001]
 * `azurerm_linux_web_app_slot` - Add Python 3.11 support [GH-20001]
 * `azurerm_ip_group` - support for the `firewall_ids` and `firewall_policy_ids` properties [GH-19845]
+* `azurerm_recovery_services_vault` - support for the `immutability`, user assigned `identity` and `use_system_assigned_identity` properties [GH-20109]
 * `azurerm_synapse_sql_pool` - add support for `geo_backup_policy_enabled` and fix `recovery_database_id` [[GH-20010]
 
 BUG FIXES: 
