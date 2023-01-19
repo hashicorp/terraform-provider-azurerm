@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -223,6 +224,7 @@ func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 
 func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
+	workaroundClient := azuresdkhacks.NewCdnFrontDoorOriginGroupsWorkaroundClient(client)
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -231,8 +233,10 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	params := &cdn.AFDOriginGroupUpdatePropertiesParameters{}
+	params := &azuresdkhacks.AFDOriginGroupUpdatePropertiesParameters{}
 
+	// The API requires that an explicit null be passed as the 'health_probe' value to disable the health probe
+	// e.g. {"properties":{"healthProbeSettings":null}}
 	if d.HasChange("health_probe") {
 		params.HealthProbeSettings = expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{}))
 	}
@@ -249,11 +253,11 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 		params.SessionAffinityState = expandEnabledBool(d.Get("session_affinity_enabled").(bool))
 	}
 
-	payload := cdn.AFDOriginGroupUpdateParameters{
+	payload := &azuresdkhacks.AFDOriginGroupUpdateParameters{
 		AFDOriginGroupUpdatePropertiesParameters: params,
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, payload)
+	future, err := workaroundClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, *payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}

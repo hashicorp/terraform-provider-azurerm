@@ -81,7 +81,8 @@ func resourceArmDevTestWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				// since this isn't returned from the API
-				ForceNew: true,
+				ForceNew:  true,
+				Sensitive: true,
 			},
 
 			"storage_type": {
