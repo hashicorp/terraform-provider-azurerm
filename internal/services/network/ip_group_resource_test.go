@@ -339,7 +339,7 @@ resource "azurerm_firewall" "test" {
   sku_name            = "AZFW_VNet"
   sku_tier            = "Standard"
 
-	firewall_policy_id  = azurerm_firewall_policy.test.id
+  firewall_policy_id = azurerm_firewall_policy.test.id
 
   ip_configuration {
     name                 = "configuration"
@@ -454,7 +454,7 @@ resource "azurerm_firewall" "test" {
   sku_name            = "AZFW_VNet"
   sku_tier            = "Standard"
 
-	firewall_policy_id  = azurerm_firewall_policy.test.id
+  firewall_policy_id = azurerm_firewall_policy.test.id
 
   ip_configuration {
     name                 = "configuration"
@@ -462,6 +462,7 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
+
 
 `, data.RandomInteger, data.Locations.Primary)
 }
