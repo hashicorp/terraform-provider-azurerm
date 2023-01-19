@@ -5,6 +5,124 @@ import "strings"
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AlertsState string
+
+const (
+	AlertsStateDisabled AlertsState = "Disabled"
+	AlertsStateEnabled  AlertsState = "Enabled"
+)
+
+func PossibleValuesForAlertsState() []string {
+	return []string{
+		string(AlertsStateDisabled),
+		string(AlertsStateEnabled),
+	}
+}
+
+func parseAlertsState(input string) (*AlertsState, error) {
+	vals := map[string]AlertsState{
+		"disabled": AlertsStateDisabled,
+		"enabled":  AlertsStateEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AlertsState(input)
+	return &out, nil
+}
+
+type BackupStorageVersion string
+
+const (
+	BackupStorageVersionUnassigned BackupStorageVersion = "Unassigned"
+	BackupStorageVersionVOne       BackupStorageVersion = "V1"
+	BackupStorageVersionVTwo       BackupStorageVersion = "V2"
+)
+
+func PossibleValuesForBackupStorageVersion() []string {
+	return []string{
+		string(BackupStorageVersionUnassigned),
+		string(BackupStorageVersionVOne),
+		string(BackupStorageVersionVTwo),
+	}
+}
+
+func parseBackupStorageVersion(input string) (*BackupStorageVersion, error) {
+	vals := map[string]BackupStorageVersion{
+		"unassigned": BackupStorageVersionUnassigned,
+		"v1":         BackupStorageVersionVOne,
+		"v2":         BackupStorageVersionVTwo,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := BackupStorageVersion(input)
+	return &out, nil
+}
+
+type CrossRegionRestore string
+
+const (
+	CrossRegionRestoreDisabled CrossRegionRestore = "Disabled"
+	CrossRegionRestoreEnabled  CrossRegionRestore = "Enabled"
+)
+
+func PossibleValuesForCrossRegionRestore() []string {
+	return []string{
+		string(CrossRegionRestoreDisabled),
+		string(CrossRegionRestoreEnabled),
+	}
+}
+
+func parseCrossRegionRestore(input string) (*CrossRegionRestore, error) {
+	vals := map[string]CrossRegionRestore{
+		"disabled": CrossRegionRestoreDisabled,
+		"enabled":  CrossRegionRestoreEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CrossRegionRestore(input)
+	return &out, nil
+}
+
+type ImmutabilityState string
+
+const (
+	ImmutabilityStateDisabled ImmutabilityState = "Disabled"
+	ImmutabilityStateLocked   ImmutabilityState = "Locked"
+	ImmutabilityStateUnlocked ImmutabilityState = "Unlocked"
+)
+
+func PossibleValuesForImmutabilityState() []string {
+	return []string{
+		string(ImmutabilityStateDisabled),
+		string(ImmutabilityStateLocked),
+		string(ImmutabilityStateUnlocked),
+	}
+}
+
+func parseImmutabilityState(input string) (*ImmutabilityState, error) {
+	vals := map[string]ImmutabilityState{
+		"disabled": ImmutabilityStateDisabled,
+		"locked":   ImmutabilityStateLocked,
+		"unlocked": ImmutabilityStateUnlocked,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ImmutabilityState(input)
+	return &out, nil
+}
+
 type InfrastructureEncryptionState string
 
 const (
@@ -101,6 +219,34 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 	return &out, nil
 }
 
+type PublicNetworkAccess string
+
+const (
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	PublicNetworkAccessEnabled  PublicNetworkAccess = "Enabled"
+)
+
+func PossibleValuesForPublicNetworkAccess() []string {
+	return []string{
+		string(PublicNetworkAccessDisabled),
+		string(PublicNetworkAccessEnabled),
+	}
+}
+
+func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
+	vals := map[string]PublicNetworkAccess{
+		"disabled": PublicNetworkAccessDisabled,
+		"enabled":  PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PublicNetworkAccess(input)
+	return &out, nil
+}
+
 type ResourceMoveState string
 
 const (
@@ -181,6 +327,37 @@ func parseSkuName(input string) (*SkuName, error) {
 	return &out, nil
 }
 
+type StandardTierStorageRedundancy string
+
+const (
+	StandardTierStorageRedundancyGeoRedundant     StandardTierStorageRedundancy = "GeoRedundant"
+	StandardTierStorageRedundancyLocallyRedundant StandardTierStorageRedundancy = "LocallyRedundant"
+	StandardTierStorageRedundancyZoneRedundant    StandardTierStorageRedundancy = "ZoneRedundant"
+)
+
+func PossibleValuesForStandardTierStorageRedundancy() []string {
+	return []string{
+		string(StandardTierStorageRedundancyGeoRedundant),
+		string(StandardTierStorageRedundancyLocallyRedundant),
+		string(StandardTierStorageRedundancyZoneRedundant),
+	}
+}
+
+func parseStandardTierStorageRedundancy(input string) (*StandardTierStorageRedundancy, error) {
+	vals := map[string]StandardTierStorageRedundancy{
+		"georedundant":     StandardTierStorageRedundancyGeoRedundant,
+		"locallyredundant": StandardTierStorageRedundancyLocallyRedundant,
+		"zoneredundant":    StandardTierStorageRedundancyZoneRedundant,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := StandardTierStorageRedundancy(input)
+	return &out, nil
+}
+
 type TriggerType string
 
 const (
@@ -234,6 +411,37 @@ func parseVaultPrivateEndpointState(input string) (*VaultPrivateEndpointState, e
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := VaultPrivateEndpointState(input)
+	return &out, nil
+}
+
+type VaultSubResourceType string
+
+const (
+	VaultSubResourceTypeAzureBackup          VaultSubResourceType = "AzureBackup"
+	VaultSubResourceTypeAzureBackupSecondary VaultSubResourceType = "AzureBackup_secondary"
+	VaultSubResourceTypeAzureSiteRecovery    VaultSubResourceType = "AzureSiteRecovery"
+)
+
+func PossibleValuesForVaultSubResourceType() []string {
+	return []string{
+		string(VaultSubResourceTypeAzureBackup),
+		string(VaultSubResourceTypeAzureBackupSecondary),
+		string(VaultSubResourceTypeAzureSiteRecovery),
+	}
+}
+
+func parseVaultSubResourceType(input string) (*VaultSubResourceType, error) {
+	vals := map[string]VaultSubResourceType{
+		"azurebackup":           VaultSubResourceTypeAzureBackup,
+		"azurebackup_secondary": VaultSubResourceTypeAzureBackupSecondary,
+		"azuresiterecovery":     VaultSubResourceTypeAzureSiteRecovery,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VaultSubResourceType(input)
 	return &out, nil
 }
 
