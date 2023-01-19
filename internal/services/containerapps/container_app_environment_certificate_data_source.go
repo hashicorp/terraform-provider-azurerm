@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -46,7 +46,7 @@ func (r ContainerAppEnvironmentCertificateDataSource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: helpers.ValidateCertificateName,
+			ValidateFunc: validate.ValidateCertificateName,
 			Description:  "The name of the Container Apps Certificate.",
 		},
 

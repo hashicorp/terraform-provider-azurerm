@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -26,7 +26,7 @@ type ContainerAppCertificateModel struct {
 
 	// Write only?
 	CertificatePassword string `tfschema:"certificate_password"`
-	CertificateBlob     string `tfschema:"certificate_blob"`
+	CertificateBlob     string `tfschema:"certificate_blob_base64"`
 
 	// Read Only
 	SubjectName    string `tfschema:"subject_name"`
@@ -56,7 +56,7 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: helpers.ValidateCertificateName,
+			ValidateFunc: validate.ValidateCertificateName,
 			Description:  "The name of the Container Apps Environment Certificate.",
 		},
 
@@ -68,7 +68,7 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Description:  "The Container App Managed Environment ID to configure this Certificate on.",
 		},
 
-		"certificate_blob": {
+		"certificate_blob_base64": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -195,7 +195,7 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 				state.Tags = tags.Flatten(model.Tags)
 
 				// The Certificate Blob and Password are not retrievable in any way, so grab them back from config if we can. Imports will need `ignore_changes`.
-				if certBlob, ok := metadata.ResourceData.GetOk("certificate_blob"); ok {
+				if certBlob, ok := metadata.ResourceData.GetOk("certificate_blob_base64"); ok {
 					state.CertificateBlob = certBlob.(string)
 				}
 
@@ -218,7 +218,7 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 
 func (r ContainerAppEnvironmentCertificateResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.CertificatesClient
 

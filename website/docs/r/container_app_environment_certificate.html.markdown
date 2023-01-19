@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `container_app_environment_id` - (Required) The Container App Managed Environment ID to configure this Certificate on. Changing this forces a new resource to be created.
 
-* `certificate_blob` - (Required) The Certificate Private Key as a base64 encoded PFX or PEM. Changing this forces a new resource to be created.
+* `certificate_blob_base64` - (Required) The Certificate Private Key as a base64 encoded PFX or PEM. Changing this forces a new resource to be created.
 
 * `certificate_password` - (Required) The password for the Certificate. Changing this forces a new resource to be created.
 
@@ -81,11 +81,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Certificate.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Container App Environment Certificate.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Certificate.
 
 ## Import
 
-a Container App Environment Certificate can be imported using the `resource id`, e.g.
+A Container App Environment Certificate can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_container_app_environment_certificate.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/certificates/mycertificate"

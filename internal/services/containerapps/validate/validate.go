@@ -92,3 +92,18 @@ func ValidateContainerCpu(i interface{}, k string) (warnings []string, errors []
 
 	return
 }
+
+func ValidateManagedEnvironmentStorageName(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,30}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
+		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters", k))
+		return
+	}
+
+	return
+}
