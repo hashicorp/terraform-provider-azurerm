@@ -34,14 +34,6 @@ type ContainerAppEnvironmentModel struct {
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
 	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip"`
 	StaticIP              string `tfschema:"static_ip"`
-
-	// System Data - R/O
-	CreatedAt          string `tfschema:"created_at"`
-	CreatedBy          string `tfschema:"created_by"`
-	CreatedByType      string `tfschema:"created_by_type"`
-	LastModifiedAt     string `tfschema:"last_modified_at"`
-	LastModifiedBy     string `tfschema:"last_modified_by"`
-	LastModifiedByType string `tfschema:"last_modified_by_type"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentResource{}
@@ -103,24 +95,6 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 
 func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"created_at": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The time and date at which this Container App Environment was created.",
-		},
-
-		"created_by": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The user or principal which created this Container App Environment.",
-		},
-
-		"created_by_type": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The type of account which created this Container App Environment.",
-		},
-
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -131,24 +105,6 @@ func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Sche
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.",
-		},
-
-		"last_modified_at": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The time and date at which this Container App Environment was last modified.",
-		},
-
-		"last_modified_by": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The user or principal which last modified this Container App Environment.",
-		},
-
-		"last_modified_by_type": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The type of account which last modified this Container App Environment.",
 		},
 
 		"platform_reserved_cidr": {
@@ -204,16 +160,19 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
-			if err != nil || workspace.Model == nil || workspace.Model.Properties == nil {
+			if err != nil {
 				return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
 			}
 
-			if workspace.Model.Properties.CustomerId == nil {
+			if workspace.Model == nil || workspace.Model.Properties == nil {
+				if workspace.Model.Properties.CustomerId == nil {
+					return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
+				}
 				return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
 			}
 
 			keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
-			if err != nil || keys.Model == nil {
+			if err != nil {
 				return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
 			}
 
@@ -290,15 +249,6 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 				}
-
-				if sysData := model.SystemData; sysData != nil {
-					state.CreatedAt = sysData.CreatedAt
-					state.CreatedBy = sysData.CreatedBy
-					state.CreatedByType = sysData.CreatedByType
-					state.LastModifiedAt = sysData.LastModifiedAt
-					state.LastModifiedBy = sysData.LastModifiedBy
-					state.LastModifiedByType = sysData.LastModifiedbyType
-				}
 			}
 
 			// Reading in log_analytics_workspace_id is not possible, so reading from config. Import will need to ignore_changes unfortunately
@@ -350,7 +300,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil || existing.Model == nil {
+			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 

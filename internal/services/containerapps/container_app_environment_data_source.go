@@ -34,14 +34,6 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
 	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip"`
 	StaticIP              string `tfschema:"static_ip"`
-
-	// System Data - R/O
-	CreatedAt          string `tfschema:"created_at"`
-	CreatedBy          string `tfschema:"created_by"`
-	CreatedByType      string `tfschema:"created_by_type"`
-	LastModifiedAt     string `tfschema:"last_modified_at"`
-	LastModifiedBy     string `tfschema:"last_modified_by"`
-	LastModifiedByType string `tfschema:"last_modified_by_type"`
 }
 
 var _ sdk.DataSource = ContainerAppEnvironmentDataSource{}
@@ -97,24 +89,6 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.TagsDataSource(),
 
-		"created_at": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The time and date at which this Container App Environment was created.",
-		},
-
-		"created_by": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The user or principal which created this Container App Environment.",
-		},
-
-		"created_by_type": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The type of account which created this Container App Environment.",
-		},
-
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -125,24 +99,6 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.",
-		},
-
-		"last_modified_at": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The time and date at which this Container App Environment was last modified.",
-		},
-
-		"last_modified_by": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The user or principal which last modified this Container App Environment.",
-		},
-
-		"last_modified_by_type": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The type of account which last modified this Container App Environment.",
 		},
 
 		"platform_reserved_cidr": {
@@ -209,15 +165,6 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 
 					environment.StaticIP = pointer.From(props.StaticIP)
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
-				}
-
-				if sysData := model.SystemData; sysData != nil {
-					environment.CreatedAt = sysData.CreatedAt
-					environment.CreatedBy = sysData.CreatedBy
-					environment.CreatedByType = sysData.CreatedByType
-					environment.LastModifiedAt = sysData.LastModifiedAt
-					environment.LastModifiedBy = sysData.LastModifiedBy
-					environment.LastModifiedByType = sysData.LastModifiedbyType
 				}
 			}
 
