@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -988,10 +987,10 @@ func TestAccMsSqlManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1003,24 +1002,24 @@ func TestAccMsSqlManagedInstance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1032,10 +1031,10 @@ func TestAccMsSqlManagedInstance_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1047,10 +1046,10 @@ func TestAccMsSqlManagedInstance_backupRedundancyLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageType(data, "LRS"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1062,10 +1061,10 @@ func TestAccMsSqlManagedInstance_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
 			),
@@ -1073,7 +1072,7 @@ func TestAccMsSqlManagedInstance_identity(t *testing.T) {
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.identity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
@@ -1085,7 +1084,7 @@ func TestAccMsSqlManagedInstance_identity(t *testing.T) {
 		/*
 			{
 				Config: r.basic(data),
-				Check: resource.ComposeTestCheckFunc(
+				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("identity.#").HasValue("0"),
 				),
@@ -1099,24 +1098,24 @@ func TestAccMsSqlManagedInstance_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.multiple(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1128,17 +1127,17 @@ func TestAccMsSqlManagedInstance_dnsZonePartner(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dnsZonePartnerPrep(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.dnsZonePartner(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1146,7 +1145,7 @@ func TestAccMsSqlManagedInstance_dnsZonePartner(t *testing.T) {
 		{
 			// DNS Zone Partner empty makes delete faster as MI can be destroyed simultaneously
 			Config: r.emptyDnsZonePartner(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1158,17 +1157,17 @@ func TestAccMsSqlManagedInstance_multipleDnsZonePartners(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dnsZonePartnersPrep(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.dnsZonePartners(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1176,7 +1175,7 @@ func TestAccMsSqlManagedInstance_multipleDnsZonePartners(t *testing.T) {
 		{
 			// DNS Zone Partner empty makes delete faster as MI can be destroyed simultaneously
 			Config: r.emptyDnsZonePartners(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1188,10 +1187,10 @@ func TestAccMsSqlManagedInstance_withMaintenanceConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withMaintenanceConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1199,7 +1198,7 @@ func TestAccMsSqlManagedInstance_withMaintenanceConfig(t *testing.T) {
 	})
 }
 
-func (r MsSqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MsSqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedInstanceID(state.ID)
 	if err != nil {
 		return nil, err
