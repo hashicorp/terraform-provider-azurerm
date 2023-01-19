@@ -3,7 +3,6 @@ package containerapps
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -20,7 +20,7 @@ type ContainerAppEnvironmentDaprComponentResource struct{}
 type ContainerAppEnvironmentDaprComponentModel struct {
 	Name                 string                 `tfschema:"name"`
 	ManagedEnvironmentId string                 `tfschema:"container_app_environment_id"`
-	Type                 string                 `tfschema:"type"`
+	ComponentType        string                 `tfschema:"component_type"`
 	Version              string                 `tfschema:"version"`
 	IgnoreErrors         bool                   `tfschema:"ignore_errors"`
 	InitTimeout          string                 `tfschema:"init_timeout"`
@@ -49,7 +49,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: helpers.ValidateDaprComponentName,
+			ValidateFunc: validate.ValidateDaprComponentName,
 			Description:  "The name for this Dapr Component.",
 		},
 
@@ -80,7 +80,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "5s",
-			ValidateFunc: helpers.ValidateInitTimeout,
+			ValidateFunc: validate.ValidateInitTimeout,
 			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`. Defaults to `5s`.",
 		},
 
@@ -144,12 +144,12 @@ func (r ContainerAppEnvironmentDaprComponentResource) Create() sdk.ResourceFunc 
 
 			daprComponentRequest := daprcomponents.DaprComponent{
 				Properties: &daprcomponents.DaprComponentProperties{
-					ComponentType: pointer.To(daprComponent.Type),
+					ComponentType: pointer.To(daprComponent.ComponentType),
 					IgnoreErrors:  pointer.To(daprComponent.IgnoreErrors),
 					InitTimeout:   pointer.To(daprComponent.InitTimeout),
 					Metadata:      expandDaprComponentPropertiesMetadata(daprComponent.Metadata),
 					Secrets:       helpers.ExpandDaprSecrets(daprComponent.Secrets),
-					Scopes:        expandDaprComponentPropertiesScopes(daprComponent.Scopes),
+					Scopes:        pointer.To(daprComponent.Scopes),
 					Version:       pointer.To(daprComponent.Version),
 				},
 			}
@@ -194,7 +194,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Read() sdk.ResourceFunc {
 			state.ManagedEnvironmentId = daprcomponents.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName).ID()
 			if props := model.Properties; props != nil {
 				state.Version = pointer.From(props.Version)
-				state.Type = pointer.From(props.ComponentType)
+				state.ComponentType = pointer.From(props.ComponentType)
 				state.Scopes = pointer.From(props.Scopes)
 				state.InitTimeout = pointer.From(props.InitTimeout)
 				state.IgnoreErrors = pointer.From(props.IgnoreErrors)
@@ -202,11 +202,10 @@ func (r ContainerAppEnvironmentDaprComponentResource) Read() sdk.ResourceFunc {
 			}
 
 			secretsResp, err := client.ListSecrets(ctx, *id)
-			if err != nil || secretsResp.Model == nil {
-				if secretsResp.HttpResponse == nil || secretsResp.HttpResponse.StatusCode != http.StatusNoContent {
-					return fmt.Errorf("retrieving secrets for %s: %+v", *id, err)
-				}
+			if err != nil {
+				return fmt.Errorf("retrieving secrets for %s: %+v", *id, err)
 			}
+
 			state.Secrets = helpers.FlattenContainerAppDaprSecrets(secretsResp.Model)
 
 			return metadata.Encode(&state)
@@ -216,7 +215,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Read() sdk.ResourceFunc {
 
 func (r ContainerAppEnvironmentDaprComponentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.DaprComponentsClient
 			id, err := daprcomponents.ParseDaprComponentID(metadata.ResourceData.Id())
@@ -224,11 +223,10 @@ func (r ContainerAppEnvironmentDaprComponentResource) Delete() sdk.ResourceFunc 
 				return err
 			}
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -256,10 +254,8 @@ func (r ContainerAppEnvironmentDaprComponentResource) Update() sdk.ResourceFunc 
 
 			// Populate the secrets from the List API to prevent accidental removal.
 			secretsResp, err := client.ListSecrets(ctx, *id)
-			if err != nil || secretsResp.Model == nil {
-				if secretsResp.HttpResponse == nil || secretsResp.HttpResponse.StatusCode != http.StatusNoContent {
-					return fmt.Errorf("retrieving secrets for %s: %+v", *id, err)
-				}
+			if err != nil {
+				return fmt.Errorf("retrieving secrets for %s: %+v", *id, err)
 			}
 
 			existing.Model.Properties.Secrets = helpers.UnpackContainerDaprSecretsCollection(secretsResp.Model)
@@ -285,7 +281,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("scopes") {
-				existing.Model.Properties.Scopes = expandDaprComponentPropertiesScopes(state.Scopes)
+				existing.Model.Properties.Scopes = pointer.To(state.Scopes)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -335,12 +331,4 @@ func flattenDaprComponentPropertiesMetadata(input *[]daprcomponents.DaprMetadata
 	}
 
 	return result
-}
-
-func expandDaprComponentPropertiesScopes(input []string) *[]string {
-	if input == nil {
-		return nil
-	}
-
-	return &input
 }

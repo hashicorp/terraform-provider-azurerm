@@ -3,22 +3,41 @@ subcategory: "Container Apps"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_app_environment_dapr_component"
 description: |-
-  Manages a Container App Environment Dapr Component.
+  Manages a Dapr Component for a Container App Environment.
 ---
 
 # azurerm_container_app_environment_dapr_component
 
-Manages a Container App Environment Dapr Component.
+Manages a Dapr Component for a Container App Environment.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_container_app_environment_dapr_component" "example" {
-  container_app_environment_id = "example"
-  name                         = "example"
-  type                         = "example"
-  version                      = "example"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
 
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "acctest-01"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_container_app_environment" "example" {
+  name                       = "myEnvironment"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+}
+
+resource "azurerm_container_app_environment_dapr_component" "example" {
+  name                         = "mydaprcomponent"
+  container_app_environment_id = azurerm_container_app_environment.example.id
+  component_type               = "state.azure.blobstorage"
+  version                      = "v1"
 }
 ```
 
@@ -26,7 +45,7 @@ resource "azurerm_container_app_environment_dapr_component" "example" {
 
 The following arguments are supported:
 
-* `container_app_environment_id` - (Required) The Container App Managed Environment ID to configure this Dapr component on. Changing this forces a new resource to be created.
+* `container_app_environment_id` - (Required) The ID of the Container App Managed Environment where the Dapr Component should be configured. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name for this Dapr component. Changing this forces a new resource to be created.
 
@@ -42,7 +61,9 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A `metadata` block as detailed below.
 
-* `scopes` - (Optional) A list of scopes to which this component applies. e.g. a Container App's `dapr.app_id` value.
+* `scopes` - (Optional) A list of scopes to which this component applies. 
+
+~> **NOTE:** This is the advertised scope to be used in a Container App's `dapr.0.app_id` value.
 
 * `secret` - (Optional) A `secret` block as detailed below.
 
@@ -78,11 +99,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Dapr Component.
 * `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Dapr Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Dapr Component.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Container App Environment Dapr Component.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Dapr Component.
 
 ## Import
 
-a Container App Environment Dapr Component can be imported using the `resource id`, e.g.
+A Dapr Component for a Container App Environment can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_container_app_environment_dapr_component.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/daprComponents/mydaprcomponent"

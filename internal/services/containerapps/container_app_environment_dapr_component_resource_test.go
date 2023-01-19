@@ -96,12 +96,8 @@ func (r ContainerAppEnvironmentDaprComponentResource) Exists(ctx context.Context
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if response.WasNotFound(resp.HttpResponse) {
-		return pointer.To(false), nil
-	}
 
-	return pointer.To(true), nil
-
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ContainerAppEnvironmentDaprComponentResource) basic(data acceptance.TestData) string {
