@@ -613,7 +613,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
 	}
 
-	flattenIdentity := flattenVaultIdentity(model.Identity)
+	flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
@@ -684,15 +684,6 @@ func validateIdentityUpdate(origin identity.SystemAndUserAssignedMap, target ide
 	return true
 }
 
-func flattenVaultIdentity(input *identity.SystemAndUserAssignedMap) []interface{} {
-	systemAssignedIdentity := &identity.SystemAssigned{
-		Type:        input.Type,
-		PrincipalId: input.PrincipalId,
-		TenantId:    input.TenantId,
-	}
-	return identity.FlattenSystemAssigned(systemAssignedIdentity)
-}
-
 func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncryption {
 	encryptionRaw := d.Get("encryption")
 	if encryptionRaw == nil {
@@ -740,6 +731,9 @@ func flattenVaultEncryption(model vaults.Vault) interface{} {
 	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyUri
 	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
 	encryptionMap["infrastructure_encryption_enabled"] = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
+	if encryption.KekIdentity.UserAssignedIdentity != nil {
+		encryptionMap["user_assigned_identity_id"] = *encryption.KekIdentity.UserAssignedIdentity
+	}
 	return encryptionMap
 }
 

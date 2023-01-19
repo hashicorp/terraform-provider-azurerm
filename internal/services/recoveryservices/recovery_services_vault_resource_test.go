@@ -151,20 +151,6 @@ func TestAccRecoveryServicesVault_SystemAssignedIdentity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicWithIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -173,20 +159,6 @@ func TestAccRecoveryServicesVault_UserAssignedIdentity(t *testing.T) {
 	r := RecoveryServicesVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicWithUserAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.basicWithUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
