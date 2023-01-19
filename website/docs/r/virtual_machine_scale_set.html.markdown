@@ -393,9 +393,11 @@ The `os_profile` block supports the following:
 The `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the key vault to use.
-* `vault_certificates` - (Optional) (Required, on windows machines) A collection of Vault Certificates as documented below
+* `vault_certificates` - (Optional) (Required, on Windows machines) One or more `vault_certificates` blocks as defined below.
 
-`vault_certificates` support the following:
+---
+
+A `vault_certificates` block support the following:
 
 * `certificate_url` - (Required) It is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be `data`, `dataType` and `password`.
 * `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
@@ -430,9 +432,12 @@ The `additional_unattend_config` block supports the following:
 The `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Optional) Specifies whether password authentication should be disabled. Defaults to `false`. Changing this forces a new resource to be created.
-* `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
 
-~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_
+* `ssh_keys` - (Optional) One or more `ssh_keys` blocks as defined below.
+
+~> **Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure.
+
+~> **NOTE:** At least one `ssh_keys` block is required if `disable_password_authentication` is set to `true`.
 
 ---
 
@@ -478,6 +483,20 @@ The `public_ip_address_configuration` block supports the following:
 * `name` - (Required) The name of the public IP address configuration
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the DNS settings.
+
+---
+
+A `ssh_keys` block supports the following:
+
+* `key_data` - (Required) The Public SSH Key which should be written to the `path` defined above.
+
+~> **Note:** Azure only supports RSA SSH2 key signatures of at least 2048 bits in length
+
+-> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
+
+* `path` - (Required) The path of the destination file on the virtual machine
+
+-> **NOTE:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
 
 ---
 
