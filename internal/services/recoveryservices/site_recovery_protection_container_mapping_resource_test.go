@@ -205,7 +205,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   name                                      = "mapping-%d"
-  automatic_update_extension {
+  automatic_update {
     enabled               = %v
     automation_account_id = azurerm_automation_account.test.id
   }

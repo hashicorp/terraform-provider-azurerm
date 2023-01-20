@@ -95,11 +95,11 @@ The following arguments are supported:
 
 * `recovery_replication_policy_id` - (Required) Id of the policy to use for this mapping. Changing this forces a new resource to be created.
 
-* `automatic_update_extension` - (Optional) a `automatic_update_extension` block defined as below.
+* `automatic_update` - (Optional) a `automatic_update` block defined as below.
 
 ---
 
-An `automatic_update_extension` block supports the following:
+An `automatic_update` block supports the following:
 
 * `enabled` - (Optional) Should the Mobility service installed on Azure virtual machines be automatically updated. Defaults to `false`.
 

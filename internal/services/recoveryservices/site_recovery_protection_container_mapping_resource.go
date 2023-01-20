@@ -78,7 +78,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-			"automatic_update_extension": {
+			"automatic_update": {
 				Type:     pluginsdk.TypeList,
 				MinItems: 1,
 				MaxItems: 1,
@@ -141,7 +141,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension").([]interface{}))
+	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
 
 	if autoUpdateEnabledValue == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled {
 		parameters.Properties.ProviderSpecificInput = replicationprotectioncontainermappings.A2AContainerMappingInput{
@@ -190,8 +190,8 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 		Properties: &replicationprotectioncontainermappings.UpdateProtectionContainerMappingInputProperties{},
 	}
 
-	if d.HasChange("automatic_update_extension") {
-		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update_extension").([]interface{}))
+	if d.HasChange("automatic_update") {
+		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
 		updateInput := replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
 			AgentAutoUpdateStatus:  &autoUpdateEnabledValue,
 			AutomationAccountArmId: automationAccountArmId,
@@ -241,9 +241,9 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 		d.Set("recovery_target_protection_container_id", model.Properties.TargetProtectionContainerId)
 
 		if detail, ok := prop.ProviderSpecificDetails.(replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails); ok {
-			d.Set("automatic_update_extension", flattenAutoUpdateSettings(&detail))
+			d.Set("automatic_update", flattenAutoUpdateSettings(&detail))
 		} else {
-			d.Set("automatic_update_extension", flattenAutoUpdateSettings(nil))
+			d.Set("automatic_update", flattenAutoUpdateSettings(nil))
 		}
 	}
 
