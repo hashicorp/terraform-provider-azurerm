@@ -225,8 +225,9 @@ provider "azurerm" {
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "pool"
-  loadbalancer_id = azurerm_lb.test.id
+  name               = "pool"
+  loadbalancer_id    = azurerm_lb.test.id
+  virtual_network_id = azurerm_virtual_network.test.id
 }
 `, template)
 }
@@ -253,8 +254,9 @@ provider "azurerm" {
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "pool"
-  loadbalancer_id = azurerm_lb.test.id
+  name               = "pool"
+  loadbalancer_id    = azurerm_lb.test.id
+  virtual_network_id = azurerm_virtual_network.test.id
 }
 `, template)
 }
@@ -349,6 +351,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
     protocol   = "VXLAN"
     port       = 15001
   }
+  virtual_network_id = azurerm_virtual_network.test.id
 }
 `, r.templateGateway(data))
 }
