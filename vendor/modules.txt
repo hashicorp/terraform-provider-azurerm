@@ -201,7 +201,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedh
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/virtualmachines
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots
