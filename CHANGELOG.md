@@ -28,6 +28,7 @@ BUG FIXES:
 * `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue [GH-20002]
 * `azurerm_container_registry_task` - the field `password` is now correctly marked as a sensitive value [GH-20061]
 * `azurerm_dev_test_windows_virtual_machine` - the `password` field is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_federated_identity_credential` - preent concurrent write to parent resource [GH-20003]
 * `azurerm_linux_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
 * `azurerm_postgresql_flexible_server_configuration` - restart server when required [GH-20044]
 * `azurerm_kubernetes_cluster` - prevent panic while importing [GH-20107]
