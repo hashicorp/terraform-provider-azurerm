@@ -37,6 +37,7 @@ BUG FIXES:
 * `azurerm_spring_cloud_configuration_service ` - the field `private_key` is now correctly marked as a sensitive value [GH-20061]
 * `azurerm_static_site` - the field `api_key` is now correctly marked as a sensitive value [GH-20061]
 * `azurerm_storage_account` - will no longer silently ignore `404` error while reading service properties [GH-19062]
+* `azurerm_storage_account` - the `infrastructure_encryption_enabled` is now supportted for premium accounts [GH-20028]
 * `azurerm_windows_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
 
 ## 3.39.1 (January 13, 2023)
