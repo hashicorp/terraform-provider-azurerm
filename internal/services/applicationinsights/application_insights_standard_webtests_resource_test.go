@@ -96,9 +96,9 @@ resource "azurerm_application_insights_standard_web_test" "test" {
   request {
     url = "https://microsoft.com"
   }
-	validation_rules {
+  validation_rules {
     ssl_check_enabled = true
-	}
+  }
 
   lifecycle {
     ignore_changes = ["tags"]
