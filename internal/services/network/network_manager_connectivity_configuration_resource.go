@@ -23,12 +23,12 @@ type ManagerConnectivityConfigurationModel struct {
 	DeleteExistingPeeringEnabled bool                         `tfschema:"delete_existing_peering_enabled"`
 	Description                  string                       `tfschema:"description"`
 	Hub                          []HubModel                   `tfschema:"hub"`
-	IsGlobal                     bool                         `tfschema:"is_global"`
+	GlobalMeshEnabled            bool                         `tfschema:"global_mesh_enabled"`
 }
 
 type ConnectivityGroupItemModel struct {
 	GroupConnectivity network.GroupConnectivity `tfschema:"group_connectivity"`
-	IsGlobal          bool                      `tfschema:"is_global"`
+	GlobalMeshEnabled bool                      `tfschema:"global_mesh_enabled"`
 	NetworkGroupId    string                    `tfschema:"network_group_id"`
 	UseHubGateway     bool                      `tfschema:"use_hub_gateway"`
 }
@@ -84,7 +84,7 @@ func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*plugin
 						}, false),
 					},
 
-					"is_global": {
+					"global_mesh_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
@@ -144,7 +144,7 @@ func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*plugin
 			},
 		},
 
-		"is_global": {
+		"global_mesh_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -184,7 +184,7 @@ func (r ManagerConnectivityConfigurationResource) Create() sdk.ResourceFunc {
 				ConnectivityConfigurationProperties: &network.ConnectivityConfigurationProperties{
 					ConnectivityTopology:  model.ConnectivityTopology,
 					DeleteExistingPeering: expandDeleteExistingPeering(model.DeleteExistingPeeringEnabled),
-					IsGlobal:              expandConnectivityConfIsGlobal(model.IsGlobal),
+					IsGlobal:              expandConnectivityConfIsGlobal(model.GlobalMeshEnabled),
 				},
 			}
 
@@ -276,8 +276,8 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 				properties.Hubs = hubsValue
 			}
 
-			if metadata.ResourceData.HasChange("is_global") {
-				properties.IsGlobal = expandConnectivityConfIsGlobal(model.IsGlobal)
+			if metadata.ResourceData.HasChange("global_mesh_enabled") {
+				properties.IsGlobal = expandConnectivityConfIsGlobal(model.GlobalMeshEnabled)
 			}
 
 			existing.SystemData = nil
@@ -329,7 +329,7 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 			state.AppliesToGroups = appliesToGroupsValue
 			state.ConnectivityTopology = properties.ConnectivityTopology
 			state.DeleteExistingPeeringEnabled = flattenDeleteExistingPeering(properties.DeleteExistingPeering)
-			state.IsGlobal = flattenConnectivityConfIsGlobal(properties.IsGlobal)
+			state.GlobalMeshEnabled = flattenConnectivityConfIsGlobal(properties.IsGlobal)
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
@@ -392,7 +392,7 @@ func expandConnectivityGroupItemModel(inputList []ConnectivityGroupItemModel) (*
 		input := v
 		output := network.ConnectivityGroupItem{
 			GroupConnectivity: input.GroupConnectivity,
-			IsGlobal:          expandConnectivityConfIsGlobal(input.IsGlobal),
+			IsGlobal:          expandConnectivityConfIsGlobal(input.GlobalMeshEnabled),
 			NetworkGroupID:    utils.String(input.NetworkGroupId),
 			UseHubGateway:     expandUseHubGateWay(input.UseHubGateway),
 		}
@@ -454,7 +454,7 @@ func flattenConnectivityGroupItemModel(inputList *[]network.ConnectivityGroupIte
 		output := ConnectivityGroupItemModel{
 			GroupConnectivity: input.GroupConnectivity,
 			UseHubGateway:     flattenUseHubGateWay(input.UseHubGateway),
-			IsGlobal:          flattenConnectivityConfIsGlobal(input.IsGlobal),
+			GlobalMeshEnabled: flattenConnectivityConfIsGlobal(input.IsGlobal),
 		}
 
 		if input.NetworkGroupID != nil {

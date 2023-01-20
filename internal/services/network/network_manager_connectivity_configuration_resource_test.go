@@ -229,19 +229,19 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   network_manager_id              = azurerm_network_manager.test.id
   connectivity_topology           = "HubAndSpoke"
   delete_existing_peering_enabled = false
-  is_global                       = false
+  global_mesh_enabled             = false
   description                     = "test connectivity configuration"
   applies_to_group {
-    group_connectivity = "None"
-    network_group_id   = azurerm_network_manager_network_group.test.id
-    is_global          = false
-    use_hub_gateway    = false
+    group_connectivity  = "None"
+    network_group_id    = azurerm_network_manager_network_group.test.id
+    global_mesh_enabled = false
+    use_hub_gateway     = false
   }
   applies_to_group {
-    group_connectivity = "DirectlyConnected"
-    network_group_id   = azurerm_network_manager_network_group.test2.id
-    is_global          = true
-    use_hub_gateway    = true
+    group_connectivity  = "DirectlyConnected"
+    network_group_id    = azurerm_network_manager_network_group.test2.id
+    global_mesh_enabled = true
+    use_hub_gateway     = true
   }
   hub {
     resource_id   = azurerm_virtual_network.test.id
@@ -261,7 +261,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   network_manager_id    = azurerm_network_manager.test.id
   connectivity_topology = "HubAndSpoke"
   description           = "test"
-  is_global             = true
+  global_mesh_enabled   = true
   applies_to_group {
     group_connectivity = "DirectlyConnected"
     network_group_id   = azurerm_network_manager_network_group.test.id

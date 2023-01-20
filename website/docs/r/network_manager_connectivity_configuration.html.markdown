@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of the Connectivity Configuration.
 
-* `is_global` - (Optional) Indicates whether to global mesh is supported. Possible values are `true` and `false`.
+* `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported. Possible values are `true` and `false`. 
  
 * `hub` - (Optional) A `hub` block as defined below.
  
@@ -90,7 +90,7 @@ An `applies_to_group` block supports the following:
 
 * `network_group_id` - (Required) Specifies the resource ID of Network Group which the configuration applies to.
  
-* `is_global` - (Optional) Indicates whether to global mesh is supported for this group. Possible values are `true` and `false`. 
+* `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported for this group. Possible values are `true` and `false`.
 
 -> **NOTE:** A group can be global only if the `group_connectivity` is `DirectlyConnected`. 
 
