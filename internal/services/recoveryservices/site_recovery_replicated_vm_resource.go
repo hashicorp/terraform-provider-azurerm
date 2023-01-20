@@ -330,8 +330,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-
-			},
+		},
 	}
 
 	if !features.FourPointOhBeta() {
