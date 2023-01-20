@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Mobile Network should exist. Changing this forces a new Mobile Network to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Mobile Network should exist. Changing this forces a new Mobile Network to be created. The available region is `East US`.
+* `location` - (Required) Specifies the Azure Region where the Mobile Network should exist. Changing this forces a new Mobile Network to be created. The possible values are `eastus` and `northeurope`.
 
 * `mobile_country_code` - (Required) Mobile country code (MCC), defined in https://www.itu.int/rec/T-REC-E.212 .
 
