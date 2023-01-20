@@ -73,6 +73,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
@@ -146,6 +147,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loganalytics.Registration{},
 		media.Registration{},
 		monitor.Registration{},
+		mobilenetwork.Registration{},
 		mssql.Registration{},
 		network.Registration{},
 		nginx.Registration{},
