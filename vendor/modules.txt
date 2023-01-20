@@ -103,9 +103,6 @@ github.com/Azure/go-autorest/tracing
 # github.com/agext/levenshtein v1.2.3
 ## explicit
 github.com/agext/levenshtein
-# github.com/apparentlymart/go-cidr v1.1.0
-## explicit
-github.com/apparentlymart/go-cidr/cidr
 # github.com/apparentlymart/go-textseg v1.0.0
 ## explicit
 github.com/apparentlymart/go-textseg/textseg
@@ -487,13 +484,13 @@ github.com/hashicorp/go-cty/cty/gocty
 github.com/hashicorp/go-cty/cty/json
 github.com/hashicorp/go-cty/cty/msgpack
 github.com/hashicorp/go-cty/cty/set
-# github.com/hashicorp/go-hclog v1.2.1
+# github.com/hashicorp/go-hclog v1.4.0
 ## explicit; go 1.13
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.1.1
 ## explicit; go 1.13
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-plugin v1.4.6
+# github.com/hashicorp/go-plugin v1.4.8
 ## explicit; go 1.17
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
@@ -542,7 +539,7 @@ github.com/hashicorp/terraform-exec/tfexec
 # github.com/hashicorp/terraform-json v0.14.0
 ## explicit; go 1.13
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-go v0.14.1
+# github.com/hashicorp/terraform-plugin-go v0.14.3
 ## explicit; go 1.18
 github.com/hashicorp/terraform-plugin-go/internal/logging
 github.com/hashicorp/terraform-plugin-go/tfprotov5
@@ -570,10 +567,8 @@ github.com/hashicorp/terraform-plugin-log/tfsdklog
 # github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.1
 ## explicit; go 1.18
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
-github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging
-github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation
@@ -584,12 +579,22 @@ github.com/hashicorp/terraform-plugin-sdk/v2/internal/helper/hashcode
 github.com/hashicorp/terraform-plugin-sdk/v2/internal/logging
 github.com/hashicorp/terraform-plugin-sdk/v2/internal/plans/objchange
 github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugin/convert
-github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugintest
 github.com/hashicorp/terraform-plugin-sdk/v2/internal/tfdiags
 github.com/hashicorp/terraform-plugin-sdk/v2/meta
 github.com/hashicorp/terraform-plugin-sdk/v2/plugin
 github.com/hashicorp/terraform-plugin-sdk/v2/terraform
-# github.com/hashicorp/terraform-registry-address v0.0.0-20220623143253-7d51757b572c
+# github.com/hashicorp/terraform-plugin-testing v1.0.0
+## explicit; go 1.18
+github.com/hashicorp/terraform-plugin-testing/helper/acctest
+github.com/hashicorp/terraform-plugin-testing/helper/resource
+github.com/hashicorp/terraform-plugin-testing/internal/addrs
+github.com/hashicorp/terraform-plugin-testing/internal/configs/configschema
+github.com/hashicorp/terraform-plugin-testing/internal/configs/hcl2shim
+github.com/hashicorp/terraform-plugin-testing/internal/logging
+github.com/hashicorp/terraform-plugin-testing/internal/plugintest
+github.com/hashicorp/terraform-plugin-testing/internal/tfdiags
+github.com/hashicorp/terraform-plugin-testing/terraform
+# github.com/hashicorp/terraform-registry-address v0.1.0
 ## explicit; go 1.14
 github.com/hashicorp/terraform-registry-address
 # github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734
@@ -696,7 +701,7 @@ github.com/zclconf/go-cty/cty/function/stdlib
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
 github.com/zclconf/go-cty/cty/set
-# golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
+# golang.org/x/crypto v0.5.0
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
@@ -704,8 +709,8 @@ golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
+golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
-golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
 golang.org/x/crypto/openpgp/elgamal
@@ -716,12 +721,12 @@ golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-# golang.org/x/mod v0.5.1
+# golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 ## explicit; go 1.17
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
+# golang.org/x/net v0.5.0
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -735,24 +740,24 @@ golang.org/x/net/trace
 ## explicit; go 1.11
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20220517195934-5e4e11fc645e
+# golang.org/x/sys v0.4.0
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
-golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
-# golang.org/x/text v0.3.7
+# golang.org/x/text v0.6.0
 ## explicit; go 1.17
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.1.8
-## explicit; go 1.17
+# golang.org/x/tools v0.1.12
+## explicit; go 1.18
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/gcimporter
 golang.org/x/tools/go/internal/packagesdriver
+golang.org/x/tools/go/internal/pkgbits
 golang.org/x/tools/go/packages
 golang.org/x/tools/imports
 golang.org/x/tools/internal/event
@@ -766,10 +771,6 @@ golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
-# golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
-## explicit; go 1.11
-golang.org/x/xerrors
-golang.org/x/xerrors/internal
 # google.golang.org/appengine v1.6.7
 ## explicit; go 1.11
 google.golang.org/appengine
@@ -788,7 +789,7 @@ google.golang.org/appengine/urlfetch
 # google.golang.org/genproto v0.0.0-20210629200056-84d6f6074151
 ## explicit; go 1.11
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.50.1
+# google.golang.org/grpc v1.51.0
 ## explicit; go 1.17
 google.golang.org/grpc
 google.golang.org/grpc/attributes
