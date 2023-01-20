@@ -231,6 +231,11 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
+			// protected files field not return by API so decode from state
+			if err := meta.Decode(&output); err != nil {
+				return err
+			}
+
 			deployID := nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName)
 			output.NginxDeploymentId = deployID.ID()
 
@@ -250,6 +255,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					}
 				}
 
+				// GET does not return protected files
 				if files := prop.ProtectedFiles; files != nil {
 					for _, file := range *files {
 						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
@@ -280,28 +286,7 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			upd := nginxconfiguration.NginxConfiguration{
-				Name:       pointer.FromString(defaultConfigurationName),
-				Properties: &nginxconfiguration.NginxConfigurationProperties{},
-			}
-
-			// root file is required in update
-			upd.Properties.RootFile = pointer.FromString(model.RootFile)
-
-			if meta.ResourceData.HasChange("config_file") {
-				upd.Properties.Files = model.toSDKFiles()
-			}
-
-			if meta.ResourceData.HasChange("protected_file") {
-				upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
-			}
-
-			if meta.ResourceData.HasChange("package_data") {
-				upd.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
-					Data: pointer.FromString(model.PackageData),
-				}
-			}
-
+			upd := model.ToSDKModel()
 			result, err := client.ConfigurationsCreateOrUpdate(ctx, *id, upd)
 			if err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
