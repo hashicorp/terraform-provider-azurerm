@@ -4,6 +4,7 @@ FEATURES
 
 * **New Data Source:** `azurerm_bastion_host` [GH-20062]
 * **New Resource:** `azurerm_lab_service_schedule` [GH-19977]
+* **New Resource:** `azurerm_machine_learning_datastore_blobstorage` [GH-19909]
 * **New Resource:** `azurerm_network_manager_scope_connection` [GH-19610]
 * **New Resource:** `azurerm_network_manager_static_member` [GH-20077]
 * **New Resource:** `azurerm_sentinel_log_analytics_workspace_onboarding` [GH-19692]
