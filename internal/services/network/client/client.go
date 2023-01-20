@@ -26,6 +26,7 @@ type Client struct {
 	IPGroupsClient                          *network.IPGroupsClient
 	LocalNetworkGatewaysClient              *network.LocalNetworkGatewaysClient
 	ManagersClient                          *network.ManagersClient
+	ManagerConnectivityConfigurationsClient *network.ConnectivityConfigurationsClient
 	ManagerManagementGroupConnectionsClient *network.ManagementGroupNetworkManagerConnectionsClient
 	ManagerNetworkGroupsClient              *network.GroupsClient
 	ManagerScopeConnectionsClient           *network.ScopeConnectionsClient
@@ -131,6 +132,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ManagersClient := network.NewManagersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagersClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagerConnectivityConfigurationsClient := network.NewConnectivityConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerConnectivityConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	ManagerScopeConnectionsClient := network.NewScopeConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerScopeConnectionsClient.Client, o.ResourceManagerAuthorizer)
@@ -282,6 +286,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		IPGroupsClient:                          &IpGroupsClient,
 		LocalNetworkGatewaysClient:              &LocalNetworkGatewaysClient,
 		ManagersClient:                          &ManagersClient,
+		ManagerConnectivityConfigurationsClient: &ManagerConnectivityConfigurationsClient,
 		ManagerManagementGroupConnectionsClient: &ManagerManagementGroupConnectionsClient,
 		ManagerNetworkGroupsClient:              &ManagerNetworkGroupsClient,
 		ManagerScopeConnectionsClient:           &ManagerScopeConnectionsClient,
