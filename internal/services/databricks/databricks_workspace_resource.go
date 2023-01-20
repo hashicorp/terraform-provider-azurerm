@@ -92,7 +92,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"managed_disk_cmk_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
 

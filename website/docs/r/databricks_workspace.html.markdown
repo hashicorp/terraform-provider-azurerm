@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 
-* `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed disks. Changing this forces a new resource to be created.
+* `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed disks.
 
 * `managed_disk_cmk_rotation_to_latest_version_enabled` - (Optional) Whether customer managed keys for disk encryption will automatically be rotated to the latest version.
 
