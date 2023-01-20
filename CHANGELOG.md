@@ -1,3 +1,9 @@
+## 3.41.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
+
 ## 3.40.0 (January 19, 2023)
 
 FEATURES
