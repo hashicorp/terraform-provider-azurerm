@@ -185,6 +185,7 @@ func (r ManagerConnectivityConfigurationResource) Create() sdk.ResourceFunc {
 					ConnectivityTopology:  model.ConnectivityTopology,
 					DeleteExistingPeering: expandDeleteExistingPeering(model.DeleteExistingPeeringEnabled),
 					IsGlobal:              expandConnectivityConfIsGlobal(model.GlobalMeshEnabled),
+					Hubs:                  expandHubModel(model.Hub),
 				},
 			}
 
@@ -192,19 +193,11 @@ func (r ManagerConnectivityConfigurationResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
 			conf.ConnectivityConfigurationProperties.AppliesToGroups = appliesToGroupsValue
 
 			if model.Description != "" {
 				conf.ConnectivityConfigurationProperties.Description = &model.Description
 			}
-
-			hubsValue, err := expandHubModel(model.Hub)
-			if err != nil {
-				return err
-			}
-
-			conf.ConnectivityConfigurationProperties.Hubs = hubsValue
 
 			if _, err := client.CreateOrUpdate(ctx, *conf, id.ResourceGroup, id.NetworkManagerName, id.ConnectivityConfigurationName); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -247,7 +240,6 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-
 				properties.AppliesToGroups = appliesToGroupsValue
 			}
 
@@ -260,27 +252,16 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				if model.Description != "" {
-					properties.Description = &model.Description
-				} else {
-					properties.Description = nil
-				}
+				properties.Description = utils.String(model.Description)
 			}
 
 			if metadata.ResourceData.HasChange("hub") {
-				hubsValue, err := expandHubModel(model.Hub)
-				if err != nil {
-					return err
-				}
-
-				properties.Hubs = hubsValue
+				properties.Hubs = expandHubModel(model.Hub)
 			}
 
 			if metadata.ResourceData.HasChange("global_mesh_enabled") {
 				properties.IsGlobal = expandConnectivityConfIsGlobal(model.GlobalMeshEnabled)
 			}
-
-			existing.SystemData = nil
 
 			if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.NetworkManagerName, id.ConnectivityConfigurationName); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -317,30 +298,23 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ManagerConnectivityConfigurationModel{
-				Name:             id.ConnectivityConfigurationName,
-				NetworkManagerId: parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				Name:                         id.ConnectivityConfigurationName,
+				NetworkManagerId:             parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				ConnectivityTopology:         properties.ConnectivityTopology,
+				DeleteExistingPeeringEnabled: flattenDeleteExistingPeering(properties.DeleteExistingPeering),
+				GlobalMeshEnabled:            flattenConnectivityConfIsGlobal(properties.IsGlobal),
+				Hub:                          flattenHubModel(properties.Hubs),
 			}
 
 			appliesToGroupsValue, err := flattenConnectivityGroupItemModel(properties.AppliesToGroups)
 			if err != nil {
 				return err
 			}
-
 			state.AppliesToGroups = appliesToGroupsValue
-			state.ConnectivityTopology = properties.ConnectivityTopology
-			state.DeleteExistingPeeringEnabled = flattenDeleteExistingPeering(properties.DeleteExistingPeering)
-			state.GlobalMeshEnabled = flattenConnectivityConfIsGlobal(properties.IsGlobal)
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
 			}
-
-			hubsValue, err := flattenHubModel(properties.Hubs)
-			if err != nil {
-				return err
-			}
-
-			state.Hub = hubsValue
 
 			return metadata.Encode(&state)
 		},
@@ -410,7 +384,7 @@ func expandUseHubGateWay(input bool) network.UseHubGateway {
 	return network.UseHubGatewayFalse
 }
 
-func expandHubModel(inputList []HubModel) (*[]network.Hub, error) {
+func expandHubModel(inputList []HubModel) *[]network.Hub {
 	var outputList []network.Hub
 	for _, v := range inputList {
 		input := v
@@ -422,7 +396,7 @@ func expandHubModel(inputList []HubModel) (*[]network.Hub, error) {
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
 func flattenDeleteExistingPeering(input network.DeleteExistingPeering) bool {
@@ -460,10 +434,10 @@ func flattenUseHubGateWay(input network.UseHubGateway) bool {
 	return input == network.UseHubGatewayTrue
 }
 
-func flattenHubModel(inputList *[]network.Hub) ([]HubModel, error) {
+func flattenHubModel(inputList *[]network.Hub) []HubModel {
 	var outputList []HubModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -480,5 +454,5 @@ func flattenHubModel(inputList *[]network.Hub) ([]HubModel, error) {
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
