@@ -1,0 +1,137 @@
+package policies
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+)
+
+var _ resourceids.ResourceId = PolicySetId{}
+
+// PolicySetId is a struct representing the Resource ID for a Policy Set
+type PolicySetId struct {
+	SubscriptionId    string
+	ResourceGroupName string
+	LabName           string
+	Name              string
+}
+
+// NewPolicySetID returns a new PolicySetId struct
+func NewPolicySetID(subscriptionId string, resourceGroupName string, labName string, name string) PolicySetId {
+	return PolicySetId{
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		LabName:           labName,
+		Name:              name,
+	}
+}
+
+// ParsePolicySetID parses 'input' into a PolicySetId
+func ParsePolicySetID(input string) (*PolicySetId, error) {
+	parser := resourceids.NewParserFromResourceIdType(PolicySetId{})
+	parsed, err := parser.Parse(input, false)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := PolicySetId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.LabName, ok = parsed.Parsed["labName"]; !ok {
+		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
+	}
+
+	if id.Name, ok = parsed.Parsed["name"]; !ok {
+		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ParsePolicySetIDInsensitively parses 'input' case-insensitively into a PolicySetId
+// note: this method should only be used for API response data and not user input
+func ParsePolicySetIDInsensitively(input string) (*PolicySetId, error) {
+	parser := resourceids.NewParserFromResourceIdType(PolicySetId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	var ok bool
+	id := PolicySetId{}
+
+	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
+		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+	}
+
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+	}
+
+	if id.LabName, ok = parsed.Parsed["labName"]; !ok {
+		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
+	}
+
+	if id.Name, ok = parsed.Parsed["name"]; !ok {
+		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	}
+
+	return &id, nil
+}
+
+// ValidatePolicySetID checks that 'input' can be parsed as a Policy Set ID
+func ValidatePolicySetID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParsePolicySetID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+// ID returns the formatted Policy Set ID
+func (id PolicySetId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/policySets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.Name)
+}
+
+// Segments returns a slice of Resource ID Segments which comprise this Policy Set ID
+func (id PolicySetId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
+		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
+		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDevTestLab", "Microsoft.DevTestLab", "Microsoft.DevTestLab"),
+		resourceids.StaticSegment("staticLabs", "labs", "labs"),
+		resourceids.UserSpecifiedSegment("labName", "labValue"),
+		resourceids.StaticSegment("staticPolicySets", "policySets", "policySets"),
+		resourceids.UserSpecifiedSegment("name", "nameValue"),
+	}
+}
+
+// String returns a human-readable description of this Policy Set ID
+func (id PolicySetId) String() string {
+	components := []string{
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Lab Name: %q", id.LabName),
+		fmt.Sprintf("Name: %q", id.Name),
+	}
+	return fmt.Sprintf("Policy Set (%s)", strings.Join(components, "\n"))
+}
