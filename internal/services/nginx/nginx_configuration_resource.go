@@ -286,8 +286,35 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			upd := model.ToSDKModel()
-			result, err := client.ConfigurationsCreateOrUpdate(ctx, *id, upd)
+			// retrieve from GET
+			existing, err := client.ConfigurationsGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving exists: +%v", *id)
+			}
+			if existing.Model == nil && existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving as nil for %v", *id)
+			}
+
+			upd := existing.Model
+			// root file is required in update
+			if meta.ResourceData.HasChange("root_file") {
+				upd.Properties.RootFile = pointer.FromString(model.RootFile)
+			}
+
+			if meta.ResourceData.HasChange("config_file") {
+				upd.Properties.Files = model.toSDKFiles()
+			}
+
+			// API does not return protected file field, so always set this field
+			upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
+
+			if meta.ResourceData.HasChange("package_data") {
+				upd.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
+					Data: pointer.FromString(model.PackageData),
+				}
+			}
+
+			result, err := client.ConfigurationsCreateOrUpdate(ctx, *id, *upd)
 			if err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
