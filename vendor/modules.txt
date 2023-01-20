@@ -343,6 +343,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingend
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators
 github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork
+github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools
