@@ -12,10 +12,10 @@ FEATURES
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230117.1125206` of `github.com/hashicorp/go-azure-sdk` [GH-20081]
-* `azurerm_application_gateway` - add TLS 1.3 and CustomV2 support [GH-20029]
+* `azurerm_application_gateway` - support for TLS 1.3 and CustomV2 [GH-20029]
 * `azurerm_kubernetes_cluster` - support for the `key_management_service` block [GH-19893]
-* `azurerm_linux_web_app` - Add Python 3.11 support [GH-20001]
-* `azurerm_linux_web_app_slot` - Add Python 3.11 support [GH-20001]
+* `azurerm_linux_web_app` - support for Python 3.11  [GH-20001]
+* `azurerm_linux_web_app_slot` - support for Python 3.11 [GH-20001]
 * `azurerm_ip_group` - support for the `firewall_ids` and `firewall_policy_ids` properties [GH-19845]
 * `azurerm_recovery_services_vault` - support for the `immutability`, user assigned `identity` and `use_system_assigned_identity` properties [GH-20109]
 * `azurerm_synapse_sql_pool` - add support for `geo_backup_policy_enabled` and fix `recovery_database_id` [[GH-20010]
@@ -32,7 +32,7 @@ BUG FIXES:
 * `azurerm_federated_identity_credential` - preent concurrent write to parent resource [GH-20003]
 * `azurerm_linux_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
 * `azurerm_postgresql_flexible_server_configuration` - restart server when required [GH-20044]
-* `azurerm_kubernetes_cluster` - prevent panic while importing [GH-20107]
+* `azurerm_kubernetes_cluster` - prevent a possible panic while importing [GH-20107]
 * `azurerm_service_fabric_managed_cluster` - the `password` field is now correctly marked as a sensitive value [GH-20061]
 * `azurerm_service_fabric_managed_cluster` - the `resource_group_name` field is now correctly marked as ForceNew [GH-20061]
 * `azurerm_spring_cloud_configuration_service ` - the field `password` is now correctly marked as a sensitive value [GH-20061]
