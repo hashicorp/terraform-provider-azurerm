@@ -182,7 +182,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 						"no_public_ip": {
 							Type:         pluginsdk.TypeBool,
-							ForceNew:     true,
 							Optional:     true,
 							Computed:     true,
 							AtLeastOneOf: workspaceCustomParametersString(),
