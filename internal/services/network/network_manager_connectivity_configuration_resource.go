@@ -414,14 +414,9 @@ func expandHubModel(inputList []HubModel) (*[]network.Hub, error) {
 	var outputList []network.Hub
 	for _, v := range inputList {
 		input := v
-		output := network.Hub{}
-
-		if input.ResourceId != "" {
-			output.ResourceID = &input.ResourceId
-		}
-
-		if input.ResourceType != "" {
-			output.ResourceType = &input.ResourceType
+		output := network.Hub{
+			ResourceID:   utils.String(input.ResourceId),
+			ResourceType: utils.String(input.ResourceType),
 		}
 
 		outputList = append(outputList, output)
@@ -431,17 +426,11 @@ func expandHubModel(inputList []HubModel) (*[]network.Hub, error) {
 }
 
 func flattenDeleteExistingPeering(input network.DeleteExistingPeering) bool {
-	if input == network.DeleteExistingPeeringTrue {
-		return true
-	}
-	return false
+	return input == network.DeleteExistingPeeringTrue
 }
 
 func flattenConnectivityConfIsGlobal(input network.IsGlobal) bool {
-	if input == network.IsGlobalTrue {
-		return true
-	}
-	return false
+	return input == network.IsGlobalTrue
 }
 
 func flattenConnectivityGroupItemModel(inputList *[]network.ConnectivityGroupItem) ([]ConnectivityGroupItemModel, error) {
@@ -468,10 +457,7 @@ func flattenConnectivityGroupItemModel(inputList *[]network.ConnectivityGroupIte
 }
 
 func flattenUseHubGateWay(input network.UseHubGateway) bool {
-	if input == network.UseHubGatewayTrue {
-		return true
-	}
-	return false
+	return input == network.UseHubGatewayTrue
 }
 
 func flattenHubModel(inputList *[]network.Hub) ([]HubModel, error) {
