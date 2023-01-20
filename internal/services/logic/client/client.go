@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountbatchconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountcertificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountmaps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountpartners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -18,7 +19,7 @@ type Client struct {
 	IntegrationAccountBatchConfigurationClient *integrationaccountbatchconfigurations.IntegrationAccountBatchConfigurationsClient
 	IntegrationAccountCertificateClient        *integrationaccountcertificates.IntegrationAccountCertificatesClient
 	IntegrationAccountMapClient                *integrationaccountmaps.IntegrationAccountMapsClient
-	IntegrationAccountPartnerClient            *logic.IntegrationAccountPartnersClient
+	IntegrationAccountPartnerClient            *integrationaccountpartners.IntegrationAccountPartnersClient
 	IntegrationAccountSchemaClient             *logic.IntegrationAccountSchemasClient
 	IntegrationAccountSessionClient            *logic.IntegrationAccountSessionsClient
 	IntegrationServiceEnvironmentClient        *logic.IntegrationServiceEnvironmentsClient
@@ -45,7 +46,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountMapClient := integrationaccountmaps.NewIntegrationAccountMapsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountMapClient.Client, o.ResourceManagerAuthorizer)
 
-	integrationAccountPartnerClient := logic.NewIntegrationAccountPartnersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	integrationAccountPartnerClient := integrationaccountpartners.NewIntegrationAccountPartnersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountPartnerClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationAccountSchemaClient := logic.NewIntegrationAccountSchemasClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
