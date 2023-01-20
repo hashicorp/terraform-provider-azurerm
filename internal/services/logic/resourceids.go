@@ -1,6 +1,5 @@
 package logic
 
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IntegrationAccountBatchConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1/batchConfigurations/batchConfiguration1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IntegrationAccountCertificate -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1/certificates/certificate1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IntegrationAccountMap -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1/maps/map1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IntegrationAccountPartner -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1/partners/partner1
