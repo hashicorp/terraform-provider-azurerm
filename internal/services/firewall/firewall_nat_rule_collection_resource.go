@@ -140,8 +140,8 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 	firewallName := d.Get("azure_firewall_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	locks.ByName(firewallName, azureFirewallResourceName)
-	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, AzureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, AzureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
@@ -322,8 +322,8 @@ func resourceFirewallNatRuleCollectionDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
-	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
+	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
 	if err != nil {

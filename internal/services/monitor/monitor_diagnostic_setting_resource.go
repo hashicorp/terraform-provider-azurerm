@@ -72,12 +72,14 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"log_analytics_workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"storage_account_id": {
@@ -85,18 +87,21 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"partner_solution_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
+				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
 			"log_analytics_destination_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: false,
+				Default:  "AzureDiagnostics",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",
 					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
@@ -286,18 +291,18 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	// if no logs/metrics are not enabled the API "creates" but 404's on Read
-	valid := false
+	// if no logs/metrics are enabled the API "creates" but 404's on Read
+	hasEnabledMetrics := false
 	if !hasEnabledLogs {
 		for _, v := range metrics {
 			if v.Enabled {
-				valid = true
+				hasEnabledMetrics = true
 				break
 			}
 		}
 	}
 
-	if !valid && !hasEnabledLogs {
+	if !hasEnabledMetrics && !hasEnabledLogs {
 		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
@@ -308,39 +313,30 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	valid = false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
 		parameters.Properties.EventHubAuthorizationRuleId = utils.String(eventHubAuthorizationRuleId)
 		parameters.Properties.EventHubName = utils.String(eventHubName)
-		valid = true
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
 		parameters.Properties.WorkspaceId = utils.String(workspaceId)
-		valid = true
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.Properties.StorageAccountId = utils.String(storageAccountId)
-		valid = true
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
 		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
-		valid = true
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
 		parameters.Properties.LogAnalyticsDestinationType = &v
-	}
-
-	if !valid {
-		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -363,13 +359,23 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+	}
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("unexpected null model of Monitor Diagnostics Setting %q for Resource %q", id.Name, id.ResourceUri)
+	}
+
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
 
 	var logs []diagnosticsettings.LogSettings
 	hasEnabledLogs := false
+	logChanged := false
 	if !features.FourPointOhBeta() {
 		if d.HasChange("log") {
+			logChanged = true
 			logsRaw := d.Get("log").(*pluginsdk.Set).List()
 			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
 			for _, v := range logs {
@@ -383,22 +389,31 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("enabled_log") {
 		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
-		logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
-		hasEnabledLogs = true
+		if len(enabledLogs) > 0 {
+			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+			hasEnabledLogs = true
+		}
+	} else if !logChanged && existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
+		logs = *existing.Model.Properties.Logs
+		for _, v := range logs {
+			if v.Enabled {
+				hasEnabledLogs = true
+			}
+		}
 	}
 
-	// if no logs/metrics are not enabled the API "creates" but 404's on Read
-	valid := false
+	// if no logs/metrics are enabled the API "creates" but 404's on Read
+	hasEnabledMetrics := false
 	if !hasEnabledLogs {
 		for _, v := range metrics {
 			if v.Enabled {
-				valid = true
+				hasEnabledMetrics = true
 				break
 			}
 		}
 	}
 
-	if !valid && !hasEnabledLogs {
+	if !hasEnabledMetrics && !hasEnabledLogs {
 		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
@@ -455,39 +470,30 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	valid = false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
 		parameters.Properties.EventHubAuthorizationRuleId = utils.String(eventHubAuthorizationRuleId)
 		parameters.Properties.EventHubName = utils.String(eventHubName)
-		valid = true
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
 		parameters.Properties.WorkspaceId = utils.String(workspaceId)
-		valid = true
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.Properties.StorageAccountId = utils.String(storageAccountId)
-		valid = true
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
 		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
-		valid = true
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
 		parameters.Properties.LogAnalyticsDestinationType = &v
-	}
-
-	if !valid {
-		return fmt.Errorf("either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` or `storage_account_id` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {

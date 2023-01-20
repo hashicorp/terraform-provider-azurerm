@@ -27,7 +27,7 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
 )
 
-var azureFirewallResourceName = "azurerm_firewall"
+var AzureFirewallResourceName = "azurerm_firewall"
 
 func resourceFirewall() *pluginsdk.Resource {
 	resource := pluginsdk.Resource{
@@ -327,8 +327,14 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
-	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
+	if policyId, ok := d.GetOk("firewall_policy_id"); ok {
+		id, _ := parse.FirewallPolicyID(policyId.(string))
+		locks.ByName(id.Name, AzureFirewallPolicyResourceName)
+		defer locks.UnlockByName(id.Name, AzureFirewallPolicyResourceName)
+	}
+
+	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
 
 	locks.MultipleByName(vnetToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetToLock, VirtualNetworkResourceName)
@@ -497,8 +503,14 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	locks.ByName(id.AzureFirewallName, azureFirewallResourceName)
-	defer locks.UnlockByName(id.AzureFirewallName, azureFirewallResourceName)
+	if read.FirewallPolicy != nil && read.FirewallPolicy.ID != nil {
+		id, _ := parse.FirewallPolicyID(*read.FirewallPolicy.ID)
+		locks.ByName(id.Name, AzureFirewallPolicyResourceName)
+		defer locks.UnlockByName(id.Name, AzureFirewallPolicyResourceName)
+	}
+
+	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
+	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
 
 	locks.MultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, VirtualNetworkResourceName)

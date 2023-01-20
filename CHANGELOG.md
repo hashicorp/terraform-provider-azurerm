@@ -1,12 +1,43 @@
 ## 3.40.0 (Unreleased)
 
+FEATURES
+
+* **New Data Source:** `azurerm_bastion_host` [GH-20062]
+* **New Resource:** `azurerm_lab_service_schedule` [GH-19977]
+* **New Resource:** `azurerm_network_manager_scope_connection` [GH-19610]
+* **New Resource:** `azurerm_network_manager_static_member` [GH-20077]
+* **New Resource:** `azurerm_sentinel_log_analytics_workspace_onboarding` [GH-19692]
+
 ENHANCEMENTS:
 
-* `azurerm_kubernetes_cluster` - support for the `kube_proxy` block [GH-19567]
+* dependencies: updating to `v0.20230117.1125206` of `github.com/hashicorp/go-azure-sdk` [GH-20081]
+* `azurerm_application_gateway` - add TLS 1.3 and CustomV2 support [GH-20029]
+* `azurerm_kubernetes_cluster` - support for the `key_management_service` block [GH-19893]
+* `azurerm_linux_web_app` - Add Python 3.11 support [GH-20001]
+* `azurerm_linux_web_app_slot` - Add Python 3.11 support [GH-20001]
+* `azurerm_ip_group` - support for the `firewall_ids` and `firewall_policy_ids` properties [GH-19845]
+* `azurerm_recovery_services_vault` - support for the `immutability`, user assigned `identity` and `use_system_assigned_identity` properties [GH-20109]
+* `azurerm_synapse_sql_pool` - add support for `geo_backup_policy_enabled` and fix `recovery_database_id` [[GH-20010]
 
 BUG FIXES: 
 
+* Data Source: `azurerm_batch_pool` - the field `password` is now correctly marked as a sensitive value [GH-20061]
+* Data Source: `azurerm_batch_pool` - the field `ssh_private_key ` is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_api_management_identity_provider_twitter` - the field `api_key` is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_cdn_frontdoor_origin_group` - shim SDK to allow `health_probe` to be passed as `null` [GH-20015]
 * `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue [GH-20002]
+* `azurerm_container_registry_task` - the field `password` is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_dev_test_windows_virtual_machine` - the `password` field is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_linux_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
+* `azurerm_postgresql_flexible_server_configuration` - restart server when required [GH-20044]
+* `azurerm_kubernetes_cluster` - prevent panic while importing [GH-20107]
+* `azurerm_service_fabric_managed_cluster` - the `password` field is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_service_fabric_managed_cluster` - the `resource_group_name` field is now correctly marked as ForceNew [GH-20061]
+* `azurerm_spring_cloud_configuration_service ` - the field `password` is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_spring_cloud_configuration_service ` - the field `private_key` is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_static_site` - the field `api_key` is now correctly marked as a sensitive value [GH-20061]
+* `azurerm_storage_account` - will no longer silently ignore `404` error while reading service properties [GH-19062]
+* `azurerm_windows_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
 
 ## 3.39.1 (January 13, 2023)
 

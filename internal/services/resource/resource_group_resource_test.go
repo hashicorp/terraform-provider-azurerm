@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,8 +128,8 @@ func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Clien
 	return utils.Bool(resp.Properties != nil), nil
 }
 
-func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Network.VnetClient
 		resourceGroup := state.Attributes["name"]
 		location := state.Attributes["location"]

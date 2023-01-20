@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -139,13 +139,43 @@ func TestAccRecoveryServicesVault_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccRecoveryServicesVault_identity(t *testing.T) {
+func TestAccRecoveryServicesVault_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_UserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_immutability(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithImmutability(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -159,7 +189,7 @@ func TestAccRecoveryServicesVault_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithIdentity(data),
+			Config: r.basicWithImmutability(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -291,17 +321,17 @@ func TestAccRecoveryServicesVault_updateSkuWithExistingEncryption(t *testing.T) 
 }
 
 func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VaultID(state.ID)
+	id, err := vaults.ParseVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func TestAccRecoveryServicesVault_encryptionWithKeyVaultKey(t *testing.T) {
@@ -398,6 +428,50 @@ func TestAccRecoveryServicesVault_switchEncryptionKeyVaultKey(t *testing.T) {
 	})
 }
 
+func TestAccRecoveryServicesVault_encryptionWithUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkEncryptionWithUserAssignedIdentity(data, false, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_TogglePublicNetworkAccessEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithPublicNetworkAccessEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithPublicNetworkAccessEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithPublicNetworkAccessEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (RecoveryServicesVaultResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -418,6 +492,29 @@ resource "azurerm_recovery_services_vault" "test" {
   soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) basicWithPublicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                          = "acctest-Vault-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "Standard"
+  public_network_access_enabled = %v
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
 func (RecoveryServicesVaultResource) basicWithCrossRegionRestore(data acceptance.TestData) string {
@@ -495,6 +592,69 @@ resource "azurerm_recovery_services_vault" "test" {
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) basicWithUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (RecoveryServicesVaultResource) basicWithImmutability(data acceptance.TestData, enabled bool) string {
+	immutability := `Disabled`
+	if enabled {
+		immutability = `Unlocked`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  immutability        = "%s"
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, immutability)
 }
 
 func (RecoveryServicesVaultResource) complete(data acceptance.TestData) string {
@@ -602,6 +762,115 @@ resource "azurerm_key_vault" "test" {
     ]
     secret_permissions = [
       "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  count        = 2
+  name         = "acctest-key-vault-key-%[1]d${count.index}"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, enableInfraEncryptionState, keyIndex)
+}
+
+func (r RecoveryServicesVaultResource) cmkEncryptionWithUserAssignedIdentity(data acceptance.TestData, enableInfraEncryptionState bool, keyIndex int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = true
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-identity-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  encryption {
+    key_id                            = azurerm_key_vault_key.test[%[5]d].id
+    use_system_assigned_identity      = false
+    user_assigned_identity_id         = azurerm_user_assigned_identity.test.id
+    infrastructure_encryption_enabled = %[4]t
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctest-key-vault-%[3]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Decrypt",
+      "Encrypt",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "UnwrapKey",
+      "WrapKey",
+      "Verify",
+    ]
+    secret_permissions = [
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "List",
+      "WrapKey",
+      "UnwrapKey",
     ]
   }
 }

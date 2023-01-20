@@ -20,6 +20,7 @@ type Client struct {
 	SparkPoolClient                                   *synapse.BigDataPoolsClient
 	SqlPoolClient                                     *synapse.SQLPoolsClient
 	SqlPoolExtendedBlobAuditingPoliciesClient         *synapse.ExtendedSQLPoolBlobAuditingPoliciesClient
+	SqlPoolGeoBackupPoliciesClient                    *synapse.SQLPoolGeoBackupPoliciesClient
 	SqlPoolSecurityAlertPolicyClient                  *synapse.SQLPoolSecurityAlertPoliciesClient
 	SqlPoolTransparentDataEncryptionClient            *synapse.SQLPoolTransparentDataEncryptionsClient
 	SqlPoolVulnerabilityAssessmentsClient             *synapse.SQLPoolVulnerabilityAssessmentsClient
@@ -62,6 +63,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	sqlPoolExtendedBlobAuditingPoliciesClient := synapse.NewExtendedSQLPoolBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	sqlPoolGeoBackupPoliciesClient := synapse.NewSQLPoolGeoBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolGeoBackupPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	sqlPoolSecurityAlertPolicyClient := synapse.NewSQLPoolSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
@@ -111,6 +115,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SparkPoolClient:                                   &sparkPoolClient,
 		SqlPoolClient:                                     &sqlPoolClient,
 		SqlPoolExtendedBlobAuditingPoliciesClient:         &sqlPoolExtendedBlobAuditingPoliciesClient,
+		SqlPoolGeoBackupPoliciesClient:                    &sqlPoolGeoBackupPoliciesClient,
 		SqlPoolSecurityAlertPolicyClient:                  &sqlPoolSecurityAlertPolicyClient,
 		SqlPoolTransparentDataEncryptionClient:            &sqlPoolTransparentDataEncryptionClient,
 		SqlPoolVulnerabilityAssessmentsClient:             &sqlPoolVulnerabilityAssessmentsClient,
