@@ -56,6 +56,8 @@ The following attributes are exported:
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block as documented below.
 
+* `key_management_service` - A `key_management_service` block as documented below.
+
 * `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
@@ -175,6 +177,14 @@ An `azure_active_directory_role_based_access_control` block exports the followin
 A `upgrade_settings` block exports the following:
 
 * `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
+
+---
+
+A `key_management_service` block supports the following:
+
+* `key_vault_key_id` - Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details.
+
+* `key_vault_network_access` - Network access of the key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link.
 
 ---
 

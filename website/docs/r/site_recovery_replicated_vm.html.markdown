@@ -312,8 +312,6 @@ A `network_interface` block supports the following:
 
 * `test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
 
-* `is_primary` - (Optional) If this is the primary network interface used for failover. If there is only one `network_interface` block, this is automatically set to `true`.
-
 ---
 
 The `target_disk_encryption` block supports:

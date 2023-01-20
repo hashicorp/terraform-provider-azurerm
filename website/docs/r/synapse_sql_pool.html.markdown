@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `restore` - (Optional) A `restore` block as defined below. only applicable when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
 
+* `geo_backup_policy_enabled` - (Optional) Is geo-backup policy enabled? Defaults to `true`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse SQL Pool.
 
 ---

@@ -2169,9 +2169,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		blobClient := storageClient.BlobServicesClient
 		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(blobProps.Response) {
-				return fmt.Errorf("reading blob properties for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
+			return fmt.Errorf("reading blob properties for AzureRM Storage Account %q: %+v", id.Name, err)
 		}
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("setting `blob_properties `for AzureRM Storage Account %q: %+v", id.Name, err)
@@ -2196,11 +2194,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if supportLevel.supportShare {
 		fileServiceClient := storageClient.FileServicesClient
+
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(shareProps.Response) {
-				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
+			return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", id.Name, err)
 		}
 
 		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
@@ -2222,9 +2219,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.Name)
 		if err != nil {
-			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
-				return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
+			return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
 		}
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {

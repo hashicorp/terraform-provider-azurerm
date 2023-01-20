@@ -57,8 +57,8 @@ data "azurerm_role_definition" "contributor" {
 
 resource "azurerm_role_assignment" "example" {
   name               = azurerm_virtual_machine.example.name
-  scope              = data.azurerm_subscription.primary.id
-  role_definition_id = "${data.azurerm_subscription.subscription.id}${data.azurerm_role_definition.contributor.id}"
+  scope              = data.azurerm_subscription.current.id
+  role_definition_id = "${data.azurerm_subscription.current.id}${data.azurerm_role_definition.contributor.id}"
   principal_id       = azurerm_virtual_machine.example.identity[0].principal_id
 }
 ```

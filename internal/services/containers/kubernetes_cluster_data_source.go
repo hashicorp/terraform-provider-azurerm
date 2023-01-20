@@ -380,6 +380,23 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
+			"key_management_service": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"key_vault_network_access": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"kubernetes_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -718,6 +735,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
 			}
 
+			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
+			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
+				return fmt.Errorf("setting `key_management_service`: %+v", err)
+			}
+
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
 			if err != nil {
 				return err
@@ -825,6 +847,29 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.AzureKeyVaultKms) []interface{} {
+	azureKeyVaultKms := make([]interface{}, 0)
+
+	if input != nil && input.Enabled != nil && *input.Enabled {
+		keyId := ""
+		if v := input.KeyId; v != nil {
+			keyId = *v
+		}
+
+		networkAccess := ""
+		if v := input.KeyVaultNetworkAccess; v != nil {
+			networkAccess = string(*v)
+		}
+
+		azureKeyVaultKms = append(azureKeyVaultKms, map[string]interface{}{
+			"key_vault_key_id":         keyId,
+			"key_vault_network_access": networkAccess,
+		})
+	}
+
+	return azureKeyVaultKms
 }
 
 func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {

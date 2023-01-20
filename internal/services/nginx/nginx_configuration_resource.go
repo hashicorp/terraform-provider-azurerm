@@ -293,7 +293,7 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if meta.ResourceData.HasChange("protected_file") {
-				upd.Properties.Files = model.toSDKProtectedFiles()
+				upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
 			}
 
 			if meta.ResourceData.HasChange("package_data") {

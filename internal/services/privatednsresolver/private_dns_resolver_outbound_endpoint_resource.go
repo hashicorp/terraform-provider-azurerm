@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/outboundendpoints"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -240,7 +239,7 @@ func (r PrivateDNSResolverOutboundEndpointResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func dnsResolverOutboundEndpointDeleteRefreshFunc(ctx context.Context, client *outboundendpoints.OutboundEndpointsClient, id *outboundendpoints.OutboundEndpointId) resource.StateRefreshFunc {
+func dnsResolverOutboundEndpointDeleteRefreshFunc(ctx context.Context, client *outboundendpoints.OutboundEndpointsClient, id *outboundendpoints.OutboundEndpointId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		existing, err := client.Get(ctx, *id)
 		if err != nil {
