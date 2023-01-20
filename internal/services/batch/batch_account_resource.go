@@ -346,16 +346,17 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) &&
-		isShardKeyAllowed(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()) {
-		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
-		if err != nil {
-			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.BatchAccountName, id.ResourceGroup, err)
-		}
+	// we do not have permission to get the keys
+	// if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) &&
+	// 	isShardKeyAllowed(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()) {
+	// 	keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
+	// 	if err != nil {
+	// 		return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.BatchAccountName, id.ResourceGroup, err)
+	// 	}
 
-		d.Set("primary_access_key", keys.Primary)
-		d.Set("secondary_access_key", keys.Secondary)
-	}
+	// 	d.Set("primary_access_key", keys.Primary)
+	// 	d.Set("secondary_access_key", keys.Secondary)
+	// }
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
