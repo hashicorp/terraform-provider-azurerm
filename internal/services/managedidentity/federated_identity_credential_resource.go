@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -89,6 +90,10 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("parsing parent resource ID: %+v", err)
 			}
+
+			locks.ByID(parentId.ID())
+			defer locks.UnlockByID(parentId.ID())
+
 			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.ResourceName, config.Name)
 
 			existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
@@ -150,6 +155,19 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedIdentity.ManagedIdentities
+
+			var config FederatedIdentityCredentialResourceSchema
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+			if err != nil {
+				return fmt.Errorf("parsing parent resource ID: %+v", err)
+			}
+
+			locks.ByID(parentId.ID())
+			defer locks.UnlockByID(parentId.ID())
 
 			id, err := managedidentities.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
 			if err != nil {

@@ -295,6 +295,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/schedu
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/user
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests
+github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore
 github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes
 github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments
@@ -389,7 +390,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databas
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/administrators
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/servers
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets
@@ -670,7 +671,7 @@ github.com/tombuildsstuff/giovanni/version
 github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute
 github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
-github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network
+github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network
 github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
 github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
