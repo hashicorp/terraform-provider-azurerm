@@ -8,3 +8,5 @@ import (
 type TestCheckFunc = resource.TestCheckFunc
 
 type InstanceState = terraform.InstanceState
+
+type State = terraform.State

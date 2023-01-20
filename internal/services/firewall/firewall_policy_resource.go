@@ -22,10 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
-const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
+const AzureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
 func resourceFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -121,8 +121,8 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	locks.ByName(id.Name, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.Name, azureFirewallPolicyResourceName)
+	locks.ByName(id.Name, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.Name, AzureFirewallPolicyResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
@@ -254,8 +254,8 @@ func resourceFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	locks.ByName(id.Name, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.Name, azureFirewallPolicyResourceName)
+	locks.ByName(id.Name, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.Name, AzureFirewallPolicyResourceName)
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

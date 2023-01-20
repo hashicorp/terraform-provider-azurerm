@@ -63,6 +63,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
         domain {
           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.domain1.id
         }
+        patterns_to_match = ["/*"]
       }
     }
   }

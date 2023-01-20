@@ -114,4 +114,6 @@ package network
 // Network Manager
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManager -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerNetworkGroup -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/networkGroups/group1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerScopeConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/scopeConnections/connection1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerStaticMember -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/networkGroups/group1/staticMembers/member1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerSubscriptionConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Network/networkManagerConnections/connection1
