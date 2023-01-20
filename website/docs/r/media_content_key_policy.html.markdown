@@ -148,7 +148,7 @@ A `alternate_key` block supports the following:
 
 * `x509_token_key_raw` - (Optional) The raw data field of a certificate in PKCS 12 format (X509Certificate2 in .NET). Specifies a certificate for token validation.
 
--> **NOTE:** Each `alternate_key` block can only have one type of primary verification key: if you want use RSA you must provide `rsa_token_key_exponent` and `rsa_token_key_modulus`, if you want to use symmetric you need to provide `symmetric_token_key` and for x509 you must provide `x509_token_key_raw`. 
+-> **NOTE:** Each `alternate_key` block can only have one type of primary verification key: if you want to use RSA you must provide `rsa_token_key_exponent` and `rsa_token_key_modulus`, if you want to use symmetric you need to provide `symmetric_token_key` and for x509 you must provide `x509_token_key_raw`. 
 
 ---
 
@@ -194,7 +194,7 @@ A `play_right` block supports the following:
 
 * `compressed_digital_audio_opl` - (Optional) Specifies the output protection level for compressed digital audio.Supported values are `100`, `150`, `200`, `250` or `300`.
 
-* `compressed_digital_video_opl` - (Optional) Specifies the output protection level for compressed digital video.Supported values are `400` and `500`.
+* `compressed_digital_video_opl` - (Optional) Specifies the output protection level for compressed digital video. Supported values are `400` or `500`.
 
 * `digital_video_only_content_restriction` - (Optional) Enables the Image Constraint For Analog Component Video Restriction in the license.
 
@@ -240,7 +240,7 @@ A `playready_configuration_license` block supports the following:
 
 * `relative_expiration_date` - (Optional) The relative expiration date of license.
 
-* `security_level` - (Optional) The security level of the license. Possible values are `SL150`, `SL2000` and `SL3000`. Please see [this document](https://learn.microsoft.com/en-us/rest/api/media/content-key-policies/create-or-update?tabs=HTTP#securitylevel) for more information about security level. See [this document](https://learn.microsoft.com/en-us/azure/media-services/latest/drm-playready-license-template-concept#playready-sl3000-support) for more information about `SL3000` support.
+* `security_level` - (Optional) The security level of the PlayReady license. Possible values are `SL150`, `SL2000` and `SL3000`. Please see [this document](https://learn.microsoft.com/en-us/rest/api/media/content-key-policies/create-or-update?tabs=HTTP#securitylevel) for more information about security level. See [this document](https://learn.microsoft.com/en-us/azure/media-services/latest/drm-playready-license-template-concept#playready-sl3000-support) for more information about `SL3000` support.
 
 ---
 
@@ -262,7 +262,7 @@ A `policy_option` block supports the following:
 
 * `widevine_configuration_template` - (Optional) The Widevine template.
 
--> **NOTE:** Each policy_option can only have one type of configuration: `fairplay_configuration`,`clear_key_configuration_enabled`, `playready_configuration_license` or `widevine_configuration_template`. And is possible to assign only one type of restriction: `open_restriction_enabled` or `token_restriction`.
+-> **NOTE:** Each policy_option can only have one type of configuration: `fairplay_configuration`, `clear_key_configuration_enabled`, `playready_configuration_license` or `widevine_configuration_template`. And is possible to assign only one type of restriction: `open_restriction_enabled` or `token_restriction`.
 
 ---
 
@@ -276,7 +276,7 @@ A `required_claim` block supports the following:
 
 A `token_restriction` block supports the following:
 
-* `alternate_key` (Optional) one or more `alternate_key` block as defined above.
+* `alternate_key` (Optional) One or more `alternate_key` block as defined above.
 
 * `audience` - (Optional) The audience for the token.
 
@@ -296,7 +296,7 @@ A `token_restriction` block supports the following:
 
 * `token_type` - (Optional) The type of token. Supported values are `Jwt` or `Swt`.
 
--> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want use RSA you must provide `primary_rsa_token_key_exponent` and `primary_rsa_token_key_modulus`, if you want to use symmetric you need to provide `primary_symmetric_token_key` and for x509 you must provide `primary_x509_token_key_raw`. For more information about Token access please refer to <https://docs.microsoft.com/azure/media-services/latest/content-protection-overview#controlling-content-access>
+-> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want to use RSA you must provide `primary_rsa_token_key_exponent` and `primary_rsa_token_key_modulus`, if you want to use symmetric you need to provide `primary_symmetric_token_key` and for x509 you must provide `primary_x509_token_key_raw`. For more information about Token access please refer to <https://docs.microsoft.com/azure/media-services/latest/content-protection-overview#controlling-content-access>
 
 ---
 

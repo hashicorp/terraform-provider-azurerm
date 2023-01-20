@@ -207,7 +207,7 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 													MaxItems: 1,
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
-															"best_effort": {
+															"best_effort_enforced": {
 																Type:     pluginsdk.TypeBool,
 																Optional: true,
 																Default:  false,
@@ -1379,7 +1379,7 @@ func expandExplicitAnalogTelevisionOutputRestriction(input []interface{}) *conte
 
 	restriction := input[0].(map[string]interface{})
 	result := &contentkeypolicies.ContentKeyPolicyPlayReadyExplicitAnalogTelevisionRestriction{
-		BestEffort:        restriction["best_effort"].(bool),
+		BestEffort:        restriction["best_effort_enforced"].(bool),
 		ConfigurationData: int64(restriction["control_bits"].(int)),
 	}
 
@@ -1393,8 +1393,8 @@ func flattenExplicitAnalogTelevisionOutputRestriction(input *contentkeypolicies.
 
 	return []interface{}{
 		map[string]interface{}{
-			"best_effort":  input.BestEffort,
-			"control_bits": input.ConfigurationData,
+			"best_effort_enforced": input.BestEffort,
+			"control_bits":         input.ConfigurationData,
 		},
 	}
 }
