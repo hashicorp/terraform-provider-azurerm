@@ -188,13 +188,6 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 		Name: &id.BackendAddressPoolName,
 	}
 
-	if v, ok := d.GetOk("virtual_network_id"); ok {
-		param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
-			VirtualNetwork: &network.SubResource{
-				ID: utils.String(v.(string)),
-			}}
-	}
-
 	// Since API version 2020-05-01, there are two ways to CRUD backend address pool - either via the LB endpoint or via the
 	// dedicated BAP endpoint. While based on different sku of the LB, users should insist on interacting one of the two endpoints:
 	// - Basic sku: interact with LB endpoint for CUD
@@ -214,8 +207,19 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("`tunnel_interface` is required for %q when sku is set to %s", id, sku.Name)
 	}
 
+	if v, ok := d.GetOk("virtual_network_id"); ok {
+		param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
+			VirtualNetwork: &network.SubResource{
+				ID: utils.String(v.(string)),
+			}}
+	}
+
 	switch sku.Name {
 	case network.LoadBalancerSkuNameBasic:
+		if !d.IsNewResource() && d.HasChange("virtual_network_id") {
+			return fmt.Errorf("updating the virtual_network_id of Backend Address Pool %q is not allowed for basic (sku) Load Balancer", id)
+		}
+
 		// Insert this BAP and update the LB since the dedicated BAP endpoint doesn't work for the Basic sku.
 		backendAddressPools := append(*lb.LoadBalancerPropertiesFormat.BackendAddressPools, param)
 		_, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(&lb, id.BackendAddressPoolName)
@@ -235,6 +239,12 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			return fmt.Errorf("waiting for update of Load Balancer %q for Backend Address Pool %q: %+v", loadBalancerId, id, err)
 		}
 	case network.LoadBalancerSkuNameStandard:
+		if param.BackendAddressPoolPropertiesFormat == nil {
+			param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
+				// NOTE: Backend Addresses are managed using `azurerm_lb_backend_pool_address`
+			}
+		}
+
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, param)
 		if err != nil {
 			return fmt.Errorf("creating/updating Load Balancer Backend Address Pool %q: %+v", id, err)
@@ -350,10 +360,6 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 		}
 		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
 			return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
-		}
-
-		if err := d.Set("load_balancing_rules", loadBalancingRules); err != nil {
-			return fmt.Errorf("setting `load_balancing_rules`: %v", err)
 		}
 	}
 

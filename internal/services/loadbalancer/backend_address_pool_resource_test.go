@@ -72,6 +72,20 @@ func TestAccBackendAddressPoolStandardSkuBasic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.standardSkuBasicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardSkuBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -225,9 +239,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name               = "pool"
-  loadbalancer_id    = azurerm_lb.test.id
-  virtual_network_id = azurerm_virtual_network.test.id
+  name            = "pool"
+  loadbalancer_id = azurerm_lb.test.id
 }
 `, template)
 }
@@ -245,6 +258,22 @@ resource "azurerm_lb_backend_address_pool" "import" {
 }
 
 func (r LoadBalancerBackendAddressPool) standardSkuBasic(data acceptance.TestData) string {
+	template := r.template(data, "Standard")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "pool"
+  loadbalancer_id = azurerm_lb.test.id
+}
+`, template)
+}
+
+func (r LoadBalancerBackendAddressPool) standardSkuBasicUpdate(data acceptance.TestData) string {
 	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 provider "azurerm" {
