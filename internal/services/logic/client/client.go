@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountschemas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountsessions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -24,8 +26,8 @@ type Client struct {
 	IntegrationAccountPartnerClient            *integrationaccountpartners.IntegrationAccountPartnersClient
 	IntegrationAccountSchemaClient             *integrationaccountschemas.IntegrationAccountSchemasClient
 	IntegrationAccountSessionClient            *integrationaccountsessions.IntegrationAccountSessionsClient
-	IntegrationServiceEnvironmentClient        *logic.IntegrationServiceEnvironmentsClient
-	WorkflowClient                             *logic.WorkflowsClient
+	IntegrationServiceEnvironmentClient        *integrationserviceenvironments.IntegrationServiceEnvironmentsClient
+	WorkflowClient                             *workflows.WorkflowsClient
 	TriggersClient                             *logic.WorkflowTriggersClient
 }
 
@@ -57,10 +59,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountSessionClient := integrationaccountsessions.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountSessionClient.Client, o.ResourceManagerAuthorizer)
 
-	integrationServiceEnvironmentClient := logic.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	integrationServiceEnvironmentClient := integrationserviceenvironments.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationServiceEnvironmentClient.Client, o.ResourceManagerAuthorizer)
 
-	workflowClient := logic.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	workflowClient := workflows.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&workflowClient.Client, o.ResourceManagerAuthorizer)
 
 	triggersClient := logic.NewWorkflowTriggersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

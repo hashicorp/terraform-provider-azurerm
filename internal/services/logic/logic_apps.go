@@ -5,6 +5,9 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -43,15 +46,15 @@ func expandLogicAppActionRunAfter(input []interface{}) map[string]interface{} {
 	return output
 }
 
-func resourceLogicAppActionUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId parse.WorkflowId, actionId parse.ActionId, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppActionUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId workflows.WorkflowId, actionId parse.ActionId, vals map[string]interface{}, resourceName string) error {
 	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", workflowId, actionId.ID(), actionId.Name, vals, resourceName)
 }
 
-func resourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId parse.WorkflowId, triggerId parse.TriggerId, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId workflows.WorkflowId, triggerId parse.TriggerId, vals map[string]interface{}, resourceName string) error {
 	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", workflowId, triggerId.ID(), triggerId.Name, vals, resourceName)
 }
 
-func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}, kind string, propertyName string, workflowId parse.WorkflowId, resourceId string, name string, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}, kind string, propertyName string, workflowId workflows.WorkflowId, resourceId string, name string, vals map[string]interface{}, resourceName string) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -59,28 +62,29 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %s %s %q", workflowId, kind, name)
 
 	// lock to prevent against Actions or Triggers conflicting
-	locks.ByName(workflowId.Name, logicAppResourceName)
-	defer locks.UnlockByName(workflowId.Name, logicAppResourceName)
+	locks.ByName(workflowId.WorkflowName, logicAppResourceName)
+	defer locks.UnlockByName(workflowId.WorkflowName, logicAppResourceName)
 
-	read, err := client.Get(ctx, workflowId.ResourceGroup, workflowId.Name)
+	read, err := client.Get(ctx, workflowId)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			return fmt.Errorf("[ERROR] Logic App Workflow %s was not found", workflowId)
 		}
 
 		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", workflowId, err)
 	}
 
-	if read.WorkflowProperties == nil {
+	if read.Model == nil || read.Model.Properties == nil {
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
-	if read.WorkflowProperties.Definition == nil {
+	if read.Model.Properties.Definition == nil {
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
 	}
 
-	definition := read.WorkflowProperties.Definition.(map[string]interface{})
-	vs := definition[propertyName].(map[string]interface{})
+	rawDefinition := *read.Model.Properties.Definition
+	definitionMap := rawDefinition.(map[string]interface{})
+	vs := definitionMap[propertyName].(map[string]interface{})
 
 	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
@@ -89,29 +93,30 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	vs[name] = vals
-	definition[propertyName] = vs
+	definitionMap[propertyName] = vs
+	rawDefinition = definitionMap
 
-	if read.Identity != nil && read.Identity.UserAssignedIdentities != nil {
-		for k := range read.Identity.UserAssignedIdentities {
-			read.Identity.UserAssignedIdentities[k] = &logic.UserAssignedIdentity{
+	if read.Model.Identity != nil && read.Model.Identity.IdentityIds != nil {
+		for k := range read.Model.Identity.IdentityIds {
+			read.Model.Identity.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 				// this has to be an empty object due to the API design
 			}
 		}
 	}
 
-	properties := logic.Workflow{
-		Location: read.Location,
-		WorkflowProperties: &logic.WorkflowProperties{
-			Definition:                    definition,
-			Parameters:                    read.WorkflowProperties.Parameters,
-			AccessControl:                 read.WorkflowProperties.AccessControl,
-			IntegrationAccount:            read.WorkflowProperties.IntegrationAccount,
-			IntegrationServiceEnvironment: read.IntegrationServiceEnvironment,
+	properties := workflows.Workflow{
+		Location: read.Model.Location,
+		Properties: &workflows.WorkflowProperties{
+			Definition:                    &rawDefinition,
+			Parameters:                    read.Model.Properties.Parameters,
+			AccessControl:                 read.Model.Properties.AccessControl,
+			IntegrationAccount:            read.Model.Properties.IntegrationAccount,
+			IntegrationServiceEnvironment: read.Model.Properties.IntegrationServiceEnvironment,
 		},
-		Identity: read.Identity,
-		Tags:     read.Tags,
+		Identity: read.Model.Identity,
+		Tags:     read.Model.Tags,
 	}
-	if _, err = client.CreateOrUpdate(ctx, workflowId.ResourceGroup, workflowId.Name, properties); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, workflowId, properties); err != nil {
 		return fmt.Errorf("updating Logic App Workflow %s for %s %q: %+v", workflowId, kind, name, err)
 	}
 
