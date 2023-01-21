@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountmaps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountpartners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountschemas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -20,7 +21,7 @@ type Client struct {
 	IntegrationAccountCertificateClient        *integrationaccountcertificates.IntegrationAccountCertificatesClient
 	IntegrationAccountMapClient                *integrationaccountmaps.IntegrationAccountMapsClient
 	IntegrationAccountPartnerClient            *integrationaccountpartners.IntegrationAccountPartnersClient
-	IntegrationAccountSchemaClient             *logic.IntegrationAccountSchemasClient
+	IntegrationAccountSchemaClient             *integrationaccountschemas.IntegrationAccountSchemasClient
 	IntegrationAccountSessionClient            *logic.IntegrationAccountSessionsClient
 	IntegrationServiceEnvironmentClient        *logic.IntegrationServiceEnvironmentsClient
 	WorkflowClient                             *logic.WorkflowsClient
@@ -49,7 +50,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountPartnerClient := integrationaccountpartners.NewIntegrationAccountPartnersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountPartnerClient.Client, o.ResourceManagerAuthorizer)
 
-	integrationAccountSchemaClient := logic.NewIntegrationAccountSchemasClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	integrationAccountSchemaClient := integrationaccountschemas.NewIntegrationAccountSchemasClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountSchemaClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationAccountSessionClient := logic.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
