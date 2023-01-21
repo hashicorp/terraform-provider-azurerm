@@ -36,6 +36,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_mariadb_configuration":        resourceMariaDbConfiguration(),
+		"azurerm_mariadb_configuration_set":    resourceMariaDbConfigurationSet(),
 		"azurerm_mariadb_database":             resourceMariaDbDatabase(),
 		"azurerm_mariadb_firewall_rule":        resourceArmMariaDBFirewallRule(),
 		"azurerm_mariadb_server":               resourceMariaDbServer(),

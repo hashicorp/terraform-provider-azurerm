@@ -52,3 +52,5 @@ tf.zip
 .env
 tmp/
 
+*.orig
+/debug
