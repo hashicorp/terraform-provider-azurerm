@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountpartners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountschemas"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountsessions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -22,7 +23,7 @@ type Client struct {
 	IntegrationAccountMapClient                *integrationaccountmaps.IntegrationAccountMapsClient
 	IntegrationAccountPartnerClient            *integrationaccountpartners.IntegrationAccountPartnersClient
 	IntegrationAccountSchemaClient             *integrationaccountschemas.IntegrationAccountSchemasClient
-	IntegrationAccountSessionClient            *logic.IntegrationAccountSessionsClient
+	IntegrationAccountSessionClient            *integrationaccountsessions.IntegrationAccountSessionsClient
 	IntegrationServiceEnvironmentClient        *logic.IntegrationServiceEnvironmentsClient
 	WorkflowClient                             *logic.WorkflowsClient
 	TriggersClient                             *logic.WorkflowTriggersClient
@@ -53,7 +54,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountSchemaClient := integrationaccountschemas.NewIntegrationAccountSchemasClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountSchemaClient.Client, o.ResourceManagerAuthorizer)
 
-	integrationAccountSessionClient := logic.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	integrationAccountSessionClient := integrationaccountsessions.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&integrationAccountSessionClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationServiceEnvironmentClient := logic.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
