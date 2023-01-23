@@ -940,9 +940,9 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 		if err != nil {
 			return fmt.Errorf("parsing kubernetes cluster id: %+v", err)
 		}
-		parsedAgentPoolId := agentpools.NewAgentPoolID(parsedK8sId.SubscriptionId, parsedK8sId.ResourceGroupName, parsedK8sId.ResourceName, nodePoolName)
+		parsedAgentPoolId := agentpools.NewAgentPoolID(parsedK8sId.SubscriptionId, parsedK8sId.ResourceGroupName, parsedK8sId.ManagedClusterName, nodePoolName)
 
-		clusterName := parsedK8sId.ResourceName
+		clusterName := parsedK8sId.ManagedClusterName
 		resourceGroup := parsedK8sId.ResourceGroupName
 
 		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, parsedAgentPoolId)

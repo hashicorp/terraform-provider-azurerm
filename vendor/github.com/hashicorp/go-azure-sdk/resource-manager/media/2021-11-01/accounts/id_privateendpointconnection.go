@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = PrivateEndpointConnectionId{}
 
 // PrivateEndpointConnectionId is a struct representing the Resource ID for a Private Endpoint Connection
 type PrivateEndpointConnectionId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	Name              string
+	SubscriptionId                string
+	ResourceGroupName             string
+	MediaServiceName              string
+	PrivateEndpointConnectionName string
 }
 
 // NewPrivateEndpointConnectionID returns a new PrivateEndpointConnectionId struct
-func NewPrivateEndpointConnectionID(subscriptionId string, resourceGroupName string, accountName string, name string) PrivateEndpointConnectionId {
+func NewPrivateEndpointConnectionID(subscriptionId string, resourceGroupName string, mediaServiceName string, privateEndpointConnectionName string) PrivateEndpointConnectionId {
 	return PrivateEndpointConnectionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		Name:              name,
+		SubscriptionId:                subscriptionId,
+		ResourceGroupName:             resourceGroupName,
+		MediaServiceName:              mediaServiceName,
+		PrivateEndpointConnectionName: privateEndpointConnectionName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionI
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateEndpointConnectionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParsePrivateEndpointConnectionIDInsensitively(input string) (*PrivateEndpoi
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateEndpointConnectionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidatePrivateEndpointConnectionID(input interface{}, key string) (warning
 // ID returns the formatted Private Endpoint Connection ID
 func (id PrivateEndpointConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/privateEndpointConnections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.PrivateEndpointConnectionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Private Endpoint Connection ID
@@ -119,9 +119,9 @@ func (id PrivateEndpointConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id PrivateEndpointConnectionId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
+		fmt.Sprintf("Private Endpoint Connection Name: %q", id.PrivateEndpointConnectionName),
 	}
 	return fmt.Sprintf("Private Endpoint Connection (%s)", strings.Join(components, "\n"))
 }

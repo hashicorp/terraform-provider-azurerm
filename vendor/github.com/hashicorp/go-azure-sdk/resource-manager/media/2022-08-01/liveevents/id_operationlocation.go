@@ -13,17 +13,17 @@ var _ resourceids.ResourceId = OperationLocationId{}
 type OperationLocationId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	MediaServiceName  string
 	LiveEventName     string
 	OperationId       string
 }
 
 // NewOperationLocationID returns a new OperationLocationId struct
-func NewOperationLocationID(subscriptionId string, resourceGroupName string, accountName string, liveEventName string, operationId string) OperationLocationId {
+func NewOperationLocationID(subscriptionId string, resourceGroupName string, mediaServiceName string, liveEventName string, operationId string) OperationLocationId {
 	return OperationLocationId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		MediaServiceName:  mediaServiceName,
 		LiveEventName:     liveEventName,
 		OperationId:       operationId,
 	}
@@ -48,8 +48,8 @@ func ParseOperationLocationID(input string) (*OperationLocationId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.LiveEventName, ok = parsed.Parsed["liveEventName"]; !ok {
@@ -83,8 +83,8 @@ func ParseOperationLocationIDInsensitively(input string) (*OperationLocationId, 
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.LiveEventName, ok = parsed.Parsed["liveEventName"]; !ok {
@@ -116,7 +116,7 @@ func ValidateOperationLocationID(input interface{}, key string) (warnings []stri
 // ID returns the formatted Operation Location ID
 func (id OperationLocationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/liveEvents/%s/operationLocations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.LiveEventName, id.OperationId)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.LiveEventName, id.OperationId)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Operation Location ID
@@ -129,7 +129,7 @@ func (id OperationLocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticLiveEvents", "liveEvents", "liveEvents"),
 		resourceids.UserSpecifiedSegment("liveEventName", "liveEventValue"),
 		resourceids.StaticSegment("staticOperationLocations", "operationLocations", "operationLocations"),
@@ -142,7 +142,7 @@ func (id OperationLocationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Live Event Name: %q", id.LiveEventName),
 		fmt.Sprintf("Operation: %q", id.OperationId),
 	}

@@ -244,7 +244,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 	}
 	d.Set("name", id.BackupPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("vault_name", id.VaultName)
+	d.Set("vault_name", id.BackupVaultName)
 
 	if resp.Model != nil {
 		if resp.Model.Properties != nil {

@@ -312,7 +312,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err != nil {
 			return err
 		}
-		d.Set("maintenance_configuration_name", maintenanceConfigId.ResourceName)
+		d.Set("maintenance_configuration_name", maintenanceConfigId.PublicMaintenanceConfigurationName)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

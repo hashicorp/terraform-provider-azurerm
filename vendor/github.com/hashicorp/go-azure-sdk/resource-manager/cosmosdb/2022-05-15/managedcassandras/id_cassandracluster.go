@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = CassandraClusterId{}
 
 // CassandraClusterId is a struct representing the Resource ID for a Cassandra Cluster
 type CassandraClusterId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ClusterName       string
+	SubscriptionId       string
+	ResourceGroupName    string
+	CassandraClusterName string
 }
 
 // NewCassandraClusterID returns a new CassandraClusterId struct
-func NewCassandraClusterID(subscriptionId string, resourceGroupName string, clusterName string) CassandraClusterId {
+func NewCassandraClusterID(subscriptionId string, resourceGroupName string, cassandraClusterName string) CassandraClusterId {
 	return CassandraClusterId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ClusterName:       clusterName,
+		SubscriptionId:       subscriptionId,
+		ResourceGroupName:    resourceGroupName,
+		CassandraClusterName: cassandraClusterName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseCassandraClusterID(input string) (*CassandraClusterId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+	if id.CassandraClusterName, ok = parsed.Parsed["cassandraClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'cassandraClusterName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseCassandraClusterIDInsensitively(input string) (*CassandraClusterId, er
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+	if id.CassandraClusterName, ok = parsed.Parsed["cassandraClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'cassandraClusterName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateCassandraClusterID(input interface{}, key string) (warnings []strin
 // ID returns the formatted Cassandra Cluster ID
 func (id CassandraClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/cassandraClusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.CassandraClusterName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Cassandra Cluster ID
@@ -109,7 +109,7 @@ func (id CassandraClusterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticCassandraClusters", "cassandraClusters", "cassandraClusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("cassandraClusterName", "cassandraClusterValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id CassandraClusterId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Cluster Name: %q", id.ClusterName),
+		fmt.Sprintf("Cassandra Cluster Name: %q", id.CassandraClusterName),
 	}
 	return fmt.Sprintf("Cassandra Cluster (%s)", strings.Join(components, "\n"))
 }

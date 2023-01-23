@@ -144,7 +144,7 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Read() sdk.ResourceFunc
 			}
 
 			state := ResourceDeploymentScriptAzurePowerShellModel{
-				Name:              id.ScriptName,
+				Name:              id.DeploymentScriptName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
 			}

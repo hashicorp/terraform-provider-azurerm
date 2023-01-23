@@ -252,12 +252,12 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
-	resourceId := fmt.Sprintf("%s|%s", id.ResourceUri, id.Name)
+	resourceId := fmt.Sprintf("%s|%s", id.ResourceUri, id.DiagnosticSettingName)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", id.Name, id.ResourceUri, err)
+			return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 		}
 	}
 
@@ -340,7 +340,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
 	d.SetId(resourceId)
@@ -361,10 +361,10 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 	if existing.Model == nil || existing.Model.Properties == nil {
-		return fmt.Errorf("unexpected null model of Monitor Diagnostics Setting %q for Resource %q", id.Name, id.ResourceUri)
+		return fmt.Errorf("unexpected null model of Monitor Diagnostics Setting %q for Resource %q", id.DiagnosticSettingName, id.ResourceUri)
 	}
 
 	metricsRaw := d.Get("metric").(*pluginsdk.Set).List()
@@ -497,7 +497,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+		return fmt.Errorf("updating Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
@@ -515,15 +515,15 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.Name, id.ResourceUri)
+			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.DiagnosticSettingName, id.ResourceUri)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DiagnosticSettingName)
 	d.Set("target_resource_id", id.ResourceUri)
 
 	if model := resp.Model; model != nil {
@@ -603,12 +603,12 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, id.ResourceUri, err)
+			return fmt.Errorf("deleting Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 		}
 	}
 
 	// API appears to be eventually consistent (identified during tainting this resource)
-	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.Name, id.ResourceUri)
+	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.DiagnosticSettingName, id.ResourceUri)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
@@ -619,7 +619,7 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.Name, id.ResourceUri, err)
+		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
 	return nil
@@ -869,8 +869,8 @@ func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagn
 	}
 
 	identifier := diagnosticsettings.ScopedDiagnosticSettingId{
-		ResourceUri: v[0],
-		Name:        v[1],
+		ResourceUri:           v[0],
+		DiagnosticSettingName: v[1],
 	}
 	return &identifier, nil
 }

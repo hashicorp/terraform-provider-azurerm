@@ -273,7 +273,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.Set("name", id.EventHubName)
+	d.Set("name", id.EventhubName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

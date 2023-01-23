@@ -412,7 +412,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.ServerName)
+	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -571,7 +571,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if requireFailover {
 		restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
 
-		restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+		restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 		failoverMode := serverrestart.FailoverModePlannedFailover
 		restartParameters := serverrestart.RestartParameter{
 			RestartWithFailover: utils.Bool(true),

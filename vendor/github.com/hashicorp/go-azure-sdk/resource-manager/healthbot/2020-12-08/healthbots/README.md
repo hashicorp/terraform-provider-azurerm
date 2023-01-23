@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
 
 payload := healthbots.HealthBot{
 	// ...
@@ -41,7 +41,7 @@ if err := client.BotsCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
 
 if err := client.BotsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.BotsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
 
 read, err := client.BotsGet(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
 
 payload := healthbots.HealthBotUpdateParameters{
 	// ...

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 payload := cosmosdb.CassandraKeyspaceCreateUpdateParameters{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CassandraResourcesCreateUpdateCassandraKeyspaceThenPoll(ctx, id
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue", "tableValue")
+id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue", "tableValue")
 
 payload := cosmosdb.CassandraTableCreateUpdateParameters{
 	// ...
@@ -58,7 +58,7 @@ if err := client.CassandraResourcesCreateUpdateCassandraTableThenPoll(ctx, id, p
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 if err := client.CassandraResourcesDeleteCassandraKeyspaceThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -70,7 +70,7 @@ if err := client.CassandraResourcesDeleteCassandraKeyspaceThenPoll(ctx, id); err
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue", "tableValue")
+id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue", "tableValue")
 
 if err := client.CassandraResourcesDeleteCassandraTableThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -82,7 +82,7 @@ if err := client.CassandraResourcesDeleteCassandraTableThenPoll(ctx, id); err !=
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 read, err := client.CassandraResourcesGetCassandraKeyspace(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 read, err := client.CassandraResourcesGetCassandraKeyspaceThroughput(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue", "tableValue")
+id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue", "tableValue")
 
 read, err := client.CassandraResourcesGetCassandraTable(ctx, id)
 if err != nil {
@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue", "tableValue")
+id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue", "tableValue")
 
 read, err := client.CassandraResourcesGetCassandraTableThroughput(ctx, id)
 if err != nil {
@@ -146,7 +146,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.CassandraResourcesListCassandraKeyspaces(ctx, id)
 if err != nil {
@@ -162,7 +162,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 read, err := client.CassandraResourcesListCassandraTables(ctx, id)
 if err != nil {
@@ -178,7 +178,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 if err := client.CassandraResourcesMigrateCassandraKeyspaceToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -190,7 +190,7 @@ if err := client.CassandraResourcesMigrateCassandraKeyspaceToAutoscaleThenPoll(c
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 if err := client.CassandraResourcesMigrateCassandraKeyspaceToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -202,7 +202,7 @@ if err := client.CassandraResourcesMigrateCassandraKeyspaceToManualThroughputThe
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue", "tableValue")
+id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue", "tableValue")
 
 if err := client.CassandraResourcesMigrateCassandraTableToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -214,7 +214,7 @@ if err := client.CassandraResourcesMigrateCassandraTableToAutoscaleThenPoll(ctx,
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue", "tableValue")
+id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue", "tableValue")
 
 if err := client.CassandraResourcesMigrateCassandraTableToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -226,7 +226,7 @@ if err := client.CassandraResourcesMigrateCassandraTableToManualThroughputThenPo
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue")
+id := cosmosdb.NewCassandraKeyspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -243,7 +243,7 @@ if err := client.CassandraResourcesUpdateCassandraKeyspaceThroughputThenPoll(ctx
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "keyspaceValue", "tableValue")
+id := cosmosdb.NewCassandraKeyspaceTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "cassandraKeyspaceValue", "tableValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -260,7 +260,7 @@ if err := client.CassandraResourcesUpdateCassandraTableThroughputThenPoll(ctx, i
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue", "collectionRidValue")
+id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue", "collectionValue")
 
 read, err := client.CollectionListMetricDefinitions(ctx, id)
 if err != nil {
@@ -276,7 +276,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue", "collectionRidValue")
+id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue", "collectionValue")
 
 read, err := client.CollectionListMetrics(ctx, id, cosmosdb.DefaultCollectionListMetricsOperationOptions())
 if err != nil {
@@ -292,7 +292,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue", "collectionRidValue")
+id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue", "collectionValue")
 
 read, err := client.CollectionListUsages(ctx, id, cosmosdb.DefaultCollectionListUsagesOperationOptions())
 if err != nil {
@@ -308,7 +308,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue", "collectionRidValue")
+id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue", "collectionValue")
 
 read, err := client.CollectionPartitionListMetrics(ctx, id, cosmosdb.DefaultCollectionPartitionListMetricsOperationOptions())
 if err != nil {
@@ -324,7 +324,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue", "collectionRidValue")
+id := cosmosdb.NewCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue", "collectionValue")
 
 read, err := client.CollectionPartitionListUsages(ctx, id, cosmosdb.DefaultCollectionPartitionListUsagesOperationOptions())
 if err != nil {
@@ -340,7 +340,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "regionValue", "databaseRidValue", "collectionRidValue")
+id := cosmosdb.NewDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "regionValue", "databaseValue", "collectionValue")
 
 read, err := client.CollectionPartitionRegionListMetrics(ctx, id, cosmosdb.DefaultCollectionPartitionRegionListMetricsOperationOptions())
 if err != nil {
@@ -356,7 +356,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "regionValue", "databaseRidValue", "collectionRidValue")
+id := cosmosdb.NewDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "regionValue", "databaseValue", "collectionValue")
 
 read, err := client.CollectionRegionListMetrics(ctx, id, cosmosdb.DefaultCollectionRegionListMetricsOperationOptions())
 if err != nil {
@@ -372,7 +372,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewRegionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "regionValue")
+id := cosmosdb.NewRegionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "regionValue")
 
 read, err := client.DatabaseAccountRegionListMetrics(ctx, id, cosmosdb.DefaultDatabaseAccountRegionListMetricsOperationOptions())
 if err != nil {
@@ -388,7 +388,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountNameID("accountValue")
+id := cosmosdb.NewDatabaseAccountNameID("databaseAccountNameValue")
 
 read, err := client.DatabaseAccountsCheckNameExists(ctx, id)
 if err != nil {
@@ -404,7 +404,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 payload := cosmosdb.DatabaseAccountCreateUpdateParameters{
 	// ...
@@ -421,7 +421,7 @@ if err := client.DatabaseAccountsCreateOrUpdateThenPoll(ctx, id, payload); err !
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 if err := client.DatabaseAccountsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -433,7 +433,7 @@ if err := client.DatabaseAccountsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 payload := cosmosdb.FailoverPolicies{
 	// ...
@@ -450,7 +450,7 @@ if err := client.DatabaseAccountsFailoverPriorityChangeThenPoll(ctx, id, payload
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsGet(ctx, id)
 if err != nil {
@@ -466,7 +466,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsGetReadOnlyKeys(ctx, id)
 if err != nil {
@@ -514,7 +514,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsListConnectionStrings(ctx, id)
 if err != nil {
@@ -530,7 +530,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsListKeys(ctx, id)
 if err != nil {
@@ -546,7 +546,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsListMetricDefinitions(ctx, id)
 if err != nil {
@@ -562,7 +562,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsListMetrics(ctx, id, cosmosdb.DefaultDatabaseAccountsListMetricsOperationOptions())
 if err != nil {
@@ -578,7 +578,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsListReadOnlyKeys(ctx, id)
 if err != nil {
@@ -594,7 +594,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.DatabaseAccountsListUsages(ctx, id, cosmosdb.DefaultDatabaseAccountsListUsagesOperationOptions())
 if err != nil {
@@ -610,7 +610,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 payload := cosmosdb.RegionForOnlineOffline{
 	// ...
@@ -627,7 +627,7 @@ if err := client.DatabaseAccountsOfflineRegionThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 payload := cosmosdb.RegionForOnlineOffline{
 	// ...
@@ -644,7 +644,7 @@ if err := client.DatabaseAccountsOnlineRegionThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 payload := cosmosdb.DatabaseAccountRegenerateKeyParameters{
 	// ...
@@ -661,7 +661,7 @@ if err := client.DatabaseAccountsRegenerateKeyThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 payload := cosmosdb.DatabaseAccountUpdateParameters{
 	// ...
@@ -678,7 +678,7 @@ if err := client.DatabaseAccountsUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue")
+id := cosmosdb.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue")
 
 read, err := client.DatabaseListMetricDefinitions(ctx, id)
 if err != nil {
@@ -694,7 +694,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue")
+id := cosmosdb.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue")
 
 read, err := client.DatabaseListMetrics(ctx, id, cosmosdb.DefaultDatabaseListMetricsOperationOptions())
 if err != nil {
@@ -710,7 +710,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue")
+id := cosmosdb.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue")
 
 read, err := client.DatabaseListUsages(ctx, id, cosmosdb.DefaultDatabaseListUsagesOperationOptions())
 if err != nil {
@@ -726,7 +726,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 payload := cosmosdb.GremlinDatabaseCreateUpdateParameters{
 	// ...
@@ -743,7 +743,7 @@ if err := client.GremlinResourcesCreateUpdateGremlinDatabaseThenPoll(ctx, id, pa
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "graphValue")
+id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue", "graphValue")
 
 payload := cosmosdb.GremlinGraphCreateUpdateParameters{
 	// ...
@@ -760,7 +760,7 @@ if err := client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, id, paylo
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 if err := client.GremlinResourcesDeleteGremlinDatabaseThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -772,7 +772,7 @@ if err := client.GremlinResourcesDeleteGremlinDatabaseThenPoll(ctx, id); err != 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "graphValue")
+id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue", "graphValue")
 
 if err := client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -784,7 +784,7 @@ if err := client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, id); err != nil
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 read, err := client.GremlinResourcesGetGremlinDatabase(ctx, id)
 if err != nil {
@@ -800,7 +800,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 read, err := client.GremlinResourcesGetGremlinDatabaseThroughput(ctx, id)
 if err != nil {
@@ -816,7 +816,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "graphValue")
+id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue", "graphValue")
 
 read, err := client.GremlinResourcesGetGremlinGraph(ctx, id)
 if err != nil {
@@ -832,7 +832,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "graphValue")
+id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue", "graphValue")
 
 read, err := client.GremlinResourcesGetGremlinGraphThroughput(ctx, id)
 if err != nil {
@@ -848,7 +848,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.GremlinResourcesListGremlinDatabases(ctx, id)
 if err != nil {
@@ -864,7 +864,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 read, err := client.GremlinResourcesListGremlinGraphs(ctx, id)
 if err != nil {
@@ -880,7 +880,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 if err := client.GremlinResourcesMigrateGremlinDatabaseToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -892,7 +892,7 @@ if err := client.GremlinResourcesMigrateGremlinDatabaseToAutoscaleThenPoll(ctx, 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 if err := client.GremlinResourcesMigrateGremlinDatabaseToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -904,7 +904,7 @@ if err := client.GremlinResourcesMigrateGremlinDatabaseToManualThroughputThenPol
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "graphValue")
+id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue", "graphValue")
 
 if err := client.GremlinResourcesMigrateGremlinGraphToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -916,7 +916,7 @@ if err := client.GremlinResourcesMigrateGremlinGraphToAutoscaleThenPoll(ctx, id)
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "graphValue")
+id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue", "graphValue")
 
 if err := client.GremlinResourcesMigrateGremlinGraphToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -928,7 +928,7 @@ if err := client.GremlinResourcesMigrateGremlinGraphToManualThroughputThenPoll(c
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewGremlinDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -945,7 +945,7 @@ if err := client.GremlinResourcesUpdateGremlinDatabaseThroughputThenPoll(ctx, id
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "graphValue")
+id := cosmosdb.NewGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "gremlinDatabaseValue", "graphValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -994,7 +994,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "collectionValue")
+id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue", "collectionValue")
 
 payload := cosmosdb.MongoDBCollectionCreateUpdateParameters{
 	// ...
@@ -1011,7 +1011,7 @@ if err := client.MongoDBResourcesCreateUpdateMongoDBCollectionThenPoll(ctx, id, 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 payload := cosmosdb.MongoDBDatabaseCreateUpdateParameters{
 	// ...
@@ -1028,7 +1028,7 @@ if err := client.MongoDBResourcesCreateUpdateMongoDBDatabaseThenPoll(ctx, id, pa
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "collectionValue")
+id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue", "collectionValue")
 
 if err := client.MongoDBResourcesDeleteMongoDBCollectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1040,7 +1040,7 @@ if err := client.MongoDBResourcesDeleteMongoDBCollectionThenPoll(ctx, id); err !
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 if err := client.MongoDBResourcesDeleteMongoDBDatabaseThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1052,7 +1052,7 @@ if err := client.MongoDBResourcesDeleteMongoDBDatabaseThenPoll(ctx, id); err != 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "collectionValue")
+id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue", "collectionValue")
 
 read, err := client.MongoDBResourcesGetMongoDBCollection(ctx, id)
 if err != nil {
@@ -1068,7 +1068,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "collectionValue")
+id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue", "collectionValue")
 
 read, err := client.MongoDBResourcesGetMongoDBCollectionThroughput(ctx, id)
 if err != nil {
@@ -1084,7 +1084,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 read, err := client.MongoDBResourcesGetMongoDBDatabase(ctx, id)
 if err != nil {
@@ -1100,7 +1100,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 read, err := client.MongoDBResourcesGetMongoDBDatabaseThroughput(ctx, id)
 if err != nil {
@@ -1116,7 +1116,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 read, err := client.MongoDBResourcesListMongoDBCollections(ctx, id)
 if err != nil {
@@ -1132,7 +1132,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.MongoDBResourcesListMongoDBDatabases(ctx, id)
 if err != nil {
@@ -1148,7 +1148,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "collectionValue")
+id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue", "collectionValue")
 
 if err := client.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1160,7 +1160,7 @@ if err := client.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleThenPoll(ctx
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "collectionValue")
+id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue", "collectionValue")
 
 if err := client.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1172,7 +1172,7 @@ if err := client.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputThenP
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 if err := client.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1184,7 +1184,7 @@ if err := client.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleThenPoll(ctx, 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 if err := client.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1196,7 +1196,7 @@ if err := client.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputThenPol
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "collectionValue")
+id := cosmosdb.NewMongodbDatabaseCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue", "collectionValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -1213,7 +1213,7 @@ if err := client.MongoDBResourcesUpdateMongoDBCollectionThroughputThenPoll(ctx, 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "mongodbDatabaseValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -1230,7 +1230,7 @@ if err := client.MongoDBResourcesUpdateMongoDBDatabaseThroughputThenPoll(ctx, id
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewPartitionKeyRangeIdID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseRidValue", "collectionRidValue", "partitionKeyRangeIdValue")
+id := cosmosdb.NewPartitionKeyRangeIdID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "databaseValue", "collectionValue", "partitionKeyRangeIdValue")
 
 read, err := client.PartitionKeyRangeIdListMetrics(ctx, id, cosmosdb.DefaultPartitionKeyRangeIdListMetricsOperationOptions())
 if err != nil {
@@ -1246,7 +1246,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewCollectionPartitionKeyRangeIdID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "regionValue", "databaseRidValue", "collectionRidValue", "partitionKeyRangeIdValue")
+id := cosmosdb.NewCollectionPartitionKeyRangeIdID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "regionValue", "databaseValue", "collectionValue", "partitionKeyRangeIdValue")
 
 read, err := client.PartitionKeyRangeIdRegionListMetrics(ctx, id, cosmosdb.DefaultPartitionKeyRangeIdRegionListMetricsOperationOptions())
 if err != nil {
@@ -1262,7 +1262,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.PercentileListMetrics(ctx, id, cosmosdb.DefaultPercentileListMetricsOperationOptions())
 if err != nil {
@@ -1278,7 +1278,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSourceRegionTargetRegionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "sourceRegionValue", "targetRegionValue")
+id := cosmosdb.NewSourceRegionTargetRegionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sourceRegionValue", "targetRegionValue")
 
 read, err := client.PercentileSourceTargetListMetrics(ctx, id, cosmosdb.DefaultPercentileSourceTargetListMetricsOperationOptions())
 if err != nil {
@@ -1294,7 +1294,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTargetRegionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "targetRegionValue")
+id := cosmosdb.NewTargetRegionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "targetRegionValue")
 
 read, err := client.PercentileTargetListMetrics(ctx, id, cosmosdb.DefaultPercentileTargetListMetricsOperationOptions())
 if err != nil {
@@ -1310,7 +1310,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 payload := cosmosdb.SqlContainerCreateUpdateParameters{
 	// ...
@@ -1327,7 +1327,7 @@ if err := client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, id, payload);
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 payload := cosmosdb.SqlDatabaseCreateUpdateParameters{
 	// ...
@@ -1344,7 +1344,7 @@ if err := client.SqlResourcesCreateUpdateSqlDatabaseThenPoll(ctx, id, payload); 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewStoredProcedureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "storedProcedureValue")
+id := cosmosdb.NewStoredProcedureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "storedProcedureValue")
 
 payload := cosmosdb.SqlStoredProcedureCreateUpdateParameters{
 	// ...
@@ -1361,7 +1361,7 @@ if err := client.SqlResourcesCreateUpdateSqlStoredProcedureThenPoll(ctx, id, pay
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "triggerValue")
+id := cosmosdb.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "triggerValue")
 
 payload := cosmosdb.SqlTriggerCreateUpdateParameters{
 	// ...
@@ -1378,7 +1378,7 @@ if err := client.SqlResourcesCreateUpdateSqlTriggerThenPoll(ctx, id, payload); e
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewUserDefinedFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "userDefinedFunctionValue")
+id := cosmosdb.NewUserDefinedFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "userDefinedFunctionValue")
 
 payload := cosmosdb.SqlUserDefinedFunctionCreateUpdateParameters{
 	// ...
@@ -1395,7 +1395,7 @@ if err := client.SqlResourcesCreateUpdateSqlUserDefinedFunctionThenPoll(ctx, id,
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 if err := client.SqlResourcesDeleteSqlContainerThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1407,7 +1407,7 @@ if err := client.SqlResourcesDeleteSqlContainerThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 if err := client.SqlResourcesDeleteSqlDatabaseThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1419,7 +1419,7 @@ if err := client.SqlResourcesDeleteSqlDatabaseThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewStoredProcedureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "storedProcedureValue")
+id := cosmosdb.NewStoredProcedureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "storedProcedureValue")
 
 if err := client.SqlResourcesDeleteSqlStoredProcedureThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1431,7 +1431,7 @@ if err := client.SqlResourcesDeleteSqlStoredProcedureThenPoll(ctx, id); err != n
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "triggerValue")
+id := cosmosdb.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "triggerValue")
 
 if err := client.SqlResourcesDeleteSqlTriggerThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1443,7 +1443,7 @@ if err := client.SqlResourcesDeleteSqlTriggerThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewUserDefinedFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "userDefinedFunctionValue")
+id := cosmosdb.NewUserDefinedFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "userDefinedFunctionValue")
 
 if err := client.SqlResourcesDeleteSqlUserDefinedFunctionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1455,7 +1455,7 @@ if err := client.SqlResourcesDeleteSqlUserDefinedFunctionThenPoll(ctx, id); err 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 read, err := client.SqlResourcesGetSqlContainer(ctx, id)
 if err != nil {
@@ -1471,7 +1471,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 read, err := client.SqlResourcesGetSqlContainerThroughput(ctx, id)
 if err != nil {
@@ -1487,7 +1487,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 read, err := client.SqlResourcesGetSqlDatabase(ctx, id)
 if err != nil {
@@ -1503,7 +1503,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 read, err := client.SqlResourcesGetSqlDatabaseThroughput(ctx, id)
 if err != nil {
@@ -1519,7 +1519,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewStoredProcedureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "storedProcedureValue")
+id := cosmosdb.NewStoredProcedureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "storedProcedureValue")
 
 read, err := client.SqlResourcesGetSqlStoredProcedure(ctx, id)
 if err != nil {
@@ -1535,7 +1535,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "triggerValue")
+id := cosmosdb.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "triggerValue")
 
 read, err := client.SqlResourcesGetSqlTrigger(ctx, id)
 if err != nil {
@@ -1551,7 +1551,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewUserDefinedFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue", "userDefinedFunctionValue")
+id := cosmosdb.NewUserDefinedFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue", "userDefinedFunctionValue")
 
 read, err := client.SqlResourcesGetSqlUserDefinedFunction(ctx, id)
 if err != nil {
@@ -1567,7 +1567,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 read, err := client.SqlResourcesListSqlContainers(ctx, id)
 if err != nil {
@@ -1583,7 +1583,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.SqlResourcesListSqlDatabases(ctx, id)
 if err != nil {
@@ -1599,7 +1599,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 read, err := client.SqlResourcesListSqlStoredProcedures(ctx, id)
 if err != nil {
@@ -1615,7 +1615,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 read, err := client.SqlResourcesListSqlTriggers(ctx, id)
 if err != nil {
@@ -1631,7 +1631,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 read, err := client.SqlResourcesListSqlUserDefinedFunctions(ctx, id)
 if err != nil {
@@ -1647,7 +1647,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 if err := client.SqlResourcesMigrateSqlContainerToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1659,7 +1659,7 @@ if err := client.SqlResourcesMigrateSqlContainerToAutoscaleThenPoll(ctx, id); er
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 if err := client.SqlResourcesMigrateSqlContainerToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1671,7 +1671,7 @@ if err := client.SqlResourcesMigrateSqlContainerToManualThroughputThenPoll(ctx, 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 if err := client.SqlResourcesMigrateSqlDatabaseToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1683,7 +1683,7 @@ if err := client.SqlResourcesMigrateSqlDatabaseToAutoscaleThenPoll(ctx, id); err
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 if err := client.SqlResourcesMigrateSqlDatabaseToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1695,7 +1695,7 @@ if err := client.SqlResourcesMigrateSqlDatabaseToManualThroughputThenPoll(ctx, i
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue", "containerValue")
+id := cosmosdb.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue", "containerValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -1712,7 +1712,7 @@ if err := client.SqlResourcesUpdateSqlContainerThroughputThenPoll(ctx, id, paylo
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "databaseValue")
+id := cosmosdb.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "sqlDatabaseValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...
@@ -1729,7 +1729,7 @@ if err := client.SqlResourcesUpdateSqlDatabaseThroughputThenPoll(ctx, id, payloa
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "tableValue")
 
 payload := cosmosdb.TableCreateUpdateParameters{
 	// ...
@@ -1746,7 +1746,7 @@ if err := client.TableResourcesCreateUpdateTableThenPoll(ctx, id, payload); err 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "tableValue")
 
 if err := client.TableResourcesDeleteTableThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1758,7 +1758,7 @@ if err := client.TableResourcesDeleteTableThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "tableValue")
 
 read, err := client.TableResourcesGetTable(ctx, id)
 if err != nil {
@@ -1774,7 +1774,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "tableValue")
 
 read, err := client.TableResourcesGetTableThroughput(ctx, id)
 if err != nil {
@@ -1790,7 +1790,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cosmosdb.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue")
 
 read, err := client.TableResourcesListTables(ctx, id)
 if err != nil {
@@ -1806,7 +1806,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "tableValue")
 
 if err := client.TableResourcesMigrateTableToAutoscaleThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1818,7 +1818,7 @@ if err := client.TableResourcesMigrateTableToAutoscaleThenPoll(ctx, id); err != 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "tableValue")
 
 if err := client.TableResourcesMigrateTableToManualThroughputThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1830,7 +1830,7 @@ if err := client.TableResourcesMigrateTableToManualThroughputThenPoll(ctx, id); 
 
 ```go
 ctx := context.TODO()
-id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := cosmosdb.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountValue", "tableValue")
 
 payload := cosmosdb.ThroughputSettingsUpdateParameters{
 	// ...

@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = PrivateZoneId{}
 
 // PrivateZoneId is a struct representing the Resource ID for a Private Zone
 type PrivateZoneId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	PrivateZoneName   string
-	RecordType        RecordType
+	SubscriptionId     string
+	ResourceGroupName  string
+	PrivateDnsZoneName string
+	RecordType         RecordType
 }
 
 // NewPrivateZoneID returns a new PrivateZoneId struct
-func NewPrivateZoneID(subscriptionId string, resourceGroupName string, privateZoneName string, recordType RecordType) PrivateZoneId {
+func NewPrivateZoneID(subscriptionId string, resourceGroupName string, privateDnsZoneName string, recordType RecordType) PrivateZoneId {
 	return PrivateZoneId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		PrivateZoneName:   privateZoneName,
-		RecordType:        recordType,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		PrivateDnsZoneName: privateDnsZoneName,
+		RecordType:         recordType,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParsePrivateZoneID(input string) (*PrivateZoneId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.PrivateZoneName, ok = parsed.Parsed["privateZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateZoneName' was not found in the resource id %q", input)
+	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
 	}
 
 	if v, ok := parsed.Parsed["recordType"]; true {
@@ -85,8 +85,8 @@ func ParsePrivateZoneIDInsensitively(input string) (*PrivateZoneId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.PrivateZoneName, ok = parsed.Parsed["privateZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateZoneName' was not found in the resource id %q", input)
+	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
 	}
 
 	if v, ok := parsed.Parsed["recordType"]; true {
@@ -122,7 +122,7 @@ func ValidatePrivateZoneID(input interface{}, key string) (warnings []string, er
 // ID returns the formatted Private Zone ID
 func (id PrivateZoneId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateDnsZones/%s/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateZoneName, string(id.RecordType))
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, string(id.RecordType))
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Private Zone ID
@@ -135,7 +135,7 @@ func (id PrivateZoneId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateDnsZones", "privateDnsZones", "privateDnsZones"),
-		resourceids.UserSpecifiedSegment("privateZoneName", "privateZoneValue"),
+		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateDnsZoneValue"),
 		resourceids.ConstantSegment("recordType", PossibleValuesForRecordType(), "A"),
 	}
 }
@@ -145,7 +145,7 @@ func (id PrivateZoneId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Private Zone Name: %q", id.PrivateZoneName),
+		fmt.Sprintf("Private Dns Zone Name: %q", id.PrivateDnsZoneName),
 		fmt.Sprintf("Record Type: %q", string(id.RecordType)),
 	}
 	return fmt.Sprintf("Private Zone (%s)", strings.Join(components, "\n"))

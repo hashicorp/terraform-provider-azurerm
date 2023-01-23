@@ -65,7 +65,7 @@ func dataSourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.EventHubName)
+	d.Set("name", id.EventhubName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

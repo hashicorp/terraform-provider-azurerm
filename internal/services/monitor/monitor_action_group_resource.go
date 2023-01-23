@@ -829,7 +829,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 				if err != nil {
 					return nil, err
 				}
-				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventHubName, eventHubId.SubscriptionId
+				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventhubName, eventHubId.SubscriptionId
 			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
 				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
 			}

@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = HubId{}
 type HubId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	ResourceName      string
+	WebPubSubName     string
 	HubName           string
 }
 
 // NewHubID returns a new HubId struct
-func NewHubID(subscriptionId string, resourceGroupName string, resourceName string, hubName string) HubId {
+func NewHubID(subscriptionId string, resourceGroupName string, webPubSubName string, hubName string) HubId {
 	return HubId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		WebPubSubName:     webPubSubName,
 		HubName:           hubName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseHubID(input string) (*HubId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
 	}
 
 	if id.HubName, ok = parsed.Parsed["hubName"]; !ok {
@@ -77,8 +77,8 @@ func ParseHubIDInsensitively(input string) (*HubId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
 	}
 
 	if id.HubName, ok = parsed.Parsed["hubName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateHubID(input interface{}, key string) (warnings []string, errors []e
 // ID returns the formatted Hub ID
 func (id HubId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/webPubSub/%s/hubs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.HubName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName, id.HubName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Hub ID
@@ -119,7 +119,7 @@ func (id HubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
 		resourceids.StaticSegment("staticHubs", "hubs", "hubs"),
 		resourceids.UserSpecifiedSegment("hubName", "hubValue"),
 	}
@@ -130,7 +130,7 @@ func (id HubId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Web Pub Sub Name: %q", id.WebPubSubName),
 		fmt.Sprintf("Hub Name: %q", id.HubName),
 	}
 	return fmt.Sprintf("Hub (%s)", strings.Join(components, "\n"))

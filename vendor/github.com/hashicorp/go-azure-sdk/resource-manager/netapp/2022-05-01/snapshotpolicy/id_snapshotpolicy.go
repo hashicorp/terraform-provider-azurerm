@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = SnapshotPolicyId{}
 type SnapshotPolicyId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
-	AccountName        string
+	NetAppAccountName  string
 	SnapshotPolicyName string
 }
 
 // NewSnapshotPolicyID returns a new SnapshotPolicyId struct
-func NewSnapshotPolicyID(subscriptionId string, resourceGroupName string, accountName string, snapshotPolicyName string) SnapshotPolicyId {
+func NewSnapshotPolicyID(subscriptionId string, resourceGroupName string, netAppAccountName string, snapshotPolicyName string) SnapshotPolicyId {
 	return SnapshotPolicyId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroupName:  resourceGroupName,
-		AccountName:        accountName,
+		NetAppAccountName:  netAppAccountName,
 		SnapshotPolicyName: snapshotPolicyName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseSnapshotPolicyID(input string) (*SnapshotPolicyId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'netAppAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.SnapshotPolicyName, ok = parsed.Parsed["snapshotPolicyName"]; !ok {
@@ -77,8 +77,8 @@ func ParseSnapshotPolicyIDInsensitively(input string) (*SnapshotPolicyId, error)
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'netAppAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.SnapshotPolicyName, ok = parsed.Parsed["snapshotPolicyName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateSnapshotPolicyID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Snapshot Policy ID
 func (id SnapshotPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s/snapshotPolicies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.SnapshotPolicyName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.SnapshotPolicyName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Snapshot Policy ID
@@ -119,7 +119,7 @@ func (id SnapshotPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetApp", "Microsoft.NetApp", "Microsoft.NetApp"),
 		resourceids.StaticSegment("staticNetAppAccounts", "netAppAccounts", "netAppAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("netAppAccountName", "netAppAccountValue"),
 		resourceids.StaticSegment("staticSnapshotPolicies", "snapshotPolicies", "snapshotPolicies"),
 		resourceids.UserSpecifiedSegment("snapshotPolicyName", "snapshotPolicyValue"),
 	}
@@ -130,7 +130,7 @@ func (id SnapshotPolicyId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Net App Account Name: %q", id.NetAppAccountName),
 		fmt.Sprintf("Snapshot Policy Name: %q", id.SnapshotPolicyName),
 	}
 	return fmt.Sprintf("Snapshot Policy (%s)", strings.Join(components, "\n"))

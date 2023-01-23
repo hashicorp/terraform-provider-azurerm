@@ -203,7 +203,7 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.Set("name", id.OutputName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

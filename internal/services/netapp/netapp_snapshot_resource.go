@@ -126,8 +126,8 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.SnapshotName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
-	d.Set("pool_name", id.PoolName)
+	d.Set("account_name", id.NetAppAccountName)
+	d.Set("pool_name", id.CapacityPoolName)
 	d.Set("volume_name", id.VolumeName)
 
 	if model := resp.Model; model != nil {

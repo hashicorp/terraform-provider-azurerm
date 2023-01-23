@@ -184,7 +184,7 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 						state := OutputFunctionResourceModel{
 							Name:               id.OutputName,
 							ResourceGroup:      id.ResourceGroupName,
-							StreamAnalyticsJob: id.JobName,
+							StreamAnalyticsJob: id.StreamingJobName,
 							ApiKey:             metadata.ResourceData.Get("api_key").(string),
 						}
 

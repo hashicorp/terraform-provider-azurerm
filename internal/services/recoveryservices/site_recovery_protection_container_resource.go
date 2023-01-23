@@ -117,10 +117,10 @@ func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("making Read request on site recovery protection container %s : %+v", id.String(), err)
 	}
 
-	d.Set("name", id.ProtectionContainerName)
+	d.Set("name", id.ReplicationProtectionContainerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
-	d.Set("recovery_fabric_name", id.FabricName)
+	d.Set("recovery_vault_name", id.VaultName)
+	d.Set("recovery_fabric_name", id.ReplicationFabricName)
 	return nil
 }
 

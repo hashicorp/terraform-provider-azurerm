@@ -809,7 +809,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
+				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
 				adminProfile, err := client.GetAccessProfile(ctx, profileId)
 				if err != nil {
 					return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
