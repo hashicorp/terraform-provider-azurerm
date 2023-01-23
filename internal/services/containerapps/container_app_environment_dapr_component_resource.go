@@ -49,7 +49,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateDaprComponentName,
+			ValidateFunc: validate.DaprComponentName,
 			Description:  "The name for this Dapr Component.",
 		},
 
@@ -80,7 +80,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "5s",
-			ValidateFunc: validate.ValidateInitTimeout,
+			ValidateFunc: validate.InitTimeout,
 			Description:  "The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`. Defaults to `5s`.",
 		},
 

@@ -638,7 +638,7 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				"cpu": {
 					Type:         pluginsdk.TypeFloat,
 					Required:     true,
-					ValidateFunc: validate.ValidateContainerCpu,
+					ValidateFunc: validate.ContainerCpu,
 					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
 				},
 
@@ -1609,7 +1609,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validate.ValidateSecretName,
+					ValidateFunc: validate.SecretName,
 					Sensitive:    true,
 					Description:  "The Secret name.",
 				},

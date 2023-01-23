@@ -53,7 +53,7 @@ func TestValidateDaprComponentName(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ValidateDaprComponentName(tc.Input, "test")
+		_, errors := DaprComponentName(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
@@ -111,7 +111,7 @@ func TestValidateSecretNames(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ValidateSecretName(tc.Input, "test")
+		_, errors := SecretName(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
@@ -161,7 +161,7 @@ func TestValidateManagedEnvironmentStorageName(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ValidateManagedEnvironmentStorageName(tc.Input, "test")
+		_, errors := ManagedEnvironmentStorageName(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
@@ -217,7 +217,7 @@ func TestValidateManagedEnvironmentName(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ValidateManagedEnvironmentName(tc.Input, "test")
+		_, errors := ManagedEnvironmentName(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
@@ -263,7 +263,7 @@ func TestValidateInitTimeout(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ValidateInitTimeout(tc.Input, "test")
+		_, errors := InitTimeout(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

@@ -46,7 +46,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateManagedEnvironmentStorageName,
+			ValidateFunc: validate.ManagedEnvironmentStorageName,
 			Description:  "The name for this Storage.",
 		},
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func ValidateInitTimeout(i interface{}, k string) (warnings []string, errors []error) {
+func InitTimeout(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -20,7 +20,7 @@ func ValidateInitTimeout(i interface{}, k string) (warnings []string, errors []e
 	return
 }
 
-func ValidateDaprComponentName(i interface{}, k string) (warnings []string, errors []error) {
+func DaprComponentName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -35,7 +35,7 @@ func ValidateDaprComponentName(i interface{}, k string) (warnings []string, erro
 	return
 }
 
-func ValidateSecretName(i interface{}, k string) (warnings []string, errors []error) {
+func SecretName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -48,7 +48,7 @@ func ValidateSecretName(i interface{}, k string) (warnings []string, errors []er
 	return
 }
 
-func ValidateCertificateName(i interface{}, k string) (warnings []string, errors []error) {
+func CertificateName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -63,7 +63,7 @@ func ValidateCertificateName(i interface{}, k string) (warnings []string, errors
 	return
 }
 
-func ValidateContainerAppName(i interface{}, k string) (warnings []string, errors []error) {
+func ContainerAppName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -78,7 +78,7 @@ func ValidateContainerAppName(i interface{}, k string) (warnings []string, error
 	return
 }
 
-func ValidateContainerCpu(i interface{}, k string) (warnings []string, errors []error) {
+func ContainerCpu(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(float64)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be float", k))
@@ -93,7 +93,7 @@ func ValidateContainerCpu(i interface{}, k string) (warnings []string, errors []
 	return
 }
 
-func ValidateManagedEnvironmentStorageName(i interface{}, k string) (warnings []string, errors []error) {
+func ManagedEnvironmentStorageName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -108,7 +108,7 @@ func ValidateManagedEnvironmentStorageName(i interface{}, k string) (warnings []
 	return
 }
 
-func ValidateManagedEnvironmentName(i interface{}, k string) (warnings []string, errors []error) {
+func ManagedEnvironmentName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))

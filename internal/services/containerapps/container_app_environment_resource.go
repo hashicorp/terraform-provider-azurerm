@@ -56,7 +56,7 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateManagedEnvironmentName,
+			ValidateFunc: validate.ManagedEnvironmentName,
 			Description:  "The name of the Container Apps Managed Environment.",
 		},
 

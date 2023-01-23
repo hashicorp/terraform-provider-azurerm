@@ -46,7 +46,7 @@ func (r ContainerAppEnvironmentCertificateDataSource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateCertificateName,
+			ValidateFunc: validate.CertificateName,
 			Description:  "The name of the Container Apps Certificate.",
 		},
 

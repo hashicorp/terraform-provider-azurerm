@@ -69,7 +69,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateContainerAppName,
+			ValidateFunc: validate.ContainerAppName,
 			Description:  "The name for this Container App.",
 		},
 
