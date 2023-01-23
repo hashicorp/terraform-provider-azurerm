@@ -170,6 +170,62 @@ func TestValidateManagedEnvironmentStorageName(t *testing.T) {
 	}
 }
 
+func TestValidateManagedEnvironmentName(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "",
+		},
+		{
+			Input: "-",
+		},
+		{
+			Input: "9",
+		},
+		{
+			Input: "a-",
+		},
+		{
+			Input: "a.",
+		},
+		{
+			Input: "TooLonghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghija",
+		},
+		{
+			Input: "a--a",
+			Valid: true,
+		},
+		{
+			Input: "Canhavecapitals",
+			Valid: true,
+		},
+		{
+			Input: "a-a",
+			Valid: true,
+		},
+		{
+			Input: "valid",
+			Valid: true,
+		},
+		{
+			Input: "MaxLengthjabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij",
+			Valid: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ValidateManagedEnvironmentName(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s: %+v", tc.Valid, valid, tc.Input, errors)
+		}
+	}
+}
+
 func TestValidateInitTimeout(t *testing.T) {
 	cases := []struct {
 		Input string
