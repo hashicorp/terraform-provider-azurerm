@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = TransformId{}
 type TransformId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	MediaServiceName  string
 	TransformName     string
 }
 
 // NewTransformID returns a new TransformId struct
-func NewTransformID(subscriptionId string, resourceGroupName string, accountName string, transformName string) TransformId {
+func NewTransformID(subscriptionId string, resourceGroupName string, mediaServiceName string, transformName string) TransformId {
 	return TransformId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		MediaServiceName:  mediaServiceName,
 		TransformName:     transformName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseTransformID(input string) (*TransformId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.TransformName, ok = parsed.Parsed["transformName"]; !ok {
@@ -77,8 +77,8 @@ func ParseTransformIDInsensitively(input string) (*TransformId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.TransformName, ok = parsed.Parsed["transformName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateTransformID(input interface{}, key string) (warnings []string, erro
 // ID returns the formatted Transform ID
 func (id TransformId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/transforms/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.TransformName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.TransformName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Transform ID
@@ -119,7 +119,7 @@ func (id TransformId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticTransforms", "transforms", "transforms"),
 		resourceids.UserSpecifiedSegment("transformName", "transformValue"),
 	}
@@ -130,7 +130,7 @@ func (id TransformId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Transform Name: %q", id.TransformName),
 	}
 	return fmt.Sprintf("Transform (%s)", strings.Join(components, "\n"))

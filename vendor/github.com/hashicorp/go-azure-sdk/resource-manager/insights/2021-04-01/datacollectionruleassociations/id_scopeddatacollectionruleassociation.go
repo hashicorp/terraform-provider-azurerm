@@ -11,15 +11,15 @@ var _ resourceids.ResourceId = ScopedDataCollectionRuleAssociationId{}
 
 // ScopedDataCollectionRuleAssociationId is a struct representing the Resource ID for a Scoped Data Collection Rule Association
 type ScopedDataCollectionRuleAssociationId struct {
-	ResourceUri     string
-	AssociationName string
+	ResourceUri                       string
+	DataCollectionRuleAssociationName string
 }
 
 // NewScopedDataCollectionRuleAssociationID returns a new ScopedDataCollectionRuleAssociationId struct
-func NewScopedDataCollectionRuleAssociationID(resourceUri string, associationName string) ScopedDataCollectionRuleAssociationId {
+func NewScopedDataCollectionRuleAssociationID(resourceUri string, dataCollectionRuleAssociationName string) ScopedDataCollectionRuleAssociationId {
 	return ScopedDataCollectionRuleAssociationId{
-		ResourceUri:     resourceUri,
-		AssociationName: associationName,
+		ResourceUri:                       resourceUri,
+		DataCollectionRuleAssociationName: dataCollectionRuleAssociationName,
 	}
 }
 
@@ -38,8 +38,8 @@ func ParseScopedDataCollectionRuleAssociationID(input string) (*ScopedDataCollec
 		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
 	}
 
-	if id.AssociationName, ok = parsed.Parsed["associationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'associationName' was not found in the resource id %q", input)
+	if id.DataCollectionRuleAssociationName, ok = parsed.Parsed["dataCollectionRuleAssociationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dataCollectionRuleAssociationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -61,8 +61,8 @@ func ParseScopedDataCollectionRuleAssociationIDInsensitively(input string) (*Sco
 		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
 	}
 
-	if id.AssociationName, ok = parsed.Parsed["associationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'associationName' was not found in the resource id %q", input)
+	if id.DataCollectionRuleAssociationName, ok = parsed.Parsed["dataCollectionRuleAssociationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dataCollectionRuleAssociationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -86,7 +86,7 @@ func ValidateScopedDataCollectionRuleAssociationID(input interface{}, key string
 // ID returns the formatted Scoped Data Collection Rule Association ID
 func (id ScopedDataCollectionRuleAssociationId) ID() string {
 	fmtString := "/%s/providers/Microsoft.Insights/dataCollectionRuleAssociations/%s"
-	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.ResourceUri, "/"), id.AssociationName)
+	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.ResourceUri, "/"), id.DataCollectionRuleAssociationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scoped Data Collection Rule Association ID
@@ -96,7 +96,7 @@ func (id ScopedDataCollectionRuleAssociationId) Segments() []resourceids.Segment
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDataCollectionRuleAssociations", "dataCollectionRuleAssociations", "dataCollectionRuleAssociations"),
-		resourceids.UserSpecifiedSegment("associationName", "associationValue"),
+		resourceids.UserSpecifiedSegment("dataCollectionRuleAssociationName", "dataCollectionRuleAssociationValue"),
 	}
 }
 
@@ -104,7 +104,7 @@ func (id ScopedDataCollectionRuleAssociationId) Segments() []resourceids.Segment
 func (id ScopedDataCollectionRuleAssociationId) String() string {
 	components := []string{
 		fmt.Sprintf("Resource Uri: %q", id.ResourceUri),
-		fmt.Sprintf("Association Name: %q", id.AssociationName),
+		fmt.Sprintf("Data Collection Rule Association Name: %q", id.DataCollectionRuleAssociationName),
 	}
 	return fmt.Sprintf("Scoped Data Collection Rule Association (%s)", strings.Join(components, "\n"))
 }

@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = LocalUserId{}
 
 // LocalUserId is a struct representing the Resource ID for a Local User
 type LocalUserId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	Username          string
+	SubscriptionId     string
+	ResourceGroupName  string
+	StorageAccountName string
+	LocalUserName      string
 }
 
 // NewLocalUserID returns a new LocalUserId struct
-func NewLocalUserID(subscriptionId string, resourceGroupName string, accountName string, username string) LocalUserId {
+func NewLocalUserID(subscriptionId string, resourceGroupName string, storageAccountName string, localUserName string) LocalUserId {
 	return LocalUserId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		Username:          username,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		StorageAccountName: storageAccountName,
+		LocalUserName:      localUserName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseLocalUserID(input string) (*LocalUserId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.Username, ok = parsed.Parsed["username"]; !ok {
-		return nil, fmt.Errorf("the segment 'username' was not found in the resource id %q", input)
+	if id.LocalUserName, ok = parsed.Parsed["localUserName"]; !ok {
+		return nil, fmt.Errorf("the segment 'localUserName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseLocalUserIDInsensitively(input string) (*LocalUserId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.Username, ok = parsed.Parsed["username"]; !ok {
-		return nil, fmt.Errorf("the segment 'username' was not found in the resource id %q", input)
+	if id.LocalUserName, ok = parsed.Parsed["localUserName"]; !ok {
+		return nil, fmt.Errorf("the segment 'localUserName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateLocalUserID(input interface{}, key string) (warnings []string, erro
 // ID returns the formatted Local User ID
 func (id LocalUserId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/localUsers/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.Username)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, id.LocalUserName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Local User ID
@@ -119,9 +119,9 @@ func (id LocalUserId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountValue"),
 		resourceids.StaticSegment("staticLocalUsers", "localUsers", "localUsers"),
-		resourceids.UserSpecifiedSegment("username", "usernameValue"),
+		resourceids.UserSpecifiedSegment("localUserName", "localUserValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id LocalUserId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Username: %q", id.Username),
+		fmt.Sprintf("Storage Account Name: %q", id.StorageAccountName),
+		fmt.Sprintf("Local User Name: %q", id.LocalUserName),
 	}
 	return fmt.Sprintf("Local User (%s)", strings.Join(components, "\n"))
 }

@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = FederatedIdentityCredentialId{}
 
 // FederatedIdentityCredentialId is a struct representing the Resource ID for a Federated Identity Credential
 type FederatedIdentityCredentialId struct {
-	SubscriptionId                          string
-	ResourceGroupName                       string
-	ResourceName                            string
-	FederatedIdentityCredentialResourceName string
+	SubscriptionId                  string
+	ResourceGroupName               string
+	UserAssignedIdentityName        string
+	FederatedIdentityCredentialName string
 }
 
 // NewFederatedIdentityCredentialID returns a new FederatedIdentityCredentialId struct
-func NewFederatedIdentityCredentialID(subscriptionId string, resourceGroupName string, resourceName string, federatedIdentityCredentialResourceName string) FederatedIdentityCredentialId {
+func NewFederatedIdentityCredentialID(subscriptionId string, resourceGroupName string, userAssignedIdentityName string, federatedIdentityCredentialName string) FederatedIdentityCredentialId {
 	return FederatedIdentityCredentialId{
-		SubscriptionId:                          subscriptionId,
-		ResourceGroupName:                       resourceGroupName,
-		ResourceName:                            resourceName,
-		FederatedIdentityCredentialResourceName: federatedIdentityCredentialResourceName,
+		SubscriptionId:                  subscriptionId,
+		ResourceGroupName:               resourceGroupName,
+		UserAssignedIdentityName:        userAssignedIdentityName,
+		FederatedIdentityCredentialName: federatedIdentityCredentialName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseFederatedIdentityCredentialID(input string) (*FederatedIdentityCredent
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.UserAssignedIdentityName, ok = parsed.Parsed["userAssignedIdentityName"]; !ok {
+		return nil, fmt.Errorf("the segment 'userAssignedIdentityName' was not found in the resource id %q", input)
 	}
 
-	if id.FederatedIdentityCredentialResourceName, ok = parsed.Parsed["federatedIdentityCredentialResourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'federatedIdentityCredentialResourceName' was not found in the resource id %q", input)
+	if id.FederatedIdentityCredentialName, ok = parsed.Parsed["federatedIdentityCredentialName"]; !ok {
+		return nil, fmt.Errorf("the segment 'federatedIdentityCredentialName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseFederatedIdentityCredentialIDInsensitively(input string) (*FederatedId
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.UserAssignedIdentityName, ok = parsed.Parsed["userAssignedIdentityName"]; !ok {
+		return nil, fmt.Errorf("the segment 'userAssignedIdentityName' was not found in the resource id %q", input)
 	}
 
-	if id.FederatedIdentityCredentialResourceName, ok = parsed.Parsed["federatedIdentityCredentialResourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'federatedIdentityCredentialResourceName' was not found in the resource id %q", input)
+	if id.FederatedIdentityCredentialName, ok = parsed.Parsed["federatedIdentityCredentialName"]; !ok {
+		return nil, fmt.Errorf("the segment 'federatedIdentityCredentialName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateFederatedIdentityCredentialID(input interface{}, key string) (warni
 // ID returns the formatted Federated Identity Credential ID
 func (id FederatedIdentityCredentialId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ManagedIdentity/userAssignedIdentities/%s/federatedIdentityCredentials/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.FederatedIdentityCredentialResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName, id.FederatedIdentityCredentialName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Federated Identity Credential ID
@@ -119,9 +119,9 @@ func (id FederatedIdentityCredentialId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagedIdentity", "Microsoft.ManagedIdentity", "Microsoft.ManagedIdentity"),
 		resourceids.StaticSegment("staticUserAssignedIdentities", "userAssignedIdentities", "userAssignedIdentities"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "userAssignedIdentityValue"),
 		resourceids.StaticSegment("staticFederatedIdentityCredentials", "federatedIdentityCredentials", "federatedIdentityCredentials"),
-		resourceids.UserSpecifiedSegment("federatedIdentityCredentialResourceName", "federatedIdentityCredentialResourceValue"),
+		resourceids.UserSpecifiedSegment("federatedIdentityCredentialName", "federatedIdentityCredentialValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id FederatedIdentityCredentialId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Federated Identity Credential Resource Name: %q", id.FederatedIdentityCredentialResourceName),
+		fmt.Sprintf("User Assigned Identity Name: %q", id.UserAssignedIdentityName),
+		fmt.Sprintf("Federated Identity Credential Name: %q", id.FederatedIdentityCredentialName),
 	}
 	return fmt.Sprintf("Federated Identity Credential (%s)", strings.Join(components, "\n"))
 }

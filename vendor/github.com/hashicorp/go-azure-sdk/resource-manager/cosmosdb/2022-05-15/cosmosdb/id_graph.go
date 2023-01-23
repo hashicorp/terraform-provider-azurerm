@@ -11,21 +11,21 @@ var _ resourceids.ResourceId = GraphId{}
 
 // GraphId is a struct representing the Resource ID for a Graph
 type GraphId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	DatabaseName      string
-	GraphName         string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	GremlinDatabaseName string
+	GraphName           string
 }
 
 // NewGraphID returns a new GraphId struct
-func NewGraphID(subscriptionId string, resourceGroupName string, accountName string, databaseName string, graphName string) GraphId {
+func NewGraphID(subscriptionId string, resourceGroupName string, databaseAccountName string, gremlinDatabaseName string, graphName string) GraphId {
 	return GraphId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		DatabaseName:      databaseName,
-		GraphName:         graphName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		GremlinDatabaseName: gremlinDatabaseName,
+		GraphName:           graphName,
 	}
 }
 
@@ -48,12 +48,12 @@ func ParseGraphID(input string) (*GraphId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.GremlinDatabaseName, ok = parsed.Parsed["gremlinDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'gremlinDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.GraphName, ok = parsed.Parsed["graphName"]; !ok {
@@ -83,12 +83,12 @@ func ParseGraphIDInsensitively(input string) (*GraphId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.GremlinDatabaseName, ok = parsed.Parsed["gremlinDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'gremlinDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.GraphName, ok = parsed.Parsed["graphName"]; !ok {
@@ -116,7 +116,7 @@ func ValidateGraphID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Graph ID
 func (id GraphId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/gremlinDatabases/%s/graphs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.DatabaseName, id.GraphName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Graph ID
@@ -129,9 +129,9 @@ func (id GraphId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticGremlinDatabases", "gremlinDatabases", "gremlinDatabases"),
-		resourceids.UserSpecifiedSegment("databaseName", "databaseValue"),
+		resourceids.UserSpecifiedSegment("gremlinDatabaseName", "gremlinDatabaseValue"),
 		resourceids.StaticSegment("staticGraphs", "graphs", "graphs"),
 		resourceids.UserSpecifiedSegment("graphName", "graphValue"),
 	}
@@ -142,8 +142,8 @@ func (id GraphId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Database Name: %q", id.DatabaseName),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Gremlin Database Name: %q", id.GremlinDatabaseName),
 		fmt.Sprintf("Graph Name: %q", id.GraphName),
 	}
 	return fmt.Sprintf("Graph (%s)", strings.Join(components, "\n"))

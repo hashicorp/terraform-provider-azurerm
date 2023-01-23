@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = DeploymentScriptId{}
 
 // DeploymentScriptId is a struct representing the Resource ID for a Deployment Script
 type DeploymentScriptId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ScriptName        string
+	SubscriptionId       string
+	ResourceGroupName    string
+	DeploymentScriptName string
 }
 
 // NewDeploymentScriptID returns a new DeploymentScriptId struct
-func NewDeploymentScriptID(subscriptionId string, resourceGroupName string, scriptName string) DeploymentScriptId {
+func NewDeploymentScriptID(subscriptionId string, resourceGroupName string, deploymentScriptName string) DeploymentScriptId {
 	return DeploymentScriptId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ScriptName:        scriptName,
+		SubscriptionId:       subscriptionId,
+		ResourceGroupName:    resourceGroupName,
+		DeploymentScriptName: deploymentScriptName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseDeploymentScriptID(input string) (*DeploymentScriptId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ScriptName, ok = parsed.Parsed["scriptName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scriptName' was not found in the resource id %q", input)
+	if id.DeploymentScriptName, ok = parsed.Parsed["deploymentScriptName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deploymentScriptName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseDeploymentScriptIDInsensitively(input string) (*DeploymentScriptId, er
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ScriptName, ok = parsed.Parsed["scriptName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scriptName' was not found in the resource id %q", input)
+	if id.DeploymentScriptName, ok = parsed.Parsed["deploymentScriptName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deploymentScriptName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateDeploymentScriptID(input interface{}, key string) (warnings []strin
 // ID returns the formatted Deployment Script ID
 func (id DeploymentScriptId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Resources/deploymentScripts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ScriptName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DeploymentScriptName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Deployment Script ID
@@ -109,7 +109,7 @@ func (id DeploymentScriptId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResources", "Microsoft.Resources", "Microsoft.Resources"),
 		resourceids.StaticSegment("staticDeploymentScripts", "deploymentScripts", "deploymentScripts"),
-		resourceids.UserSpecifiedSegment("scriptName", "scriptValue"),
+		resourceids.UserSpecifiedSegment("deploymentScriptName", "deploymentScriptValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id DeploymentScriptId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Script Name: %q", id.ScriptName),
+		fmt.Sprintf("Deployment Script Name: %q", id.DeploymentScriptName),
 	}
 	return fmt.Sprintf("Deployment Script (%s)", strings.Join(components, "\n"))
 }
