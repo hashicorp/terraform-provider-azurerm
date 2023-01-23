@@ -55,7 +55,7 @@ func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.AccountName)
+	d.Set("name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

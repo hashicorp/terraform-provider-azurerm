@@ -84,7 +84,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.VaultName)
+	d.Set("name", id.BackupVaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

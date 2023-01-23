@@ -301,7 +301,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for present of existing Mysql Flexible Server %q (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
@@ -340,7 +340,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for MySql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+		return fmt.Errorf("expanding `sku_name` for %s: %+v", id, err)
 	}
 
 	version := servers.ServerVersion(d.Get("version").(string))
@@ -419,7 +419,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 			},
 		}
 		if err := client.UpdateThenPoll(ctx, id, mwParams); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q maintenance window (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("updating Maintenance Window for %s: %+v", id, err)
 		}
 	}
 
@@ -458,10 +458,10 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Mysql Flexible Server %q (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ServerName)
+	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -515,7 +515,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		sku, err := flattenFlexibleServerSku(model.Sku)
 		if err != nil {
-			return fmt.Errorf("flattening `sku_name` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("flattening `sku_name`: %+v", err)
 		}
 		d.Set("sku_name", sku)
 
@@ -577,7 +577,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-				return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to update `replication_role`: %+v", id.ServerName, id.ResourceGroupName, err)
+				return fmt.Errorf("updating `replication_role` for %s: %+v", *id, err)
 			}
 		} else {
 			return fmt.Errorf("`replication_role` only can be updated from `Replica` to `None`")
@@ -594,13 +594,13 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to enable `auto_grow_enabled`: %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("enabling `auto_grow_enabled` for %s: %+v", *id, err)
 		}
 	}
 
 	if requireFailover {
 		failoverClient := meta.(*clients.Client).MySQL.FlexibleServerFailoverClient
-		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
 		if err := failoverClient.ServersFailoverThenPoll(ctx, failoverID); err != nil {
 			return fmt.Errorf("failing over %s: %+v", *id, err)
@@ -616,14 +616,14 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to disable `high_availability`: %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("disabling `high_availability` for %s: %+v", *id, err)
 		}
 
 		parameters.Properties.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
 
 		if *parameters.Properties.HighAvailability.Mode != servers.HighAvailabilityModeDisabled {
 			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-				return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to update `high_availability`: %+v", id.ServerName, id.ResourceGroupName, err)
+				return fmt.Errorf("updating `high_availability` for %s: %+v", *id, err)
 			}
 		}
 	}
@@ -647,7 +647,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("identity") {
 		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		parameters.Identity = identity
 	}
@@ -659,7 +659,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("sku_name") {
 		sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
 		if err != nil {
-			return fmt.Errorf("expanding `sku_name` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("expanding `sku_name`: %+v", err)
 		}
 		parameters.Sku = sku
 	}
@@ -669,7 +669,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if d.HasChange("storage") && !d.Get("storage.0.auto_grow_enabled").(bool) {
@@ -680,7 +680,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to disable `auto_grow_enabled`: %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("disabling `auto_grow_enabled` for %s: %+v", *id, err)
 		}
 	}
 

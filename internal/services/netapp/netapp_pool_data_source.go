@@ -69,8 +69,8 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.PoolName)
-	d.Set("account_name", id.AccountName)
+	d.Set("name", id.CapacityPoolName)
+	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

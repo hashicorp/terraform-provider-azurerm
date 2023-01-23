@@ -207,7 +207,7 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 						state := OutputTableResourceModel{
 							Name:               id.OutputName,
 							ResourceGroup:      id.ResourceGroupName,
-							StreamAnalyticsJob: id.JobName,
+							StreamAnalyticsJob: id.StreamingJobName,
 							StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
 						}
 
