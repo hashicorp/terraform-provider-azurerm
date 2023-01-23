@@ -58,6 +58,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.Orbital/orbitalGateways",
 	"NGINX.NGINXPLUS/nginxDeployments",
 	"PaloAltoNetworks.Cloudngfw/firewalls",
+	"Qumulo.Storage/fileSystems",
 }
 
 func resourceSubnet() *pluginsdk.Resource {
