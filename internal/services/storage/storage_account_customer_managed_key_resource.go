@@ -1,12 +1,14 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -81,8 +83,6 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 
 func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	vaultsClient := keyVaultsClient.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -116,38 +116,25 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		}
 	}
 
-	keyVaultID, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
+	var keyVaultBaseURL *string
+	vaultId := d.Get("key_vault_id").(string)
+	resourceId, err := azure.ParseAzureResourceID(vaultId)
+
 	if err != nil {
 		return err
 	}
 
-	// If the Keyvault is in another subscription we need to update the client
-	if keyVaultID.SubscriptionId != vaultsClient.SubscriptionID {
-		vaultsClient = meta.(*clients.Client).KeyVault.KeyVaultClientForSubscription(keyVaultID.SubscriptionId)
+	_, err = resourceId.PopSegment("managedHSMs")
+	isManagedHsm := err == nil
+
+	if isManagedHsm {
+		keyVaultBaseURL, err = getHsmKeyVaultBaseUrl(vaultId, ctx, meta)
+	} else {
+		keyVaultBaseURL, err = getKeyVaultBaseUrl(vaultId, ctx, meta)
 	}
 
-	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
-	}
-
-	softDeleteEnabled := false
-	purgeProtectionEnabled := false
-	if props := keyVault.Properties; props != nil {
-		if esd := props.EnableSoftDelete; esd != nil {
-			softDeleteEnabled = *esd
-		}
-		if epp := props.EnablePurgeProtection; epp != nil {
-			purgeProtectionEnabled = *epp
-		}
-	}
-	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.Name, keyVaultID.ResourceGroup)
-	}
-
-	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
-	if err != nil {
-		return fmt.Errorf("looking up Key Vault URI from Key Vault %q (Resource Group %q) (Subscription %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, keyVaultsClient.VaultsClient.SubscriptionID, err)
+		return err
 	}
 
 	keyName := d.Get("key_name").(string)
@@ -184,6 +171,86 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 	d.SetId(resourceID)
 	return resourceStorageAccountCustomerManagedKeyRead(d, meta)
+}
+
+func getKeyVaultBaseUrl(vaultId string, ctx context.Context, meta interface{}) (*string, error) {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	vaultsClient := keyVaultsClient.VaultsClient
+	keyVaultID, err := keyVaultParse.VaultID(vaultId)
+	if err != nil {
+		return nil, err
+	}
+
+	// If the Keyvault is in another subscription we need to update the client
+	if keyVaultID.SubscriptionId != vaultsClient.SubscriptionID {
+		vaultsClient = meta.(*clients.Client).KeyVault.KeyVaultClientForSubscription(keyVaultID.SubscriptionId)
+	}
+
+	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
+	}
+
+	softDeleteEnabled := false
+	purgeProtectionEnabled := false
+	if props := keyVault.Properties; props != nil {
+		if esd := props.EnableSoftDelete; esd != nil {
+			softDeleteEnabled = *esd
+		}
+		if epp := props.EnablePurgeProtection; epp != nil {
+			purgeProtectionEnabled = *epp
+		}
+	}
+	if !softDeleteEnabled || !purgeProtectionEnabled {
+		return nil, fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.Name, keyVaultID.ResourceGroup)
+	}
+
+	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
+	if err != nil {
+		return nil, fmt.Errorf("looking up Key Vault URI from Key Vault %q (Resource Group %q) (Subscription %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, keyVaultsClient.VaultsClient.SubscriptionID, err)
+	}
+
+	return keyVaultBaseURL, nil
+}
+
+func getHsmKeyVaultBaseUrl(vaultId string, ctx context.Context, meta interface{}) (*string, error) {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	managedHsmClient := keyVaultsClient.ManagedHsmClient
+	managedHSMID, err := keyVaultParse.ManagedHSMID(vaultId)
+	if err != nil {
+		return nil, err
+	}
+
+	// If the Keyvault is in another subscription we need to update the client
+	if managedHSMID.SubscriptionId != managedHsmClient.SubscriptionID {
+		managedHsmClient = meta.(*clients.Client).KeyVault.ManagedHsmClientForSubscription(managedHSMID.SubscriptionId)
+	}
+
+	keyVault, err := managedHsmClient.Get(ctx, managedHSMID.ResourceGroup, managedHSMID.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", managedHSMID.Name, managedHSMID.ResourceGroup, err)
+	}
+
+	softDeleteEnabled := false
+	purgeProtectionEnabled := false
+	if props := keyVault.Properties; props != nil {
+		if esd := props.EnableSoftDelete; esd != nil {
+			softDeleteEnabled = *esd
+		}
+		if epp := props.EnablePurgeProtection; epp != nil {
+			purgeProtectionEnabled = *epp
+		}
+	}
+	if !softDeleteEnabled || !purgeProtectionEnabled {
+		return nil, fmt.Errorf("Managed HSM %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", managedHSMID.Name, managedHSMID.ResourceGroup)
+	}
+
+	keyVaultBaseURL, err := keyVaultsClient.BaseUriForManagedHSM(ctx, *managedHSMID)
+	if err != nil {
+		return nil, fmt.Errorf("looking up Managed HSM URI from Managed HSM %q (Resource Group %q) (Subscription %q): %+v", managedHSMID.Name, managedHSMID.ResourceGroup, keyVaultsClient.VaultsClient.SubscriptionID, err)
+	}
+
+	return keyVaultBaseURL, nil
 }
 
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {

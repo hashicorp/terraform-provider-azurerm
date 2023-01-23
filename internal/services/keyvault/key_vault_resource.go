@@ -373,7 +373,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", id)
 	}
 	d.SetId(id.ID())
-	meta.(*clients.Client).KeyVault.AddToCache(id, *read.Properties.VaultURI)
+	meta.(*clients.Client).KeyVault.AddToCacheKeyVault(id, *read.Properties.VaultURI)
 
 	if props := read.Properties; props != nil {
 		if vault := props.VaultURI; vault != nil {
@@ -651,7 +651,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	props := *resp.Properties
-	meta.(*clients.Client).KeyVault.AddToCache(*id, *resp.Properties.VaultURI)
+	meta.(*clients.Client).KeyVault.AddToCacheKeyVault(*id, *resp.Properties.VaultURI)
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)

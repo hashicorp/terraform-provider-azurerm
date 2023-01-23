@@ -201,7 +201,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		d.Set("vault_uri", props.VaultURI)
 		if props.VaultURI != nil {
-			meta.(*clients.Client).KeyVault.AddToCache(id, *resp.Properties.VaultURI)
+			meta.(*clients.Client).KeyVault.AddToCacheKeyVault(id, *resp.Properties.VaultURI)
 		}
 
 		if sku := props.Sku; sku != nil {

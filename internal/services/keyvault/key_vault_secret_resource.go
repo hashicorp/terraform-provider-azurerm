@@ -229,7 +229,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
+	meta.(*clients.Client).KeyVault.AddToCacheKeyVault(*keyVaultId, id.KeyVaultBaseUrl)
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {

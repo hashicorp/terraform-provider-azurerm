@@ -563,7 +563,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
+	meta.(*clients.Client).KeyVault.AddToCacheKeyVault(*keyVaultId, id.KeyVaultBaseUrl)
 
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
