@@ -117,7 +117,7 @@ func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationN
 			return err
 		}
 
-		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, configurationName)
+		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName, configurationName)
 
 		resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, configurationId)
 		if err != nil {
