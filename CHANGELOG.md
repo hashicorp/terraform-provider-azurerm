@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * testing: refactoring to use `hashicorp/terraform-plugin-testing` [GH-20114]
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
+* `azurerm_kubernetes_cluster` - add support for confidential computing [GH-20111]
 
 ## 3.40.0 (January 19, 2023)
 
