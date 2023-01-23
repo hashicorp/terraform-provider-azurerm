@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20230123.1135755` [GH-20154]
 * testing: refactoring to use `hashicorp/terraform-plugin-testing` [GH-20114]
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
