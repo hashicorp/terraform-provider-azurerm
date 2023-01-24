@@ -339,9 +339,11 @@ A `private_link_access` block supports the following:
 
 A `azure_files_authentication` block supports the following:
 
-* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
+* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS`, `AD` and `AADKERB`.
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
+
+~> **Note:** If `directory_type` is set to `AADKERB`, `active_directory` is not supported. Use [icals](https://learn.microsoft.com/en-us/azure/storage/files/storage-files-identity-auth-azure-active-directory-enable?tabs=azure-portal#configure-directory-and-file-level-permissions) to configure directory and file level permissions.
 
 ---
 
