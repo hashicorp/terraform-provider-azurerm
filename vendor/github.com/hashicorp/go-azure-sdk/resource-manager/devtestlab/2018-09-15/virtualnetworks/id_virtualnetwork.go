@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = VirtualNetworkId{}
 
 // VirtualNetworkId is a struct representing the Resource ID for a Virtual Network
 type VirtualNetworkId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	LabName           string
-	Name              string
+	SubscriptionId     string
+	ResourceGroupName  string
+	LabName            string
+	VirtualNetworkName string
 }
 
 // NewVirtualNetworkID returns a new VirtualNetworkId struct
-func NewVirtualNetworkID(subscriptionId string, resourceGroupName string, labName string, name string) VirtualNetworkId {
+func NewVirtualNetworkID(subscriptionId string, resourceGroupName string, labName string, virtualNetworkName string) VirtualNetworkId {
 	return VirtualNetworkId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		LabName:           labName,
-		Name:              name,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		LabName:            labName,
+		VirtualNetworkName: virtualNetworkName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseVirtualNetworkID(input string) (*VirtualNetworkId, error) {
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.VirtualNetworkName, ok = parsed.Parsed["virtualNetworkName"]; !ok {
+		return nil, fmt.Errorf("the segment 'virtualNetworkName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseVirtualNetworkIDInsensitively(input string) (*VirtualNetworkId, error)
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.VirtualNetworkName, ok = parsed.Parsed["virtualNetworkName"]; !ok {
+		return nil, fmt.Errorf("the segment 'virtualNetworkName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateVirtualNetworkID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Virtual Network ID
 func (id VirtualNetworkId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualNetworks/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.VirtualNetworkName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Virtual Network ID
@@ -121,7 +121,7 @@ func (id VirtualNetworkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
 		resourceids.UserSpecifiedSegment("labName", "labValue"),
 		resourceids.StaticSegment("staticVirtualNetworks", "virtualNetworks", "virtualNetworks"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkName", "virtualNetworkValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id VirtualNetworkId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Lab Name: %q", id.LabName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Virtual Network Name: %q", id.VirtualNetworkName),
 	}
 	return fmt.Sprintf("Virtual Network (%s)", strings.Join(components, "\n"))
 }

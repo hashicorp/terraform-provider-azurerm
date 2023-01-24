@@ -135,7 +135,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	evaluatorType := policies.PolicyEvaluatorType(d.Get("evaluator_type").(string))
 
 	description := d.Get("description").(string)
-	factName := policies.PolicyFactName(id.Name)
+	factName := policies.PolicyFactName(id.PolicyName)
 
 	parameters := policies.Policy{
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -178,7 +178,7 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.PolicyName)
 	d.Set("policy_set_name", id.PolicySetName)
 	d.Set("lab_name", id.LabName)
 	d.Set("resource_group_name", id.ResourceGroupName)

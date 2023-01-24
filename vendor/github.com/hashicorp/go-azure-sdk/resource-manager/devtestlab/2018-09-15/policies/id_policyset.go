@@ -14,16 +14,16 @@ type PolicySetId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	LabName           string
-	Name              string
+	PolicySetName     string
 }
 
 // NewPolicySetID returns a new PolicySetId struct
-func NewPolicySetID(subscriptionId string, resourceGroupName string, labName string, name string) PolicySetId {
+func NewPolicySetID(subscriptionId string, resourceGroupName string, labName string, policySetName string) PolicySetId {
 	return PolicySetId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		LabName:           labName,
-		Name:              name,
+		PolicySetName:     policySetName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParsePolicySetID(input string) (*PolicySetId, error) {
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.PolicySetName, ok = parsed.Parsed["policySetName"]; !ok {
+		return nil, fmt.Errorf("the segment 'policySetName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParsePolicySetIDInsensitively(input string) (*PolicySetId, error) {
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.PolicySetName, ok = parsed.Parsed["policySetName"]; !ok {
+		return nil, fmt.Errorf("the segment 'policySetName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidatePolicySetID(input interface{}, key string) (warnings []string, erro
 // ID returns the formatted Policy Set ID
 func (id PolicySetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/policySets/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.PolicySetName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Policy Set ID
@@ -121,7 +121,7 @@ func (id PolicySetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
 		resourceids.UserSpecifiedSegment("labName", "labValue"),
 		resourceids.StaticSegment("staticPolicySets", "policySets", "policySets"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("policySetName", "policySetValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id PolicySetId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Lab Name: %q", id.LabName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Policy Set Name: %q", id.PolicySetName),
 	}
 	return fmt.Sprintf("Policy Set (%s)", strings.Join(components, "\n"))
 }

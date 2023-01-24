@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = VirtualMachineId{}
 
 // VirtualMachineId is a struct representing the Resource ID for a Virtual Machine
 type VirtualMachineId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	LabName           string
-	Name              string
+	SubscriptionId     string
+	ResourceGroupName  string
+	LabName            string
+	VirtualMachineName string
 }
 
 // NewVirtualMachineID returns a new VirtualMachineId struct
-func NewVirtualMachineID(subscriptionId string, resourceGroupName string, labName string, name string) VirtualMachineId {
+func NewVirtualMachineID(subscriptionId string, resourceGroupName string, labName string, virtualMachineName string) VirtualMachineId {
 	return VirtualMachineId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		LabName:           labName,
-		Name:              name,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		LabName:            labName,
+		VirtualMachineName: virtualMachineName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseVirtualMachineID(input string) (*VirtualMachineId, error) {
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.VirtualMachineName, ok = parsed.Parsed["virtualMachineName"]; !ok {
+		return nil, fmt.Errorf("the segment 'virtualMachineName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseVirtualMachineIDInsensitively(input string) (*VirtualMachineId, error)
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.VirtualMachineName, ok = parsed.Parsed["virtualMachineName"]; !ok {
+		return nil, fmt.Errorf("the segment 'virtualMachineName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateVirtualMachineID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Virtual Machine ID
 func (id VirtualMachineId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualMachines/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.VirtualMachineName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Virtual Machine ID
@@ -121,7 +121,7 @@ func (id VirtualMachineId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
 		resourceids.UserSpecifiedSegment("labName", "labValue"),
 		resourceids.StaticSegment("staticVirtualMachines", "virtualMachines", "virtualMachines"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("virtualMachineName", "virtualMachineValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id VirtualMachineId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Lab Name: %q", id.LabName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Virtual Machine Name: %q", id.VirtualMachineName),
 	}
 	return fmt.Sprintf("Virtual Machine (%s)", strings.Join(components, "\n"))
 }

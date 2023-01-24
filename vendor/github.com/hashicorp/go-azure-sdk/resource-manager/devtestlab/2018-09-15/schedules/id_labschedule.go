@@ -14,16 +14,16 @@ type LabScheduleId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	LabName           string
-	Name              string
+	ScheduleName      string
 }
 
 // NewLabScheduleID returns a new LabScheduleId struct
-func NewLabScheduleID(subscriptionId string, resourceGroupName string, labName string, name string) LabScheduleId {
+func NewLabScheduleID(subscriptionId string, resourceGroupName string, labName string, scheduleName string) LabScheduleId {
 	return LabScheduleId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		LabName:           labName,
-		Name:              name,
+		ScheduleName:      scheduleName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseLabScheduleID(input string) (*LabScheduleId, error) {
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.ScheduleName, ok = parsed.Parsed["scheduleName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduleName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseLabScheduleIDInsensitively(input string) (*LabScheduleId, error) {
 		return nil, fmt.Errorf("the segment 'labName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.ScheduleName, ok = parsed.Parsed["scheduleName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduleName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateLabScheduleID(input interface{}, key string) (warnings []string, er
 // ID returns the formatted Lab Schedule ID
 func (id LabScheduleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/schedules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LabName, id.ScheduleName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Lab Schedule ID
@@ -121,7 +121,7 @@ func (id LabScheduleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
 		resourceids.UserSpecifiedSegment("labName", "labValue"),
 		resourceids.StaticSegment("staticSchedules", "schedules", "schedules"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("scheduleName", "scheduleValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id LabScheduleId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Lab Name: %q", id.LabName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Schedule Name: %q", id.ScheduleName),
 	}
 	return fmt.Sprintf("Lab Schedule (%s)", strings.Join(components, "\n"))
 }

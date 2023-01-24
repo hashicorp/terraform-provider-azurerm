@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
 
 payload := globalschedules.Schedule{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
 
 if err := client.ExecuteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -73,7 +73,7 @@ if err := client.ExecuteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
 
 read, err := client.Get(ctx, id, globalschedules.DefaultGetOperationOptions())
 if err != nil {
@@ -123,7 +123,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
 
 payload := globalschedules.RetargetScheduleProperties{
 	// ...
@@ -140,7 +140,7 @@ if err := client.RetargetThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
 
 payload := globalschedules.UpdateResource{
 	// ...
