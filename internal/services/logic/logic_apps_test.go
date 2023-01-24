@@ -3,9 +3,10 @@ package logic_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,13 +35,13 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 		workflowName = id.WorkflowName
 		name = id.Name
 	} else {
-		id, err := parse.TriggerID(state.ID)
+		id, err := workflowtriggers.ParseTriggerID(state.ID)
 		if err != nil {
 			return nil, err
 		}
-		resourceGroup = id.ResourceGroup
+		resourceGroup = id.ResourceGroupName
 		workflowName = id.WorkflowName
-		name = id.Name
+		name = id.WorkflowName
 	}
 
 	subscriptionId := clients.Account.SubscriptionId
