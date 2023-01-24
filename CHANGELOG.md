@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230124.1111819` of `github.com/hashicorp/go-azure-sdk` [GH-20160]
 * testing: refactoring to use `hashicorp/terraform-plugin-testing` [GH-20114]
+* `logic`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20144]
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
 * `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
