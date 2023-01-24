@@ -41,7 +41,7 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 		}
 		resourceGroup = id.ResourceGroupName
 		workflowName = id.WorkflowName
-		name = id.WorkflowName
+		name = id.TriggerName
 	}
 
 	subscriptionId := clients.Account.SubscriptionId

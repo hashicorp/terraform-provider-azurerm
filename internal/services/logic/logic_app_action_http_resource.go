@@ -26,7 +26,7 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 		Delete: resourceLogicAppActionHTTPDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := workflowrunactions.ParseActionID(id)
+			_, err := parse.ActionID(id)
 			return err
 		}),
 
