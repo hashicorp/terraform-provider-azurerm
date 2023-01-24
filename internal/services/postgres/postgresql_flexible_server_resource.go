@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -353,7 +353,8 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	// so we create it with  `password_auth_enabled` set to `true`, then set it to `false` in an additional update.
 	if authRaw, ok := d.GetOk("authentication"); ok {
 		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		authConfig.PasswordAuthEnabled = utils.Bool(true)
+		passwordAuthEnabled := servers.PasswordAuthEnumEnabled
+		authConfig.PasswordAuth = &passwordAuthEnabled
 		parameters.Properties.AuthConfig = authConfig
 	}
 
@@ -365,7 +366,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	updateProperties := servers.ServerPropertiesForUpdate{}
 	if authRaw, ok := d.GetOk("authentication"); ok {
 		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		if !*authConfig.PasswordAuthEnabled {
+		if authConfig != nil && authConfig.PasswordAuth != nil && *authConfig.PasswordAuth == servers.PasswordAuthEnumDisabled {
 			requireAdditionalUpdate = true
 			updateProperties.AuthConfig = authConfig
 		}
@@ -411,7 +412,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.ServerName)
+	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -570,7 +571,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if requireFailover {
 		restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
 
-		restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+		restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 		failoverMode := serverrestart.FailoverModePlannedFailover
 		restartParameters := serverrestart.RestartParameter{
 			RestartWithFailover: utils.Bool(true),
@@ -780,10 +781,20 @@ func expandFlexibleServerAuthConfig(authRaw []interface{}) *servers.AuthConfig {
 	}
 
 	authConfigs := authRaw[0].(map[string]interface{})
-	out := servers.AuthConfig{
-		ActiveDirectoryAuthEnabled: utils.Bool(authConfigs["active_directory_auth_enabled"].(bool)),
-		PasswordAuthEnabled:        utils.Bool(authConfigs["password_auth_enabled"].(bool)),
+	out := servers.AuthConfig{}
+
+	activeDirectoryAuthEnabled := servers.ActiveDirectoryAuthEnumDisabled
+	if authConfigs["active_directory_auth_enabled"].(bool) {
+		activeDirectoryAuthEnabled = servers.ActiveDirectoryAuthEnumEnabled
 	}
+	out.ActiveDirectoryAuth = &activeDirectoryAuthEnabled
+
+	passwordAuthEnabled := servers.PasswordAuthEnumDisabled
+	if authConfigs["password_auth_enabled"].(bool) {
+		passwordAuthEnabled = servers.PasswordAuthEnumEnabled
+	}
+	out.PasswordAuth = &passwordAuthEnabled
+
 	if tenantId, ok := authConfigs["tenant_id"].(string); ok {
 		out.TenantId = &tenantId
 	}
@@ -799,15 +810,15 @@ func flattenFlexibleServerAuthConfig(ac *servers.AuthConfig) interface{} {
 	}
 
 	aadEnabled := false
-	if ac.ActiveDirectoryAuthEnabled != nil {
-		aadEnabled = *ac.ActiveDirectoryAuthEnabled
+	if ac.ActiveDirectoryAuth != nil {
+		aadEnabled = *ac.ActiveDirectoryAuth == servers.ActiveDirectoryAuthEnumEnabled
 	}
 	out["active_directory_auth_enabled"] = aadEnabled
 
 	// It is by design if PasswordAuthEnabled is not returned or undefined, we consider it as true.
 	pwdEnabled := true
-	if ac.PasswordAuthEnabled != nil {
-		pwdEnabled = *ac.PasswordAuthEnabled
+	if ac.PasswordAuth != nil {
+		pwdEnabled = *ac.PasswordAuth == servers.PasswordAuthEnumEnabled
 	}
 	out["password_auth_enabled"] = pwdEnabled
 

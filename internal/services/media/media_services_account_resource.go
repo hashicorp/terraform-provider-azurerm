@@ -261,7 +261,7 @@ func resourceMediaServicesAccountRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.AccountName)
+	d.Set("name", id.MediaServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

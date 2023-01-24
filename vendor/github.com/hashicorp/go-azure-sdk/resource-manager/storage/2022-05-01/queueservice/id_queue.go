@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = QueueId{}
 
 // QueueId is a struct representing the Resource ID for a Queue
 type QueueId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	QueueName         string
+	SubscriptionId     string
+	ResourceGroupName  string
+	StorageAccountName string
+	QueueName          string
 }
 
 // NewQueueID returns a new QueueId struct
-func NewQueueID(subscriptionId string, resourceGroupName string, accountName string, queueName string) QueueId {
+func NewQueueID(subscriptionId string, resourceGroupName string, storageAccountName string, queueName string) QueueId {
 	return QueueId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		QueueName:         queueName,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		StorageAccountName: storageAccountName,
+		QueueName:          queueName,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParseQueueID(input string) (*QueueId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.QueueName, ok = parsed.Parsed["queueName"]; !ok {
@@ -77,8 +77,8 @@ func ParseQueueIDInsensitively(input string) (*QueueId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.QueueName, ok = parsed.Parsed["queueName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateQueueID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Queue ID
 func (id QueueId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/queueServices/default/queues/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.QueueName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, id.QueueName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Queue ID
@@ -119,7 +119,7 @@ func (id QueueId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountValue"),
 		resourceids.StaticSegment("staticQueueServices", "queueServices", "queueServices"),
 		resourceids.StaticSegment("staticDefault", "default", "default"),
 		resourceids.StaticSegment("staticQueues", "queues", "queues"),
@@ -132,7 +132,7 @@ func (id QueueId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Storage Account Name: %q", id.StorageAccountName),
 		fmt.Sprintf("Queue Name: %q", id.QueueName),
 	}
 	return fmt.Sprintf("Queue (%s)", strings.Join(components, "\n"))

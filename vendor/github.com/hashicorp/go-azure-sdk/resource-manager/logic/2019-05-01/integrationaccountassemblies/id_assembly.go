@@ -14,16 +14,16 @@ type AssemblyId struct {
 	SubscriptionId         string
 	ResourceGroupName      string
 	IntegrationAccountName string
-	AssemblyArtifactName   string
+	AssemblyName           string
 }
 
 // NewAssemblyID returns a new AssemblyId struct
-func NewAssemblyID(subscriptionId string, resourceGroupName string, integrationAccountName string, assemblyArtifactName string) AssemblyId {
+func NewAssemblyID(subscriptionId string, resourceGroupName string, integrationAccountName string, assemblyName string) AssemblyId {
 	return AssemblyId{
 		SubscriptionId:         subscriptionId,
 		ResourceGroupName:      resourceGroupName,
 		IntegrationAccountName: integrationAccountName,
-		AssemblyArtifactName:   assemblyArtifactName,
+		AssemblyName:           assemblyName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseAssemblyID(input string) (*AssemblyId, error) {
 		return nil, fmt.Errorf("the segment 'integrationAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.AssemblyArtifactName, ok = parsed.Parsed["assemblyArtifactName"]; !ok {
-		return nil, fmt.Errorf("the segment 'assemblyArtifactName' was not found in the resource id %q", input)
+	if id.AssemblyName, ok = parsed.Parsed["assemblyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'assemblyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseAssemblyIDInsensitively(input string) (*AssemblyId, error) {
 		return nil, fmt.Errorf("the segment 'integrationAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.AssemblyArtifactName, ok = parsed.Parsed["assemblyArtifactName"]; !ok {
-		return nil, fmt.Errorf("the segment 'assemblyArtifactName' was not found in the resource id %q", input)
+	if id.AssemblyName, ok = parsed.Parsed["assemblyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'assemblyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateAssemblyID(input interface{}, key string) (warnings []string, error
 // ID returns the formatted Assembly ID
 func (id AssemblyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/integrationAccounts/%s/assemblies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.IntegrationAccountName, id.AssemblyArtifactName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.IntegrationAccountName, id.AssemblyName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Assembly ID
@@ -121,7 +121,7 @@ func (id AssemblyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticIntegrationAccounts", "integrationAccounts", "integrationAccounts"),
 		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountValue"),
 		resourceids.StaticSegment("staticAssemblies", "assemblies", "assemblies"),
-		resourceids.UserSpecifiedSegment("assemblyArtifactName", "assemblyArtifactValue"),
+		resourceids.UserSpecifiedSegment("assemblyName", "assemblyValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id AssemblyId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Integration Account Name: %q", id.IntegrationAccountName),
-		fmt.Sprintf("Assembly Artifact Name: %q", id.AssemblyArtifactName),
+		fmt.Sprintf("Assembly Name: %q", id.AssemblyName),
 	}
 	return fmt.Sprintf("Assembly (%s)", strings.Join(components, "\n"))
 }

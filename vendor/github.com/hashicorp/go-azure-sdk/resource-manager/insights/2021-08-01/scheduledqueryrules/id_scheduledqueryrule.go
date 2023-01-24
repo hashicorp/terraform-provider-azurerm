@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = ScheduledQueryRuleId{}
 
 // ScheduledQueryRuleId is a struct representing the Resource ID for a Scheduled Query Rule
 type ScheduledQueryRuleId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	RuleName          string
+	SubscriptionId         string
+	ResourceGroupName      string
+	ScheduledQueryRuleName string
 }
 
 // NewScheduledQueryRuleID returns a new ScheduledQueryRuleId struct
-func NewScheduledQueryRuleID(subscriptionId string, resourceGroupName string, ruleName string) ScheduledQueryRuleId {
+func NewScheduledQueryRuleID(subscriptionId string, resourceGroupName string, scheduledQueryRuleName string) ScheduledQueryRuleId {
 	return ScheduledQueryRuleId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		RuleName:          ruleName,
+		SubscriptionId:         subscriptionId,
+		ResourceGroupName:      resourceGroupName,
+		ScheduledQueryRuleName: scheduledQueryRuleName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseScheduledQueryRuleID(input string) (*ScheduledQueryRuleId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.RuleName, ok = parsed.Parsed["ruleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'ruleName' was not found in the resource id %q", input)
+	if id.ScheduledQueryRuleName, ok = parsed.Parsed["scheduledQueryRuleName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduledQueryRuleName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseScheduledQueryRuleIDInsensitively(input string) (*ScheduledQueryRuleId
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.RuleName, ok = parsed.Parsed["ruleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'ruleName' was not found in the resource id %q", input)
+	if id.ScheduledQueryRuleName, ok = parsed.Parsed["scheduledQueryRuleName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduledQueryRuleName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateScheduledQueryRuleID(input interface{}, key string) (warnings []str
 // ID returns the formatted Scheduled Query Rule ID
 func (id ScheduledQueryRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/scheduledQueryRules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.RuleName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ScheduledQueryRuleName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scheduled Query Rule ID
@@ -109,7 +109,7 @@ func (id ScheduledQueryRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticScheduledQueryRules", "scheduledQueryRules", "scheduledQueryRules"),
-		resourceids.UserSpecifiedSegment("ruleName", "ruleValue"),
+		resourceids.UserSpecifiedSegment("scheduledQueryRuleName", "scheduledQueryRuleValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id ScheduledQueryRuleId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Rule Name: %q", id.RuleName),
+		fmt.Sprintf("Scheduled Query Rule Name: %q", id.ScheduledQueryRuleName),
 	}
 	return fmt.Sprintf("Scheduled Query Rule (%s)", strings.Join(components, "\n"))
 }

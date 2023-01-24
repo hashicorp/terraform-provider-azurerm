@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2021-08-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcestorageconfigsnoncrr"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -72,27 +73,39 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
-						// We must use system assigned identity for now since recovery vault only support system assigned for now.
-						// We can remove this property, but in that way when we enable user assigned identity in the future
-						// , many users might be surprised at update in place. So we use an anonymous function to restrict this value to `true`
 						"use_system_assigned_identity": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							ValidateFunc: func(i interface{}, s string) ([]string, []error) {
-								use := i.(bool)
-								if !use {
-									return nil, []error{fmt.Errorf(" at this time `use_system_assigned_identity` only support `true`")}
-								}
-								return nil, nil
-							},
-							Default: true,
+							Default:  true,
+						},
+						"user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
 				},
 			},
 
-			// TODO: the API for this also supports UserAssigned & SystemAssigned, UserAssigned
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			// set `immutability` to Computed, because it will start to return from the service once it has been set.
+			"immutability": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(vaults.ImmutabilityStateLocked),
+					string(vaults.ImmutabilityStateUnlocked),
+					string(vaults.ImmutabilityStateDisabled),
+				}, false),
+			},
 
 			"tags": commonschema.Tags(),
 
@@ -173,10 +186,11 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_recovery_services_vault", id.ID())
 	}
 
-	expandedIdentity, err := expandVaultIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+
 	sku := d.Get("sku").(string)
 	vault := vaults.Vault{
 		Location: location,
@@ -185,11 +199,17 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		Sku: &vaults.Sku{
 			Name: vaults.SkuName(sku),
 		},
-		Properties: &vaults.VaultProperties{},
+		Properties: &vaults.VaultProperties{
+			PublicNetworkAccess: expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool)),
+		},
 	}
 
 	if vaults.SkuName(sku) == vaults.SkuNameRSZero {
 		vault.Sku.Tier = utils.String("Standard")
+	}
+
+	if immutability, ok := d.GetOk("immutability"); ok {
+		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
@@ -327,8 +347,13 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
 	}
-	if existing.Model != nil && existing.Model.Properties != nil {
-		prop := existing.Model.Properties
+	if existing.Model == nil {
+		return fmt.Errorf("checking for presence of existing Recovery Service %s: `model` was nil", id.String())
+	}
+	model := existing.Model
+
+	if model.Properties != nil {
+		prop := model.Properties
 		if prop.Encryption != nil {
 			if encryption == nil {
 				return fmt.Errorf("once encryption with your own key has been enabled it's not possible to disable it")
@@ -345,16 +370,20 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	if model.Identity != nil && !validateIdentityUpdate(*existing.Model.Identity, *expandedIdentity) {
+		return fmt.Errorf("`Once `identity` sepcified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
+	}
+
 	storageMode := d.Get("storage_mode_type").(string)
 	crossRegionRestore := d.Get("cross_region_restore_enabled").(bool)
 
 	if crossRegionRestore && storageMode != string(backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant) {
 		return fmt.Errorf("cannot enable cross region restore when storage mode type is not %s. %s", string(backupresourcestorageconfigsnoncrr.StorageTypeGeoRedundant), id.String())
-	}
-
-	expandedIdentity, err := expandVaultIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	enhanchedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
@@ -425,7 +454,9 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			Sku: &vaults.Sku{
 				Name: vaults.SkuName(sku),
 			},
-			Properties: &vaults.VaultProperties{},
+			Properties: &vaults.VaultProperties{
+				PublicNetworkAccess: expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool)), // It's required to call CreateOrUpdate.
+			},
 		}
 
 		if vaults.SkuName(sku) == vaults.SkuNameRSZero {
@@ -438,22 +469,28 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	vault := vaults.PatchVault{}
+	vault := vaults.PatchVault{
+		Properties: &vaults.VaultProperties{},
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		vault.Properties.PublicNetworkAccess = expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool))
+	}
 
 	if d.HasChange("identity") {
 		vault.Identity = expandedIdentity
 	}
 
 	if d.HasChange("encryption") {
-		if vault.Properties == nil {
-			vault.Properties = &vaults.VaultProperties{}
-		}
-
 		vault.Properties.Encryption = encryption
 	}
 
 	if d.HasChange("tags") {
 		vault.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("immutability") {
+		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(d.Get("immutability"))
 	}
 
 	err = client.UpdateThenPoll(ctx, id, vault)
@@ -548,6 +585,14 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("sku", string(sku.Name))
 	}
 
+	if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
+		d.Set("immutability", *model.Properties.SecuritySettings.ImmutabilitySettings.State)
+	}
+
+	if model.Properties != nil && model.Properties.PublicNetworkAccess != nil {
+		d.Set("public_network_access_enabled", flattenRecoveryServicesVaultPublicNetworkAccess(model.Properties.PublicNetworkAccess))
+	}
+
 	cfg, err := cfgsClient.Get(ctx, cfgId)
 	if err != nil {
 		return fmt.Errorf("reading Recovery Service Vault Cfg %s: %+v", id.String(), err)
@@ -568,7 +613,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
 	}
 
-	flattenIdentity := flattenVaultIdentity(model.Identity)
+	flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
@@ -604,28 +649,39 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func expandVaultIdentity(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
+func validateIdentityUpdate(origin identity.SystemAndUserAssignedMap, target identity.SystemAndUserAssignedMap) bool {
+	switch origin.Type {
+	case identity.TypeSystemAssigned:
+		switch target.Type {
+		case identity.TypeNone:
+			return false
+		case identity.TypeUserAssigned:
+			return false
+		default:
+			return true
+		}
+	case identity.TypeUserAssigned:
+		switch target.Type {
+		case identity.TypeNone:
+			return false
+		case identity.TypeSystemAssigned:
+			return false
+		default:
+			return true
+		}
+	case identity.TypeSystemAssignedUserAssigned:
+		switch target.Type {
+		case identity.TypeNone:
+			return false
+		case identity.TypeSystemAssigned:
+			return false
+		case identity.TypeUserAssigned:
+			return false
+		default:
+			return true
+		}
 	}
-
-	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
-	return &identity.SystemAndUserAssignedMap{
-		Type:        expanded.Type,
-		PrincipalId: expanded.PrincipalId,
-		TenantId:    expanded.TenantId,
-		IdentityIds: identityIds,
-	}, nil
-}
-
-func flattenVaultIdentity(input *identity.SystemAndUserAssignedMap) []interface{} {
-	systemAssignedIdentity := &identity.SystemAssigned{
-		Type:        input.Type,
-		PrincipalId: input.PrincipalId,
-		TenantId:    input.TenantId,
-	}
-	return identity.FlattenSystemAssigned(systemAssignedIdentity)
+	return true
 }
 
 func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncryption {
@@ -653,6 +709,9 @@ func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncrypti
 		},
 		InfrastructureEncryption: &infraEncryptionState,
 	}
+	if v, ok := encryptionMap["user_assigned_identity_id"].(string); ok && v != "" {
+		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
+	}
 	return encryption
 }
 
@@ -672,7 +731,37 @@ func flattenVaultEncryption(model vaults.Vault) interface{} {
 	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyUri
 	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
 	encryptionMap["infrastructure_encryption_enabled"] = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
+	if encryption.KekIdentity.UserAssignedIdentity != nil {
+		encryptionMap["user_assigned_identity_id"] = *encryption.KekIdentity.UserAssignedIdentity
+	}
 	return encryptionMap
+}
+
+func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.SecuritySettings {
+	if input == nil || len(input.(string)) == 0 {
+		return nil
+	}
+	immutabilityState := vaults.ImmutabilityState(input.(string))
+	return &vaults.SecuritySettings{
+		ImmutabilitySettings: &vaults.ImmutabilitySettings{
+			State: &immutabilityState,
+		},
+	}
+}
+
+func expandRecoveryServicesVaultPublicNetworkAccess(input bool) *vaults.PublicNetworkAccess {
+	out := vaults.PublicNetworkAccessDisabled
+	if input {
+		out = vaults.PublicNetworkAccessEnabled
+	}
+	return &out
+}
+
+func flattenRecoveryServicesVaultPublicNetworkAccess(input *vaults.PublicNetworkAccess) bool {
+	if input == nil {
+		return false
+	}
+	return *input == vaults.PublicNetworkAccessEnabled
 }
 
 func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfgsClient *backupresourcevaultconfigs.BackupResourceVaultConfigsClient, id backupresourcevaultconfigs.VaultId) pluginsdk.StateRefreshFunc {

@@ -13,17 +13,17 @@ var _ resourceids.ResourceId = TrackId{}
 type TrackId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	MediaServiceName  string
 	AssetName         string
 	TrackName         string
 }
 
 // NewTrackID returns a new TrackId struct
-func NewTrackID(subscriptionId string, resourceGroupName string, accountName string, assetName string, trackName string) TrackId {
+func NewTrackID(subscriptionId string, resourceGroupName string, mediaServiceName string, assetName string, trackName string) TrackId {
 	return TrackId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		MediaServiceName:  mediaServiceName,
 		AssetName:         assetName,
 		TrackName:         trackName,
 	}
@@ -48,8 +48,8 @@ func ParseTrackID(input string) (*TrackId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.AssetName, ok = parsed.Parsed["assetName"]; !ok {
@@ -83,8 +83,8 @@ func ParseTrackIDInsensitively(input string) (*TrackId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.AssetName, ok = parsed.Parsed["assetName"]; !ok {
@@ -116,7 +116,7 @@ func ValidateTrackID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Track ID
 func (id TrackId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/assets/%s/tracks/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.AssetName, id.TrackName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.AssetName, id.TrackName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Track ID
@@ -129,7 +129,7 @@ func (id TrackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticAssets", "assets", "assets"),
 		resourceids.UserSpecifiedSegment("assetName", "assetValue"),
 		resourceids.StaticSegment("staticTracks", "tracks", "tracks"),
@@ -142,7 +142,7 @@ func (id TrackId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Asset Name: %q", id.AssetName),
 		fmt.Sprintf("Track Name: %q", id.TrackName),
 	}

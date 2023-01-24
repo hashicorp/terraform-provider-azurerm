@@ -81,7 +81,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Network Manager Management Group Connection.
 
 * `connection_state` - The Connection state of the Network Manager Management Group Connection.
-*
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

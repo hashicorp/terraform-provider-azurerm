@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = InputId{}
 type InputId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	JobName           string
+	StreamingJobName  string
 	InputName         string
 }
 
 // NewInputID returns a new InputId struct
-func NewInputID(subscriptionId string, resourceGroupName string, jobName string, inputName string) InputId {
+func NewInputID(subscriptionId string, resourceGroupName string, streamingJobName string, inputName string) InputId {
 	return InputId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		JobName:           jobName,
+		StreamingJobName:  streamingJobName,
 		InputName:         inputName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseInputID(input string) (*InputId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
+		return nil, fmt.Errorf("the segment 'streamingJobName' was not found in the resource id %q", input)
 	}
 
 	if id.InputName, ok = parsed.Parsed["inputName"]; !ok {
@@ -77,8 +77,8 @@ func ParseInputIDInsensitively(input string) (*InputId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
+		return nil, fmt.Errorf("the segment 'streamingJobName' was not found in the resource id %q", input)
 	}
 
 	if id.InputName, ok = parsed.Parsed["inputName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateInputID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Input ID
 func (id InputId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/streamingJobs/%s/inputs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.JobName, id.InputName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName, id.InputName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Input ID
@@ -119,7 +119,7 @@ func (id InputId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("jobName", "jobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
 		resourceids.StaticSegment("staticInputs", "inputs", "inputs"),
 		resourceids.UserSpecifiedSegment("inputName", "inputValue"),
 	}
@@ -130,7 +130,7 @@ func (id InputId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Job Name: %q", id.JobName),
+		fmt.Sprintf("Streaming Job Name: %q", id.StreamingJobName),
 		fmt.Sprintf("Input Name: %q", id.InputName),
 	}
 	return fmt.Sprintf("Input (%s)", strings.Join(components, "\n"))

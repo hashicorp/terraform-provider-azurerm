@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = FirewallRuleId{}
 
 // FirewallRuleId is a struct representing the Resource ID for a Firewall Rule
 type FirewallRuleId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ServerName        string
-	FirewallRuleName  string
+	SubscriptionId     string
+	ResourceGroupName  string
+	FlexibleServerName string
+	FirewallRuleName   string
 }
 
 // NewFirewallRuleID returns a new FirewallRuleId struct
-func NewFirewallRuleID(subscriptionId string, resourceGroupName string, serverName string, firewallRuleName string) FirewallRuleId {
+func NewFirewallRuleID(subscriptionId string, resourceGroupName string, flexibleServerName string, firewallRuleName string) FirewallRuleId {
 	return FirewallRuleId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ServerName:        serverName,
-		FirewallRuleName:  firewallRuleName,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		FlexibleServerName: flexibleServerName,
+		FirewallRuleName:   firewallRuleName,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParseFirewallRuleID(input string) (*FirewallRuleId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverName' was not found in the resource id %q", input)
+	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'flexibleServerName' was not found in the resource id %q", input)
 	}
 
 	if id.FirewallRuleName, ok = parsed.Parsed["firewallRuleName"]; !ok {
@@ -77,8 +77,8 @@ func ParseFirewallRuleIDInsensitively(input string) (*FirewallRuleId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverName' was not found in the resource id %q", input)
+	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'flexibleServerName' was not found in the resource id %q", input)
 	}
 
 	if id.FirewallRuleName, ok = parsed.Parsed["firewallRuleName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateFirewallRuleID(input interface{}, key string) (warnings []string, e
 // ID returns the formatted Firewall Rule ID
 func (id FirewallRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/flexibleServers/%s/firewallRules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.FirewallRuleName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName, id.FirewallRuleName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Firewall Rule ID
@@ -119,7 +119,7 @@ func (id FirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerValue"),
 		resourceids.StaticSegment("staticFirewallRules", "firewallRules", "firewallRules"),
 		resourceids.UserSpecifiedSegment("firewallRuleName", "firewallRuleValue"),
 	}
@@ -130,7 +130,7 @@ func (id FirewallRuleId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Server Name: %q", id.ServerName),
+		fmt.Sprintf("Flexible Server Name: %q", id.FlexibleServerName),
 		fmt.Sprintf("Firewall Rule Name: %q", id.FirewallRuleName),
 	}
 	return fmt.Sprintf("Firewall Rule (%s)", strings.Join(components, "\n"))

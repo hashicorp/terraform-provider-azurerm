@@ -47,6 +47,22 @@ func TestAccMaintenanceConfiguration_basicWithInGuestPatch(t *testing.T) {
 	})
 }
 
+func TestAccMaintenanceConfiguration_basicWithOnePatchOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
+	r := MaintenanceConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_onePatchOnly(data, true),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic_onePatchOnly(data, false),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMaintenanceConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 	r := MaintenanceConfigurationResource{}
@@ -264,4 +280,49 @@ resource "azurerm_maintenance_configuration" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (MaintenanceConfigurationResource) basic_onePatchOnly(data acceptance.TestData, isLinux bool) string {
+	patch := `linux {
+      classifications_to_include = ["Critical", "Security"]
+    }`
+	if !isLinux {
+		patch = `windows {
+      classifications_to_include = ["Critical", "Security"]
+    }`
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-maint-%d"
+  location = "%s"
+}
+
+resource "azurerm_maintenance_configuration" "test" {
+  name                = "acctest-MC%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope               = "InGuestPatch"
+  visibility          = "Custom"
+
+  window {
+    start_date_time      = "5555-12-31 00:00"
+    expiration_date_time = "6666-12-31 00:00"
+    duration             = "02:00"
+    time_zone            = "Pacific Standard Time"
+    recur_every          = "2Days"
+  }
+
+  install_patches {
+    reboot = "IfRequired"
+    %s
+  }
+
+  in_guest_user_patch_mode = "User"
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, patch)
 }

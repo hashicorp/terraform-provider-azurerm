@@ -11,23 +11,23 @@ var _ resourceids.ResourceId = ScopeRepetitionId{}
 
 // ScopeRepetitionId is a struct representing the Resource ID for a Scope Repetition
 type ScopeRepetitionId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	WorkflowName      string
-	RunName           string
-	ActionName        string
-	RepetitionName    string
+	SubscriptionId      string
+	ResourceGroupName   string
+	WorkflowName        string
+	RunName             string
+	ActionName          string
+	ScopeRepetitionName string
 }
 
 // NewScopeRepetitionID returns a new ScopeRepetitionId struct
-func NewScopeRepetitionID(subscriptionId string, resourceGroupName string, workflowName string, runName string, actionName string, repetitionName string) ScopeRepetitionId {
+func NewScopeRepetitionID(subscriptionId string, resourceGroupName string, workflowName string, runName string, actionName string, scopeRepetitionName string) ScopeRepetitionId {
 	return ScopeRepetitionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		WorkflowName:      workflowName,
-		RunName:           runName,
-		ActionName:        actionName,
-		RepetitionName:    repetitionName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		WorkflowName:        workflowName,
+		RunName:             runName,
+		ActionName:          actionName,
+		ScopeRepetitionName: scopeRepetitionName,
 	}
 }
 
@@ -62,8 +62,8 @@ func ParseScopeRepetitionID(input string) (*ScopeRepetitionId, error) {
 		return nil, fmt.Errorf("the segment 'actionName' was not found in the resource id %q", input)
 	}
 
-	if id.RepetitionName, ok = parsed.Parsed["repetitionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'repetitionName' was not found in the resource id %q", input)
+	if id.ScopeRepetitionName, ok = parsed.Parsed["scopeRepetitionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scopeRepetitionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -101,8 +101,8 @@ func ParseScopeRepetitionIDInsensitively(input string) (*ScopeRepetitionId, erro
 		return nil, fmt.Errorf("the segment 'actionName' was not found in the resource id %q", input)
 	}
 
-	if id.RepetitionName, ok = parsed.Parsed["repetitionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'repetitionName' was not found in the resource id %q", input)
+	if id.ScopeRepetitionName, ok = parsed.Parsed["scopeRepetitionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scopeRepetitionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -126,7 +126,7 @@ func ValidateScopeRepetitionID(input interface{}, key string) (warnings []string
 // ID returns the formatted Scope Repetition ID
 func (id ScopeRepetitionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/workflows/%s/runs/%s/actions/%s/scopeRepetitions/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkflowName, id.RunName, id.ActionName, id.RepetitionName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkflowName, id.RunName, id.ActionName, id.ScopeRepetitionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scope Repetition ID
@@ -145,7 +145,7 @@ func (id ScopeRepetitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticActions", "actions", "actions"),
 		resourceids.UserSpecifiedSegment("actionName", "actionValue"),
 		resourceids.StaticSegment("staticScopeRepetitions", "scopeRepetitions", "scopeRepetitions"),
-		resourceids.UserSpecifiedSegment("repetitionName", "repetitionValue"),
+		resourceids.UserSpecifiedSegment("scopeRepetitionName", "scopeRepetitionValue"),
 	}
 }
 
@@ -157,7 +157,7 @@ func (id ScopeRepetitionId) String() string {
 		fmt.Sprintf("Workflow Name: %q", id.WorkflowName),
 		fmt.Sprintf("Run Name: %q", id.RunName),
 		fmt.Sprintf("Action Name: %q", id.ActionName),
-		fmt.Sprintf("Repetition Name: %q", id.RepetitionName),
+		fmt.Sprintf("Scope Repetition Name: %q", id.ScopeRepetitionName),
 	}
 	return fmt.Sprintf("Scope Repetition (%s)", strings.Join(components, "\n"))
 }

@@ -117,7 +117,7 @@ func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationN
 			return err
 		}
 
-		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, configurationName)
+		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName, configurationName)
 
 		resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, configurationId)
 		if err != nil {
@@ -156,6 +156,29 @@ func TestAccFlexibleServerConfiguration_multiplePostgresqlFlexibleServerConfigur
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccFlexibleServerConfiguration_restartServerForStaticParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
+	r := PostgresqlFlexibleServerConfigurationResource{}
+	name := "cron.max_running_jobs"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, name, "5"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("value").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+			),
+		},
 	})
 }
 

@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = LocationWorkflowId{}
 type LocationWorkflowId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	Location          string
+	LocationName      string
 	WorkflowName      string
 }
 
 // NewLocationWorkflowID returns a new LocationWorkflowId struct
-func NewLocationWorkflowID(subscriptionId string, resourceGroupName string, location string, workflowName string) LocationWorkflowId {
+func NewLocationWorkflowID(subscriptionId string, resourceGroupName string, locationName string, workflowName string) LocationWorkflowId {
 	return LocationWorkflowId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		Location:          location,
+		LocationName:      locationName,
 		WorkflowName:      workflowName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseLocationWorkflowID(input string) (*LocationWorkflowId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
@@ -77,8 +77,8 @@ func ParseLocationWorkflowIDInsensitively(input string) (*LocationWorkflowId, er
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateLocationWorkflowID(input interface{}, key string) (warnings []strin
 // ID returns the formatted Location Workflow ID
 func (id LocationWorkflowId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/locations/%s/workflows/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.Location, id.WorkflowName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LocationName, id.WorkflowName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Location Workflow ID
@@ -119,7 +119,7 @@ func (id LocationWorkflowId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
 		resourceids.StaticSegment("staticWorkflows", "workflows", "workflows"),
 		resourceids.UserSpecifiedSegment("workflowName", "workflowValue"),
 	}
@@ -130,7 +130,7 @@ func (id LocationWorkflowId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Location: %q", id.Location),
+		fmt.Sprintf("Location Name: %q", id.LocationName),
 		fmt.Sprintf("Workflow Name: %q", id.WorkflowName),
 	}
 	return fmt.Sprintf("Location Workflow (%s)", strings.Join(components, "\n"))
