@@ -3,6 +3,7 @@ package logic_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -42,21 +43,28 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 		name = id.Name
 	}
 
-	resp, err := clients.Logic.WorkflowClient.Get(ctx, resourceGroup, workflowName)
+	subscriptionId := clients.Account.SubscriptionId
+	id := workflows.NewWorkflowID(subscriptionId, resourceGroup, workflowName)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Logic App Workflow %s %s (resource group: %s): %v", kind, workflowName, resourceGroup, err)
 	}
 
-	if resp.WorkflowProperties == nil {
+	if resp.Model == nil {
 		return utils.Bool(false), nil
 	}
 
-	if resp.WorkflowProperties.Definition == nil {
+	if resp.Model.Properties == nil {
+		return utils.Bool(false), nil
+	}
+
+	if resp.Model.Properties.Definition == nil {
 		return nil, fmt.Errorf("Logic App Workflow %s %s (resource group: %s) Definition is nil", kind, workflowName, resourceGroup)
 	}
 
-	definition := resp.WorkflowProperties.Definition.(map[string]interface{})
-	actions := definition[propertyName].(map[string]interface{})
+	definitionRaw := *resp.Model.Properties.Definition
+	definitionMap := definitionRaw.(map[string]interface{})
+	actions := definitionMap[propertyName].(map[string]interface{})
 
 	exists := false
 	for k := range actions {

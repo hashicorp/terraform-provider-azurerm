@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountagreements"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountbatchconfigurations"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountsessions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -28,7 +28,7 @@ type Client struct {
 	IntegrationAccountSessionClient            *integrationaccountsessions.IntegrationAccountSessionsClient
 	IntegrationServiceEnvironmentClient        *integrationserviceenvironments.IntegrationServiceEnvironmentsClient
 	WorkflowClient                             *workflows.WorkflowsClient
-	TriggersClient                             *logic.WorkflowTriggersClient
+	TriggersClient                             *workflowtriggers.WorkflowTriggersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -65,7 +65,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	workflowClient := workflows.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&workflowClient.Client, o.ResourceManagerAuthorizer)
 
-	triggersClient := logic.NewWorkflowTriggersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	triggersClient := workflowtriggers.NewWorkflowTriggersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&triggersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
