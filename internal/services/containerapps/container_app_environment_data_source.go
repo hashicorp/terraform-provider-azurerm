@@ -137,7 +137,7 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := existing.Model; model != nil {
-				environment.Name = id.EnvironmentName
+				environment.Name = id.ManagedEnvironmentName
 				environment.ResourceGroup = id.ResourceGroupName
 				environment.Location = location.Normalize(model.Location)
 				environment.Tags = tags.Flatten(model.Tags)

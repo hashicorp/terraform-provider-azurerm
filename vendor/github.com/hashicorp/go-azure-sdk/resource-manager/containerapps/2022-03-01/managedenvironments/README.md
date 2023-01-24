@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "certificateValue")
+id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue", "certificateValue")
 
 payload := managedenvironments.Certificate{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "certificateValue")
+id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue", "certificateValue")
 
 read, err := client.CertificatesDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "certificateValue")
+id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue", "certificateValue")
 
 read, err := client.CertificatesGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue")
 
 // alternatively `client.CertificatesList(ctx, id)` can be used to do batched pagination
 items, err := client.CertificatesListComplete(ctx, id)
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "certificateValue")
+id := managedenvironments.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue", "certificateValue")
 
 payload := managedenvironments.CertificatePatch{
 	// ...
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue")
 
 payload := managedenvironments.ManagedEnvironment{
 	// ...
@@ -132,7 +132,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -144,7 +144,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -194,7 +194,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue")
 
 payload := managedenvironments.CheckNameAvailabilityRequest{
 	// ...
@@ -215,7 +215,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := managedenvironments.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentValue")
 
 payload := managedenvironments.ManagedEnvironment{
 	// ...

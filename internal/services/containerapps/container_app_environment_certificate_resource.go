@@ -140,7 +140,7 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := certificates.NewCertificateID(metadata.Client.Account.SubscriptionId, envId.ResourceGroupName, envId.EnvironmentName, cert.Name)
+			id := certificates.NewCertificateID(metadata.Client.Account.SubscriptionId, envId.ResourceGroupName, envId.ManagedEnvironmentName, cert.Name)
 			env, err := environmentsClient.Get(ctx, *envId)
 			if err != nil {
 				return fmt.Errorf("reading %s for %s: %+v", *envId, id, err)
@@ -189,7 +189,7 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 			var state ContainerAppCertificateModel
 
 			state.Name = id.CertificateName
-			state.ManagedEnvironmentId = certificates.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName).ID()
+			state.ManagedEnvironmentId = certificates.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName).ID()
 
 			if model := existing.Model; model != nil {
 				state.Tags = tags.Flatten(model.Tags)

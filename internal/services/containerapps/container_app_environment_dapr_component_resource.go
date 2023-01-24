@@ -129,7 +129,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Create() sdk.ResourceFunc 
 				return err
 			}
 
-			id := daprcomponents.NewDaprComponentID(subscriptionId, managedEnvironmentId.ResourceGroupName, managedEnvironmentId.EnvironmentName, daprComponent.Name)
+			id := daprcomponents.NewDaprComponentID(subscriptionId, managedEnvironmentId.ResourceGroupName, managedEnvironmentId.ManagedEnvironmentName, daprComponent.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -190,8 +190,8 @@ func (r ContainerAppEnvironmentDaprComponentResource) Read() sdk.ResourceFunc {
 
 			var state ContainerAppEnvironmentDaprComponentModel
 
-			state.Name = id.ComponentName
-			state.ManagedEnvironmentId = daprcomponents.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName).ID()
+			state.Name = id.DaprComponentName
+			state.ManagedEnvironmentId = daprcomponents.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName).ID()
 			if props := model.Properties; props != nil {
 				state.Version = pointer.From(props.Version)
 				state.ComponentType = pointer.From(props.ComponentType)

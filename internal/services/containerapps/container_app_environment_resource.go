@@ -232,7 +232,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 			var state ContainerAppEnvironmentModel
 
 			if model := existing.Model; model != nil {
-				state.Name = id.EnvironmentName
+				state.Name = id.ManagedEnvironmentName
 				state.ResourceGroup = id.ResourceGroupName
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)

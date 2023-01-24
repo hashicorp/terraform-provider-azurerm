@@ -112,7 +112,7 @@ func (r ContainerAppEnvironmentCertificateDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := certificates.NewCertificateID(envId.SubscriptionId, envId.ResourceGroupName, envId.EnvironmentName, cert.Name)
+			id := certificates.NewCertificateID(envId.SubscriptionId, envId.ResourceGroupName, envId.ManagedEnvironmentName, cert.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {

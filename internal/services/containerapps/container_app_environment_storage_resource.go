@@ -116,7 +116,7 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := managedenvironmentsstorages.NewStorageID(metadata.Client.Account.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.EnvironmentName, storage.Name)
+			id := managedenvironmentsstorages.NewStorageID(metadata.Client.Account.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.ManagedEnvironmentName, storage.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -174,7 +174,7 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 			var state ContainerAppEnvironmentStorageModel
 
 			state.Name = id.StorageName
-			state.ContainerAppEnvironmentId = managedenvironmentsstorages.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName).ID()
+			state.ContainerAppEnvironmentId = managedenvironmentsstorages.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName).ID()
 
 			if model := existing.Model; model != nil {
 				if props := model.Properties; props != nil {

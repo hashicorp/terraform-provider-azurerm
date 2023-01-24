@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = ManagedEnvironmentId{}
 
 // ManagedEnvironmentId is a struct representing the Resource ID for a Managed Environment
 type ManagedEnvironmentId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	EnvironmentName   string
+	SubscriptionId         string
+	ResourceGroupName      string
+	ManagedEnvironmentName string
 }
 
 // NewManagedEnvironmentID returns a new ManagedEnvironmentId struct
-func NewManagedEnvironmentID(subscriptionId string, resourceGroupName string, environmentName string) ManagedEnvironmentId {
+func NewManagedEnvironmentID(subscriptionId string, resourceGroupName string, managedEnvironmentName string) ManagedEnvironmentId {
 	return ManagedEnvironmentId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		EnvironmentName:   environmentName,
+		SubscriptionId:         subscriptionId,
+		ResourceGroupName:      resourceGroupName,
+		ManagedEnvironmentName: managedEnvironmentName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseManagedEnvironmentID(input string) (*ManagedEnvironmentId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseManagedEnvironmentIDInsensitively(input string) (*ManagedEnvironmentId
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateManagedEnvironmentID(input interface{}, key string) (warnings []str
 // ID returns the formatted Managed Environment ID
 func (id ManagedEnvironmentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Managed Environment ID
@@ -109,7 +109,7 @@ func (id ManagedEnvironmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("environmentName", "environmentValue"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id ManagedEnvironmentId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Environment Name: %q", id.EnvironmentName),
+		fmt.Sprintf("Managed Environment Name: %q", id.ManagedEnvironmentName),
 	}
 	return fmt.Sprintf("Managed Environment (%s)", strings.Join(components, "\n"))
 }

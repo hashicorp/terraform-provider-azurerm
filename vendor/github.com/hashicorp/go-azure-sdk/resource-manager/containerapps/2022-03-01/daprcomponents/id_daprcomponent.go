@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = DaprComponentId{}
 
 // DaprComponentId is a struct representing the Resource ID for a Dapr Component
 type DaprComponentId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	EnvironmentName   string
-	ComponentName     string
+	SubscriptionId         string
+	ResourceGroupName      string
+	ManagedEnvironmentName string
+	DaprComponentName      string
 }
 
 // NewDaprComponentID returns a new DaprComponentId struct
-func NewDaprComponentID(subscriptionId string, resourceGroupName string, environmentName string, componentName string) DaprComponentId {
+func NewDaprComponentID(subscriptionId string, resourceGroupName string, managedEnvironmentName string, daprComponentName string) DaprComponentId {
 	return DaprComponentId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		EnvironmentName:   environmentName,
-		ComponentName:     componentName,
+		SubscriptionId:         subscriptionId,
+		ResourceGroupName:      resourceGroupName,
+		ManagedEnvironmentName: managedEnvironmentName,
+		DaprComponentName:      daprComponentName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseDaprComponentID(input string) (*DaprComponentId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
 	}
 
-	if id.ComponentName, ok = parsed.Parsed["componentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'componentName' was not found in the resource id %q", input)
+	if id.DaprComponentName, ok = parsed.Parsed["daprComponentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'daprComponentName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseDaprComponentIDInsensitively(input string) (*DaprComponentId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
 	}
 
-	if id.ComponentName, ok = parsed.Parsed["componentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'componentName' was not found in the resource id %q", input)
+	if id.DaprComponentName, ok = parsed.Parsed["daprComponentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'daprComponentName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateDaprComponentID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Dapr Component ID
 func (id DaprComponentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/daprComponents/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName, id.ComponentName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName, id.DaprComponentName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Dapr Component ID
@@ -119,9 +119,9 @@ func (id DaprComponentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("environmentName", "environmentValue"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentValue"),
 		resourceids.StaticSegment("staticDaprComponents", "daprComponents", "daprComponents"),
-		resourceids.UserSpecifiedSegment("componentName", "componentValue"),
+		resourceids.UserSpecifiedSegment("daprComponentName", "daprComponentValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id DaprComponentId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Environment Name: %q", id.EnvironmentName),
-		fmt.Sprintf("Component Name: %q", id.ComponentName),
+		fmt.Sprintf("Managed Environment Name: %q", id.ManagedEnvironmentName),
+		fmt.Sprintf("Dapr Component Name: %q", id.DaprComponentName),
 	}
 	return fmt.Sprintf("Dapr Component (%s)", strings.Join(components, "\n"))
 }

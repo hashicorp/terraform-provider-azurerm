@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = CertificateId{}
 
 // CertificateId is a struct representing the Resource ID for a Certificate
 type CertificateId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	EnvironmentName   string
-	CertificateName   string
+	SubscriptionId         string
+	ResourceGroupName      string
+	ManagedEnvironmentName string
+	CertificateName        string
 }
 
 // NewCertificateID returns a new CertificateId struct
-func NewCertificateID(subscriptionId string, resourceGroupName string, environmentName string, certificateName string) CertificateId {
+func NewCertificateID(subscriptionId string, resourceGroupName string, managedEnvironmentName string, certificateName string) CertificateId {
 	return CertificateId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		EnvironmentName:   environmentName,
-		CertificateName:   certificateName,
+		SubscriptionId:         subscriptionId,
+		ResourceGroupName:      resourceGroupName,
+		ManagedEnvironmentName: managedEnvironmentName,
+		CertificateName:        certificateName,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParseCertificateID(input string) (*CertificateId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
 	}
 
 	if id.CertificateName, ok = parsed.Parsed["certificateName"]; !ok {
@@ -77,8 +77,8 @@ func ParseCertificateIDInsensitively(input string) (*CertificateId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
 	}
 
 	if id.CertificateName, ok = parsed.Parsed["certificateName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateCertificateID(input interface{}, key string) (warnings []string, er
 // ID returns the formatted Certificate ID
 func (id CertificateId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/certificates/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName, id.CertificateName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName, id.CertificateName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Certificate ID
@@ -119,7 +119,7 @@ func (id CertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("environmentName", "environmentValue"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentValue"),
 		resourceids.StaticSegment("staticCertificates", "certificates", "certificates"),
 		resourceids.UserSpecifiedSegment("certificateName", "certificateValue"),
 	}
@@ -130,7 +130,7 @@ func (id CertificateId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Environment Name: %q", id.EnvironmentName),
+		fmt.Sprintf("Managed Environment Name: %q", id.ManagedEnvironmentName),
 		fmt.Sprintf("Certificate Name: %q", id.CertificateName),
 	}
 	return fmt.Sprintf("Certificate (%s)", strings.Join(components, "\n"))
