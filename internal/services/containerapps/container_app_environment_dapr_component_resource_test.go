@@ -111,7 +111,7 @@ provider "azurerm" {
 resource "azurerm_container_app_environment_dapr_component" "test" {
   name                         = "acctest-dapr-%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
-  type                         = "state.azure.blobstorage"
+  component_type               = "state.azure.blobstorage"
   version                      = "v1"
 }
 
@@ -126,7 +126,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) requiresImport(data accept
 resource "azurerm_container_app_environment_dapr_component" "import" {
   name                         = azurerm_container_app_environment_dapr_component.test.name
   container_app_environment_id = azurerm_container_app_environment_dapr_component.test.container_app_environment_id
-  type                         = azurerm_container_app_environment_dapr_component.test.type
+  component_type               = azurerm_container_app_environment_dapr_component.test.type
   version                      = azurerm_container_app_environment_dapr_component.test.version
 }
 
@@ -163,7 +163,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_container_app_environment_dapr_component" "test" {
   name                         = "acctest-dapr-%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
-  type                         = "state.azure.blobstorage"
+  component_type               = "state.azure.blobstorage"
   version                      = "v1"
 
   init_timeout  = "10s"
@@ -231,7 +231,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_container_app_environment_dapr_component" "test" {
   name                         = "acctest-dapr-%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
-  type                         = "state.azure.blobstorage"
+  component_type               = "state.azure.blobstorage"
   version                      = "v2"
 
   init_timeout  = "5s"

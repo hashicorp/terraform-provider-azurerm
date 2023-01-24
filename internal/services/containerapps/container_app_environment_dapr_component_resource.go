@@ -61,7 +61,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) Arguments() map[string]*pl
 			Description:  "The Container App Managed Environment ID to configure this Dapr component on.",
 		},
 
-		"type": {
+		"component_type": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
