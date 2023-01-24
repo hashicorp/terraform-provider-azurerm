@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * testing: refactoring to use `hashicorp/terraform-plugin-testing` [GH-20114]
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
+* `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
 * `azurerm_kubernetes_cluster` - support for confidential computing [GH-20111]
 * `azurerm_postgresql_flexible_server` - suport for customer managed keys [GH-20086]
 
