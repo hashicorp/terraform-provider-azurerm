@@ -58,6 +58,7 @@ resource "azurerm_media_content_key_policy" "example" {
     playready_configuration_license {
       allow_test_devices = true
       begin_date         = "2017-10-16T18:22:53Z"
+      security_level     = "SL150"
       play_right {
         scms_restriction                                         = 2
         digital_video_only_content_restriction                   = false
@@ -67,7 +68,12 @@ resource "azurerm_media_content_key_policy" "example" {
         uncompressed_digital_video_opl                           = 100
         uncompressed_digital_audio_opl                           = 100
         analog_video_opl                                         = 150
-        compressed_digital_audio_opl                             = 150
+        compressed_digital_audio_opl                             = 250
+        compressed_digital_video_opl                             = 400
+        explicit_analog_television_output_restriction {
+          best_effort  = true
+          control_bits = 3
+        }
       }
       license_type                             = "Persistent"
       content_type                             = "UltraVioletDownload"
@@ -83,6 +89,13 @@ resource "azurerm_media_content_key_policy" "example" {
       audience                    = "urn:audience"
       token_type                  = "Swt"
       primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
+      alternate_key {
+        rsa_token_key_exponent = "AQAB"
+        rsa_token_key_modulus  = "AQAD"
+      }
+      alternate_key {
+        symmetric_token_key = "BBAAAAAAAAAAAAAAAAAAAA=="
+      }
     }
   }
   policy_option {
@@ -125,6 +138,28 @@ The following arguments are supported:
 
 ---
 
+A `alternate_key` block supports the following:
+
+* `rsa_token_key_exponent` - (Optional) The RSA parameter exponent.
+
+* `rsa_token_key_modulus` - (Optional) The RSA parameter modulus.
+
+* `symmetric_token_key` - (Optional) The key value of the key. Specifies a symmetric key for token validation.
+
+* `x509_token_key_raw` - (Optional) The raw data field of a certificate in PKCS 12 format (X509Certificate2 in .NET). Specifies a certificate for token validation.
+
+-> **NOTE:** Each `alternate_key` block can only have one type of primary verification key: if you want to use RSA you must provide `rsa_token_key_exponent` and `rsa_token_key_modulus`, if you want to use symmetric you need to provide `symmetric_token_key` and for x509 you must provide `x509_token_key_raw`. 
+
+---
+
+An `explicit_analog_television_output_restriction` block supports the following:
+
+* `best_effort` - (Optional) Indicates whether this restriction is enforced on a best effort basis. Possible values are `true` or `false`. Defaults to `false`. 
+
+* `control_bits` - (Required) The restriction control bits. Possible value is integer between `0` and `3` inclusive.
+
+---
+
 A `fairplay_configuration` block supports the following:
 
 * `ask` - (Optional) The key that must be used as FairPlay Application Secret key.
@@ -151,15 +186,19 @@ A `offline_rental_configuration` block supports the following:
 
 A `play_right` block supports the following:
 
-* `agc_and_color_stripe_restriction` - (Optional) Configures Automatic Gain Control (AGC) and Color Stripe in the license. Must be between 0 and 3 inclusive.
+* `agc_and_color_stripe_restriction` - (Optional) Configures Automatic Gain Control (AGC) and Color Stripe in the license. Must be between `0` and `3` inclusive.
 
 * `allow_passing_video_content_to_unknown_output` - (Optional) Configures Unknown output handling settings of the license. Supported values are `Allowed`, `AllowedWithVideoConstriction` or `NotAllowed`.
 
-* `analog_video_opl` - (Optional) Specifies the output protection level for compressed digital audio. Supported values are 100, 150 or 200.
+* `analog_video_opl` - (Optional) Specifies the output protection level for compressed digital audio. Supported values are `100`, `150` or `200`.
 
-* `compressed_digital_audio_opl` - (Optional) Specifies the output protection level for compressed digital audio.Supported values are 100, 150 or 200.
+* `compressed_digital_audio_opl` - (Optional) Specifies the output protection level for compressed digital audio.Supported values are `100`, `150`, `200`, `250` or `300`.
+
+* `compressed_digital_video_opl` - (Optional) Specifies the output protection level for compressed digital video. Supported values are `400` or `500`.
 
 * `digital_video_only_content_restriction` - (Optional) Enables the Image Constraint For Analog Component Video Restriction in the license.
+
+* `explicit_analog_television_output_restriction` - (Optional) An `explicit_analog_television_output_restriction` block as defined above.
 
 * `first_play_expiration` - (Optional) The amount of time that the license is valid after the license is first used to play content.
 
@@ -167,11 +206,11 @@ A `play_right` block supports the following:
 
 * `image_constraint_for_analog_computer_monitor_restriction` - (Optional) Enables the Image Constraint For Analog Component Video Restriction in the license.
 
-* `scms_restriction` - (Optional) Configures the Serial Copy Management System (SCMS) in the license. Must be between 0 and 3 inclusive.
+* `scms_restriction` - (Optional) Configures the Serial Copy Management System (SCMS) in the license. Must be between `0` and `3` inclusive.
 
-* `uncompressed_digital_audio_opl` - (Optional) Specifies the output protection level for uncompressed digital audio. Supported values are 100, 150, 250 or 300.
+* `uncompressed_digital_audio_opl` - (Optional) Specifies the output protection level for uncompressed digital audio. Supported values are `100`, `150`, `200`, `250` or `300`.
 
-* `uncompressed_digital_video_opl` - (Optional) Specifies the output protection level for uncompressed digital video. Supported values are 100, 150, 250 or 300.
+* `uncompressed_digital_video_opl` - (Optional) Specifies the output protection level for uncompressed digital video. Supported values are `100`, `250`, `270` or `300`.
 
 ---
 
@@ -182,9 +221,10 @@ A `playready_configuration_license` block supports the following:
 * `begin_date` - (Optional) The begin date of license.
 
 * `content_key_location_from_header_enabled` - (Optional) Specifies that the content key ID is in the PlayReady header.
+ 
 * `content_key_location_from_key_id` - (Optional) The content key ID. Specifies that the content key ID is specified in the PlayReady configuration.
 
--> **NOTE:** You can only specify one content key location. For example if you specify content_key_location_from_header_enabled in true, you shouldn't specify content_key_location_from_key_id and vice versa.
+-> **NOTE:** You can only specify one content key location. For example if you specify `content_key_location_from_header_enabled` in true, you shouldn't specify `content_key_location_from_key_id` and vice versa.
 
 * `content_type` - (Optional) The PlayReady content type. Supported values are `UltraVioletDownload`, `UltraVioletStreaming` or `Unspecified`.
 
@@ -200,6 +240,8 @@ A `playready_configuration_license` block supports the following:
 
 * `relative_expiration_date` - (Optional) The relative expiration date of license.
 
+* `security_level` - (Optional) The security level of the PlayReady license. Possible values are `SL150`, `SL2000` and `SL3000`. Please see [this document](https://learn.microsoft.com/en-us/rest/api/media/content-key-policies/create-or-update?tabs=HTTP#securitylevel) for more information about security level. See [this document](https://learn.microsoft.com/en-us/azure/media-services/latest/drm-playready-license-template-concept#playready-sl3000-support) for more information about `SL3000` support.
+
 ---
 
 A `policy_option` block supports the following:
@@ -214,11 +256,13 @@ A `policy_option` block supports the following:
 
 * `playready_configuration_license` - (Optional) One or more `playready_configuration_license` blocks as defined above.
 
+* `playready_response_custom_data` - (Optional) The custom response data of the PlayReady configuration. This only applies when `playready_configuration_license` is specified.
+
 * `token_restriction` - (Optional) A `token_restriction` block as defined below.
 
 * `widevine_configuration_template` - (Optional) The Widevine template.
 
--> **NOTE:** Each policy_option can only have one type of configuration: fairplay_configuration,clear_key_configuration_enabled, playready_configuration_license or widevine_configuration_template. And is possible to assign only one type of restriction: open_restriction_enabled or token_restriction.
+-> **NOTE:** Each policy_option can only have one type of configuration: `fairplay_configuration`, `clear_key_configuration_enabled`, `playready_configuration_license` or `widevine_configuration_template`. And is possible to assign only one type of restriction: `open_restriction_enabled` or `token_restriction`.
 
 ---
 
@@ -232,15 +276,17 @@ A `required_claim` block supports the following:
 
 A `token_restriction` block supports the following:
 
+* `alternate_key` (Optional) One or more `alternate_key` block as defined above.
+
 * `audience` - (Optional) The audience for the token.
 
 * `issuer` - (Optional) The token issuer.
 
 * `open_id_connect_discovery_document` - (Optional) The OpenID connect discovery document.
 
-* `primary_rsa_token_key_exponent` - (Optional) The RSA Parameter exponent.
+* `primary_rsa_token_key_exponent` - (Optional) The RSA parameter exponent.
 
-* `primary_rsa_token_key_modulus` - (Optional) The RSA Parameter modulus.
+* `primary_rsa_token_key_modulus` - (Optional) The RSA parameter modulus.
 
 * `primary_symmetric_token_key` - (Optional) The key value of the key. Specifies a symmetric key for token validation.
 
@@ -250,7 +296,7 @@ A `token_restriction` block supports the following:
 
 * `token_type` - (Optional) The type of token. Supported values are `Jwt` or `Swt`.
 
--> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want use RSA you must provide primary_rsa_token_key_exponent and primary_rsa_token_key_modulus, if you want to use symmetric you need to provide primary_symmetric_token_key and for x509 you must provide primary_x509_token_key_raw. For more information about Token access please refer to <https://docs.microsoft.com/azure/media-services/latest/content-protection-overview#controlling-content-access>
+-> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want to use RSA you must provide `primary_rsa_token_key_exponent` and `primary_rsa_token_key_modulus`, if you want to use symmetric you need to provide `primary_symmetric_token_key` and for x509 you must provide `primary_x509_token_key_raw`. For more information about Token access please refer to <https://docs.microsoft.com/azure/media-services/latest/content-protection-overview#controlling-content-access>
 
 ---
 
@@ -258,20 +304,20 @@ A `token_restriction` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Resource Group.
+* `id` - The ID of the Content Key Policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Resource Group.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Resource Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Resource Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Content Key Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Content Key Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Content Key Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Content Key Policy.
 
 ## Import
 
-Resource Groups can be imported using the `resource id`, e.g.
+Content Key Policy can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_media_content_key_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/account1/contentKeyPolicies/policy1

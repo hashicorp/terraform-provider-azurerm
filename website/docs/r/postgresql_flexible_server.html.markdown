@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default` and `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
@@ -107,6 +109,8 @@ The following arguments are supported:
 ~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -141,6 +145,26 @@ An `authentication` block supports the following:
 -> **Note:** Setting `active_directory_auth_enabled` to `true` requires a Service Principal for the Postgres Flexible Server. For more details see [this document](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-configure-sign-in-azure-ad-authentication).
 
 -> **Note:** `tenant_id` is required when `active_directory_auth_enabled` is set to `true`. And it should not be specified when `active_directory_auth_enabled` is set to `false`
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key.
+
+* `primary_user_assigned_identity_id` - (Required) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Should be set to `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service. Required if used together with `customer_managed_key` block.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
