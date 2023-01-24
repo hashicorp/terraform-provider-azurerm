@@ -27,14 +27,14 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_container_app_environment" "example" {
-  name                       = "myEnvironment"
+  name                       = "Example-Environment"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_container_app_environment_dapr_component" "example" {
-  name                         = "mydaprcomponent"
+  name                         = "example-component"
   container_app_environment_id = azurerm_container_app_environment.example.id
   component_type               = "state.azure.blobstorage"
   version                      = "v1"
@@ -45,7 +45,7 @@ resource "azurerm_container_app_environment_dapr_component" "example" {
 
 The following arguments are supported:
 
-* `container_app_environment_id` - (Required) The ID of the Container App Managed Environment where the Dapr Component should be configured. Changing this forces a new resource to be created.
+* `container_app_environment_id` - (Required) The ID of the Container App Managed Environment for this Dapr Component. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name for this Dapr component. Changing this forces a new resource to be created.
 
@@ -57,13 +57,13 @@ The following arguments are supported:
 
 * `ignore_errors` - (Optional) Should the Dapr sidecar to continue initialisation if the component fails to load. Defaults to `false`
 
-* `init_timeout` - (Optional) The component initialisation timeout in ISO8601 format. e.g. `5s`, `2h`, `1m`. Defaults to `5s`
+* `init_timeout` - The timeout for component initialisation as a `ISO8601` formatted string. e.g. `5s`, `2h`, `1m`. Defaults to `5s`
 
 * `metadata` - (Optional) A `metadata` block as detailed below.
 
-* `scopes` - (Optional) A list of scopes to which this component applies. 
+* `scopes` - (Optional) A list of scopes to which this component applies.
 
-~> **NOTE:** This is the advertised scope to be used in a Container App's `dapr.0.app_id` value.
+~> **NOTE:** See the official docs for more information at https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#component-scopes
 
 * `secret` - (Optional) A `secret` block as detailed below.
 

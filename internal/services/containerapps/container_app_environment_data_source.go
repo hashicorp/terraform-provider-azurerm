@@ -24,8 +24,7 @@ type ContainerAppEnvironmentDataSourceModel struct {
 
 	Location                    string                 `tfschema:"location"`
 	LogAnalyticsWorkspaceName   string                 `tfschema:"log_analytics_workspace_name"`
-	ControlPlaneSubnetId        string                 `tfschema:"control_plane_subnet_id"`
-	AppsSubnetId                string                 `tfschema:"apps_subnet_id"`
+	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
 
@@ -69,16 +68,10 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Description: "The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to.",
 		},
 
-		"control_plane_subnet_id": {
+		"infrastructure_subnet_id": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The existing Subnet in use by the Container Apps Control Plane.",
-		},
-
-		"apps_subnet_id": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The existing Subnet in use by the Container Apps runtime.",
 		},
 
 		"internal_load_balancer_enabled": {
@@ -151,8 +144,7 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					if vnet := props.VnetConfiguration; vnet != nil {
-						environment.ControlPlaneSubnetId = pointer.From(vnet.InfrastructureSubnetId)
-						environment.AppsSubnetId = pointer.From(vnet.RuntimeSubnetId)
+						environment.InfrastructureSubnetId = pointer.From(vnet.InfrastructureSubnetId)
 						environment.InternalLoadBalancerEnabled = pointer.From(vnet.Internal)
 						environment.DockerBridgeCidr = pointer.From(vnet.DockerBridgeCidr)
 						environment.PlatformReservedCidr = pointer.From(vnet.PlatformReservedCidr)

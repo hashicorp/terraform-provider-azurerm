@@ -3,10 +3,8 @@ subcategory: "Container Apps"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_app_environment_dapr_component"
 description: |-
-  Gets information about a Container App Environment Dapr Component.
+  Gets information about a Dapr Component in a Container App Environment.
 ---
-
-# azurerm_container_app_environment_dapr_component
 
 # Data Source: azurerm_container_app_environment_dapr_component.
 
@@ -14,12 +12,12 @@ description: |-
 
 ```hcl
 data "azurerm_container_app_environment" "example" {
-  name                = "exampleContainerAppEnvironment"
-  resource_group_name = "exampleResourceGroup"
+  name                = "example-environment"
+  resource_group_name = "example-resources"
 }
 
 resource "azurerm_container_app_environment_dapr_component" "example" {
-  name                         = "examplecomponent"
+  name                         = "example-component"
   container_app_environment_id = data.azurerm_container_app_environment.example.id
 
 }

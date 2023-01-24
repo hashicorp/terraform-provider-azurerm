@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
@@ -174,13 +175,13 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 
 			env, err := environmentClient.Get(ctx, *envId)
-			if err != nil || env.Model == nil {
+			if err != nil {
 				return fmt.Errorf("reading %s for %s: %+v", *envId, id, err)
 			}
 
 			containerApp := containerapps.ContainerApp{
 				Name:     pointer.To(app.Name),
-				Location: env.Model.Location,
+				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
 					Configuration: &containerapps.Configuration{
 						Ingress:    helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
@@ -234,7 +235,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			state.ResourceGroup = id.ResourceGroupName
 
 			if model := existing.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
 				// state.Identity = []identity.LegacySystemAndUserAssignedMap{*model.Identity}
 
@@ -262,10 +263,8 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			}
 
 			secretsResp, err := client.ListSecrets(ctx, *id)
-			if err != nil || secretsResp.Model == nil {
-				if secretsResp.HttpResponse == nil || secretsResp.HttpResponse.StatusCode != http.StatusNoContent {
-					return fmt.Errorf("retrieving secrets for %s: %+v", *id, err)
-				}
+			if err != nil {
+				return fmt.Errorf("retrieving secrets for %s: %+v", *id, err)
 			}
 
 			state.Secrets = helpers.FlattenContainerAppSecrets(secretsResp.Model)
@@ -286,15 +285,8 @@ func (r ContainerAppResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Delete(ctx, *id)
-			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
-			}
-
-			if err := resp.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for deletion of %s", *id)
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -319,11 +311,19 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil || existing.Model == nil {
+			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
 			model := existing.Model
+
+			if model.Properties == nil {
+				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+			}
+
+			if model.Properties.Configuration == nil {
+				model.Properties.Configuration = &containerapps.Configuration{}
+			}
 
 			// Delta-updates need the secrets back from the list API, or we'll end up removing them or erroring out.
 			secretsResp, err := client.ListSecrets(ctx, *id)
@@ -354,11 +354,13 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("template") {
+				if model.Properties.Template == nil {
+					model.Properties.Template = &containerapps.Template{}
+				}
 				allProbesRemoved := helpers.ContainerAppProbesRemoved(metadata)
 				if allProbesRemoved {
-					nilProbes := make([]containerapps.ContainerAppProbe, 0)
 					containers := *model.Properties.Template.Containers
-					containers[0].Probes = &nilProbes
+					containers[0].Probes = pointer.To(make([]containerapps.ContainerAppProbe, 0))
 					model.Properties.Template.Containers = &containers
 				}
 			}
@@ -391,7 +393,7 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 				configSecrets := configSecretsRaw.(*schema.Set).List()
 				// Check there's not less
 				if len(configSecrets) < len(stateSecrets) {
-					return fmt.Errorf("cannot remove secrets from Container Apps at this time. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
+					return fmt.Errorf("cannot remove secrets from Container Apps at this time due to a limitation in the Container Apps Service. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
 				}
 				// Check secrets names in state are all present in config, the values don't matter
 				if len(stateSecrets) > 0 {
@@ -404,7 +406,7 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 							}
 						}
 						if !found {
-							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
+							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported by the Container Apps Service at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
 						}
 					}
 				}

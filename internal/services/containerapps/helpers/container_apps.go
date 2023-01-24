@@ -2,16 +2,15 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -31,7 +30,7 @@ func ContainerAppRegistrySchema() *pluginsdk.Schema {
 				"server": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // TODO - Assuming this block is supported in Preview, can we validate here?
+					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The hostname for the Container Registry.",
 				},
 
@@ -72,7 +71,7 @@ func ExpandContainerAppRegistries(input []Registry) *[]containerapps.RegistryCre
 
 func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) []Registry {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []Registry{}
 	}
 
 	result := make([]Registry, 0)
@@ -136,12 +135,11 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				"traffic_weight": ContainerAppIngressTrafficWeight(),
 
 				"transport": {
-					Type:             pluginsdk.TypeString,
-					Optional:         true,
-					Default:          string(containerapps.IngressTransportMethodAuto),
-					ValidateFunc:     validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
-					Description:      "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`",
-					DiffSuppressFunc: suppress.CaseDifference,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(containerapps.IngressTransportMethodAuto),
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
+					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`",
 				},
 			},
 		},
@@ -170,7 +168,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 
 func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []Ingress {
 	if input == nil {
-		return nil
+		return []Ingress{}
 	}
 
 	ingress := *input
@@ -306,7 +304,7 @@ func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 				"percentage": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
-					ValidateFunc: validation.IntBetween(0, 100), // TODO - this may just be multiples of 10?
+					ValidateFunc: validation.IntBetween(0, 100),
 					Description:  "The percentage of traffic to send to this revision.",
 				},
 			},
@@ -329,7 +327,6 @@ func expandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]
 
 		if !v.LatestRevision {
 			traffic.RevisionName = pointer.To(fmt.Sprintf("%s--%s", appName, v.RevisionSuffix))
-			// traffic.RevisionName = pointer.To(v.RevisionName)
 		}
 
 		if v.Label != "" {
@@ -344,7 +341,7 @@ func expandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]
 
 func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, appName string) []TrafficWeight {
 	if input == nil {
-		return nil
+		return []TrafficWeight{}
 	}
 
 	result := make([]TrafficWeight, 0)
@@ -425,7 +422,7 @@ func ExpandContainerAppDapr(input []Dapr) *containerapps.Dapr {
 
 func FlattenContainerAppDapr(input *containerapps.Dapr) []Dapr {
 	if input == nil {
-		return nil
+		return []Dapr{}
 	}
 
 	result := Dapr{
@@ -524,15 +521,15 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(1, 10), // TODO - Double check this against API
+					ValidateFunc: validation.IntBetween(0, 30),
 					Description:  "The minimum number of replicas for this container.",
 				},
 
 				"max_replicas": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(1, 10), // TODO - Double check this against API
+					Default:      10,
+					ValidateFunc: validation.IntBetween(1, 30),
 					Description:  "The maximum number of replicas for this container.",
 				},
 
@@ -584,6 +581,9 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 }
 
 func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTemplate {
+	if input == nil {
+		return []ContainerTemplate{}
+	}
 	result := ContainerTemplate{
 		Containers: flattenContainerAppContainers(input.Containers),
 		Suffix:     pointer.From(input.RevisionSuffix),
@@ -624,8 +624,8 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // TODO - Check boundaries / regex
-					Description:  "The name of the container",
+					ValidateFunc: validate.ContainerAppContainerName,
+					Description:  "The name of the container.",
 				},
 
 				"image": {
@@ -735,7 +735,7 @@ func expandContainerAppContainers(input []Container) *[]containerapps.Container 
 
 func flattenContainerAppContainers(input *[]containerapps.Container) []Container {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []Container{}
 	}
 	result := make([]Container, 0)
 	for _, v := range *input {
@@ -793,7 +793,7 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // TODO - Boundary / character checks
+					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The name of the volume.",
 				},
 
@@ -811,7 +811,7 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 				"storage_name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validate.ManagedEnvironmentStorageName,
 					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`",
 				},
 			},
@@ -843,7 +843,7 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 
 func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []ContainerVolume{}
 	}
 
 	result := make([]ContainerVolume, 0)
@@ -909,7 +909,7 @@ func expandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.
 
 func flattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []ContainerVolumeMount {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []ContainerVolumeMount{}
 	}
 
 	result := make([]ContainerVolumeMount, 0)
@@ -983,7 +983,7 @@ func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
 
 func flattenContainerEnvVar(input *[]containerapps.EnvironmentVar) []ContainerEnvVar {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []ContainerEnvVar{}
 	}
 
 	result := make([]ContainerEnvVar, 0)
@@ -1026,8 +1026,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 						"http",
 						"https",
 					}, true),
-					Description:      "Type of probe. Possible values are `tcp`, `http`, and `https`.",
-					DiffSuppressFunc: suppress.CaseDifference,
+					Description: "Type of probe. Possible values are `tcp`, `http`, and `https`.",
 				},
 
 				"port": {
@@ -1198,7 +1197,7 @@ type ContainerAppLivenessProbe struct {
 	Interval               int          `tfschema:"interval_seconds"`
 	Timeout                int          `tfschema:"timeout"`
 	FailureThreshold       int          `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"` // Alpha feature requiring `ProbeTerminationGracePeriod` to be enabled on the subscription?
+	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"`
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
@@ -1215,9 +1214,8 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 						"tcp",
 						"http",
 						"https",
-					}, true),
-					Description:      "Type of probe. Possible values are `tcp`, `http`, and `https`.",
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
+					Description: "Type of probe. Possible values are `tcp`, `http`, and `https`.",
 				},
 
 				"port": {
@@ -1393,7 +1391,7 @@ type ContainerAppStartupProbe struct {
 	Interval               int          `tfschema:"interval_seconds"`
 	Timeout                int          `tfschema:"timeout"`
 	FailureThreshold       int          `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"` // Alpha feature requiring `ProbeTerminationGracePeriod` to be enabled on the subscription?
+	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"`
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
@@ -1410,9 +1408,8 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 						"tcp",
 						"http",
 						"https",
-					}, true),
-					Description:      "Type of probe. Possible values are `tcp`, `http`, and `https`.",
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
+					Description: "Type of probe. Possible values are `tcp`, `http`, and `https`.",
 				},
 
 				"port": {
@@ -1750,7 +1747,7 @@ func FlattenSecrets(input []interface{}) []Secret {
 
 func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret {
 	if input == nil || input.Value == nil {
-		return nil
+		return []Secret{}
 	}
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
@@ -1765,7 +1762,7 @@ func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret
 
 func FlattenContainerAppDaprSecrets(input *daprcomponents.DaprSecretsCollection) []Secret {
 	if input == nil || input.Value == nil {
-		return nil
+		return []Secret{}
 	}
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
@@ -1776,14 +1773,6 @@ func FlattenContainerAppDaprSecrets(input *daprcomponents.DaprSecretsCollection)
 	}
 
 	return result
-}
-
-func ParseContainerAppLatestRevision(containerApp *containerapps.ContainerApp) (string, error) {
-	if containerApp == nil || containerApp.Properties == nil || containerApp.Properties.LatestRevisionName == nil {
-		return "", fmt.Errorf("could not read latest revision from API")
-	}
-
-	return *containerApp.Properties.LatestRevisionName, nil
 }
 
 func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {

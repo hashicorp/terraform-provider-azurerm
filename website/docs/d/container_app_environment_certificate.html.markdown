@@ -14,8 +14,8 @@ Use this data source to access information about an existing Container App Envir
 
 ```hcl
 data "azurerm_container_app_environment" "example" {
-  name                = "exampleContainerAppEnvironment"
-  resource_group_name = "exampleResourceGroup"
+  name                = "example-environment"
+  resource_group_name = "example-resources"
 }
 
 data "azurerm_container_app_environment_certificate" "example" {
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Container Apps Certificate. Changing this forces a new resource to be created.
 
-* `container_app_environment_id` - (Required) The Container App Managed Environment ID to configure this Certificate on. Changing this forces a new resource to be created.
+* `container_app_environment_id` - (Required) The ID of the Container App Environment to configure this Certificate on. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

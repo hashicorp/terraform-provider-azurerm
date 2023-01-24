@@ -27,20 +27,20 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_container_app_environment" "example" {
-  name                       = "myEnvironment"
+  name                       = "Example-Environment"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
 resource "azurerm_container_app" "example" {
-  name                         = "example"
+  name                         = "example-app"
   container_app_environment_id = azurerm_container_app_environment.example.id
   resource_group_name          = azurerm_resource_group.example.name
   revision_mode                = "Single"
 
   template {
     container {
-      name   = "acctest-cont-%[2]d"
+      name   = "examplecontainerapp"
       image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
       cpu    = 0.25
       memory = "0.5Gi"
@@ -53,7 +53,7 @@ resource "azurerm_container_app" "example" {
 
 The following arguments are supported:
 
-* `container_app_environment_id` - (Required) The ID of the Container App Environment to host this Container App. Changing this forces a new resource to be created.
+* `container_app_environment_id` - (Required) The ID of the Container App Environment within which this Container App should exist. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name for this Container App. Changing this forces a new resource to be created.
 
@@ -153,7 +153,7 @@ A `liveness_probe` block supports the following:
 
 * `initial_delay` - (Optional) The time in seconds to wait after the container has started before the probe is started.
 
-* `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
+* `interval_seconds` - (Optional) (Optional) How often, in seconds, the probe should run. Possible values are in the range `1` - `240`. Defaults to `10`.
 
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `tcp` type probes. Defaults to `/`.
 

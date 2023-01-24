@@ -172,11 +172,8 @@ func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if response.WasNotFound(resp.HttpResponse) {
-		return pointer.To(false), nil
-	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ContainerAppResource) basic(data acceptance.TestData) string {

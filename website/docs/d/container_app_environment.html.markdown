@@ -14,8 +14,8 @@ Use this data source to access information about an existing Container App Envir
 
 ```hcl
 data "azurerm_container_app_environment" "example" {
-  name                = "exampleContainerAppEnvironment"
-  resource_group_name = "exampleResourceGroup"
+  name                = "example-environment"
+  resource_group_name = "example-resources"
 }
 ```
 
@@ -26,45 +26,41 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Container Apps Managed Environment.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Container App Environment is to be found.
+* `resource_group_name` - (Required) The name of the Resource Group where this Container App Environment exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Container App Environment
+* `id` - The ID of the Container App Environment.
 
-* `apps_subnet_id` - The existing Subnet in use by the Container Apps runtime.
+* `infrastructure_subnet_id` - The ID of the Subnet in use by the Container Apps Control Plane.
 
-* `control_plane_subnet_id` - The existing Subnet in use by the Container Apps Control Plane.
+~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
-* `created_at` - The time and date at which this Container App Environment was created.
-
-* `created_by` - The user or principal which created this Container App Environment.
-
-* `created_by_type` - The type of account which created this Container App Environment.
-
-* `default_domain` - The default publicly resolvable name of this Container App Environment
+* `default_domain` - The default publicly resolvable name of this Container App Environment. This is generated at creation time to be globally unique.
 
 * `docker_bridge_cidr` - The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.
 
-* `internal_load_balancer_enabled` - Does the Container Environment operate in Internal Load Balancing Mode?
+~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
-* `last_modified_at` - The time and date at which this Container App Environment was last modified.
+* `internal_load_balancer_enabled` - Does the Container App Environment operate in Internal Load Balancing Mode?
 
-* `last_modified_by` - The user or principal which last modified this Container App Environment.
-
-* `last_modified_by_type` - The type of account which last modified this Container App Environment.
-
-* `location` - The Azure Location in which this resource resides.
+* `location` - The Azure Location where this Container App Environment exists.
 
 * `log_analytics_workspace_name` - The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to.
 
 * `platform_reserved_cidr` - The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.
 
+~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
+
 * `platform_reserved_dns_ip` - The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.
 
+~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
+
 * `static_ip` - The Static IP of the Environment.
+
+~> **NOTE:** If `internal_load_balancer_enabled` is true, this will be a Private IP in the subnet, otherwise this will be allocated a Public IPv4 address. 
 
 * `tags` - A mapping of tags assigned to the resource.
 
