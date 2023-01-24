@@ -46,7 +46,7 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.ResourceName, metaModel.Name)
+			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, metaModel.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -62,7 +62,7 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := SiteRecoveryReplicationRecoveryPlanModel{
-				Name:            id.RecoveryPlanName,
+				Name:            id.ReplicationRecoveryPlanName,
 				RecoveryVaultId: vaultId.ID(),
 			}
 

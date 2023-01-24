@@ -624,7 +624,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("identity") {
 		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.FlexibleServerName, id.ResourceGroupName, err)
 		}
 		parameters.Identity = identity
 	}
