@@ -157,7 +157,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
 }
 ```
 
-## Example Usage with log analytics workspace and eventhub namespace
+## Example Usage with Log Analytics Workspace and EventHub 
 
 ```
 provider "azurerm" {
