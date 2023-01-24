@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountagreements"
@@ -58,9 +57,9 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(logic.AgreementTypeAS2),
-					string(logic.AgreementTypeX12),
-					string(logic.AgreementTypeEdifact),
+					string(integrationaccountagreements.AgreementTypeASTwo),
+					string(integrationaccountagreements.AgreementTypeXOneTwo),
+					string(integrationaccountagreements.AgreementTypeEdifact),
 				}, false),
 			},
 

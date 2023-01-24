@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowrunactions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -26,7 +26,7 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 		Delete: resourceLogicAppActionHTTPDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ActionID(id)
+			_, err := workflowrunactions.ParseActionID(id)
 			return err
 		}),
 
@@ -109,10 +109,10 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(logic.WorkflowStatusSucceeded),
-								string(logic.WorkflowStatusFailed),
-								string(logic.WorkflowStatusSkipped),
-								string(logic.WorkflowStatusTimedOut),
+								string(workflowrunactions.WorkflowStatusSucceeded),
+								string(workflowrunactions.WorkflowStatusFailed),
+								string(workflowrunactions.WorkflowStatusSkipped),
+								string(workflowrunactions.WorkflowStatusTimedOut),
 							}, false),
 						},
 					},
