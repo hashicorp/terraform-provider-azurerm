@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = DeleteQueryKeyId{}
 
 // DeleteQueryKeyId is a struct representing the Resource ID for a Delete Query Key
 type DeleteQueryKeyId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	SearchServiceName string
-	Key               string
+	SubscriptionId     string
+	ResourceGroupName  string
+	SearchServiceName  string
+	DeleteQueryKeyName string
 }
 
 // NewDeleteQueryKeyID returns a new DeleteQueryKeyId struct
-func NewDeleteQueryKeyID(subscriptionId string, resourceGroupName string, searchServiceName string, key string) DeleteQueryKeyId {
+func NewDeleteQueryKeyID(subscriptionId string, resourceGroupName string, searchServiceName string, deleteQueryKeyName string) DeleteQueryKeyId {
 	return DeleteQueryKeyId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		SearchServiceName: searchServiceName,
-		Key:               key,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		SearchServiceName:  searchServiceName,
+		DeleteQueryKeyName: deleteQueryKeyName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseDeleteQueryKeyID(input string) (*DeleteQueryKeyId, error) {
 		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
 	}
 
-	if id.Key, ok = parsed.Parsed["key"]; !ok {
-		return nil, fmt.Errorf("the segment 'key' was not found in the resource id %q", input)
+	if id.DeleteQueryKeyName, ok = parsed.Parsed["deleteQueryKeyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deleteQueryKeyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseDeleteQueryKeyIDInsensitively(input string) (*DeleteQueryKeyId, error)
 		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
 	}
 
-	if id.Key, ok = parsed.Parsed["key"]; !ok {
-		return nil, fmt.Errorf("the segment 'key' was not found in the resource id %q", input)
+	if id.DeleteQueryKeyName, ok = parsed.Parsed["deleteQueryKeyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deleteQueryKeyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateDeleteQueryKeyID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Delete Query Key ID
 func (id DeleteQueryKeyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Search/searchServices/%s/deleteQueryKey/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName, id.Key)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName, id.DeleteQueryKeyName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Delete Query Key ID
@@ -121,7 +121,7 @@ func (id DeleteQueryKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSearchServices", "searchServices", "searchServices"),
 		resourceids.UserSpecifiedSegment("searchServiceName", "searchServiceValue"),
 		resourceids.StaticSegment("staticDeleteQueryKey", "deleteQueryKey", "deleteQueryKey"),
-		resourceids.UserSpecifiedSegment("key", "keyValue"),
+		resourceids.UserSpecifiedSegment("deleteQueryKeyName", "deleteQueryKeyValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id DeleteQueryKeyId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Search Service Name: %q", id.SearchServiceName),
-		fmt.Sprintf("Key: %q", id.Key),
+		fmt.Sprintf("Delete Query Key Name: %q", id.DeleteQueryKeyName),
 	}
 	return fmt.Sprintf("Delete Query Key (%s)", strings.Join(components, "\n"))
 }

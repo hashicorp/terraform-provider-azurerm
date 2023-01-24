@@ -11,21 +11,21 @@ var _ resourceids.ResourceId = SourceRegionTargetRegionId{}
 
 // SourceRegionTargetRegionId is a struct representing the Resource ID for a Source Region Target Region
 type SourceRegionTargetRegionId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	SourceRegion      string
-	TargetRegion      string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	SourceRegionName    string
+	TargetRegionName    string
 }
 
 // NewSourceRegionTargetRegionID returns a new SourceRegionTargetRegionId struct
-func NewSourceRegionTargetRegionID(subscriptionId string, resourceGroupName string, accountName string, sourceRegion string, targetRegion string) SourceRegionTargetRegionId {
+func NewSourceRegionTargetRegionID(subscriptionId string, resourceGroupName string, databaseAccountName string, sourceRegionName string, targetRegionName string) SourceRegionTargetRegionId {
 	return SourceRegionTargetRegionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		SourceRegion:      sourceRegion,
-		TargetRegion:      targetRegion,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		SourceRegionName:    sourceRegionName,
+		TargetRegionName:    targetRegionName,
 	}
 }
 
@@ -48,16 +48,16 @@ func ParseSourceRegionTargetRegionID(input string) (*SourceRegionTargetRegionId,
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.SourceRegion, ok = parsed.Parsed["sourceRegion"]; !ok {
-		return nil, fmt.Errorf("the segment 'sourceRegion' was not found in the resource id %q", input)
+	if id.SourceRegionName, ok = parsed.Parsed["sourceRegionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sourceRegionName' was not found in the resource id %q", input)
 	}
 
-	if id.TargetRegion, ok = parsed.Parsed["targetRegion"]; !ok {
-		return nil, fmt.Errorf("the segment 'targetRegion' was not found in the resource id %q", input)
+	if id.TargetRegionName, ok = parsed.Parsed["targetRegionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'targetRegionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -83,16 +83,16 @@ func ParseSourceRegionTargetRegionIDInsensitively(input string) (*SourceRegionTa
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.SourceRegion, ok = parsed.Parsed["sourceRegion"]; !ok {
-		return nil, fmt.Errorf("the segment 'sourceRegion' was not found in the resource id %q", input)
+	if id.SourceRegionName, ok = parsed.Parsed["sourceRegionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sourceRegionName' was not found in the resource id %q", input)
 	}
 
-	if id.TargetRegion, ok = parsed.Parsed["targetRegion"]; !ok {
-		return nil, fmt.Errorf("the segment 'targetRegion' was not found in the resource id %q", input)
+	if id.TargetRegionName, ok = parsed.Parsed["targetRegionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'targetRegionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -116,7 +116,7 @@ func ValidateSourceRegionTargetRegionID(input interface{}, key string) (warnings
 // ID returns the formatted Source Region Target Region ID
 func (id SourceRegionTargetRegionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sourceRegion/%s/targetRegion/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.SourceRegion, id.TargetRegion)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SourceRegionName, id.TargetRegionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Source Region Target Region ID
@@ -129,11 +129,11 @@ func (id SourceRegionTargetRegionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticSourceRegion", "sourceRegion", "sourceRegion"),
-		resourceids.UserSpecifiedSegment("sourceRegion", "sourceRegionValue"),
+		resourceids.UserSpecifiedSegment("sourceRegionName", "sourceRegionValue"),
 		resourceids.StaticSegment("staticTargetRegion", "targetRegion", "targetRegion"),
-		resourceids.UserSpecifiedSegment("targetRegion", "targetRegionValue"),
+		resourceids.UserSpecifiedSegment("targetRegionName", "targetRegionValue"),
 	}
 }
 
@@ -142,9 +142,9 @@ func (id SourceRegionTargetRegionId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Source Region: %q", id.SourceRegion),
-		fmt.Sprintf("Target Region: %q", id.TargetRegion),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Source Region Name: %q", id.SourceRegionName),
+		fmt.Sprintf("Target Region Name: %q", id.TargetRegionName),
 	}
 	return fmt.Sprintf("Source Region Target Region (%s)", strings.Join(components, "\n"))
 }

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
 
 payload := zones.Zone{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
 
 if err := client.DeleteThenPoll(ctx, id, zones.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.DeleteThenPoll(ctx, id, zones.DefaultDeleteOperationOptions());
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -107,7 +107,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
 
 payload := zones.ZoneUpdate{
 	// ...

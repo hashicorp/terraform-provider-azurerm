@@ -13,18 +13,18 @@ var _ resourceids.ResourceId = LiveOutputOperationLocationId{}
 type LiveOutputOperationLocationId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	MediaServiceName  string
 	LiveEventName     string
 	LiveOutputName    string
 	OperationId       string
 }
 
 // NewLiveOutputOperationLocationID returns a new LiveOutputOperationLocationId struct
-func NewLiveOutputOperationLocationID(subscriptionId string, resourceGroupName string, accountName string, liveEventName string, liveOutputName string, operationId string) LiveOutputOperationLocationId {
+func NewLiveOutputOperationLocationID(subscriptionId string, resourceGroupName string, mediaServiceName string, liveEventName string, liveOutputName string, operationId string) LiveOutputOperationLocationId {
 	return LiveOutputOperationLocationId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		MediaServiceName:  mediaServiceName,
 		LiveEventName:     liveEventName,
 		LiveOutputName:    liveOutputName,
 		OperationId:       operationId,
@@ -50,8 +50,8 @@ func ParseLiveOutputOperationLocationID(input string) (*LiveOutputOperationLocat
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.LiveEventName, ok = parsed.Parsed["liveEventName"]; !ok {
@@ -89,8 +89,8 @@ func ParseLiveOutputOperationLocationIDInsensitively(input string) (*LiveOutputO
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.LiveEventName, ok = parsed.Parsed["liveEventName"]; !ok {
@@ -126,7 +126,7 @@ func ValidateLiveOutputOperationLocationID(input interface{}, key string) (warni
 // ID returns the formatted Live Output Operation Location ID
 func (id LiveOutputOperationLocationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/liveEvents/%s/liveOutputs/%s/operationLocations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.LiveEventName, id.LiveOutputName, id.OperationId)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.LiveEventName, id.LiveOutputName, id.OperationId)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Live Output Operation Location ID
@@ -139,7 +139,7 @@ func (id LiveOutputOperationLocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticLiveEvents", "liveEvents", "liveEvents"),
 		resourceids.UserSpecifiedSegment("liveEventName", "liveEventValue"),
 		resourceids.StaticSegment("staticLiveOutputs", "liveOutputs", "liveOutputs"),
@@ -154,7 +154,7 @@ func (id LiveOutputOperationLocationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Live Event Name: %q", id.LiveEventName),
 		fmt.Sprintf("Live Output Name: %q", id.LiveOutputName),
 		fmt.Sprintf("Operation: %q", id.OperationId),

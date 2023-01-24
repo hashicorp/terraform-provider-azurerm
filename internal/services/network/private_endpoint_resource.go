@@ -963,7 +963,7 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 		}
 
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
-			Name: utils.String(privateDnsZone.PrivateZoneName),
+			Name: utils.String(privateDnsZone.PrivateDnsZoneName),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
 				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},

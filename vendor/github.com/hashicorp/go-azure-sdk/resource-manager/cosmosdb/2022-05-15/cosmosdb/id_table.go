@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = TableId{}
 
 // TableId is a struct representing the Resource ID for a Table
 type TableId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	TableName         string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	TableName           string
 }
 
 // NewTableID returns a new TableId struct
-func NewTableID(subscriptionId string, resourceGroupName string, accountName string, tableName string) TableId {
+func NewTableID(subscriptionId string, resourceGroupName string, databaseAccountName string, tableName string) TableId {
 	return TableId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		TableName:         tableName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		TableName:           tableName,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParseTableID(input string) (*TableId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.TableName, ok = parsed.Parsed["tableName"]; !ok {
@@ -77,8 +77,8 @@ func ParseTableIDInsensitively(input string) (*TableId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.TableName, ok = parsed.Parsed["tableName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateTableID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Table ID
 func (id TableId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/tables/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.TableName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.TableName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Table ID
@@ -119,7 +119,7 @@ func (id TableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticTables", "tables", "tables"),
 		resourceids.UserSpecifiedSegment("tableName", "tableValue"),
 	}
@@ -130,7 +130,7 @@ func (id TableId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
 		fmt.Sprintf("Table Name: %q", id.TableName),
 	}
 	return fmt.Sprintf("Table (%s)", strings.Join(components, "\n"))

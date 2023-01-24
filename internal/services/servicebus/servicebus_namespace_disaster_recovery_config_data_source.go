@@ -119,7 +119,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Alias)
+	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("namespace_name", id.NamespaceName)
 

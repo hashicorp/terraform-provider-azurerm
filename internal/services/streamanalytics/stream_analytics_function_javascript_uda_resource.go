@@ -129,7 +129,7 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	id := functions.NewFunctionID(subscriptionId, jobId.ResourceGroupName, jobId.JobName, d.Get("name").(string))
+	id := functions.NewFunctionID(subscriptionId, jobId.ResourceGroupName, jobId.StreamingJobName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -189,7 +189,7 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 
 	d.Set("name", id.FunctionName)
 
-	jobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+	jobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
 	d.Set("stream_analytics_job_id", jobId.ID())
 
 	if model := resp.Model; model != nil {

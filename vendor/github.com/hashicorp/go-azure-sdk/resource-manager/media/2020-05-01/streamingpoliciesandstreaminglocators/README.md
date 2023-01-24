@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingLocatorValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingLocatorValue")
 
 payload := streamingpoliciesandstreaminglocators.StreamingLocator{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingLocatorValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingLocatorValue")
 
 read, err := client.StreamingLocatorsDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingLocatorValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingLocatorValue")
 
 read, err := client.StreamingLocatorsGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := streamingpoliciesandstreaminglocators.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 // alternatively `client.StreamingLocatorsList(ctx, id, streamingpoliciesandstreaminglocators.DefaultStreamingLocatorsListOperationOptions())` can be used to do batched pagination
 items, err := client.StreamingLocatorsListComplete(ctx, id, streamingpoliciesandstreaminglocators.DefaultStreamingLocatorsListOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingLocatorValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingLocatorValue")
 
 read, err := client.StreamingLocatorsListContentKeys(ctx, id)
 if err != nil {
@@ -110,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingLocatorValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingLocatorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingLocatorValue")
 
 read, err := client.StreamingLocatorsListPaths(ctx, id)
 if err != nil {
@@ -126,7 +126,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingPolicyValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingPolicyValue")
 
 payload := streamingpoliciesandstreaminglocators.StreamingPolicy{
 	// ...
@@ -147,7 +147,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingPolicyValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingPolicyValue")
 
 read, err := client.StreamingPoliciesDelete(ctx, id)
 if err != nil {
@@ -163,7 +163,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewStreamingPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingPolicyValue")
+id := streamingpoliciesandstreaminglocators.NewStreamingPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingPolicyValue")
 
 read, err := client.StreamingPoliciesGet(ctx, id)
 if err != nil {
@@ -179,7 +179,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingpoliciesandstreaminglocators.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := streamingpoliciesandstreaminglocators.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 // alternatively `client.StreamingPoliciesList(ctx, id, streamingpoliciesandstreaminglocators.DefaultStreamingPoliciesListOperationOptions())` can be used to do batched pagination
 items, err := client.StreamingPoliciesListComplete(ctx, id, streamingpoliciesandstreaminglocators.DefaultStreamingPoliciesListOperationOptions())

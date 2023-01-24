@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := querykeys.NewCreateQueryKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue", "nameValue")
+id := querykeys.NewCreateQueryKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue", "createQueryKeyValue")
 
 read, err := client.Create(ctx, id, querykeys.DefaultCreateOperationOptions())
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := querykeys.NewDeleteQueryKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue", "keyValue")
+id := querykeys.NewDeleteQueryKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue", "deleteQueryKeyValue")
 
 read, err := client.Delete(ctx, id, querykeys.DefaultDeleteOperationOptions())
 if err != nil {

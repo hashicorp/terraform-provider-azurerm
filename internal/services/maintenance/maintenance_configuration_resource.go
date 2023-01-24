@@ -274,7 +274,7 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	configuration := maintenanceconfigurations.MaintenanceConfiguration{
-		Name:     utils.String(id.ResourceName),
+		Name:     utils.String(id.MaintenanceConfigurationName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &maintenanceconfigurations.MaintenanceConfigurationProperties{
 			MaintenanceScope:    &scope,
@@ -315,7 +315,7 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.ResourceName)
+	d.Set("name", id.MaintenanceConfigurationName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

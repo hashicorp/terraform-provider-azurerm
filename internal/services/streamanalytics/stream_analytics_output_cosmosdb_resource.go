@@ -112,7 +112,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.JobName, model.Name)
+			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.StreamingJobName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -183,7 +183,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("converting %s to a CosmosDb Output", *id)
 					}
 
-					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
 					state := OutputCosmosDBResourceModel{
 						Name:               id.OutputName,
 						StreamAnalyticsJob: streamingJobId.ID(),

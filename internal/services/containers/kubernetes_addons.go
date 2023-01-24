@@ -19,12 +19,13 @@ import (
 const (
 	// note: the casing on these keys is important
 	aciConnectorKey                 = "aciConnectorLinux"
-	azurePolicyKey                  = "azurepolicy"
-	httpApplicationRoutingKey       = "httpApplicationRouting"
-	omsAgentKey                     = "omsagent"
-	ingressApplicationGatewayKey    = "ingressApplicationGateway"
-	openServiceMeshKey              = "openServiceMesh"
 	azureKeyvaultSecretsProviderKey = "azureKeyvaultSecretsProvider"
+	azurePolicyKey                  = "azurepolicy"
+	confidentialComputingKey        = "ACCSGXDevicePlugin"
+	httpApplicationRoutingKey       = "httpApplicationRouting"
+	ingressApplicationGatewayKey    = "ingressApplicationGateway"
+	omsAgentKey                     = "omsagent"
+	openServiceMeshKey              = "openServiceMesh"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
@@ -59,6 +60,10 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 			},
 		},
 		"azure_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+		"confidential_computing_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -247,6 +252,12 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
+	if d.HasChange("confidential_computing_enabled") {
+		addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
+			Enabled: input["confidential_computing_enabled"].(bool),
+		}
+	}
+
 	if d.HasChange("http_application_routing_enabled") {
 		addonProfiles[httpApplicationRoutingKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input["http_application_routing_enabled"].(bool),
@@ -407,6 +418,12 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		azurePolicyEnabled = enabledVal
 	}
 
+	confidentialComputingEnabled := false
+	confidentialComputing := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
+	if enabledVal := confidentialComputing.Enabled; enabledVal {
+		confidentialComputingEnabled = enabledVal
+	}
+
 	httpApplicationRoutingEnabled := false
 	httpApplicationRoutingZone := ""
 	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)
@@ -509,12 +526,13 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	return map[string]interface{}{
 		"aci_connector_linux":                aciConnectors,
 		"azure_policy_enabled":               azurePolicyEnabled,
+		"confidential_computing_enabled":     confidentialComputingEnabled,
 		"http_application_routing_enabled":   httpApplicationRoutingEnabled,
 		"http_application_routing_zone_name": httpApplicationRoutingZone,
-		"oms_agent":                          omsAgents,
 		"ingress_application_gateway":        ingressApplicationGateways,
-		"open_service_mesh_enabled":          openServiceMeshEnabled,
 		"key_vault_secrets_provider":         azureKeyVaultSecretsProviders,
+		"oms_agent":                          omsAgents,
+		"open_service_mesh_enabled":          openServiceMeshEnabled,
 	}
 }
 
@@ -552,6 +570,7 @@ func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
 	return map[string]interface{}{
 		"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
 		"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
+		"confidential_computing_enabled":   d.Get("confidential_computing_enabled").(bool),
 		"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
 		"oms_agent":                        d.Get("oms_agent").([]interface{}),
 		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),

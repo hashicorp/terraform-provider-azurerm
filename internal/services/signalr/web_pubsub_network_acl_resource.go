@@ -137,8 +137,8 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("checking for present of existing %q: %+v", id, err)
 	}
 
-	locks.ByName(id.ResourceName, "azurerm_web_pubsub")
-	defer locks.UnlockByName(id.ResourceName, "azurerm_web_pubsub")
+	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
+	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
 
 	if d.IsNewResource() {
 		if !isNewNetworkACL(*existing.Model) {

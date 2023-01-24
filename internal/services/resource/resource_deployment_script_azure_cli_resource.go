@@ -144,7 +144,7 @@ func (r ResourceDeploymentScriptAzureCliResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ResourceDeploymentScriptAzureCliModel{
-				Name:              id.ScriptName,
+				Name:              id.DeploymentScriptName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
 			}

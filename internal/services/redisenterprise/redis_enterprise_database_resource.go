@@ -232,7 +232,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("parsing `cluster_id`: %+v", err)
 	}
 
-	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, d.Get("name").(string))
+	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -339,7 +339,7 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.Set("name", id.DatabaseName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 	d.Set("cluster_id", clusterId.ID())
 
 	if !features.FourPointOhBeta() {
@@ -402,7 +402,7 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("parsing `cluster_id`: %+v", err)
 	}
 
-	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, d.Get("name").(string))
+	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, d.Get("name").(string))
 
 	clusteringPolicy := databases.ClusteringPolicy(d.Get("clustering_policy").(string))
 	evictionPolicy := databases.EvictionPolicy(d.Get("eviction_policy").(string))
@@ -466,8 +466,8 @@ func resourceRedisEnterpriseDatabaseDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	dbId := databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName)
-	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	dbId := databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName, id.DatabaseName)
+	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 
 	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

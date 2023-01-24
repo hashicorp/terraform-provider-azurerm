@@ -185,7 +185,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Alias)
+	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -276,7 +276,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			input := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
-				Name: id.Alias,
+				Name: id.DisasterRecoveryConfigName,
 			}
 			resp, err := availabilityClient.DisasterRecoveryConfigsCheckNameAvailability(ctx, parentNamespaceId, input)
 			if err != nil {

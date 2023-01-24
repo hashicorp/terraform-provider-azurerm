@@ -137,12 +137,12 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.SetId(id.ID())
 
 	d.Set("name", id.VolumeName)
-	d.Set("pool_name", id.PoolName)
-	d.Set("account_name", id.AccountName)
+	d.Set("pool_name", id.CapacityPoolName)
+	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		zone := ""
 		if model.Zones != nil {

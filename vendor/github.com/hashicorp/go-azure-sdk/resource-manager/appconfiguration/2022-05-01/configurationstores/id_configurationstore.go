@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = ConfigurationStoreId{}
 
 // ConfigurationStoreId is a struct representing the Resource ID for a Configuration Store
 type ConfigurationStoreId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ConfigStoreName   string
+	SubscriptionId         string
+	ResourceGroupName      string
+	ConfigurationStoreName string
 }
 
 // NewConfigurationStoreID returns a new ConfigurationStoreId struct
-func NewConfigurationStoreID(subscriptionId string, resourceGroupName string, configStoreName string) ConfigurationStoreId {
+func NewConfigurationStoreID(subscriptionId string, resourceGroupName string, configurationStoreName string) ConfigurationStoreId {
 	return ConfigurationStoreId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ConfigStoreName:   configStoreName,
+		SubscriptionId:         subscriptionId,
+		ResourceGroupName:      resourceGroupName,
+		ConfigurationStoreName: configurationStoreName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ConfigStoreName, ok = parsed.Parsed["configStoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
+	if id.ConfigurationStoreName, ok = parsed.Parsed["configurationStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'configurationStoreName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ConfigStoreName, ok = parsed.Parsed["configStoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
+	if id.ConfigurationStoreName, ok = parsed.Parsed["configurationStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'configurationStoreName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateConfigurationStoreID(input interface{}, key string) (warnings []str
 // ID returns the formatted Configuration Store ID
 func (id ConfigurationStoreId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppConfiguration/configurationStores/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ConfigStoreName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ConfigurationStoreName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Configuration Store ID
@@ -109,7 +109,7 @@ func (id ConfigurationStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
 		resourceids.StaticSegment("staticConfigurationStores", "configurationStores", "configurationStores"),
-		resourceids.UserSpecifiedSegment("configStoreName", "configStoreValue"),
+		resourceids.UserSpecifiedSegment("configurationStoreName", "configurationStoreValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id ConfigurationStoreId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Config Store Name: %q", id.ConfigStoreName),
+		fmt.Sprintf("Configuration Store Name: %q", id.ConfigurationStoreName),
 	}
 	return fmt.Sprintf("Configuration Store (%s)", strings.Join(components, "\n"))
 }

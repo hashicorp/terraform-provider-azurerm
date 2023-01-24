@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = CreateQueryKeyId{}
 
 // CreateQueryKeyId is a struct representing the Resource ID for a Create Query Key
 type CreateQueryKeyId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	SearchServiceName string
-	Name              string
+	SubscriptionId     string
+	ResourceGroupName  string
+	SearchServiceName  string
+	CreateQueryKeyName string
 }
 
 // NewCreateQueryKeyID returns a new CreateQueryKeyId struct
-func NewCreateQueryKeyID(subscriptionId string, resourceGroupName string, searchServiceName string, name string) CreateQueryKeyId {
+func NewCreateQueryKeyID(subscriptionId string, resourceGroupName string, searchServiceName string, createQueryKeyName string) CreateQueryKeyId {
 	return CreateQueryKeyId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		SearchServiceName: searchServiceName,
-		Name:              name,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		SearchServiceName:  searchServiceName,
+		CreateQueryKeyName: createQueryKeyName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseCreateQueryKeyID(input string) (*CreateQueryKeyId, error) {
 		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.CreateQueryKeyName, ok = parsed.Parsed["createQueryKeyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'createQueryKeyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseCreateQueryKeyIDInsensitively(input string) (*CreateQueryKeyId, error)
 		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.CreateQueryKeyName, ok = parsed.Parsed["createQueryKeyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'createQueryKeyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateCreateQueryKeyID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Create Query Key ID
 func (id CreateQueryKeyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Search/searchServices/%s/createQueryKey/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName, id.CreateQueryKeyName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Create Query Key ID
@@ -121,7 +121,7 @@ func (id CreateQueryKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSearchServices", "searchServices", "searchServices"),
 		resourceids.UserSpecifiedSegment("searchServiceName", "searchServiceValue"),
 		resourceids.StaticSegment("staticCreateQueryKey", "createQueryKey", "createQueryKey"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("createQueryKeyName", "createQueryKeyValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id CreateQueryKeyId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Search Service Name: %q", id.SearchServiceName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Create Query Key Name: %q", id.CreateQueryKeyName),
 	}
 	return fmt.Sprintf("Create Query Key (%s)", strings.Join(components, "\n"))
 }

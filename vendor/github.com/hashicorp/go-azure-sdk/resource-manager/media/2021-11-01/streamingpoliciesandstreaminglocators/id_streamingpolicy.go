@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = StreamingPolicyId{}
 type StreamingPolicyId struct {
 	SubscriptionId      string
 	ResourceGroupName   string
-	AccountName         string
+	MediaServiceName    string
 	StreamingPolicyName string
 }
 
 // NewStreamingPolicyID returns a new StreamingPolicyId struct
-func NewStreamingPolicyID(subscriptionId string, resourceGroupName string, accountName string, streamingPolicyName string) StreamingPolicyId {
+func NewStreamingPolicyID(subscriptionId string, resourceGroupName string, mediaServiceName string, streamingPolicyName string) StreamingPolicyId {
 	return StreamingPolicyId{
 		SubscriptionId:      subscriptionId,
 		ResourceGroupName:   resourceGroupName,
-		AccountName:         accountName,
+		MediaServiceName:    mediaServiceName,
 		StreamingPolicyName: streamingPolicyName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseStreamingPolicyID(input string) (*StreamingPolicyId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.StreamingPolicyName, ok = parsed.Parsed["streamingPolicyName"]; !ok {
@@ -77,8 +77,8 @@ func ParseStreamingPolicyIDInsensitively(input string) (*StreamingPolicyId, erro
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.StreamingPolicyName, ok = parsed.Parsed["streamingPolicyName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateStreamingPolicyID(input interface{}, key string) (warnings []string
 // ID returns the formatted Streaming Policy ID
 func (id StreamingPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/streamingPolicies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.StreamingPolicyName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.StreamingPolicyName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Streaming Policy ID
@@ -119,7 +119,7 @@ func (id StreamingPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticStreamingPolicies", "streamingPolicies", "streamingPolicies"),
 		resourceids.UserSpecifiedSegment("streamingPolicyName", "streamingPolicyValue"),
 	}
@@ -130,7 +130,7 @@ func (id StreamingPolicyId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Streaming Policy Name: %q", id.StreamingPolicyName),
 	}
 	return fmt.Sprintf("Streaming Policy (%s)", strings.Join(components, "\n"))
