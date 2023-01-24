@@ -151,8 +151,9 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 					// },
 
 					"ssl_cert_remaining_lifetime": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(1, 365),
 					},
 
 					"ssl_check_enabled": {
@@ -623,14 +624,14 @@ func expandApplicationInsightsStandardWebTestValidations(input []interface{}, is
 	// 	rules.IgnoreHTTPSStatusCode = utils.Bool(v)
 	// }
 
-	// if URL https, sslCheck cannot be enabled
+	// if URL http, sslCheck cannot be enabled
 	sslCheckEnabled := false
 	if v, ok := validationsInput["ssl_check_enabled"].(bool); ok && isHttps {
 		rules.SSLCheck = utils.Bool(v)
 		sslCheckEnabled = true
 	}
 	// if sslCheck not enabled, SSLCertRemainingLifetimeCheck cannot be enabled
-	if v, ok := validationsInput["ssl_cert_remaining_lifetime"].(int); ok && sslCheckEnabled {
+	if v, ok := validationsInput["ssl_cert_remaining_lifetime"].(int); ok && v != 0 && sslCheckEnabled {
 		rules.SSLCertRemainingLifetimeCheck = utils.Int64(int64(v))
 	}
 	if contentValidation, ok := validationsInput["content"].([]interface{}); ok {
@@ -643,7 +644,7 @@ func expandApplicationInsightsStandardWebTestValidations(input []interface{}, is
 func expandApplicationInsightsStandardWebTestContentValidations(input []interface{}) *webtests.WebTestPropertiesValidationRulesContentValidation {
 	content := webtests.WebTestPropertiesValidationRulesContentValidation{}
 	if len(input) == 0 {
-		return &content
+		return nil
 	}
 
 	contentInput := input[0].(map[string]interface{})

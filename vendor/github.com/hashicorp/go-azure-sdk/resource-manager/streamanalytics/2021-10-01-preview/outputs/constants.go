@@ -36,6 +36,34 @@ func parseAuthenticationMode(input string) (*AuthenticationMode, error) {
 	return &out, nil
 }
 
+type BlobWriteMode string
+
+const (
+	BlobWriteModeAppend BlobWriteMode = "Append"
+	BlobWriteModeOnce   BlobWriteMode = "Once"
+)
+
+func PossibleValuesForBlobWriteMode() []string {
+	return []string{
+		string(BlobWriteModeAppend),
+		string(BlobWriteModeOnce),
+	}
+}
+
+func parseBlobWriteMode(input string) (*BlobWriteMode, error) {
+	vals := map[string]BlobWriteMode{
+		"append": BlobWriteModeAppend,
+		"once":   BlobWriteModeOnce,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := BlobWriteMode(input)
+	return &out, nil
+}
+
 type Encoding string
 
 const (
@@ -64,16 +92,20 @@ func parseEncoding(input string) (*Encoding, error) {
 type EventSerializationType string
 
 const (
-	EventSerializationTypeAvro    EventSerializationType = "Avro"
-	EventSerializationTypeCsv     EventSerializationType = "Csv"
-	EventSerializationTypeJson    EventSerializationType = "Json"
-	EventSerializationTypeParquet EventSerializationType = "Parquet"
+	EventSerializationTypeAvro      EventSerializationType = "Avro"
+	EventSerializationTypeCsv       EventSerializationType = "Csv"
+	EventSerializationTypeCustomClr EventSerializationType = "CustomClr"
+	EventSerializationTypeDelta     EventSerializationType = "Delta"
+	EventSerializationTypeJson      EventSerializationType = "Json"
+	EventSerializationTypeParquet   EventSerializationType = "Parquet"
 )
 
 func PossibleValuesForEventSerializationType() []string {
 	return []string{
 		string(EventSerializationTypeAvro),
 		string(EventSerializationTypeCsv),
+		string(EventSerializationTypeCustomClr),
+		string(EventSerializationTypeDelta),
 		string(EventSerializationTypeJson),
 		string(EventSerializationTypeParquet),
 	}
@@ -81,10 +113,12 @@ func PossibleValuesForEventSerializationType() []string {
 
 func parseEventSerializationType(input string) (*EventSerializationType, error) {
 	vals := map[string]EventSerializationType{
-		"avro":    EventSerializationTypeAvro,
-		"csv":     EventSerializationTypeCsv,
-		"json":    EventSerializationTypeJson,
-		"parquet": EventSerializationTypeParquet,
+		"avro":      EventSerializationTypeAvro,
+		"csv":       EventSerializationTypeCsv,
+		"customclr": EventSerializationTypeCustomClr,
+		"delta":     EventSerializationTypeDelta,
+		"json":      EventSerializationTypeJson,
+		"parquet":   EventSerializationTypeParquet,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -120,5 +154,36 @@ func parseJsonOutputSerializationFormat(input string) (*JsonOutputSerializationF
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := JsonOutputSerializationFormat(input)
+	return &out, nil
+}
+
+type OutputWatermarkMode string
+
+const (
+	OutputWatermarkModeNone                                OutputWatermarkMode = "None"
+	OutputWatermarkModeSendCurrentPartitionWatermark       OutputWatermarkMode = "SendCurrentPartitionWatermark"
+	OutputWatermarkModeSendLowestWatermarkAcrossPartitions OutputWatermarkMode = "SendLowestWatermarkAcrossPartitions"
+)
+
+func PossibleValuesForOutputWatermarkMode() []string {
+	return []string{
+		string(OutputWatermarkModeNone),
+		string(OutputWatermarkModeSendCurrentPartitionWatermark),
+		string(OutputWatermarkModeSendLowestWatermarkAcrossPartitions),
+	}
+}
+
+func parseOutputWatermarkMode(input string) (*OutputWatermarkMode, error) {
+	vals := map[string]OutputWatermarkMode{
+		"none":                                OutputWatermarkModeNone,
+		"sendcurrentpartitionwatermark":       OutputWatermarkModeSendCurrentPartitionWatermark,
+		"sendlowestwatermarkacrosspartitions": OutputWatermarkModeSendLowestWatermarkAcrossPartitions,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := OutputWatermarkMode(input)
 	return &out, nil
 }

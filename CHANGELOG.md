@@ -1,12 +1,19 @@
 ## 3.41.0 (Unreleased)
 
+FEATURES
+
+* **New Data Source:** `azurerm_site_recovery_replication_recovery_plan` [GH-19940]
+* **New Resource:** `azurerm_site_recovery_replication_recovery_plan` [GH-19940]
+
 ENHANCEMENTS:
 
-* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20230123.1135755` [GH-20154]
+* dependencies: updating to `v0.20230124.1111819` of `github.com/hashicorp/go-azure-sdk` [GH-20160]
 * testing: refactoring to use `hashicorp/terraform-plugin-testing` [GH-20114]
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
-* `azurerm_kubernetes_cluster` - add support for confidential computing [GH-20111]
+* `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
+* `azurerm_kubernetes_cluster` - support for confidential computing [GH-20111]
+* `azurerm_postgresql_flexible_server` - suport for customer managed keys [GH-20086]
 
 ## 3.40.0 (January 19, 2023)
 

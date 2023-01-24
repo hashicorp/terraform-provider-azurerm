@@ -6,6 +6,7 @@ package outputs
 type BlobOutputDataSourceProperties struct {
 	AuthenticationMode *AuthenticationMode `json:"authenticationMode,omitempty"`
 	BlobPathPrefix     *string             `json:"blobPathPrefix,omitempty"`
+	BlobWriteMode      *BlobWriteMode      `json:"blobWriteMode,omitempty"`
 	Container          *string             `json:"container,omitempty"`
 	DateFormat         *string             `json:"dateFormat,omitempty"`
 	PathPattern        *string             `json:"pathPattern,omitempty"`

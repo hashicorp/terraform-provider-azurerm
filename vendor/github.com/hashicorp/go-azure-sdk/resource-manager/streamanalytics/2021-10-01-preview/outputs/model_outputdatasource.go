@@ -107,10 +107,26 @@ func unmarshalOutputDataSourceImplementation(input []byte) (OutputDataSource, er
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "Microsoft.DBForPostgreSQL/servers/databases") {
+		var out PostgreSQLOutputDataSource
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into PostgreSQLOutputDataSource: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "PowerBI") {
 		var out PowerBIOutputDataSource
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into PowerBIOutputDataSource: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "Raw") {
+		var out RawOutputDatasource
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RawOutputDatasource: %+v", err)
 		}
 		return out, nil
 	}
