@@ -861,6 +861,22 @@ In addition to all arguments above, the following attributes are exported:
 
 ---
 
+The `aci_connector_linux` block exports the following:
+
+* `connector_identity` - A `connector_identity` block is exported. The exported attributes are defined below.
+
+---
+
+The `connector_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the ACI Connector.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the ACI Connector.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the ACI Connector.
+
+---
+
 A `load_balancer_profile` block exports the following:
 
 * `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.

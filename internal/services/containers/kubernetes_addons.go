@@ -56,6 +56,26 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					"connector_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -407,8 +427,11 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			subnetName = (*v)["SubnetName"]
 		}
 
+		identity := flattenKubernetesClusterAddOnIdentityProfile(aciConnector.Identity)
+
 		aciConnectors = append(aciConnectors, map[string]interface{}{
-			"subnet_name": subnetName,
+			"subnet_name":        subnetName,
+			"connector_identity": identity,
 		})
 	}
 
