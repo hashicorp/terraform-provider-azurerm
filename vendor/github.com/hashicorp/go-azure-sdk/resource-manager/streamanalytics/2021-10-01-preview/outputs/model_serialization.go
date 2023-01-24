@@ -43,6 +43,22 @@ func unmarshalSerializationImplementation(input []byte) (Serialization, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "CustomClr") {
+		var out CustomClrSerialization
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into CustomClrSerialization: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "Delta") {
+		var out DeltaSerialization
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into DeltaSerialization: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "Json") {
 		var out JsonSerialization
 		if err := json.Unmarshal(input, &out); err != nil {

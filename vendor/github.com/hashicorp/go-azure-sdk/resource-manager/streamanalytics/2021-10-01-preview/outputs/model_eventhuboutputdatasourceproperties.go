@@ -6,6 +6,7 @@ package outputs
 type EventHubOutputDataSourceProperties struct {
 	AuthenticationMode     *AuthenticationMode `json:"authenticationMode,omitempty"`
 	EventHubName           *string             `json:"eventHubName,omitempty"`
+	PartitionCount         *int64              `json:"partitionCount,omitempty"`
 	PartitionKey           *string             `json:"partitionKey,omitempty"`
 	PropertyColumns        *[]string           `json:"propertyColumns,omitempty"`
 	ServiceBusNamespace    *string             `json:"serviceBusNamespace,omitempty"`

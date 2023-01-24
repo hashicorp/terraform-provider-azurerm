@@ -220,7 +220,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.ResourceName, model.Name)
+			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -273,7 +273,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			vaultId := replicationrecoveryplans.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+			vaultId := replicationrecoveryplans.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -289,7 +289,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 			}
 
 			state := SiteRecoveryReplicationRecoveryPlanModel{
-				Name:            id.RecoveryPlanName,
+				Name:            id.ReplicationRecoveryPlanName,
 				RecoveryVaultId: vaultId.ID(),
 			}
 
@@ -339,7 +339,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 
 			err = client.UpdateThenPoll(ctx, *id, parameters)
 			if err != nil {
-				return fmt.Errorf("updating site recovery replication plan %s (vault %s): %+v", id.RecoveryPlanName, id.ResourceName, err)
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
