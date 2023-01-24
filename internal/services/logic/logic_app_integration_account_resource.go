@@ -63,7 +63,7 @@ func resourceLogicAppIntegrationAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IntegrationServiceEnvironmentID,
+				ValidateFunc: integrationaccounts.ValidateIntegrationAccountID,
 			},
 
 			"tags": commonschema.Tags(),
