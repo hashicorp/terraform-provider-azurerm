@@ -686,7 +686,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name             = azurerm_resource_group.test.name
   sku                             = "PerGB2018"
   retention_in_days               = 30
-  disable_local_auth 			  = %[4]t
+  local_authentication_disabled   = %[4]t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, disableLocalAuth)
 }

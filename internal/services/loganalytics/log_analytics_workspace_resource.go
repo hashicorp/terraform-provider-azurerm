@@ -69,7 +69,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"disable_local_auth": {
+			"local_authentication_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -251,7 +251,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
-	disableLocalAuth := d.Get("disable_local_auth").(bool)
+	disableLocalAuth := d.Get("local_authentication_disabled").(bool)
 
 	parameters := workspaces.Workspace{
 		Name:     &name,
@@ -428,7 +428,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 				}
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
-			d.Set("disable_local_auth", disableLocalAuth)
+			d.Set("local_authentication_disabled", disableLocalAuth)
 
 			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
 				SubscriptionId:    id.SubscriptionId,
