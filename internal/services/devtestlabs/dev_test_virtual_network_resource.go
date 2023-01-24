@@ -132,7 +132,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 
 	description := d.Get("description").(string)
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, id.ResourceGroupName, id.Name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 
 	parameters := virtualnetworks.VirtualNetwork{
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -173,7 +173,7 @@ func resourceArmDevTestVirtualNetworkRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.VirtualNetworkName)
 	d.Set("lab_name", id.LabName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -211,7 +211,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 
 	description := d.Get("description").(string)
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, id.ResourceGroupName, id.Name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 
 	parameters := virtualnetworks.VirtualNetwork{
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),

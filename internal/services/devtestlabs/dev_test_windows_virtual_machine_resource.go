@@ -246,7 +246,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.VirtualMachineName)
 	d.Set("lab_name", id.LabName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

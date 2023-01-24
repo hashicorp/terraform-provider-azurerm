@@ -216,8 +216,8 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	status := schedules.EnableStatusDisabled
-	if d.Get("status").(string) == string(schedules.EnableStatusDisabled) {
-		status = schedules.EnableStatusDisabled
+	if d.Get("status").(string) == string(schedules.EnableStatusEnabled) {
+		status = schedules.EnableStatusEnabled
 	}
 	schedule.Properties.Status = &status
 
@@ -279,7 +279,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("making Read request %s: %s", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ScheduleName)
 	d.Set("lab_name", id.LabName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
