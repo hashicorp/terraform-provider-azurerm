@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
@@ -38,7 +39,7 @@ type ContainerAppModel struct {
 	Dapr         []helpers.Dapr              `tfschema:"dapr"`
 	Template     []helpers.ContainerTemplate `tfschema:"template"`
 
-	// Identity identity.LegacySystemAndUserAssignedMap `tfschema:"identity"` // TODO - when the basics are working...
+	Identity identity.LegacySystemAndUserAssignedMap `tfschema:"identity"` // TODO - when the basics are working...
 
 	Tags map[string]interface{} `tfschema:"tags"`
 
@@ -104,7 +105,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"dapr": helpers.ContainerDaprSchema(),
 
-		// "identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -192,8 +193,8 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
 				},
-				// Identity: &app.Identity,
-				Tags: tags.Expand(app.Tags),
+				Identity: &app.Identity,
+				Tags:     tags.Expand(app.Tags),
 			}
 
 			revisionMode := containerapps.ActiveRevisionsMode(app.RevisionMode)
@@ -237,7 +238,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
-				// state.Identity = []identity.LegacySystemAndUserAssignedMap{*model.Identity}
+				state.Identity = *model.Identity
 
 				if props := model.Properties; props != nil {
 					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(pointer.From(props.ManagedEnvironmentId))
@@ -259,7 +260,6 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.OutboundIpAddresses = *props.OutboundIPAddresses
 				}
-				// state.Identity = *model.Identity
 			}
 
 			secretsResp, err := client.ListSecrets(ctx, *id)
