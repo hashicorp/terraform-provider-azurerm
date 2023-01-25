@@ -74,21 +74,6 @@ resource "azurerm_key_vault_certificate" "test2" {
   key_vault_id = azurerm_key_vault.test.id
 }
 
-resource "azurerm_key_vault_access_policy" "certificates" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  certificate_permissions = [
-    "Get",
-    "Delete",
-    "List",
-    "Purge",
-    "Recover",
-    "Create",
-  ]
-}
-
 data "azurerm_key_vault_certificates" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
