@@ -126,7 +126,7 @@ func (r ContainerAppEnvironmentDaprComponentResource) requiresImport(data accept
 resource "azurerm_container_app_environment_dapr_component" "import" {
   name                         = azurerm_container_app_environment_dapr_component.test.name
   container_app_environment_id = azurerm_container_app_environment_dapr_component.test.container_app_environment_id
-  component_type               = azurerm_container_app_environment_dapr_component.test.type
+  component_type               = azurerm_container_app_environment_dapr_component.test.component_type
   version                      = azurerm_container_app_environment_dapr_component.test.version
 }
 
