@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -69,7 +70,7 @@ func resourceFirewallNatRuleCollection() *pluginsdk.Resource {
 			},
 
 			"rule": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -92,27 +93,31 @@ func resourceFirewallNatRuleCollection() *pluginsdk.Resource {
 							Required: true,
 						},
 						"source_addresses": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"source_ip_groups": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"destination_addresses": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"destination_ports": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"protocols": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
@@ -123,6 +128,7 @@ func resourceFirewallNatRuleCollection() *pluginsdk.Resource {
 									string(network.AzureFirewallNetworkRuleProtocolUDP),
 								}, false),
 							},
+							Set: pluginsdk.HashString,
 						},
 					},
 				},
@@ -158,7 +164,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	ruleCollections := *props.NatRuleCollections
-	natRules, err := expandFirewallNatRules(d.Get("rule").([]interface{}))
+	natRules, err := expandFirewallNatRules(d.Get("rule").(*pluginsdk.Set))
 	if err != nil {
 		return fmt.Errorf("expanding Firewall NAT Rules: %+v", err)
 	}
@@ -367,22 +373,23 @@ func resourceFirewallNatRuleCollectionDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandFirewallNatRules(input []interface{}) (*[]network.AzureFirewallNatRule, error) {
+func expandFirewallNatRules(input *pluginsdk.Set) (*[]network.AzureFirewallNatRule, error) {
+	nwRules := input.List()
 	rules := make([]network.AzureFirewallNatRule, 0)
 
-	for _, nwRule := range input {
+	for _, nwRule := range nwRules {
 		rule := nwRule.(map[string]interface{})
 
 		name := rule["name"].(string)
 		description := rule["description"].(string)
 
 		sourceAddresses := make([]string, 0)
-		for _, v := range rule["source_addresses"].([]interface{}) {
+		for _, v := range rule["source_addresses"].(*pluginsdk.Set).List() {
 			sourceAddresses = append(sourceAddresses, v.(string))
 		}
 
 		sourceIpGroups := make([]string, 0)
-		for _, v := range rule["source_ip_groups"].([]interface{}) {
+		for _, v := range rule["source_ip_groups"].(*pluginsdk.Set).List() {
 			sourceIpGroups = append(sourceIpGroups, v.(string))
 		}
 
@@ -391,12 +398,12 @@ func expandFirewallNatRules(input []interface{}) (*[]network.AzureFirewallNatRul
 		}
 
 		destinationAddresses := make([]string, 0)
-		for _, v := range rule["destination_addresses"].([]interface{}) {
+		for _, v := range rule["destination_addresses"].(*pluginsdk.Set).List() {
 			destinationAddresses = append(destinationAddresses, v.(string))
 		}
 
 		destinationPorts := make([]string, 0)
-		for _, v := range rule["destination_ports"].([]interface{}) {
+		for _, v := range rule["destination_ports"].(*pluginsdk.Set).List() {
 			destinationPorts = append(destinationPorts, v.(string))
 		}
 
@@ -415,7 +422,8 @@ func expandFirewallNatRules(input []interface{}) (*[]network.AzureFirewallNatRul
 		}
 
 		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
-		for _, v := range rule["protocols"].([]interface{}) {
+		protocols := rule["protocols"].(*pluginsdk.Set)
+		for _, v := range protocols.List() {
 			s := network.AzureFirewallNetworkRuleProtocol(v.(string))
 			nrProtocols = append(nrProtocols, s)
 		}
@@ -426,8 +434,8 @@ func expandFirewallNatRules(input []interface{}) (*[]network.AzureFirewallNatRul
 	return &rules, nil
 }
 
-func flattenFirewallNatRuleCollectionRules(rules *[]network.AzureFirewallNatRule) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenFirewallNatRuleCollectionRules(rules *[]network.AzureFirewallNatRule) []map[string]interface{} {
+	outputs := make([]map[string]interface{}, 0)
 	if rules == nil {
 		return outputs
 	}
@@ -447,16 +455,16 @@ func flattenFirewallNatRuleCollectionRules(rules *[]network.AzureFirewallNatRule
 			output["translated_port"] = *rule.TranslatedPort
 		}
 		if rule.SourceAddresses != nil {
-			output["source_addresses"] = utils.FlattenStringSlice(rule.SourceAddresses)
+			output["source_addresses"] = set.FromStringSlice(*rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			output["source_ip_groups"] = utils.FlattenStringSlice(rule.SourceIPGroups)
+			output["source_ip_groups"] = set.FromStringSlice(*rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			output["destination_addresses"] = utils.FlattenStringSlice(rule.DestinationAddresses)
+			output["destination_addresses"] = set.FromStringSlice(*rule.DestinationAddresses)
 		}
 		if rule.DestinationPorts != nil {
-			output["destination_ports"] = utils.FlattenStringSlice(rule.DestinationPorts)
+			output["destination_ports"] = set.FromStringSlice(*rule.DestinationPorts)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -464,7 +472,7 @@ func flattenFirewallNatRuleCollectionRules(rules *[]network.AzureFirewallNatRule
 				protocols = append(protocols, string(protocol))
 			}
 		}
-		output["protocols"] = utils.FlattenStringSlice(&protocols)
+		output["protocols"] = set.FromStringSlice(protocols)
 		outputs = append(outputs, output)
 	}
 	return outputs

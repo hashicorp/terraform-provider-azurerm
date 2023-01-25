@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	firewallValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -70,7 +72,7 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 			},
 
 			"rule": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -81,28 +83,32 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 							ValidateFunc: validation.NoZeroValues,
 						},
 						"source_addresses": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"source_ip_groups": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"description": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 						"fqdn_tags": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"target_fqdns": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
 						},
 						"protocol": {
 							Type:     pluginsdk.TypeList,
@@ -142,7 +148,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 	name := d.Get("name").(string)
 	firewallName := d.Get("azure_firewall_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	applicationRules, err := expandFirewallApplicationRules(d.Get("rule").([]interface{}))
+	applicationRules, err := expandFirewallApplicationRules(d.Get("rule").(*schema.Set))
 	if err != nil {
 		return fmt.Errorf("expanding Firewall Application Rules: %+v", err)
 	}
@@ -369,18 +375,18 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirewallApplicationRule, error) {
+func expandFirewallApplicationRules(inputs *schema.Set) (*[]network.AzureFirewallApplicationRule, error) {
 	outputs := make([]network.AzureFirewallApplicationRule, 0)
 
-	for _, input := range inputs {
+	for _, input := range inputs.List() {
 		rule := input.(map[string]interface{})
 
 		ruleName := rule["name"].(string)
 		ruleDescription := rule["description"].(string)
-		ruleSourceAddresses := rule["source_addresses"].([]interface{})
-		ruleSourceIpGroups := rule["source_ip_groups"].([]interface{})
-		ruleFqdnTags := rule["fqdn_tags"].([]interface{})
-		ruleTargetFqdns := rule["target_fqdns"].([]interface{})
+		ruleSourceAddresses := rule["source_addresses"].(*pluginsdk.Set).List()
+		ruleSourceIpGroups := rule["source_ip_groups"].(*pluginsdk.Set).List()
+		ruleFqdnTags := rule["fqdn_tags"].(*pluginsdk.Set).List()
+		ruleTargetFqdns := rule["target_fqdns"].(*pluginsdk.Set).List()
 
 		output := network.AzureFirewallApplicationRule{
 			Name:            utils.String(ruleName),
@@ -392,7 +398,8 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirew
 		}
 
 		ruleProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)
-		for _, v := range rule["protocol"].([]interface{}) {
+		protocols := rule["protocol"].([]interface{})
+		for _, v := range protocols {
 			protocol := v.(map[string]interface{})
 			port := protocol["port"].(int)
 			ruleProtocol := network.AzureFirewallApplicationRuleProtocol{
@@ -417,8 +424,8 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirew
 	return &outputs, nil
 }
 
-func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewallApplicationRule) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewallApplicationRule) []map[string]interface{} {
+	outputs := make([]map[string]interface{}, 0)
 	if rules == nil {
 		return outputs
 	}
@@ -432,16 +439,16 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewal
 			output["description"] = *ruleDescription
 		}
 		if ruleSourceAddresses := rule.SourceAddresses; ruleSourceAddresses != nil {
-			output["source_addresses"] = utils.FlattenStringSlice(ruleSourceAddresses)
+			output["source_addresses"] = set.FromStringSlice(*ruleSourceAddresses)
 		}
 		if ruleSourceIpGroups := rule.SourceIPGroups; ruleSourceIpGroups != nil {
-			output["source_ip_groups"] = utils.FlattenStringSlice(ruleSourceIpGroups)
+			output["source_ip_groups"] = set.FromStringSlice(*ruleSourceIpGroups)
 		}
 		if ruleFqdnTags := rule.FqdnTags; ruleFqdnTags != nil {
-			output["fqdn_tags"] = utils.FlattenStringSlice(ruleFqdnTags)
+			output["fqdn_tags"] = set.FromStringSlice(*ruleFqdnTags)
 		}
 		if ruleTargetFqdns := rule.TargetFqdns; ruleTargetFqdns != nil {
-			output["target_fqdns"] = utils.FlattenStringSlice(ruleTargetFqdns)
+			output["target_fqdns"] = set.FromStringSlice(*ruleTargetFqdns)
 		}
 		protocols := make([]map[string]interface{}, 0)
 		if ruleProtocols := rule.Protocols; ruleProtocols != nil {
