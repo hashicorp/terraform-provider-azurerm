@@ -34,12 +34,12 @@ type ContainerAppModel struct {
 
 	RevisionMode string                      `tfschema:"revision_mode"`
 	Ingress      []helpers.Ingress           `tfschema:"ingress"`
-	Registries   []helpers.Registry          `tfschema:"registry"` // TODO - Need to do some ACR exploration
+	Registries   []helpers.Registry          `tfschema:"registry"`
 	Secrets      []helpers.Secret            `tfschema:"secret"`
 	Dapr         []helpers.Dapr              `tfschema:"dapr"`
 	Template     []helpers.ContainerTemplate `tfschema:"template"`
 
-	Identity identity.LegacySystemAndUserAssignedMap `tfschema:"identity"` // TODO - when the basics are working...
+	Identity []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 
 	Tags map[string]interface{} `tfschema:"tags"`
 
@@ -105,7 +105,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"dapr": helpers.ContainerDaprSchema(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -193,9 +193,14 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
 				},
-				Identity: &app.Identity,
-				Tags:     tags.Expand(app.Tags),
+				Tags: tags.Expand(app.Tags),
 			}
+
+			ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(app.Identity)
+			if err != nil {
+				return err
+			}
+			containerApp.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
 			revisionMode := containerapps.ActiveRevisionsMode(app.RevisionMode)
 			containerApp.Properties.Configuration.ActiveRevisionsMode = &revisionMode
@@ -238,7 +243,11 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
-				state.Identity = *model.Identity
+				ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+				if err != nil {
+					return err
+				}
+				state.Identity = pointer.From(ident)
 
 				if props := model.Properties; props != nil {
 					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(pointer.From(props.ManagedEnvironmentId))
@@ -367,6 +376,15 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("secret") {
 				model.Properties.Configuration.Secrets = helpers.ExpandContainerSecrets(state.Secrets)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return err
+				}
+				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
+
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
