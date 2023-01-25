@@ -149,13 +149,13 @@ A `liveness_probe` block supports the following:
 
 * `header` - (Optional) A `header` block as detailed below.
 
-* `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.
+* `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
 
 * `initial_delay` - (Optional) The time in seconds to wait after the container has started before the probe is started.
 
 * `interval_seconds` - (Optional) (Optional) How often, in seconds, the probe should run. Possible values are in the range `1` - `240`. Defaults to `10`.
 
-* `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `tcp` type probes. Defaults to `/`.
+* `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
@@ -163,7 +163,7 @@ A `liveness_probe` block supports the following:
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `transport` - (Required) Type of probe. Possible values are `tcp`, `http`, and `https`.
+* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
 ---
 
@@ -193,11 +193,11 @@ A `readiness_probe` block supports the following:
 
 * `header` - (Optional) A `header` block as detailed below.
 
-* `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.
+* `host` - (Optional) The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
 
 * `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
-* `path` - (Optional) The URI to use for http type probes. Not valid for `tcp` type probes. Defaults to `/`.
+* `path` - (Optional) The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
@@ -205,7 +205,7 @@ A `readiness_probe` block supports the following:
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `transport` - (Required) Type of probe. Possible values are `tcp`, `http`, and `https`.
+* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
 ---
 
@@ -223,11 +223,11 @@ A `startup_probe` block supports the following:
 
 * `header` - (Optional) A `header` block as detailed below.
 
-* `host` - (Optional) The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `http` and `https` type probes.
+* `host` - (Optional) The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
 
 * `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
-* `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `tcp` type probes. Defaults to `/`.
+* `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
@@ -235,7 +235,7 @@ A `startup_probe` block supports the following:
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `transport` - (Required) Type of probe. Possible values are `tcp`, `http`, and `https`.
+* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
 ---
 

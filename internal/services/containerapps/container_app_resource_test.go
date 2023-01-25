@@ -379,12 +379,12 @@ resource "azurerm_container_app" "test" {
       ephemeral_storage = "1Gi"
 
       readiness_probe {
-        transport = "http"
+        transport = "HTTP"
         port      = 5000
       }
 
       liveness_probe {
-        transport = "http"
+        transport = "HTTP"
         port      = 5000
         path      = "/health"
 
@@ -400,7 +400,7 @@ resource "azurerm_container_app" "test" {
       }
 
       startup_probe {
-        transport = "tcp"
+        transport = "TCP"
         port      = 5000
       }
 
@@ -497,7 +497,7 @@ resource "azurerm_container_app" "test" {
       }
 
       startup_probe {
-        transport = "tcp"
+        transport = "TCP"
         port      = 5000
       }
 
@@ -597,7 +597,7 @@ resource "azurerm_container_app" "test" {
       }
 
       startup_probe {
-        transport               = "tcp"
+        transport               = "TCP"
         port                    = 5000
         timeout                 = 5
         failure_count_threshold = 1
@@ -706,7 +706,7 @@ resource "azurerm_container_app" "test" {
       }
 
       startup_probe {
-        transport               = "tcp"
+        transport               = "TCP"
         port                    = 5000
         timeout                 = 5
         failure_count_threshold = 1

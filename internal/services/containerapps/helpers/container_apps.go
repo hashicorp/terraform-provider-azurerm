@@ -182,7 +182,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 	}
 
 	if ingress.Transport != nil {
-		result.Transport = string(*ingress.Transport)
+		result.Transport = strings.ToLower(string(*ingress.Transport))
 	}
 
 	return []Ingress{result}
@@ -1022,11 +1022,11 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"tcp",
-						"http",
-						"https",
+						"TCP",
+						string(containerapps.SchemeHTTP),
+						string(containerapps.SchemeHTTPS),
 					}, true),
-					Description: "Type of probe. Possible values are `tcp`, `http`, and `https`.",
+					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
 				},
 
 				"port": {
@@ -1046,7 +1046,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Computed:    true,
-					Description: "The URI to use for http type probes. Not valid for `tcp` type probes. Defaults to `/`.",
+					Description: "The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {
@@ -1177,7 +1177,7 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 	}
 
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
-		probe.Transport = "tcp"
+		probe.Transport = "TCP"
 		probe.Host = pointer.From(tcpSocket.Host)
 		probe.Port = int(tcpSocket.Port)
 	}
@@ -1211,11 +1211,11 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"tcp",
-						"http",
-						"https",
+						"TCP",
+						string(containerapps.SchemeHTTP),
+						string(containerapps.SchemeHTTPS),
 					}, false),
-					Description: "Type of probe. Possible values are `tcp`, `http`, and `https`.",
+					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
 				},
 
 				"port": {
@@ -1235,7 +1235,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Computed:    true,
-					Description: "The URI to use with the `host` for http type probes. Not valid for `tcp` type probes. Defaults to `/`.",
+					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {
@@ -1372,7 +1372,7 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 	}
 
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
-		probe.Transport = "tcp"
+		probe.Transport = "TCP"
 		probe.Host = pointer.From(tcpSocket.Host)
 		probe.Port = int(tcpSocket.Port)
 	}
@@ -1405,11 +1405,11 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"tcp",
-						"http",
-						"https",
+						"TCP",
+						string(containerapps.SchemeHTTP),
+						string(containerapps.SchemeHTTPS),
 					}, false),
-					Description: "Type of probe. Possible values are `tcp`, `http`, and `https`.",
+					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
 				},
 
 				"port": {
@@ -1429,7 +1429,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Computed:    true,
-					Description: "The URI to use with the `host` for http type probes. Not valid for `tcp` type probes. Defaults to `/`.",
+					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
 				"header": {
@@ -1557,7 +1557,7 @@ func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []Co
 	}
 
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
-		probe.Transport = "tcp"
+		probe.Transport = "TCP"
 		probe.Host = pointer.From(tcpSocket.Host)
 		probe.Port = int(tcpSocket.Port)
 	}
