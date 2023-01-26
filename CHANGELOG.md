@@ -19,7 +19,6 @@ ENHANCEMENTS:
 * `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
 * `azurerm_databricks_workspace` - support for customer managed keys for managed disks attached to the workspace [GH-19992]
 * `azurerm_databricks_workspace` - support for updating the properties `public_network_access_enabled`, `network_security_group_rules_required` and ` managed_services_cmk_key_vault_key_id` [GH-19992]
-* `azurerm_kubernetes_cluster` - support for confidential computing [GH-20111]
 * `azurerm_kubernetes_cluster` - support for `node_public_ip_tags` [GH-19731]
 * `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_tags` [GH-19731]
 * `azurerm_log_analytics_workspace` - support for the `local_authentication_disabled` property [GH-20092]
