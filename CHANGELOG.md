@@ -16,8 +16,10 @@ ENHANCEMENTS:
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
 * `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
-* `azurerm_kubernetes_cluster` - support for confidential computing [GH-20111]
-* `azurerm_postgresql_flexible_server` - suport for customer managed keys [GH-20086]
+* `azurerm_kubernetes_cluster` - add support for confidential computing [GH-20111]
+* `azurerm_kubernetes_cluster` - add support for `node_public_ip_tags` [GH-19731]
+* `azurerm_kubernetes_cluster_node_pool` - add support for `node_public_ip_tags` [GH-19731]
+* `azurerm_postgresql_flexible_server` - support for customer managed keys [GH-20086]
 * `azurerm_storage_account` - add support for `AADKERB` to `azure_files_authentication.0.directory_type` [GH-20168]
 
 ## 3.40.0 (January 19, 2023)
