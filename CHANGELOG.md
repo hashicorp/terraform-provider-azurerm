@@ -29,6 +29,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_stream_analytics_output_servicebus_queue` - shared access policy name and key are now optional for MSI authentication [GH-19712]
+* `azurerm_stream_analytics_output_servicebus_topic` - shared access policy name and key are now optional for MSI authentication [GH-19708]
 
 ## 3.40.0 (January 19, 2023)
 
