@@ -17,13 +17,14 @@ ENHANCEMENTS:
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
 * `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
-* `azurerm_databricks_workspace` - add support for customer managed keys for managed disks attached to the workspace [GH-19992]
-* `azurerm_databricks_workspace` - add support for updating the properties `public_network_access_enabled`, `network_security_group_rules_required` and ` managed_services_cmk_key_vault_key_id` [GH-19992]
-* `azurerm_kubernetes_cluster` - add support for confidential computing [GH-20111]
-* `azurerm_kubernetes_cluster` - add support for `node_public_ip_tags` [GH-19731]
-* `azurerm_kubernetes_cluster_node_pool` - add support for `node_public_ip_tags` [GH-19731]
+* `azurerm_databricks_workspace` - support for customer managed keys for managed disks attached to the workspace [GH-19992]
+* `azurerm_databricks_workspace` - support for updating the properties `public_network_access_enabled`, `network_security_group_rules_required` and ` managed_services_cmk_key_vault_key_id` [GH-19992]
+* `azurerm_kubernetes_cluster` - support for confidential computing [GH-20111]
+* `azurerm_kubernetes_cluster` - support for `node_public_ip_tags` [GH-19731]
+* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_tags` [GH-19731]
+* `azurerm_log_analytics_workspace` - support for the `local_authentication_disabled` property [GH-20092]
 * `azurerm_postgresql_flexible_server` - support for customer managed keys [GH-20086]
-* `azurerm_storage_account` - add support for `AADKERB` to `azure_files_authentication.0.directory_type` [GH-20168]
+* `azurerm_storage_account` - support for `AADKERB` to `azure_files_authentication.0.directory_type` [GH-20168]
 
 ## 3.40.0 (January 19, 2023)
 
@@ -45,7 +46,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app_slot` - support for Python 3.11 ([#20001](https://github.com/hashicorp/terraform-provider-azurerm/issues/20001))
 * `azurerm_ip_group` - support for the `firewall_ids` and `firewall_policy_ids` properties ([#19845](https://github.com/hashicorp/terraform-provider-azurerm/issues/19845))
 * `azurerm_recovery_services_vault` - support for the `immutability`, user assigned `identity` and `use_system_assigned_identity` properties ([#20109](https://github.com/hashicorp/terraform-provider-azurerm/issues/20109))
-* `azurerm_synapse_sql_pool` - add support for `geo_backup_policy_enabled` and fix `recovery_database_id` [([#20010](https://github.com/hashicorp/terraform-provider-azurerm/issues/20010))
+* `azurerm_synapse_sql_pool` - support for `geo_backup_policy_enabled` and fix `recovery_database_id` [([#20010](https://github.com/hashicorp/terraform-provider-azurerm/issues/20010))
 
 BUG FIXES: 
 
