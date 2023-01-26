@@ -1978,6 +1978,8 @@ resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%[2]d"
   app_service_id = azurerm_windows_web_app.test3.id
 
+  service_plan_id = azurerm_service_plan.test3.id
+
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan, SkuPremiumPlan)
