@@ -1725,7 +1725,7 @@ func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{
 }
 
 func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []interface{} {
-	if input == nil || input.NodePublicIPTags == nil || len(*input.NodePublicIPTags) == 0 {
+	if input == nil || input.NodePublicIPTags == nil {
 		return []interface{}{}
 	}
 

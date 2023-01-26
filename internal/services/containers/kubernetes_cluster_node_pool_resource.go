@@ -1463,7 +1463,7 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{})
 }
 
 func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
-	if input == nil || input.NodePublicIPTags == nil || len(*input.NodePublicIPTags) == 0 {
+	if input == nil || input.NodePublicIPTags == nil {
 		return []interface{}{}
 	}
 
