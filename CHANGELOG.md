@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
 * `azurerm_kubernetes_cluster` - support for confidential computing [GH-20111]
 * `azurerm_postgresql_flexible_server` - suport for customer managed keys [GH-20086]
+* `azurerm_storage_account` - add support for `AADKERB` to `azure_files_authentication.0.directory_type` [GH-20168]
 
 ## 3.40.0 (January 19, 2023)
 
