@@ -16,6 +16,8 @@ ENHANCEMENTS:
 * `network`: updating to API version `2022-07-01` [GH-20097]
 * `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
 * `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
+* `azurerm_databricks_workspace` - add support for customer managed keys for managed disks attached to the workspace [GH-19992]
+* `azurerm_databricks_workspace` - add support for updating the properties `public_network_access_enabled`, `network_security_group_rules_required` and ` managed_services_cmk_key_vault_key_id` [GH-19992]
 * `azurerm_kubernetes_cluster` - add support for confidential computing [GH-20111]
 * `azurerm_kubernetes_cluster` - add support for `node_public_ip_tags` [GH-19731]
 * `azurerm_kubernetes_cluster_node_pool` - add support for `node_public_ip_tags` [GH-19731]
