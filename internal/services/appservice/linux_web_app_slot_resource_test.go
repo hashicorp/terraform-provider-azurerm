@@ -2210,7 +2210,7 @@ resource "azurerm_service_plan" "test2" {
 
 resource "azurerm_linux_web_app_slot" "test" {
   name           = "acctestWAS-%[2]d"
-  app_service_id = azurerm_linux_web_app.test.id
+  app_service_id = azurerm_linux_web_app.test2.id
 
   site_config {}
 }
