@@ -2,8 +2,9 @@
 
 FEATURES
 
-* **New DataSource:** `azurerm_key_vault_certificates` [GH-19498]
+* **New Data Source:** `azurerm_key_vault_certificates` [GH-19498]
 * **New Data Source:** `azurerm_site_recovery_replication_recovery_plan` [GH-19940]
+* **New Resource:** `azurerm_orbital_contact` [GH-19036]
 * **New Resource:** `azurerm_site_recovery_replication_recovery_plan` [GH-19940]
 
 ENHANCEMENTS:
