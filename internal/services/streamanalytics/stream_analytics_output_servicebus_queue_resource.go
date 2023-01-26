@@ -72,14 +72,14 @@ func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
 
 			"shared_access_policy_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -148,19 +148,26 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	}
 
 	systemPropertyColumns := d.Get("system_property_columns")
+
+	dataSourceProperties := &outputs.ServiceBusQueueOutputDataSourceProperties{
+		QueueName:             utils.String(queueName),
+		ServiceBusNamespace:   utils.String(serviceBusNamespace),
+		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		SystemPropertyColumns: &systemPropertyColumns,
+		AuthenticationMode:    utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	}
+
+	// Add shared access policy key/name only if required by authentication mode
+	if *dataSourceProperties.AuthenticationMode == outputs.AuthenticationModeConnectionString {
+		dataSourceProperties.SharedAccessPolicyName = utils.String(sharedAccessPolicyName)
+		dataSourceProperties.SharedAccessPolicyKey = utils.String(sharedAccessPolicyKey)
+	}
+
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.ServiceBusQueueOutputDataSource{
-				Properties: &outputs.ServiceBusQueueOutputDataSourceProperties{
-					QueueName:              utils.String(queueName),
-					ServiceBusNamespace:    utils.String(serviceBusNamespace),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
-					SystemPropertyColumns:  &systemPropertyColumns,
-					AuthenticationMode:     utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-				},
+				Properties: dataSourceProperties,
 			},
 			Serialization: serialization,
 		},
