@@ -83,14 +83,24 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
-		"confidential_computing_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"confidential_computing": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
 			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"sgx_quote_helper_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
 		},
-		"confidential_computing_quote_helper_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
+		//"confidential_computing_quote_helper_enabled": {
+		//	Type:         pluginsdk.TypeBool,
+		//	Optional:     true,
+		//	RequiredWith: []string{"confidential_computing_enabled"},
+		//},
 		"http_application_routing_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -276,22 +286,46 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
-	if d.HasChange("confidential_computing_enabled") {
+
+	// The AKS API accepts a config for an add-on that's disabled. Due to the way this add-on is structured (two flattened or separate properties)
+	// we should add this check to prevent users from supplying a config when the add-on is disabled
+	//if quoteHelper := d.Get("confidential_computing_quote_helper_enabled").(bool); quoteHelper {
+	//	if confidentialComputing := d.Get("confidential_computing_quote_helper_enabled").(bool); !confidentialComputing {
+	//		return nil, fmt.Errorf("`confidential_computing_enabled` must be set to `true` to enable `confidential_computing_quote_helper_enabled`")
+	//	}
+	//}
+	//if d.HasChange("confidential_computing_enabled") {
+	//	addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
+	//		Enabled: input["confidential_computing_enabled"].(bool),
+	//	}
+	//	if d.HasChange("confidential_computing_quote_helper_enabled") {
+	//		config := make(map[string]string)
+	//		quoteHelperEnabled := "false"
+	//		if input["confidential_computing_quote_helper_enabled"].(bool) {
+	//			quoteHelperEnabled = "true"
+	//		}
+	//		config["ACCSGXQuoteHelperEnabled"] = quoteHelperEnabled
+	//		addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
+	//			Enabled: input["confidential_computing_enabled"].(bool),
+	//			Config:  &config,
+	//		}
+	//	}
+	//}
+
+	confidentialComputing := input["confidential_computing"].([]interface{})
+	if len(confidentialComputing) > 0 && confidentialComputing[0] != nil {
+		config := make(map[string]string)
+		quoteHelperEnabled := "false"
+		if input["confidential_computing_quote_helper_enabled"].(bool) {
+			quoteHelperEnabled = "true"
+		}
+		config["ACCSGXQuoteHelperEnabled"] = quoteHelperEnabled
 		addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
-			Enabled: input["confidential_computing_enabled"].(bool),
+			Enabled: true,
+			Config:  &config,
 		}
-		if d.HasChange("confidential_computing_quote_helper_enabled") {
-			config := make(map[string]string)
-			quoteHelperEnabled := "false"
-			if input["confidential_computing_quote_helper_enabled"].(bool) {
-				quoteHelperEnabled = "true"
-			}
-			config["ACCSGXQuoteHelperEnabled"] = quoteHelperEnabled
-			addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
-				Enabled: input["confidential_computing_enabled"].(bool),
-				Config:  &config,
-			}
-		}
+	} else if len(confidentialComputing) == 0 && d.HasChange("confidential_computing") {
+		addonProfiles[confidentialComputingKey] = disabled
 	}
 
 	if d.HasChange("http_application_routing_enabled") {
@@ -457,16 +491,28 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		azurePolicyEnabled = enabledVal
 	}
 
-	confidentialComputingEnabled := false
-	quoteHelperEnabled := false
-	confidentialComputing := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
-	if enabledVal := confidentialComputing.Enabled; enabledVal {
-		confidentialComputingEnabled = enabledVal
-	}
-	if v := kubernetesAddonProfilelocateInConfig(confidentialComputing.Config, "ACCSGXQuoteHelperEnabled"); v != "" && v != "false" {
-		quoteHelperEnabled = true
-	}
+	//confidentialComputingEnabled := false
+	//quoteHelperEnabled := false
+	//confidentialComputing := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
+	//if enabledVal := confidentialComputing.Enabled; enabledVal {
+	//	confidentialComputingEnabled = enabledVal
+	//}
+	//if v := kubernetesAddonProfilelocateInConfig(confidentialComputing.Config, "ACCSGXQuoteHelperEnabled"); v != "" && v != "false" {
+	//	quoteHelperEnabled = true
+	//}
 
+	confidentialComputings := make([]interface{}, 0)
+	confidentialComputing := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
+	if enabled := confidentialComputing.Enabled; enabled {
+		quoteHelperEnabled := false
+		if v := kubernetesAddonProfilelocateInConfig(confidentialComputing.Config, "ACCSGXQuoteHelperEnabled"); v != "" && v != "false" {
+			quoteHelperEnabled = true
+		}
+		confidentialComputings = append(confidentialComputings, map[string]interface{}{
+			"sgx_quote_helper_enabled": quoteHelperEnabled,
+		})
+	}
+	
 	httpApplicationRoutingEnabled := false
 	httpApplicationRoutingZone := ""
 	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)

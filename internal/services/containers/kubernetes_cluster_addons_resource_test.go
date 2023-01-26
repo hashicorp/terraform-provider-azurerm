@@ -286,13 +286,13 @@ func TestAccKubernetesCluster_addonProfileConfidentialComputingQuote(t *testing.
 			),
 		},
 		data.ImportStep(),
-		//{
-		//	Config: r.addonProfileConfidentialComputingConfig(data, false),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.addonProfileConfidentialComputingConfig(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		//{
 		//	Config: r.addonProfileConfidentialComputingConfig(data, true),
 		//	Check: acceptance.ComposeTestCheckFunc(
@@ -1045,7 +1045,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_DS2_v2"
   }
-
+  
+  confidential_computing_enabled = false
   confidential_computing_quote_helper_enabled = %t
 
   identity {
