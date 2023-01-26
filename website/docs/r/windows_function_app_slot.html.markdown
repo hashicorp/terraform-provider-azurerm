@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
+* `service_plan_id` - (Optional) The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Windows Function App will be used.
+
 * `storage_account_access_key` - (Optional) The access key which will be used to access the storage account for the Function App Slot.
 
 * `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
