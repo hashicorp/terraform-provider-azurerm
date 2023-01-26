@@ -63,10 +63,6 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
-		"confidential_computing_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
 		"http_application_routing_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -252,11 +248,6 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
-	if d.HasChange("confidential_computing_enabled") {
-		addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
-			Enabled: input["confidential_computing_enabled"].(bool),
-		}
-	}
 
 	if d.HasChange("http_application_routing_enabled") {
 		addonProfiles[httpApplicationRoutingKey] = managedclusters.ManagedClusterAddonProfile{
@@ -418,12 +409,6 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		azurePolicyEnabled = enabledVal
 	}
 
-	confidentialComputingEnabled := false
-	confidentialComputing := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
-	if enabledVal := confidentialComputing.Enabled; enabledVal {
-		confidentialComputingEnabled = enabledVal
-	}
-
 	httpApplicationRoutingEnabled := false
 	httpApplicationRoutingZone := ""
 	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)
@@ -526,7 +511,6 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	return map[string]interface{}{
 		"aci_connector_linux":                aciConnectors,
 		"azure_policy_enabled":               azurePolicyEnabled,
-		"confidential_computing_enabled":     confidentialComputingEnabled,
 		"http_application_routing_enabled":   httpApplicationRoutingEnabled,
 		"http_application_routing_zone_name": httpApplicationRoutingZone,
 		"ingress_application_gateway":        ingressApplicationGateways,
@@ -570,7 +554,6 @@ func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
 	return map[string]interface{}{
 		"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
 		"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
-		"confidential_computing_enabled":   d.Get("confidential_computing_enabled").(bool),
 		"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
 		"oms_agent":                        d.Get("oms_agent").([]interface{}),
 		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
