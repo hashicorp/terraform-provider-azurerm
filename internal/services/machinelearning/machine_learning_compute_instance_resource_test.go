@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -104,19 +105,19 @@ func TestAccComputeInstance_identity(t *testing.T) {
 
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClient := client.MachineLearning.ComputeClient
-	id, err := parse.ComputeID(state.ID)
+	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	computeResource, err := computeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	computeResource, err := computeClient.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(computeResource.Response) {
+		if response.WasNotFound(computeResource.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Compute Cluster %q: %+v", state.ID, err)
 	}
-	return utils.Bool(computeResource.Properties != nil), nil
+	return utils.Bool(computeResource.Model.Properties != nil), nil
 }
 
 func (r ComputeInstanceResource) basic(data acceptance.TestData) string {
@@ -324,12 +325,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctest-MLW%[5]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
+  name                          = "acctest-MLW%[5]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  application_insights_id       = azurerm_application_insights.test.id
+  key_vault_id                  = azurerm_key_vault.test.id
+  storage_account_id            = azurerm_storage_account.test.id
+  public_network_access_enabled = true
   identity {
     type = "SystemAssigned"
   }

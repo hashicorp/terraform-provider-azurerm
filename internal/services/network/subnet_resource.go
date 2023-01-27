@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -20,9 +19,47 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var SubnetResourceName = "azurerm_subnet"
+
+var subnetDelegationServiceNames = []string{
+	"Microsoft.ApiManagement/service",
+	"Microsoft.AzureCosmosDB/clusters",
+	"Microsoft.BareMetal/AzureVMware",
+	"Microsoft.BareMetal/CrayServers",
+	"Microsoft.Batch/batchAccounts",
+	"Microsoft.ContainerInstance/containerGroups",
+	"Microsoft.ContainerService/managedClusters",
+	"Microsoft.Databricks/workspaces",
+	"Microsoft.DBforMySQL/flexibleServers",
+	"Microsoft.DBforMySQL/serversv2",
+	"Microsoft.DBforPostgreSQL/flexibleServers",
+	"Microsoft.DBforPostgreSQL/serversv2",
+	"Microsoft.DBforPostgreSQL/singleServers",
+	"Microsoft.HardwareSecurityModules/dedicatedHSMs",
+	"Microsoft.Kusto/clusters",
+	"Microsoft.Logic/integrationServiceEnvironments",
+	"Microsoft.LabServices/labplans",
+	"Microsoft.MachineLearningServices/workspaces",
+	"Microsoft.Netapp/volumes",
+	"Microsoft.Network/dnsResolvers",
+	"Microsoft.Network/managedResolvers",
+	"Microsoft.PowerPlatform/vnetaccesslinks",
+	"Microsoft.ServiceFabricMesh/networks",
+	"Microsoft.Sql/managedInstances",
+	"Microsoft.Sql/servers",
+	"Microsoft.StoragePool/diskPools",
+	"Microsoft.StreamAnalytics/streamingJobs",
+	"Microsoft.Synapse/workspaces",
+	"Microsoft.Web/hostingEnvironments",
+	"Microsoft.Web/serverFarms",
+	"Microsoft.Orbital/orbitalGateways",
+	"NGINX.NGINXPLUS/nginxDeployments",
+	"PaloAltoNetworks.Cloudngfw/firewalls",
+	"Qumulo.Storage/fileSystems",
+}
 
 func resourceSubnet() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -49,7 +86,7 @@ func resourceSubnet() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"virtual_network_name": {
 				Type:     pluginsdk.TypeString,
@@ -100,42 +137,9 @@ func resourceSubnet() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Microsoft.ApiManagement/service",
-											"Microsoft.AzureCosmosDB/clusters",
-											"Microsoft.BareMetal/AzureVMware",
-											"Microsoft.BareMetal/CrayServers",
-											"Microsoft.Batch/batchAccounts",
-											"Microsoft.ContainerInstance/containerGroups",
-											"Microsoft.ContainerService/managedClusters",
-											"Microsoft.Databricks/workspaces",
-											"Microsoft.DBforMySQL/flexibleServers",
-											"Microsoft.DBforMySQL/serversv2",
-											"Microsoft.DBforPostgreSQL/flexibleServers",
-											"Microsoft.DBforPostgreSQL/serversv2",
-											"Microsoft.DBforPostgreSQL/singleServers",
-											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
-											"Microsoft.Kusto/clusters",
-											"Microsoft.Logic/integrationServiceEnvironments",
-											"Microsoft.MachineLearningServices/workspaces",
-											"Microsoft.Netapp/volumes",
-											"Microsoft.Network/dnsResolvers",
-											"Microsoft.Network/managedResolvers",
-											"Microsoft.PowerPlatform/vnetaccesslinks",
-											"Microsoft.ServiceFabricMesh/networks",
-											"Microsoft.Sql/managedInstances",
-											"Microsoft.Sql/servers",
-											"Microsoft.StoragePool/diskPools",
-											"Microsoft.StreamAnalytics/streamingJobs",
-											"Microsoft.Synapse/workspaces",
-											"Microsoft.Web/hostingEnvironments",
-											"Microsoft.Web/serverFarms",
-											"Microsoft.Orbital/orbitalGateways",
-											"NGINX.NGINXPLUS/nginxDeployments",
-											"PaloAltoNetworks.Cloudngfw/firewalls",
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(subnetDelegationServiceNames, false),
 									},
 
 									"actions": {
@@ -146,6 +150,8 @@ func resourceSubnet() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/networkinterfaces/*",
+												"Microsoft.Network/publicIPAddresses/join/action",
+												"Microsoft.Network/publicIPAddresses/read",
 												"Microsoft.Network/virtualNetworks/read",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",
@@ -694,6 +700,11 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 
 	retDeles := make([]interface{}, 0)
 
+	normalizeServiceName := map[string]string{}
+	for _, normName := range subnetDelegationServiceNames {
+		normalizeServiceName[strings.ToLower(normName)] = normName
+	}
+
 	for _, dele := range *delegations {
 		retDele := make(map[string]interface{})
 		if v := dele.Name; v != nil {
@@ -704,7 +715,11 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 		svcDele := make(map[string]interface{})
 		if props := dele.ServiceDelegationPropertiesFormat; props != nil {
 			if v := props.ServiceName; v != nil {
-				svcDele["name"] = *v
+				name := *v
+				if nv, ok := normalizeServiceName[strings.ToLower(name)]; ok {
+					name = nv
+				}
+				svcDele["name"] = name
 			}
 
 			if v := props.Actions; v != nil {

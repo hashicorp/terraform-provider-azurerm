@@ -41,7 +41,7 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Logic App Integration Account Batch Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Logic App Integration Account Batch Configuration. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Logic App Integration Account Batch Configuration should exist. Changing this forces a new resource to be created.
 

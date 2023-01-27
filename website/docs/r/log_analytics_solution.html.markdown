@@ -74,7 +74,7 @@ A `plan` block includes:
 
 * `product` - (Required) The product name of the solution. For example `OMSGallery/Containers`. Changing this forces a new resource to be created.
 
-* `promotion_code` - (Optional) A promotion code to be used with the solution.
+* `promotion_code` - (Optional) A promotion code to be used with the solution. Changing this forces a new resource to be created.
 
 ## Timeouts
 

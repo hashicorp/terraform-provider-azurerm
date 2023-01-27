@@ -26,11 +26,10 @@ output "log_profile_storage_account_id" {
 
 * `name` - Specifies the Name of the Log Profile.
 
-
 ## Attributes Reference
 
 * `id` - The ID of the Log Profile.
- 
+
 * `storage_account_id` - The resource id of the storage account in which the Activity Log is stored.
 
 * `servicebus_rule_id` - The service bus (or event hub) rule ID of the service bus (or event hub) namespace in which the Activity Log is streamed to.

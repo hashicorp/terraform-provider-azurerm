@@ -3,6 +3,7 @@ package servicebus_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
@@ -152,6 +153,18 @@ func TestAccServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *tes
 	})
 }
 
+func TestAccServiceBusSubscriptionRule_correlationFilterWhiteSpace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	r := ServiceBusSubscriptionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.correlationFilterWhiteSpace(data),
+			ExpectError: regexp.MustCompile("expanding `correlation_filter`: at least one property must not be empty in the `correlation_filter` block"),
+		},
+	})
+}
+
 func (t ServiceBusSubscriptionRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := subscriptions.ParseRuleID(state.ID)
 	if err != nil {
@@ -296,6 +309,23 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   correlation_filter {
     correlation_id = "test_correlation_id"
     message_id     = "test_message_id"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ServiceBusSubscriptionRuleResource) correlationFilterWhiteSpace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_subscription_rule" "test" {
+  name            = "acctestservicebusrule-%d"
+  subscription_id = azurerm_servicebus_subscription.test.id
+  action          = "SET Test='true'"
+  filter_type     = "CorrelationFilter"
+
+  correlation_filter {
+    label = ""
   }
 }
 `, r.template(data), data.RandomInteger)

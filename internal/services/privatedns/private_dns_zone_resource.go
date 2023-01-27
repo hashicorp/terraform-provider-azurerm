@@ -194,9 +194,9 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			},
 		}
 
-		recordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateZoneName, recordsets.RecordTypeSOA, "@")
+		recordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, recordsets.RecordTypeSOA, "@")
 
-		val := fmt.Sprintf("%s%s", id.PrivateZoneName, strings.TrimSuffix(*soaRecord.Email, "."))
+		val := fmt.Sprintf("%s%s", id.PrivateDnsZoneName, strings.TrimSuffix(*soaRecord.Email, "."))
 		if len(val) > 253 {
 			return fmt.Errorf("the value %q for `email` which is concatenated with Private DNS Zone `name` cannot exceed 253 characters excluding a trailing period", val)
 		}
@@ -235,13 +235,13 @@ func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	recordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateZoneName, recordsets.RecordTypeSOA, "@")
+	recordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, recordsets.RecordTypeSOA, "@")
 	recordSetResp, err := recordSetsClient.Get(ctx, recordId)
 	if err != nil {
 		return fmt.Errorf("reading DNS SOA record @: %v", err)
 	}
 
-	d.Set("name", id.PrivateZoneName)
+	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

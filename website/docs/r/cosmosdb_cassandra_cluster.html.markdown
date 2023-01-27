@@ -10,7 +10,7 @@ description: |-
 
 Manages a Cassandra Cluster.
 
-~> ** NOTE: ** In order for the `Azure Managed Instances for Apache Cassandra` to work properly the product requires the `Azure Cosmos DB` Application ID to be present and working in your tenant. If the `Azure Cosmos DB` Application ID is missing in your environment you will need to have an administrator of your tenant run the following command to add the `Azure Cosmos DB` Application ID to your tenant:
+~> **NOTE:** In order for the `Azure Managed Instances for Apache Cassandra` to work properly the product requires the `Azure Cosmos DB` Application ID to be present and working in your tenant. If the `Azure Cosmos DB` Application ID is missing in your environment you will need to have an administrator of your tenant run the following command to add the `Azure Cosmos DB` Application ID to your tenant:
 
 ```powershell
 New-AzADServicePrincipal -ApplicationId a232010e-820c-4083-83bb-3ace5fc29d0b
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `delegated_management_subnet_id` - (Required) The ID of the delegated management subnet for this Cassandra Cluster. Changing this forces a new Cassandra Cluster to be created.
 
-* `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster.
+* `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster. Changing this forces a new resource to be created.
 
 * `authentication_method` - (Optional) The authentication method that is used to authenticate clients. Possible values are `None` and `Cassandra`. Defaults to `Cassandra`.
 
@@ -85,9 +85,13 @@ The following arguments are supported:
 
 * `external_seed_node_ip_addresses` - (Optional) A list of IP Addresses of the seed nodes in unmanaged the Cassandra Data Center which will be added to the seed node lists of all managed nodes.
 
+* `hours_between_backups` - (Optional) The number of hours to wait between taking a backup of the Cassandra Cluster. Defaults to `24`.
+
+~> **Note:** To disable this feature, set this property to `0`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster?
+* `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster? Defaults to `true`.
 
 * `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
 

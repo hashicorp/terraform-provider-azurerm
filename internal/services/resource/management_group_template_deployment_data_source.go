@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	mgParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -53,7 +54,12 @@ func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, met
 	managementGroupId := d.Get("management_group_id").(string)
 	deploymentName := d.Get("name").(string)
 
-	resp, err := client.GetAtManagementGroupScope(ctx, managementGroupId, deploymentName)
+	id, err := mgParse.ManagementGroupID(managementGroupId)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.GetAtManagementGroupScope(ctx, id.Name, deploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("deployment %s in Management Group %s was not found", deploymentName, managementGroupId)

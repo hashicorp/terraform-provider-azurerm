@@ -78,13 +78,13 @@ resource "azurerm_storage_account" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the storage account. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
+* `name` - (Required) Specifies the name of the storage account. Only lowercase Alphanumeric characters allowed. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `StorageV2`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Defaults to `StorageV2`.
 
 -> **NOTE:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 -> **NOTE:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
-* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`.
 
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
 
@@ -100,18 +100,17 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
-* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/)
-    for more information. Defaults to `true`.
+* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
 
 -> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `allow_nested_items_to_be_public` - Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
+* `allow_nested_items_to_be_public` - (Optional) Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
 
 -> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `shared_access_key_enabled` - Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is `true`.
+* `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is `true`.
 
 ~> **Note:** Terraform uses Shared Key Authorisation to provision Storage Containers, Blobs and other items - when Shared Key Access is disabled, you will need to enable [the `storage_use_azuread` flag in the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#storage_use_azuread) to use Azure AD for authentication, however not all Azure Storage services support Active Directory authentication.
 
@@ -129,7 +128,7 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
-* `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -153,14 +152,24 @@ The following arguments are supported:
 
 * `routing` - (Optional) A `routing` block as defined below.
 
-* `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`. 
-* `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`. 
+* `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
+* `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
 
 ~> **NOTE:** For the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
 
 * `infrastructure_encryption_enabled` - (Optional) Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to `false`.
 
--> **NOTE:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage`.
+-> **NOTE:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is one of `BlockBlobStorage` or `FileStorage`.
+
+* `immutability_policy` - (Optional) An `immutability_policy` block as defined below. Changing this forces a new resource to be created.
+
+* `sas_policy` - (Optional) A `sas_policy` block as defined below.
+
+* `allowed_copy_scope` - (Optional) Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values are `AAD` and `PrivateLink`.
+
+* `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
+
+-> **NOTE:** SFTP support requires `is_hns_enabled` set to `true`. [More information on SFTP support can be found here](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-support). Defaults to `false`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -171,6 +180,8 @@ A `blob_properties` block supports the following:
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
+
+* `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set, `versioning_enabled` and `change_feed_enabled` set to `true`.
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
@@ -215,13 +226,19 @@ A `customer_managed_key` block supports the following:
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
-~> **NOTE:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` and the identity type is `UserAssigned`.
+~> **NOTE:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
 
 ---
 
 A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `restore_policy` block supports the following:
+
+* `days` - (Required) Specifies the number of days that the blob can be restored, between `1` and `365` days. This must be less than the `days` specified for `delete_retention_policy`.
 
 ---
 
@@ -233,13 +250,13 @@ A `container_delete_retention_policy` block supports the following:
 
 A `hour_metrics` block supports the following:
 
-* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service. Changing this forces a new resource.
+* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
@@ -255,37 +272,48 @@ An `identity` block supports the following:
 
 ---
 
+An `immutability_policy` block supports the following:
+
+~> **NOTE**: This argument specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
+
+* `allow_protected_append_writes` - (Required) When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
+
+* `state` - (Required) Defines the mode of the policy. `Disabled` state disables the policy, `Unlocked` state allows increase and decrease of immutability retention time and also allows toggling allowProtectedAppendWrites property, `Locked` state only allows the increase of the immutability retention time. A policy can only be created in a Disabled or Unlocked state and can be toggled between the two states. Only a policy in an Unlocked state can transition to a Locked state which cannot be reverted.
+
+* `period_since_creation_in_days` - (Required) The immutability period for the blobs in the container since the policy creation, in days.
+
+---
+
 A `logging` block supports the following:
 
-* `delete` - (Required) Indicates whether all delete requests should be logged. Changing this forces a new resource.
+* `delete` - (Required) Indicates whether all delete requests should be logged.
 
-* `read` - (Required) Indicates whether all read requests should be logged. Changing this forces a new resource.
+* `read` - (Required) Indicates whether all read requests should be logged.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
-* `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
+* `write` - (Required) Indicates whether all write requests should be logged.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
 A `minute_metrics` block supports the following:
 
-* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service. Changing this forces a new resource.
+* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service.
 
-* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+* `version` - (Required) The version of storage analytics to configure.
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
 A `network_rules` block supports the following:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
-* `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
-any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
+* `bypass` - (Optional) Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
@@ -311,9 +339,11 @@ A `private_link_access` block supports the following:
 
 A `azure_files_authentication` block supports the following:
 
-* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS` and `AD`.
+* `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS`, `AD` and `AADKERB`.
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
+
+~> **Note:** If `directory_type` is set to `AADKERB`, `active_directory` is not supported. Use [icals](https://learn.microsoft.com/en-us/azure/storage/files/storage-files-identity-auth-azure-active-directory-enable?tabs=azure-portal#configure-directory-and-file-level-permissions) to configure directory and file level permissions.
 
 ---
 
@@ -355,6 +385,14 @@ A `queue_properties` block supports the following:
 
 ---
 
+A `sas_policy` block supports the following:
+
+* `expiration_period` - (Required) The SAS expiration period in format of `DD.HH:MM:SS`.
+
+* `expiration_action` - (Optional) The SAS expiration action. The only possible value is `Log` at this moment. Defaults to `Log`.
+
+---
+
 A `static_website` block supports the following:
 
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
@@ -388,6 +426,8 @@ A `smb` block supports the following:
 * `kerberos_ticket_encryption_type` - (Optional) A set of Kerberos ticket encryption. Possible values are `RC4-HMAC`, and `AES-256`.
 
 * `channel_encryption_type` - (Optional) A set of SMB channel encryption. Possible values are `AES-128-CCM`, `AES-128-GCM`, and `AES-256-GCM`.
+
+* `multichannel_enabled` - (Optional) Indicates whether multichannel is enabled. Defaults to `false`. This is only supported on Premium storage accounts.
 
 ---
 

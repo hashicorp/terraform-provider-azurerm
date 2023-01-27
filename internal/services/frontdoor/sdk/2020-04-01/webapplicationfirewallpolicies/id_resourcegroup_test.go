@@ -90,7 +90,6 @@ func TestParseResourceGroupID(t *testing.T) {
 		if actual.ResourceGroupName != v.Expected.ResourceGroupName {
 			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
-
 	}
 }
 
@@ -184,7 +183,6 @@ func TestParseResourceGroupIDInsensitively(t *testing.T) {
 		if actual.ResourceGroupName != v.Expected.ResourceGroupName {
 			t.Fatalf("Expected %q but got %q for ResourceGroupName", v.Expected.ResourceGroupName, actual.ResourceGroupName)
 		}
-
 	}
 }
 

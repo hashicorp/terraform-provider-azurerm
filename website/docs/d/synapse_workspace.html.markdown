@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-the following Attributes are exported: 
+the following Attributes are exported:
 
 * `id` - The ID of the synapse Workspace.
 

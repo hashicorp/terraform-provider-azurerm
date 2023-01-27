@@ -1,14 +1,14 @@
 package monitor
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,7 +53,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"scopes": {
 				Type:     pluginsdk.TypeSet,
@@ -159,7 +159,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"resource_health": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -215,9 +215,9 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 									},
 								},
 							},
-							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name", "criteria.0.service_health"},
+							ConflictsWith: []string{"criteria.0.caller", "criteria.0.service_health"},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"service_health": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -261,14 +261,14 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 									},
 								},
 							},
-							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name", "criteria.0.resource_health"},
+							ConflictsWith: []string{"criteria.0.caller", "criteria.0.resource_health"},
 						},
 					},
 				},
 			},
 
 			"action": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -286,7 +286,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceMonitorActivityLogAlertActionHash,
 			},
 
 			"description": {
@@ -330,11 +329,10 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 	description := d.Get("description").(string)
 	scopesRaw := d.Get("scopes").(*pluginsdk.Set).List()
 	criteriaRaw := d.Get("criteria").([]interface{})
-	actionRaw := d.Get("action").(*pluginsdk.Set).List()
+	actionRaw := d.Get("action").([]interface{})
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
-
 	parameters := insights.ActivityLogAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
 		AlertRuleProperties: &insights.AlertRuleProperties{
@@ -744,12 +742,4 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActionList) (result []
 		result = append(result, v)
 	}
 	return result
-}
-
-func resourceMonitorActivityLogAlertActionHash(input interface{}) int {
-	var buf bytes.Buffer
-	if v, ok := input.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
-	}
-	return pluginsdk.HashString(buf.String())
 }

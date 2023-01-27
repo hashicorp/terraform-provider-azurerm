@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -33,7 +33,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := backuppolicies.ParseBackupPoliciesID(id)
+			_, err := backuppolicies.ParseBackupPolicyID(id)
 			return err
 		}),
 
@@ -48,7 +48,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"vault_name": {
 				Type:     pluginsdk.TypeString,
@@ -187,7 +187,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 	resourceGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("vault_name").(string)
 
-	id := backuppolicies.NewBackupPoliciesID(subscriptionId, resourceGroup, vaultName, name)
+	id := backuppolicies.NewBackupPolicyID(subscriptionId, resourceGroup, vaultName, name)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -228,7 +228,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 	}
 	d.Set("name", id.BackupPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("vault_name", id.VaultName)
+	d.Set("vault_name", id.BackupVaultName)
 
 	if resp.Model != nil {
 		if resp.Model.Properties != nil {
@@ -269,7 +269,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLDelete(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -551,9 +551,7 @@ func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]backuppolicies.Ba
 			var scheduleTimes []string
 			if criteria.ScheduleTimes != nil {
 				scheduleTimes = make([]string, 0)
-				for _, item := range *criteria.ScheduleTimes {
-					scheduleTimes = append(scheduleTimes, item)
-				}
+				scheduleTimes = append(scheduleTimes, *criteria.ScheduleTimes...)
 			}
 
 			results = append(results, map[string]interface{}{

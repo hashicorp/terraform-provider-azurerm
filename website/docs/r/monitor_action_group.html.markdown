@@ -75,7 +75,9 @@ resource "azurerm_monitor_action_group" "example" {
 
   event_hub_receiver {
     name                    = "sendtoeventhub"
-    event_hub_id            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-eventhub/providers/Microsoft.EventHub/namespaces/eventhubnamespace/eventhubs/eventhub1"
+    event_hub_namespace     = "eventhubnamespace"
+    event_hub_name          = "eventhub1"
+    subscription_id         = "00000000-0000-0000-0000-000000000000"
     use_common_alert_schema = false
   }
 
@@ -83,7 +85,7 @@ resource "azurerm_monitor_action_group" "example" {
     name                 = "createorupdateticket"
     workspace_id         = "${data.azurerm_client_config.current.subscription_id}|${azurerm_log_analytics_workspace.example.workspace_id}"
     connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
-    ticket_configuration = "{}"
+    ticket_configuration = "{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"
     region               = "southcentralus"
   }
 
@@ -118,8 +120,8 @@ resource "azurerm_monitor_action_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance.
+* `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created. 
+* `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance. Changing this forces a new resource to be created.
 * `short_name` - (Required) The short name of the action group. This will be used in SMS messages.
 * `enabled` - (Optional) Whether this action group is enabled. If an action group is not enabled, then none of its receivers will receive communications. Defaults to `true`.
 * `arm_role_receiver` - (Optional) One or more `arm_role_receiver` blocks as defined below.
@@ -137,7 +139,7 @@ The following arguments are supported:
 
 ---
 
-`arm_role_receiver` supports the following:
+The `arm_role_receiver` block supports the following:
 
 * `name` - (Required) The name of the ARM role receiver.
 * `role_id` - (Required) The arm role id.
@@ -145,7 +147,7 @@ The following arguments are supported:
 
 ---
 
-`automation_runbook_receiver` supports the following:
+The `automation_runbook_receiver` block supports the following:
 
 * `name` - (Required) The name of the automation runbook receiver.
 * `automation_account_id` - (Required) The automation account ID which holds this runbook and authenticates to Azure resources.
@@ -157,14 +159,14 @@ The following arguments are supported:
 
 ---
 
-`azure_app_push_receiver` supports the following:
+The `azure_app_push_receiver` block supports the following:
 
 * `name` - (Required) The name of the Azure app push receiver.
 * `email_address` - (Required) The email address of the user signed into the mobile app who will receive push notifications from this receiver.
 
 ---
 
-`azure_function_receiver` supports the following:
+The `azure_function_receiver` block supports the following:
 
 * `name` - (Required) The name of the Azure Function receiver.
 * `function_app_resource_id` - (Required) The Azure resource ID of the function app.
@@ -174,7 +176,7 @@ The following arguments are supported:
 
 ---
 
-`email_receiver` supports the following:
+The `email_receiver` block supports the following:
 
 * `name` - (Required) The name of the email receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `email_address` - (Required) The email address of this receiver.
@@ -182,16 +184,22 @@ The following arguments are supported:
 
 ---
 
-`event_hub_receiver` supports the following:
+The `event_hub_receiver` block supports the following:
 
 * `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
-* `event_hub_id` - (Required) The resource ID of the respective Event Hub.
+* `event_hub_id` - (Optional) The resource ID of the respective Event Hub.
+* `event_hub_name` - (Optional) The name of the specific Event Hub queue.
+* `event_hub_namespace` - (Optional) The namespace name of the Event Hub.
+* `subscription_id` - (Optional) The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.
+
+~> **NOTE:** `event_hub_id` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use `event_hub_name`, `event_hub_name`,and `subscription_id` instead. And `event_hub_name`, `event_hub_name` will be required properties in version 4.0.
+
 * `tenant_id` - (Optional) The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - (Optional) Indicates whether to use common alert schema.
 
 ---
 
-`itsm_receiver` supports the following:
+The `itsm_receiver` block supports the following:
 
 * `name` - (Required) The name of the ITSM receiver.
 * `workspace_id` - (Required) The Azure Log Analytics workspace ID where this connection is defined. Format is `<subscription id>|<workspace id>`, for example `00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000`.
@@ -199,9 +207,11 @@ The following arguments are supported:
 * `ticket_configuration` - (Required) A JSON blob for the configurations of the ITSM action. CreateMultipleWorkItems option will be part of this blob as well.
 * `region` - (Required) The region of the workspace.
 
+-> **NOTE** `ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys (e.g., `ticket_configuration="{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\"}"`), and `ticket_configuration="{}"` will return an error, see more at this [REST API issue](https://github.com/Azure/azure-rest-api-specs/issues/20488)
+
 ---
 
-`logic_app_receiver` supports the following:
+The `logic_app_receiver` block supports the following:
 
 * `name` - (Required) The name of the logic app receiver.
 * `resource_id` - (Required) The Azure resource ID of the logic app.
@@ -210,7 +220,7 @@ The following arguments are supported:
 
 ---
 
-`sms_receiver` supports the following:
+The `sms_receiver` block supports the following:
 
 * `name` - (Required) The name of the SMS receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `country_code` - (Required) The country code of the SMS receiver.
@@ -218,7 +228,7 @@ The following arguments are supported:
 
 ---
 
-`voice_receiver` supports the following:
+The `voice_receiver` block supports the following:
 
 * `name` - (Required) The name of the voice receiver.
 * `country_code` - (Required) The country code of the voice receiver.
@@ -226,7 +236,7 @@ The following arguments are supported:
 
 ---
 
-`webhook_receiver` supports the following:
+The `webhook_receiver` block supports the following:
 
 * `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `service_uri` - (Required) The URI where webhooks should be sent.
@@ -235,7 +245,9 @@ The following arguments are supported:
 
 ~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
 
-`aad_auth` supports the following:.
+---
+
+The `aad_auth` block supports the following:.
 
 * `object_id` - (Required) The webhook application object Id for AAD auth.
 * `identifier_uri` - (Optional) The identifier URI for AAD auth.

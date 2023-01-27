@@ -3,12 +3,12 @@ package batch
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
 )
 
 // expandBatchAccountKeyVaultReference expands Batch account KeyVault reference
 func expandBatchAccountKeyVaultReference(list []interface{}) (*batch.KeyVaultReference, error) {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("Error: key vault reference should be defined")
 	}
 

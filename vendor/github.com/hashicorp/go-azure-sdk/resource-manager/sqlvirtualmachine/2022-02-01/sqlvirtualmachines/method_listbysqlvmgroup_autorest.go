@@ -13,23 +13,23 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListBySqlVmGroupOperationResponse struct {
+type ListBySqlVMGroupOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]SqlVirtualMachine
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (ListBySqlVmGroupOperationResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (ListBySqlVMGroupOperationResponse, error)
 }
 
-type ListBySqlVmGroupCompleteResult struct {
+type ListBySqlVMGroupCompleteResult struct {
 	Items []SqlVirtualMachine
 }
 
-func (r ListBySqlVmGroupOperationResponse) HasMore() bool {
+func (r ListBySqlVMGroupOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r ListBySqlVmGroupOperationResponse) LoadMore(ctx context.Context) (resp ListBySqlVmGroupOperationResponse, err error) {
+func (r ListBySqlVMGroupOperationResponse) LoadMore(ctx context.Context) (resp ListBySqlVMGroupOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -37,30 +37,30 @@ func (r ListBySqlVmGroupOperationResponse) LoadMore(ctx context.Context) (resp L
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-// ListBySqlVmGroup ...
-func (c SqlVirtualMachinesClient) ListBySqlVmGroup(ctx context.Context, id SqlVirtualMachineGroupId) (resp ListBySqlVmGroupOperationResponse, err error) {
-	req, err := c.preparerForListBySqlVmGroup(ctx, id)
+// ListBySqlVMGroup ...
+func (c SqlVirtualMachinesClient) ListBySqlVMGroup(ctx context.Context, id SqlVirtualMachineGroupId) (resp ListBySqlVMGroupOperationResponse, err error) {
+	req, err := c.preparerForListBySqlVMGroup(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVmGroup", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVMGroup", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVmGroup", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVMGroup", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
-	resp, err = c.responderForListBySqlVmGroup(resp.HttpResponse)
+	resp, err = c.responderForListBySqlVMGroup(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVmGroup", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVMGroup", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
-// preparerForListBySqlVmGroup prepares the ListBySqlVmGroup request.
-func (c SqlVirtualMachinesClient) preparerForListBySqlVmGroup(ctx context.Context, id SqlVirtualMachineGroupId) (*http.Request, error) {
+// preparerForListBySqlVMGroup prepares the ListBySqlVMGroup request.
+func (c SqlVirtualMachinesClient) preparerForListBySqlVMGroup(ctx context.Context, id SqlVirtualMachineGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -74,8 +74,8 @@ func (c SqlVirtualMachinesClient) preparerForListBySqlVmGroup(ctx context.Contex
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// preparerForListBySqlVmGroupWithNextLink prepares the ListBySqlVmGroup request with the given nextLink token.
-func (c SqlVirtualMachinesClient) preparerForListBySqlVmGroupWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+// preparerForListBySqlVMGroupWithNextLink prepares the ListBySqlVMGroup request with the given nextLink token.
+func (c SqlVirtualMachinesClient) preparerForListBySqlVMGroupWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -99,9 +99,9 @@ func (c SqlVirtualMachinesClient) preparerForListBySqlVmGroupWithNextLink(ctx co
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// responderForListBySqlVmGroup handles the response to the ListBySqlVmGroup request. The method always
+// responderForListBySqlVMGroup handles the response to the ListBySqlVMGroup request. The method always
 // closes the http.Response Body.
-func (c SqlVirtualMachinesClient) responderForListBySqlVmGroup(resp *http.Response) (result ListBySqlVmGroupOperationResponse, err error) {
+func (c SqlVirtualMachinesClient) responderForListBySqlVMGroup(resp *http.Response) (result ListBySqlVMGroupOperationResponse, err error) {
 	type page struct {
 		Values   []SqlVirtualMachine `json:"value"`
 		NextLink *string             `json:"nextLink"`
@@ -116,22 +116,22 @@ func (c SqlVirtualMachinesClient) responderForListBySqlVmGroup(resp *http.Respon
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListBySqlVmGroupOperationResponse, err error) {
-			req, err := c.preparerForListBySqlVmGroupWithNextLink(ctx, nextLink)
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListBySqlVMGroupOperationResponse, err error) {
+			req, err := c.preparerForListBySqlVMGroupWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVmGroup", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVMGroup", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVmGroup", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVMGroup", result.HttpResponse, "Failure sending request")
 				return
 			}
 
-			result, err = c.responderForListBySqlVmGroup(result.HttpResponse)
+			result, err = c.responderForListBySqlVMGroup(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVmGroup", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachines.SqlVirtualMachinesClient", "ListBySqlVMGroup", result.HttpResponse, "Failure responding to request")
 				return
 			}
 
@@ -141,16 +141,16 @@ func (c SqlVirtualMachinesClient) responderForListBySqlVmGroup(resp *http.Respon
 	return
 }
 
-// ListBySqlVmGroupComplete retrieves all of the results into a single object
-func (c SqlVirtualMachinesClient) ListBySqlVmGroupComplete(ctx context.Context, id SqlVirtualMachineGroupId) (ListBySqlVmGroupCompleteResult, error) {
-	return c.ListBySqlVmGroupCompleteMatchingPredicate(ctx, id, SqlVirtualMachineOperationPredicate{})
+// ListBySqlVMGroupComplete retrieves all of the results into a single object
+func (c SqlVirtualMachinesClient) ListBySqlVMGroupComplete(ctx context.Context, id SqlVirtualMachineGroupId) (ListBySqlVMGroupCompleteResult, error) {
+	return c.ListBySqlVMGroupCompleteMatchingPredicate(ctx, id, SqlVirtualMachineOperationPredicate{})
 }
 
-// ListBySqlVmGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c SqlVirtualMachinesClient) ListBySqlVmGroupCompleteMatchingPredicate(ctx context.Context, id SqlVirtualMachineGroupId, predicate SqlVirtualMachineOperationPredicate) (resp ListBySqlVmGroupCompleteResult, err error) {
+// ListBySqlVMGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
+func (c SqlVirtualMachinesClient) ListBySqlVMGroupCompleteMatchingPredicate(ctx context.Context, id SqlVirtualMachineGroupId, predicate SqlVirtualMachineOperationPredicate) (resp ListBySqlVMGroupCompleteResult, err error) {
 	items := make([]SqlVirtualMachine, 0)
 
-	page, err := c.ListBySqlVmGroup(ctx, id)
+	page, err := c.ListBySqlVMGroup(ctx, id)
 	if err != nil {
 		err = fmt.Errorf("loading the initial page: %+v", err)
 		return
@@ -179,7 +179,7 @@ func (c SqlVirtualMachinesClient) ListBySqlVmGroupCompleteMatchingPredicate(ctx 
 		}
 	}
 
-	out := ListBySqlVmGroupCompleteResult{
+	out := ListBySqlVMGroupCompleteResult{
 		Items: items,
 	}
 	return out, nil

@@ -42,8 +42,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_signalr_service_network_acl":             resourceArmSignalRServiceNetworkACL(),
 		"azurerm_signalr_shared_private_link_resource":    resourceSignalRSharedPrivateLinkResource(),
 		"azurerm_web_pubsub":                              resourceWebPubSub(),
-		"azurerm_web_pubsub_hub":                          resourceWebPubsubHub(),
+		"azurerm_web_pubsub_hub":                          resourceWebPubSubHub(),
 		"azurerm_web_pubsub_network_acl":                  resourceWebpubsubNetworkACL(),
-		"azurerm_web_pubsub_shared_private_link_resource": resourceWebpubsubSharedPrivateLinkService(),
+		"azurerm_web_pubsub_shared_private_link_resource": resourceWebPubSubSharedPrivateLinkService(),
 	}
 }

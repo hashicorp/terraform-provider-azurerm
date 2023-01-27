@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -84,17 +84,17 @@ func TestAccLogAnalyticsCluster_requiresImport(t *testing.T) {
 }
 
 func (t LogAnalyticsClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsClusterID(state.ID)
+	id, err := clusters.ParseClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.ClusterClient.Get(ctx, id.ResourceGroup, id.ClusterName)
+	resp, err := clients.LogAnalytics.ClusterClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Cluster (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogAnalyticsClusterResource) template(data acceptance.TestData) string {

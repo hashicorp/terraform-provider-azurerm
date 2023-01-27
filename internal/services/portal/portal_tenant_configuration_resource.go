@@ -53,7 +53,7 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	// since this is an operation on a Tenant (which doesn't expose any configurable values).
 	id := parse.NewPortalTenantConfigurationID("default")
 	if d.IsNewResource() {
-		existing, err := client.TenantConfigurationsGet(ctx)
+		existing, err := client.Get(ctx)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -71,7 +71,7 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if _, err := client.TenantConfigurationsCreate(ctx, parameters); err != nil {
+	if _, err := client.Create(ctx, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -90,7 +90,7 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	resp, err := client.TenantConfigurationsGet(ctx)
+	resp, err := client.Get(ctx)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state!", *id)
@@ -119,7 +119,7 @@ func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	if _, err := client.TenantConfigurationsDelete(ctx); err != nil {
+	if _, err := client.Delete(ctx); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

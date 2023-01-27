@@ -42,3 +42,5 @@ The following arguments are supported:
 - `signalr_extension_key` - Function App resource's SignalR Extension system key.
 
 - `durabletask_extension_key` - Function App resource's Durable Task Extension system key.
+
+- `webpubsub_extension_key` - Function App resource's Web PubSub Extension system key.

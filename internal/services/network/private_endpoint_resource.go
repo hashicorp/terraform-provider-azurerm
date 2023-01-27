@@ -8,17 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	mariaDB "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	mysqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourcePrivateEndpoint() *pluginsdk.Resource {
@@ -57,7 +58,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				ValidateFunc: validate.PrivateLinkName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -83,6 +84,12 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"custom_network_interface_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"private_dns_zone_group": {
@@ -168,7 +175,6 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -186,6 +192,14 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						"subresource_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"member_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     features.FourPointOhBeta(),
+							Optional:     !features.FourPointOhBeta(),
+							Computed:     !features.FourPointOhBeta(),
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -299,6 +313,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
@@ -308,7 +323,8 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
-			IPConfigurations: expandPrivateEndpointIPConfigurations(ipConfigurations),
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -332,26 +348,26 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	locks.ByName(subnetId, "azurerm_private_endpoint")
 	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
-	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 		if err != nil {
 			switch {
 			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
 						Retryable: false,
 					}
 				}
 			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 						Retryable: true,
 					}
 				}
 			default:
-				return &resource.RetryError{
+				return &pluginsdk.RetryError{
 					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 					Retryable: false,
 				}
@@ -359,7 +375,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return &resource.RetryError{
+			return &pluginsdk.RetryError{
 				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 				Retryable: false,
 			}
@@ -448,6 +464,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
+	customNicName := d.Get("custom_network_interface_name").(string)
 
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := network.PrivateEndpoint{
@@ -458,7 +475,8 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
-			IPConfigurations: expandPrivateEndpointIPConfigurations(ipConfigurations),
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			CustomNetworkInterfaceName: utils.String(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -475,33 +493,33 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	locks.ByName(subnetId, "azurerm_private_endpoint")
 	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
-	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 		if err != nil {
 			switch {
 			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("updating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
 						Retryable: false,
 					}
 				}
 			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 						Retryable: true,
 					}
 				}
 			default:
-				return &resource.RetryError{
+				return &pluginsdk.RetryError{
 					Err: fmt.Errorf("updating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 				}
 			}
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return &resource.RetryError{
+			return &pluginsdk.RetryError{
 				Err:       fmt.Errorf("waiting for update of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 				Retryable: false,
 			}
@@ -626,6 +644,11 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			subnetId = *props.Subnet.ID
 		}
 		d.Set("subnet_id", subnetId)
+		customNicName := ""
+		if props.CustomNetworkInterfaceName != nil {
+			customNicName = *props.CustomNetworkInterfaceName
+		}
+		d.Set("custom_network_interface_name", customNicName)
 	}
 
 	privateDnsZoneConfigs := make([]interface{}, 0)
@@ -747,13 +770,17 @@ func expandPrivateEndpointIPConfigurations(input []interface{}) *[]network.Priva
 		v := item.(map[string]interface{})
 		privateIPAddress := v["private_ip_address"].(string)
 		subResourceName := v["subresource_name"].(string)
+		memberName := v["member_name"].(string)
+		if memberName == "" {
+			memberName = subResourceName
+		}
 		name := v["name"].(string)
 		result := network.PrivateEndpointIPConfiguration{
 			Name: utils.String(name),
 			PrivateEndpointIPConfigurationProperties: &network.PrivateEndpointIPConfigurationProperties{
 				PrivateIPAddress: utils.String(privateIPAddress),
 				GroupID:          utils.String(subResourceName),
-				MemberName:       utils.String(subResourceName),
+				MemberName:       utils.String(memberName),
 			},
 		}
 		results = append(results, result)
@@ -773,6 +800,7 @@ func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]network.PrivateE
 			"name":               item.Name,
 			"private_ip_address": item.PrivateIPAddress,
 			"subresource_name":   item.GroupID,
+			"member_name":        item.MemberName,
 		})
 	}
 
@@ -935,7 +963,7 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 		}
 
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
-			Name: utils.String(privateDnsZone.PrivateZoneName),
+			Name: utils.String(privateDnsZone.PrivateDnsZoneName),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
 				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},

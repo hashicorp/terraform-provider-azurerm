@@ -70,8 +70,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					// TODO: add `oct` back in once this is fixed
-					// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 					string(keyvault.EC),
 					string(keyvault.ECHSM),
 					string(keyvault.RSA),
@@ -299,7 +297,14 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	d.SetId(*read.Key.Kid)
+	if read.Key == nil || read.Key.Kid == nil {
+		return fmt.Errorf("cannot read KeyVault Key '%s' (in key vault '%s')", name, *keyVaultBaseUri)
+	}
+	keyId, err := parse.ParseNestedItemID(*read.Key.Kid)
+	if err != nil {
+		return err
+	}
+	d.SetId(keyId.ID())
 
 	return resourceKeyVaultKeyRead(d, meta)
 }
@@ -307,7 +312,6 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -316,18 +320,12 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
-	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
-	}
-
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
+
+	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
@@ -545,7 +543,8 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
 	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
-		return fmt.Errorf("cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		shouldPurge = false
 	}
 
 	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)

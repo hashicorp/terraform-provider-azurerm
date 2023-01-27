@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -148,19 +149,19 @@ func TestAccComputeCluster_identity(t *testing.T) {
 
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.ComputeClient
-	id, err := parse.ComputeClusterID(state.ID)
+	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	computeResource, err := computeClusterClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+	computeResource, err := computeClusterClient.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(computeResource.Response) {
+		if response.WasNotFound(computeResource.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Compute Cluster %q: %+v", state.ID, err)
 	}
-	return utils.Bool(computeResource.Properties != nil), nil
+	return utils.Bool(computeResource.Model.Properties != nil), nil
 }
 
 func (r ComputeClusterResource) basic(data acceptance.TestData) string {

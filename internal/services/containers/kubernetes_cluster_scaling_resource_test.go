@@ -208,7 +208,16 @@ func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoScalingProfileConfig(data),
+			Config: r.autoScalingProfileConfigMinimal(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.expander").HasValue("random"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoScalingProfileConfigComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
@@ -447,8 +456,44 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
+func (KubernetesClusterResource) autoScalingProfileConfigMinimal(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-func (KubernetesClusterResource) autoScalingProfileConfig(data acceptance.TestData) string {
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+
+  default_node_pool {
+    name                = "default"
+    enable_auto_scaling = true
+    min_count           = 2
+    max_count           = 4
+    vm_size             = "Standard_DS2_v2"
+  }
+
+  auto_scaler_profile {
+    skip_nodes_with_local_storage = false
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
+}
+
+func (KubernetesClusterResource) autoScalingProfileConfigComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -40,6 +40,8 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
 * Ensure there is appropriate validation, at the very least `validation.StringIsNotEmpty` should be set for strings where a validation pattern cannot be determined.
 
+* When adding multiple properties or blocks thought should be given on how to map these, see [schema design considerations](schema-design-considerations.md) for specific examples. 
+
 ## Create function
 
 * The new property needs to be set in the properties struct for the resource.

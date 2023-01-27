@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -64,17 +64,17 @@ func TestAccLogAnalyticsSolution_basicSecurity(t *testing.T) {
 }
 
 func (t LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsSolutionID(state.ID)
+	id, err := solution.ParseSolutionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.SolutionsClient.Get(ctx, id.ResourceGroup, id.SolutionName)
+	resp, err := clients.LogAnalytics.SolutionsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogAnalyticsSolutionResource) containerMonitoring(data acceptance.TestData) string {

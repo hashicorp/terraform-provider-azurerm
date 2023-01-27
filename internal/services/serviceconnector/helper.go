@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -117,8 +118,10 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 			return nil, fmt.Errorf("`secret` cannot be set when `name` is empty")
 		}
 		return servicelinker.SecretAuthInfo{
-			Name:       utils.String(name),
-			SecretInfo: secret,
+			Name: utils.String(name),
+			SecretInfo: servicelinker.ValueSecretInfo{
+				Value: utils.String(secret),
+			},
 		}, nil
 
 	case servicelinker.AuthTypeSystemAssignedIdentity:
@@ -205,7 +208,7 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 	return nil, fmt.Errorf("unsupported authentication type %q", authType)
 }
 
-func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInfoModel {
+func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd string) []AuthInfoModel {
 	var authType string
 	var name string
 	var secret string
@@ -219,7 +222,7 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInf
 		if value.Name != nil {
 			name = *value.Name
 		}
-		secret = value.SecretInfo.(string)
+		secret = pwd
 	}
 
 	if _, ok := input.(servicelinker.SystemAssignedIdentityAuthInfo); ok {
@@ -263,13 +266,21 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInf
 	}
 }
 
-//TODO: Only support Azure resource for now. Will include ConfluentBootstrapServer and ConfluentSchemaRegistry in the future.
+// TODO: Only support Azure resource for now. Will include ConfluentBootstrapServer and ConfluentSchemaRegistry in the future.
 func flattenTargetService(input servicelinker.TargetServiceBase) string {
 	var targetServiceId string
 
 	if value, ok := input.(servicelinker.AzureResource); ok {
 		if value.Id != nil {
 			targetServiceId = *value.Id
+			if parsedId, err := parse.StorageAccountDefaultBlobID(targetServiceId); err == nil {
+				storageAccountId := parse.StorageAccountId{
+					SubscriptionId: parsedId.SubscriptionId,
+					ResourceGroup:  parsedId.ResourceGroup,
+					Name:           parsedId.StorageAccountName,
+				}
+				targetServiceId = storageAccountId.ID()
+			}
 		}
 	}
 

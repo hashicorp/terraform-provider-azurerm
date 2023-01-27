@@ -7,10 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -29,6 +31,7 @@ type LinuxFunctionAppSlotResource struct{}
 type LinuxFunctionAppSlotModel struct {
 	Name                          string                                   `tfschema:"name"`
 	FunctionAppID                 string                                   `tfschema:"function_app_id"`
+	ServicePlanID                 string                                   `tfschema:"service_plan_id"`
 	StorageAccountName            string                                   `tfschema:"storage_account_name"`
 	StorageAccountKey             string                                   `tfschema:"storage_account_access_key"`
 	StorageUsesMSI                bool                                     `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
@@ -39,6 +42,7 @@ type LinuxFunctionAppSlotModel struct {
 	BuiltinLogging                bool                                     `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled             bool                                     `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                                   `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                                   `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings             []helpers.ConnectionString               `tfschema:"connection_string"`
 	DailyMemoryTimeQuota          int                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                       bool                                     `tfschema:"enabled"`
@@ -57,6 +61,7 @@ type LinuxFunctionAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                 `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential                 `tfschema:"site_credential"`
+	StorageAccounts               []helpers.StorageAccount                 `tfschema:"storage_account"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -89,6 +94,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.FunctionAppID,
 			Description:  "The ID of the Linux Function App this Slot is a member of.",
+		},
+
+		"service_plan_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.ServicePlanID,
 		},
 
 		"storage_account_name": {
@@ -175,6 +186,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"daily_memory_time_quota": {
@@ -224,6 +241,8 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
+
+		"storage_account": helpers.StorageAccountSchema(),
 
 		"tags": tags.Schema(),
 
@@ -304,6 +323,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := parse.NewFunctionAppSlotID(subscriptionId, functionAppId.ResourceGroup, functionAppId.SiteName, functionAppSlot.Name)
+
 			functionApp, err := client.Get(ctx, functionAppId.ResourceGroup, functionAppId.SiteName)
 			if err != nil {
 				return fmt.Errorf("retrieving parent Linux %s: %+v", *functionAppId, err)
@@ -311,13 +331,22 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if functionApp.Location == nil {
 				return fmt.Errorf("could not determine location for %s: %+v", id, err)
 			}
-			props := functionApp.SiteProperties
-			if props == nil || props.ServerFarmID == nil {
-				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
-			}
-			servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
-			if err != nil {
-				return err
+
+			var servicePlanId *parse.ServicePlanId
+			if functionAppSlot.ServicePlanID != "" {
+				servicePlanId, err = parse.ServicePlanID(functionAppSlot.ServicePlanID)
+				if err != nil {
+					return err
+				}
+			} else {
+				if props := functionApp.SiteProperties; props == nil || props.ServerFarmID == nil {
+					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+				} else {
+					servicePlanId, err = parse.ServicePlanID(*props.ServerFarmID)
+					if err != nil {
+						return err
+					}
+				}
 			}
 
 			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
@@ -342,7 +371,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
+				Name: pointer.To(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
@@ -366,8 +395,8 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					}
 				}
 
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix))
-				availabilityRequest.IsFqdn = utils.Bool(true)
+				availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix))
+				availabilityRequest.IsFqdn = pointer.To(true)
 			}
 
 			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -432,25 +461,29 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			siteEnvelope := web.Site{
 				Location: functionApp.Location,
 				Tags:     tags.FromTypedObject(functionAppSlot.Tags),
-				Kind:     utils.String("functionapp,linux"),
+				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:         utils.String(servicePlanId.ID()),
-					Enabled:              utils.Bool(functionAppSlot.Enabled),
-					HTTPSOnly:            utils.Bool(functionAppSlot.HttpsOnly),
+					ServerFarmID:         pointer.To(servicePlanId.ID()),
+					Enabled:              pointer.To(functionAppSlot.Enabled),
+					HTTPSOnly:            pointer.To(functionAppSlot.HttpsOnly),
 					SiteConfig:           siteConfig,
-					ClientCertEnabled:    utils.Bool(functionAppSlot.ClientCertEnabled),
+					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
-					DailyMemoryTimeQuota: utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+					DailyMemoryTimeQuota: pointer.To(int32(functionAppSlot.DailyMemoryTimeQuota)),
 				},
 			}
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
-				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionAppSlot.KeyVaultReferenceIdentityID)
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(functionAppSlot.KeyVaultReferenceIdentityID)
 			}
 
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
-				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionAppSlot.VirtualNetworkSubnetID)
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
+			}
+
+			if functionAppSlot.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = pointer.To(functionAppSlot.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -470,7 +503,11 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(functionAppSlot.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Linux %s: %+v", id, err)
+			}
+
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
 					return fmt.Errorf("adding Backup Settings for Linux %s: %+v", id, err)
@@ -488,6 +525,15 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStrings, id.SlotName); err != nil {
 					return fmt.Errorf("setting Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
+					}
 				}
 			}
 
@@ -513,18 +559,18 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			functionApp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			functionAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
-				if utils.ResponseWasNotFound(functionApp.Response) {
+				if utils.ResponseWasNotFound(functionAppSlot.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			if functionApp.SiteProperties == nil {
+			if functionAppSlot.SiteProperties == nil {
 				return fmt.Errorf("reading properties of Linux %s", id)
 			}
-			props := *functionApp.SiteProperties
+			props := *functionAppSlot.SiteProperties
 
 			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
@@ -561,6 +607,11 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
+			}
+
 			logs, err := client.GetDiagnosticLogsConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading logs configuration for Linux %s: %+v", id, err)
@@ -569,14 +620,31 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state := LinuxFunctionAppSlotModel{
 				Name:                        id.SlotName,
 				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:              string(functionApp.ClientCertMode),
-				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                        tags.ToTypedObject(functionApp.Tags),
-				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
-				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
-				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				Enabled:                     pointer.From(functionAppSlot.Enabled),
+				ClientCertMode:              string(functionAppSlot.ClientCertMode),
+				ClientCertExclusionPaths:    pointer.From(functionAppSlot.ClientCertExclusionPaths),
+				DailyMemoryTimeQuota:        int(pointer.From(props.DailyMemoryTimeQuota)),
+				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
+				Kind:                        pointer.From(functionAppSlot.Kind),
+				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
+				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
+				DefaultHostname:             pointer.From(props.DefaultHostName),
+			}
+
+			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading parent Function App for Linux %s: %+v", *id, err)
+			}
+			if functionApp.SiteProperties == nil || functionApp.SiteProperties.ServerFarmID == nil {
+				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
+			}
+			parentAppFarmId, err := parse.ServicePlanID(*functionApp.SiteProperties.ServerFarmID)
+			if err != nil {
+				return err
+			}
+
+			if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
+				state.ServicePlanID = *slotPlanId
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -602,10 +670,13 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 
-			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
-			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
-			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+			state.HttpsOnly = pointer.From(functionAppSlot.HTTPSOnly)
+
+			state.ClientCertEnabled = pointer.From(functionAppSlot.ClientCertEnabled)
+
+			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
 			}
 
@@ -613,7 +684,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("encoding: %+v", err)
 			}
 
-			flattenedIdentity, err := flattenIdentity(functionApp.Identity)
+			flattenedIdentity, err := flattenIdentity(functionAppSlot.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -674,22 +745,47 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				o, n := metadata.ResourceData.GetChange("service_plan_id")
+				oldPlan, err := parse.ServicePlanID(o.(string))
+				if err != nil {
+					return err
+				}
+
+				newPlan, err := parse.ServicePlanID(n.(string))
+				if err != nil {
+					return err
+				}
+				locks.ByID(oldPlan.ID())
+				defer locks.UnlockByID(oldPlan.ID())
+				locks.ByID(newPlan.ID())
+				defer locks.UnlockByID(newPlan.ID())
+				if existing.SiteProperties == nil {
+					return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
+				}
+				existing.SiteProperties.ServerFarmID = pointer.To(newPlan.ID())
+			}
+
 			sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
 
 			if metadata.ResourceData.HasChange("enabled") {
-				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
+				existing.SiteProperties.Enabled = pointer.To(state.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("https_only") {
-				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+				existing.SiteProperties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
-				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
+				existing.SiteProperties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -701,7 +797,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
-				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+				existing.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -717,7 +813,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					var empty *string
 					existing.SiteProperties.VirtualNetworkSubnetID = empty
 				} else {
-					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+					existing.SiteProperties.VirtualNetworkSubnetID = pointer.To(subnetId)
 				}
 			}
 
@@ -730,10 +826,17 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 				if err != nil {
-					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 				}
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
@@ -752,7 +855,6 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
 				}
-
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
@@ -798,7 +900,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
+				}
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
@@ -834,17 +939,17 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input web.Str
 	for k, v := range input.Properties {
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
-			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
+			m.FunctionExtensionsVersion = pointer.From(v)
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from LinuxFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
-				appSettings[k] = utils.NormalizeNilableString(v)
+				appSettings[k] = pointer.From(v)
 			}
 
 		case "WEBSITE_CONTENTSHARE":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
-				appSettings[k] = utils.NormalizeNilableString(v)
+				appSettings[k] = pointer.From(v)
 			}
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
@@ -855,25 +960,25 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input web.Str
 				}
 			}
 			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
-				appSettings[k] = utils.NormalizeNilableString(v)
+				appSettings[k] = pointer.From(v)
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":
-			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryURL = pointer.From(v)
 
 		case "DOCKER_REGISTRY_SERVER_USERNAME":
-			dockerSettings.RegistryUsername = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryUsername = pointer.From(v)
 
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
-			dockerSettings.RegistryPassword = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryPassword = pointer.From(v)
 
 		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/en-us/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
-			m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)
+			m.SiteConfig[0].AppInsightsInstrumentationKey = pointer.From(v)
 
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
-			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
+			m.SiteConfig[0].AppInsightsConnectionString = pointer.From(v)
 
 		case "AzureWebJobsStorage":
 			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
@@ -887,23 +992,26 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input web.Str
 			m.BuiltinLogging = true
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
-			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
-			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+			i, _ := strconv.Atoi(pointer.From(v))
+			m.SiteConfig[0].HealthCheckEvictionTime = pointer.From(&i)
 
 		case "AzureWebJobsStorage__accountName":
 			m.StorageUsesMSI = true
-			m.StorageAccountName = utils.NormalizeNilableString(v)
+			m.StorageAccountName = pointer.From(v)
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
 
 		case "WEBSITE_RUN_FROM_PACKAGE":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
-				appSettings[k] = utils.NormalizeNilableString(v)
+				appSettings[k] = pointer.From(v)
 			}
 
+		case "WEBSITE_VNET_ROUTE_ALL":
+			// Filter out - handled by site_config setting `vnet_route_all_enabled`
+
 		default:
-			appSettings[k] = utils.NormalizeNilableString(v)
+			appSettings[k] = pointer.From(v)
 		}
 	}
 

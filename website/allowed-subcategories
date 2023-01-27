@@ -23,6 +23,7 @@ Confidential Ledger
 Connections
 Consumption
 Container
+Containers
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
@@ -49,6 +50,7 @@ Healthcare
 IoT Central
 IoT Hub
 Key Vault
+Lab Service
 Lighthouse
 Load Balancer
 Load Test
@@ -66,10 +68,13 @@ Mixed Reality
 Monitor
 NetApp
 Network
+Nginx
+Orbital
 Policy
 Portal
 PowerBI
 Private DNS
+Private DNS Resolver
 Purview
 Recovery Services
 Redis

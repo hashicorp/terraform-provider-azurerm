@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -80,7 +79,7 @@ func dataSourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("name", id.RelativeRecordSetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnsZoneName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

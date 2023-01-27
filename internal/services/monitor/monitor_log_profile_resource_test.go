@@ -54,7 +54,7 @@ func testAccMonitorLogProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -69,7 +69,7 @@ func testAccMonitorLogProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -87,7 +87,7 @@ func testAccMonitorLogProfile_servicebus(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.servicebusConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -101,7 +101,7 @@ func testAccMonitorLogProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -115,7 +115,7 @@ func testAccMonitorLogProfile_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 	r := MonitorLogProfileResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicConfig,
 			TestResource: r,
@@ -227,9 +227,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "acctestsbrule-%s"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestsbrule-%s"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   listen = true
   send   = true

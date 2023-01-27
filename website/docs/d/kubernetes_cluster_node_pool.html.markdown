@@ -36,7 +36,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
 
@@ -95,7 +95,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 A `upgrade_settings` block exports the following:
 
 * `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
-
 
 ## Timeouts
 

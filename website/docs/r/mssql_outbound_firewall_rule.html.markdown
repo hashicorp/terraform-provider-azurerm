@@ -34,13 +34,14 @@ resource "azurerm_mssql_outbound_firewall_rule" "example" {
   server_id = azurerm_mssql_server.example.id
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the outbound firewall rule. This should be a FQDN.
+* `name` - (Required) The name of the outbound firewall rule. This should be a FQDN. Changing this forces a new resource to be created.
 
-* `server_id` - (Required) The resource ID of the SQL Server on which to create the Outbound Firewall Rule.
+* `server_id` - (Required) The resource ID of the SQL Server on which to create the Outbound Firewall Rule. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

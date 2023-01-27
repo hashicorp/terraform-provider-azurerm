@@ -87,7 +87,7 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_update(t *testing.T) {
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPoliciesID(state.ID)
+	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,8 @@ description: |-
 
 Manages a Network Watcher Flow Log.
 
+~> **Note** The `azurerm_network_watcher_flow_log` creates a new storage lifecyle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
+
 ## Example Usage
 
 ```hcl
@@ -101,20 +103,20 @@ The following arguments are supported:
 
 ---
 
-* `retention_policy` supports the following:
+The `retention_policy` block supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable retention.
 * `days` - (Required) The number of days to retain flow log records.
 
 ---
 
-* `traffic_analytics` supports the following:
+The `traffic_analytics` block supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable traffic analytics.
 * `workspace_id` - (Required) The resource GUID of the attached workspace.
 * `workspace_region` - (Required) The location of the attached workspace.
 * `workspace_resource_id` - (Required) The resource ID of the attached workspace.
-* `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes.
+* `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes. Defaults to `60`.
 
 ## Attributes Reference
 

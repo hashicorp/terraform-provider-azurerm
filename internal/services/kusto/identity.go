@@ -1,7 +1,7 @@
 package kusto
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 

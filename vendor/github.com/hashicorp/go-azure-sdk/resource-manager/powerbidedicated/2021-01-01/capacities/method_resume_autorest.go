@@ -19,7 +19,7 @@ type ResumeOperationResponse struct {
 }
 
 // Resume ...
-func (c CapacitiesClient) Resume(ctx context.Context, id CapacitiesId) (result ResumeOperationResponse, err error) {
+func (c CapacitiesClient) Resume(ctx context.Context, id CapacityId) (result ResumeOperationResponse, err error) {
 	req, err := c.preparerForResume(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "capacities.CapacitiesClient", "Resume", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c CapacitiesClient) Resume(ctx context.Context, id CapacitiesId) (result R
 }
 
 // ResumeThenPoll performs Resume then polls until it's completed
-func (c CapacitiesClient) ResumeThenPoll(ctx context.Context, id CapacitiesId) error {
+func (c CapacitiesClient) ResumeThenPoll(ctx context.Context, id CapacityId) error {
 	result, err := c.Resume(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Resume: %+v", err)
@@ -50,7 +50,7 @@ func (c CapacitiesClient) ResumeThenPoll(ctx context.Context, id CapacitiesId) e
 }
 
 // preparerForResume prepares the Resume request.
-func (c CapacitiesClient) preparerForResume(ctx context.Context, id CapacitiesId) (*http.Request, error) {
+func (c CapacitiesClient) preparerForResume(ctx context.Context, id CapacityId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

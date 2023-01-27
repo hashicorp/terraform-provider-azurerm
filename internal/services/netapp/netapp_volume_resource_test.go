@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,6 +26,22 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_availabilityZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.availabilityZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -104,6 +121,7 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 			Config: r.nfsv3FromSnapshot(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("create_from_snapshot_resource_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("(.)/snapshots/acctest-Snapshot-%d", data.RandomInteger))),
 			),
 		},
 		data.ImportStep("create_from_snapshot_resource_id"),
@@ -177,7 +195,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.562"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("64"),
 			),
 		},
 		data.ImportStep(),
@@ -190,7 +208,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("4"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("tags.bAr").HasValue("fOo"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("63"),
 			),
 		},
 		data.ImportStep(),
@@ -277,6 +295,31 @@ func (NetAppVolumeResource) basic(data acceptance.TestData) string {
 resource "azurerm_netapp_volume" "test" {
   name                = "acctest-NetAppVolume-%d"
   location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) availabilityZone(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  zone                = "1"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test.name
   pool_name           = azurerm_netapp_pool.test.name
@@ -522,7 +565,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   protocols                        = ["NFSv3"]
   storage_quota_in_gb              = 200
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
-  throughput_in_mibps              = 3.2
+  throughput_in_mibps              = 3.125
 
   export_policy_rule {
     rule_index        = 1
@@ -657,7 +700,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
+  throughput_in_mibps = 64
 
   export_policy_rule {
     rule_index        = 1
@@ -707,7 +750,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
-  throughput_in_mibps = 65
+  throughput_in_mibps = 63
 
   export_policy_rule {
     rule_index        = 1
@@ -896,12 +939,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true",
-    "SkipNRMSNSG"      = "true"
-  }
 }
 
 resource "azurerm_virtual_network" "test" {

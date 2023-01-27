@@ -6,10 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -51,7 +53,7 @@ var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition
 }
 
 func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceHDInsightKafkaClusterCreate,
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
@@ -72,9 +74,9 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"cluster_version": SchemaHDInsightClusterVersion(),
 
@@ -109,11 +111,15 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
+			"compute_isolation": SchemaHDInsightsComputeIsolation(),
+
 			"encryption_in_transit_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
 				Optional: true,
 			},
+
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
 			"roles": {
 				Type:     pluginsdk.TypeList,
@@ -153,7 +159,12 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 						},
 					},
 				},
-				RequiredWith: []string{"roles.0.kafka_management_node"},
+				RequiredWith: func() []string {
+					if !features.FourPointOh() {
+						return []string{"roles.0.kafka_management_node"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"tags": tags.Schema(),
@@ -174,8 +185,47 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			},
 
 			"monitor": SchemaHDInsightsMonitor(),
+
+			"extension": SchemaHDInsightsExtension(),
 		},
 	}
+
+	if !features.FourPointOh() {
+		resource.Schema["roles"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition, true),
+
+					"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition, true),
+
+					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition, true),
+
+					"kafka_management_node": SchemaHDInsightNodeDefinition("roles.0.kafka_management_node", hdInsightKafkaClusterKafkaManagementNodeDefinition, false),
+				},
+			},
+			Deprecated: "`kafka_management_node` will be removed in version 4.0 of the AzureRM Provider since it no longer support configurations from the user",
+		}
+	} else {
+		resource.Schema["roles"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition, true),
+
+					"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition, true),
+
+					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition, true),
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -242,6 +292,8 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	kafkaRestProperty := expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
 
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
+
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
@@ -261,7 +313,8 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
-			KafkaRestProperties: kafkaRestProperty,
+			KafkaRestProperties:        kafkaRestProperty,
+			ComputeIsolationProperties: computeIsolationProperties,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
@@ -270,6 +323,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	if encryptionInTransit, ok := d.GetOk("encryption_in_transit_enabled"); ok {
 		params.Properties.EncryptionInTransitProperties = &hdinsight.EncryptionInTransitProperties{
 			IsEncryptionInTransitEnabled: utils.Bool(encryptionInTransit.(bool)),
+		}
+	}
+
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -310,6 +370,13 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
 		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+			return err
+		}
+	}
+
+	if v, ok := d.GetOk("extension"); ok {
+		extensionRaw := v.([]interface{})
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -412,6 +479,21 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flatten `network`: %+v", err)
 			}
 		}
+		if props.ComputeIsolationProperties.EnableComputeIsolation != nil {
+			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
+			}
+		}
+
+		if props.DiskEncryptionProperties != nil {
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+			}
+		}
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
@@ -423,6 +505,13 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
 			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
 		}
+
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+		}
+
+		d.Set("extension", flattenHDInsightAzureMonitor(extension))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)

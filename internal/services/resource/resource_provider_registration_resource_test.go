@@ -131,13 +131,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.HybridCompute"
+  name = "Microsoft.ApiSecurity"
   feature {
-    name       = "UpdateCenter"
+    name       = "PP2CanaryAccessDEV"
     registered = %t
   }
   feature {
-    name       = "ArcServerPrivateLinkPreview"
+    name       = "PP3CanaryAccessDEV"
     registered = %t
   }
 }

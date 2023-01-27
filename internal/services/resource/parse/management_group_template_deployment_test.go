@@ -1,12 +1,6 @@
 package parse
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-)
-
-var _ resourceid.Formatter = ManagementGroupTemplateDeploymentId{}
+import "testing"
 
 func TestManagementGroupTemplateDeploymentIDFormatter(t *testing.T) {
 	actual := NewManagementGroupTemplateDeploymentID("my-management-group-id", "deploy1").ID()

@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Redis caches exists. Changing this forces a new Redis to be created.
 
-* `server_role` - (Required) The role of the linked Redis cache (eg "Secondary"). Changing this forces a new Redis to be created.
+* `server_role` - (Required) The role of the linked Redis cache (eg "Secondary"). Changing this forces a new Redis to be created. Possible values are `Primary` and `Secondary`.
 
 ## Attributes Reference
 
@@ -90,10 +90,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Redis.
+* `create` - (Defaults to 60 minutes) Used when creating the Redis.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis.
-* `update` - (Defaults to 30 minutes) Used when updating the Redis.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Redis.
+* `update` - (Defaults to 60 minutes) Used when updating the Redis.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Redis.
 
 ## Import
 

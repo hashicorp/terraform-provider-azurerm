@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Cost Management Export. Changing this forces a new resource to be created.
 
-* `resource_group_id` - (Required) The id of the resource group on which to create an export.
+* `resource_group_id` - (Required) The id of the resource group on which to create an export. Changing this forces a new resource to be created.
 
 * `recurrence_type` - (Required) How often the requested information will be exported. Valid values include `Annually`, `Daily`, `Monthly`, `Weekly`.
 
@@ -75,23 +75,23 @@ The following arguments are supported:
 
 A `export_data_storage_location` block supports the following:
 
-* `container_id` - (Required) The Resource Manager ID of the container where exports will be uploaded.
+* `container_id` - (Required) The Resource Manager ID of the container where exports will be uploaded. Changing this forces a new resource to be created.
 
-* `root_folder_path` - (Required) The path of the directory where exports will be uploaded.
+* `root_folder_path` - (Required) The path of the directory where exports will be uploaded. Changing this forces a new resource to be created.
 
-**Note:** The Resource Manager ID of a Storage Container is exposed via the `resource_manager_id` attribute of the `azurerm_storage_container` resource.
+~> **Note:** The Resource Manager ID of a Storage Container is exposed via the `resource_manager_id` attribute of the `azurerm_storage_container` resource.
 
 ---
 
 A `export_data_options` block supports the following:
 
-* `type` - (Required) The type of the query.
+* `type` - (Required) The type of the query. Possible values are `ActualCost`, `AmortizedCost` and `Usage`.
 
 * `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `BillingMonthToDate`, `TheLastWeek`, `TheLastMonth`, `TheLastBillingMonth`, `Custom`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cost Management Export for this Resource Group.
 
@@ -99,7 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Resource Group Cost Management Export. 
+* `create` - (Defaults to 30 minutes) Used when creating the Resource Group Cost Management Export.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group Cost Management Export.
 * `update` - (Defaults to 30 minutes) Used when updating the Resource Group Cost Management Export.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Resource Group Cost Management Export.

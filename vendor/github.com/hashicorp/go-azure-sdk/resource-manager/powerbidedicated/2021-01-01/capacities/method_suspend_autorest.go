@@ -19,7 +19,7 @@ type SuspendOperationResponse struct {
 }
 
 // Suspend ...
-func (c CapacitiesClient) Suspend(ctx context.Context, id CapacitiesId) (result SuspendOperationResponse, err error) {
+func (c CapacitiesClient) Suspend(ctx context.Context, id CapacityId) (result SuspendOperationResponse, err error) {
 	req, err := c.preparerForSuspend(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "capacities.CapacitiesClient", "Suspend", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c CapacitiesClient) Suspend(ctx context.Context, id CapacitiesId) (result 
 }
 
 // SuspendThenPoll performs Suspend then polls until it's completed
-func (c CapacitiesClient) SuspendThenPoll(ctx context.Context, id CapacitiesId) error {
+func (c CapacitiesClient) SuspendThenPoll(ctx context.Context, id CapacityId) error {
 	result, err := c.Suspend(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Suspend: %+v", err)
@@ -50,7 +50,7 @@ func (c CapacitiesClient) SuspendThenPoll(ctx context.Context, id CapacitiesId) 
 }
 
 // preparerForSuspend prepares the Suspend request.
-func (c CapacitiesClient) preparerForSuspend(ctx context.Context, id CapacitiesId) (*http.Request, error) {
+func (c CapacitiesClient) preparerForSuspend(ctx context.Context, id CapacityId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

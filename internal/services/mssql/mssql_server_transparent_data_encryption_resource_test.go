@@ -30,6 +30,28 @@ func TestAccMsSqlServerTransparentDataEncryption_keyVault(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServerTransparentDataEncryption_autoRotate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
+	r := MsSqlServerTransparentDataEncryptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoRotate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlServerTransparentDataEncryption_systemManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
 	r := MsSqlServerTransparentDataEncryptionResource{}
@@ -88,7 +110,7 @@ func (MsSqlServerTransparentDataEncryptionResource) Exists(ctx context.Context, 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r MsSqlServerTransparentDataEncryptionResource) keyVault(data acceptance.TestData) string {
+func (r MsSqlServerTransparentDataEncryptionResource) baseKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -141,12 +163,30 @@ resource "azurerm_key_vault_key" "generated" {
     azurerm_key_vault.test,
   ]
 }
+`, r.server(data), data.RandomStringOfLength(5))
+}
+
+func (r MsSqlServerTransparentDataEncryptionResource) keyVault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_mssql_server_transparent_data_encryption" "test" {
   server_id        = azurerm_mssql_server.test.id
   key_vault_key_id = azurerm_key_vault_key.generated.id
 }
-`, r.server(data), data.RandomStringOfLength(5))
+`, r.baseKeyVault(data))
+}
+
+func (r MsSqlServerTransparentDataEncryptionResource) autoRotate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_server_transparent_data_encryption" "test" {
+  server_id             = azurerm_mssql_server.test.id
+  key_vault_key_id      = azurerm_key_vault_key.generated.id
+  auto_rotation_enabled = true
+}
+`, r.baseKeyVault(data))
 }
 
 func (r MsSqlServerTransparentDataEncryptionResource) systemManaged(data acceptance.TestData) string {

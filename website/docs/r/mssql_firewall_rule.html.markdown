@@ -34,13 +34,14 @@ resource "azurerm_mssql_firewall_rule" "example" {
   end_ip_address   = "10.0.17.62"
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the firewall rule.
+* `name` - (Required) The name of the firewall rule. Changing this forces a new resource to be created.
 
-* `server_id` - (Required) The resource ID of the SQL Server on which to create the Firewall Rule.
+* `server_id` - (Required) The resource ID of the SQL Server on which to create the Firewall Rule. Changing this forces a new resource to be created.
 
 * `start_ip_address` - (Required) The starting IP address to allow through the firewall for this rule.
 

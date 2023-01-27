@@ -97,7 +97,7 @@ resource "azurerm_synapse_workspace_sql_aad_admin" "example" {
 
 The following arguments are supported:
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD Administrator should be configured. 
+* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Azure AD Administrator should be configured.
 
 * `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace.
 

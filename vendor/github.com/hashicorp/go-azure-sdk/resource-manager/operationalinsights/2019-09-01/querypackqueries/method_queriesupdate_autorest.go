@@ -17,7 +17,7 @@ type QueriesUpdateOperationResponse struct {
 }
 
 // QueriesUpdate ...
-func (c QueryPackQueriesClient) QueriesUpdate(ctx context.Context, id QueriesId, input LogAnalyticsQueryPackQuery) (result QueriesUpdateOperationResponse, err error) {
+func (c QueryPackQueriesClient) QueriesUpdate(ctx context.Context, id QueryId, input LogAnalyticsQueryPackQuery) (result QueriesUpdateOperationResponse, err error) {
 	req, err := c.preparerForQueriesUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "querypackqueries.QueryPackQueriesClient", "QueriesUpdate", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c QueryPackQueriesClient) QueriesUpdate(ctx context.Context, id QueriesId,
 }
 
 // preparerForQueriesUpdate prepares the QueriesUpdate request.
-func (c QueryPackQueriesClient) preparerForQueriesUpdate(ctx context.Context, id QueriesId, input LogAnalyticsQueryPackQuery) (*http.Request, error) {
+func (c QueryPackQueriesClient) preparerForQueriesUpdate(ctx context.Context, id QueryId, input LogAnalyticsQueryPackQuery) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

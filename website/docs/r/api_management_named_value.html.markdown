@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management Named Value.
 
-
 ## Example Usage
 
 ```hcl
@@ -37,7 +36,6 @@ resource "azurerm_api_management_named_value" "example" {
   value               = "Example Value"
 }
 ```
-
 
 ## Argument Reference
 

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 type VirtualMachineDataDiskAttachmentResource struct{}
@@ -324,6 +324,8 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_F2"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -470,6 +472,8 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_M64s"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -557,6 +561,8 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_F2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"

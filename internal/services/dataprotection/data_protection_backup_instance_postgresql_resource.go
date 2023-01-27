@@ -68,7 +68,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupPoliciesID,
+				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
 
 			"database_credential_key_vault_secret_id": {
@@ -89,7 +89,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	name := d.Get("name").(string)
 	vaultId, _ := backupinstances.ParseBackupVaultID(d.Get("vault_id").(string))
 
-	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
+	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -106,7 +106,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	databaseId, _ := databases.ParseDatabaseID(d.Get("database_id").(string))
 	location := location.Normalize(d.Get("location").(string))
 	serverId := servers.NewServerID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.ServerName)
-	policyId, _ := backuppolicies.ParseBackupPoliciesID(d.Get("backup_policy_id").(string))
+	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
@@ -188,7 +188,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
-	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupInstanceName)
 	d.Set("vault_id", vaultId.ID())
 

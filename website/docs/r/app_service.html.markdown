@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `client_cert_mode` - (Optional) Mode of client certificates for this App Service. Possible values are `Required`, `Optional` and `OptionalInteractiveUser`. If this parameter is set, `client_cert_enabled` must be set to `true`, otherwise this parameter is ignored.
 
-* `enabled` - (Optional) Is the App Service Enabled?
+* `enabled` - (Optional) Is the App Service Enabled? Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -125,7 +125,7 @@ A `connection_string` block supports the following:
 
 * `name` - (Required) The name of the Connection String.
 
-* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
+* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and `SQLServer`.
 
 * `value` - (Required) The value for the Connection String.
 
@@ -173,7 +173,7 @@ An `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `sas_url` - (Required) The URL to the storage container with a shared access signature token appended. 
+* `sas_url` - (Required) The URL to the storage container with a shared access signature token appended.
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
@@ -219,7 +219,7 @@ A `site_config` block supports the following:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to false.  
+* `scm_use_main_ip_restriction` - (Optional) IP security restrictions for scm to use main. Defaults to `false`. 
 
 -> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
 
@@ -255,7 +255,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
+* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2017` and `VS2019`.
 
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
@@ -269,12 +269,11 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-
 ---
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 * `support_credentials` - (Optional) Are credentials supported?
 
@@ -298,15 +297,15 @@ A `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
+* `issuer` - (Optional) Issuer URI. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
 * `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
 
-* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to 72.
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72`.
 
-* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to false.
+* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -320,7 +319,7 @@ A `active_directory` block supports the following:
 
 * `client_secret` - (Optional) The Client Secret of this relying party application. If no secret is provided, implicit flow will be used.
 
-* `allowed_audiences` (Optional) Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
+* `allowed_audiences` - (Optional) Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
 
 ---
 
@@ -330,7 +329,7 @@ A `facebook` block supports the following:
 
 * `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. https://developers.facebook.com/docs/facebook-login
+* `oauth_scopes` - (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. <https://developers.facebook.com/docs/facebook-login>
 
 ---
 
@@ -340,7 +339,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Required) The client secret associated with the Google web application.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. https://developers.google.com/identity/sign-in/web/
+* `oauth_scopes` - (Optional) The OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. <https://developers.google.com/identity/sign-in/web/>
 
 ---
 
@@ -358,7 +357,7 @@ A `ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
 
-* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
 
 * `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
 
@@ -376,9 +375,9 @@ A `scm_ip_restriction` block supports the following:
 
 * `name` - (Optional) The name for this IP Restriction.
 
-* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified. 
 
-* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to `Allow`.
 
 * `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
 
@@ -402,19 +401,19 @@ A `microsoft` block supports the following:
 
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+* `oauth_scopes` - (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. <https://msdn.microsoft.com/en-us/library/dn631845.aspx>
 
 ---
 
 A `backup` block supports the following:
 
-* `name` (Required) Specifies the name for this Backup.
+* `name` - (Required) Specifies the name for this Backup.
 
-* `enabled` - (Required) Is this Backup enabled?
+* `enabled` - (Optional) Is this Backup enabled? Defaults to `true`.
 
-* `storage_account_url` (Optional) The SAS URL to a Storage Container where Backups should be saved.
+* `storage_account_url` - (Required) The SAS URL to a Storage Container where Backups should be saved.
 
-* `schedule` - (Optional) A `schedule` block as defined below.
+* `schedule` - (Required) A `schedule` block as defined below.
 
 ---
 
@@ -422,11 +421,11 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) Sets how often the backup should be executed.
 
-* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
+* `frequency_unit` - (Required) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
 
 * `keep_at_least_one_backup` - (Optional) Should at least one backup always be kept in the Storage Account by the Retention Policy, regardless of how old it is?
 
-* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
+* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted. Defaults to `30`.
 
 * `start_time` - (Optional) Sets when the schedule should start working.
 
@@ -434,15 +433,15 @@ A `schedule` block supports the following:
 
 A `source_control` block supports the following:
 
-* `repo_url` - (Required) The URL of the source code repository.
+* `repo_url` - (Optional) The URL of the source code repository.
 
-* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'. 
+* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'.
 
-* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified. 
+* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified.
 
 * `rollback_enabled` - (Optional) Enable roll-back for the repository. Defaults to `false` if not specified.
 
-* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git. 
+* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git.
 
 ## Attributes Reference
 

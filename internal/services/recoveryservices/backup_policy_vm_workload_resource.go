@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -632,19 +632,19 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 				return nil, fmt.Errorf("`retention_daily` must be set when `backup.0.frequency` is `Daily`")
 			}
 
-			if weekdays := backupBlock.Weekdays; weekdays != nil && len(weekdays) > 0 {
+			if weekdays := backupBlock.Weekdays; len(weekdays) > 0 {
 				return nil, fmt.Errorf("`backup.0.weekdays` should be not set when `backup.0.frequency` is `Daily`")
 			}
 		case string(backup.ScheduleRunTypeWeekly):
-			if item.RetentionDaily != nil && len(item.RetentionDaily) > 0 {
+			if len(item.RetentionDaily) > 0 {
 				return nil, fmt.Errorf("`retention_daily` must be not set when `backup.0.frequency` is `Weekly`")
 			}
 
-			if item.PolicyType != string(backup.PolicyTypeLog) && (backupBlock.Weekdays == nil || len(backupBlock.Weekdays) == 0) {
+			if item.PolicyType != string(backup.PolicyTypeLog) && len(backupBlock.Weekdays) == 0 {
 				return nil, fmt.Errorf("`backup.weekdays` must be set when `policy_type` is not `Log` and `backup.frequency` is `Weekly`")
 			}
 
-			if item.PolicyType == string(backup.PolicyTypeFull) && (item.RetentionWeekly == nil || len(item.RetentionWeekly) == 0) {
+			if item.PolicyType == string(backup.PolicyTypeFull) && len(item.RetentionWeekly) == 0 {
 				return nil, fmt.Errorf("`retention_weekly` must be set when `policy_type` is `Full` and `backup.frequency` is `Weekly`")
 			}
 		}
@@ -723,11 +723,11 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 			schedule.ScheduleRunFrequency = backup.ScheduleRunType(backupBlock.Frequency)
 		}
 
-		if times != nil && len(times) > 0 {
+		if len(times) > 0 {
 			schedule.ScheduleRunTimes = &times
 		}
 
-		if v := backupBlock.Weekdays; v != nil && len(v) > 0 {
+		if v := backupBlock.Weekdays; len(v) > 0 {
 			days := make([]backup.DayOfWeek, 0)
 			for _, day := range v {
 				days = append(days, backup.DayOfWeek(day))
@@ -803,7 +803,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 				},
 			}
 
-			if v := retentionWeekly.Weekdays; v != nil && len(v) > 0 {
+			if v := retentionWeekly.Weekdays; len(v) > 0 {
 				days := make([]backup.DayOfWeek, 0)
 				for _, day := range v {
 					days = append(days, backup.DayOfWeek(day))
@@ -1012,7 +1012,7 @@ func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *backup.Retent
 }
 
 func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int) *backup.DailyRetentionFormat {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -1038,13 +1038,13 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int) *ba
 }
 
 func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks []string) *backup.WeeklyRetentionFormat {
-	if (weekdays == nil && weeks == nil) || (len(weekdays) == 0 && len(weeks) == 0) {
+	if len(weekdays) == 0 && len(weeks) == 0 {
 		return nil
 	}
 
 	weekly := backup.WeeklyRetentionFormat{}
 
-	if weekdays != nil && len(weekdays) > 0 {
+	if len(weekdays) > 0 {
 		weekdaysBlock := make([]backup.DayOfWeek, 0)
 		for _, day := range weekdays {
 			weekdaysBlock = append(weekdaysBlock, backup.DayOfWeek(day))
@@ -1052,7 +1052,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks
 		weekly.DaysOfTheWeek = &weekdaysBlock
 	}
 
-	if weeks != nil && len(weeks) > 0 {
+	if len(weeks) > 0 {
 		weeksBlock := make([]backup.WeekOfMonth, 0)
 		for _, week := range weeks {
 			weeksBlock = append(weeksBlock, backup.WeekOfMonth(week))

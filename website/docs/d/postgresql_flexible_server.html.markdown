@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the PostgreSQL Flexible Server.
 
@@ -56,7 +56,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `version` - The version of PostgreSQL Flexible Server to use.
 
 * `tags` - A mapping of tags assigned to the PostgreSQL Flexible Server.
-
 
 ## Timeouts
 

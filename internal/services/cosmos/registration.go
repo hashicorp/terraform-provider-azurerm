@@ -44,6 +44,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_cosmosdb_account":                      dataSourceCosmosDbAccount(),
 		"azurerm_cosmosdb_mongo_database":               dataSourceCosmosDbMongoDatabase(),
 		"azurerm_cosmosdb_restorable_database_accounts": dataSourceCosmosDbRestorableDatabaseAccounts(),
+		"azurerm_cosmosdb_sql_database":                 dataSourceCosmosDbSQLDatabase(),
+		"azurerm_cosmosdb_sql_role_definition":          dataSourceCosmosDbSQLRoleDefinition(),
 	}
 }
 

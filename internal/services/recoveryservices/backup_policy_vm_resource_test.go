@@ -587,6 +587,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+// nolint: unparam
 func (r BackupProtectionPolicyVMResource) basicHourly(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s

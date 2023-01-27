@@ -195,6 +195,13 @@ resource "azurerm_data_factory_flowlet_data_flow" "test" {
       }
     }
 
+    rejected_linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
+
     schema_linked_service {
       name = azurerm_data_factory_linked_custom_service.test.name
       parameters = {

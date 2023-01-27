@@ -318,6 +318,58 @@ func TestAccLinuxVirtualMachineScaleSet_extensionAutomaticUpgradeEnabled(t *test
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_extensionOperationsEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionOperationsEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_extensionOperationsDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionOperationsDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_extensionProtectedSettingsFromKeyVault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionProtectedSettingsFromKeyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.extensionProtectedSettingsFromKeyVaultUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func (r LinuxVirtualMachineScaleSetResource) extensionDoNotRunExtensionsOnOverProvisionedMachines(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -994,14 +1046,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                 = "acctest-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  reliability_level    = "Silver"
-  upgrade_mode         = "Manual"
-  cluster_code_version = "8.1.316.9590"
-  vm_image             = "Windows"
-  management_endpoint  = "http://example:80"
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Silver"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Linux"
+  management_endpoint = "http://example:80"
 
   node_type {
     name                 = "backend"
@@ -1135,4 +1186,227 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionOperationsEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  extension_operations_enabled = true
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
+
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionOperationsDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  extension_operations_enabled = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionProtectedSettingsFromKeyVault(data acceptance.TestData) string {
+	return r.extensionProtectedSettingsFromKeyVaultTemplate(data, 0)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionProtectedSettingsFromKeyVaultUpdated(data acceptance.TestData) string {
+	return r.extensionProtectedSettingsFromKeyVaultTemplate(data, 1)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionProtectedSettingsFromKeyVaultTemplate(data acceptance.TestData, index int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults       = false
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  count = 2
+
+  name                   = "acctestkv${count.index}%[3]s"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  tenant_id              = data.azurerm_client_config.current.tenant_id
+  sku_name               = "standard"
+  enabled_for_deployment = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  count = 2
+
+  name         = "secret"
+  value        = "{\"commandToExecute\":\"echo $HOSTNAME\"}"
+  key_vault_id = azurerm_key_vault.test[count.index].id
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                 = "CustomScript"
+    publisher            = "Microsoft.Azure.Extensions"
+    type                 = "CustomScript"
+    type_handler_version = "2.1"
+
+    protected_settings_from_key_vault {
+      secret_url      = azurerm_key_vault_secret.test[%[4]d].id
+      source_vault_id = azurerm_key_vault.test[%[4]d].id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString, index)
 }

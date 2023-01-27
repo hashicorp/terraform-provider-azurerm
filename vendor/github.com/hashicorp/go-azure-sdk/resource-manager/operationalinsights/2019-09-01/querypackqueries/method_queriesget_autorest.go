@@ -17,7 +17,7 @@ type QueriesGetOperationResponse struct {
 }
 
 // QueriesGet ...
-func (c QueryPackQueriesClient) QueriesGet(ctx context.Context, id QueriesId) (result QueriesGetOperationResponse, err error) {
+func (c QueryPackQueriesClient) QueriesGet(ctx context.Context, id QueryId) (result QueriesGetOperationResponse, err error) {
 	req, err := c.preparerForQueriesGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "querypackqueries.QueryPackQueriesClient", "QueriesGet", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c QueryPackQueriesClient) QueriesGet(ctx context.Context, id QueriesId) (r
 }
 
 // preparerForQueriesGet prepares the QueriesGet request.
-func (c QueryPackQueriesClient) preparerForQueriesGet(ctx context.Context, id QueriesId) (*http.Request, error) {
+func (c QueryPackQueriesClient) preparerForQueriesGet(ctx context.Context, id QueryId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

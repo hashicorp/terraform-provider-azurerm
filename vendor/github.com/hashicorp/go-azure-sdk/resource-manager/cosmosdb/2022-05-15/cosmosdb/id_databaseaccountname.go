@@ -11,13 +11,13 @@ var _ resourceids.ResourceId = DatabaseAccountNameId{}
 
 // DatabaseAccountNameId is a struct representing the Resource ID for a Database Account Name
 type DatabaseAccountNameId struct {
-	AccountName string
+	DatabaseAccountNameName string
 }
 
 // NewDatabaseAccountNameID returns a new DatabaseAccountNameId struct
-func NewDatabaseAccountNameID(accountName string) DatabaseAccountNameId {
+func NewDatabaseAccountNameID(databaseAccountNameName string) DatabaseAccountNameId {
 	return DatabaseAccountNameId{
-		AccountName: accountName,
+		DatabaseAccountNameName: databaseAccountNameName,
 	}
 }
 
@@ -32,8 +32,8 @@ func ParseDatabaseAccountNameID(input string) (*DatabaseAccountNameId, error) {
 	var ok bool
 	id := DatabaseAccountNameId{}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountNameName, ok = parsed.Parsed["databaseAccountNameName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountNameName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -51,8 +51,8 @@ func ParseDatabaseAccountNameIDInsensitively(input string) (*DatabaseAccountName
 	var ok bool
 	id := DatabaseAccountNameId{}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountNameName, ok = parsed.Parsed["databaseAccountNameName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountNameName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -76,7 +76,7 @@ func ValidateDatabaseAccountNameID(input interface{}, key string) (warnings []st
 // ID returns the formatted Database Account Name ID
 func (id DatabaseAccountNameId) ID() string {
 	fmtString := "/providers/Microsoft.DocumentDB/databaseAccountNames/%s"
-	return fmt.Sprintf(fmtString, id.AccountName)
+	return fmt.Sprintf(fmtString, id.DatabaseAccountNameName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Database Account Name ID
@@ -85,14 +85,14 @@ func (id DatabaseAccountNameId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccountNames", "databaseAccountNames", "databaseAccountNames"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountNameName", "databaseAccountNameValue"),
 	}
 }
 
 // String returns a human-readable description of this Database Account Name ID
 func (id DatabaseAccountNameId) String() string {
 	components := []string{
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Database Account Name Name: %q", id.DatabaseAccountNameName),
 	}
 	return fmt.Sprintf("Database Account Name (%s)", strings.Join(components, "\n"))
 }

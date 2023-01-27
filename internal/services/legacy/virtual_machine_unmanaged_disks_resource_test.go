@@ -337,7 +337,8 @@ func TestAccVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 }
 
 // to accept terms for config:
-//   get-AzureRmMarketplaceTerms -publisher kemptech -product vlm-azure -name freeloadmaster | Set-AzureRmMarketplaceTerms -accept
+//
+//	get-AzureRmMarketplaceTerms -publisher kemptech -product vlm-azure -name freeloadmaster | Set-AzureRmMarketplaceTerms -accept
 func TestAccVirtualMachine_plan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
@@ -387,9 +388,7 @@ func TestAccVirtualMachine_optionalOSProfile(t *testing.T) {
 		{
 			Destroy: false,
 			Config:  r.basicLinuxMachine_destroy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).DoesNotExistInAzure(r),
-			),
+			Check:   acceptance.ComposeTestCheckFunc(),
 		},
 		{
 			Config: r.basicLinuxMachine_attach_without_osProfile(data),
@@ -1705,7 +1704,7 @@ resource "azurerm_virtual_machine" "test" {
 
   os_profile_windows_config {
     winrm {
-      protocol = "http"
+      protocol = "HTTP"
     }
   }
 }
@@ -1796,7 +1795,7 @@ resource "azurerm_virtual_machine" "test" {
 
   os_profile_windows_config {
     winrm {
-      protocol = "http"
+      protocol = "HTTP"
     }
   }
 }
@@ -2688,7 +2687,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_os_disk {
     name          = "myosdisk1"
     vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    os_type       = "linux"
+    os_type       = "Linux"
     caching       = "ReadWrite"
     create_option = "Attach"
   }

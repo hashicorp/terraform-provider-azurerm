@@ -84,6 +84,7 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enablePartitioningStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -92,6 +93,7 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -147,6 +149,7 @@ func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enableDuplicateDetection(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -168,6 +171,7 @@ func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 				check.That(data.ResourceName).Key("requires_session").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enableRequiresSession(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -189,6 +193,7 @@ func TestAccServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T)
 				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enableDeadLetteringOnMessageExpiration(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -208,14 +213,13 @@ func TestAccServiceBusQueue_lockDuration(t *testing.T) {
 			Config: r.lockDuration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("lock_duration").HasValue("PT40S"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.lockDurationUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("lock_duration").HasValue("PT2M"),
 			),
 		},
 		data.ImportStep(),
@@ -248,14 +252,12 @@ func TestAccServiceBusQueue_maxDeliveryCount(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("max_delivery_count").HasValue("10"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.maxDeliveryCount(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("max_delivery_count").HasValue("20"),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 	})
@@ -272,6 +274,7 @@ func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 				check.That(data.ResourceName).Key("forward_to").HasValue(""),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.forwardTo(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -293,6 +296,7 @@ func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(""),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.forwardDeadLetteredMessagesTo(data),
 			Check: acceptance.ComposeTestCheckFunc(

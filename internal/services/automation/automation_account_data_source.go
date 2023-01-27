@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	identity2 "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,14 +34,19 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
 			"secondary_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
 			"private_endpoint_connection": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -56,6 +62,11 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"hybrid_service_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -91,9 +102,19 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("primary_key", iresp.Keys.Primary)
 		d.Set("secondary_key", iresp.Keys.Secondary)
 	}
+
+	identity, err := identity2.FlattenSystemAndUserAssignedMap(resp.Model.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	d.Set("endpoint", iresp.Endpoint)
 	if resp.Model != nil && resp.Model.Properties != nil {
 		d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(resp.Model.Properties.PrivateEndpointConnections))
+		d.Set("hybrid_service_url", resp.Model.Properties.AutomationHybridServiceUrl)
 	}
 	return nil
 }

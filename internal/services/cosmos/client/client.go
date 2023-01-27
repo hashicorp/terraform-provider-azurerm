@@ -1,14 +1,15 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	CassandraClient                  *documentdb.CassandraResourcesClient
-	CassandraClustersClient          *documentdb.CassandraClustersClient
+	CassandraClustersClient          *managedcassandras.ManagedCassandrasClient
 	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
 	GremlinClient                    *documentdb.GremlinResourcesClient
@@ -25,7 +26,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	cassandraClient := documentdb.NewCassandraResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&cassandraClient.Client, o.ResourceManagerAuthorizer)
 
-	cassandraClustersClient := documentdb.NewCassandraClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	cassandraClustersClient := managedcassandras.NewManagedCassandrasClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&cassandraClustersClient.Client, o.ResourceManagerAuthorizer)
 
 	cassandraDatacentersClient := documentdb.NewCassandraDataCentersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

@@ -34,9 +34,8 @@ resource "azurerm_backup_policy_vm_workload" "example" {
   workload_type = "SQLDataBase"
 
   settings {
-    time_zone               = "UTC"
-    compression_enabled     = false
-    sql_compression_enabled = false
+    time_zone           = "UTC"
+    compression_enabled = false
   }
 
   protection_policy {

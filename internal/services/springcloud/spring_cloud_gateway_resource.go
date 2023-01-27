@@ -5,15 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
 )
 
 func resourceSpringCloudGateway() *pluginsdk.Resource {
@@ -22,6 +23,11 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 		Read:   resourceSpringCloudGatewayRead,
 		Update: resourceSpringCloudGatewayCreateUpdate,
 		Delete: resourceSpringCloudGatewayDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudGatewayV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -91,6 +97,21 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"application_performance_monitoring_types": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(appplatform.ApmTypeAppDynamics),
+						string(appplatform.ApmTypeApplicationInsights),
+						string(appplatform.ApmTypeDynatrace),
+						string(appplatform.ApmTypeElasticAPM),
+						string(appplatform.ApmTypeNewRelic),
+					}, false),
+				},
+			},
+
 			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -151,6 +172,25 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Optional: true,
 						},
 					},
+				},
+			},
+
+			"environment_variables": {
+				Type:     pluginsdk.TypeMap,
+				ForceNew: true,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"sensitive_environment_variables": {
+				Type:      pluginsdk.TypeMap,
+				Optional:  true,
+				ForceNew:  true,
+				Sensitive: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -276,7 +316,9 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	gatewayResource := appplatform.GatewayResource{
 		Properties: &appplatform.GatewayProperties{
 			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
+			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{})),
 			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{})),
+			EnvironmentVariables:  expandGatewayGatewayEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}), d.Get("sensitive_environment_variables").(map[string]interface{})),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
 			Public:                utils.Bool(d.Get("public_network_access_enabled").(bool)),
 			ResourceRequests:      expandGatewayGatewayResourceRequests(d.Get("quota").([]interface{})),
@@ -330,8 +372,16 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		if err := d.Set("api_metadata", flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)); err != nil {
 			return fmt.Errorf("setting `api_metadata`: %+v", err)
 		}
+		if err := d.Set("application_performance_monitoring_types", flattenGatewayGatewayApmTypess(props.ApmTypes)); err != nil {
+			return fmt.Errorf("setting `application_performance_monitoring_types`: %+v", err)
+		}
 		if err := d.Set("cors", flattenGatewayGatewayCorsProperties(props.CorsProperties)); err != nil {
 			return fmt.Errorf("setting `cors`: %+v", err)
+		}
+		if props.EnvironmentVariables != nil {
+			if props.EnvironmentVariables.Properties != nil {
+				d.Set("environment_variables", utils.FlattenMapStringPtrString(props.EnvironmentVariables.Properties))
+			}
 		}
 		d.Set("https_only", props.HTTPSOnly)
 		d.Set("public_network_access_enabled", props.Public)
@@ -417,6 +467,28 @@ func expandGatewaySsoProperties(input []interface{}) *appplatform.SsoProperties 
 		ClientID:     utils.String(v["client_id"].(string)),
 		ClientSecret: utils.String(v["client_secret"].(string)),
 		IssuerURI:    utils.String(v["issuer_uri"].(string)),
+	}
+}
+
+func expandGatewayGatewayApmTypes(input []interface{}) *[]appplatform.ApmType {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]appplatform.ApmType, 0)
+	for _, v := range input {
+		out = append(out, appplatform.ApmType(v.(string)))
+	}
+	return &out
+}
+
+func expandGatewayGatewayEnvironmentVariables(env map[string]interface{}, secrets map[string]interface{}) *appplatform.GatewayPropertiesEnvironmentVariables {
+	if len(env) == 0 && len(secrets) == 0 {
+		return nil
+	}
+
+	return &appplatform.GatewayPropertiesEnvironmentVariables{
+		Properties: utils.ExpandMapStringPtrString(env),
+		Secrets:    utils.ExpandMapStringPtrString(secrets),
 	}
 }
 
@@ -537,4 +609,15 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []interfa
 			"scope":         utils.FlattenStringSlice(input.Scope),
 		},
 	}
+}
+
+func flattenGatewayGatewayApmTypess(input *[]appplatform.ApmType) []interface{} {
+	if input == nil {
+		return nil
+	}
+	out := make([]interface{}, 0)
+	for _, v := range *input {
+		out = append(out, string(v))
+	}
+	return out
 }

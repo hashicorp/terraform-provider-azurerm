@@ -66,13 +66,15 @@ The following arguments are supported:
 
 * `servicebus_namespace` - (Required) The namespace that is associated with the desired Event Hub, Service Bus Queue, Service Bus Topic, etc.
 
-* `shared_access_policy_key` - (Required) The shared access policy key for the specified shared access policy.
+* `shared_access_policy_key` - (Optional) The shared access policy key for the specified shared access policy. Required if `authentication_mode` is `ConnectionString`.
 
-* `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
+* `shared_access_policy_name` - (Optional) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc. Required if `authentication_mode` is `ConnectionString`.
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
 * `property_columns` - (Optional) A list of property columns to add to the Service Bus Queue output.
+
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
 
 * `system_property_columns` - (Optional) A key-value pair of system property columns that will be attached to the outgoing messages for the Service Bus Queue Output.
 
@@ -82,13 +84,13 @@ The following arguments are supported:
 
 A `serialization` block supports the following:
 
-* `type` - (Required) The serialization format used for outgoing data streams. Possible values are `Avro`, `Csv` and `Json`.
+* `type` - (Required) The serialization format used for outgoing data streams. Possible values are `Avro`, `Csv`, `Json` and `Parquet`.
 
 * `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
 -> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
 
-* `field_delimiter` - (Optional) The delimiter that will be used to separate comma-separated value (CSV) records. Possible values are ` ` (space), `,` (comma), `   ` (tab), `|` (pipe) and `;`.
+* `field_delimiter` - (Optional) The delimiter that will be used to separate comma-separated value (CSV) records. Possible values are ` ` (space), `,` (comma), `	` (tab), `|` (pipe) and `;`.
 
 -> **NOTE:** This is required when `type` is set to `Csv`.
 
@@ -116,5 +118,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Stream Analytics Output ServiceBus Queue's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_servicebus_queue.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_servicebus_queue.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/outputs/output1
 ```

@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_mssql_server
+# azurerm_mssql_failover_group
 
 Manages a Microsoft Azure SQL Failover Group.
 
@@ -71,6 +71,7 @@ resource "azurerm_mssql_failover_group" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:

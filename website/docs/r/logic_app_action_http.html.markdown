@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `headers` - (Optional) Specifies a Map of Key-Value Pairs that should be sent to the `uri` when this HTTP Action is triggered.
 
+* `queries` - (Optional) Specifies a Map of Key-Value Pairs that should be sent to the `uri` when this HTTP Action is triggered.
+
 * `run_after` - (Optional) Specifies the place of the HTTP Action in the Logic App Workflow. If not specified, the HTTP Action is right after the Trigger. A `run_after` block is as defined below.
 
 ---

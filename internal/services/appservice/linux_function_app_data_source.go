@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,6 +38,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
 	ClientCertMode            string                               `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths  string                               `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
 	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"`
 	Enabled                   bool                                 `tfschema:"enabled"`
@@ -140,6 +141,12 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
@@ -245,7 +252,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if utils.ResponseWasNotFound(functionApp.Response) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("Linux %s not found", id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
@@ -307,6 +314,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				Location:                   location.NormalizeNilable(functionApp.Location),
 				Enabled:                    utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:             string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:   utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:       int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				StickySettings:             helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                       tags.ToTypedObject(functionApp.Tags),
@@ -385,7 +393,7 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input w
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from LinuxFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is no longer used in Linux Apps
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)

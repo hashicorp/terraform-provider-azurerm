@@ -10,7 +10,7 @@ import (
 
 type BlueprintDefinitionDataSource struct{}
 
-//lintignore:AT001
+// lintignore:AT001
 func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}
@@ -30,7 +30,7 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	})
 }
 
-//lintignore:AT001
+// lintignore:AT001
 func TestAccBlueprintDefinitionDataSource_basicAtRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}

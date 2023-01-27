@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -72,7 +73,6 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 		"vnet_solution": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(servicelinker.VNetSolutionTypePrivateLink),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servicelinker.VNetSolutionTypeServiceEndpoint),
 				string(servicelinker.VNetSolutionTypePrivateLink),
@@ -123,9 +123,17 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 
 			serviceConnectorProperties := servicelinker.LinkerProperties{
 				AuthInfo: authInfo,
-				TargetService: servicelinker.AzureResource{
+			}
+
+			if _, err := parse.StorageAccountID(model.TargetResourceId); err == nil {
+				targetResourceId := model.TargetResourceId + "/blobServices/default"
+				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
+					Id: &targetResourceId,
+				}
+			} else {
+				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
 					Id: &model.TargetResourceId,
-				},
+				}
 			}
 
 			if model.ClientType != "" {
@@ -147,7 +155,7 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 				Properties: serviceConnectorProperties,
 			}
 
-			if _, err = client.LinkerCreateOrUpdate(ctx, id, props); err != nil {
+			if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -175,6 +183,8 @@ func (r AppServiceConnectorResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
+			pwd := metadata.ResourceData.Get("authentication.0.secret").(string)
+
 			if model := resp.Model; model != nil {
 				props := model.Properties
 				if props.AuthInfo == nil || props.TargetService == nil {
@@ -185,7 +195,7 @@ func (r AppServiceConnectorResource) Read() sdk.ResourceFunc {
 					Name:             id.LinkerName,
 					AppServiceId:     id.ResourceUri,
 					TargetResourceId: flattenTargetService(props.TargetService),
-					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo),
+					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
 				}
 
 				if props.ClientType != nil {
@@ -215,11 +225,10 @@ func (r AppServiceConnectorResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.LinkerDelete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.LinkerDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -264,9 +273,10 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 				Properties: &linkerProps,
 			}
 
-			if _, err := client.LinkerUpdate(ctx, *id, props); err != nil {
+			if err := client.LinkerUpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}

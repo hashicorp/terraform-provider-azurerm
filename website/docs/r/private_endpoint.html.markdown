@@ -140,25 +140,27 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
+* `custom_network_interface_name` - (Optional) The custom name of the network interface attached to the private endpoint. Changing this forces a new resource to be created.
+
 * `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
-* `ip_configuration` - (Optional) An `ip_configuration` block as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet. At most one IP configuration is allowed. Changing this forces a new resource to be created.
+* `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-A `private_dns_zone_group` supports the following:
+A `private_dns_zone_group` block supports the following:
 
-* `name` - (Required) Specifies the Name of the Private DNS Zone Group. Changing this forces a new `private_dns_zone_group` resource to be created.
+* `name` - (Required) Specifies the Name of the Private DNS Zone Group.
 
 * `private_dns_zone_ids` - (Required) Specifies the list of Private DNS Zones to include within the `private_dns_zone_group`.
 
 ---
 
-A `private_service_connection` supports the following:
+A `private_service_connection` block supports the following:
 
 * `name` - (Required) Specifies the Name of the Private Service Connection. Changing this forces a new resource to be created.
 
@@ -174,32 +176,38 @@ A `private_service_connection` supports the following:
 
 -> Several possible values for this field are shown below, however this is not extensive:
 
-| Resource Type                 | SubResource Name | Secondary SubResource Name |
-| ----------------------------- | ---------------- | -------------------------- |
-| Data Lake File System Gen2    | dfs              | dfs_secondary              |
-| SQL Database / Data Warehouse | sqlServer        |                            |
-| SQL Managed Instance          | managedInstance  |                            |
-| Storage Account               | blob             | blob_secondary             |
-| Storage Account               | file             | file_secondary             |
-| Storage Account               | queue            | queue_secondary            |
-| Storage Account               | table            | table_secondary            |
-| Storage Account               | web              | web_secondary              |
-| Web App / Function App        | sites            |                            |
-| Web App / Function App Slots  | sites-<slotName> |                            |
+| Resource Type                 | SubResource Name       | Secondary SubResource Name |
+|-------------------------------|------------------------|----------------------------|
+| Data Lake File System Gen2    | dfs                    | dfs_secondary              |
+| SQL Database / Data Warehouse | sqlServer              |                            |
+| SQL Managed Instance          | managedInstance        |                            |
+| Storage Account               | blob                   | blob_secondary             |
+| Storage Account               | file                   | file_secondary             |
+| Storage Account               | queue                  | queue_secondary            |
+| Storage Account               | table                  | table_secondary            |
+| Storage Account               | web                    | web_secondary              |
+| Web App / Function App        | sites                  |                            |
+| Web App / Function App Slots  | sites-&lt;slotName&gt; |                            |
+| Recovery Services Vault       | AzureBackup            |                            |
+| Recovery Services Vault       | AzureSiteRecovery      |                            |
 
-See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
+Some resource types (such as Storage Account) only support 1 subresource per private endpoint. See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
 ---
 
-An `ip_configuration` supports the following:
+An `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the Name of the IP Configuration. Changing this forces a new resource to be created.
 
 * `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created.
 
-* `subresource_name` - (Optional) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id` and in this context is also used for `member_name`. Changing this forces a new resource to be created.
+* `subresource_name` - (Optional) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
+
+* `member_name` - (Optional) Specifies the member name this IP address applies to. If it is not specified, it will use the value of `subresource_name`. Changing this forces a new resource to be created.
+
+-> **NOTE:** `member_name` will be required and will not take the value of `subresource_name` in the next major version.
 
 ## Attributes Reference
 
@@ -253,11 +261,11 @@ A `private_service_connection` block exports:
 
 An `ip_configuration` block exports:
 
-* `name` - The Name of the IP Configuration.
+* `name` - (Required) The Name of the IP Configuration.
 
-* `private_ip_address` - The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
+* `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
 
-* `subresource_name` - The subresource this IP address applies to, which corresponds to the `group_id`.
+* `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 
@@ -300,5 +308,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Private Endpoints can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoint1
+terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoint1
 ```

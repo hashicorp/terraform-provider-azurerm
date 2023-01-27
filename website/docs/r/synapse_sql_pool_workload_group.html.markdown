@@ -82,9 +82,9 @@ The following arguments are supported:
 
 ---
 
-* `importance` - (Optional) The workload group importance level.
+* `importance` - (Optional) The workload group importance level. Defaults to `normal`.
 
-* `max_resource_percent_per_request` - (Optional) The workload group request maximum grant percentage.
+* `max_resource_percent_per_request` - (Optional) The workload group request maximum grant percentage. Defaults to `3`.
 
 * `min_resource_percent_per_request` - (Optional) The workload group request minimum grant percentage.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Synapse SQL Pool Workload Group.
 

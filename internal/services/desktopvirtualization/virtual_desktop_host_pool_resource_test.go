@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,6 +25,42 @@ func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+	})
+}
+
+func TestAccVirtualDesktopHostPool_agentupdates(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.agentUpdateBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.schedule.0.day_of_week").HasValue("Saturday"),
+			),
+		},
+		{
+			Config: r.agentUpdateComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.use_session_host_timezone").HasValue("true"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.schedule.0.day_of_week").HasValue("Saturday"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.schedule.1.day_of_week").HasValue("Sunday"),
+			),
+		},
+		{
+			Config: r.agentUpdateDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.enabled").HasValue("false"),
 			),
 		},
 	})
@@ -101,6 +137,95 @@ func (VirtualDesktopHostPoolResource) Exists(ctx context.Context, clients *clien
 	}
 
 	return utils.Bool(resp.Model != nil), nil
+}
+
+func (VirtualDesktopHostPoolResource) agentUpdateBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktophp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                 = "acctestHP%s"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  type                 = "Pooled"
+  validate_environment = true
+  load_balancer_type   = "BreadthFirst"
+  scheduled_agent_updates {
+    enabled = true
+    schedule {
+      day_of_week = "Saturday"
+      hour_of_day = 2
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+}
+
+func (VirtualDesktopHostPoolResource) agentUpdateComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktophp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                 = "acctestHP%s"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  type                 = "Pooled"
+  validate_environment = true
+  load_balancer_type   = "BreadthFirst"
+  scheduled_agent_updates {
+    enabled                   = true
+    use_session_host_timezone = true
+    schedule {
+      day_of_week = "Saturday"
+      hour_of_day = 2
+    }
+    schedule {
+      day_of_week = "Sunday"
+      hour_of_day = 2
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+}
+
+func (VirtualDesktopHostPoolResource) agentUpdateDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktophp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                 = "acctestHP%s"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  type                 = "Pooled"
+  validate_environment = true
+  load_balancer_type   = "BreadthFirst"
+  scheduled_agent_updates {
+    enabled                   = false
+    use_session_host_timezone = true
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
 func (VirtualDesktopHostPoolResource) basic(data acceptance.TestData) string {

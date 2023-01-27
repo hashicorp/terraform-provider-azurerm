@@ -84,11 +84,10 @@ resource "azurerm_linux_web_app" "example" {
 }
 
 resource "azurerm_linux_web_app_slot" "example" {
-  name                = "example-linux-web-app-slot"
-  app_service_name    = azurerm_linux_web_app.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_service_plan.example.location
-  service_plan_id     = azurerm_service_plan.example.id
+  name             = "example-linux-web-app-slot"
+  app_service_name = azurerm_linux_web_app.example.name
+  location         = azurerm_service_plan.example.location
+  service_plan_id  = azurerm_service_plan.example.id
 
   site_config {}
 }
@@ -115,7 +114,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Web App Active Slot
 
 * `last_successful_swap` - The timestamp of the last successful swap with `Production`.
-
 
 ## Timeouts
 

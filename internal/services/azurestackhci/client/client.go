@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-09-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

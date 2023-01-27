@@ -147,7 +147,6 @@ resource "azurerm_resource_group_policy_remediation" "test" {
   resource_group_id       = azurerm_resource_group_policy_assignment.test.resource_group_id
   policy_assignment_id    = azurerm_resource_group_policy_assignment.test.id
   location_filters        = ["westus"]
-  policy_definition_id    = azurerm_policy_definition.test.id
   resource_discovery_mode = "ReEvaluateCompliance"
   failure_percentage      = 0.5
   parallel_deployments    = 3

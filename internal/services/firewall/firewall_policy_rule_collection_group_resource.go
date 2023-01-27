@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
@@ -111,6 +111,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(network.FirewallPolicyRuleApplicationProtocolTypeHTTP),
 														string(network.FirewallPolicyRuleApplicationProtocolTypeHTTPS),
+														"Mssql",
 													}, false),
 												},
 												"port": {
@@ -385,6 +386,8 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"destination_ports": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
+										// only support 1 destination port in one DNAT rule
+										MaxItems: 1,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 64000),
@@ -439,8 +442,8 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	locks.ByName(policyId.Name, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(policyId.Name, azureFirewallPolicyResourceName)
+	locks.ByName(policyId.Name, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(policyId.Name, AzureFirewallPolicyResourceName)
 
 	param := network.FirewallPolicyRuleCollectionGroup{
 		FirewallPolicyRuleCollectionGroupProperties: &network.FirewallPolicyRuleCollectionGroupProperties{
@@ -537,8 +540,8 @@ func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	locks.ByName(id.FirewallPolicyName, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.FirewallPolicyName, azureFirewallPolicyResourceName)
+	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
 	if err != nil {

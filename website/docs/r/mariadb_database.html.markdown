@@ -39,8 +39,8 @@ resource "azurerm_mariadb_database" "example" {
   name                = "mariadb_database"
   resource_group_name = azurerm_resource_group.example.name
   server_name         = azurerm_mariadb_server.example.name
-  charset             = "utf8"
-  collation           = "utf8_general_ci"
+  charset             = "utf8mb4"
+  collation           = "utf8mb4_unicode_520_ci"
 }
 ```
 
@@ -48,8 +48,7 @@ resource "azurerm_mariadb_database" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the MariaDB Database, which needs [to be a valid MariaDB identifier](https://mariadb.com/kb/en/library/identifier-names/). Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the MariaDB Database, which needs [to be a valid MariaDB identifier](https://mariadb.com/kb/en/library/identifier-names/). Changing this forces a new resource to be created.
 
 * `server_name` - (Required) Specifies the name of the MariaDB Server. Changing this forces a new resource to be created.
 

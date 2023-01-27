@@ -19,7 +19,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c CapacitiesClient) Update(ctx context.Context, id CapacitiesId, input DedicatedCapacityUpdateParameters) (result UpdateOperationResponse, err error) {
+func (c CapacitiesClient) Update(ctx context.Context, id CapacityId, input DedicatedCapacityUpdateParameters) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "capacities.CapacitiesClient", "Update", nil, "Failure preparing request")
@@ -36,7 +36,7 @@ func (c CapacitiesClient) Update(ctx context.Context, id CapacitiesId, input Ded
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c CapacitiesClient) UpdateThenPoll(ctx context.Context, id CapacitiesId, input DedicatedCapacityUpdateParameters) error {
+func (c CapacitiesClient) UpdateThenPoll(ctx context.Context, id CapacityId, input DedicatedCapacityUpdateParameters) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
@@ -50,7 +50,7 @@ func (c CapacitiesClient) UpdateThenPoll(ctx context.Context, id CapacitiesId, i
 }
 
 // preparerForUpdate prepares the Update request.
-func (c CapacitiesClient) preparerForUpdate(ctx context.Context, id CapacitiesId, input DedicatedCapacityUpdateParameters) (*http.Request, error) {
+func (c CapacitiesClient) preparerForUpdate(ctx context.Context, id CapacityId, input DedicatedCapacityUpdateParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -30,6 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
@@ -58,9 +59,9 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			// Required
 			"admin_username": {
@@ -206,6 +207,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
+			"gallery_application": VirtualMachineGalleryApplicationSchema(),
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
@@ -254,6 +257,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Default: string(compute.LinuxVMGuestPatchModeImageDefault),
 			},
 
+			"patch_assessment_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(compute.LinuxPatchAssessmentModeImageDefault),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
+					string(compute.LinuxPatchAssessmentModeImageDefault),
+				}, false),
+			},
+
 			"proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -282,7 +295,15 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					computeValidate.ImageID,
 					computeValidate.SharedImageID,
 					computeValidate.SharedImageVersionID,
+					computeValidate.CommunityGalleryImageID,
+					computeValidate.CommunityGalleryImageVersionID,
+					computeValidate.SharedGalleryImageID,
+					computeValidate.SharedGalleryImageVersionID,
 				),
+				ExactlyOneOf: []string{
+					"source_image_id",
+					"source_image_reference",
+				},
 			},
 
 			"source_image_reference": sourceImageReferenceSchema(true),
@@ -425,10 +446,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
+	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
@@ -440,6 +458,9 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Identity:         identity,
 		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
+			ApplicationProfile: &compute.ApplicationProfile{
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+			},
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
@@ -503,11 +524,22 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if v, ok := d.GetOk("patch_assessment_mode"); ok {
+		if v.(string) == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+		}
+
+		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(v.(string))
+	}
+
 	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
-		if !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
+			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
 			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
@@ -521,8 +553,8 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
 			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
 		}
-		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(true)
-		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(true)
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 	} else {
 		if secureBootEnabled {
 			if params.VirtualMachineProperties.SecurityProfile == nil {
@@ -587,12 +619,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
 	} else if priority == compute.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -635,10 +667,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	// "Authentication using either SSH or by user name and password must be enabled in Linux profile." Target="linuxConfiguration"
 	adminPassword := d.Get("admin_password").(string)
 	if disablePasswordAuthentication && len(sshKeys) == 0 {
-		return fmt.Errorf("At least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
+		return fmt.Errorf("at least one `admin_ssh_key` must be specified when `disable_password_authentication` is set to `true`")
 	} else if !disablePasswordAuthentication {
 		if adminPassword == "" {
-			return fmt.Errorf("An `admin_password` must be specified if `disable_password_authentication` is set to `false`")
+			return fmt.Errorf("an `admin_password` must be specified if `disable_password_authentication` is set to `false`")
 		}
 
 		params.OsProfile.AdminPassword = utils.String(adminPassword)
@@ -719,6 +751,10 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
+	if props.ApplicationProfile != nil && props.ApplicationProfile.GalleryApplications != nil {
+		d.Set("gallery_application", flattenVirtualMachineGalleryApplication(props.ApplicationProfile.GalleryApplications))
+	}
+
 	licenseType := ""
 	if props.LicenseType != nil {
 		licenseType = *props.LicenseType
@@ -797,6 +833,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				patchMode = string(patchSettings.PatchMode)
 			}
 			d.Set("patch_mode", patchMode)
+
+			assessmentMode := string(compute.LinuxPatchAssessmentModeImageDefault)
+			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.AssessmentMode != "" {
+				assessmentMode = string(patchSettings.AssessmentMode)
+			}
+			d.Set("patch_assessment_mode", assessmentMode)
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
@@ -830,9 +872,16 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		if profile.ImageReference != nil && profile.ImageReference.ID != nil {
 			storageImageId = *profile.ImageReference.ID
 		}
+		if profile.ImageReference != nil && profile.ImageReference.CommunityGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.CommunityGalleryImageID
+		}
+		if profile.ImageReference != nil && profile.ImageReference.SharedGalleryImageID != nil {
+			storageImageId = *profile.ImageReference.SharedGalleryImageID
+		}
+
 		d.Set("source_image_id", storageImageId)
 
-		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
+		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference, storageImageId != "")); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
@@ -1028,6 +1077,13 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
+	if d.HasChange("gallery_application") {
+		shouldUpdate = true
+		update.ApplicationProfile = &compute.ApplicationProfile{
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+		}
+	}
+
 	if d.HasChange("max_bid_price") {
 		shouldUpdate = true
 
@@ -1161,6 +1217,29 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = patchSettings
 	}
 
+	if d.HasChange("patch_assessment_mode") {
+		assessmentMode := d.Get("patch_assessment_mode").(string)
+		if assessmentMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !d.Get("provision_vm_agent").(bool) {
+			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
+		}
+
+		shouldUpdate = true
+
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(assessmentMode)
+	}
+
 	if d.HasChange("allow_extension_operations") {
 		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
 
@@ -1272,7 +1351,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			// Upgrade to 2021-07-01 added a hibernate parameter to this call defaulting to false
 			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 			if err != nil {
-				return fmt.Errorf("Deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -1295,23 +1374,21 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		log.Printf("[DEBUG] Resizing OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %dGB..", diskName, id.Name, id.ResourceGroup, newSize)
 
 		disksClient := meta.(*clients.Client).Compute.DisksClient
+		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		id := disks.NewDiskID(subscriptionId, id.ResourceGroup, diskName)
 
-		update := compute.DiskUpdate{
-			DiskUpdateProperties: &compute.DiskUpdateProperties{
-				DiskSizeGB: utils.Int32(int32(newSize)),
+		update := disks.DiskUpdate{
+			Properties: &disks.DiskUpdateProperties{
+				DiskSizeGB: utils.Int64(int64(newSize)),
 			},
 		}
 
-		future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
+		err := disksClient.UpdateThenPoll(ctx, id, update)
 		if err != nil {
-			return fmt.Errorf("resizing OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("resizing OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for resize of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-		}
-
-		log.Printf("[DEBUG] Resized OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.Name, id.ResourceGroup, newSize)
+		log.Printf("[DEBUG] Resized OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.DiskName, id.ResourceGroupName, newSize)
 	}
 
 	if d.HasChange("os_disk.0.disk_encryption_set_id") {
@@ -1325,28 +1402,26 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			disksClient := meta.(*clients.Client).Compute.DisksClient
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			id := disks.NewDiskID(subscriptionId, id.ResourceGroup, diskName)
 
-			update := compute.DiskUpdate{
-				DiskUpdateProperties: &compute.DiskUpdateProperties{
-					Encryption: &compute.Encryption{
-						Type:                *encryptionType,
-						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+			update := disks.DiskUpdate{
+				Properties: &disks.DiskUpdateProperties{
+					Encryption: &disks.Encryption{
+						Type:                encryptionType,
+						DiskEncryptionSetId: utils.String(diskEncryptionSetId),
 					},
 				},
 			}
 
-			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
+			err = disksClient.UpdateThenPoll(ctx, id, update)
 			if err != nil {
-				return fmt.Errorf("updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting to update encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
-			}
-
-			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.DiskName, id.ResourceGroupName, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
@@ -1457,24 +1532,24 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if managedDiskId != "" {
-			diskId, err := parse.ManagedDiskID(managedDiskId)
+			diskId, err := disks.ParseDiskID(managedDiskId)
 			if err != nil {
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.DiskName)
+			diskDeleteFuture, err := disksClient.Delete(ctx, *diskId)
 			if err != nil {
-				if !response.WasNotFound(diskDeleteFuture.Response()) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+				if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
 				}
 			}
-			if !response.WasNotFound(diskDeleteFuture.Response()) {
-				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+			if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
+				if err := diskDeleteFuture.Poller.PollUntilDone(); err != nil {
+					return fmt.Errorf("OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Linux Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroup)
+			log.Printf("[DEBUG] Deleted OS Disk from Linux Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroupName)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Linux Virtual Machine %q (Resource Group %q) - cannot determine OS Disk ID.", id.Name, id.ResourceGroup)
 		}

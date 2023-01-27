@@ -59,6 +59,20 @@ func TestAccDataSourceVirtualMachineScaleSet_orchestrated(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceVirtualMachineScaleSet_publicIPAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.publicIPAddress(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+			),
+		},
+	})
+}
+
 func (VirtualMachineScaleSetDataSource) basicLinux(data acceptance.TestData) string {
 	template := LinuxVirtualMachineScaleSetResource{}.identitySystemAssigned(data)
 	return fmt.Sprintf(`
@@ -90,6 +104,18 @@ func (VirtualMachineScaleSetDataSource) orchestrated(data acceptance.TestData) s
 
 data "azurerm_virtual_machine_scale_set" "test" {
   name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
+}
+
+func (VirtualMachineScaleSetDataSource) publicIPAddress(data acceptance.TestData) string {
+	template := WindowsVirtualMachineScaleSetResource{}.networkPublicIP(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_virtual_machine_scale_set" "test" {
+  name                = azurerm_windows_virtual_machine_scale_set.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, template)

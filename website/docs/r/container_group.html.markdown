@@ -10,6 +10,8 @@ description: |-
 
 Manages as an Azure Container Group instance.
 
+~> **Note** `network_profile_id` is [deprecated](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet) by Azure. For users who want to continue to manage existing `azurerm_container_group` that rely on `network_profile_id`, please stay on provider versions prior to v3.16.0. Otherwise, use `subnet_ids` instead.
+
 ## Example Usage
 
 This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
@@ -74,29 +76,34 @@ The following arguments are supported:
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported. Windows containers are not supported in virtual networks.
 
 ---
-* `dns_config` - (Optional) A `dns_config` block as documented below.
 
-* `diagnostics` - (Optional) A `diagnostics` block as documented below.
+* `dns_config` - (Optional) A `dns_config` block as documented below. Changing this forces a new resource to be created.
+
+* `diagnostics` - (Optional) A `diagnostics` block as documented below. Changing this forces a new resource to be created.
 
 * `dns_name_label` - (Optional) The DNS label/name for the container group's IP. Changing this forces a new resource to be created.
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
-* `exposed_port` - (Optional) Zero or more `exposed_port` blocks as defined below. Changing this forces a new resource to be created. 
+* `dns_name_label_reuse_policy` - (Optional) The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`. Defaults to `Unsecure`. 
 
-~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group. 
+* `exposed_port` - (Optional) Zero or more `exposed_port` blocks as defined below. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Optional) Specifies the IP address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group.
+
+* `ip_address_type` - (Optional) Specifies the IP address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `subnet_ids` also needs to be set.
 
 ~> **Note:** `dns_name_label` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 
 * `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
 
-* `network_profile_id` - (Optional) Network profile ID for deploying to a virtual network.
+* `subnet_ids` - (Optional) The subnet resource IDs for a container group. Changing this forces a new resource to be created.
 
 * `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
+
+* `zones` - (Optional) A list of Availability Zones in which this Container Group is located. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -113,6 +120,7 @@ An `identity` block supports the following:
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ~> **NOTE:** Currently you can't use a managed identity in a container group deployed to a virtual network.
+
 ---
 
 An `init_container` block supports:
@@ -169,9 +177,9 @@ A `container` block supports:
 
 An `exposed_port` block supports:
 
-* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
+* `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
 ~> **Note:** Removing all `exposed_port` blocks requires setting `exposed_port = []`.
 
@@ -185,9 +193,11 @@ A `diagnostics` block supports:
 
 An `image_registry_credential` block supports:
 
-* `username` - (Required) The username with which to connect to the registry. Changing this forces a new resource to be created.
+* `user_assigned_identity_id` - (Optional) The identity ID for the private registry. Changing this forces a new resource to be created.
 
-* `password` - (Required) The password with which to connect to the registry. Changing this forces a new resource to be created.
+* `username` - (Optional) The username with which to connect to the registry. Changing this forces a new resource to be created.
+
+* `password` - (Optional) The password with which to connect to the registry. Changing this forces a new resource to be created.
 
 * `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io". Changing this forces a new resource to be created.
 
@@ -207,19 +217,19 @@ A `log_analytics` block supports:
 
 A `ports` block supports:
 
-* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
+* `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
 ~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
---
+---
 
 A `gpu` block supports:
 
-* `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
+* `count` - (Optional) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
+* `sku` - (Optional) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
 
 ---
 
@@ -247,9 +257,13 @@ A `volume` block supports:
 
 * `share_name` - (Optional) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
 
-* `git_repo` - (Optional) A `git_repo` block as defined below.
+* `git_repo` - (Optional) A `git_repo` block as defined below. Changing this forces a new resource to be created.
 
 * `secret` - (Optional) A map of secrets that will be mounted as files in the volume. Changing this forces a new resource to be created.
+
+~> **Note:** Exactly one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) must be specified.
+
+~> **Note** when using a storage account volume, all of `share_name`, `storage_account_name`, and `storage_account_key` must be specified.
 
 ~> **Note:** The secret values must be supplied as Base64 encoded strings, such as by using the Terraform [base64encode function](https://www.terraform.io/docs/configuration/functions/base64encode.html). The secret values are decoded to their original values when mounted in the volume on the container.
 
@@ -315,11 +329,11 @@ The `http_get` block supports:
 
 The `dns_config` block supports:
 
-* `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
+* `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests. Changing this forces a new resource to be created.
 
-* `search_domains` - (Optional) A list of search domains that DNS requests will search along.
+* `search_domains` - (Optional) A list of search domains that DNS requests will search along. Changing this forces a new resource to be created.
 
-* `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
+* `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html). Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -340,7 +354,6 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
-
 
 ## Timeouts
 

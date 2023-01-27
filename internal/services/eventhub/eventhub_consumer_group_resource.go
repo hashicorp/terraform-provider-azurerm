@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/consumergroups"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -59,7 +59,7 @@ func (r ConsumerGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ValidateEventHubName(),
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"user_metadata": {
 			Type:         pluginsdk.TypeString,
@@ -168,7 +168,7 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 			state := ConsumerGroupObject{
 				Name:              id.ConsumerGroupName,
 				NamespaceName:     id.NamespaceName,
-				EventHubName:      id.EventHubName,
+				EventHubName:      id.EventhubName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 

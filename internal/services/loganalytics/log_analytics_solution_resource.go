@@ -6,12 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +30,7 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 		Update: resourceLogAnalyticsSolutionCreateUpdate,
 		Delete: resourceLogAnalyticsSolutionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := loganalyticsParse.LogAnalyticsSolutionID(id)
+			_, err := solution.ParseSolutionID(id)
 			return err
 		}),
 
@@ -38,6 +40,11 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SolutionV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"solution_name": {
@@ -61,7 +68,7 @@ func resourceLogAnalyticsSolution() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -108,17 +115,17 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	// The resource requires both .name and .plan.name are set in the format
 	// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
-	id := loganalyticsParse.NewLogAnalyticsSolutionID(subscriptionId, d.Get("resource_group_name").(string), fmt.Sprintf("%s(%s)", d.Get("solution_name").(string), d.Get("workspace_name").(string)))
+	id := solution.NewSolutionID(subscriptionId, d.Get("resource_group_name").(string), fmt.Sprintf("%s(%s)", d.Get("solution_name").(string), d.Get("workspace_name").(string)))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SolutionName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_log_analytics_solution", id.ID())
 		}
 	}
@@ -127,25 +134,24 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	solutionPlan.Name = &id.SolutionName
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	workspaceID := d.Get("workspace_resource_id").(string)
+	workspaceID, err := workspaces.ParseWorkspaceID(d.Get("workspace_resource_id").(string))
+	if err != nil {
+		return err
+	}
 
-	parameters := operationsmanagement.Solution{
+	parameters := solution.Solution{
 		Name:     utils.String(id.SolutionName),
 		Location: utils.String(location),
 		Plan:     &solutionPlan,
-		Properties: &operationsmanagement.SolutionProperties{
-			WorkspaceResourceID: utils.String(workspaceID),
+		Properties: &solution.SolutionProperties{
+			WorkspaceResourceId: workspaceID.ID(),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SolutionName, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", id.SolutionName, workspaceID, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the create/update of Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", id.SolutionName, workspaceID, id.ResourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -157,87 +163,86 @@ func resourceLogAnalyticsSolutionRead(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := loganalyticsParse.LogAnalyticsSolutionID(d.Id())
+	id, err := solution.ParseSolutionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SolutionName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	if resp.Plan == nil {
-		return fmt.Errorf("making Read request on %s: Plan was nil", *id)
-	}
-
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	// Reversing the mapping used to get .solution_name
-	// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
-	if v := resp.Name; v != nil {
-		val := *v
-		segments := strings.Split(*v, "(")
-		if len(segments) != 2 {
-			return fmt.Errorf("expected %q to match 'Solution(WorkspaceName)'", val)
+	if model := resp.Model; model != nil {
+		if model.Plan == nil {
+			return fmt.Errorf("making Read request on %s: Plan was nil", *id)
 		}
 
-		solutionName := segments[0]
-		workspaceName := strings.TrimSuffix(segments[1], ")")
-		d.Set("solution_name", solutionName)
-		d.Set("workspace_name", workspaceName)
-	}
+		d.Set("resource_group_name", id.ResourceGroupName)
+		if location := model.Location; location != nil {
+			d.Set("location", azure.NormalizeLocation(*location))
+		}
 
-	if props := resp.Properties; props != nil {
-		var workspaceId string
-		if props.WorkspaceResourceID != nil {
-			id, err := loganalyticsParse.LogAnalyticsWorkspaceID(*props.WorkspaceResourceID)
-			if err != nil {
-				return err
+		// Reversing the mapping used to get .solution_name
+		// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
+		if v := model.Name; v != nil {
+			val := *v
+			segments := strings.Split(*v, "(")
+			if len(segments) != 2 {
+				return fmt.Errorf("expected %q to match 'Solution(WorkspaceName)'", val)
 			}
-			workspaceId = id.ID()
+
+			solutionName := segments[0]
+			workspaceName := strings.TrimSuffix(segments[1], ")")
+			d.Set("solution_name", solutionName)
+			d.Set("workspace_name", workspaceName)
 		}
-		d.Set("workspace_resource_id", workspaceId)
-	}
 
-	if err := d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(resp.Plan)); err != nil {
-		return fmt.Errorf("setting `plan`: %+v", err)
-	}
+		if props := model.Properties; props != nil {
+			var workspaceId string
+			if props.WorkspaceResourceId != "" {
+				id, err := workspaces.ParseWorkspaceIDInsensitively(props.WorkspaceResourceId)
+				if err != nil {
+					return err
+				}
+				workspaceId = id.ID()
+			}
+			d.Set("workspace_resource_id", workspaceId)
+		}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+		if err := d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(model.Plan)); err != nil {
+			return fmt.Errorf("setting `plan`: %+v", err)
+		}
+
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func resourceLogAnalyticsSolutionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := loganalyticsParse.LogAnalyticsSolutionID(d.Id())
+	id, err := solution.ParseSolutionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SolutionName)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-		}
 	}
 
 	return nil
 }
 
-func expandAzureRmLogAnalyticsSolutionPlan(d *pluginsdk.ResourceData) operationsmanagement.SolutionPlan {
+func expandAzureRmLogAnalyticsSolutionPlan(d *pluginsdk.ResourceData) solution.SolutionPlan {
 	plans := d.Get("plan").([]interface{})
 	plan := plans[0].(map[string]interface{})
 
@@ -246,7 +251,7 @@ func expandAzureRmLogAnalyticsSolutionPlan(d *pluginsdk.ResourceData) operations
 	promotionCode := plan["promotion_code"].(string)
 	product := plan["product"].(string)
 
-	expandedPlan := operationsmanagement.SolutionPlan{
+	expandedPlan := solution.SolutionPlan{
 		Name:          utils.String(name),
 		PromotionCode: utils.String(promotionCode),
 		Publisher:     utils.String(publisher),
@@ -256,7 +261,7 @@ func expandAzureRmLogAnalyticsSolutionPlan(d *pluginsdk.ResourceData) operations
 	return expandedPlan
 }
 
-func flattenAzureRmLogAnalyticsSolutionPlan(input *operationsmanagement.SolutionPlan) []interface{} {
+func flattenAzureRmLogAnalyticsSolutionPlan(input *solution.SolutionPlan) []interface{} {
 	output := make([]interface{}, 0)
 	if input == nil {
 		return output

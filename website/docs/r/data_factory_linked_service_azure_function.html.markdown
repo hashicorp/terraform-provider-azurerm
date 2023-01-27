@@ -44,8 +44,7 @@ resource "azurerm_data_factory_linked_service_azure_function" "example" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
@@ -61,7 +60,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to Azure Function Linked Service:
 
-* `url` - (Required) The url of the Azure Function. 
+* `url` - (Required) The url of the Azure Function.
 
 * `key` - (Optional) The system key of the Azure Function. Exactly one of either `key` or `key_vault_key` is required
 

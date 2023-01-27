@@ -117,7 +117,7 @@ A `rule` block supports the following:
 
 * `destination_ports` - (Required) A list of destination ports.
 
-* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.  If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
+* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`. If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
 
 * `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
 
@@ -130,8 +130,6 @@ A `rule` block supports the following:
 * `translated_port` - (Required) The port of the service behind the Firewall.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

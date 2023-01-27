@@ -41,6 +41,27 @@ if model := read.Model; model != nil {
 ```
 
 
+### Example Usage: `QueryPacksClient.QueryPacksCreateOrUpdateWithoutName`
+
+```go
+ctx := context.TODO()
+id := querypacks.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+
+payload := querypacks.LogAnalyticsQueryPack{
+	// ...
+}
+
+
+read, err := client.QueryPacksCreateOrUpdateWithoutName(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `QueryPacksClient.QueryPacksDelete`
 
 ```go

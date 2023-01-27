@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -78,7 +79,10 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	id := databases.NewDatabaseID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
+	id := databases.NewDatabaseID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, d.Get("name").(string))
+
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -120,7 +124,7 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -128,7 +132,7 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.DatabaseName)
-	d.Set("server_id", databases.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
+	d.Set("server_id", databases.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -149,6 +153,9 @@ func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, m
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

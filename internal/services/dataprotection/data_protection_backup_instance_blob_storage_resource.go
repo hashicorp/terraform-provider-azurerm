@@ -66,7 +66,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupPoliciesID,
+				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
 		},
 	}
@@ -80,7 +80,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 
 	name := d.Get("name").(string)
 	vaultId, _ := backupinstances.ParseBackupVaultID(d.Get("vault_id").(string))
-	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
+	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -96,7 +96,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 
 	storageAccountId, _ := storageParse.StorageAccountID(d.Get("storage_account_id").(string))
 	location := location.Normalize(d.Get("location").(string))
-	policyId, _ := backuppolicies.ParseBackupPoliciesID(d.Get("backup_policy_id").(string))
+	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
@@ -160,12 +160,11 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
-	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupInstanceName)
 	d.Set("vault_id", vaultId.ID())
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("storage_account_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)

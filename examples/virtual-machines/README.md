@@ -9,7 +9,7 @@ Version 2.0 of the Azure Provider introduces several new resources which superse
 
 [More details can be found in this issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/2807) - however these resources will replace the existing `azurerm_virtual_machine` resource in the long-term.
 
-This directory contains 4 sub-directories:
+This directory contains three sub-directories:
 
 * `./virtual_machine` - which are examples of how to use the `azurerm_virtual_machine` resource.
 * `./linux` - which are examples of how to use the `azurerm_linux_virtual_machine` resource.

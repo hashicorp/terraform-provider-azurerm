@@ -42,13 +42,13 @@ resource "azurerm_key_vault_certificate_issuer" "example" {
 
 The following arguments are supported:
 
-* `key_vault_id` - (Required) The ID of the Key Vault in which to create the Certificate Issuer.
+* `key_vault_id` - (Required) The ID of the Key Vault in which to create the Certificate Issuer. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name which should be used for this Key Vault Certificate Issuer. Changing this forces a new Key Vault Certificate Issuer to be created.
 
 * `provider_name` - (Required) The name of the third-party Certificate Issuer. Possible values are: `DigiCert`, `GlobalSign`, `OneCertV2-PrivateCA`, `OneCertV2-PublicCA` and `SslAdminV2`.
 
-* `org_id` - (Optional) The ID of the organization as provided to the issuer. 
+* `org_id` - (Optional) The ID of the organization as provided to the issuer.
 
 * `account_id` - (Optional) The account number with the third-party Certificate Issuer.
 
@@ -70,9 +70,18 @@ An `admin` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Key Vault Certificate Issuer.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate Issuer.
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate Issuer.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate Issuer.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate Issuer.
 
 ## Import
 

@@ -29,7 +29,7 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 ## Arguments Reference
 
-* `name` - (Required) Specifies the name of the Backup Vault. 
+* `name` - (Required) Specifies the name of the Backup Vault.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Backup Vault exists.
 
@@ -37,7 +37,7 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 * `id` - The ID of the Backup Vault.
 
-* `location` -  The Azure Region where the Backup Vault exists. 
+* `location` -  The Azure Region where the Backup Vault exists.
 
 * `datastore_type` - Specifies the type of the data store.
 

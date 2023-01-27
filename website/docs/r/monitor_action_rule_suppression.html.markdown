@@ -79,7 +79,7 @@ The `schedule` block supports the following:
 
 * `end_date_utc` - (Required) specifies the recurrence UTC end datetime (Y-m-d'T'H:M:S'Z').
 
-* `recurrence_weekly` - (Optional) specifies the list of dayOfWeek to recurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and  `Saturday`.
+* `recurrence_weekly` - (Optional) specifies the list of dayOfWeek to recurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
 * `recurrence_monthly` - (Optional) specifies the list of dayOfMonth to recurrence. Possible values are between `1` - `31`. Required if `recurrence_type` is `Monthly`.
 
@@ -187,5 +187,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Monitor Action Rule can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_monitor_action_rule_suppression.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
+terraform import azurerm_monitor_action_rule_suppression.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
 ```

@@ -66,7 +66,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity. The only possible values is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity. The only possible values is `SystemAssigned`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

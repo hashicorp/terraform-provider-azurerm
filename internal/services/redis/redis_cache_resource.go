@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -451,7 +451,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		zones := zones.Expand(v.(*schema.Set).List())
+		zones := zones.ExpandUntyped(v.(*schema.Set).List())
 		if len(zones) > 0 {
 			parameters.Zones = &zones
 		}
@@ -669,7 +669,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.RediName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("capacity", sku.Capacity)

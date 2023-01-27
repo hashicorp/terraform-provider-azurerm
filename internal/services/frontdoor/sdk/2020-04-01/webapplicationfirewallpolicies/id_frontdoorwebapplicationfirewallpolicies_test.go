@@ -119,7 +119,6 @@ func TestParseFrontDoorWebApplicationFirewallPoliciesID(t *testing.T) {
 		if actual.PolicyName != v.Expected.PolicyName {
 			t.Fatalf("Expected %q but got %q for PolicyName", v.Expected.PolicyName, actual.PolicyName)
 		}
-
 	}
 }
 
@@ -259,7 +258,6 @@ func TestParseFrontDoorWebApplicationFirewallPoliciesIDInsensitively(t *testing.
 		if actual.PolicyName != v.Expected.PolicyName {
 			t.Fatalf("Expected %q but got %q for PolicyName", v.Expected.PolicyName, actual.PolicyName)
 		}
-
 	}
 }
 

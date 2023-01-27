@@ -12,16 +12,16 @@ var _ resourceids.ResourceId = VirtualRouterPeeringId{}
 // VirtualRouterPeeringId is a struct representing the Resource ID for a Virtual Router Peering
 type VirtualRouterPeeringId struct {
 	SubscriptionId    string
-	ResourceGroup     string
+	ResourceGroupName string
 	VirtualRouterName string
 	PeeringName       string
 }
 
 // NewVirtualRouterPeeringID returns a new VirtualRouterPeeringId struct
-func NewVirtualRouterPeeringID(subscriptionId string, resourceGroup string, virtualRouterName string, peeringName string) VirtualRouterPeeringId {
+func NewVirtualRouterPeeringID(subscriptionId string, resourceGroupName string, virtualRouterName string, peeringName string) VirtualRouterPeeringId {
 	return VirtualRouterPeeringId{
 		SubscriptionId:    subscriptionId,
-		ResourceGroup:     resourceGroup,
+		ResourceGroupName: resourceGroupName,
 		VirtualRouterName: virtualRouterName,
 		PeeringName:       peeringName,
 	}
@@ -42,8 +42,8 @@ func ParseVirtualRouterPeeringID(input string) (*VirtualRouterPeeringId, error) 
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.VirtualRouterName, ok = parsed.Parsed["virtualRouterName"]; !ok {
@@ -73,8 +73,8 @@ func ParseVirtualRouterPeeringIDInsensitively(input string) (*VirtualRouterPeeri
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
 	if id.VirtualRouterName, ok = parsed.Parsed["virtualRouterName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateVirtualRouterPeeringID(input interface{}, key string) (warnings []s
 // ID returns the formatted Virtual Router Peering ID
 func (id VirtualRouterPeeringId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualRouters/%s/peerings/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualRouterName, id.PeeringName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VirtualRouterName, id.PeeringName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Virtual Router Peering ID
@@ -115,7 +115,7 @@ func (id VirtualRouterPeeringId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.ResourceGroupSegment("resourceGroup", "example-resource-group"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("providers", "providers", "providers"),
 		resourceids.ResourceProviderSegment("resourceProvider", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("virtualRouters", "virtualRouters", "virtualRouters"),
@@ -129,7 +129,7 @@ func (id VirtualRouterPeeringId) Segments() []resourceids.Segment {
 func (id VirtualRouterPeeringId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Resource Group: %q", id.ResourceGroup),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Virtual Router Name: %q", id.VirtualRouterName),
 		fmt.Sprintf("Peering Name: %q", id.PeeringName),
 	}

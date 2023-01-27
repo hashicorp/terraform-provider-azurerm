@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
 
-* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell` or `Script`.
+* `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `Python3`, `Python2` or `Script`. Changing this forces a new resource to be created.
 
 * `log_progress` - (Required) Progress log option.
 
@@ -104,9 +104,53 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`publish_content_link` supports the following:
+* `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
+
+* `draft` - (Optional) A `draft` block as defined below .
+
+---
+
+The `publish_content_link` block supports the following:
 
 * `uri` - (Required) The URI of the runbook content.
+
+* `version` - (Optional) Specifies the version of the content
+
+* `hash` - (Optional) A `hash` block as defined below.
+
+---
+
+The `hash` block supports:
+
+* `algorithm` - (Required) Specifies the hash algorithm used to hash the content.
+
+* `value` - (Required) Specifies the expected hash value of the content.
+
+---
+
+The `draft` block supports:
+
+* `edit_mode_enabled` - (Optional) Whether the draft in edit mode.
+
+* `content_link` - (Optional) A `publish_content_link` block as defined above.
+
+* `output_types` - (Optional) Specifies the output types of the runbook.
+
+* `parameters` - (Optional) A list of `parameters` block as defined below.
+
+---
+
+The `parameters` block supports:
+
+* `key` - (Required) The name of the parameter.
+
+* `type` - (Required) Specifies the type of this parameter.
+
+* `mandatory` - (Optional) Whether this parameter is mandatory.
+
+* `position` - (Optional) Specifies the position of the parameter.
+
+* `default_value` - (Optional) Specifies the default value of the parameter.
 
 ## Attributes Reference
 

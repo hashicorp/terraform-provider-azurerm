@@ -15,12 +15,12 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05
 ### Client Initialization
 
 ```go
-client := servicelinker.NewServicelinkerClientWithBaseURI("https://management.azure.com")
+client := servicelinker.NewServiceLinkerClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ServicelinkerClient.LinkerCreateOrUpdate`
+### Example Usage: `ServiceLinkerClient.LinkerCreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -37,7 +37,7 @@ if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ```
 
 
-### Example Usage: `ServicelinkerClient.LinkerGet`
+### Example Usage: `ServiceLinkerClient.LinkerGet`
 
 ```go
 ctx := context.TODO()
@@ -53,7 +53,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ServicelinkerClient.LinkerList`
+### Example Usage: `ServiceLinkerClient.LinkerList`
 
 ```go
 ctx := context.TODO()

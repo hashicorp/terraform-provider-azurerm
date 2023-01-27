@@ -10,7 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Automation Int Variable.
 
-
 ## Example Usage
 
 ```hcl
@@ -25,7 +24,6 @@ output "variable_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -35,7 +33,6 @@ The following arguments are supported:
 * `resource_group_name` - The Name of the Resource Group where the automation account exists.
 
 * `automation_account_name` - The name of the automation account in which the Automation Variable exists.
-
 
 ## Attributes Reference
 

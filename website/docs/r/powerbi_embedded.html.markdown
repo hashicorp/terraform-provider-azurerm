@@ -60,11 +60,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `read` - (Defaults to 5 minutes) Used when retrieving the PowerBI Embedded instance.
 * `delete` - (Defaults to 30 minutes) Used when deleting the PowerBI Embedded instance.
 
-
 ## Import
 
 PowerBI Embedded can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_powerbi_embedded.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.PowerBIDedicated/capacities/capacity1
+terraform import azurerm_powerbi_embedded.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.PowerBIDedicated/capacities/capacity1
 ```

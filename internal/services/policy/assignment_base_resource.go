@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -155,7 +155,7 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 
 			metadata.ResourceData.Set("name", id.Name)
 			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
-			//lintignore:R001
+			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			identity, _ := br.flattenIdentity(resp.Identity)

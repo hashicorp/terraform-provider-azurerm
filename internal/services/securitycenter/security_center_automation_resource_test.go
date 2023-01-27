@@ -193,7 +193,7 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 		{
 			Config: r.sourceMulti(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("source.#").HasValue("11"),
+				check.That(data.ResourceName).Key("source.#").HasValue("9"),
 				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("source.1.rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("source.2.rule_set.#").HasValue("1"),
@@ -203,7 +203,6 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 				check.That(data.ResourceName).Key("source.6.rule_set.#").HasValue("0"),
 				check.That(data.ResourceName).Key("source.7.rule_set.#").HasValue("0"),
 				check.That(data.ResourceName).Key("source.8.rule_set.#").HasValue("0"),
-				check.That(data.ResourceName).Key("source.9.rule_set.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
@@ -786,9 +785,6 @@ resource "azurerm_security_center_automation" "test" {
     event_source = "SecureScoresSnapshot"
   }
 
-  source {
-    event_source = "SubAssessmentsSnapshot"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }

@@ -37,16 +37,16 @@ output "rule_id" {
 * `id` - The id of the ServiceBus Namespace Authorization Rule.
 
 * `primary_connection_string` - The primary connection string for the authorization rule.
-    
+
 * `primary_key` - The primary access key for the authorization rule.
 
 * `secondary_connection_string` - The secondary connection string for the authorization rule.
 
 * `secondary_key` - The secondary access key for the authorization rule.
 
-* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired. 
+* `primary_connection_string_alias` - The alias Primary Connection String for the ServiceBus Namespace, if the namespace is Geo DR paired.
 
-* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace 
+* `secondary_connection_string_alias` - The alias Secondary Connection String for the ServiceBus Namespace
 
 ## Timeouts
 

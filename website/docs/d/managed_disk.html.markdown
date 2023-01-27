@@ -32,7 +32,7 @@ output "id" {
 ## Attributes Reference
 
 * `disk_encryption_set_id` - The ID of the Disk Encryption Set used to encrypt this Managed Disk.
- 
+
 * `disk_iops_read_write` - The number of IOPS allowed for this disk, where one operation can transfer between 4k and 256k bytes.
 
 * `disk_mbps_read_write` - The bandwidth allowed for this disk.

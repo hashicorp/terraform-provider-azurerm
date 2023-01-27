@@ -50,17 +50,17 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the policy set definition. Changing this forces a new resource to be created.
 
-* `policy_type` - (Required) The policy set type. Possible values are `BuiltIn` or `Custom`. Changing this forces a new resource to be created.
+* `policy_type` - (Required) The policy set type. Possible values are `BuiltIn`, `Custom`, `NotSpecified` and `Static`. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) The display name of the policy set definition.
 
-* `policy_definition_reference` - (Optional) One or more `policy_definition_reference` blocks as defined below.
+* `policy_definition_reference` - (Required) One or more `policy_definition_reference` blocks as defined below.
 
 * `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 
 * `description` - (Optional) The description of the policy set definition.
 
-* `management_group_id` -  (Optional) The id of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
+* `management_group_id` - (Optional) The id of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) The metadata for the policy set definition. This is a JSON object representing additional metadata that should be stored with the policy definition.
 
@@ -70,9 +70,9 @@ The following arguments are supported:
 
 A `policy_definition_reference` block supports the following:
 
-* `policy_definition_id` - (Required) The ID of the policy definition or policy set definition that will be included in this policy set definition.
+* `policy_definition_id` - (Required) The ID of the policy definition that will be included in this policy set definition.
 
-* `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a JSON string that allows you to assign parameters to this policy rule. 
+* `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a JSON string that allows you to assign parameters to this policy rule.
 
 * `reference_id` - (Optional) A unique ID within this policy set definition for this policy definition reference.
 
@@ -84,7 +84,7 @@ An `policy_definition_group` block supports the following:
 
 * `name` - (Required) The name of this policy definition group.
 
-* `display_name` - (Optional) The display name of this policy definition group. 
+* `display_name` - (Optional) The display name of this policy definition group.
 
 * `category` - (Optional) The category of this policy definition group.
 
@@ -114,7 +114,9 @@ Policy Set Definitions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
 ```
+
 or
+
 ```shell
 terraform import azurerm_policy_set_definition.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
 ```

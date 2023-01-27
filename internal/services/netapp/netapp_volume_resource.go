@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -52,9 +52,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: netAppValidate.VolumeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
+
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -240,7 +242,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"remote_volume_location": azure.SchemaLocation(),
+						"remote_volume_location": commonschema.Location(),
 
 						"remote_volume_resource_id": {
 							Type:         pluginsdk.TypeString,
@@ -275,6 +277,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"azure_vmware_data_store_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -299,6 +308,14 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+
+	zones := &[]string{}
+	if v, ok := d.GetOk("zone"); ok {
+		zones = &[]string{
+			v.(string),
+		}
+	}
+
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
@@ -366,12 +383,15 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient
-		_, err = snapshotClient.Get(ctx, *parsedSnapshotResourceID)
+		snapshotResponse, err := snapshotClient.Get(ctx, *parsedSnapshotResourceID)
 		if err != nil {
 			return fmt.Errorf("getting snapshot from %s: %+v", id, err)
 		}
+		if model := snapshotResponse.Model; model != nil && model.Id != nil {
+			snapshotID = *model.Id
+		}
 
-		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.AccountName, parsedSnapshotResourceID.PoolName, parsedSnapshotResourceID.VolumeName)
+		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.NetAppAccountName, parsedSnapshotResourceID.CapacityPoolName, parsedSnapshotResourceID.VolumeName)
 		// Validate if properties that cannot be changed matches (protocols, subnet_id, location, resource group, account_name, pool_name, service_level)
 		sourceVolume, err := client.Get(ctx, sourceVolumeId)
 		if err != nil {
@@ -398,16 +418,21 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			if !strings.EqualFold(sourceVolumeId.ResourceGroupName, id.ResourceGroupName) {
 				propertyMismatch = append(propertyMismatch, "resource_group_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.AccountName, id.AccountName) {
+			if !strings.EqualFold(sourceVolumeId.NetAppAccountName, id.NetAppAccountName) {
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.PoolName, id.PoolName) {
+			if !strings.EqualFold(sourceVolumeId.CapacityPoolName, id.CapacityPoolName) {
 				propertyMismatch = append(propertyMismatch, "pool_name")
 			}
 			if len(propertyMismatch) > 0 {
 				return fmt.Errorf("following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source %s: %s", id, strings.Join(propertyMismatch, ", "))
 			}
 		}
+	}
+
+	avsDataStoreEnabled := volumes.AvsDataStoreDisabled
+	if d.Get("azure_vmware_data_store_enabled").(bool) {
+		avsDataStoreEnabled = volumes.AvsDataStoreEnabled
 	}
 
 	parameters := volumes.Volume{
@@ -427,9 +452,11 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 			},
+			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
+		Zones: zones,
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
@@ -485,6 +512,10 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	shouldUpdate := false
 	update := volumes.VolumePatch{
 		Properties: &volumes.VolumePatchProperties{},
+	}
+
+	if d.HasChange("zones") {
+		return fmt.Errorf("zone changes are not supported after volume is already created, %s", id)
 	}
 
 	if d.HasChange("storage_quota_in_gb") {
@@ -563,11 +594,19 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", id.VolumeName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
-	d.Set("pool_name", id.PoolName)
+	d.Set("account_name", id.NetAppAccountName)
+	d.Set("pool_name", id.CapacityPoolName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		zone := ""
+		if model.Zones != nil {
+			if zones := *model.Zones; len(zones) > 0 {
+				zone = zones[0]
+			}
+		}
+		d.Set("zone", zone)
 
 		props := model.Properties
 		d.Set("volume_path", props.CreationToken)
@@ -579,6 +618,9 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+		if props.AvsDataStore != nil {
+			d.Set("azure_vmware_data_store_enabled", strings.EqualFold(string(*props.AvsDataStore), string(volumes.AvsDataStoreEnabled)))
+		}
 		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("setting `export_policy_rule`: %+v", err)
 		}
@@ -607,16 +649,18 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	// Removing replication if present
-	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
-	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+	netApp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("fetching netapp error: %+v", err)
+	}
 
-	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+	if netApp.Model != nil && netApp.Model.Properties.DataProtection != nil {
+		dataProtectionReplication := netApp.Model.Properties.DataProtection
 		replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
 		if err != nil {
 			return err
 		}
-		if dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
+		if dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
 			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
 			if err != nil {
@@ -625,7 +669,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
-		// Checking replication status before deletion, it need to be broken before proceeding with deletion
+		// Checking replication status before deletion, it needs to be broken before proceeding with deletion
 		if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
 			// Wait for replication state = "mirrored"
 			if model := res.Model; model != nil {
@@ -651,7 +695,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if err = replicationClient.VolumesDeleteReplicationThenPoll(ctx, *replicaVolumeId); err != nil {
+		if _, err = replicationClient.VolumesDeleteReplication(ctx, *replicaVolumeId); err != nil {
 			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
 		}
 
@@ -1117,7 +1161,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *volumes.VolumePropertie
 }
 
 func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Snapshot == nil {
+	if input == nil || input.Snapshot == nil || *input.Snapshot.SnapshotPolicyId == "" {
 		return []interface{}{}
 	}
 

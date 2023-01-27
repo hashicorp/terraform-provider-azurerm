@@ -55,7 +55,7 @@ The following arguments are supported:
 * `application_id` - (Required) The (Client) ID of the Service Principal.
 
 * `certificate_thumbprint` - (Required) The thumbprint of the Service Principal Certificate.
- 
+
 * `subscription_id` - (Required) The subscription GUID.
   
 * `tenant_id` - (Required) The ID of the Tenant the Service Principal is assigned in.

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -129,11 +128,11 @@ func dataSourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta inter
 
 	if props := resp.AFDOriginGroupProperties; props != nil {
 		if err := d.Set("health_probe", flattenCdnFrontDoorOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
-			return fmt.Errorf("setting `health_probe`: %+v", err)
+			return fmt.Errorf("setting 'health_probe': %+v", err)
 		}
 
 		if err := d.Set("load_balancing", flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(props.LoadBalancingSettings)); err != nil {
-			return fmt.Errorf("setting `load_balancing`: %+v", err)
+			return fmt.Errorf("setting 'load_balancing': %+v", err)
 		}
 
 		d.Set("session_affinity_enabled", flattenEnabledBool(props.SessionAffinityState))

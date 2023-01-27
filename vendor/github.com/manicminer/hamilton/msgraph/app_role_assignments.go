@@ -50,9 +50,10 @@ func NewServicePrincipalsAppRoleAssignmentsClient(tenantId string) *AppRoleAssig
 }
 
 // List returns a list of app role assignments.
-func (c *AppRoleAssignmentsClient) List(ctx context.Context, id string) (*[]AppRoleAssignment, int, error) {
+func (c *AppRoleAssignmentsClient) List(ctx context.Context, id string, query odata.Query) (*[]AppRoleAssignment, int, error) {
 	resp, status, _, err := c.BaseClient.Get(ctx, GetHttpRequestInput{
 		ValidStatusCodes: []int{http.StatusOK},
+		OData:            query,
 		Uri: Uri{
 			Entity:      fmt.Sprintf("/%s/%s/appRoleAssignments", c.resourceType, id),
 			HasTenantId: true,

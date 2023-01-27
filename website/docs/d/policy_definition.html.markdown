@@ -28,7 +28,7 @@ output "id" {
 
 * `display_name` - Specifies the display name of the Policy Definition. Conflicts with `name`.
 
-~> **NOTE** As `display_name` is not unique errors may occur when there are multiple policy definitions with same display name. 
+~> **NOTE** As `display_name` is not unique errors may occur when there are multiple policy definitions with same display name.
 
 * `management_group_name` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
@@ -43,6 +43,8 @@ output "id" {
 * `policy_type` - The Type of the Policy. Possible values are `BuiltIn`, `Custom` and `NotSpecified`.
 
 * `policy_rule` - The Rule as defined (in JSON) in the Policy.
+
+* `role_definition_ids` - A list of role definition id extracted from `policy_rule` required for remediation.
 
 * `parameters` - Any Parameters defined in the Policy.
 

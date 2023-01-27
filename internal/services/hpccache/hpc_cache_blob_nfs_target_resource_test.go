@@ -337,6 +337,10 @@ resource "azurerm_hpc_cache" "test" {
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
 
+  timeouts {
+    create = "60m"
+  }
+
   # hpc_cache_blob_target depends on below role_assignments, however these role_assignments need up to 5 minutes to take effect.
   # Since hpc_cache_blob_target depends on the hpc_cache and hpc_cache takes far more than 5 minutes to create, put the dependency here so role_assignments are ready before creating hpc_cache_blob_target.
   depends_on = [

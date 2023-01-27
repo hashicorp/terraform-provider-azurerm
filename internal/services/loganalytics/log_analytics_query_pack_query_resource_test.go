@@ -18,7 +18,7 @@ import (
 type LogAnalyticsQueryPackQueryResource struct{ uuid string }
 
 func (r LogAnalyticsQueryPackQueryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := querypackqueries.ParseQueriesID(state.ID)
+	id, err := querypackqueries.ParseQueryID(state.ID)
 	if err != nil {
 		return nil, err
 	}

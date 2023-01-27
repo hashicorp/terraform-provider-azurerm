@@ -179,5 +179,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Streaming Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_streaming_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/streamingpolicies/policy1
+terraform import azurerm_media_streaming_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/account1/streamingPolicies/policy1
 ```

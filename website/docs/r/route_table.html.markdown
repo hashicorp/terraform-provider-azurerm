@@ -15,7 +15,6 @@ Manages a Route Table
 provides both a standalone [Route resource](route.html), and allows for Routes to be defined in-line within the [Route Table resource](route_table.html).
 At this time you cannot use a Route Table with in-line Routes in conjunction with any Route resources. Doing so will cause a conflict of Route configurations and will overwrite Routes.
 
-
 ## Example Usage
 
 ```hcl
@@ -46,7 +45,7 @@ resource "azurerm_route_table" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the route table. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the route table. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the route table. Changing this forces a new resource to be created.
 
@@ -60,7 +59,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Elements of `route` support:
+---
+
+A `route` block support:
 
 * `name` - (Required) The name of the route.
 

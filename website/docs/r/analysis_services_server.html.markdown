@@ -44,7 +44,7 @@ resource "azurerm_analysis_services_server" "server" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Analysis Services Server. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Analysis Services Server. Only lowercase Alphanumeric characters allowed, starting with a letter. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure location where the Analysis Services Server exists. Changing this forces a new resource to be created.
 
@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `ipv4_firewall_rule` block supports the following:
@@ -71,7 +73,6 @@ A `ipv4_firewall_rule` block supports the following:
 * `range_start` - (Required) Start of the firewall rule range as IPv4 address.
 
 * `range_end` - (Required) End of the firewall rule range as IPv4 address.
-
 
 ## Attributes Reference
 

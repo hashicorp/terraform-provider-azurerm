@@ -49,5 +49,4 @@ func unmarshalRouteConfigurationImplementation(input []byte) (RouteConfiguration
 		Values: temp,
 	}
 	return out, nil
-
 }

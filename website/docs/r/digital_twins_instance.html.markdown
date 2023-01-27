@@ -42,7 +42,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group where the Digital Twins instance should exist. Changing this forces a new Digital Twins instance to be created.
 
 * `location` - (Required) The Azure Region where the Digital Twins instance should exist. Changing this forces a new Digital Twins instance to be created.
-* 
+*
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Digital Twins instance.
@@ -55,7 +55,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Digital Twins instance.
 

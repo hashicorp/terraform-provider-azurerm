@@ -69,7 +69,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "example" {
       protocols           = ["TCP", "UDP"]
       source_addresses    = ["10.0.0.1", "10.0.0.2"]
       destination_address = "192.168.1.1"
-      destination_ports   = ["80", "1000-2000"]
+      destination_ports   = ["80"]
       translated_address  = "192.168.0.1"
       translated_port     = "8080"
     }
@@ -105,7 +105,7 @@ A `application_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the application rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) One or more `rule` (application rule) blocks as defined below.
+* `rule` - (Required) One or more `application_rule` (application rule) blocks as defined below.
 
 ---
 
@@ -117,7 +117,7 @@ A `network_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the network rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) One or more `rule` (network rule) blocks as defined above.
+* `rule` - (Required) One or more `network_rule` (network rule) blocks as defined below.
 
 ---
 
@@ -129,11 +129,11 @@ A `nat_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the NAT rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) A `rule` (NAT rule) block as defined above.
+* `rule` - (Required) A `nat_rule` (NAT rule) block as defined below.
 
 ---
 
-A `rule` (application rule) block supports the following:
+A `application_rule` (application rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
@@ -153,14 +153,13 @@ A `rule` (application rule) block supports the following:
 
 * `destination_fqdn_tags` - (Optional) Specifies a list of destination FQDN tags.
 
-* `terminate_tls` - (Optional) Boolean specifying if TLS shall be terminated (true) or not (false). Must be  `true` when using `destination_urls`. Needs Premium SKU for Firewall Policy.
+* `terminate_tls` - (Optional) Boolean specifying if TLS shall be terminated (true) or not (false). Must be `true` when using `destination_urls`. Needs Premium SKU for Firewall Policy.
 
 * `web_categories` - (Optional) Specifies a list of web categories to which access is denied or allowed depending on the value of `action` above. Needs Premium SKU for Firewall Policy.
 
-
 ---
 
-A `rule` (network rule) block supports the following:
+A `network_rule` (network rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
@@ -180,7 +179,7 @@ A `rule` (network rule) block supports the following:
 
 ---
 
-A `rule` (NAT rule) block supports the following:
+A `nat_rule` (NAT rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
@@ -192,10 +191,10 @@ A `rule` (NAT rule) block supports the following:
 
 * `destination_address` - (Optional) The destination IP address (including CIDR).
 
-* `destination_ports` - (Optional) Specifies a list of destination ports.
+* `destination_ports` - (Optional) Specifies a list of destination ports. Only one destination port is supported in a NAT rule.
 
 * `translated_address` - (Optional) Specifies the translated address.
- 
+
 * `translated_fqdn` - (Optional) Specifies the translated FQDN.
 
 ~> **NOTE:** Exactly one of `translated_address` and `translated_fqdn` should be set.
@@ -212,7 +211,7 @@ A `protocols` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Firewall Policy Rule Collection Group.
 

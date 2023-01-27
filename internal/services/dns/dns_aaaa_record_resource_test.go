@@ -136,8 +136,10 @@ func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 			Config: r.AliasToRecords(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
-				acceptance.TestCheckNoResourceAttr(data.ResourceName, "records"),
+				check.That(data.ResourceName).Key("target_resource_id").MatchesOtherKey(
+					check.That(targetResourceName).Key("id"),
+				),
+				check.That(data.ResourceName).Key("records.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),

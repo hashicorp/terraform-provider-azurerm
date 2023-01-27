@@ -168,6 +168,18 @@ func TestAccEventHubNamespace_networkrule_iprule(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespace_networkrule_publicNetworkAccessDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.networkrule_publicNetworkAccessDiff(data),
+			ExpectError: regexp.MustCompile("the value of public network access of namespace should be the same as of the network rulesets"),
+		},
+	})
+}
+
 func TestAccEventHubNamespace_networkrule_vnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -718,6 +730,37 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (EventHubNamespaceResource) networkrule_publicNetworkAccessDiff(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                          = "acctesteventhubnamespace-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "Standard"
+  capacity                      = "2"
+  public_network_access_enabled = true
+
+  network_rulesets {
+    default_action                = "Deny"
+    public_network_access_enabled = false
+    ip_rule {
+      ip_mask = "10.0.0.0/16"
+      action  = "Allow"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (EventHubNamespaceResource) networkrule_iprule_trusted_services(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -902,7 +945,6 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   capacity            = "2"
-  zone_redundant      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

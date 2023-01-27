@@ -55,19 +55,25 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Fluid Relay Server.
 
 * `frs_tenant_id` - The Fluid tenantId for this server.
 
-* `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints.
+* `primary_key` - The primary key for this server.
 
-* `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server.
+* `secondary_key` - The secondary key for this server.
+
+* `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints. This will be deprecated in future version of fluid relay server and will always be empty, [more details](https://learn.microsoft.com/en-us/azure/azure-fluid-relay/concepts/version-compatibility).
+
+* `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server. This will be deprecated in future version of fluid relay server and will always be empty, [more details](https://learn.microsoft.com/en-us/azure/azure-fluid-relay/concepts/version-compatibility).
+
+* `service_endpoints` - An array of service endpoints for this Fluid Relay Server.
 
 ---
 
-`identity` exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Fluid Relay Server.
 

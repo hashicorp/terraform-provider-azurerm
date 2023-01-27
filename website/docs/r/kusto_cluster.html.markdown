@@ -38,7 +38,7 @@ resource "azurerm_kusto_cluster" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Kusto Cluster to create. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Kusto Cluster to create. Only lowercase Alphanumeric characters allowed, starting with a letter. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location where the Kusto Cluster should be created. Changing this forces a new resource to be created.
 
@@ -50,11 +50,11 @@ The following arguments are supported:
 
 * `allowed_ip_ranges` - (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
 
-* `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
+* `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days).
+* `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days). Defaults to `true`.
 
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted.
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
-* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
 
@@ -84,14 +84,13 @@ The following arguments are supported:
 
 * `engine` - (Optional). The engine type that will be used in the backend. Possible values are `V2` and `V3`. Defaults to `V2`. Changing this forces a new Kusto Cluster to be created.
 
-~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, default engine type will be changed to `V3`. 
+~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, default engine type will be changed to `V3`.
 
 ---
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Dev(No SLA)_Standard_E2a_v4`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_E16as_v4+3TB_PS`, `Standard_E16as_v4+4TB_PS`, `Standard_E16a_v4`, `Standard_E2a_v4`, `Standard_E4a_v4`, `Standard_E64i_v3`, `Standard_E8as_v4+1TB_PS`, `Standard_E8as_v4+2TB_PS`, `Standard_E8a_v4`, `Standard_L16s`, `Standard_L4s`, `Standard_L8s`, `Standard_L16s_v2` and `Standard_L8s_v2`.
-
+* `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Dev(No SLA)_Standard_E2a_v4`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_D16d_v5`, `Standard_D32d_v4`, `Standard_D32d_v5`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_E16a_v4`, `Standard_E16ads_v5`, `Standard_E16as_v4+3TB_PS`, `Standard_E16as_v4+4TB_PS`, `Standard_E16as_v5+3TB_PS`, `Standard_E16as_v5+4TB_PS`, `Standard_E16s_v4+3TB_PS`, `Standard_E16s_v4+4TB_PS`, `Standard_E16s_v5+3TB_PS`, `Standard_E16s_v5+4TB_PS`, `Standard_E2a_v4`, `Standard_E2ads_v5`,`Standard_E4a_v4`, `Standard_E4ads_v5`, `Standard_E64i_v3`, `Standard_E80ids_v4`, `Standard_E8a_v4`, `Standard_E8ads_v5`, `Standard_E8as_v4+1TB_PS`, `Standard_E8as_v4+2TB_PS`, `Standard_E8as_v5+1TB_PS`, `Standard_E8as_v5+2TB_PS`, `Standard_E8s_v4+1TB_PS`, `Standard_E8s_v4+2TB_PS`, `Standard_E8s_v5+1TB_PS`, `Standard_E8s_v5+2TB_PS`, `Standard_L16s`, `Standard_L16s_v2`, `Standard_L4s`, `Standard_L8s`, `Standard_L8s_v2`, "Standard_L8s_v3", `Standard_L16s_v3`, `Standard_L8as_v3`, `Standard_L16as_v3`, `Standard_EC8as_v5+1TB_PS`, `Standard_EC8as_v5+2TB_PS`, `Standard_EC16as_v5+3TB_PS`, `Standard_EC16as_v5+4TB_PS`, `Standard_EC8ads_v5`, `Standard_EC16ads_v5`, `Standard_E2d_v4`, `Standard_E4d_v4`, `Standard_E8d_v4`, `Standard_E16d_v4`, `Standard_E2d_v5`, `Standard_E4d_v5`, `Standard_E8d_v5` and `Standard_E16d_v5`.
 * `capacity` - (Optional) Specifies the node count for the cluster. Boundaries depend on the SKU name.
 
 ~> **NOTE:** If no `optimized_auto_scale` block is defined, then the capacity is required.
@@ -147,8 +146,6 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kusto Cluster.
@@ -161,5 +158,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Kusto Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1
+terraform import azurerm_kusto_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1
 ```

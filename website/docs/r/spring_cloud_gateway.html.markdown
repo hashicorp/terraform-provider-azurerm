@@ -74,7 +74,7 @@ resource "azurerm_spring_cloud_gateway" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway to be created.
+* `name` - (Required) The name which should be used for this Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway to be created. The only possible value is `default`.
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Gateway to be created.
 
@@ -82,7 +82,11 @@ The following arguments are supported:
 
 * `api_metadata` - (Optional) A `api_metadata` block as defined below.
 
+* `application_performance_monitoring_types` - (Optional) Specifies a list of application performance monitoring types used in the Spring Cloud Gateway. The allowed values are `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
+
 * `cors` - (Optional) A `cors` block as defined below.
+
+* `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
 * `https_only` - (Optional) is only https is allowed?
 
@@ -91,6 +95,8 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
 
 * `quota` - (Optional) A `quota` block as defined below.
+
+* `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
 * `sso` - (Optional) A `sso` block as defined below.
 
@@ -116,7 +122,7 @@ A `cors` block supports the following:
 
 * `allowed_headers` - (Optional) Allowed headers in cross-site requests. The special value `*` allows actual requests to send any header.
 
-* `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default.
+* `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
 
 * `allowed_origins` - (Optional) Allowed origins to make cross-site requests. The special value `*` allows all domains.
 
@@ -150,7 +156,7 @@ A `sso` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Gateway.
 
@@ -170,5 +176,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Gateways can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_gateway.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/gateways/gateway1
+terraform import azurerm_spring_cloud_gateway.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1
 ```

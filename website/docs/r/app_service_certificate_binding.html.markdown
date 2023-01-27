@@ -95,7 +95,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the arguments listed above - the following attributes are exported: 
+In addition to the arguments listed above - the following attributes are exported:
 
 * `id` - The ID of the App Service Certificate Binding.
 
@@ -104,6 +104,14 @@ In addition to the arguments listed above - the following attributes are exporte
 * `hostname` - The hostname of the bound certificate.
 
 * `thumbprint` - The certificate thumbprint.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Binding.
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Binding.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate Binding.
 
 ## Import
 

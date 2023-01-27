@@ -10,5 +10,5 @@ import (
 type LoadTestResourcePatchRequestBody struct {
 	Identity   *identity.SystemAssigned                    `json:"identity,omitempty"`
 	Properties *LoadTestResourcePatchRequestBodyProperties `json:"properties,omitempty"`
-	Tags       *interface{}                                `json:"tags,omitempty"`
+	Tags       *map[string]string                          `json:"tags,omitempty"`
 }

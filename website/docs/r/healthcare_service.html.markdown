@@ -50,9 +50,9 @@ resource "azurerm_healthcare_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience.
-* `resource_group_name` - (Required) The name of the Resource Group in which to create the Service.
-* `location` - (Required) Specifies the supported Azure Region where the Service should be created.
+* `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which to create the Service. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure Region where the Service should be created. Changing this forces a new resource to be created.
 
 ~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
@@ -64,26 +64,26 @@ The following arguments are supported:
 ~> **Please Note** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
-* `public_network_access_enabled` - (Optional) Whether public network access is enabled or disabled for this service instance.
+* `public_network_access_enabled` - (Optional) Whether public network access is enabled or disabled for this service instance. Defaults to `true`.
 * `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
-An `authentication_configuration` supports the following:
+An `authentication_configuration` block supports the following:
 
 * `authority` - (Optional) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
-Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
-* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is https://azurehealthcareapis.com
-* `smart_proxy_enabled` - (Boolean) Enables the 'SMART on FHIR' option for mobile and web implementations.
+Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
+* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is <https://azurehealthcareapis.com>
+* `smart_proxy_enabled` - (Optional) (Boolean) Enables the 'SMART on FHIR' option for mobile and web implementations.
 
 ---
 A `cors_configuration` block supports the following:
 
-* `allowed_origins` - (Required) A set of origins to be allowed via CORS.
-* `allowed_headers` - (Required) A set of headers to be allowed via CORS.
-* `allowed_methods` - (Required) The methods to be allowed via CORS.
-* `max_age_in_seconds` - (Required) The max age to be allowed via CORS.
-* `allow_credentials` - (Boolean) If credentials are allowed via CORS.
+* `allowed_origins` - (Optional) A set of origins to be allowed via CORS.
+* `allowed_headers` - (Optional) A set of headers to be allowed via CORS.
+* `allowed_methods` - (Optional) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
+* `max_age_in_seconds` - (Optional) The max age to be allowed via CORS.
+* `allow_credentials` - (Optional) (Boolean) If credentials are allowed via CORS.
 
 ## Attributes Reference
 
@@ -92,8 +92,6 @@ The following attributes are exported:
 * `id` - The ID of the Healthcare Service.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

@@ -95,11 +95,15 @@ The following arguments are supported:
 
 ~> **NOTE:** The best practise is that it has to wait greater than 10 minutes to create the `GeoRestore` server once the source server is created.
 
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created.
 
 * `geo_redundant_backup_enabled` - (Optional) Should geo redundant backup enabled? Defaults to `false`. Changing this forces a new MySQL Flexible Server to be created.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -109,7 +113,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
-* `replication_role` - The replication role. Possible value is `None`.
+* `replication_role` - (Optional) The replication role. Possible value is `None`.
 
 ~> **NOTE:** The `replication_role` cannot be set while creating and only can be updated from `Replica` to `None`.
 
@@ -126,6 +130,26 @@ The following arguments are supported:
 * `zone` - (Optional) Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are `1`, `2` and `3`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the MySQL Flexible Server.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key.
+
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Should be set to `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service. Required if used together with `customer_managed_key` block as defined below.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -153,7 +177,7 @@ A `maintenance_window` block supports the following:
 
 A `storage` block supports the following:
 
-* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`. 
+* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`.
 
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are between `360` and `20000`.
 
@@ -161,11 +185,11 @@ A `storage` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MySQL Flexible Server.
 
-* `fqdn` -  The fully qualified domain name of the MySQL Flexible Server.
+* `fqdn` - The fully qualified domain name of the MySQL Flexible Server.
 
 * `public_network_access_enabled` - Is the public network access enabled?
 

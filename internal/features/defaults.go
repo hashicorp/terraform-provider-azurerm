@@ -7,6 +7,10 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
+		AppConfiguration: AppConfigurationFeatures{
+			PurgeSoftDeleteOnDestroy: true,
+			RecoverSoftDeleted:       true,
+		},
 		ApplicationInsights: ApplicationInsightFeatures{
 			DisableGeneratedRule: false,
 		},
@@ -26,6 +30,9 @@ func Default() UserFeatures {
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: true,
+		},
+		ManagedDisk: ManagedDiskFeatures{
+			ExpandWithoutDowntime: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,

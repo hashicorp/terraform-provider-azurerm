@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management API Policy
 
-
 ## Example Usage
 
 ```hcl
@@ -35,7 +34,6 @@ resource "azurerm_api_management_api_policy" "example" {
 XML
 }
 ```
-
 
 ## Argument Reference
 

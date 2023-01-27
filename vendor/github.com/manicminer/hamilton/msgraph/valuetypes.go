@@ -60,7 +60,7 @@ const (
 type AccessPackageResourceRequestType = string
 
 const (
-	AccessPackageResourceRequestTypeAdminAdd     AccessPackageResourceRequestType = "AdminAdd"
+	AccessPackageResourceRequestTypeAdminAdd    AccessPackageResourceRequestType = "AdminAdd"
 	AccessPackageResourceRequestTypeAdminRemove AccessPackageResourceRequestType = "AdminRemove"
 )
 
@@ -260,6 +260,7 @@ const (
 	ConditionalAccessDevicePlatformAll                ConditionalAccessDevicePlatform = "all"
 	ConditionalAccessDevicePlatformAndroid            ConditionalAccessDevicePlatform = "android"
 	ConditionalAccessDevicePlatformIos                ConditionalAccessDevicePlatform = "iOS"
+	ConditionalAccessDevicePlatformLinux              ConditionalAccessDevicePlatform = "linux"
 	ConditionalAccessDevicePlatformMacOs              ConditionalAccessDevicePlatform = "macOS"
 	ConditionalAccessDevicePlatformUnknownFutureValue ConditionalAccessDevicePlatform = "unknownFutureValue"
 	ConditionalAccessDevicePlatformWindows            ConditionalAccessDevicePlatform = "windows"
@@ -384,10 +385,11 @@ const (
 type GroupResourceBehaviorOption = string
 
 const (
-	GroupResourceBehaviorOptionAllowOnlyMembersToPost   GroupResourceBehaviorOption = "AllowOnlyMembersToPost"
-	GroupResourceBehaviorOptionHideGroupInOutlook       GroupResourceBehaviorOption = "HideGroupInOutlook"
-	GroupResourceBehaviorOptionSubscribeNewGroupMembers GroupResourceBehaviorOption = "SubscribeNewGroupMembers"
-	GroupResourceBehaviorOptionWelcomeEmailDisabled     GroupResourceBehaviorOption = "WelcomeEmailDisabled"
+	GroupResourceBehaviorOptionAllowOnlyMembersToPost                   GroupResourceBehaviorOption = "AllowOnlyMembersToPost"
+	GroupResourceBehaviorOptionHideGroupInOutlook                       GroupResourceBehaviorOption = "HideGroupInOutlook"
+	GroupResourceBehaviorOptionSubscribeMembersToCalendarEventsDisabled GroupResourceBehaviorOption = "SubscribeMembersToCalendarEventsDisabled"
+	GroupResourceBehaviorOptionSubscribeNewGroupMembers                 GroupResourceBehaviorOption = "SubscribeNewGroupMembers"
+	GroupResourceBehaviorOptionWelcomeEmailDisabled                     GroupResourceBehaviorOption = "WelcomeEmailDisabled"
 )
 
 type GroupResourceProvisioningOption = string
@@ -624,4 +626,12 @@ const (
 	IncludedUserTypesAll    IncludedUserTypes = "all"
 	IncludedUserTypesMember IncludedUserTypes = "member"
 	IncludedUserTypesGuest  IncludedUserTypes = "guest"
+)
+
+type UserflowAttributeDataType = string
+
+const (
+	UserflowAttributeDataTypeString  UserflowAttributeDataType = "string"
+	UserflowAttributeDataTypeBoolean UserflowAttributeDataType = "boolean"
+	UserflowAttributeDataTypeInt64   UserflowAttributeDataType = "int64"
 )

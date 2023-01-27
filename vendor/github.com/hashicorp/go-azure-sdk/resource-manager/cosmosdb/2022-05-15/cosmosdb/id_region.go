@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = RegionId{}
 
 // RegionId is a struct representing the Resource ID for a Region
 type RegionId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	Region            string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	RegionName          string
 }
 
 // NewRegionID returns a new RegionId struct
-func NewRegionID(subscriptionId string, resourceGroupName string, accountName string, region string) RegionId {
+func NewRegionID(subscriptionId string, resourceGroupName string, databaseAccountName string, regionName string) RegionId {
 	return RegionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		Region:            region,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		RegionName:          regionName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseRegionID(input string) (*RegionId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.Region, ok = parsed.Parsed["region"]; !ok {
-		return nil, fmt.Errorf("the segment 'region' was not found in the resource id %q", input)
+	if id.RegionName, ok = parsed.Parsed["regionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'regionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseRegionIDInsensitively(input string) (*RegionId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.Region, ok = parsed.Parsed["region"]; !ok {
-		return nil, fmt.Errorf("the segment 'region' was not found in the resource id %q", input)
+	if id.RegionName, ok = parsed.Parsed["regionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'regionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateRegionID(input interface{}, key string) (warnings []string, errors 
 // ID returns the formatted Region ID
 func (id RegionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/region/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.Region)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.RegionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Region ID
@@ -119,9 +119,9 @@ func (id RegionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticRegion", "region", "region"),
-		resourceids.UserSpecifiedSegment("region", "regionValue"),
+		resourceids.UserSpecifiedSegment("regionName", "regionValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id RegionId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Region: %q", id.Region),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Region Name: %q", id.RegionName),
 	}
 	return fmt.Sprintf("Region (%s)", strings.Join(components, "\n"))
 }

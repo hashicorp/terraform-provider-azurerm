@@ -7,12 +7,12 @@ import (
 )
 
 type Client struct {
-	ServiceLinkerClient *servicelinker.ServicelinkerClient
+	ServiceLinkerClient *servicelinker.ServiceLinkerClient
 	LinksClient         *links.LinksClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	serviceLinkerClient := servicelinker.NewServicelinkerClientWithBaseURI(o.ResourceManagerEndpoint)
+	serviceLinkerClient := servicelinker.NewServiceLinkerClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&serviceLinkerClient.Client, o.ResourceManagerAuthorizer)
 
 	linksClient := links.NewLinksClientWithBaseURI(o.ResourceManagerEndpoint)

@@ -1,40 +1,27 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	webpubsub_v2021_10_01 "github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	SignalRClient                            *signalr.SignalRClient
-	WebPubsubClient                          *webpubsub.Client
-	WebPubsubHubsClient                      *webpubsub.HubsClient
-	WebPubsubSharedPrivateLinkResourceClient *webpubsub.SharedPrivateLinkResourcesClient
-	WebPubsubPrivateLinkedResourceClient     *webpubsub.PrivateLinkResourcesClient
+	SignalRClient   *signalr.SignalRClient
+	WebPubSubClient *webpubsub_v2021_10_01.Client
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	signalRClient := signalr.NewSignalRClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&signalRClient.Client, o.ResourceManagerAuthorizer)
 
-	webpubsubClient := webpubsub.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&webpubsubClient.Client, o.ResourceManagerAuthorizer)
-
-	webpubsubHubsClient := webpubsub.NewHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&webpubsubHubsClient.Client, o.ResourceManagerAuthorizer)
-
-	webPubsubSharedPrivateLinkResourceClient := webpubsub.NewSharedPrivateLinkResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&webPubsubSharedPrivateLinkResourceClient.Client, o.ResourceManagerAuthorizer)
-
-	webPubsubPrivateLinkResourceClient := webpubsub.NewPrivateLinkResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&webPubsubPrivateLinkResourceClient.Client, o.ResourceManagerAuthorizer)
+	webPubSubClient := webpubsub_v2021_10_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		c.Authorizer = o.ResourceManagerAuthorizer
+	})
 
 	return &Client{
-		SignalRClient:                            &signalRClient,
-		WebPubsubClient:                          &webpubsubClient,
-		WebPubsubHubsClient:                      &webpubsubHubsClient,
-		WebPubsubSharedPrivateLinkResourceClient: &webPubsubSharedPrivateLinkResourceClient,
-		WebPubsubPrivateLinkedResourceClient:     &webPubsubPrivateLinkResourceClient,
+		SignalRClient:   &signalRClient,
+		WebPubSubClient: &webPubSubClient,
 	}
 }

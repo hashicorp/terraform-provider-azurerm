@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = AttestationProvidersId{}
 
 // AttestationProvidersId is a struct representing the Resource ID for a Attestation Providers
 type AttestationProvidersId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ProviderName      string
+	SubscriptionId          string
+	ResourceGroupName       string
+	AttestationProviderName string
 }
 
 // NewAttestationProvidersID returns a new AttestationProvidersId struct
-func NewAttestationProvidersID(subscriptionId string, resourceGroupName string, providerName string) AttestationProvidersId {
+func NewAttestationProvidersID(subscriptionId string, resourceGroupName string, attestationProviderName string) AttestationProvidersId {
 	return AttestationProvidersId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ProviderName:      providerName,
+		SubscriptionId:          subscriptionId,
+		ResourceGroupName:       resourceGroupName,
+		AttestationProviderName: attestationProviderName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseAttestationProvidersID(input string) (*AttestationProvidersId, error) 
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+	if id.AttestationProviderName, ok = parsed.Parsed["attestationProviderName"]; !ok {
+		return nil, fmt.Errorf("the segment 'attestationProviderName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseAttestationProvidersIDInsensitively(input string) (*AttestationProvide
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+	if id.AttestationProviderName, ok = parsed.Parsed["attestationProviderName"]; !ok {
+		return nil, fmt.Errorf("the segment 'attestationProviderName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateAttestationProvidersID(input interface{}, key string) (warnings []s
 // ID returns the formatted Attestation Providers ID
 func (id AttestationProvidersId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Attestation/attestationProviders/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ProviderName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AttestationProviderName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Attestation Providers ID
@@ -109,7 +109,7 @@ func (id AttestationProvidersId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAttestation", "Microsoft.Attestation", "Microsoft.Attestation"),
 		resourceids.StaticSegment("staticAttestationProviders", "attestationProviders", "attestationProviders"),
-		resourceids.UserSpecifiedSegment("providerName", "providerValue"),
+		resourceids.UserSpecifiedSegment("attestationProviderName", "attestationProviderValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id AttestationProvidersId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Provider Name: %q", id.ProviderName),
+		fmt.Sprintf("Attestation Provider Name: %q", id.AttestationProviderName),
 	}
 	return fmt.Sprintf("Attestation Providers (%s)", strings.Join(components, "\n"))
 }

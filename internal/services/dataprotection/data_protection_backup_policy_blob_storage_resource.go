@@ -32,7 +32,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backuppolicies.ParseBackupPoliciesID(id)
+			_, err := backuppolicies.ParseBackupPolicyID(id)
 			return err
 		}),
 
@@ -72,7 +72,7 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 
 	name := d.Get("name").(string)
 	vaultId, _ := backuppolicies.ParseBackupVaultID(d.Get("vault_id").(string))
-	id := backuppolicies.NewBackupPoliciesID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
+	id := backuppolicies.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -121,7 +121,7 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 		}
 		return fmt.Errorf("retrieving DataProtection BackupPolicy (%q): %+v", id, err)
 	}
-	vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupPolicyName)
 	d.Set("vault_id", vaultId.ID())
 	if resp.Model != nil {
@@ -155,7 +155,7 @@ func resourceDataProtectionBackupPolicyBlobStorageDelete(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPoliciesID(d.Id())
+	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}

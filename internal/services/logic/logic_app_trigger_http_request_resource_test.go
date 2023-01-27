@@ -135,6 +135,22 @@ func TestAccLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppTriggerHttpRequest_workflowWithISE(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workflowWithISE(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("schema").HasValue("{}"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (LogicAppTriggerHttpRequestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	return triggerExists(ctx, clients, state)
 }
@@ -230,4 +246,16 @@ resource "azurerm_logic_app_workflow" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r LogicAppTriggerHttpRequestResource) workflowWithISE(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_trigger_http_request" "test" {
+  name         = "some-http-trigger"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  schema       = "{}"
+}
+`, LogicAppWorkflowResource{}.integrationServiceEnvironment(data))
 }

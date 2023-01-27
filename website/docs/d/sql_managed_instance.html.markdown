@@ -33,16 +33,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the SQL Managed Instance exists.
 
-
 ## Attributes Reference
 
 * `id` - The SQL Managed Instance ID.
 
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance.
 
-* `location` - Location where the resource exists. 
+* `location` - Location where the resource exists.
 
-* `sku_name` - SKU Name for the SQL Managed Instance. 
+* `sku_name` - SKU Name for the SQL Managed Instance.
 
 * `vcores` - Number of cores assigned to your instance.
 
@@ -60,11 +59,11 @@ The following arguments are supported:
 
 * `minimum_tls_version` - The Minimum TLS Version.
 
-* `proxy_override` - How the SQL Managed Instance is accessed. 
+* `proxy_override` - How the SQL Managed Instance is accessed.
 
 * `timezone_id` - The TimeZone ID that the SQL Managed Instance is operating in.
 
-* `dns_zone_partner_id` - The ID of the Managed Instance which is sharing the DNS zone. 
+* `dns_zone_partner_id` - The ID of the Managed Instance which is sharing the DNS zone.
 
 * `identity` - An `identity` block as defined below.
 

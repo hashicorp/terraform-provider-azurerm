@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -46,6 +46,7 @@ type WindowsFunctionAppModel struct {
 	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths    string                                 `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings           []helpers.ConnectionString             `tfschema:"connection_string"`
 	DailyMemoryTimeQuota        int                                    `tfschema:"daily_memory_time_quota"`
 	Enabled                     bool                                   `tfschema:"enabled"`
@@ -54,6 +55,7 @@ type WindowsFunctionAppModel struct {
 	HttpsOnly                   bool                                   `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID string                                 `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                  []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StorageAccounts             []helpers.StorageAccount               `tfschema:"storage_account"`
 	Tags                        map[string]string                      `tfschema:"tags"`
 	VirtualNetworkSubnetID      string                                 `tfschema:"virtual_network_subnet_id"`
 
@@ -97,7 +99,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "Specifies the name of the Function App.",
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
@@ -192,6 +194,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"daily_memory_time_quota": {
@@ -243,6 +251,8 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionApp(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),
+
+		"storage_account": helpers.StorageAccountSchemaWindows(),
 
 		"tags": tags.Schema(),
 
@@ -390,6 +400,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
 				}
 			}
+
 			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionApp(functionApp.SiteConfig, nil, metadata, functionApp.FunctionExtensionsVersion, storageString, functionApp.StorageUsesMSI)
 			if err != nil {
 				return fmt.Errorf("expanding site_config for Windows %s: %+v", id, err)
@@ -425,7 +436,6 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionApp.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -457,6 +467,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
 			}
 
+			if functionApp.ClientCertExclusionPaths != "" {
+				siteEnvelope.ClientCertExclusionPaths = utils.String(functionApp.ClientCertExclusionPaths)
+			}
+
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
@@ -485,7 +499,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(functionApp.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(functionApp.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
+			}
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
@@ -496,6 +513,15 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for Windows %s: %+v", id, err)
+				}
+			}
+
+			storageConfig := helpers.ExpandStorageConfig(functionApp.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
+					}
 				}
 			}
 
@@ -553,7 +579,12 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
+			}
+
+			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -593,6 +624,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				Location:                    location.NormalizeNilable(functionApp.Location),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
@@ -621,6 +653,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
+
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
@@ -634,6 +667,8 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
@@ -731,6 +766,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
+			}
+
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
@@ -757,6 +796,13 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 					existing.SiteProperties.VirtualNetworkSubnetID = empty
 				} else {
 					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -799,10 +845,6 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				existing.SiteConfig = siteConfig
-			}
-
-			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-				existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
@@ -849,7 +891,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 
 				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
-					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -861,7 +903,11 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Windows %s: %+v", *id, err)
+				}
+
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)
@@ -1001,7 +1047,11 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION":
+			if len(m.SiteConfig[0].ApplicationStack) == 0 {
+				m.SiteConfig[0].ApplicationStack = []helpers.ApplicationStackWindowsFunctionApp{{}}
+			}
+			m.SiteConfig[0].ApplicationStack[0].NodeVersion = pointer.From(v)
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
@@ -1014,12 +1064,15 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
-			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
-				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
-			}
-
 			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+			switch *v {
+			case "dotnet-isolated":
+				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
+			case "custom":
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
+
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":
@@ -1058,6 +1111,9 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
+
+		case "WEBSITE_VNET_ROUTE_ALL":
+			// Filter out - handled by site_config setting `vnet_route_all_enabled`
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)

@@ -197,8 +197,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description for the Data Factory Flowlet Data Flow.
 
-* `folder` - (Optional) The folder that this Data Flow is in. If not specified, the Data Flow will appear at the 
-root level.
+* `folder` - (Optional) The folder that this Data Flow is in. If not specified, the Data Flow will appear at the root level.
 
 * `source` - (Required) One or more `source` blocks as defined below.
 
@@ -224,6 +223,8 @@ A `flowlet` block supports the following:
 
 * `name` - (Required) The name for the Data Factory Flowlet.
 
+* `dataset_parameters` - (Optional) Specifies the reference data flow parameters from dataset.
+
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Flowlet.
 
 ---
@@ -248,6 +249,8 @@ A `source` block supports the following:
 
 * `name` - (Required) The name for the Data Flow Source.
 
+* `rejected_linked_service` - (Optional) A `rejected_linked_service` block as defined below.
+
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
 
 ---
@@ -264,7 +267,17 @@ A `sink` block supports the following:
 
 * `name` - (Required) The name for the Data Flow Source.
 
+* `rejected_linked_service` - (Optional) A `rejected_linked_service` block as defined below.
+
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
+
+---
+
+A `rejected_linked_service` block supports the following:
+
+* `name` - (Required) The name for the Data Factory Linked Service with schema.
+
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
 ---
 
@@ -277,6 +290,8 @@ A `schema_linked_service` block supports the following:
 ---
 
 A `transformation` block supports the following:
+
+* `name` - (Required) The name for the Data Flow transformation.
 
 * `description` - (Optional) The description for the Data Flow transformation.
 

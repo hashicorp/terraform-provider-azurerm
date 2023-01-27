@@ -47,6 +47,21 @@ func TestAccServiceConnectorSpringCloudCosmosdb_basic(t *testing.T) {
 	})
 }
 
+func TestAccServiceConnectorSpringCloudStorageBlob_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
+	r := ServiceConnectorSpringCloudResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageBlob(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServiceConnectorSpringCloudCosmosdb_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
@@ -97,6 +112,57 @@ resource "azurerm_spring_cloud_connection" "test" {
   }
 }
 `, template, data.RandomString, data.RandomInteger)
+}
+
+func (r ServiceConnectorSpringCloudResource) storageBlob(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "testspringcloudservice-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "testspringcloud-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  service_name        = azurerm_spring_cloud_service.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_spring_cloud_java_deployment" "test" {
+  name                = "deploy-%[3]s"
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+}
+
+resource "azurerm_spring_cloud_connection" "test" {
+  name               = "acctestserviceconnector%[2]d"
+  spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
+  target_resource_id = azurerm_storage_account.test.id
+  authentication {
+    type = "systemAssignedIdentity"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r ServiceConnectorSpringCloudResource) cosmosdbUpdate(data acceptance.TestData) string {
@@ -161,7 +227,6 @@ resource "azurerm_spring_cloud_connection" "test" {
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
-  vnet_solution      = "privateLink"
   authentication {
     type = "systemAssignedIdentity"
   }

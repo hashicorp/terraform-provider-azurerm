@@ -139,6 +139,25 @@ func TestAccDataSourceStorageAccount_systemAssignedUserAssignedIdentity(t *testi
 	})
 }
 
+func TestAccDataSourceStorageAccount_azureFilesAuthentication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountDataSource{}.azureFilesAuthenticationAD(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("azure_files_authentication.0.directory_type").HasValue("AD"),
+				check.That(data.ResourceName).Key("azure_files_authentication.0.active_directory.0.storage_sid").HasValue("S-1-5-21-2400535526-2334094090-2402026252-0012"),
+				check.That(data.ResourceName).Key("azure_files_authentication.0.active_directory.0.domain_name").HasValue("adtest.com"),
+				check.That(data.ResourceName).Key("azure_files_authentication.0.active_directory.0.domain_sid").HasValue("S-1-5-21-2400535526-2334094090-2402026252-0012"),
+				check.That(data.ResourceName).Key("azure_files_authentication.0.active_directory.0.domain_guid").HasValue("aebfc118-9fa9-4732-a21f-d98e41a77ae1"),
+				check.That(data.ResourceName).Key("azure_files_authentication.0.active_directory.0.forest_name").HasValue("adtest.com"),
+				check.That(data.ResourceName).Key("azure_files_authentication.0.active_directory.0.netbios_domain_name").HasValue("adtest.com"),
+			),
+		},
+	})
+}
+
 func (d StorageAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -354,4 +373,42 @@ data "azurerm_storage_account" "test" {
   resource_group_name = azurerm_storage_account.test.resource_group_name
 }
 `, d.identityTemplate(data), data.RandomString)
+}
+
+func (d StorageAccountDataSource) azureFilesAuthenticationAD(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AD"
+    active_directory {
+      storage_sid         = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_name         = "adtest.com"
+      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-0012"
+      domain_guid         = "aebfc118-9fa9-4732-a21f-d98e41a77ae1"
+      forest_name         = "adtest.com"
+      netbios_domain_name = "adtest.com"
+    }
+  }
+}
+
+data "azurerm_storage_account" "test" {
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

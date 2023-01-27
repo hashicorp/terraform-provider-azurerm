@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine Scale Set.
 
@@ -103,12 +103,12 @@ An `identity` block exports the following:
 * `domain_name_label` - The domain name label for the DNS settings.
 * `ip_tag` - A list of `ip_tag` blocks as defined below.
 * `public_ip_prefix_id` - The ID of the public IP prefix.
+* `version` - The Internet Protocol Version of the public IP address.
 
 `ip_tag` exports the following:
 
 * `tag` - The IP Tag associated with the Public IP.
 * `type` - The Type of IP Tag.
-
 
 ## Timeouts
 

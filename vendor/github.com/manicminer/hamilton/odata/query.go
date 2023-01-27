@@ -12,6 +12,7 @@ type ConsistencyLevel string
 
 const (
 	ConsistencyLevelEventual ConsistencyLevel = "eventual"
+	ConsistencyLevelSession  ConsistencyLevel = "session"
 )
 
 type Metadata string

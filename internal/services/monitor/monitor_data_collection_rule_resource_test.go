@@ -174,6 +174,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       facility_names = ["*"]
       log_levels     = ["*"]
       name           = "test-datasource-syslog"
+      streams        = ["Microsoft-CiscoAsa"]
     }
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
@@ -282,7 +283,8 @@ resource "azurerm_monitor_data_collection_rule" "test" {
         "Info",
         "Notice",
       ]
-      name = "test-datasource-syslog"
+      name    = "test-datasource-syslog"
+      streams = ["Microsoft-Syslog", "Microsoft-CiscoAsa"]
     }
 
     performance_counter {
@@ -324,7 +326,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
 
     extension {
-      streams            = ["Microsoft-WindowsEvent"]
+      streams            = ["Microsoft-WindowsEvent", "Microsoft-ServiceMap"]
       input_data_sources = ["test-datasource-wineventlog"]
       extension_name     = "test-extension-name"
       extension_json = jsonencode({
@@ -346,6 +348,8 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     azurerm_log_analytics_solution.test2,
   ]
 }
+
+
 
 
 `, r.template(data), data.RandomInteger)

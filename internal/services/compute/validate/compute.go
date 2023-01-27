@@ -41,23 +41,25 @@ func SharedImageName(v interface{}, k string) (warnings []string, errors []error
 	return warnings, errors
 }
 
-func SharedImageIdentifierAttribute(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
+func SharedImageIdentifierAttribute(maxLength int) func(interface{}, string) ([]string, []error) {
+	return func(v interface{}, k string) (warnings []string, errors []error) {
+		value := v.(string)
 
-	length := len(value)
-	if length > 128 {
-		errors = append(errors, fmt.Errorf("%s can be up to 128 characters, currently %d.", k, length))
+		length := len(value)
+		if length > maxLength {
+			errors = append(errors, fmt.Errorf("%s can be up to %d characters, currently %d.", k, maxLength, length))
+		}
+
+		if strings.HasSuffix(value, ".") {
+			errors = append(errors, fmt.Errorf("%q can not end with a '.', got %q", k, value))
+		}
+
+		if !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(value) {
+			errors = append(errors, fmt.Errorf("%s can only contain alphanumeric, full stops, dashes and underscores. Got %q.", k, value))
+		}
+
+		return warnings, errors
 	}
-
-	if strings.HasSuffix(value, ".") {
-		errors = append(errors, fmt.Errorf("%q can not end with a '.', got %q", k, value))
-	}
-
-	if !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s can only contain alphanumeric, full stops, dashes and underscores. Got %q.", k, value))
-	}
-
-	return warnings, errors
 }
 
 func SharedImageVersionName(v interface{}, k string) (warnings []string, errors []error) {

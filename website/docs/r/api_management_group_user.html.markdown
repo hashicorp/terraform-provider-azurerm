@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management User Assignment to a Group.
 
-
 ## Example Usage
 
 ```hcl
@@ -27,7 +26,6 @@ resource "azurerm_api_management_group_user" "example" {
   api_management_name = data.azurerm_api_management_user.example.api_management_name
 }
 ```
-
 
 ## Argument Reference
 

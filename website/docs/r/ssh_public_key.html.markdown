@@ -57,5 +57,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 SSH Public Keys can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_ssh_public_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/SshPublicKeys/mySshPublicKeyName1
+terraform import azurerm_ssh_public_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/sshPublicKeys/mySshPublicKeyName1
 ```

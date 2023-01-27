@@ -3,12 +3,13 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -75,10 +76,24 @@ func TestAccSiteRecoveryReplicatedVm_targetDiskEncryption(t *testing.T) {
 	})
 }
 
-func (SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
+// TODO: remove the resource group features in this file before ready to review
+func (SiteRecoveryReplicatedVmResource) template(data acceptance.TestData) string {
+	tags := ""
+	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
+		tags = `
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
+`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -162,24 +177,17 @@ resource "azurerm_subnet" "test1" {
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "net-%[1]d"
+  name                = "net2-%[1]d"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
-resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%[1]d_1"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.0/27"]
-}
-
-resource "azurerm_subnet" "test2_2" {
+resource "azurerm_subnet" "test2" {
   name                 = "snet-%[1]d_2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.32/27"]
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["192.168.2.0/24"]
 }
 
 resource "azurerm_site_recovery_network_mapping" "test" {
@@ -239,6 +247,8 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
   network_interface_ids = [azurerm_network_interface.test.id]
+
+ %[4]s
 }
 
 resource "azurerm_public_ip" "test-source" {
@@ -258,15 +268,25 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "accsa%[1]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, tags)
 }
 
+func (r SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[1]d"
+  name                                      = "repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -288,7 +308,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 
   network_interface {
     source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = "snet-%[1]d_2"
+    target_subnet_name            = azurerm_subnet.test2.name
     recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
   }
 
@@ -297,7 +317,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger)
 }
 
 func (SiteRecoveryReplicatedVmResource) des(data acceptance.TestData) string {
@@ -307,6 +327,9 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }
@@ -565,20 +588,6 @@ resource "azurerm_virtual_network" "test2" {
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
-resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%[1]d-2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.0/27"]
-}
-
-resource "azurerm_subnet" "test2_2" {
-  name                 = "snet-%[1]d-3"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.32/27"]
-}
-
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.test2.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
@@ -710,7 +719,11 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 func (SiteRecoveryReplicatedVmResource) zone2zone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -790,20 +803,6 @@ resource "azurerm_virtual_network" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
-}
-
-resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%[1]d_1"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.0/27"]
-}
-
-resource "azurerm_subnet" "test2_2" {
-  name                 = "snet-%[1]d_2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefixes     = ["192.168.2.32/27"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -905,6 +904,9 @@ provider "azurerm" {
       purge_soft_delete_on_destroy          = false
       purge_soft_deleted_keys_on_destroy    = false
       purge_soft_deleted_secrets_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }
@@ -1128,6 +1130,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_recovery_fabric_id                 = azurerm_site_recovery_fabric.test1.id
   target_recovery_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   target_network_id                         = azurerm_virtual_network.test1.id
+
   managed_disk {
     disk_id                    = data.azurerm_managed_disk.test.id
     staging_storage_account_id = azurerm_storage_account.test.id
@@ -1156,16 +1159,21 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
-func (t SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ReplicationProtectedItemID(state.ID)
+func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.ReplicationMigrationItemsClient(id.ResourceGroup, id.VaultName).Get(ctx, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.Name)
+	resp, err := clients.RecoveryServices.ReplicationProtectedItemsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading site recovery replicated vm (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	model := resp.Model
+	if model == nil {
+		return nil, fmt.Errorf("reading site recovery replicated vm (%s): model is nil", id.String())
+	}
+
+	return utils.Bool(model.Id != nil), nil
 }

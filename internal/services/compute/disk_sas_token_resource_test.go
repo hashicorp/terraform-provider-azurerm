@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -30,21 +30,21 @@ func TestAccManagedDiskSASToken_basic(t *testing.T) {
 }
 
 func (t ManagedDiskSASTokenResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedDiskID(state.ID)
+	id, err := disks.ParseDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+	resp, err := clients.Compute.DisksClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Disk Export status %q", id.String())
 	}
 
-	if resp.DiskState != "ActiveSAS" {
-		return nil, fmt.Errorf("Disk SAS token %s (resource group %s): %s", id.DiskName, id.ResourceGroup, err)
+	if string(*resp.Model.Properties.DiskState) != "ActiveSAS" {
+		return nil, fmt.Errorf("Disk SAS token %s (resource group %s): %s", id.DiskName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ManagedDiskSASTokenResource) basic(data acceptance.TestData) string {

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +25,7 @@ func dataSourceKubernetesServiceVersions() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"version_prefix": {
 				Type:     pluginsdk.TypeString,

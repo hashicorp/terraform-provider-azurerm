@@ -4,7 +4,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ip_group"
 description: |-
   Manages an IP group which contains a list of CIDRs and/or IP addresses.
-
+  
 ---
 
 # azurerm_ip_group
@@ -32,7 +32,7 @@ resource "azurerm_ip_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -46,12 +46,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the IP Group.
+* `id` - The ID of the IP group.
+
+* `firewall_ids` - A `firewall_ids` block as defined below.
+
+* `firewall_policy_ids` - A `firewall_policy_ids` block as defined below.
 
 ## Timeouts
 
