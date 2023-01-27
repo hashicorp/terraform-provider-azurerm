@@ -773,21 +773,6 @@ func (r PrivateEndpointResource) staticIpAddress(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  address_space       = ["10.6.0.0/16"]
-}
-
-resource "azurerm_subnet" "endpoint" {
-  name                                           = "acctestsnetendpoint-%[2]d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.6.1.0/24"]
-  enforce_private_link_endpoint_network_policies = true
-}
-
 resource "azurerm_private_endpoint" "test" {
   name                = "acctest-privatelink-%[2]d"
   location            = azurerm_resource_group.test.location
