@@ -306,7 +306,7 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -471,7 +471,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -551,7 +551,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -626,7 +626,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -706,22 +706,17 @@ resource "azurerm_private_endpoint" "test" {
 
 func (r PrivateEndpointResource) staticIpAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelink-%d"
-  location = azurerm_resource_group.test.location
-}
+%[1]s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet-%d"
+  name                = "acctestvnet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.6.0.0/16"]
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                                           = "acctestsnetendpoint-%d"
+  name                                           = "acctestsnetendpoint-%[2]d"
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   address_prefixes                               = ["10.6.1.0/24"]
@@ -729,7 +724,7 @@ resource "azurerm_subnet" "endpoint" {
 }
 
 resource "azurerm_private_endpoint" "test" {
-  name                = "acctest-privatelink-%d"
+  name                = "acctest-privatelink-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.endpoint.id
@@ -741,11 +736,11 @@ resource "azurerm_private_endpoint" "test" {
   }
 
   ip_configuration {
-    name               = "acctest-ip-privatelink-%d"
+    name               = "acctest-ip-privatelink-%[2]d"
     private_ip_address = "10.6.1.100"
   }
 }
-`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
 
 func (PrivateEndpointResource) privateDnsZoneGroupRename(data acceptance.TestData) string {
@@ -755,7 +750,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
