@@ -101,7 +101,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
-* `confidential_computing_enabled` - (Optional) Should Confidential Computing be enabled? For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
+* `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
 
@@ -341,6 +341,12 @@ When `managed` is set to `false` the following properties can be specified:
 * `server_app_id` - (Optional) The Server ID of an Azure Active Directory Application.
 
 * `server_app_secret` - (Optional) The Server Secret of an Azure Active Directory Application.
+
+---
+
+A `confidential_computing` block supports the following:
+
+* `sgx_quote_helper_enabled` - (Required) Should the SGX quote helper be enabled?
 
 ---
 
