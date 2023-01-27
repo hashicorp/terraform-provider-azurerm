@@ -1,35 +1,35 @@
-## 3.41.0 (Unreleased)
+## 3.41.0 (January 26, 2023)
 
 FEATURES
 
-* **New Data Source:** `azurerm_key_vault_certificates` [GH-19498]
-* **New Data Source:** `azurerm_site_recovery_replication_recovery_plan` [GH-19940]
-* **New Resource:** `azurerm_orbital_contact` [GH-19036]
-* **New Resource:** `azurerm_site_recovery_replication_recovery_plan` [GH-19940]
+* **New Data Source:** `azurerm_key_vault_certificates` ([#19498](https://github.com/hashicorp/terraform-provider-azurerm/issues/19498))
+* **New Data Source:** `azurerm_site_recovery_replication_recovery_plan` ([#19940](https://github.com/hashicorp/terraform-provider-azurerm/issues/19940))
+* **New Resource:** `azurerm_orbital_contact` ([#19036](https://github.com/hashicorp/terraform-provider-azurerm/issues/19036))
+* **New Resource:** `azurerm_site_recovery_replication_recovery_plan` ([#19940](https://github.com/hashicorp/terraform-provider-azurerm/issues/19940))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230124.1111819` of `github.com/hashicorp/go-azure-sdk` [GH-20160]
-* resourceproviders: no longer registering `Microsoft.ServiceFabricMesh` by default [GH-20165]
-* testing: refactoring to use `hashicorp/terraform-plugin-testing` [GH-20114]
-* `devtestlabs`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20139]
-* `logic`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20144]
-* `network`: updating to API version `2022-07-01` [GH-20097]
-* `postgresql`: updating to API version `2022-03-08-preview` [GH-20073]
-* `streamanalytics`: updating to API Version `2021-10-01-preview` [GH-20145]
-* `azurerm_*_app_slot` - support for slots to be placed in different service plans [GH-20184]
-* `azurerm_databricks_workspace` - support for customer managed keys for managed disks attached to the workspace [GH-19992]
-* `azurerm_databricks_workspace` - support for updating the properties `public_network_access_enabled`, `network_security_group_rules_required` and ` managed_services_cmk_key_vault_key_id` [GH-19992]
-* `azurerm_kubernetes_cluster` - support for `node_public_ip_tags` [GH-19731]
-* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_tags` [GH-19731]
-* `azurerm_log_analytics_workspace` - support for the `local_authentication_disabled` property [GH-20092]
-* `azurerm_postgresql_flexible_server` - support for customer managed keys [GH-20086]
-* `azurerm_storage_account` - support for `AADKERB` to `azure_files_authentication.0.directory_type` [GH-20168]
+* dependencies: updating to `v0.20230124.1111819` of `github.com/hashicorp/go-azure-sdk` ([#20160](https://github.com/hashicorp/terraform-provider-azurerm/issues/20160))
+* resourceproviders: no longer registering `Microsoft.ServiceFabricMesh` by default ([#20165](https://github.com/hashicorp/terraform-provider-azurerm/issues/20165))
+* testing: refactoring to use `hashicorp/terraform-plugin-testing` ([#20114](https://github.com/hashicorp/terraform-provider-azurerm/issues/20114))
+* `devtestlabs`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20139](https://github.com/hashicorp/terraform-provider-azurerm/issues/20139))
+* `logic`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20144](https://github.com/hashicorp/terraform-provider-azurerm/issues/20144))
+* `network`: updating to API version `2022-07-01` ([#20097](https://github.com/hashicorp/terraform-provider-azurerm/issues/20097))
+* `postgresql`: updating to API version `2022-03-08-preview` ([#20073](https://github.com/hashicorp/terraform-provider-azurerm/issues/20073))
+* `streamanalytics`: updating to API Version `2021-10-01-preview` ([#20145](https://github.com/hashicorp/terraform-provider-azurerm/issues/20145))
+* `azurerm_*_app_slot` - support for slots to be placed in different service plans ([#20184](https://github.com/hashicorp/terraform-provider-azurerm/issues/20184))
+* `azurerm_databricks_workspace` - support for customer managed keys for managed disks attached to the workspace ([#19992](https://github.com/hashicorp/terraform-provider-azurerm/issues/19992))
+* `azurerm_databricks_workspace` - support for updating the properties `public_network_access_enabled`, `network_security_group_rules_required` and ` managed_services_cmk_key_vault_key_id` ([#19992](https://github.com/hashicorp/terraform-provider-azurerm/issues/19992))
+* `azurerm_kubernetes_cluster` - support for `node_public_ip_tags` ([#19731](https://github.com/hashicorp/terraform-provider-azurerm/issues/19731))
+* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_tags` ([#19731](https://github.com/hashicorp/terraform-provider-azurerm/issues/19731))
+* `azurerm_log_analytics_workspace` - support for the `local_authentication_disabled` property ([#20092](https://github.com/hashicorp/terraform-provider-azurerm/issues/20092))
+* `azurerm_postgresql_flexible_server` - support for customer managed keys ([#20086](https://github.com/hashicorp/terraform-provider-azurerm/issues/20086))
+* `azurerm_storage_account` - support for `AADKERB` to `azure_files_authentication.0.directory_type` ([#20168](https://github.com/hashicorp/terraform-provider-azurerm/issues/20168))
 
 BUG FIXES:
 
-* `azurerm_stream_analytics_output_servicebus_queue` - shared access policy name and key are now optional for MSI authentication [GH-19712]
-* `azurerm_stream_analytics_output_servicebus_topic` - shared access policy name and key are now optional for MSI authentication [GH-19708]
+* `azurerm_stream_analytics_output_servicebus_queue` - shared access policy name and key are now optional for MSI authentication ([#19712](https://github.com/hashicorp/terraform-provider-azurerm/issues/19712))
+* `azurerm_stream_analytics_output_servicebus_topic` - shared access policy name and key are now optional for MSI authentication ([#19708](https://github.com/hashicorp/terraform-provider-azurerm/issues/19708))
 
 ## 3.40.0 (January 19, 2023)
 
