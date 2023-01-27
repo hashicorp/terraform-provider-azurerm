@@ -148,12 +148,12 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 
 	model := resp.Model
 	if model == nil {
-		return fmt.Errorf("retrieving site recovery protection container mapping %s (vault %s): model is nil", id.MappingName, id.ResourceName)
+		return fmt.Errorf("retrieving site recovery protection container mapping %s (vault %s): model is nil", id.ReplicationProtectionContainerMappingName, id.VaultName)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
-	d.Set("recovery_fabric_name", id.FabricName)
+	d.Set("recovery_vault_name", id.VaultName)
+	d.Set("recovery_fabric_name", id.ReplicationFabricName)
 	d.Set("name", model.Name)
 	if prop := model.Properties; prop != nil {
 		d.Set("recovery_source_protection_container_name", model.Properties.SourceProtectionContainerFriendlyName)

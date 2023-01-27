@@ -62,7 +62,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "privateEndpointConnectionValue")
+id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceValue", "privateEndpointConnectionValue")
 
 payload := iotdpsresource.PrivateEndpointConnection{
 	// ...
@@ -91,7 +91,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "privateEndpointConnectionValue")
+id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceValue", "privateEndpointConnectionValue")
 
 if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -119,7 +119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "privateEndpointConnectionValue")
+id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceValue", "privateEndpointConnectionValue")
 
 read, err := client.GetPrivateEndpointConnection(ctx, id)
 if err != nil {
@@ -135,7 +135,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "groupIdValue")
+id := iotdpsresource.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceValue", "groupIdValue")
 
 read, err := client.GetPrivateLinkResources(ctx, id)
 if err != nil {

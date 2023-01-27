@@ -14,16 +14,16 @@ type QueryId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	QueryPackName     string
-	Id                string
+	QueryName         string
 }
 
 // NewQueryID returns a new QueryId struct
-func NewQueryID(subscriptionId string, resourceGroupName string, queryPackName string, id string) QueryId {
+func NewQueryID(subscriptionId string, resourceGroupName string, queryPackName string, queryName string) QueryId {
 	return QueryId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		QueryPackName:     queryPackName,
-		Id:                id,
+		QueryName:         queryName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseQueryID(input string) (*QueryId, error) {
 		return nil, fmt.Errorf("the segment 'queryPackName' was not found in the resource id %q", input)
 	}
 
-	if id.Id, ok = parsed.Parsed["id"]; !ok {
-		return nil, fmt.Errorf("the segment 'id' was not found in the resource id %q", input)
+	if id.QueryName, ok = parsed.Parsed["queryName"]; !ok {
+		return nil, fmt.Errorf("the segment 'queryName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseQueryIDInsensitively(input string) (*QueryId, error) {
 		return nil, fmt.Errorf("the segment 'queryPackName' was not found in the resource id %q", input)
 	}
 
-	if id.Id, ok = parsed.Parsed["id"]; !ok {
-		return nil, fmt.Errorf("the segment 'id' was not found in the resource id %q", input)
+	if id.QueryName, ok = parsed.Parsed["queryName"]; !ok {
+		return nil, fmt.Errorf("the segment 'queryName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateQueryID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Query ID
 func (id QueryId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/queryPacks/%s/queries/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.QueryPackName, id.Id)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.QueryPackName, id.QueryName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Query ID
@@ -121,7 +121,7 @@ func (id QueryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticQueryPacks", "queryPacks", "queryPacks"),
 		resourceids.UserSpecifiedSegment("queryPackName", "queryPackValue"),
 		resourceids.StaticSegment("staticQueries", "queries", "queries"),
-		resourceids.UserSpecifiedSegment("id", "idValue"),
+		resourceids.UserSpecifiedSegment("queryName", "queryValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id QueryId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Query Pack Name: %q", id.QueryPackName),
-		fmt.Sprintf(": %q", id.Id),
+		fmt.Sprintf("Query Name: %q", id.QueryName),
 	}
 	return fmt.Sprintf("Query (%s)", strings.Join(components, "\n"))
 }

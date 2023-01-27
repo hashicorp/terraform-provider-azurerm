@@ -269,9 +269,9 @@ func (r AccountFilterResource) Read() sdk.ResourceFunc {
 			}
 
 			return metadata.Encode(&AccountFilterModel{
-				Name:                     id.FilterName,
+				Name:                     id.AccountFilterName,
 				ResourceGroupName:        id.ResourceGroupName,
-				MediaServicesAccountName: id.AccountName,
+				MediaServicesAccountName: id.MediaServiceName,
 				FirstQualityBitrate:      firstQualityBitrate,
 				PresentationTimeRange:    flattenAccountFilterPresentationTimeRange(prop.PresentationTimeRange),
 				TrackSelection:           flattenAccountFilterTracks(prop.Tracks),

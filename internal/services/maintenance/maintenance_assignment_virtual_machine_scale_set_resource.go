@@ -75,7 +75,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 		return err
 	}
 
-	configAssignmentId := configurationassignments.NewConfigurationAssignmentID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, maintenanceConfigurationID.ResourceName)
+	configAssignmentId := configurationassignments.NewConfigurationAssignmentID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, maintenanceConfigurationID.MaintenanceConfigurationName)
 
 	existingList, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId)
 	if err != nil {
@@ -89,7 +89,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	}
 
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
-		Name:     utils.String(maintenanceConfigurationID.ResourceName),
+		Name:     utils.String(maintenanceConfigurationID.MaintenanceConfigurationName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &configurationassignments.ConfigurationAssignmentProperties{
 			MaintenanceConfigurationId: utils.String(maintenanceConfigurationID.ID()),

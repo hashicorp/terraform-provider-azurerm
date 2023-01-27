@@ -14,16 +14,16 @@ type MemberId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	FleetName         string
-	FleetMemberName   string
+	MemberName        string
 }
 
 // NewMemberID returns a new MemberId struct
-func NewMemberID(subscriptionId string, resourceGroupName string, fleetName string, fleetMemberName string) MemberId {
+func NewMemberID(subscriptionId string, resourceGroupName string, fleetName string, memberName string) MemberId {
 	return MemberId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		FleetName:         fleetName,
-		FleetMemberName:   fleetMemberName,
+		MemberName:        memberName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseMemberID(input string) (*MemberId, error) {
 		return nil, fmt.Errorf("the segment 'fleetName' was not found in the resource id %q", input)
 	}
 
-	if id.FleetMemberName, ok = parsed.Parsed["fleetMemberName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fleetMemberName' was not found in the resource id %q", input)
+	if id.MemberName, ok = parsed.Parsed["memberName"]; !ok {
+		return nil, fmt.Errorf("the segment 'memberName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseMemberIDInsensitively(input string) (*MemberId, error) {
 		return nil, fmt.Errorf("the segment 'fleetName' was not found in the resource id %q", input)
 	}
 
-	if id.FleetMemberName, ok = parsed.Parsed["fleetMemberName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fleetMemberName' was not found in the resource id %q", input)
+	if id.MemberName, ok = parsed.Parsed["memberName"]; !ok {
+		return nil, fmt.Errorf("the segment 'memberName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateMemberID(input interface{}, key string) (warnings []string, errors 
 // ID returns the formatted Member ID
 func (id MemberId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/fleets/%s/members/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.FleetName, id.FleetMemberName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.FleetName, id.MemberName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Member ID
@@ -121,7 +121,7 @@ func (id MemberId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticFleets", "fleets", "fleets"),
 		resourceids.UserSpecifiedSegment("fleetName", "fleetValue"),
 		resourceids.StaticSegment("staticMembers", "members", "members"),
-		resourceids.UserSpecifiedSegment("fleetMemberName", "fleetMemberValue"),
+		resourceids.UserSpecifiedSegment("memberName", "memberValue"),
 	}
 }
 
@@ -131,7 +131,7 @@ func (id MemberId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Fleet Name: %q", id.FleetName),
-		fmt.Sprintf("Fleet Member Name: %q", id.FleetMemberName),
+		fmt.Sprintf("Member Name: %q", id.MemberName),
 	}
 	return fmt.Sprintf("Member (%s)", strings.Join(components, "\n"))
 }

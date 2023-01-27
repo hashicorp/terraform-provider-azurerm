@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = ContentKeyPolicyId{}
 type ContentKeyPolicyId struct {
 	SubscriptionId       string
 	ResourceGroupName    string
-	AccountName          string
+	MediaServiceName     string
 	ContentKeyPolicyName string
 }
 
 // NewContentKeyPolicyID returns a new ContentKeyPolicyId struct
-func NewContentKeyPolicyID(subscriptionId string, resourceGroupName string, accountName string, contentKeyPolicyName string) ContentKeyPolicyId {
+func NewContentKeyPolicyID(subscriptionId string, resourceGroupName string, mediaServiceName string, contentKeyPolicyName string) ContentKeyPolicyId {
 	return ContentKeyPolicyId{
 		SubscriptionId:       subscriptionId,
 		ResourceGroupName:    resourceGroupName,
-		AccountName:          accountName,
+		MediaServiceName:     mediaServiceName,
 		ContentKeyPolicyName: contentKeyPolicyName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseContentKeyPolicyID(input string) (*ContentKeyPolicyId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.ContentKeyPolicyName, ok = parsed.Parsed["contentKeyPolicyName"]; !ok {
@@ -77,8 +77,8 @@ func ParseContentKeyPolicyIDInsensitively(input string) (*ContentKeyPolicyId, er
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.ContentKeyPolicyName, ok = parsed.Parsed["contentKeyPolicyName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateContentKeyPolicyID(input interface{}, key string) (warnings []strin
 // ID returns the formatted Content Key Policy ID
 func (id ContentKeyPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/contentKeyPolicies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ContentKeyPolicyName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.ContentKeyPolicyName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Content Key Policy ID
@@ -119,7 +119,7 @@ func (id ContentKeyPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticContentKeyPolicies", "contentKeyPolicies", "contentKeyPolicies"),
 		resourceids.UserSpecifiedSegment("contentKeyPolicyName", "contentKeyPolicyValue"),
 	}
@@ -130,7 +130,7 @@ func (id ContentKeyPolicyId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Content Key Policy Name: %q", id.ContentKeyPolicyName),
 	}
 	return fmt.Sprintf("Content Key Policy (%s)", strings.Join(components, "\n"))

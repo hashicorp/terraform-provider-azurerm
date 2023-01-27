@@ -86,7 +86,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 	}
 
 	// set assignment name to configuration name
-	assignmentName := configurationId.ResourceName
+	assignmentName := configurationId.MaintenanceConfigurationName
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
 		Name:     utils.String(assignmentName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),

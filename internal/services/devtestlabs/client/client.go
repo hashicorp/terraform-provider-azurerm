@@ -1,36 +1,41 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/policies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	GlobalLabSchedulesClient *dtl.GlobalSchedulesClient
-	LabsClient               *dtl.LabsClient
-	LabSchedulesClient       *dtl.SchedulesClient
-	PoliciesClient           *dtl.PoliciesClient
-	VirtualMachinesClient    *dtl.VirtualMachinesClient
-	VirtualNetworksClient    *dtl.VirtualNetworksClient
+	GlobalLabSchedulesClient *globalschedules.GlobalSchedulesClient
+	LabsClient               *labs.LabsClient
+	LabSchedulesClient       *schedules.SchedulesClient
+	PoliciesClient           *policies.PoliciesClient
+	VirtualMachinesClient    *virtualmachines.VirtualMachinesClient
+	VirtualNetworksClient    *virtualnetworks.VirtualNetworksClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	LabsClient := dtl.NewLabsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	LabsClient := labs.NewLabsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&LabsClient.Client, o.ResourceManagerAuthorizer)
 
-	PoliciesClient := dtl.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	PoliciesClient := policies.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&PoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	VirtualMachinesClient := dtl.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	VirtualMachinesClient := virtualmachines.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&VirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
-	VirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	VirtualNetworksClient := virtualnetworks.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&VirtualNetworksClient.Client, o.ResourceManagerAuthorizer)
 
-	LabSchedulesClient := dtl.NewSchedulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	LabSchedulesClient := schedules.NewSchedulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&LabSchedulesClient.Client, o.ResourceManagerAuthorizer)
 
-	GlobalLabSchedulesClient := dtl.NewGlobalSchedulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	GlobalLabSchedulesClient := globalschedules.NewGlobalSchedulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&GlobalLabSchedulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
