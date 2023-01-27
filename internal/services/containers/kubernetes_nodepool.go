@@ -352,6 +352,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 					ForceNew: true,
 				},
 
+				// TODO 4.0: change this to `container_log_max_files`
 				"container_log_max_line": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
