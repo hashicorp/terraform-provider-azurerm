@@ -217,7 +217,7 @@ func TestAccPrivateEndpoint_statiIpAddress(t *testing.T) {
 				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
 				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
-				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").HasValue("10.6.1.100"),
+				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").HasValue("10.5.2.47"),
 			),
 		},
 		data.ImportStep(),
