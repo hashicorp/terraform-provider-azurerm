@@ -787,7 +787,7 @@ resource "azurerm_private_endpoint" "test" {
 
   ip_configuration {
     name               = "acctest-ip-privatelink-%[2]d"
-    private_ip_address = "10.6.1.100"
+    private_ip_address = "10.5.2.47"
   }
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
