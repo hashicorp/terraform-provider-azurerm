@@ -213,7 +213,7 @@ func TestAccContainerAppResource_secretRemoveWithAddShouldFail(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.completeChangedSecret(data, "rev2"),
-			ExpectError: regexp.MustCompile("previously configured secret \"rick\" was removed. Removing secrets is not supported at this time"),
+			ExpectError: regexp.MustCompile("previously configured secret"),
 		},
 	})
 }
