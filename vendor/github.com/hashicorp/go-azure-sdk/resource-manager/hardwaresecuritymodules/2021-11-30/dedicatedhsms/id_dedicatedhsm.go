@@ -13,15 +13,15 @@ var _ resourceids.ResourceId = DedicatedHSMId{}
 type DedicatedHSMId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	Name              string
+	DedicatedHSMName  string
 }
 
 // NewDedicatedHSMID returns a new DedicatedHSMId struct
-func NewDedicatedHSMID(subscriptionId string, resourceGroupName string, name string) DedicatedHSMId {
+func NewDedicatedHSMID(subscriptionId string, resourceGroupName string, dedicatedHSMName string) DedicatedHSMId {
 	return DedicatedHSMId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		Name:              name,
+		DedicatedHSMName:  dedicatedHSMName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dedicatedHSMName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseDedicatedHSMIDInsensitively(input string) (*DedicatedHSMId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dedicatedHSMName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateDedicatedHSMID(input interface{}, key string) (warnings []string, e
 // ID returns the formatted Dedicated H S M ID
 func (id DedicatedHSMId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DedicatedHSMName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Dedicated H S M ID
@@ -109,7 +109,7 @@ func (id DedicatedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHardwareSecurityModules", "Microsoft.HardwareSecurityModules", "Microsoft.HardwareSecurityModules"),
 		resourceids.StaticSegment("staticDedicatedHSMs", "dedicatedHSMs", "dedicatedHSMs"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("dedicatedHSMName", "dedicatedHSMValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id DedicatedHSMId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Dedicated H S M Name: %q", id.DedicatedHSMName),
 	}
 	return fmt.Sprintf("Dedicated H S M (%s)", strings.Join(components, "\n"))
 }

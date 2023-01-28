@@ -559,7 +559,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			if err != nil {
 				return err
 			}
-			configurationName = maintenanceConfigId.ResourceName
+			configurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
 		}
 		d.Set("maintenance_configuration_name", configurationName)
 

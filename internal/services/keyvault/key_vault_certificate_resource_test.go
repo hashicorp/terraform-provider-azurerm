@@ -1320,6 +1320,7 @@ resource "azurerm_key_vault" "test" {
       "Purge",
       "Recover",
       "Update",
+      "List",
     ]
 
     key_permissions = [

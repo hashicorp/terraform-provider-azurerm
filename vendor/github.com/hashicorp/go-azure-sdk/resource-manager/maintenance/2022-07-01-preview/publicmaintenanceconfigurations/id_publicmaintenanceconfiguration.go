@@ -11,15 +11,15 @@ var _ resourceids.ResourceId = PublicMaintenanceConfigurationId{}
 
 // PublicMaintenanceConfigurationId is a struct representing the Resource ID for a Public Maintenance Configuration
 type PublicMaintenanceConfigurationId struct {
-	SubscriptionId string
-	ResourceName   string
+	SubscriptionId                     string
+	PublicMaintenanceConfigurationName string
 }
 
 // NewPublicMaintenanceConfigurationID returns a new PublicMaintenanceConfigurationId struct
-func NewPublicMaintenanceConfigurationID(subscriptionId string, resourceName string) PublicMaintenanceConfigurationId {
+func NewPublicMaintenanceConfigurationID(subscriptionId string, publicMaintenanceConfigurationName string) PublicMaintenanceConfigurationId {
 	return PublicMaintenanceConfigurationId{
-		SubscriptionId: subscriptionId,
-		ResourceName:   resourceName,
+		SubscriptionId:                     subscriptionId,
+		PublicMaintenanceConfigurationName: publicMaintenanceConfigurationName,
 	}
 }
 
@@ -38,8 +38,8 @@ func ParsePublicMaintenanceConfigurationID(input string) (*PublicMaintenanceConf
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.PublicMaintenanceConfigurationName, ok = parsed.Parsed["publicMaintenanceConfigurationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'publicMaintenanceConfigurationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -61,8 +61,8 @@ func ParsePublicMaintenanceConfigurationIDInsensitively(input string) (*PublicMa
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.PublicMaintenanceConfigurationName, ok = parsed.Parsed["publicMaintenanceConfigurationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'publicMaintenanceConfigurationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -86,7 +86,7 @@ func ValidatePublicMaintenanceConfigurationID(input interface{}, key string) (wa
 // ID returns the formatted Public Maintenance Configuration ID
 func (id PublicMaintenanceConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.Maintenance/publicMaintenanceConfigurations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.PublicMaintenanceConfigurationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Public Maintenance Configuration ID
@@ -97,7 +97,7 @@ func (id PublicMaintenanceConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMaintenance", "Microsoft.Maintenance", "Microsoft.Maintenance"),
 		resourceids.StaticSegment("staticPublicMaintenanceConfigurations", "publicMaintenanceConfigurations", "publicMaintenanceConfigurations"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("publicMaintenanceConfigurationName", "publicMaintenanceConfigurationValue"),
 	}
 }
 
@@ -105,7 +105,7 @@ func (id PublicMaintenanceConfigurationId) Segments() []resourceids.Segment {
 func (id PublicMaintenanceConfigurationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Public Maintenance Configuration Name: %q", id.PublicMaintenanceConfigurationName),
 	}
 	return fmt.Sprintf("Public Maintenance Configuration (%s)", strings.Join(components, "\n"))
 }

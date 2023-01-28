@@ -171,9 +171,9 @@ func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("making Read request on site recovery replication policy %s : %+v", id.String(), err)
 	}
 
-	d.Set("name", id.PolicyName)
+	d.Set("name", id.ReplicationPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
+	d.Set("recovery_vault_name", id.VaultName)
 
 	if model := resp.Model; model != nil {
 		if a2APolicyDetails, isA2A := expandA2APolicyDetail(resp.Model); isA2A {

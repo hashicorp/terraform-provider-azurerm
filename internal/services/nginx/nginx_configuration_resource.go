@@ -185,7 +185,7 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionID := meta.Client.Account.SubscriptionId
-			id := nginxconfiguration.NewConfigurationID(subscriptionID, deployID.ResourceGroupName, deployID.DeploymentName, defaultConfigurationName)
+			id := nginxconfiguration.NewConfigurationID(subscriptionID, deployID.ResourceGroupName, deployID.NginxDeploymentName, defaultConfigurationName)
 
 			existing, err := client.ConfigurationsGet(ctx, id)
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -231,7 +231,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
-			deployID := nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.DeploymentName)
+			deployID := nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName)
 			output.NginxDeploymentId = deployID.ID()
 
 			if prop := result.Model.Properties; prop != nil {

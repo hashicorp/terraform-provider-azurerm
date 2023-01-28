@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = EncryptionScopeId{}
 type EncryptionScopeId struct {
 	SubscriptionId      string
 	ResourceGroupName   string
-	AccountName         string
+	StorageAccountName  string
 	EncryptionScopeName string
 }
 
 // NewEncryptionScopeID returns a new EncryptionScopeId struct
-func NewEncryptionScopeID(subscriptionId string, resourceGroupName string, accountName string, encryptionScopeName string) EncryptionScopeId {
+func NewEncryptionScopeID(subscriptionId string, resourceGroupName string, storageAccountName string, encryptionScopeName string) EncryptionScopeId {
 	return EncryptionScopeId{
 		SubscriptionId:      subscriptionId,
 		ResourceGroupName:   resourceGroupName,
-		AccountName:         accountName,
+		StorageAccountName:  storageAccountName,
 		EncryptionScopeName: encryptionScopeName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseEncryptionScopeID(input string) (*EncryptionScopeId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.EncryptionScopeName, ok = parsed.Parsed["encryptionScopeName"]; !ok {
@@ -77,8 +77,8 @@ func ParseEncryptionScopeIDInsensitively(input string) (*EncryptionScopeId, erro
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.EncryptionScopeName, ok = parsed.Parsed["encryptionScopeName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateEncryptionScopeID(input interface{}, key string) (warnings []string
 // ID returns the formatted Encryption Scope ID
 func (id EncryptionScopeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/encryptionScopes/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.EncryptionScopeName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, id.EncryptionScopeName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Encryption Scope ID
@@ -119,7 +119,7 @@ func (id EncryptionScopeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountValue"),
 		resourceids.StaticSegment("staticEncryptionScopes", "encryptionScopes", "encryptionScopes"),
 		resourceids.UserSpecifiedSegment("encryptionScopeName", "encryptionScopeValue"),
 	}
@@ -130,7 +130,7 @@ func (id EncryptionScopeId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Storage Account Name: %q", id.StorageAccountName),
 		fmt.Sprintf("Encryption Scope Name: %q", id.EncryptionScopeName),
 	}
 	return fmt.Sprintf("Encryption Scope (%s)", strings.Join(components, "\n"))

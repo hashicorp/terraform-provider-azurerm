@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = TrustedAccessRoleBindingId{}
 type TrustedAccessRoleBindingId struct {
 	SubscriptionId               string
 	ResourceGroupName            string
-	ResourceName                 string
+	ManagedClusterName           string
 	TrustedAccessRoleBindingName string
 }
 
 // NewTrustedAccessRoleBindingID returns a new TrustedAccessRoleBindingId struct
-func NewTrustedAccessRoleBindingID(subscriptionId string, resourceGroupName string, resourceName string, trustedAccessRoleBindingName string) TrustedAccessRoleBindingId {
+func NewTrustedAccessRoleBindingID(subscriptionId string, resourceGroupName string, managedClusterName string, trustedAccessRoleBindingName string) TrustedAccessRoleBindingId {
 	return TrustedAccessRoleBindingId{
 		SubscriptionId:               subscriptionId,
 		ResourceGroupName:            resourceGroupName,
-		ResourceName:                 resourceName,
+		ManagedClusterName:           managedClusterName,
 		TrustedAccessRoleBindingName: trustedAccessRoleBindingName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseTrustedAccessRoleBindingID(input string) (*TrustedAccessRoleBindingId,
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.TrustedAccessRoleBindingName, ok = parsed.Parsed["trustedAccessRoleBindingName"]; !ok {
@@ -77,8 +77,8 @@ func ParseTrustedAccessRoleBindingIDInsensitively(input string) (*TrustedAccessR
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.TrustedAccessRoleBindingName, ok = parsed.Parsed["trustedAccessRoleBindingName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateTrustedAccessRoleBindingID(input interface{}, key string) (warnings
 // ID returns the formatted Trusted Access Role Binding ID
 func (id TrustedAccessRoleBindingId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/trustedAccessRoleBindings/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.TrustedAccessRoleBindingName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, id.TrustedAccessRoleBindingName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Trusted Access Role Binding ID
@@ -119,7 +119,7 @@ func (id TrustedAccessRoleBindingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
 		resourceids.StaticSegment("staticTrustedAccessRoleBindings", "trustedAccessRoleBindings", "trustedAccessRoleBindings"),
 		resourceids.UserSpecifiedSegment("trustedAccessRoleBindingName", "trustedAccessRoleBindingValue"),
 	}
@@ -130,7 +130,7 @@ func (id TrustedAccessRoleBindingId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Managed Cluster Name: %q", id.ManagedClusterName),
 		fmt.Sprintf("Trusted Access Role Binding Name: %q", id.TrustedAccessRoleBindingName),
 	}
 	return fmt.Sprintf("Trusted Access Role Binding (%s)", strings.Join(components, "\n"))

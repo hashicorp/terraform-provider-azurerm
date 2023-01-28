@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = DeletedConfigurationStoreId{}
 
 // DeletedConfigurationStoreId is a struct representing the Resource ID for a Deleted Configuration Store
 type DeletedConfigurationStoreId struct {
-	SubscriptionId  string
-	Location        string
-	ConfigStoreName string
+	SubscriptionId                string
+	LocationName                  string
+	DeletedConfigurationStoreName string
 }
 
 // NewDeletedConfigurationStoreID returns a new DeletedConfigurationStoreId struct
-func NewDeletedConfigurationStoreID(subscriptionId string, location string, configStoreName string) DeletedConfigurationStoreId {
+func NewDeletedConfigurationStoreID(subscriptionId string, locationName string, deletedConfigurationStoreName string) DeletedConfigurationStoreId {
 	return DeletedConfigurationStoreId{
-		SubscriptionId:  subscriptionId,
-		Location:        location,
-		ConfigStoreName: configStoreName,
+		SubscriptionId:                subscriptionId,
+		LocationName:                  locationName,
+		DeletedConfigurationStoreName: deletedConfigurationStoreName,
 	}
 }
 
@@ -40,12 +40,12 @@ func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreI
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
-	if id.ConfigStoreName, ok = parsed.Parsed["configStoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
+	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deletedConfigurationStoreName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -67,12 +67,12 @@ func ParseDeletedConfigurationStoreIDInsensitively(input string) (*DeletedConfig
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
-	if id.ConfigStoreName, ok = parsed.Parsed["configStoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'configStoreName' was not found in the resource id %q", input)
+	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deletedConfigurationStoreName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateDeletedConfigurationStoreID(input interface{}, key string) (warning
 // ID returns the formatted Deleted Configuration Store ID
 func (id DeletedConfigurationStoreId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.AppConfiguration/locations/%s/deletedConfigurationStores/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Location, id.ConfigStoreName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName, id.DeletedConfigurationStoreName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Deleted Configuration Store ID
@@ -107,9 +107,9 @@ func (id DeletedConfigurationStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
 		resourceids.StaticSegment("staticDeletedConfigurationStores", "deletedConfigurationStores", "deletedConfigurationStores"),
-		resourceids.UserSpecifiedSegment("configStoreName", "configStoreValue"),
+		resourceids.UserSpecifiedSegment("deletedConfigurationStoreName", "deletedConfigurationStoreValue"),
 	}
 }
 
@@ -117,8 +117,8 @@ func (id DeletedConfigurationStoreId) Segments() []resourceids.Segment {
 func (id DeletedConfigurationStoreId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Location: %q", id.Location),
-		fmt.Sprintf("Config Store Name: %q", id.ConfigStoreName),
+		fmt.Sprintf("Location Name: %q", id.LocationName),
+		fmt.Sprintf("Deleted Configuration Store Name: %q", id.DeletedConfigurationStoreName),
 	}
 	return fmt.Sprintf("Deleted Configuration Store (%s)", strings.Join(components, "\n"))
 }

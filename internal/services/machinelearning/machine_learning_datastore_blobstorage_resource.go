@@ -222,7 +222,7 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(id.Name),
+				Name: utils.String(id.DataStoreName),
 				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
 			}
 

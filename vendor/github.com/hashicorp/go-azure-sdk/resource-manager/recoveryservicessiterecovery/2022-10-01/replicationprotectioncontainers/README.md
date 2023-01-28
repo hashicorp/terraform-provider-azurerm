@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue", "protectionContainerValue")
+id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue", "replicationProtectionContainerValue")
 
 payload := replicationprotectioncontainers.CreateProtectionContainerInput{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue", "protectionContainerValue")
+id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue", "replicationProtectionContainerValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue", "protectionContainerValue")
+id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue", "replicationProtectionContainerValue")
 
 payload := replicationprotectioncontainers.DiscoverProtectableItemRequest{
 	// ...
@@ -70,7 +70,7 @@ if err := client.DiscoverProtectableItemThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue", "protectionContainerValue")
+id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue", "replicationProtectionContainerValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainers.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := replicationprotectioncontainers.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainers.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationprotectioncontainers.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 // alternatively `client.ListByReplicationFabrics(ctx, id)` can be used to do batched pagination
 items, err := client.ListByReplicationFabricsComplete(ctx, id)
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue", "protectionContainerValue")
+id := replicationprotectioncontainers.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue", "replicationProtectionContainerValue")
 
 payload := replicationprotectioncontainers.SwitchProtectionInput{
 	// ...

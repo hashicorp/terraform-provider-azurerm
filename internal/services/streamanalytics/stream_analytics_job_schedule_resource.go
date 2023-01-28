@@ -92,7 +92,7 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 			}
 
 			// This is a virtual resource so the last segment is hardcoded
-			id := parse.NewStreamingJobScheduleID(streamAnalyticsId.SubscriptionId, streamAnalyticsId.ResourceGroupName, streamAnalyticsId.JobName, "default")
+			id := parse.NewStreamingJobScheduleID(streamAnalyticsId.SubscriptionId, streamAnalyticsId.ResourceGroupName, streamAnalyticsId.StreamingJobName, "default")
 
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())

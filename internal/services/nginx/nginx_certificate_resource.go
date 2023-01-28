@@ -92,7 +92,7 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 			deployID, _ := nginxdeployment.ParseNginxDeploymentID(model.NginxDeploymentId)
 
 			subscriptionID := meta.Client.Account.SubscriptionId
-			id := nginxcertificate.NewCertificateID(subscriptionID, deployID.ResourceGroupName, deployID.DeploymentName, model.Name)
+			id := nginxcertificate.NewCertificateID(subscriptionID, deployID.ResourceGroupName, deployID.NginxDeploymentName, model.Name)
 			existing, err := client.CertificatesGet(ctx, id)
 			if !response.WasNotFound(existing.HttpResponse) {
 				if err != nil {
@@ -141,7 +141,7 @@ func (m CertificateResource) Read() sdk.ResourceFunc {
 			var output CertificateModel
 
 			output.Name = pointer.ToString(result.Model.Name)
-			output.NginxDeploymentId = nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.DeploymentName).ID()
+			output.NginxDeploymentId = nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName).ID()
 			prop := result.Model.Properties
 			output.KeyVirtualPath = pointer.ToString(prop.KeyVirtualPath)
 			output.KeyVaultSecretId = pointer.ToString(prop.KeyVaultSecretId)

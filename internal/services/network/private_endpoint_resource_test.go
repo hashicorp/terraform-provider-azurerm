@@ -204,6 +204,26 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_statiIpAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.staticIpAddress(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").HasValue("10.5.2.47"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
@@ -747,6 +767,30 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) staticIpAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+
+  ip_configuration {
+    name               = "acctest-ip-privatelink-%[2]d"
+    private_ip_address = "10.5.2.47"
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
 
 func (PrivateEndpointResource) privateDnsZoneGroupRename(data acceptance.TestData) string {

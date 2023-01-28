@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
@@ -116,7 +116,7 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.JobName, model.Name)
+			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.StreamingJobName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -263,7 +263,7 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("converting %s to a PowerBI Output", *id)
 					}
 
-					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
 
 					state := OutputPowerBIResourceModel{
 						Name:               id.OutputName,

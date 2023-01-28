@@ -1271,7 +1271,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", id.ID())
 	}
 
-	if err := validateKubernetesCluster(d, nil, id.ResourceGroupName, id.ResourceName); err != nil {
+	if err := validateKubernetesCluster(d, nil, id.ResourceGroupName, id.ManagedClusterName); err != nil {
 		return err
 	}
 
@@ -1394,7 +1394,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	parameters := managedclusters.ManagedCluster{
-		Name:             utils.String(id.ResourceName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
@@ -1504,7 +1503,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
 			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
 		}
-		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
 			return fmt.Errorf("creating/updating maintenance config for %s: %+v", id, err)
 		}
@@ -1541,7 +1540,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	props := existing.Model.Properties
 
-	if err := validateKubernetesCluster(d, existing.Model, id.ResourceGroupName, id.ResourceName); err != nil {
+	if err := validateKubernetesCluster(d, existing.Model, id.ResourceGroupName, id.ManagedClusterName); err != nil {
 		return err
 	}
 
@@ -1987,7 +1986,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, *agentProfile.Name)
+		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
@@ -2021,7 +2020,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
 			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
 		}
-		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
 			return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
 		}
@@ -2058,13 +2057,13 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: no payload delivered", *id)
 	}
 
-	accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterUser")
+	accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterUser")
 	profile, err := client.GetAccessProfile(ctx, accessProfileId)
 	if err != nil {
 		return fmt.Errorf("retrieving Access Profile for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ResourceName)
+	d.Set("name", id.ManagedClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("edge_zone", flattenEdgeZone(respModel.ExtendedLocation))
 	if location := respModel.Location; location != "" {
@@ -2269,14 +2268,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
+			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
 			adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
 			if err != nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ResourceName, id.ResourceGroupName, err)
+				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroupName, err)
 			}
 
 			if adminProfile.Model == nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ResourceName, id.ResourceGroupName)
+				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ManagedClusterName, id.ResourceGroupName)
 			}
 			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfile.Model)
 			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
@@ -2305,7 +2304,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 	configResp, _ := maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 	if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
 		d.Set("maintenance_window", flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties))
@@ -2326,7 +2325,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.Delete(ctx, maintenanceId); err != nil {
 			return fmt.Errorf("deleting Maintenance Configuration for %s: %+v", *id, err)
 		}
