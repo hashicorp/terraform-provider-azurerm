@@ -871,7 +871,7 @@ func flattenServiceFabricClusterAddOnFeatures(input *[]cluster.AddOnFeatures) []
 
 	if input != nil {
 		for _, v := range *input {
-			output = append(output, v)
+			output = append(output, string(v))
 		}
 	}
 
@@ -1405,11 +1405,11 @@ func flattenServiceFabricClusterNodeTypes(input []cluster.NodeTypeDescription) [
 		output["http_endpoint_port"] = v.HTTPGatewayEndpointPort
 
 		if placementProperties := v.PlacementProperties; placementProperties != nil {
-			output["placement_properties"] = placementProperties
+			output["placement_properties"] = *placementProperties
 		}
 
 		if capacities := v.Capacities; capacities != nil {
-			output["capacities"] = capacities
+			output["capacities"] = *capacities
 		}
 
 		if port := v.ReverseProxyEndpointPort; port != nil {
