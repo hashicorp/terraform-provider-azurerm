@@ -182,18 +182,13 @@ func (r ManagerConnectivityConfigurationResource) Create() sdk.ResourceFunc {
 
 			conf := &network.ConnectivityConfiguration{
 				ConnectivityConfigurationProperties: &network.ConnectivityConfigurationProperties{
+					AppliesToGroups:       expandConnectivityGroupItemModel(model.AppliesToGroups),
 					ConnectivityTopology:  model.ConnectivityTopology,
 					DeleteExistingPeering: expandDeleteExistingPeering(model.DeleteExistingPeeringEnabled),
 					IsGlobal:              expandConnectivityConfIsGlobal(model.GlobalMeshEnabled),
 					Hubs:                  expandHubModel(model.Hub),
 				},
 			}
-
-			appliesToGroupsValue, err := expandConnectivityGroupItemModel(model.AppliesToGroups)
-			if err != nil {
-				return err
-			}
-			conf.ConnectivityConfigurationProperties.AppliesToGroups = appliesToGroupsValue
 
 			if model.Description != "" {
 				conf.ConnectivityConfigurationProperties.Description = &model.Description
@@ -236,11 +231,7 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("applies_to_group") {
-				appliesToGroupsValue, err := expandConnectivityGroupItemModel(model.AppliesToGroups)
-				if err != nil {
-					return err
-				}
-				properties.AppliesToGroups = appliesToGroupsValue
+				properties.AppliesToGroups = expandConnectivityGroupItemModel(model.AppliesToGroups)
 			}
 
 			if metadata.ResourceData.HasChange("connectivity_topology") {
@@ -300,17 +291,12 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 			state := ManagerConnectivityConfigurationModel{
 				Name:                         id.ConnectivityConfigurationName,
 				NetworkManagerId:             parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				AppliesToGroups:              flattenConnectivityGroupItemModel(properties.AppliesToGroups),
 				ConnectivityTopology:         properties.ConnectivityTopology,
 				DeleteExistingPeeringEnabled: flattenDeleteExistingPeering(properties.DeleteExistingPeering),
 				GlobalMeshEnabled:            flattenConnectivityConfIsGlobal(properties.IsGlobal),
 				Hub:                          flattenHubModel(properties.Hubs),
 			}
-
-			appliesToGroupsValue, err := flattenConnectivityGroupItemModel(properties.AppliesToGroups)
-			if err != nil {
-				return err
-			}
-			state.AppliesToGroups = appliesToGroupsValue
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
@@ -360,7 +346,7 @@ func expandConnectivityConfIsGlobal(input bool) network.IsGlobal {
 	return network.IsGlobalFalse
 }
 
-func expandConnectivityGroupItemModel(inputList []ConnectivityGroupItemModel) (*[]network.ConnectivityGroupItem, error) {
+func expandConnectivityGroupItemModel(inputList []ConnectivityGroupItemModel) *[]network.ConnectivityGroupItem {
 	var outputList []network.ConnectivityGroupItem
 	for _, v := range inputList {
 		input := v
@@ -374,7 +360,7 @@ func expandConnectivityGroupItemModel(inputList []ConnectivityGroupItemModel) (*
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
 func expandUseHubGateWay(input bool) network.UseHubGateway {
@@ -407,10 +393,10 @@ func flattenConnectivityConfIsGlobal(input network.IsGlobal) bool {
 	return input == network.IsGlobalTrue
 }
 
-func flattenConnectivityGroupItemModel(inputList *[]network.ConnectivityGroupItem) ([]ConnectivityGroupItemModel, error) {
+func flattenConnectivityGroupItemModel(inputList *[]network.ConnectivityGroupItem) []ConnectivityGroupItemModel {
 	var outputList []ConnectivityGroupItemModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -427,7 +413,7 @@ func flattenConnectivityGroupItemModel(inputList *[]network.ConnectivityGroupIte
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
 func flattenUseHubGateWay(input network.UseHubGateway) bool {
