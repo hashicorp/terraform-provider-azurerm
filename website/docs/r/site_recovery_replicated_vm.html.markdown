@@ -252,7 +252,7 @@ The following arguments are supported:
 
 * `target_proximity_placement_group_id` (Optional) Id of Proximity Placement Group the new VM should belong to when a failover is done.
 
-* `target_boot_diag_storage_account_id` - (Optional) Id of the storage account which the new VM should used for boot diagnostic when a failover is done.
+* `target_boot_diagnostic_storage_account_id` - (Optional) Id of the storage account which the new VM should used for boot diagnostic when a failover is done.
 
 * `target_capacity_reservation_group_id` - (Optional) Id of the Capacity reservation group where the new VM should belong to when a failover is done.
 
@@ -306,11 +306,11 @@ A `network_interface` block supports the following:
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
 
-* `test_static_ip` - (Optional) Static IP to assign when a test failover is done.
+* `failover_test_static_ip` - (Optional) Static IP to assign when a test failover is done.
 
-* `test_subnet_name` - (Optional) Name of the subnet to to use when a test failover is done.
+* `failover_test_subnet_name` - (Optional) Name of the subnet to to use when a test failover is done.
 
-* `test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
+* `failover_test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
 
 ---
 

@@ -252,7 +252,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			"target_boot_diag_storage_account_id": {
+			"target_boot_diagnostic_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -289,7 +289,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"test_static_ip": {
+			"failover_test_static_ip": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -303,7 +303,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"test_subnet_name": {
+			"failover_test_subnet_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -317,7 +317,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"test_public_ip_address_id": {
+			"failover_test_public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -491,7 +491,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryAvailabilityZone:           targetAvailabilityZone,
 				MultiVMGroupName:                   utils.String(d.Get("multi_vm_group_name").(string)),
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
+				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
 				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
 				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
 				VMManagedDisks:                     &managedDisks,
@@ -627,7 +627,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
 				ManagedDiskUpdateDetails:           &managedDisks,
 				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diag_storage_account_id").(string)),
+				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
 				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
 				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
 			},
@@ -699,7 +699,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
 			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
 			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
-			d.Set("target_boot_diag_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
+			d.Set("target_boot_diagnostic_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
 			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
 			d.Set("target_virtual_machine_scale_set_id", a2aDetails.RecoveryVirtualMachineScaleSetId)
 			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
@@ -783,13 +783,13 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 							nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
 						}
 						if ipConfig.TfoStaticIPAddress != nil {
-							nicOutput["test_static_ip"] = *ipConfig.TfoStaticIPAddress
+							nicOutput["failover_test_static_ip"] = *ipConfig.TfoStaticIPAddress
 						}
 						if ipConfig.TfoSubnetName != nil {
-							nicOutput["test_subnet_name"] = *ipConfig.TfoSubnetName
+							nicOutput["failover_test_subnet_name"] = *ipConfig.TfoSubnetName
 						}
 						if ipConfig.TfoPublicIPAddressId != nil {
-							nicOutput["test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
+							nicOutput["failover_test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
 						}
 					}
 					nicsOutput = append(nicsOutput, nicOutput)

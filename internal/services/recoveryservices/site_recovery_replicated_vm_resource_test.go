@@ -469,8 +469,8 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     source_network_interface_id   = azurerm_network_interface.test.id
     target_subnet_name            = azurerm_subnet.test2.name
     recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-    test_subnet_name              = azurerm_subnet.test2.name
-    test_public_ip_address_id     = azurerm_public_ip.test-recovery.id
+    failover_test_subnet_name              = azurerm_subnet.test2.name
+    failover_test_public_ip_address_id     = azurerm_public_ip.test-recovery.id
   }
 
   depends_on = [
@@ -1392,7 +1392,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  target_boot_diag_storage_account_id     = azurerm_storage_account.test2.id
+  target_boot_diagnostic_storage_account_id     = azurerm_storage_account.test2.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
