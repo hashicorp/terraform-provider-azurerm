@@ -978,7 +978,7 @@ resource "azurerm_monitor_action_group" "test" {
   sms_receiver {
     name         = "remotesupport"
     country_code = "1"
-    phone_number = "2123456789"
+    phone_number = "3123456789"
   }
 
   webhook_receiver {
