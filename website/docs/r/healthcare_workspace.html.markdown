@@ -26,7 +26,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare Workspace. Changing this forces a new Healthcare Workspace to be created.
 
-* `resource_group_name`  - (Required) Specifies the name of the Resource Group where the Healthcare Workspace should exist. Changing this forces a new Healthcare Workspace to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Healthcare Workspace should exist. Changing this forces a new Healthcare Workspace to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare Workspace should be created. Changing this forces a new Healthcare Workspace to be created.
 

@@ -149,9 +149,10 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			if _, err := client.ContactProfilesCreateOrUpdate(ctx, id, contactProfile); err != nil {
+			if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -216,11 +217,10 @@ func (r ContactProfileResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.ContactProfilesDelete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.ContactProfilesDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -269,7 +269,8 @@ func (r ContactProfileResource) Update() sdk.ResourceFunc {
 					},
 					Tags: &state.Tags,
 				}
-				if _, err := client.ContactProfilesCreateOrUpdate(ctx, *id, contactProfile); err != nil {
+
+				if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

@@ -74,11 +74,20 @@ The following arguments are supported:
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
 
-* `condition` - (Optional) One or more `condition` blocks as defined below.
+* `condition` - (Optional / **Deprecated** ) One or more `condition` blocks as defined below.
+
+~> **Note:** `condition` only supports the [`Property` condition type](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#propertyconditionproperties). Please use `condition_json` if you want other condition types.
+
+* `condition_json` - (Optional) A JSON array of one or more condition JSON objects as is defined [here](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#automationruletriggeringlogic).
+
 
 * `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 
 * `expiration` - (Optional) The time in RFC3339 format of kind `UTC` that determines when this Automation Rule should expire and be disabled.
+
+* `triggers_on` - (Optional) Specifies what triggers this automation rule. Possible values are `Alerts` and `Incidents`. Defaults to `Incidents`.
+
+* `triggers_when` - (Optional) Specifies when will this automation rule be triggered. Possible values are `Created` and `Updated`. Defaults to `Created`.
 
 ---
 

@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -27,7 +27,7 @@ func (DevTestLinuxVirtualMachineUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgr
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/virtualMachines/{virtualMachineName}
 
 		oldId := rawState["id"].(string)
-		id, err := parse.DevTestVirtualMachineIDInsensitively(oldId)
+		id, err := virtualmachines.ParseVirtualMachineIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

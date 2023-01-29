@@ -105,10 +105,10 @@ A `cluster_setting` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 4 hours) Used when creating the App Service Environment.
-* `update` - (Defaults to 4 hours) Used when updating the App Service Environment.
+* `create` - (Defaults to 6 hours) Used when creating the App Service Environment.
+* `update` - (Defaults to 6 hours) Used when updating the App Service Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.
-* `delete` - (Defaults to 4 hours) Used when deleting the App Service Environment.
+* `delete` - (Defaults to 6 hours) Used when deleting the App Service Environment.
 
 ## Import
 

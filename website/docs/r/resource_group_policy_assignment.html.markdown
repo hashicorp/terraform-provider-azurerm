@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The Display Name for this Policy Assignment.
 
-* `enforce` - (Optional) Specifies if this Policy should be enforced or not?
+* `enforce` - (Optional) Specifies if this Policy should be enforced or not? Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

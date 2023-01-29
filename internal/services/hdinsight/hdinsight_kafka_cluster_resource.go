@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -52,7 +53,7 @@ var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition
 }
 
 func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceHDInsightKafkaClusterCreate,
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
@@ -158,7 +159,12 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 						},
 					},
 				},
-				RequiredWith: []string{"roles.0.kafka_management_node"},
+				RequiredWith: func() []string {
+					if !features.FourPointOh() {
+						return []string{"roles.0.kafka_management_node"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"tags": tags.Schema(),
@@ -183,6 +189,43 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			"extension": SchemaHDInsightsExtension(),
 		},
 	}
+
+	if !features.FourPointOh() {
+		resource.Schema["roles"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition, true),
+
+					"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition, true),
+
+					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition, true),
+
+					"kafka_management_node": SchemaHDInsightNodeDefinition("roles.0.kafka_management_node", hdInsightKafkaClusterKafkaManagementNodeDefinition, false),
+				},
+			},
+			Deprecated: "`kafka_management_node` will be removed in version 4.0 of the AzureRM Provider since it no longer support configurations from the user",
+		}
+	} else {
+		resource.Schema["roles"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition, true),
+
+					"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition, true),
+
+					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition, true),
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {

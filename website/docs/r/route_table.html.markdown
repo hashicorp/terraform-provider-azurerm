@@ -59,9 +59,11 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Elements of `route` support:
+---
 
-* `name` - (Required) The name of the route. Changing this forces a new resource to be created.
+A `route` block support:
+
+* `name` - (Required) The name of the route.
 
 * `address_prefix` - (Required) The destination to which the route applies. Can be CIDR (such as `10.1.0.0/16`) or [Azure Service Tag](https://docs.microsoft.com/azure/virtual-network/service-tags-overview) (such as `ApiManagement`, `AzureBackup` or `AzureMonitor`) format.
 

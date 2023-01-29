@@ -1064,7 +1064,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", *id)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
+			d.SetId("")
+			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

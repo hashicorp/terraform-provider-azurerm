@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = CustomCertificateId{}
 
 // CustomCertificateId is a struct representing the Resource ID for a Custom Certificate
 type CustomCertificateId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
-	CertificateName   string
+	SubscriptionId        string
+	ResourceGroupName     string
+	SignalRName           string
+	CustomCertificateName string
 }
 
 // NewCustomCertificateID returns a new CustomCertificateId struct
-func NewCustomCertificateID(subscriptionId string, resourceGroupName string, resourceName string, certificateName string) CustomCertificateId {
+func NewCustomCertificateID(subscriptionId string, resourceGroupName string, signalRName string, customCertificateName string) CustomCertificateId {
 	return CustomCertificateId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
-		CertificateName:   certificateName,
+		SubscriptionId:        subscriptionId,
+		ResourceGroupName:     resourceGroupName,
+		SignalRName:           signalRName,
+		CustomCertificateName: customCertificateName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseCustomCertificateID(input string) (*CustomCertificateId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
-	if id.CertificateName, ok = parsed.Parsed["certificateName"]; !ok {
-		return nil, fmt.Errorf("the segment 'certificateName' was not found in the resource id %q", input)
+	if id.CustomCertificateName, ok = parsed.Parsed["customCertificateName"]; !ok {
+		return nil, fmt.Errorf("the segment 'customCertificateName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseCustomCertificateIDInsensitively(input string) (*CustomCertificateId, 
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
-	if id.CertificateName, ok = parsed.Parsed["certificateName"]; !ok {
-		return nil, fmt.Errorf("the segment 'certificateName' was not found in the resource id %q", input)
+	if id.CustomCertificateName, ok = parsed.Parsed["customCertificateName"]; !ok {
+		return nil, fmt.Errorf("the segment 'customCertificateName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateCustomCertificateID(input interface{}, key string) (warnings []stri
 // ID returns the formatted Custom Certificate ID
 func (id CustomCertificateId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/signalR/%s/customCertificates/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.CertificateName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SignalRName, id.CustomCertificateName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Custom Certificate ID
@@ -119,9 +119,9 @@ func (id CustomCertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("signalRName", "signalRValue"),
 		resourceids.StaticSegment("staticCustomCertificates", "customCertificates", "customCertificates"),
-		resourceids.UserSpecifiedSegment("certificateName", "certificateValue"),
+		resourceids.UserSpecifiedSegment("customCertificateName", "customCertificateValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id CustomCertificateId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Certificate Name: %q", id.CertificateName),
+		fmt.Sprintf("Signal R Name: %q", id.SignalRName),
+		fmt.Sprintf("Custom Certificate Name: %q", id.CustomCertificateName),
 	}
 	return fmt.Sprintf("Custom Certificate (%s)", strings.Join(components, "\n"))
 }

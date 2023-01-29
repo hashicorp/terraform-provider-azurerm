@@ -135,12 +135,12 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      "1",
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"max_number_of_workers": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"cluster_version": {
 							Type:         pluginsdk.TypeString,
@@ -196,12 +196,12 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"max_number_of_workers": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"instance_pool_id": {
 							Type:         pluginsdk.TypeString,

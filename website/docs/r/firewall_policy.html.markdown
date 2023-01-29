@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `private_ip_ranges` - (Optional) A list of private IP ranges to which traffic will not be SNAT.
 
-* `auto_learn_private_ranges_enabled` - (Optional) Whether enable auto learn private ip range. Defaults to `false`.
+* `auto_learn_private_ranges_enabled` - (Optional) Whether enable auto learn private ip range.
 
 * `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Changing this forces a new Firewall Policy to be created.
 

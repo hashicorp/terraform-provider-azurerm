@@ -157,7 +157,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 			var opts exports.GetOperationOptions
 			resp, err := client.Get(ctx, *id, opts)
 			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s: %+v", *id, err)

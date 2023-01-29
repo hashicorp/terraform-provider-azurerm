@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Live Event should exist. Changing this forces a new Live Event to be created.
 
-* `media_services_account_name` - (Required)  The Media Services account name. Changing this forces a new Live Event to be created.
+* `media_services_account_name` - (Required) The Media Services account name. Changing this forces a new Live Event to be created.
 
 * `name` - (Required) The name which should be used for this Live Event. Changing this forces a new Live Event to be created.
 
@@ -184,5 +184,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Live Events can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1
+terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaServices/account1/liveEvents/event1
 ```

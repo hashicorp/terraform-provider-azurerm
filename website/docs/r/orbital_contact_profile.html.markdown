@@ -90,17 +90,19 @@ The following arguments are supported:
 
 * `network_configuration_subnet_id` - (Required) ARM resource identifier of the subnet delegated to the Microsoft.Orbital/orbitalGateways. Needs to be at least a class C subnet, and should not have any IP created in it. Changing this forces a new resource to be created.
 
-* `links` - (Required) A list of spacecraft links. A `links` block as defined below.
+* `links` - (Required) A list of spacecraft links. A `links` block as defined below. Changing this forces a new resource to be created.
 
 * `event_hub_uri` - (Optional) ARM resource identifier of the Event Hub used for telemetry. Requires granting Orbital Resource Provider the rights to send telemetry into the hub.
 
 * `minimum_elevation_degrees` - (Optional) Maximum elevation of the antenna during the contact in decimal degrees.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `links` block supports the following:
 
-* `channels` - (Required) A list of contact profile link channels. A `channel` block as defined below.
+* `channels` - (Required) A list of contact profile link channels. A `channels` block as defined below. Changing this forces a new resource to be created.
 
 * `direction` - (Required) Direction of the link. Possible values are `Uplink` and `Downlink`.
 
@@ -128,7 +130,7 @@ A `channels` block supports the following:
 
 An `end_point` block supports the following:
 
-* `end_point_name` -(Required) Name of an end point.
+* `end_point_name` - (Required) Name of an end point.
 
 * `ip_address` - (Required) IP address of an end point.
 

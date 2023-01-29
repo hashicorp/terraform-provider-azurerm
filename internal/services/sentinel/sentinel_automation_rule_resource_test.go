@@ -3,6 +3,7 @@ package sentinel_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -15,7 +16,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SentinelAutomationRuleResource struct{ uuid string }
+type SentinelAutomationRuleResource struct {
+	uuid         string
+	clientSecret string
+}
 
 func TestAccSentinelAutomationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
@@ -24,6 +28,21 @@ func TestAccSentinelAutomationRule_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAutomationRule_completeDperecatedCondition(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
+	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDeprecatedCondition(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -67,7 +86,47 @@ func TestAccSentinelAutomationRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.completeDeprecatedCondition(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAutomationRule_trigger(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
+	r := SentinelAutomationRuleResource{uuid: uuid.New().String(), clientSecret: os.Getenv("ARM_CLIENT_SECRET")}
+	if r.clientSecret == "" {
+		t.Skip("`ARM_CLIENT_SECRET` is needed to run this test")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// This defaults to incident created
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.triggerIncidentUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.triggerAlertCreated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -128,7 +187,7 @@ resource "azurerm_sentinel_automation_rule" "test" {
 `, template, r.uuid, data.RandomInteger)
 }
 
-func (r SentinelAutomationRuleResource) complete(data acceptance.TestData) string {
+func (r SentinelAutomationRuleResource) completeDeprecatedCondition(data acceptance.TestData) string {
 	template := r.template(data)
 	expDate := time.Now().AddDate(0, 1, 0).UTC().Format(time.RFC3339)
 	return fmt.Sprintf(`
@@ -178,6 +237,214 @@ resource "azurerm_sentinel_automation_rule" "test" {
   }
 }
 `, template, r.uuid, data.RandomInteger, expDate)
+}
+
+func (r SentinelAutomationRuleResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	expDate := time.Now().AddDate(0, 1, 0).UTC().Format(time.RFC3339)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_sentinel_automation_rule" "test" {
+  name                       = "%s"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  display_name               = "acctest-SentinelAutoRule-%d-update"
+  order                      = 2
+  enabled                    = false
+  expiration                 = "%s"
+
+  condition_json = jsonencode(
+    [
+      {
+        conditionProperties = {
+          operator     = "Contains"
+          propertyName = "IncidentTitle"
+          propertyValues = [
+            "a",
+            "b",
+          ]
+        }
+        conditionType = "Property"
+      },
+      {
+        conditionProperties = {
+          operator     = "Contains"
+          propertyName = "IncidentTitle"
+          propertyValues = [
+            "c",
+            "d",
+          ]
+        }
+        conditionType = "Property"
+      },
+    ]
+  )
+
+  action_incident {
+    order                  = 1
+    status                 = "Closed"
+    classification         = "BenignPositive_SuspiciousButExpected"
+    classification_comment = "whatever reason"
+  }
+
+  action_incident {
+    order  = 3
+    labels = ["foo", "bar"]
+  }
+
+  action_incident {
+    order    = 2
+    severity = "High"
+  }
+
+  action_incident {
+    order    = 4
+    owner_id = data.azurerm_client_config.current.object_id
+  }
+}
+`, template, r.uuid, data.RandomInteger, expDate)
+}
+
+func (r SentinelAutomationRuleResource) triggerIncidentUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_sentinel_automation_rule" "test" {
+  name                       = "%s"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  display_name               = "acctest-SentinelAutoRule-%d-update"
+  order                      = 1
+  condition_json = jsonencode([
+    {
+      conditionType = "PropertyChanged"
+      conditionProperties = {
+        propertyName   = "IncidentStatus"
+        changeType     = "ChangedTo"
+        operator       = "Equals"
+        propertyValues = ["New"]
+      }
+    }
+  ])
+
+  triggers_when = "Updated"
+
+  action_incident {
+    order    = 1
+    owner_id = data.azurerm_client_config.current.object_id
+  }
+}
+`, template, r.uuid, data.RandomInteger)
+}
+
+func (r SentinelAutomationRuleResource) triggerAlertCreated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+data "azurerm_managed_api" "test" {
+  name     = "azuresentinel"
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_api_connection" "test" {
+  managed_api_id      = data.azurerm_managed_api.test.id
+  name                = "azuresentinel-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  parameter_values = {
+    "token:TenantId"     = data.azurerm_client_config.current.tenant_id
+    "token:clientId"     = data.azurerm_client_config.current.client_id
+    "token:clientSecret" = %[4]q
+    "token:grantType"    = "client_credentials"
+  }
+  lifecycle {
+    ignore_changes = [parameter_values]
+  }
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestLogicApp-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  parameters = {
+    "$connections" = jsonencode({
+      azuresentinel = {
+        connectionId         = azurerm_api_connection.test.id
+        connectionName       = azurerm_api_connection.test.name
+        connectionProperties = {}
+        id                   = data.azurerm_managed_api.test.id
+      }
+    })
+  }
+
+  workflow_parameters = {
+    "$connections" = jsonencode({
+      defaultValue = {}
+      type         = "Object"
+    })
+  }
+}
+
+resource "azurerm_logic_app_trigger_custom" "test" {
+  name         = "Microsoft_Sentinel_alert"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  body         = <<BODY
+{
+    "type": "ApiConnectionWebhook",
+    "inputs": {
+        "body": {
+            "callback_url": "@{listCallbackUrl()}"
+        },
+        "host": {
+            "connection": {
+                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+            }
+        },
+        "path": "/subscribe"
+    }
+}
+BODY
+}
+
+
+data "azurerm_role_definition" "sentinel" {
+  name  = "Microsoft Sentinel Automation Contributor"
+  scope = azurerm_resource_group.test.id
+}
+
+data "azuread_service_principal" "sentinel" {
+  application_id = "98785600-1bb7-4fb9-b9fa-19afe2c8a360"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = data.azurerm_role_definition.sentinel.id
+  principal_id       = data.azuread_service_principal.sentinel.object_id
+}
+
+resource "azurerm_sentinel_automation_rule" "test" {
+  name                       = "%[3]s"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  display_name               = "acctest-SentinelAutoRule-%[2]d-update"
+  order                      = 1
+  triggers_on                = "Alerts"
+  action_playbook {
+    logic_app_id = azurerm_logic_app_workflow.test.id
+    order        = 1
+  }
+  condition_json = "[]"
+  depends_on     = [azurerm_logic_app_trigger_custom.test, azurerm_role_assignment.test]
+}
+
+
+`, template, data.RandomInteger, r.uuid, r.clientSecret)
 }
 
 func (r SentinelAutomationRuleResource) requiresImport(data acceptance.TestData) string {

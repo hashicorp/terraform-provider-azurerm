@@ -31,9 +31,9 @@ output "secret_value" {
 
 The following arguments are supported:
 
-* `key_vault_id` - (Required) The ID of the TODO.
+* `key_vault_id` - (Required)  Specifies the ID of the Key Vault instance to fetch secret names from, available on the `azurerm_key_vault` Data Source / Resource.
 
-* `name` - (Required) Specifies the ID of the Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
+* `name` - (Required) Specifies the name of the Key Vault Secret.
 
 **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 

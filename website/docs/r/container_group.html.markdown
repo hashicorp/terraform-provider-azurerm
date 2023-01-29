@@ -77,9 +77,9 @@ The following arguments are supported:
 
 ---
 
-* `dns_config` - (Optional) A `dns_config` block as documented below.
+* `dns_config` - (Optional) A `dns_config` block as documented below. Changing this forces a new resource to be created.
 
-* `diagnostics` - (Optional) A `diagnostics` block as documented below.
+* `diagnostics` - (Optional) A `diagnostics` block as documented below. Changing this forces a new resource to be created.
 
 * `dns_name_label` - (Optional) The DNS label/name for the container group's IP. Changing this forces a new resource to be created.
 
@@ -177,9 +177,9 @@ A `container` block supports:
 
 An `exposed_port` block supports:
 
-* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
+* `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
 ~> **Note:** Removing all `exposed_port` blocks requires setting `exposed_port = []`.
 
@@ -217,9 +217,9 @@ A `log_analytics` block supports:
 
 A `ports` block supports:
 
-* `port` - (Required) The port number the container will expose. Changing this forces a new resource to be created.
+* `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
 ~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
@@ -227,9 +227,9 @@ A `ports` block supports:
 
 A `gpu` block supports:
 
-* `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
+* `count` - (Optional) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
+* `sku` - (Optional) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
 
 ---
 
@@ -257,7 +257,7 @@ A `volume` block supports:
 
 * `share_name` - (Optional) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
 
-* `git_repo` - (Optional) A `git_repo` block as defined below.
+* `git_repo` - (Optional) A `git_repo` block as defined below. Changing this forces a new resource to be created.
 
 * `secret` - (Optional) A map of secrets that will be mounted as files in the volume. Changing this forces a new resource to be created.
 
@@ -329,11 +329,11 @@ The `http_get` block supports:
 
 The `dns_config` block supports:
 
-* `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
+* `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests. Changing this forces a new resource to be created.
 
-* `search_domains` - (Optional) A list of search domains that DNS requests will search along.
+* `search_domains` - (Optional) A list of search domains that DNS requests will search along. Changing this forces a new resource to be created.
 
-* `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
+* `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html). Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

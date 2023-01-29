@@ -153,7 +153,7 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this App Service Slot. Changing this forces a new resource to be created.
 
-* `app_service_name` - (Required) The name of the App Service within which to create the App Service Slot.  Changing this forces a new resource to be created.
+* `app_service_name` - (Required) The name of the App Service within which to create the App Service Slot. Changing this forces a new resource to be created.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
@@ -163,7 +163,7 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should the App Service Slot send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `enabled` - (Optional) Is the App Service Slot Enabled?
+* `enabled` - (Optional) Is the App Service Slot Enabled? Defaults to `true`.
 
 * `https_only` - (Optional) Can the App Service Slot only be accessed via HTTPS? Defaults to `false`.
 
@@ -199,8 +199,8 @@ A `storage_account` block supports the following:
 
 The `connection_string` block supports the following:
 
-* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
-* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and  `SQLServer`.
+* `name` - (Required) The name of the Connection String.
+* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 * `value` - (Required) The value for the Connection String.
 
 ---
@@ -239,7 +239,7 @@ A `site_config` block supports the following:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to false.  
+* `scm_use_main_ip_restriction` - (Optional) IP security restrictions for scm to use main. Defaults to `false`. 
 
 -> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
 
@@ -293,7 +293,7 @@ Additional examples of how to run Containers via the `azurerm_app_service_slot` 
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 * `support_credentials` - (Optional) Are credentials supported?
 
@@ -323,9 +323,9 @@ A `auth_settings` block supports the following:
 
 * `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
 
-* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to 72.
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72`.
 
-* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to false.
+* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -377,7 +377,7 @@ A `ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
 
-* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
 
 * `headers` - (Optional) The headers for this specific `ip_restriction` as defined below. The HTTP header filters are evaluated after the rule itself and both conditions must be true for the rule to apply.
 
@@ -461,9 +461,9 @@ A `file_system` block supports the following:
 
 ---
 
-Elements of `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) support:
+A `ip_restriction` block (attribute as block) support:
 
-* `ip_address` - (Required) The IP Address used for this IP Restriction.
+* `ip_address` - (Optional) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 

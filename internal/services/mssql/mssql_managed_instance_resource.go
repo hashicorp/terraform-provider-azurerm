@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -479,7 +479,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return err
 					}
-					model.MaintenanceConfigurationName = maintenanceConfigId.ResourceName
+					model.MaintenanceConfigurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
 				}
 				if props.MinimalTLSVersion != nil {
 					model.MinimumTlsVersion = *props.MinimalTLSVersion

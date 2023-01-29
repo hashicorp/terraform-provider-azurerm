@@ -60,6 +60,57 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	})
 }
 
+func TestAccProximityPlacementGroup_allowedVmSizes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
+	r := ProximityPlacementGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithAllowedVmSizes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithAllowedVmSizesUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithAllowedVmSizes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccProximityPlacementGroup_zone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
+	r := ProximityPlacementGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 	r := ProximityPlacementGroupResource{}
@@ -142,6 +193,70 @@ resource "azurerm_proximity_placement_group" "import" {
   resource_group_name = azurerm_proximity_placement_group.test.resource_group_name
 }
 `, r.basic(data))
+}
+
+func (ProximityPlacementGroupResource) basicWithAllowedVmSizes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  allowed_vm_sizes = ["Standard_F1"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ProximityPlacementGroupResource) basicWithAllowedVmSizesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  allowed_vm_sizes = ["Standard_F1", "Standard_F2"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ProximityPlacementGroupResource) zone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  allowed_vm_sizes = ["Standard_F2"]
+  zone             = "1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ProximityPlacementGroupResource) withTags(data acceptance.TestData) string {

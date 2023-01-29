@@ -85,7 +85,7 @@ The following arguments are supported:
 * `backend_address_pool_id` - (Optional) Specifies a reference to backendAddressPool resource.
 * `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `30` minutes. Defaults to `4` minutes.
 * `enable_floating_ip` - (Optional) Are the Floating IPs enabled for this Load Balancer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
-* `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? Defaults to `false`.
+* `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
 ## Attributes Reference
 

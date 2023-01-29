@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/assetsandassetfilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/assetsandassetfilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -15,14 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-)
-
-// define constants based on docs https://docs.microsoft.com/en-us/azure/media-services/latest/filters-concept
-const incrementsInASecond = 10000000
-
-const (
-	nanoSecondsInAIncrement = 100
-	milliSecondsInASecond   = 1000
 )
 
 func resourceMediaAssetFilter() *pluginsdk.Resource {
@@ -190,7 +182,7 @@ func resourceMediaAssetFilter() *pluginsdk.Resource {
 }
 
 func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -199,7 +191,7 @@ func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	id := assetsandassetfilters.NewAssetFilterID(assetId.SubscriptionId, assetId.ResourceGroupName, assetId.AccountName, assetId.AssetName, d.Get("name").(string))
+	id := assetsandassetfilters.NewAssetFilterID(assetId.SubscriptionId, assetId.ResourceGroupName, assetId.MediaServiceName, assetId.AssetName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.AssetFiltersGet(ctx, id)
 		if err != nil {
@@ -240,7 +232,7 @@ func resourceMediaAssetFilterCreateUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -259,8 +251,8 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.FilterName)
-	d.Set("asset_id", assetsandassetfilters.NewAssetID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.AssetName).ID())
+	d.Set("name", id.AssetFilterName)
+	d.Set("asset_id", assetsandassetfilters.NewAssetID(id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.AssetName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -284,7 +276,7 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceMediaAssetFilterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.AssetsAndAssetFilters
+	client := meta.(*clients.Client).Media.V20220801Client.AssetsAndAssetFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

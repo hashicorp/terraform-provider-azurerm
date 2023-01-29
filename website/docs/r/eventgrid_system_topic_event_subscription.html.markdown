@@ -151,31 +151,31 @@ A `subject_filter` block supports the following:
 
 * `subject_ends_with` - (Optional) A string to filter events for an event subscription based on a resource path suffix.
 
-* `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive. This value defaults to `false`.
+* `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive. This value 
 
 ---
 
 A `advanced_filter` supports the following nested blocks:
 
-* `bool_equals` - Compares a value of an event using a single boolean value.
-* `number_greater_than` - Compares a value of an event using a single floating point number.
-* `number_greater_than_or_equals` - Compares a value of an event using a single floating point number.
-* `number_less_than` - Compares a value of an event using a single floating point number.
-* `number_less_than_or_equals` - Compares a value of an event using a single floating point number.
-* `number_in` - Compares a value of an event using multiple floating point numbers.
-* `number_not_in` - Compares a value of an event using multiple floating point numbers.
-* `number_in_range` - Compares a value of an event using multiple floating point number ranges.
-* `number_not_in_range` - Compares a value of an event using multiple floating point number ranges.
-* `string_begins_with` - Compares a value of an event using multiple string values.
-* `string_not_begins_with` - Compares a value of an event using multiple string values.
-* `string_ends_with` - Compares a value of an event using multiple string values.
-* `string_not_ends_with` - Compares a value of an event using multiple string values.
-* `string_contains` - Compares a value of an event using multiple string values.
-* `string_not_contains` - Compares a value of an event using multiple string values.
-* `string_in` - Compares a value of an event using multiple string values.
-* `string_not_in` - Compares a value of an event using multiple string values.
-* `is_not_null` - Evaluates if a value of an event isn't NULL or undefined.
-* `is_null_or_undefined` - Evaluates if a value of an event is NULL or undefined.
+* `bool_equals` - (Optional) Compares a value of an event using a single boolean value.
+* `number_greater_than` - (Optional) Compares a value of an event using a single floating point number.
+* `number_greater_than_or_equals` - (Optional) Compares a value of an event using a single floating point number.
+* `number_less_than` - (Optional) Compares a value of an event using a single floating point number.
+* `number_less_than_or_equals` - (Optional) Compares a value of an event using a single floating point number.
+* `number_in` - (Optional) Compares a value of an event using multiple floating point numbers.
+* `number_not_in` - (Optional) Compares a value of an event using multiple floating point numbers.
+* `number_in_range` - (Optional) Compares a value of an event using multiple floating point number ranges.
+* `number_not_in_range` - (Optional) Compares a value of an event using multiple floating point number ranges.
+* `string_begins_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_begins_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_ends_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_ends_with` - (Optional) Compares a value of an event using multiple string values.
+* `string_contains` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_contains` - (Optional) Compares a value of an event using multiple string values.
+* `string_in` - (Optional) Compares a value of an event using multiple string values.
+* `string_not_in` - (Optional) Compares a value of an event using multiple string values.
+* `is_not_null` - (Optional) Evaluates if a value of an event isn't NULL or undefined.
+* `is_null_or_undefined` - (Optional) Evaluates if a value of an event is NULL or undefined.
 
 Each nested block consists of a key and a value(s) element.
 
@@ -235,7 +235,7 @@ A `retry_policy` block supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
-* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
+* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. See [official documentation](https://docs.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
 
 ## Attributes Reference
 

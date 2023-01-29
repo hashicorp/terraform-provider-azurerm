@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Defaults to `false`. Changing this forces a new resource to be created.
+* `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
@@ -97,9 +97,9 @@ A `identity` block supports the following:
 
 a `threat_detection_policy` block supports the following:
 
-* `enabled` - (Required) Is the policy enabled?
+* `enabled` - (Optional) Is the policy enabled?
 
-* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values are `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration` and `Unsafe_Action`.
 
 * `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
 

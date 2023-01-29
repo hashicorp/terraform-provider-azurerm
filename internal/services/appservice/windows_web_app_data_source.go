@@ -272,7 +272,11 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			webApp.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			if err != nil {
+				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
+			}
+
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -312,8 +316,10 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
-
+			webApp.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			if err != nil {
+				return fmt.Errorf("reading API Management ID for %s: %+v", id, err)
+			}
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)

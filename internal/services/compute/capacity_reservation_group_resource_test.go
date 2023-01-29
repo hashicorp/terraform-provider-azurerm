@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -19,10 +18,10 @@ type CapacityReservationGroupResource struct{}
 func TestAccCapacityReservationGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -33,10 +32,10 @@ func TestAccCapacityReservationGroup_basic(t *testing.T) {
 func TestAccCapacityReservationGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,10 +46,10 @@ func TestAccCapacityReservationGroup_requiresImport(t *testing.T) {
 func TestAccCapacityReservationGroup_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.zones(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,17 +60,17 @@ func TestAccCapacityReservationGroup_zones(t *testing.T) {
 func TestAccCapacityReservationGroup_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.tagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -79,7 +78,7 @@ func TestAccCapacityReservationGroup_tags(t *testing.T) {
 	})
 }
 
-func (r CapacityReservationGroupResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r CapacityReservationGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CapacityReservationGroupID(state.ID)
 	if err != nil {
 		return nil, err

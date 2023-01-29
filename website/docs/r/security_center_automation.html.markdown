@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies the description for the Security Center Automation.
 
-* `enabled` - (Optional) Boolean to enable or disable this Security Center Automation.
+* `enabled` - (Optional) Boolean to enable or disable this Security Center Automation. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -105,9 +105,9 @@ A `action` block defines where the data will be exported and sent to, it support
 
 * `resource_id` - (Required) The resource id of the target Logic App, Event Hub namespace or Log Analytics workspace.
 
-* `connection_string` - (Optional, but required when `type` is `EventHub`) A connection string to send data to the target Event Hub namespace, this should include a key with send permissions.
+* `connection_string` - (Optional) (Optional, but required when `type` is `EventHub`) A connection string to send data to the target Event Hub namespace, this should include a key with send permissions.
 
-* `trigger_url` - (Optional, but required when `type` is `LogicApp`) The callback URL to trigger the Logic App that will receive and process data sent by this automation. This can be found in the Azure Portal under "See trigger history"
+* `trigger_url` - (Optional) (Optional, but required when `type` is `LogicApp`) The callback URL to trigger the Logic App that will receive and process data sent by this automation. This can be found in the Azure Portal under "See trigger history"
 
 ---
 

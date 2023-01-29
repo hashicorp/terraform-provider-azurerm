@@ -11,15 +11,15 @@ var _ resourceids.ResourceId = AvailableGroundStationId{}
 
 // AvailableGroundStationId is a struct representing the Resource ID for a Available Ground Station
 type AvailableGroundStationId struct {
-	SubscriptionId    string
-	GroundStationName string
+	SubscriptionId             string
+	AvailableGroundStationName string
 }
 
 // NewAvailableGroundStationID returns a new AvailableGroundStationId struct
-func NewAvailableGroundStationID(subscriptionId string, groundStationName string) AvailableGroundStationId {
+func NewAvailableGroundStationID(subscriptionId string, availableGroundStationName string) AvailableGroundStationId {
 	return AvailableGroundStationId{
-		SubscriptionId:    subscriptionId,
-		GroundStationName: groundStationName,
+		SubscriptionId:             subscriptionId,
+		AvailableGroundStationName: availableGroundStationName,
 	}
 }
 
@@ -38,8 +38,8 @@ func ParseAvailableGroundStationID(input string) (*AvailableGroundStationId, err
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.GroundStationName, ok = parsed.Parsed["groundStationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'groundStationName' was not found in the resource id %q", input)
+	if id.AvailableGroundStationName, ok = parsed.Parsed["availableGroundStationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'availableGroundStationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -61,8 +61,8 @@ func ParseAvailableGroundStationIDInsensitively(input string) (*AvailableGroundS
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.GroundStationName, ok = parsed.Parsed["groundStationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'groundStationName' was not found in the resource id %q", input)
+	if id.AvailableGroundStationName, ok = parsed.Parsed["availableGroundStationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'availableGroundStationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -86,7 +86,7 @@ func ValidateAvailableGroundStationID(input interface{}, key string) (warnings [
 // ID returns the formatted Available Ground Station ID
 func (id AvailableGroundStationId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.Orbital/availableGroundStations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.GroundStationName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.AvailableGroundStationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Available Ground Station ID
@@ -97,7 +97,7 @@ func (id AvailableGroundStationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOrbital", "Microsoft.Orbital", "Microsoft.Orbital"),
 		resourceids.StaticSegment("staticAvailableGroundStations", "availableGroundStations", "availableGroundStations"),
-		resourceids.UserSpecifiedSegment("groundStationName", "groundStationValue"),
+		resourceids.UserSpecifiedSegment("availableGroundStationName", "availableGroundStationValue"),
 	}
 }
 
@@ -105,7 +105,7 @@ func (id AvailableGroundStationId) Segments() []resourceids.Segment {
 func (id AvailableGroundStationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Ground Station Name: %q", id.GroundStationName),
+		fmt.Sprintf("Available Ground Station Name: %q", id.AvailableGroundStationName),
 	}
 	return fmt.Sprintf("Available Ground Station (%s)", strings.Join(components, "\n"))
 }

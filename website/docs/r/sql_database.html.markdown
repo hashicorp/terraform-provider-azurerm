@@ -12,8 +12,6 @@ Allows you to manage an Azure SQL Database
 
 -> **Note:** The `azurerm_sql_database` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_database`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_database) resource instead.
 
-~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
-
 ## Example Usage
 
 ```hcl
@@ -49,15 +47,6 @@ resource "azurerm_sql_database" "example" {
   location            = azurerm_resource_group.example.location
   server_name         = azurerm_sql_server.example.name
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
-
-
   tags = {
     environment = "production"
   }
@@ -70,13 +59,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the database. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the database.  This must be the same as Database Server resource group currently. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the database. This must be the same as Database Server resource group currently. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `server_name` - (Required) The name of the SQL Server on which to create the database. Changing this forces a new resource to be created.
 
-* `create_mode` - (Optional) Specifies how to create the database. Valid values are: `Default`, `Copy`, `OnlineSecondary`, `NonReadableSecondary`,  `PointInTimeRestore`, `Recovery`, `Restore` or `RestoreLongTermRetentionBackup`. Must be `Default` to create a new database. Defaults to `Default`. Please see [Azure SQL Database REST API](https://docs.microsoft.com/rest/api/sql/databases/createorupdate#createmode)
+* `create_mode` - (Optional) Specifies how to create the database. Valid values are: `Default`, `Copy`, `OnlineSecondary`, `NonReadableSecondary`, `PointInTimeRestore`, `Recovery`, `Restore` or `RestoreLongTermRetentionBackup`. Must be `Default` to create a new database. Defaults to `Default`. Please see [Azure SQL Database REST API](https://docs.microsoft.com/rest/api/sql/databases/createorupdate#createmode)
 
 * `import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
 
@@ -86,9 +75,9 @@ The following arguments are supported:
 
 * `edition` - (Optional) The edition of the database to be created. Applies only if `create_mode` is `Default`. Valid values are: `Basic`, `Standard`, `Premium`, `DataWarehouse`, `Business`, `BusinessCritical`, `Free`, `GeneralPurpose`, `Hyperscale`, `Premium`, `PremiumRS`, `Standard`, `Stretch`, `System`, `System2`, or `Web`. Please see [Azure SQL database models](https://docs.microsoft.com/azure/azure-sql/database/purchasing-models?view=azuresql).
 
-* `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
+* `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`. Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`.  Please see [Azure SQL database models](https://docs.microsoft.com/azure/azure-sql/database/purchasing-models?view=azuresql).
+* `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`. Please see [Azure SQL database models](https://docs.microsoft.com/azure/azure-sql/database/purchasing-models?view=azuresql).
 
 * `requested_service_objective_id` - (Optional) A GUID/UUID corresponding to a configured Service Level Objective for the Azure SQL database which can be used to configure a performance level.
 .
@@ -103,8 +92,6 @@ The following arguments are supported:
 * `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/azure/sql-database/sql-database-read-scale-out).
 
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
-
-* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -124,23 +111,13 @@ The `import` block supports the following:
 
 The `threat_detection_policy` block supports the following:
 
-* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `state` - (Optional) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
-* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered? Possible values are `Disabled` and `Enabled`.
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
-
----
-
-A `extended_auditing_policy` block supports the following:
-
-* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. <https://example.blob.core.windows.net>).
-* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
-* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_eventhub).
 
 ## Attributes Reference
 

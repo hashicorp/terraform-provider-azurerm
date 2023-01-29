@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -111,17 +111,17 @@ func TestAccLogicAppIntegrationAccount_integrationServiceEnvironment(t *testing.
 }
 
 func (LogicAppIntegrationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationAccountID(state.ID)
+	id, err := integrationaccounts.ParseIntegrationAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Logic.IntegrationAccountClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Logic.IntegrationAccountClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Logic App Workflow %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.IntegrationAccountProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r LogicAppIntegrationAccountResource) template(data acceptance.TestData) string {

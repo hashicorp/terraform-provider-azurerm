@@ -69,7 +69,7 @@ The following arguments are supported:
 
 A `filter` block supports the following:
 
-* `blob_types` - (Required)  A set of blob types. Possible values are `blockBlob`, `appendBlob`, and `pageBlob`. The storage account with `is_hns_enabled` is `true` doesn't support `pageBlob`.
+* `blob_types` - (Required) A set of blob types. Possible values are `blockBlob`, `appendBlob`, and `pageBlob`. The storage account with `is_hns_enabled` is `true` doesn't support `pageBlob`.
 
 ~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
 

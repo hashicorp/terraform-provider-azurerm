@@ -115,5 +115,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Site Recovery Protection Container Mappings can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_site_recovery_protection_container_mapping.mymapping /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name
+terraform import azurerm_site_recovery_protection_container_mapping.mymapping /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric1/replicationProtectionContainers/container1/replicationProtectionContainerMappings/mapping1
 ```

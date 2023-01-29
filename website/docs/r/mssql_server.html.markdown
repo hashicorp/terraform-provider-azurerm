@@ -92,7 +92,7 @@ An `identity` block supports the following:
 
 An `azuread_administrator` block supports the following:
 
-* `login_username` - (Required)  The login username of the Azure AD Administrator of this SQL Server.
+* `login_username` - (Required) The login username of the Azure AD Administrator of this SQL Server.
 
 * `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Server.
 

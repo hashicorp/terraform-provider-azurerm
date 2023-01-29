@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
 
 payload := capacities.DedicatedCapacity{
 	// ...
@@ -62,7 +62,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -74,7 +74,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
 
 read, err := client.GetDetails(ctx, id)
 if err != nil {
@@ -122,7 +122,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
 
 read, err := client.ListSkusForCapacity(ctx, id)
 if err != nil {
@@ -138,7 +138,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
 
 if err := client.ResumeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -150,7 +150,7 @@ if err := client.ResumeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
 
 if err := client.SuspendThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -162,7 +162,7 @@ if err := client.SuspendThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
 
 payload := capacities.DedicatedCapacityUpdateParameters{
 	// ...

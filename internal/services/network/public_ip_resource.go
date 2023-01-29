@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourcePublicIp() *pluginsdk.Resource {
@@ -337,12 +337,14 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("domain_name_label", settings.DomainNameLabel)
 		}
 
+		ddosProtectionMode := string(network.DdosSettingsProtectionModeVirtualNetworkInherited)
 		if ddosSetting := props.DdosSettings; ddosSetting != nil {
-			d.Set("ddos_protection_mode", string(ddosSetting.ProtectionMode))
+			ddosProtectionMode = string(ddosSetting.ProtectionMode)
 			if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
 				d.Set("ddos_protection_plan_id", subResource.ID)
 			}
 		}
+		d.Set("ddos_protection_mode", ddosProtectionMode)
 
 		d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
 

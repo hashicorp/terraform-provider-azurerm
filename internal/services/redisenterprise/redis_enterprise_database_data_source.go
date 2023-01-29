@@ -80,7 +80,7 @@ func dataSourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, d.Get("name").(string))
+	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, d.Get("name").(string))
 
 	keysResp, err := client.ListKeys(ctx, id)
 	if err != nil {

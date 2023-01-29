@@ -393,7 +393,7 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input w
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from LinuxFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is no longer used in Linux Apps
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)

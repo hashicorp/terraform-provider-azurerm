@@ -70,6 +70,15 @@ The following attributes are exported:
 
 * `id` - The SQL Managed Database ID.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Sql Managed Database.
+* `create` - (Defaults to 24 hours) Used when creating the Sql Managed Database.
+* `update` - (Defaults to 24 hours) Used when updating the Sql Managed Database.
+* `delete` - (Defaults to 24 hours) Used when deleting the Sql Managed Database.
+
 ## Import
 
 SQL Managed Databases can be imported using the `resource id`, e.g.

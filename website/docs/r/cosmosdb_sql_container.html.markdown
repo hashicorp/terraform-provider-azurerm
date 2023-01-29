@@ -83,9 +83,9 @@ The following arguments are supported:
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
-* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time. Changing this forces a new Cosmos DB SQL Container to be created when removing `analytical_storage_ttl` on an existing Cosmos DB SQL Container.
+* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
-* `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
+* `conflict_resolution_policy` - (Optional) A `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -121,27 +121,27 @@ A `spatial_index` block supports the following:
 
 An `included_path` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
 ---
 
 An `excluded_path` block supports the following:
 
-* `path` - Path that is excluded from indexing.
+* `path` - (Required) Path that is excluded from indexing.
 
 ---
 
 A `composite_index` block supports the following:
 
-* `index` - One or more `index` blocks as defined below.
+* `index` - (Required) One or more `index` blocks as defined below.
 
 ---
 
 An `index` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
-* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+* `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
 ---
 

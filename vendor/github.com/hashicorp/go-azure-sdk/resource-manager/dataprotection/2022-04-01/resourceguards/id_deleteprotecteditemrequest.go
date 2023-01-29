@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = DeleteProtectedItemRequestId{}
 
 // DeleteProtectedItemRequestId is a struct representing the Resource ID for a Delete Protected Item Request
 type DeleteProtectedItemRequestId struct {
-	SubscriptionId     string
-	ResourceGroupName  string
-	ResourceGuardsName string
-	RequestName        string
+	SubscriptionId                 string
+	ResourceGroupName              string
+	ResourceGuardName              string
+	DeleteProtectedItemRequestName string
 }
 
 // NewDeleteProtectedItemRequestID returns a new DeleteProtectedItemRequestId struct
-func NewDeleteProtectedItemRequestID(subscriptionId string, resourceGroupName string, resourceGuardsName string, requestName string) DeleteProtectedItemRequestId {
+func NewDeleteProtectedItemRequestID(subscriptionId string, resourceGroupName string, resourceGuardName string, deleteProtectedItemRequestName string) DeleteProtectedItemRequestId {
 	return DeleteProtectedItemRequestId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroupName:  resourceGroupName,
-		ResourceGuardsName: resourceGuardsName,
-		RequestName:        requestName,
+		SubscriptionId:                 subscriptionId,
+		ResourceGroupName:              resourceGroupName,
+		ResourceGuardName:              resourceGuardName,
+		DeleteProtectedItemRequestName: deleteProtectedItemRequestName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseDeleteProtectedItemRequestID(input string) (*DeleteProtectedItemReques
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.DeleteProtectedItemRequestName, ok = parsed.Parsed["deleteProtectedItemRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deleteProtectedItemRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseDeleteProtectedItemRequestIDInsensitively(input string) (*DeleteProtec
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.DeleteProtectedItemRequestName, ok = parsed.Parsed["deleteProtectedItemRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deleteProtectedItemRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateDeleteProtectedItemRequestID(input interface{}, key string) (warnin
 // ID returns the formatted Delete Protected Item Request ID
 func (id DeleteProtectedItemRequestId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/resourceGuards/%s/deleteProtectedItemRequests/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardsName, id.RequestName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardName, id.DeleteProtectedItemRequestName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Delete Protected Item Request ID
@@ -119,9 +119,9 @@ func (id DeleteProtectedItemRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardsName", "resourceGuardsValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
 		resourceids.StaticSegment("staticDeleteProtectedItemRequests", "deleteProtectedItemRequests", "deleteProtectedItemRequests"),
-		resourceids.UserSpecifiedSegment("requestName", "requestValue"),
+		resourceids.UserSpecifiedSegment("deleteProtectedItemRequestName", "deleteProtectedItemRequestValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id DeleteProtectedItemRequestId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Guards Name: %q", id.ResourceGuardsName),
-		fmt.Sprintf("Request Name: %q", id.RequestName),
+		fmt.Sprintf("Resource Guard Name: %q", id.ResourceGuardName),
+		fmt.Sprintf("Delete Protected Item Request Name: %q", id.DeleteProtectedItemRequestName),
 	}
 	return fmt.Sprintf("Delete Protected Item Request (%s)", strings.Join(components, "\n"))
 }

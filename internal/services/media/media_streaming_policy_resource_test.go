@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingpoliciesandstreaminglocators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,7 +97,7 @@ func (StreamingPolicyResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.StreamingPoliciesAndStreamingLocators.StreamingPoliciesGet(ctx, *id)
+	resp, err := clients.Media.V20220801Client.StreamingPoliciesAndStreamingLocators.StreamingPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

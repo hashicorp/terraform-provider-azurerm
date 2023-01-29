@@ -48,7 +48,7 @@ A `acl` block supports the following:
 
 * `id` - (Required) The ID which should be used for this Shared Identifier.
 
-* `access_policy` - (Required) An `access_policy` block as defined below.
+* `access_policy` - (Optional) An `access_policy` block as defined below.
 
 ---
 

@@ -116,7 +116,6 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"included_path": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {
@@ -130,7 +129,6 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"excluded_path": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {

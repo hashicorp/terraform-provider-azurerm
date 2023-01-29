@@ -237,6 +237,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
 			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
 			Status:                 &eventhubStatus,
+			CaptureDescription:     expandEventHubCaptureDescription(d),
 		},
 	}
 
@@ -272,7 +273,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.Set("name", id.EventHubName)
+	d.Set("name", id.EventhubName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

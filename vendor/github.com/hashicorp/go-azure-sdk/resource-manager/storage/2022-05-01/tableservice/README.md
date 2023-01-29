@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "tableValue")
 
 payload := tableservice.Table{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "tableValue")
 
 read, err := client.TableDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "tableValue")
 
 read, err := client.TableGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := tableservice.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
 
 // alternatively `client.TableList(ctx, id)` can be used to do batched pagination
 items, err := client.TableListComplete(ctx, id)
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "tableValue")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "tableValue")
 
 payload := tableservice.Table{
 	// ...

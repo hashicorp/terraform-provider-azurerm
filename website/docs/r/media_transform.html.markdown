@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `description` - (Optional) An optional verbose description of the Transform.
 
-* `output` - (Required) One or more `output` blocks as defined below. At least one `output` must be defined.
+* `output` - (Optional) One or more `output` blocks as defined below. At least one `output` must be defined.
 
 ---
 
@@ -150,7 +150,7 @@ A `output` block supports the following:
 
 A `builtin_preset` block supports the following:
 
-* `preset_name` - (Required) The built-in preset to be used for encoding videos. The allowed values are `AACGoodQualityAudio`, `AdaptiveStreaming`,`ContentAwareEncoding`, `ContentAwareEncodingExperimental`,`CopyAllBitrateNonInterleaved`, `H264MultipleBitrate1080p`,`H264MultipleBitrate720p`, `H264MultipleBitrateSD`,`H264SingleBitrate1080p`, `H264SingleBitrate720p` and `H264SingleBitrateSD`.
+* `preset_name` - (Required) The built-in preset to be used for encoding videos. The Possible values are `AACGoodQualityAudio`, `AdaptiveStreaming`, `ContentAwareEncoding`, `ContentAwareEncodingExperimental`, `CopyAllBitrateNonInterleaved`, `H265AdaptiveStreaming`, `H265ContentAwareEncoding`, `H265SingleBitrate4K`, `H265SingleBitrate1080p`, `H265SingleBitrate720p`, `H264MultipleBitrate1080p`, `H264MultipleBitrateSD`, `H264MultipleBitrate720p`, `H264SingleBitrate1080p`, `H264SingleBitrateSD` and `H264SingleBitrate720p`.
 
 ---
 
@@ -196,5 +196,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Transforms can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_transform.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/media1/transforms/transform1
+terraform import azurerm_media_transform.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/media1/transforms/transform1
 ```

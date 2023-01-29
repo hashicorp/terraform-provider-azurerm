@@ -287,9 +287,10 @@ func checkForNonDefaultStorageAccountNetworkRule(rule *storage.NetworkRuleSet) b
 		return false
 	}
 
+	// THe default action "Allow" is set in the creation of the storage account resource as default value.
 	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
 		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
-		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
+		rule.DefaultAction != "Allow" {
 		return true
 	}
 

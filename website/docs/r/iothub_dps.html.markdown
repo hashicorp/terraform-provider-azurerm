@@ -71,9 +71,9 @@ A `linked_hub` block supports the following:
 
 * `location` - (Required) The location of the IoT hub.
 
-* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to true.
+* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to `true`.
 
-* `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
+* `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to `1`.
 
 * `hostname` - (Computed) The IoT Hub hostname.
 
@@ -85,7 +85,7 @@ An `ip_filter_rule` block supports the following:
 
 * `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
 
-* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
+* `action` - (Required) The desired action for requests captured by this rule. Possible values are `Accept`, `Reject`
 
 * `target` - (Optional) Target for requests captured by this rule. Possible values are `All`, `DeviceApi` and `ServiceApi`.
 

@@ -130,7 +130,7 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.LongTermRetenti
 	}
 
 	weekOfYear := int32(1)
-	if longTermRetentionPolicy.WeekOfYear != nil {
+	if longTermRetentionPolicy.WeekOfYear != nil && *longTermRetentionPolicy.WeekOfYear != 0 {
 		weekOfYear = *longTermRetentionPolicy.WeekOfYear
 	}
 

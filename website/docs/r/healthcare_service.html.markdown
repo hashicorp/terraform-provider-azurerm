@@ -64,7 +64,7 @@ The following arguments are supported:
 ~> **Please Note** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
-* `public_network_access_enabled` - (Optional) Whether public network access is enabled or disabled for this service instance.
+* `public_network_access_enabled` - (Optional) Whether public network access is enabled or disabled for this service instance. Defaults to `true`.
 * `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

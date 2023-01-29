@@ -96,7 +96,7 @@ The following supported arguments are specific to Delimited Text Dataset:
 
 * `first_row_as_header` - (Optional) When used as input, treat the first row of data as headers. When used as output, write the headers into the output as the first row of data. Defaults to `false`.
 
-* `null_value` - (Optional) The null value string. Defaults to an empty string.
+* `null_value` - (Optional) The null value string. Defaults to an empty string. Defaults to `""`.
 
 * `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `None`, `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy` and `lz4`. Please note these values are case sensitive.
 

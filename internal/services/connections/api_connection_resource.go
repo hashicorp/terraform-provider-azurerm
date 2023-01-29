@@ -110,7 +110,7 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
 	}
-	location := location.Normalize(managedAppId.Location)
+	location := location.Normalize(managedAppId.LocationName)
 	parameterValues := expandConnectionParameterValues(d.Get("parameter_values").(map[string]interface{}))
 	model := connections.ApiConnectionDefinition{
 		Location: utils.String(location),

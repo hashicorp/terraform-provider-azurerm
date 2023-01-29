@@ -67,9 +67,17 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `notification_settings` - (Required) The notification setting of a schedule. A `notification_settings` as defined below.
+
+* `weekly_recurrence` - (Optional) The properties of a weekly schedule. If the schedule occurs only some days of the week, specify the weekly recurrence. A `weekly_recurrence` block as defined below.
+
+* `daily_recurrence` - (Optional) The properties of a daily schedule. If the schedule occurs once each day of the week, specify the daily recurrence. A `daily_recurrence` block as defined below.
+
+* `hourly_recurrence` - (Optional) The properties of an hourly schedule. If the schedule occurs multiple times a day, specify the hourly recurrence. A `hourly_recurrence` block as defined below.
+
 ---
 
-A `weekly_recurrence` - block supports the following:
+A `weekly_recurrence` block supports the following:
 
 * `time` - (Required) The time when the schedule takes effect.
 
@@ -77,13 +85,19 @@ A `weekly_recurrence` - block supports the following:
 
 ---
 
-A `daily_recurrence` - block supports the following:
+A `daily_recurrence` block supports the following:
 
 * `time` - (Required) The time each day when the schedule takes effect.
 
 ---
 
-A `notification_settings` - (Required)  - block supports the following:
+A `hourly_recurrence` block supports the following:
+
+* `minute` - (Required) Minutes of the hour the schedule will run.
+
+---
+
+A `notification_settings` block supports the following:
 
 * `status` - (Optional) The status of the notification. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`
 

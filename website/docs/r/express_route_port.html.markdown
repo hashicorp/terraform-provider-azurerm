@@ -40,7 +40,7 @@ The following arguments are supported:
   
 * `bandwidth_in_gbps` - (Required) Bandwidth of the Express Route Port in Gbps. Changing this forces a new Express Route Port to be created.
 
-* `encapsulation` - (Required)  The encapsulation method used for the Express Route Port. Changing this forces a new Express Route Port to be created. Possible values are: `Dot1Q`, `QinQ`.
+* `encapsulation` - (Required) The encapsulation method used for the Express Route Port. Changing this forces a new Express Route Port to be created. Possible values are: `Dot1Q`, `QinQ`.
 
 * `peering_location` - (Required) The name of the peering location that this Express Route Port is physically mapped to. Changing this forces a new Express Route Port to be created.
 
@@ -84,7 +84,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
   
-* `link` - A list of `link` block as defined below.
+* `link1` - A list of `link` blocks as defined below.
+
+* `link2` - A list of `link` blocks as defined below.
 
 * `guid` - The resource GUID of the Express Route Port.
   

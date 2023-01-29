@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = DeletedAccountId{}
 
 // DeletedAccountId is a struct representing the Resource ID for a Deleted Account
 type DeletedAccountId struct {
-	SubscriptionId    string
-	Location          string
-	ResourceGroupName string
-	AccountName       string
+	SubscriptionId     string
+	LocationName       string
+	ResourceGroupName  string
+	DeletedAccountName string
 }
 
 // NewDeletedAccountID returns a new DeletedAccountId struct
-func NewDeletedAccountID(subscriptionId string, location string, resourceGroupName string, accountName string) DeletedAccountId {
+func NewDeletedAccountID(subscriptionId string, locationName string, resourceGroupName string, deletedAccountName string) DeletedAccountId {
 	return DeletedAccountId{
-		SubscriptionId:    subscriptionId,
-		Location:          location,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		SubscriptionId:     subscriptionId,
+		LocationName:       locationName,
+		ResourceGroupName:  resourceGroupName,
+		DeletedAccountName: deletedAccountName,
 	}
 }
 
@@ -42,16 +42,16 @@ func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DeletedAccountName, ok = parsed.Parsed["deletedAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deletedAccountName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -73,16 +73,16 @@ func ParseDeletedAccountIDInsensitively(input string) (*DeletedAccountId, error)
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DeletedAccountName, ok = parsed.Parsed["deletedAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'deletedAccountName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateDeletedAccountID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Deleted Account ID
 func (id DeletedAccountId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.CognitiveServices/locations/%s/resourceGroups/%s/deletedAccounts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Location, id.ResourceGroupName, id.AccountName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName, id.ResourceGroupName, id.DeletedAccountName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Deleted Account ID
@@ -117,11 +117,11 @@ func (id DeletedAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCognitiveServices", "Microsoft.CognitiveServices", "Microsoft.CognitiveServices"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticDeletedAccounts", "deletedAccounts", "deletedAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("deletedAccountName", "deletedAccountValue"),
 	}
 }
 
@@ -129,9 +129,9 @@ func (id DeletedAccountId) Segments() []resourceids.Segment {
 func (id DeletedAccountId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Location: %q", id.Location),
+		fmt.Sprintf("Location Name: %q", id.LocationName),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Deleted Account Name: %q", id.DeletedAccountName),
 	}
 	return fmt.Sprintf("Deleted Account (%s)", strings.Join(components, "\n"))
 }

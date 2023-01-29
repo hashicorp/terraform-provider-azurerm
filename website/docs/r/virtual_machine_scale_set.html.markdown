@@ -273,9 +273,9 @@ The following arguments are supported:
 
 * `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
 
-* `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
+* `os_profile_windows_config` - (Optional) A Windows config block as documented below.
 
-* `os_profile_linux_config` - (Required, when a Linux machine) A Linux config block as documented below.
+* `os_profile_linux_config` - (Optional) A Linux config block as documented below.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
@@ -299,7 +299,7 @@ The following arguments are supported:
 
 * `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
 
-* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
+* `license_type` - (Optional) (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 
@@ -307,7 +307,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) A plan block as documented below.
 
-* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Defaults to `Regular`. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
+* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is only applicable when the `upgrade_policy_mode` is `Rolling`.
 
@@ -327,7 +327,7 @@ The following arguments are supported:
 
 The `sku` block supports the following:
 
-* `name` - (Required) Specifies the size of virtual machines in a scale set. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the size of virtual machines in a scale set.
 * `tier` - (Optional) Specifies the tier of virtual machines in a scale set. Possible values, `standard` or `basic`.
 * `capacity` - (Required) Specifies the number of virtual machines in the scale set.
 
@@ -385,7 +385,7 @@ The `os_profile` block supports the following:
 
 * `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for Linux. Changing this forces a new resource to be created.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
-* `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
+* `admin_password` - (Optional) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
 * `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 ---
@@ -393,9 +393,11 @@ The `os_profile` block supports the following:
 The `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the key vault to use.
-* `vault_certificates` - (Required, on windows machines) A collection of Vault Certificates as documented below
+* `vault_certificates` - (Optional) (Required, on Windows machines) One or more `vault_certificates` blocks as defined below.
 
-`vault_certificates` support the following:
+---
+
+A `vault_certificates` block support the following:
 
 * `certificate_url` - (Required) It is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be `data`, `dataType` and `password`.
 * `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
@@ -423,25 +425,28 @@ The `additional_unattend_config` block supports the following:
 * `pass` - (Required) Specifies the name of the pass that the content applies to. The only allowable value is `oobeSystem`.
 * `component` - (Required) Specifies the name of the component to configure with the added content. The only allowable value is `Microsoft-Windows-Shell-Setup`.
 * `setting_name` - (Required) Specifies the name of the setting to which the content applies. Possible values are: `FirstLogonCommands` and `AutoLogon`.
-* `content` - (Optional) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
+* `content` - (Required) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
 
 ---
 
 The `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Optional) Specifies whether password authentication should be disabled. Defaults to `false`. Changing this forces a new resource to be created.
-* `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
 
-~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_
+* `ssh_keys` - (Optional) One or more `ssh_keys` blocks as defined below.
+
+~> **Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure.
+
+~> **NOTE:** At least one `ssh_keys` block is required if `disable_password_authentication` is set to `true`.
 
 ---
 
 The `network_profile` block supports the following:
 
-* `name` - (Required) Specifies the name of the network interface configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not.
 * `dns_settings` - (Optional) A dns_settings block as documented below.
 * `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
@@ -456,7 +461,7 @@ The `dns_settings` block supports the following:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Required) Specifies name of the IP configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies name of the IP configuration.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
 * `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of multiple application gateways. Multiple scale sets can use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
@@ -475,15 +480,29 @@ The `ip_configuration` block supports the following:
 
 The `public_ip_address_configuration` block supports the following:
 
-* `name` - (Required) The name of the public IP address configuration Changing this forces a new resource to be created.
+* `name` - (Required) The name of the public IP address configuration
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the DNS settings.
 
 ---
 
+A `ssh_keys` block supports the following:
+
+* `key_data` - (Required) The Public SSH Key which should be written to the `path` defined above.
+
+~> **Note:** Azure only supports RSA SSH2 key signatures of at least 2048 bits in length
+
+-> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
+
+* `path` - (Required) The path of the destination file on the virtual machine
+
+-> **NOTE:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
+
+---
+
 The `storage_profile_os_disk` block supports the following:
 
-* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set). Changing this forces a new resource to be created.
+* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
 * `vhd_containers` - (Optional) Specifies the VHD URI. Cannot be used when `image` or `managed_disk_type` is specified.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.
@@ -498,7 +517,7 @@ The `storage_profile_os_disk` block supports the following:
 The `storage_profile_data_disk` block supports the following:
 
 * `lun` - (Required) Specifies the Logical Unit Number of the disk in each virtual machine in the scale set.
-* `create_option` - (Optional) Specifies how the data disk should be created. The only possible options are `FromImage` and `Empty`.
+* `create_option` - (Required) Specifies how the data disk should be created. The only possible options are `FromImage` and `Empty`.
 * `caching` - (Optional) Specifies the caching requirements. Possible values include: `None` (default), `ReadOnly`, `ReadWrite`.
 * `disk_size_gb` - (Optional) Specifies the size of the disk in GB. This element is required when creating an empty disk.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
@@ -507,8 +526,7 @@ The `storage_profile_data_disk` block supports the following:
 
 The `storage_profile_image_reference` block supports the following:
 
-* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
-machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 * `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
@@ -518,27 +536,28 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 
 The `boot_diagnostics` block supports the following:
 
-* `enabled`: - (Required) Whether to enable boot diagnostics for the virtual machine.
-* `storage_uri`: - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+* `enabled` - (Optional) Whether to enable boot diagnostics for the virtual machine. Defaults to `true`.
+
+* `storage_uri` - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
 
 ---
 
 The `extension` block supports the following:
 
-* `name` - (Required) Specifies the name of the extension. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the extension.
 * `publisher` - (Required) The publisher of the extension, available publishers can be found by using the Azure CLI.
 * `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
 * `provision_after_extensions` - (Optional) Specifies a dependency array of extensions required to be executed before, the array stores the name of each extension.
-* `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
+* `settings` - (Optional) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 
 ---
 
 The `plan` block supports the following:
 
-* `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the image from the marketplace.
 * `publisher` - (Required) Specifies the publisher of the image.
 * `product` - (Required) Specifies the product of the image from the marketplace.
 

@@ -116,11 +116,11 @@ The following arguments are supported:
 -> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
-* `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below.
+* `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below. Changing this forces a new resource to be created.
 
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Defaults to `true`.
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
@@ -174,7 +174,7 @@ The following arguments are supported:
 
 * `platform_fault_domain` - (Optional) Specifies the Platform Fault Domain in which this Linux Virtual Machine should be created. Defaults to `-1`, which means this will be automatically assigned to a fault domain that best maintains balance across the available fault domains. Changing this forces a new Linux Virtual Machine to be created.
 
-* `priority`- (Optional) Specifies the priority of this Virtual Machine. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
+* `priority` - (Optional) Specifies the priority of this Virtual Machine. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
 
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on this Virtual Machine? Defaults to `true`. Changing this forces a new resource to be created.
 
@@ -328,21 +328,21 @@ A `secret` block supports the following:
 
 The `source_image_reference` block supports the following:
 
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+* `version` - (Required) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 ---
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? Defaults to `false`.
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? 
 
-* `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+* `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
 
 ~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
@@ -379,6 +379,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 45 minutes) Used when creating the Linux Virtual Machine.
 * `update` - (Defaults to 45 minutes) Used when updating the Linux Virtual Machine.
 * `delete` - (Defaults to 45 minutes) Used when deleting the Linux Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Virtual Machine.
 
 ## Import
 

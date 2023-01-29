@@ -49,8 +49,7 @@ resource "azurerm_express_route_circuit_authorization" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the ExpressRoute circuit. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the ExpressRoute circuit. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the ExpressRoute circuit. Changing this forces a new resource to be created.

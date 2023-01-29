@@ -755,7 +755,17 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   ]
 
   criteria {
-    category = "ServiceHealth"
+    category                = "ServiceHealth"
+    operation_name          = "Microsoft.Storage/storageAccounts/write"
+    resource_provider       = "Microsoft.Storage"
+    resource_type           = "Microsoft.Storage/storageAccounts"
+    resource_group          = azurerm_resource_group.test.name
+    resource_id             = azurerm_storage_account.test.id
+    recommendation_category = "OperationalExcellence"
+    recommendation_impact   = "High"
+    level                   = "Critical"
+    status                  = "Succeeded"
+    sub_status              = "Succeeded"
     service_health {
       events    = ["Incident", "Maintenance", "ActionRequired", "Security"]
       services  = ["Action Groups"]
@@ -951,7 +961,17 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   ]
 
   criteria {
-    category = "ResourceHealth"
+    category                = "ResourceHealth"
+    operation_name          = "Microsoft.Storage/storageAccounts/write"
+    resource_provider       = "Microsoft.Storage"
+    resource_type           = "Microsoft.Storage/storageAccounts"
+    resource_group          = azurerm_resource_group.test.name
+    resource_id             = azurerm_storage_account.test.id
+    recommendation_category = "OperationalExcellence"
+    recommendation_impact   = "High"
+    level                   = "Critical"
+    status                  = "Updated"
+    sub_status              = "Updated"
     resource_health {
       current  = ["Degraded", "Unavailable", "Unknown"]
       previous = ["Available"]

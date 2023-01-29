@@ -103,11 +103,12 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 
 						"plan_id": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"100gb14days",
+								PlanId100gb14days,
 							}, false),
+							Default: PlanId100gb14days,
 						},
 
 						"usage_type": {
@@ -160,11 +161,16 @@ func resourceLogzMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		monitoringStatus = logz.MonitoringStatusEnabled
 	}
 
+	planData, err := expandMonitorPlanData(d.Get("plan").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `plan` %s: %+v", id, err)
+	}
+
 	props := logz.MonitorResource{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &logz.MonitorProperties{
 			LogzOrganizationProperties: expandMonitorOrganizationProperties(d),
-			PlanData:                   expandMonitorPlanData(d.Get("plan").([]interface{})),
+			PlanData:                   planData,
 			UserInfo:                   expandUserInfo(d.Get("user").([]interface{})),
 			MonitoringStatus:           monitoringStatus,
 		},
@@ -212,7 +218,13 @@ func resourceLogzMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.Properties; props != nil {
 		flattenMonitorOrganizationProperties(d, props.LogzOrganizationProperties)
 		d.Set("enabled", props.MonitoringStatus == logz.MonitoringStatusEnabled)
-		if err := d.Set("plan", flattenMonitorPlanData(props.PlanData)); err != nil {
+
+		planData, err := flattenMonitorPlanData(props.PlanData)
+		if err != nil {
+			return fmt.Errorf("flatten `plan`: %+v", err)
+		}
+
+		if err := d.Set("plan", planData); err != nil {
 			return fmt.Errorf("setting `plan`: %+v", err)
 		}
 
@@ -294,19 +306,24 @@ func expandMonitorOrganizationProperties(d *pluginsdk.ResourceData) *logz.Organi
 	return props
 }
 
-func expandMonitorPlanData(input []interface{}) *logz.PlanData {
+func expandMonitorPlanData(input []interface{}) (*logz.PlanData, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return nil, nil
 	}
 
 	v := input[0].(map[string]interface{})
 	effectiveDate, _ := time.Parse(time.RFC3339, v["effective_date"].(string))
+	planDetails, err := getPlanDetails(v["plan_id"].(string))
+	if err != nil {
+		return nil, err
+	}
+
 	return &logz.PlanData{
 		UsageType:     utils.String(v["usage_type"].(string)),
 		BillingCycle:  utils.String(v["billing_cycle"].(string)),
-		PlanDetails:   utils.String(v["plan_id"].(string)),
+		PlanDetails:   &planDetails,
 		EffectiveDate: &date.Time{Time: effectiveDate},
-	}
+	}, nil
 }
 
 func flattenMonitorOrganizationProperties(d *pluginsdk.ResourceData, input *logz.OrganizationProperties) {
@@ -320,9 +337,9 @@ func flattenMonitorOrganizationProperties(d *pluginsdk.ResourceData, input *logz
 	d.Set("logz_organization_id", input.ID)
 }
 
-func flattenMonitorPlanData(input *logz.PlanData) []interface{} {
+func flattenMonitorPlanData(input *logz.PlanData) ([]interface{}, error) {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]interface{}, 0), nil
 	}
 
 	var billingCycle string
@@ -335,9 +352,13 @@ func flattenMonitorPlanData(input *logz.PlanData) []interface{} {
 		effectiveDate = input.EffectiveDate.Format(time.RFC3339)
 	}
 
-	var planDetails string
+	var planId string
 	if input.PlanDetails != nil {
-		planDetails = *input.PlanDetails
+		var err error
+		planId, err = getPlanId(*input.PlanDetails)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var usageType string
@@ -349,8 +370,8 @@ func flattenMonitorPlanData(input *logz.PlanData) []interface{} {
 		map[string]interface{}{
 			"billing_cycle":  billingCycle,
 			"effective_date": effectiveDate,
-			"plan_id":        planDetails,
+			"plan_id":        planId,
 			"usage_type":     usageType,
 		},
-	}
+	}, nil
 }

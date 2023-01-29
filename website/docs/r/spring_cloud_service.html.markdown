@@ -92,7 +92,7 @@ The `network` block supports the following:
 
 * `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps. Changing this forces a new resource to be created.
 
-* `read_timeout_seconds` - (Optional) Ingress read time out in seconds. Changing this forces a new resource to be created.
+* `read_timeout_seconds` - (Optional) Ingress read time out in seconds.
 
 * `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime. Changing this forces a new resource to be created.
 
@@ -116,7 +116,7 @@ The `config_server_git_setting` block supports the following:
 
 The `repository` block supports the following:
 
-* `name` - (Required) A name to identify on the Git repository, required only if repos exists. Changing this forces a new resource to be created.
+* `name` - (Required) A name to identify on the Git repository, required only if repos exists.
 
 * `uri` - (Required) The URI of the Git repository that's used as the Config Server back end should be started with `http://`, `https://`, `git@`, or `ssh://`.
 
@@ -148,13 +148,13 @@ The `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - (Optional) The host key algorithm, should be `ssh-dss`, `ssh-rsa`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`. Required only if `host-key` exists.
 
-* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match.
+* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match. Defaults to `true`.
 
 ---
 
 The `trace` block supports the following:
 
-* `connection_string` - (Required) The connection string used for Application Insights.
+* `connection_string` - (Optional) The connection string used for Application Insights.
 
 * `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
 
@@ -178,7 +178,7 @@ The `required_network_traffic_rules` block supports the following:
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The IP list of required traffic.
+* `ip_addresses` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 

@@ -141,8 +141,6 @@ func CdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (_ []stri
 		if len(v) > 2048 {
 			return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q cannot be longer than 2048 characters in length, got %d", k, len(v))}
 		}
-	} else {
-		return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q must not be empty, got %q", k, v)}
 	}
 
 	return nil, nil

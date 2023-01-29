@@ -108,7 +108,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `additional_capabilities` - (Optional) An `additional_capabilities` block as defined below.
 
-* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below.
+* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
 
 * `automatic_os_upgrade_policy` - (Optional) An `automatic_os_upgrade_policy` block as defined below. This can only be specified when `upgrade_mode` is set to either `Automatic` or `Rolling`.
 
@@ -168,7 +168,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `true`.
 
-* `plan` - (Optional) A `plan` block as defined below.
+* `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
 -> **NOTE:** When using an image from Azure Marketplace a `plan` must be specified.
 
@@ -182,7 +182,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group in which the Virtual Machine Scale Set should be assigned to. Changing this forces a new resource to be created.
 
-* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
+* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`. Changing this forces a new resource to be created.
 
 * `scale_in` - (Optional) A `scale_in` block as defined below.
 
@@ -218,7 +218,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `vtpm_enabled` - (Optional) Specifies if vTPM (Virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
-* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.
+* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
 * `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -254,7 +254,7 @@ An `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Virtual Machine Scale Set?
 
-* `grace_period` - (Optional) Amount of time (in minutes, between 30 and 90, defaults to 30 minutes) for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in ISO 8601 format.
+* `grace_period` - (Optional) Amount of time (in minutes, between 30 and 90, defaults to 30 minutes) for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in ISO 8601 format. Defaults to `PT30M`.
 
 ---
 
@@ -298,9 +298,9 @@ A `data_disk` block supports the following:
 
 -> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
-* `disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
+* `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
 
-* `disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
+* `ultra_ssd_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
@@ -328,7 +328,7 @@ An `extension` block supports the following:
 
 * `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to `true`.
 
-* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? Defaults to `false`.
+* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? 
 
 * `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
 
@@ -408,9 +408,9 @@ An `ip_configuration` block supports the following:
 
 An `ip_tag` block supports the following:
 
-* `tag` - The IP Tag associated with the Public IP, such as `SQL` or `Storage`.
+* `tag` - (Required) The IP Tag associated with the Public IP, such as `SQL` or `Storage`. Changing this forces a new resource to be created.
 
-* `type` - The Type of IP Tag, such as `FirstPartyUsage`.
+* `type` - (Required) The Type of IP Tag, such as `FirstPartyUsage`. Changing this forces a new resource to be created.
 
 ---
 
@@ -502,19 +502,19 @@ A `public_ip_address` block supports the following:
 
 * `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values are in the range `4` to `32`.
 
-* `ip_tag` - (Optional) One or more `ip_tag` blocks as defined above.
+* `ip_tag` - (Optional) One or more `ip_tag` blocks as defined above. Changing this forces a new resource to be created.
 
 * `public_ip_prefix_id` - (Optional) The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated. Changing this forces a new resource to be created.
 
 -> **NOTE:** This functionality is in Preview and must be opted into via `az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress` and then `az provider register -n Microsoft.Network`.
 
-* `version` - (Optional) The Internet Protocol Version which should be used for this public IP address. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`.
+* `version` - (Optional) The Internet Protocol Version which should be used for this public IP address. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`. Changing this forces a new resource to be created.
 
 ---
 
 A `rolling_upgrade_policy` block supports the following:
 
-* `cross_zone_upgrades_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` or `false`. Defaults to `false`.
+* `cross_zone_upgrades_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` or `false`.
 
 * `max_batch_instance_percent` - (Required) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability.
 
@@ -524,7 +524,7 @@ A `rolling_upgrade_policy` block supports the following:
 
 * `pause_time_between_batches` - (Required) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format.
 
-* `prioritize_unhealthy_instances_enabled` - (Optional) Upgrade all unhealthy instances in a scale set before any healthy instances. Possible values are `true` or `false`. Defaults to `false`.
+* `prioritize_unhealthy_instances_enabled` - (Optional) Upgrade all unhealthy instances in a scale set before any healthy instances. Possible values are `true` or `false`.
 
 ---
 
@@ -538,9 +538,9 @@ A `secret` block supports the following:
 
 A `terminate_notification` block supports the following:
 
-* `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? Defaults to `false`.
+* `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? 
 
-* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
 
 -> For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
@@ -548,9 +548,9 @@ A `terminate_notification` block supports the following:
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? Defaults to `false`.
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? 
 
-* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
 
 -> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
@@ -568,9 +568,9 @@ A `winrm_listener` block supports the following:
 
 A `source_image_reference` block supports the following:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines.
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
 

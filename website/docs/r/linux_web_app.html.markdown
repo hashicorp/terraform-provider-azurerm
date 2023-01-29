@@ -141,25 +141,27 @@ An `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
 
+* `go_version` - (Optional) The version of Go to use. Possible values include `1.18`, and `1.19`.
+
 * `java_server` - (Optional) The Java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
 ~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option.
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions of Java vary depending on the `java_server` and `java_server_version`, as well as security and fixes to major versions. Please see Azure documentation for the latest information.
+* `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, and `17`.
 
 ~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, and `16-lts`. This property conflicts with `java_version`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, and `18-lts`. This property conflicts with `java_version`.
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values include `7.4`, and `8.0`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0` and `8.1`.
 
 ~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9` and `3.10`.
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
 
 * `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
 
@@ -215,7 +217,7 @@ An `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
+* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
@@ -229,7 +231,7 @@ A `backup` block supports the following:
 
 * `storage_account_url` - (Required) The SAS URL to the container.
 
-* `enabled` - (Optional) Should this backup job be enabled?
+* `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
 
 ---
 
@@ -287,7 +289,7 @@ A `google` block supports the following:
 
 * `client_id` - (Required) The OpenID Connect Client ID for the Google web application.
 
-* `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The client secret associated with the Google web application. Cannot be specified with `client_secret_setting_name`.
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
@@ -301,7 +303,7 @@ A `headers` block supports the following:
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
-* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected.
+* `x_fd_health_probe` - (Optional) Specifies if a Front Door Health Probe should be expected. The only possible value is `1`.
 
 * `x_forwarded_for` - (Optional) Specifies a list of addresses for which matching should be applied. Omitting this value means allow any.
 
@@ -337,7 +339,7 @@ An `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -389,7 +391,7 @@ A `schedule` block supports the following:
 
 * `keep_at_least_one_backup` - (Optional) Should the service keep at least one backup, regardless of the age of backup? Defaults to `false`.
 
-* `retention_period_days` - (Optional) After how many days backups should be deleted.
+* `retention_period_days` - (Optional) After how many days backups should be deleted. Defaults to `30`.
 
 * `start_time` - (Optional) When the schedule should start working in RFC-3339 format.
 
@@ -405,7 +407,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
-* `priority` - (Optional) The priority value of this `ip_restriction`.
+* `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -459,7 +461,7 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include `Integrated`, and `Classic`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled? Defaults to `false`.
 
@@ -467,7 +469,7 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 
-* `scm_minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Web App `ip_restriction` configuration be used for the SCM also.
 

@@ -45,7 +45,12 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
+	if v, ok := keyVaultsCache[cacheKey]; ok {
+		return &v.dataPlaneBaseUri, nil
+	}
+
 	vaultsClient := c.VaultsClient
+
 	if keyVaultId.SubscriptionId != c.VaultsClient.SubscriptionID {
 		vaultsClient = c.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
 	}
@@ -61,6 +66,8 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	if resp.Properties == nil || resp.Properties.VaultURI == nil {
 		return nil, fmt.Errorf("`properties` was nil for %s", keyVaultId)
 	}
+
+	c.AddToCache(keyVaultId, *resp.Properties.VaultURI)
 
 	return resp.Properties.VaultURI, nil
 }

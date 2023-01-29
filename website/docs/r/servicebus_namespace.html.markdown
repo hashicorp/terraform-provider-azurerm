@@ -38,8 +38,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the ServiceBus Namespace resource . Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the ServiceBus Namespace resource . Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the namespace.
@@ -60,7 +59,7 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum supported TLS version for this Service Bus Namespace. Valid values are: `1.0`, `1.1` and `1.2`. The current default minimum TLS version is `1.2`.
 
-* `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`. Changing this forces a new resource to be created.
+* `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -107,11 +106,9 @@ A `identity` block exports the following:
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.
 
-* `default_primary_connection_string` - The primary connection string for the authorization
-    rule `RootManageSharedAccessKey`.
+* `default_primary_connection_string` - The primary connection string for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_secondary_connection_string` - The secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`.
+* `default_secondary_connection_string` - The secondary connection string for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 

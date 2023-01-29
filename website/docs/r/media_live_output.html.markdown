@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `manifest_name` - (Optional) The manifest file name. If not provided, the service will generate one automatically. Changing this forces a new Live Output to be created.
 
-* `output_snap_timestamp_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
+* `output_snap_time_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
 
 ## Attributes Reference
 
@@ -115,5 +115,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Live Outputs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_event_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1/liveoutputs/output1
+terraform import azurerm_media_live_event_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/account1/liveEvents/event1/liveOutputs/output1
 ```

@@ -128,10 +128,10 @@ A `dynamic_criteria` block supports the following:
 * `operator` - (Required) The criteria operator. Possible values are `LessThan`, `GreaterThan` and `GreaterOrLessThan`.
 * `alert_sensitivity` - (Required) The extent of deviation required to trigger an alert. Possible values are `Low`, `Medium` and `High`.
 * `dimension` - (Optional) One or more `dimension` blocks as defined below.
-* `evaluation_total_count` - (Optional) The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points.
-* `evaluation_failure_count` - (Optional) The number of violations to trigger an alert. Should be smaller or equal to `evaluation_total_count`.
+* `evaluation_total_count` - (Optional) The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points. Defaults to `4`.
+* `evaluation_failure_count` - (Optional) The number of violations to trigger an alert. Should be smaller or equal to `evaluation_total_count`. Defaults to `4`.
 * `ignore_data_before` - (Optional) The [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) date from which to start learning the metric historical data and calculate the dynamic thresholds.
-* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? Defaults to `false`.
+* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? 
 
 ---
 

@@ -132,7 +132,6 @@ resource "azurerm_automation_software_update_configuration" "test" {
   schedule {
     description         = "foo-schedule"
     start_time          = "%[3]s"
-    expiry_time         = "%[4]s"
     is_enabled          = true
     interval            = 1
     frequency           = "Hour"

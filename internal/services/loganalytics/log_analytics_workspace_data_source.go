@@ -72,7 +72,7 @@ func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 }
 
 func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	client := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

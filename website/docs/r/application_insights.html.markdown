@@ -71,8 +71,7 @@ output "app_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Application Insights component. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Application Insights component. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Application Insights component. Changing this forces a new resource to be created.
 
@@ -86,7 +85,7 @@ The following arguments are supported:
 
 * `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`. Defaults to `90`.
 
-* `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
+* `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry. Defaults to `100`.
 
 * `disable_ip_masking` - (Optional) By default the real client IP is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client IP. Defaults to `false`.
 
@@ -118,7 +117,7 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Application Insights Component.
+* `create` - (Defaults to 60 minutes) Used when creating the Application Insights Component.
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Component.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Component.

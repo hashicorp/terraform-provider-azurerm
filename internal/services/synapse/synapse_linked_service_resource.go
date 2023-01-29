@@ -3,7 +3,9 @@ package synapse
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -305,6 +307,12 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
+	// Sometimes this resource fails to create but Azure is returning a 200. We'll check if the last response failed or not before moving on
+	// todo remove this once https://github.com/hashicorp/go-azure-sdk/pull/122 is merged
+	if err = checkLinkedServiceResponse(future.Response()); err != nil {
+		return err
+	}
+
 	d.SetId(id.ID())
 
 	return resourceSynapseLinkedServiceRead(d, meta)
@@ -507,4 +515,38 @@ func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.Integratio
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+}
+
+func checkLinkedServiceResponse(response *http.Response) error {
+	respBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("reading status response body: %+v", err)
+	}
+	defer response.Body.Close()
+
+	body := make(map[string]interface{})
+	err = json.Unmarshal(respBody, &body)
+	if err != nil {
+		return fmt.Errorf("could not parse status response: %+v", err)
+	}
+
+	if statusRaw, ok := body["status"]; ok && statusRaw != nil {
+		if status, ok := statusRaw.(string); ok {
+			if status == "Failed" {
+				if errorRaw, ok := body["error"]; ok && errorRaw != nil {
+					if responseError, ok := errorRaw.(map[string]interface{}); ok {
+						if messageRaw, ok := responseError["message"]; ok && messageRaw != nil {
+							if message, ok := messageRaw.(string); ok {
+								return fmt.Errorf("creating/updating Linked Service: %s", message)
+							}
+						}
+					}
+				}
+				// we are specifically checking for `error` in the payload but if the status is Failed, we should return what we know
+				return fmt.Errorf("creating/updating Linked Service: %+v", body)
+			}
+		}
+	}
+
+	return nil
 }

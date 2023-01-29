@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = EdgeModuleId{}
 type EdgeModuleId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	VideoAnalyzerName string
 	EdgeModuleName    string
 }
 
 // NewEdgeModuleID returns a new EdgeModuleId struct
-func NewEdgeModuleID(subscriptionId string, resourceGroupName string, accountName string, edgeModuleName string) EdgeModuleId {
+func NewEdgeModuleID(subscriptionId string, resourceGroupName string, videoAnalyzerName string, edgeModuleName string) EdgeModuleId {
 	return EdgeModuleId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		VideoAnalyzerName: videoAnalyzerName,
 		EdgeModuleName:    edgeModuleName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'videoAnalyzerName' was not found in the resource id %q", input)
 	}
 
 	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
@@ -77,8 +77,8 @@ func ParseEdgeModuleIDInsensitively(input string) (*EdgeModuleId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'videoAnalyzerName' was not found in the resource id %q", input)
 	}
 
 	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateEdgeModuleID(input interface{}, key string) (warnings []string, err
 // ID returns the formatted Edge Module ID
 func (id EdgeModuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/videoAnalyzers/%s/edgeModules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.EdgeModuleName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VideoAnalyzerName, id.EdgeModuleName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Edge Module ID
@@ -119,7 +119,7 @@ func (id EdgeModuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticVideoAnalyzers", "videoAnalyzers", "videoAnalyzers"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("videoAnalyzerName", "videoAnalyzerValue"),
 		resourceids.StaticSegment("staticEdgeModules", "edgeModules", "edgeModules"),
 		resourceids.UserSpecifiedSegment("edgeModuleName", "edgeModuleValue"),
 	}
@@ -130,7 +130,7 @@ func (id EdgeModuleId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Video Analyzer Name: %q", id.VideoAnalyzerName),
 		fmt.Sprintf("Edge Module Name: %q", id.EdgeModuleName),
 	}
 	return fmt.Sprintf("Edge Module (%s)", strings.Join(components, "\n"))

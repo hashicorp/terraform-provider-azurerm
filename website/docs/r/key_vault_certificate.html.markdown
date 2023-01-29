@@ -238,7 +238,7 @@ The following arguments are supported:
 
 * `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
 
-* `certificate_policy` - (Optional) A `certificate_policy` block as defined below.
+* `certificate_policy` - (Optional) A `certificate_policy` block as defined below. Changing this forces a new resource to be created.
 
 ~> **NOTE:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
 
@@ -274,7 +274,7 @@ The `key_properties` block supports the following:
 * `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`. Changing this forces a new resource to be created.
 * `exportable` - (Required) Is this certificate exportable? Changing this forces a new resource to be created.
 * `key_size` - (Optional) The size of the key used in the certificate. Possible values include `2048`, `3072`, and `4096` for `RSA` keys, or `256`, `384`, and `521` for `EC` keys. This property is required when using RSA keys. Changing this forces a new resource to be created.
-* `key_type` - (Required) Specifies the type of key, such as `RSA` or `EC`. Changing this forces a new resource to be created.
+* `key_type` - (Required) Specifies the type of key. Possible values are `EC`, `EC-HSM`, `RSA`, `RSA-HSM` and `oct`. Changing this forces a new resource to be created.
 * `reuse_key` - (Required) Is the key reusable? Changing this forces a new resource to be created.
 
 ---
@@ -310,7 +310,7 @@ The `x509_certificate_properties` block supports the following:
 * `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages. Changing this forces a new resource to be created.
 * `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive. Changing this forces a new resource to be created.
 * `subject` - (Required) The Certificate's Subject. Changing this forces a new resource to be created.
-* `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below.
+* `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below. Changing this forces a new resource to be created.
 * `validity_in_months` - (Required) The Certificates Validity Period in Months. Changing this forces a new resource to be created.
 
 ---
@@ -350,7 +350,7 @@ A `certificate_attribute` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate.
+* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/encodings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/encodings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -104,7 +104,7 @@ func (r MediaTransformResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.Encodings.TransformsGet(ctx, *id)
+	resp, err := clients.Media.V20211101Client.Encodings.TransformsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

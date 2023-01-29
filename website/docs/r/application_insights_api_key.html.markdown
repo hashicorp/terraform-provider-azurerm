@@ -71,8 +71,7 @@ output "full_permissions_api_key" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Application Insights API key. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Application Insights API key. Changing this forces a new resource to be created.
 
 * `application_insights_id` - (Required) The ID of the Application Insights component on which the API key operates. Changing this forces a new resource to be created.
 

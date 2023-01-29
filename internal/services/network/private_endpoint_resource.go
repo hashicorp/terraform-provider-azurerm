@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourcePrivateEndpoint() *pluginsdk.Resource {
@@ -192,7 +191,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						},
 						"subresource_name": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -349,26 +348,26 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	locks.ByName(subnetId, "azurerm_private_endpoint")
 	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
-	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 		if err != nil {
 			switch {
 			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
 						Retryable: false,
 					}
 				}
 			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 						Retryable: true,
 					}
 				}
 			default:
-				return &resource.RetryError{
+				return &pluginsdk.RetryError{
 					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 					Retryable: false,
 				}
@@ -376,7 +375,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return &resource.RetryError{
+			return &pluginsdk.RetryError{
 				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 				Retryable: false,
 			}
@@ -494,33 +493,33 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	locks.ByName(subnetId, "azurerm_private_endpoint")
 	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
-	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 		if err != nil {
 			switch {
 			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("updating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
 						Retryable: false,
 					}
 				}
 			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
 				{
-					return &resource.RetryError{
+					return &pluginsdk.RetryError{
 						Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 						Retryable: true,
 					}
 				}
 			default:
-				return &resource.RetryError{
+				return &pluginsdk.RetryError{
 					Err: fmt.Errorf("updating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 				}
 			}
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return &resource.RetryError{
+			return &pluginsdk.RetryError{
 				Err:       fmt.Errorf("waiting for update of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
 				Retryable: false,
 			}
@@ -964,7 +963,7 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 		}
 
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
-			Name: utils.String(privateDnsZone.PrivateZoneName),
+			Name: utils.String(privateDnsZone.PrivateDnsZoneName),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
 				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},

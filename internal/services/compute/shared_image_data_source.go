@@ -97,6 +97,27 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"purchase_plan": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"publisher": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"product": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"release_note_uri": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -145,6 +166,10 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if err := d.Set("identifier", flattenGalleryImageDataSourceIdentifier(props.Identifier)); err != nil {
 			return fmt.Errorf("setting `identifier`: %+v", err)
 		}
+
+		if err := d.Set("purchase_plan", flattenGalleryImageDataSourcePurchasePlan(props.PurchasePlan)); err != nil {
+			return fmt.Errorf("setting `purchase_plan`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -170,4 +195,33 @@ func flattenGalleryImageDataSourceIdentifier(input *compute.GalleryImageIdentifi
 	}
 
 	return []interface{}{result}
+}
+
+func flattenGalleryImageDataSourcePurchasePlan(input *compute.ImagePurchasePlan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	publisher := ""
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+
+	product := ""
+	if input.Product != nil {
+		product = *input.Product
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"publisher": publisher,
+			"product":   product,
+		},
+	}
 }

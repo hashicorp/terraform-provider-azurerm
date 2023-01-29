@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1161,8 +1162,10 @@ func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]str
 
 func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
 	if len(input) == 0 {
+		allowedOrigins := make([]string, 0)
 		return &web.CorsSettings{
-			AllowedOrigins: &[]string{},
+			AllowedOrigins:     &allowedOrigins,
+			SupportCredentials: pointer.To(false),
 		}
 	}
 	var result web.CorsSettings

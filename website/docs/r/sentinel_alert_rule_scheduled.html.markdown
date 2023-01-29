@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `trigger_operator` - (Optional) The alert trigger operator, combined with `trigger_threshold`, setting alert threshold of this Sentinel Scheduled Alert Rule. Possible values are `Equal`, `GreaterThan`, `LessThan`, `NotEqual`.
 
-* `trigger_threshold` - (Optional) The baseline number of query results generated, combined with `trigger_operator`, setting alert threshold of this Sentinel Scheduled Alert Rule.
+* `trigger_threshold` - (Optional) The baseline number of query results generated, combined with `trigger_operator`, setting alert threshold of this Sentinel Scheduled Alert Rule. Defaults to `0`.
 
 ---
 
@@ -150,7 +150,7 @@ A `incident_configuration` block supports the following:
 
 * `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule?
 
-* `grouping` - (Optional) A `grouping` block as defined below.
+* `grouping` - (Required) A `grouping` block as defined below.
 
 ---
 
@@ -166,9 +166,9 @@ A `grouping` block supports the following:
 
 * `group_by_entities` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Selected`. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
-* `gorup_by_alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`.
+* `group_by_alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`. Possible values are `DisplayName` and `Severity`.
 
-* `gorup_by_custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
+* `group_by_custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
 
 ## Attributes Reference
 

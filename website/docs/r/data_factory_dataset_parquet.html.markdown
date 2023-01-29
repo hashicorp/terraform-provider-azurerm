@@ -68,9 +68,9 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported locations for a Parquet Dataset:
 
-* `http_server_location` - (Required) A `http_server_location` block as defined below.
+* `http_server_location` - (Optional) A `http_server_location` block as defined below.
 
-* `azure_blob_storage_location` - (Required) A `azure_blob_storage_location` block as defined below.
+* `azure_blob_storage_location` - (Optional) A `azure_blob_storage_location` block as defined below.
 
 The following supported arguments are specific to Parquet Dataset:
 

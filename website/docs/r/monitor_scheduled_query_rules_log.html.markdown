@@ -91,8 +91,9 @@ The following arguments are supported:
 * `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
 * `criteria` - (Required) A `criteria` block as defined below.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
+* `authorized_resource_ids` - (Optional) A list of IDs of Resources referred into query.
 * `description` - (Optional) The description of the scheduled query rule.
-* `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
+* `enabled` - (Optional) Whether this scheduled query rule is enabled. Default is `true`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -100,14 +101,14 @@ The following arguments are supported:
 The `criteria` block supports the following:
 
 * `dimension` - (Required) A `dimension` block as defined below.
-* `metric_name` - (Required) Name of the metric.  Supported metrics are listed in the Azure Monitor [Microsoft.OperationalInsights/workspaces](https://docs.microsoft.com/azure/azure-monitor/platform/metrics-supported#microsoftoperationalinsightsworkspaces) metrics namespace.
+* `metric_name` - (Required) Name of the metric. Supported metrics are listed in the Azure Monitor [Microsoft.OperationalInsights/workspaces](https://docs.microsoft.com/azure/azure-monitor/platform/metrics-supported#microsoftoperationalinsightsworkspaces) metrics namespace.
 
 ---
 
 The `dimension` block supports the following:
 
-* `name` - (Required) Name of the dimension. Changing this forces a new resource to be created.
-* `operator` - (Required) Operator for dimension values, - 'Include'.
+* `name` - (Required) Name of the dimension.
+* `operator` - (Optional) Operator for dimension values, - 'Include'.
 * `values` - (Required) List of dimension values.
 
 ## Attributes Reference

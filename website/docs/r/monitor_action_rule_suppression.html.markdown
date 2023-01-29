@@ -79,7 +79,7 @@ The `schedule` block supports the following:
 
 * `end_date_utc` - (Required) specifies the recurrence UTC end datetime (Y-m-d'T'H:M:S'Z').
 
-* `recurrence_weekly` - (Optional) specifies the list of dayOfWeek to recurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and  `Saturday`.
+* `recurrence_weekly` - (Optional) specifies the list of dayOfWeek to recurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
 * `recurrence_monthly` - (Optional) specifies the list of dayOfMonth to recurrence. Possible values are between `1` - `31`. Required if `recurrence_type` is `Monthly`.
 

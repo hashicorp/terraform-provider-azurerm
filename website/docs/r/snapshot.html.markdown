@@ -95,7 +95,7 @@ The following attributes are exported:
 
 * `id` - The Snapshot ID.
 
-* `disk_size_gb` - The Size of the Snapshotted Disk in GB.
+* `disk_size_gb` - (Optional) The Size of the Snapshotted Disk in GB.
 
 * `trusted_launch_enabled` - Whether Trusted Launch is enabled for the Snapshot.
 

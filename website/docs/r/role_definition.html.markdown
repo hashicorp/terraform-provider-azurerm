@@ -69,7 +69,7 @@ The following attributes are exported:
 
 * `id` - This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
 
-* `role_definition_id` - The Role Definition ID.
+* `role_definition_id` - (Optional) The Role Definition ID. Changing this forces a new resource to be created.
 
 * `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
 
@@ -78,7 +78,7 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
+* `update` - (Defaults to 60 minutes) Used when updating the Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Role Definition.
 
