@@ -614,7 +614,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 
 			id := machines.NewMachineID(subscriptionId, hybridComputeMachineModel.ResourceGroupName, hybridComputeMachineModel.Name)
 
-			resp, err := client.MachinesGet(ctx, id, machines.MachinesGetOperationOptions{})
+			resp, err := client.Get(ctx, id, machines.GetOperationOptions{})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -758,12 +758,12 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.Status = *properties.Status
 				}
 
-				if properties.VmId != nil {
-					state.VmId = *properties.VmId
+				if properties.VMId != nil {
+					state.VmId = *properties.VMId
 				}
 
-				if properties.VmUuid != nil {
-					state.VmUuid = *properties.VmUuid
+				if properties.VMUuid != nil {
+					state.VmUuid = *properties.VMUuid
 				}
 			}
 			if model.Tags != nil {
