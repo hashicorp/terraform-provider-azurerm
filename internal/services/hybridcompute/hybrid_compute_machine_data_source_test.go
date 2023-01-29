@@ -46,7 +46,7 @@ data "azurerm_client_config" "current" {}
 
 # note: real-life usage perfer random_uuid resource in registry.terraform.io/hashicorp/random
 locals {
-  random_uuid       = "%s"
+  random_uuid = "%s"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -112,14 +112,14 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-  provision_vm_agent  = false
-  allow_extension_operations = false
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@$$w0rd1234!"
+  provision_vm_agent              = false
+  allow_extension_operations      = false
   disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -145,14 +145,14 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   provisioner "file" {
-    content    =  templatefile("scripts/install_arc.sh.tmpl", {
-        resource_group_name = azurerm_resource_group.test.name
-        uuid                = local.random_uuid
-        location            = azurerm_resource_group.test.location
-        tenant_id           = data.azurerm_client_config.current.tenant_id
-        client_id           = data.azurerm_client_config.current.client_id
-        client_secret       = "%s"
-        subscription_id     = data.azurerm_client_config.current.subscription_id
+    content = templatefile("scripts/install_arc.sh.tmpl", {
+      resource_group_name = azurerm_resource_group.test.name
+      uuid                = local.random_uuid
+      location            = azurerm_resource_group.test.location
+      tenant_id           = data.azurerm_client_config.current.tenant_id
+      client_id           = data.azurerm_client_config.current.client_id
+      client_secret       = "%s"
+      subscription_id     = data.azurerm_client_config.current.subscription_id
     })
     destination = "/home/adminuser/install_arc_agent.sh"
   }
