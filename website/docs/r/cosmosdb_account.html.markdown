@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to `Standard`.
+* `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.
 
 * `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
 
@@ -174,9 +174,9 @@ The `geo_location` block Configures the geographic locations the data is replica
 
 ~> **NOTE:** Setting `MongoDBv3.4` also requires setting `EnableMongo`. 
 
-~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongo16MBDocumentSupport` and `mongoEnableDocLevelTTL` can be added to an existing Cosmos DB account.
+~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport` and `mongoEnableDocLevelTTL` can be added to an existing Cosmos DB account.
 
-~> **NOTE:** Only `DisableRateLimitingResponses` can be removed from an existing Cosmos DB account.
+~> **NOTE:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
 
 ---
 

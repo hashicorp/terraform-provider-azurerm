@@ -2899,6 +2899,10 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableMongoRoleBasedAccessControl"
   }
 
+  capabilities {
+    name = "EnableUniqueCompoundNestedDocs"
+  }
+
   consistency_policy {
     consistency_level = "%s"
   }
@@ -2938,10 +2942,6 @@ resource "azurerm_cosmosdb_account" "test" {
 
   capabilities {
     name = "EnableMongo"
-  }
-
-  capabilities {
-    name = "EnableUniqueCompoundNestedDocs"
   }
 
   consistency_policy {
