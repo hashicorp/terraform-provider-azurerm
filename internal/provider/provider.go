@@ -422,6 +422,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
 					"error: %s", err)
 			}
+
 			availableResourceProviders := *providerList
 			requiredResourceProviders := resourceproviders.Required()
 

@@ -3,16 +3,16 @@ package clients
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"log"
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/manicminer/hamilton/environments"
 )
 
