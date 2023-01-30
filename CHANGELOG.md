@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk [GH-20202]
 * `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20214]
 * `azurerm_lb_backend_address_pool` - support for the `virtual_network_id` property [GH-20205]
+* `azurerm_site_recovery_protection_container_mapping` - support for the `automatic_update` block [GH-19710]
 
 BUG FIXES:
 
