@@ -170,7 +170,7 @@ ASP.NET V4.8 | v4.0
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
-* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values are `v7.1`, `v7.4` and `Off`.
+* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values are `7.1`, `7.4` and `Off`.
 
 ~> **NOTE:** The value `Off` is used to signify latest supported by the service.
 
@@ -441,6 +441,8 @@ A `site_config` block supports the following:
 * `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
 
 ~> **NOTE:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
+
+* `api_definition_url` - (Optional) The URL to the API Definition for this Windows Web App.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 

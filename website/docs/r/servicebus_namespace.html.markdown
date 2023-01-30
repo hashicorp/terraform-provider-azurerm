@@ -95,6 +95,16 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this ServiceBus Namespace.
 
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+
+---
+
 The following attributes are exported only if there is an authorization rule named `RootManageSharedAccessKey` which is created automatically by Azure.
 
 * `default_primary_connection_string` - The primary connection string for the authorization rule `RootManageSharedAccessKey`.

@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Windows Web App Slot. Changing this forces a new Windows Web App Slot to be created.
 
-* ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the App Service Environment for this to complete reliably.
+~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the App Service Environment for this to complete reliably.
 
 * `app_service_id` - (Required) The ID of the Windows Web App this Deployment Slot will be part of. Changing this forces a new Windows Web App to be created.
 
@@ -245,6 +245,8 @@ A `backup` block supports the following:
 ---
 
 A `connection_string` block supports the following:
+
+* `name` - (Required) The name of the connection String.
 
 * `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
@@ -496,7 +498,7 @@ A `site_config` block supports the following:
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service Slot.
 
