@@ -1,5 +1,9 @@
 ## 3.42.0 (Unreleased)
 
+FEATURES
+
+* **New Resource:** `azurerm_network_manager_connectivity_configuration` [GH-20133]
+
 ENHANCEMENTS:
 
 * `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk [GH-20202]
