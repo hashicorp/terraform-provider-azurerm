@@ -141,7 +141,7 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.FederatedIdentityCredentialName
 				schema.ResourceGroupName = id.ResourceGroupName
-				parentId := commonids.NewUserAssignedIdentityID(id.SubscriptionId, id.ResourceGroupName, id.FederatedIdentityCredentialName)
+				parentId := commonids.NewUserAssignedIdentityID(id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName)
 				schema.ResourceName = parentId.ID()
 				r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
 			}
