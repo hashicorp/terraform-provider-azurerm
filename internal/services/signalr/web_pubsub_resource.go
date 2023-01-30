@@ -155,11 +155,6 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

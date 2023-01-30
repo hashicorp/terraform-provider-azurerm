@@ -159,8 +159,12 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
-		if props.HostingEnvironmentProfile != nil {
-			d.Set("hosting_environment_profile_id", props.HostingEnvironmentProfile.ID)
+		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
+			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
+			if err != nil {
+				return fmt.Errorf("parsing hosting environment error: %+v", err)
+			}
+			d.Set("hosting_environment_profile_id", envId.ID())
 		}
 		issueDate := ""
 		if props.IssueDate != nil {
