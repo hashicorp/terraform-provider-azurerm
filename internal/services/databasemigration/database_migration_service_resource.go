@@ -189,7 +189,7 @@ func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	opts := serviceresource.ServicesDeleteOperationOptions{
-		DeleteRunningTasks: utils.Bool(true),
+		DeleteRunningTasks: utils.Bool(false),
 	}
 	if err := client.ServicesDeleteThenPoll(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
