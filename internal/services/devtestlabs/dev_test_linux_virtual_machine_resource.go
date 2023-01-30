@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,7 +27,7 @@ func resourceArmDevTestLinuxVirtualMachine() *pluginsdk.Resource {
 		Update: resourceArmDevTestLinuxVirtualMachineCreateUpdate,
 		Delete: resourceArmDevTestLinuxVirtualMachineDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DevTestVirtualMachineID(id)
+			_, err := virtualmachines.ParseVirtualMachineID(id)
 			return err
 		}),
 
@@ -159,22 +159,20 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 
 	log.Printf("[INFO] preparing arguments for DevTest Linux Virtual Machine creation")
 
-	id := parse.NewDevTestVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
+	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualMachineName, "")
+		existing, err := client.Get(ctx, id, virtualmachines.GetOperationOptions{})
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_dev_test_linux_virtual_machine", id.ID())
 		}
 	}
-
-	t := d.Get("tags").(map[string]interface{})
 
 	allowClaim := d.Get("allow_claim").(bool)
 	disallowPublicIPAddress := d.Get("disallow_public_ip_address").(bool)
@@ -195,45 +193,41 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 	natRules := expandDevTestLabVirtualMachineNatRules(natRulesRaw)
 
 	if len(natRules) > 0 && !disallowPublicIPAddress {
-		return fmt.Errorf("If `inbound_nat_rule` is specified then `disallow_public_ip_address` must be set to true.")
+		return fmt.Errorf("if `inbound_nat_rule` is specified then `disallow_public_ip_address` must be set to true")
 	}
 
-	nic := dtl.NetworkInterfaceProperties{}
+	nic := virtualmachines.NetworkInterfaceProperties{}
 	if disallowPublicIPAddress {
-		nic.SharedPublicIPAddressConfiguration = &dtl.SharedPublicIPAddressConfiguration{
+		nic.SharedPublicIPAddressConfiguration = &virtualmachines.SharedPublicIPAddressConfiguration{
 			InboundNatRules: &natRules,
 		}
 	}
 
 	authenticateViaSsh := sshKey != ""
-	parameters := dtl.LabVirtualMachine{
+	parameters := virtualmachines.LabVirtualMachine{
 		Location: utils.String(location),
-		LabVirtualMachineProperties: &dtl.LabVirtualMachineProperties{
+		Properties: virtualmachines.LabVirtualMachineProperties{
 			AllowClaim:                 utils.Bool(allowClaim),
-			IsAuthenticationWithSSHKey: utils.Bool(authenticateViaSsh),
+			IsAuthenticationWithSshKey: utils.Bool(authenticateViaSsh),
 			DisallowPublicIPAddress:    utils.Bool(disallowPublicIPAddress),
 			GalleryImageReference:      galleryImageReference,
 			LabSubnetName:              utils.String(labSubnetName),
-			LabVirtualNetworkID:        utils.String(labVirtualNetworkId),
+			LabVirtualNetworkId:        utils.String(labVirtualNetworkId),
 			NetworkInterface:           &nic,
 			OsType:                     utils.String("Linux"),
 			Notes:                      utils.String(notes),
 			Password:                   utils.String(password),
 			Size:                       utils.String(size),
-			SSHKey:                     utils.String(sshKey),
+			SshKey:                     utils.String(sshKey),
 			StorageType:                utils.String(storageType),
 			UserName:                   utils.String(username),
 		},
-		Tags: tags.Expand(t),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LabName, id.VirtualMachineName, parameters)
+	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -246,14 +240,14 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DevTestVirtualMachineID(d.Id())
+	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualMachineName, "")
+	read, err := client.Get(ctx, *id, virtualmachines.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -264,12 +258,14 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta i
 
 	d.Set("name", id.VirtualMachineName)
 	d.Set("lab_name", id.LabName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := read.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := read.LabVirtualMachineProperties; props != nil {
+	if model := read.Model; model != nil {
+		if location := model.Location; location != nil {
+			d.Set("location", azure.NormalizeLocation(*location))
+		}
+
+		props := model.Properties
 		d.Set("allow_claim", props.AllowClaim)
 		d.Set("disallow_public_ip_address", props.DisallowPublicIPAddress)
 		d.Set("notes", props.Notes)
@@ -285,9 +281,12 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta i
 		// Computed fields
 		d.Set("fqdn", props.Fqdn)
 		d.Set("unique_identifier", props.UniqueIdentifier)
-	}
 
-	return tags.FlattenAndSet(d, read.Tags)
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func resourceArmDevTestLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -295,14 +294,14 @@ func resourceArmDevTestLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DevTestVirtualMachineID(d.Id())
+	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualMachineName, "")
+	read, err := client.Get(ctx, *id, virtualmachines.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			// deleted outside of TF
 			log.Printf("[DEBUG] %s was not found - assuming removed!", *id)
 			return nil
@@ -311,13 +310,9 @@ func resourceArmDevTestLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.LabName, id.VirtualMachineName)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return err

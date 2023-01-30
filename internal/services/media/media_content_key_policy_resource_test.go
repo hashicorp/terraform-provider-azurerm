@@ -31,6 +31,35 @@ func TestAccMediaContentKeyPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccMediaContentKeyPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
+	r := MediaContentKeyPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMediaContentKeyPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
 	r := MediaContentKeyPolicyResource{}
@@ -146,10 +175,12 @@ resource "azurerm_media_content_key_policy" "test" {
     open_restriction_enabled = true
   }
   policy_option {
-    name = "playReady"
+    name                           = "playReady"
+    playready_response_custom_data = "test custom data"
     playready_configuration_license {
       allow_test_devices = true
       begin_date         = "2017-10-16T18:22:53Z"
+      security_level     = "SL150"
       play_right {
         scms_restriction                                         = 2
         digital_video_only_content_restriction                   = false
@@ -157,9 +188,14 @@ resource "azurerm_media_content_key_policy" "test" {
         image_constraint_for_analog_computer_monitor_restriction = false
         allow_passing_video_content_to_unknown_output            = "NotAllowed"
         uncompressed_digital_video_opl                           = 100
-        uncompressed_digital_audio_opl                           = 100
+        uncompressed_digital_audio_opl                           = 200
         analog_video_opl                                         = 150
-        compressed_digital_audio_opl                             = 150
+        compressed_digital_audio_opl                             = 250
+        compressed_digital_video_opl                             = 400
+        explicit_analog_television_output_restriction {
+          best_effort_enforced = true
+          control_bits         = 3
+        }
       }
       license_type                             = "Persistent"
       content_type                             = "UltraVioletDownload"
@@ -175,6 +211,13 @@ resource "azurerm_media_content_key_policy" "test" {
       audience                    = "urn:audience"
       token_type                  = "Swt"
       primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
+      alternate_key {
+        rsa_token_key_exponent = "AQAB"
+        rsa_token_key_modulus  = "AQAD"
+      }
+      alternate_key {
+        symmetric_token_key = "BBAAAAAAAAAAAAAAAAAAAA=="
+      }
     }
   }
   policy_option {

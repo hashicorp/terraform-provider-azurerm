@@ -121,7 +121,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.StorageInsightName)
+	d.Set("name", id.StorageInsightConfigName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("workspace_id", storageinsights.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
 

@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = FlexibleServerId{}
 
 // FlexibleServerId is a struct representing the Resource ID for a Flexible Server
 type FlexibleServerId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ServerName        string
+	SubscriptionId     string
+	ResourceGroupName  string
+	FlexibleServerName string
 }
 
 // NewFlexibleServerID returns a new FlexibleServerId struct
-func NewFlexibleServerID(subscriptionId string, resourceGroupName string, serverName string) FlexibleServerId {
+func NewFlexibleServerID(subscriptionId string, resourceGroupName string, flexibleServerName string) FlexibleServerId {
 	return FlexibleServerId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ServerName:        serverName,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		FlexibleServerName: flexibleServerName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseFlexibleServerID(input string) (*FlexibleServerId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverName' was not found in the resource id %q", input)
+	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'flexibleServerName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseFlexibleServerIDInsensitively(input string) (*FlexibleServerId, error)
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverName' was not found in the resource id %q", input)
+	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'flexibleServerName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateFlexibleServerID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Flexible Server ID
 func (id FlexibleServerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforMySQL/flexibleServers/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Flexible Server ID
@@ -109,7 +109,7 @@ func (id FlexibleServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforMySQL", "Microsoft.DBforMySQL", "Microsoft.DBforMySQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id FlexibleServerId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Server Name: %q", id.ServerName),
+		fmt.Sprintf("Flexible Server Name: %q", id.FlexibleServerName),
 	}
 	return fmt.Sprintf("Flexible Server (%s)", strings.Join(components, "\n"))
 }

@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = ReplicationRecoveryPlanId{}
 
 // ReplicationRecoveryPlanId is a struct representing the Resource ID for a Replication Recovery Plan
 type ReplicationRecoveryPlanId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
-	RecoveryPlanName  string
+	SubscriptionId              string
+	ResourceGroupName           string
+	VaultName                   string
+	ReplicationRecoveryPlanName string
 }
 
 // NewReplicationRecoveryPlanID returns a new ReplicationRecoveryPlanId struct
-func NewReplicationRecoveryPlanID(subscriptionId string, resourceGroupName string, resourceName string, recoveryPlanName string) ReplicationRecoveryPlanId {
+func NewReplicationRecoveryPlanID(subscriptionId string, resourceGroupName string, vaultName string, replicationRecoveryPlanName string) ReplicationRecoveryPlanId {
 	return ReplicationRecoveryPlanId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
-		RecoveryPlanName:  recoveryPlanName,
+		SubscriptionId:              subscriptionId,
+		ResourceGroupName:           resourceGroupName,
+		VaultName:                   vaultName,
+		ReplicationRecoveryPlanName: replicationRecoveryPlanName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseReplicationRecoveryPlanID(input string) (*ReplicationRecoveryPlanId, e
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
+		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
 	}
 
-	if id.RecoveryPlanName, ok = parsed.Parsed["recoveryPlanName"]; !ok {
-		return nil, fmt.Errorf("the segment 'recoveryPlanName' was not found in the resource id %q", input)
+	if id.ReplicationRecoveryPlanName, ok = parsed.Parsed["replicationRecoveryPlanName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationRecoveryPlanName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseReplicationRecoveryPlanIDInsensitively(input string) (*ReplicationReco
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
+		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
 	}
 
-	if id.RecoveryPlanName, ok = parsed.Parsed["recoveryPlanName"]; !ok {
-		return nil, fmt.Errorf("the segment 'recoveryPlanName' was not found in the resource id %q", input)
+	if id.ReplicationRecoveryPlanName, ok = parsed.Parsed["replicationRecoveryPlanName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationRecoveryPlanName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateReplicationRecoveryPlanID(input interface{}, key string) (warnings 
 // ID returns the formatted Replication Recovery Plan ID
 func (id ReplicationRecoveryPlanId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.RecoveryServices/vaults/%s/replicationRecoveryPlans/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.RecoveryPlanName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VaultName, id.ReplicationRecoveryPlanName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Replication Recovery Plan ID
@@ -119,9 +119,9 @@ func (id ReplicationRecoveryPlanId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
 		resourceids.StaticSegment("staticReplicationRecoveryPlans", "replicationRecoveryPlans", "replicationRecoveryPlans"),
-		resourceids.UserSpecifiedSegment("recoveryPlanName", "recoveryPlanValue"),
+		resourceids.UserSpecifiedSegment("replicationRecoveryPlanName", "replicationRecoveryPlanValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id ReplicationRecoveryPlanId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Recovery Plan Name: %q", id.RecoveryPlanName),
+		fmt.Sprintf("Vault Name: %q", id.VaultName),
+		fmt.Sprintf("Replication Recovery Plan Name: %q", id.ReplicationRecoveryPlanName),
 	}
 	return fmt.Sprintf("Replication Recovery Plan (%s)", strings.Join(components, "\n"))
 }

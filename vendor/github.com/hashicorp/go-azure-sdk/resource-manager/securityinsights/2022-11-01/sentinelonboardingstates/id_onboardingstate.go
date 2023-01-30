@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = OnboardingStateId{}
 
 // OnboardingStateId is a struct representing the Resource ID for a Onboarding State
 type OnboardingStateId struct {
-	SubscriptionId              string
-	ResourceGroupName           string
-	WorkspaceName               string
-	SentinelOnboardingStateName string
+	SubscriptionId      string
+	ResourceGroupName   string
+	WorkspaceName       string
+	OnboardingStateName string
 }
 
 // NewOnboardingStateID returns a new OnboardingStateId struct
-func NewOnboardingStateID(subscriptionId string, resourceGroupName string, workspaceName string, sentinelOnboardingStateName string) OnboardingStateId {
+func NewOnboardingStateID(subscriptionId string, resourceGroupName string, workspaceName string, onboardingStateName string) OnboardingStateId {
 	return OnboardingStateId{
-		SubscriptionId:              subscriptionId,
-		ResourceGroupName:           resourceGroupName,
-		WorkspaceName:               workspaceName,
-		SentinelOnboardingStateName: sentinelOnboardingStateName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		WorkspaceName:       workspaceName,
+		OnboardingStateName: onboardingStateName,
 	}
 }
 
@@ -50,8 +50,8 @@ func ParseOnboardingStateID(input string) (*OnboardingStateId, error) {
 		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
 	}
 
-	if id.SentinelOnboardingStateName, ok = parsed.Parsed["sentinelOnboardingStateName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sentinelOnboardingStateName' was not found in the resource id %q", input)
+	if id.OnboardingStateName, ok = parsed.Parsed["onboardingStateName"]; !ok {
+		return nil, fmt.Errorf("the segment 'onboardingStateName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -81,8 +81,8 @@ func ParseOnboardingStateIDInsensitively(input string) (*OnboardingStateId, erro
 		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
 	}
 
-	if id.SentinelOnboardingStateName, ok = parsed.Parsed["sentinelOnboardingStateName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sentinelOnboardingStateName' was not found in the resource id %q", input)
+	if id.OnboardingStateName, ok = parsed.Parsed["onboardingStateName"]; !ok {
+		return nil, fmt.Errorf("the segment 'onboardingStateName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateOnboardingStateID(input interface{}, key string) (warnings []string
 // ID returns the formatted Onboarding State ID
 func (id OnboardingStateId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/providers/Microsoft.SecurityInsights/onboardingStates/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.SentinelOnboardingStateName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.OnboardingStateName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Onboarding State ID
@@ -123,7 +123,7 @@ func (id OnboardingStateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSecurityInsights", "Microsoft.SecurityInsights", "Microsoft.SecurityInsights"),
 		resourceids.StaticSegment("staticOnboardingStates", "onboardingStates", "onboardingStates"),
-		resourceids.UserSpecifiedSegment("sentinelOnboardingStateName", "sentinelOnboardingStateValue"),
+		resourceids.UserSpecifiedSegment("onboardingStateName", "onboardingStateValue"),
 	}
 }
 
@@ -133,7 +133,7 @@ func (id OnboardingStateId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Workspace Name: %q", id.WorkspaceName),
-		fmt.Sprintf("Sentinel Onboarding State Name: %q", id.SentinelOnboardingStateName),
+		fmt.Sprintf("Onboarding State Name: %q", id.OnboardingStateName),
 	}
 	return fmt.Sprintf("Onboarding State (%s)", strings.Join(components, "\n"))
 }

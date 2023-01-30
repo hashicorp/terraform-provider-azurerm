@@ -272,7 +272,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ResourceName)
+	d.Set("name", id.WebPubSubName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

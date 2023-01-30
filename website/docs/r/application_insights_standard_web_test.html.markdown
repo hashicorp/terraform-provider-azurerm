@@ -115,7 +115,7 @@ A `validation_rules` block supports the following:
 
 * `expected_status_code` - (Optional) The expected status code of the response. Default is '200', '0' means 'response code < 400'
 
-* `ssl_cert_remaining_lifetime` - (Optional) The number of days of SSL certificate validity remaining for the checked endpoint. If the certificate has a shorter remaining lifetime left, the test will fail.
+* `ssl_cert_remaining_lifetime` - (Optional) The number of days of SSL certificate validity remaining for the checked endpoint. If the certificate has a shorter remaining lifetime left, the test will fail. This number should be between 1 and 365.
 
 * `ssl_check_enabled` - (Optional) Should the SSL check be enabled?
 

@@ -214,7 +214,7 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "publicpreview_Monthly_gmz7xq9ge3py"
+  sku                 = "standard_Monthly"
   location            = azurerm_resource_group.test.location
 
   //message: "Conflict managed resource group name: tenant: -91a, subscription xxx, resource group example."

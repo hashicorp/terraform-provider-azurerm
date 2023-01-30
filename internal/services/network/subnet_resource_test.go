@@ -538,6 +538,13 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateServiceDelegation(data, "Qumulo.Storage/fileSystems"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 

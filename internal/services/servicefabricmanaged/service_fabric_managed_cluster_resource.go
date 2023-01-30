@@ -397,16 +397,16 @@ func (k ClusterResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(cluster.HttpResponse) {
 					return metadata.MarkAsGone(resourceId)
 				}
-				return fmt.Errorf("while reading data for cluster %q: %+v", resourceId.ClusterName, err)
+				return fmt.Errorf("while reading data for cluster %q: %+v", resourceId.ManagedClusterName, err)
 			}
 
 			nts, err := nodeTypeClient.ListByManagedClustersComplete(ctx, nodetype.ManagedClusterId{
-				SubscriptionId:    resourceId.SubscriptionId,
-				ResourceGroupName: resourceId.ResourceGroupName,
-				ClusterName:       resourceId.ClusterName,
+				SubscriptionId:     resourceId.SubscriptionId,
+				ResourceGroupName:  resourceId.ResourceGroupName,
+				ManagedClusterName: resourceId.ManagedClusterName,
 			})
 			if err != nil {
-				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", resourceId.ClusterName, err)
+				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", resourceId.ManagedClusterName, err)
 			}
 
 			model := flattenClusterProperties(cluster.Model)

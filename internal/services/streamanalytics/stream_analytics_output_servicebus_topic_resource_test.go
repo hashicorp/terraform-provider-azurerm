@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -114,13 +114,13 @@ func TestAccStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsOutputServiceBusTopic_authenticationMode(t *testing.T) {
+func TestAccStreamAnalyticsOutputServiceBusTopic_authenticationModeMsi(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
 	r := StreamAnalyticsOutputServiceBusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.json(data),
+			Config: r.authenticationModeMsi(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -238,6 +238,28 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
   servicebus_namespace      = azurerm_servicebus_namespace.test.name
   shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
   shared_access_policy_name = "RootManageSharedAccessKey"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+    format   = "LineSeparated"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputServiceBusTopicResource) authenticationModeMsi(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  topic_name                = azurerm_servicebus_topic.test.name
+  servicebus_namespace      = azurerm_servicebus_namespace.test.name
+  authentication_mode 		= "Msi"
 
   serialization {
     type     = "Json"

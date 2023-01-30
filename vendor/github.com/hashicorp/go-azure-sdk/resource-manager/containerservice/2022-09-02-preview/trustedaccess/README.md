@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := trustedaccess.NewTrustedAccessRoleBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "trustedAccessRoleBindingValue")
+id := trustedaccess.NewTrustedAccessRoleBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "trustedAccessRoleBindingValue")
 
 payload := trustedaccess.TrustedAccessRoleBinding{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := trustedaccess.NewTrustedAccessRoleBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "trustedAccessRoleBindingValue")
+id := trustedaccess.NewTrustedAccessRoleBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "trustedAccessRoleBindingValue")
 
 read, err := client.RoleBindingsDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := trustedaccess.NewTrustedAccessRoleBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "trustedAccessRoleBindingValue")
+id := trustedaccess.NewTrustedAccessRoleBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "trustedAccessRoleBindingValue")
 
 read, err := client.RoleBindingsGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := trustedaccess.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := trustedaccess.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
 
 // alternatively `client.RoleBindingsList(ctx, id)` can be used to do batched pagination
 items, err := client.RoleBindingsListComplete(ctx, id)

@@ -556,6 +556,7 @@ resource "azurerm_key_vault" "test" {
       "Recover",
       "Set",
     ]
+
   }
 
   tags = {

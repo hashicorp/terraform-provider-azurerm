@@ -168,7 +168,7 @@ The `geo_location` block Configures the geographic locations the data is replica
 
 ---
 
-`capabilities` Configure the capabilities to be enabled for this Cosmos DB account:
+A `capabilities` block Configures the capabilities to be enabled for this Cosmos DB account:
 
 * `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableServerless`, `EnableTable`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`. Changing this forces a new resource to be created in certain cases as defined below.
 

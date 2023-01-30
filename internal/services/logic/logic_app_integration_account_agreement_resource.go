@@ -6,16 +6,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountagreements"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
@@ -33,7 +32,7 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationAccountAgreementID(id)
+			_, err := integrationaccountagreements.ParseAgreementID(id)
 			return err
 		}),
 
@@ -58,9 +57,9 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(logic.AgreementTypeAS2),
-					string(logic.AgreementTypeX12),
-					string(logic.AgreementTypeEdifact),
+					string(integrationaccountagreements.AgreementTypeASTwo),
+					string(integrationaccountagreements.AgreementTypeXOneTwo),
+					string(integrationaccountagreements.AgreementTypeEdifact),
 				}, false),
 			},
 
@@ -143,43 +142,42 @@ func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIntegrationAccountAgreementID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
+	id := integrationaccountagreements.NewAgreementID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AgreementName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_agreement", id.ID())
 		}
 	}
 
-	agreementContent := logic.AgreementContent{}
+	agreementContent := integrationaccountagreements.AgreementContent{}
 	content := d.Get("content").(string)
 	if err := json.Unmarshal([]byte(content), &agreementContent); err != nil {
 		return fmt.Errorf("parsing JSON: %+v", err)
 	}
 
-	parameters := logic.IntegrationAccountAgreement{
-		IntegrationAccountAgreementProperties: &logic.IntegrationAccountAgreementProperties{
-			AgreementType: logic.AgreementType(d.Get("agreement_type").(string)),
+	parameters := integrationaccountagreements.IntegrationAccountAgreement{
+		Properties: integrationaccountagreements.IntegrationAccountAgreementProperties{
+			AgreementType: integrationaccountagreements.AgreementType(d.Get("agreement_type").(string)),
 			GuestIdentity: expandIntegrationAccountAgreementBusinessIdentity(d.Get("guest_identity").([]interface{})),
-			GuestPartner:  utils.String(d.Get("guest_partner_name").(string)),
+			GuestPartner:  d.Get("guest_partner_name").(string),
 			HostIdentity:  expandIntegrationAccountAgreementBusinessIdentity(d.Get("host_identity").([]interface{})),
-			HostPartner:   utils.String(d.Get("host_partner_name").(string)),
-			Content:       &agreementContent,
+			HostPartner:   d.Get("host_partner_name").(string),
+			Content:       agreementContent,
 		},
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		metadata := v.(map[string]interface{})
-		parameters.IntegrationAccountAgreementProperties.Metadata = &metadata
+		parameters.Properties.Metadata = &v
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AgreementName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -192,14 +190,14 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountAgreementID(d.Id())
+	id, err := integrationaccountagreements.ParseAgreementID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AgreementName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -208,21 +206,21 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 	}
 
 	d.Set("name", id.AgreementName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("integration_account_name", id.IntegrationAccountName)
 
-	if props := resp.IntegrationAccountAgreementProperties; props != nil {
+	if model := resp.Model; model != nil {
+		props := model.Properties
+
 		d.Set("agreement_type", props.AgreementType)
 		d.Set("guest_partner_name", props.GuestPartner)
 		d.Set("host_partner_name", props.HostPartner)
 
-		if props.Content != nil {
-			content, err := json.Marshal(props.Content)
-			if err != nil {
-				return err
-			}
-			d.Set("content", string(content))
+		content, err := json.Marshal(props.Content)
+		if err != nil {
+			return err
 		}
+		d.Set("content", string(content))
 
 		if err := d.Set("guest_identity", flattenIntegrationAccountAgreementBusinessIdentity(props.GuestIdentity)); err != nil {
 			return fmt.Errorf("setting `guest_identity`: %+v", err)
@@ -233,10 +231,11 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 		}
 
 		if props.Metadata != nil {
-			metadata := props.Metadata.(map[string]interface{})
-			d.Set("metadata", metadata)
+			d.Set("metadata", props.Metadata)
 		}
+
 	}
+
 	return nil
 }
 
@@ -245,49 +244,35 @@ func resourceLogicAppIntegrationAccountAgreementDelete(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountAgreementID(d.Id())
+	id, err := integrationaccountagreements.ParseAgreementID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AgreementName); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandIntegrationAccountAgreementBusinessIdentity(input []interface{}) *logic.BusinessIdentity {
+func expandIntegrationAccountAgreementBusinessIdentity(input []interface{}) integrationaccountagreements.BusinessIdentity {
 	if len(input) == 0 {
-		return nil
+		return integrationaccountagreements.BusinessIdentity{}
 	}
 	v := input[0].(map[string]interface{})
 
-	return &logic.BusinessIdentity{
-		Qualifier: utils.String(v["qualifier"].(string)),
-		Value:     utils.String(v["value"].(string)),
+	return integrationaccountagreements.BusinessIdentity{
+		Qualifier: v["qualifier"].(string),
+		Value:     v["value"].(string),
 	}
 }
 
-func flattenIntegrationAccountAgreementBusinessIdentity(input *logic.BusinessIdentity) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var qualifier string
-	if input.Qualifier != nil {
-		qualifier = *input.Qualifier
-	}
-
-	var value string
-	if input.Value != nil {
-		value = *input.Value
-	}
-
+func flattenIntegrationAccountAgreementBusinessIdentity(input integrationaccountagreements.BusinessIdentity) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
-			"qualifier": qualifier,
-			"value":     value,
+			"qualifier": input.Qualifier,
+			"value":     input.Value,
 		},
 	}
 }

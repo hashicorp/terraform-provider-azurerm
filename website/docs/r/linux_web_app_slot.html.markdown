@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `logs` - (Optional) A `logs` block as defined below.
 
+* `service_plan_id` - (Optional) The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Linux Web App will be used.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).

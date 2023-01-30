@@ -5,16 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountsessions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountSession() *pluginsdk.Resource {
@@ -32,7 +31,7 @@ func resourceLogicAppIntegrationAccountSession() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationAccountSessionID(id)
+			_, err := integrationaccountsessions.ParseSessionID(id)
 			return err
 		}),
 
@@ -68,32 +67,29 @@ func resourceLogicAppIntegrationAccountSessionCreateUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIntegrationAccountSessionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
+	id := integrationaccountsessions.NewSessionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.SessionName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_session", id.ID())
 		}
 	}
 
-	content, err := pluginsdk.ExpandJsonFromString(d.Get("content").(string))
-	if err != nil {
-		return fmt.Errorf("expanding JSON for `content`: %+v", err)
-	}
+	content := d.Get("content")
 
-	parameters := logic.IntegrationAccountSession{
-		IntegrationAccountSessionProperties: &logic.IntegrationAccountSessionProperties{
-			Content: content,
+	parameters := integrationaccountsessions.IntegrationAccountSession{
+		Properties: integrationaccountsessions.IntegrationAccountSessionProperties{
+			Content: &content,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.SessionName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -106,14 +102,14 @@ func resourceLogicAppIntegrationAccountSessionRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountSessionID(d.Id())
+	id, err := integrationaccountsessions.ParseSessionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.SessionName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -122,14 +118,13 @@ func resourceLogicAppIntegrationAccountSessionRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.SessionName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("integration_account_name", id.IntegrationAccountName)
 
-	if props := resp.IntegrationAccountSessionProperties; props != nil {
+	if model := resp.Model; model != nil {
+		props := model.Properties
 		if props.Content != nil {
-			contentValue := props.Content.(map[string]interface{})
-			contentStr, _ := pluginsdk.FlattenJsonToString(contentValue)
-			d.Set("content", contentStr)
+			d.Set("content", props.Content)
 		}
 	}
 
@@ -141,12 +136,12 @@ func resourceLogicAppIntegrationAccountSessionDelete(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountSessionID(d.Id())
+	id, err := integrationaccountsessions.ParseSessionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IntegrationAccountName, id.SessionName); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil

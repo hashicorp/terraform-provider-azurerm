@@ -31,7 +31,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -709,6 +713,28 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"key_management_service": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: false,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+						"key_vault_network_access": {
+							Type:         pluginsdk.TypeString,
+							Default:      string(managedclusters.KeyVaultNetworkAccessTypesPublic),
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKeyVaultNetworkAccessTypes(), false),
+						},
+					},
+				},
+			},
+
 			"microsoft_defender": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1225,6 +1251,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1243,7 +1271,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", id.ID())
 	}
 
-	if err := validateKubernetesCluster(d, nil, id.ResourceGroupName, id.ResourceName); err != nil {
+	if err := validateKubernetesCluster(d, nil, id.ResourceGroupName, id.ManagedClusterName); err != nil {
 		return err
 	}
 
@@ -1332,11 +1360,14 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = managedclusters.PublicNetworkAccessDisabled
 	}
 
-	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
-	securityProfile := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
-
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
+
+	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms)
+	securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
+
+	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
+	securityProfile.Defender = expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 
 	workloadIdentity := false
 	if v, ok := d.GetOk("workload_identity_enabled"); ok {
@@ -1346,16 +1377,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
 		}
 
-		if securityProfile == nil {
-			securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
-		}
-
 		securityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{
 			Enabled: &workloadIdentity,
 		}
-	}
-	if securityProfile == nil {
-		securityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 	}
 
 	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
@@ -1363,8 +1387,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
 	}
 
+	azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
+	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+	if err != nil {
+		return err
+	}
+
 	parameters := managedclusters.ManagedCluster{
-		Name:             utils.String(id.ResourceName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
@@ -1474,7 +1503,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
 			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
 		}
-		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
 			return fmt.Errorf("creating/updating maintenance config for %s: %+v", id, err)
 		}
@@ -1488,6 +1517,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	containersClient := meta.(*clients.Client).Containers
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1509,7 +1540,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	props := existing.Model.Properties
 
-	if err := validateKubernetesCluster(d, existing.Model, id.ResourceGroupName, id.ResourceName); err != nil {
+	if err := validateKubernetesCluster(d, existing.Model, id.ResourceGroupName, id.ManagedClusterName); err != nil {
 		return err
 	}
 
@@ -1834,11 +1865,18 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.OidcIssuerProfile = oidcIssuerProfile
 	}
 
+	if d.HasChanges("key_management_service") {
+		updateCluster = true
+		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
+		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
+	}
+
 	if d.HasChanges("microsoft_defender") {
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
-		existing.Model.Properties.SecurityProfile = microsoftDefender
+		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
 	}
 
 	if d.HasChanges("storage_profile") {
@@ -1948,7 +1986,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, *agentProfile.Name)
+		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
@@ -1982,7 +2020,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
 			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
 		}
-		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
 			return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
 		}
@@ -2019,13 +2057,13 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: no payload delivered", *id)
 	}
 
-	accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterUser")
+	accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterUser")
 	profile, err := client.GetAccessProfile(ctx, accessProfileId)
 	if err != nil {
 		return fmt.Errorf("retrieving Access Profile for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ResourceName)
+	d.Set("name", id.ManagedClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("edge_zone", flattenEdgeZone(respModel.ExtendedLocation))
 	if location := respModel.Location; location != "" {
@@ -2057,7 +2095,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("public_network_access_enabled", publicNetworkAccess != managedclusters.PublicNetworkAccessDisabled)
 
 		upgradeChannel := ""
-		if profile := props.AutoUpgradeProfile; profile != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
+		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
 			upgradeChannel = string(*profile.UpgradeChannel)
 		}
 		d.Set("automatic_channel_upgrade", upgradeChannel)
@@ -2207,7 +2245,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
 		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
-		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
+		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile.Defender)
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 		}
@@ -2223,16 +2261,21 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("workload_identity_enabled", workloadIdentity)
 
+		azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
+		if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
+			return fmt.Errorf("setting `key_management_service`: %+v", err)
+		}
+
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
+			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
 			adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
 			if err != nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ResourceName, id.ResourceGroupName, err)
+				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroupName, err)
 			}
 
 			if adminProfile.Model == nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ResourceName, id.ResourceGroupName)
+				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ManagedClusterName, id.ResourceGroupName)
 			}
 			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfile.Model)
 			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
@@ -2261,7 +2304,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+	maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 	configResp, _ := maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 	if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
 		d.Set("maintenance_window", flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties))
@@ -2282,7 +2325,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName, "default")
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.Delete(ctx, maintenanceId); err != nil {
 			return fmt.Errorf("deleting Maintenance Configuration for %s: %+v", *id, err)
 		}
@@ -3376,6 +3419,41 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	}
 }
 
+func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
+	if ((input == nil) || len(input) == 0) && d.HasChanges("key_management_service") {
+		return &managedclusters.AzureKeyVaultKms{
+			Enabled: utils.Bool(false),
+		}, nil
+	} else if (input == nil) || len(input) == 0 {
+		return nil, nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	kvAccess := managedclusters.KeyVaultNetworkAccessTypes(raw["key_vault_network_access"].(string))
+
+	azureKeyVaultKms := &managedclusters.AzureKeyVaultKms{
+		Enabled:               utils.Bool(true),
+		KeyId:                 utils.String(raw["key_vault_key_id"].(string)),
+		KeyVaultNetworkAccess: &kvAccess,
+	}
+
+	// Set Key vault Resource ID in case public access is disabled
+	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
+		keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(*azureKeyVaultKms.KeyId)
+		if err != nil {
+			return nil, err
+		}
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+		}
+
+		azureKeyVaultKms.KeyVaultResourceId = keyVaultID
+	}
+
+	return azureKeyVaultKms, nil
+}
+
 func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *maintenanceconfigurations.MaintenanceConfigurationProperties {
 	if len(input) == 0 {
 		return nil
@@ -3530,13 +3608,11 @@ func flattenKubernetesClusterHttpProxyConfig(props *managedclusters.ManagedClust
 	})
 }
 
-func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterSecurityProfile {
+func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterSecurityProfileDefender {
 	if (len(input) == 0 || input[0] == nil) && d.HasChange("microsoft_defender") {
-		return &managedclusters.ManagedClusterSecurityProfile{
-			Defender: &managedclusters.ManagedClusterSecurityProfileDefender{
-				SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
-					Enabled: utils.Bool(false),
-				},
+		return &managedclusters.ManagedClusterSecurityProfileDefender{
+			SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
+				Enabled: utils.Bool(false),
 			},
 		}
 	} else if len(input) == 0 || input[0] == nil {
@@ -3544,23 +3620,21 @@ func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input [
 	}
 
 	config := input[0].(map[string]interface{})
-	return &managedclusters.ManagedClusterSecurityProfile{
-		Defender: &managedclusters.ManagedClusterSecurityProfileDefender{
-			SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
-				Enabled: utils.Bool(true),
-			},
-			LogAnalyticsWorkspaceResourceId: utils.String(config["log_analytics_workspace_id"].(string)),
+	return &managedclusters.ManagedClusterSecurityProfileDefender{
+		SecurityMonitoring: &managedclusters.ManagedClusterSecurityProfileDefenderSecurityMonitoring{
+			Enabled: utils.Bool(true),
 		},
+		LogAnalyticsWorkspaceResourceId: utils.String(config["log_analytics_workspace_id"].(string)),
 	}
 }
 
-func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
-	if input == nil || input.Defender == nil || (input.Defender.SecurityMonitoring != nil && input.Defender.SecurityMonitoring.Enabled != nil && !*input.Defender.SecurityMonitoring.Enabled) {
+func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfileDefender) []interface{} {
+	if input == nil || (input.SecurityMonitoring != nil && input.SecurityMonitoring.Enabled != nil && !*input.SecurityMonitoring.Enabled) {
 		return []interface{}{}
 	}
 
 	logAnalyticsWorkspace := ""
-	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
+	if v := input.LogAnalyticsWorkspaceResourceId; v != nil {
 		logAnalyticsWorkspace = *v
 	}
 

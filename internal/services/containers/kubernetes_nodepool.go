@@ -137,6 +137,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(1, 1000),
 					},
 
+					"node_network_profile": schemaNodePoolNetworkProfile(),
+
 					"node_count": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
@@ -350,6 +352,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 					ForceNew: true,
 				},
 
+				// TODO 4.0: change this to `container_log_max_files`
 				"container_log_max_line": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -625,6 +628,26 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 	}
 }
 
+func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"node_public_ip_tags": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
 func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAgentPoolProfile) agentpools.AgentPool {
 	defaultCluster := (*input)[0]
 
@@ -684,6 +707,20 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			linuxOsConfig.Sysctls = utils.ToPtr(agentpools.SysctlConfig(*sysctlsRaw))
 		}
 		agentpool.Properties.LinuxOSConfig = &linuxOsConfig
+	}
+	if networkProfileRaw := defaultCluster.NetworkProfile; networkProfileRaw != nil {
+		networkProfile := agentpools.AgentPoolNetworkProfile{}
+		if nodePublicIPTagsRaw := networkProfileRaw.NodePublicIPTags; nodePublicIPTagsRaw != nil {
+			ipTags := make([]agentpools.IPTag, 0)
+			for _, ipTagRaw := range *nodePublicIPTagsRaw {
+				ipTags = append(ipTags, agentpools.IPTag{
+					IPTagType: ipTagRaw.IPTagType,
+					Tag:       ipTagRaw.Tag,
+				})
+			}
+			networkProfile.NodePublicIPTags = &ipTags
+		}
+		agentpool.Properties.NetworkProfile = &networkProfile
 	}
 	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
 		agentpool.Properties.OsType = utils.ToPtr(agentpools.OSType(string(*osTypeNodePool)))
@@ -895,6 +932,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 			return nil, err
 		}
 		profile.LinuxOSConfig = linuxOSConfig
+	}
+
+	if networkProfile := raw["node_network_profile"].([]interface{}); len(networkProfile) > 0 {
+		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
 	}
 
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
@@ -1239,6 +1280,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		return nil, err
 	}
 
+	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
+
 	out := map[string]interface{}{
 		"enable_auto_scaling":           enableAutoScaling,
 		"enable_node_public_ip":         enableNodePublicIP,
@@ -1254,6 +1297,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"name":                          name,
 		"node_count":                    count,
 		"node_labels":                   nodeLabels,
+		"node_network_profile":          networkProfile,
 		"node_public_ip_prefix_id":      nodePublicIPPrefixID,
 		"node_taints":                   []string{},
 		"os_disk_size_gb":               osDiskSizeGB,
@@ -1653,4 +1697,57 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 		setting.MaxSurge = utils.String(maxSurgeRaw)
 	}
 	return setting
+}
+
+func expandClusterPoolNetworkProfile(input []interface{}) *managedclusters.AgentPoolNetworkProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &managedclusters.AgentPoolNetworkProfile{
+		NodePublicIPTags: expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+	}
+}
+
+func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]managedclusters.IPTag {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]managedclusters.IPTag, 0)
+
+	for key, val := range input {
+		ipTag := managedclusters.IPTag{
+			IPTagType: utils.String(key),
+			Tag:       utils.String(val.(string)),
+		}
+		out = append(out, ipTag)
+	}
+	return &out
+}
+
+func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []interface{} {
+	if input == nil || input.NodePublicIPTags == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"node_public_ip_tags": flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+		},
+	}
+}
+
+func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.IPTag) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+	out := make(map[string]interface{})
+
+	for _, tag := range *input {
+		if tag.IPTagType != nil {
+			out[*tag.IPTagType] = tag.Tag
+		}
+	}
+
+	return out
 }

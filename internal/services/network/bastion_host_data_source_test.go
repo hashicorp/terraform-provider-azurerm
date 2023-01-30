@@ -39,8 +39,8 @@ func (BastionHostDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_bastion_host" "test" {
-	name                = azurerm_bastion_host.test.name
-	resource_group_name = azurerm_bastion_host.test.resource_group_name
+  name                = azurerm_bastion_host.test.name
+  resource_group_name = azurerm_bastion_host.test.resource_group_name
 }
 `, BastionHostResource{}.basic(data))
 }
