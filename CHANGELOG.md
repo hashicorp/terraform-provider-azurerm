@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk [GH-20202]
 * `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20214]
 
 BUG FIXES:
