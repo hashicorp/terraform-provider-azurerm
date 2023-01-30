@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -207,7 +207,7 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 						state := OutputTableResourceModel{
 							Name:               id.OutputName,
 							ResourceGroup:      id.ResourceGroupName,
-							StreamAnalyticsJob: id.JobName,
+							StreamAnalyticsJob: id.StreamingJobName,
 							StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
 						}
 

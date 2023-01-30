@@ -23,6 +23,15 @@ func TestAccApplicationInsightsStandardWebTest_basic(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsightsStandardWebTest_sslCheck(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
+	testResource := ApplicationInsightsStandardWebTestResource{}
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		data.ApplyStep(testResource.sslCheckConfig, testResource),
+		data.ImportStep(),
+	})
+}
+
 func TestAccApplicationInsightsStandardWebTest_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
 	testResource := ApplicationInsightsStandardWebTestResource{}
@@ -57,6 +66,45 @@ func (ApplicationInsightsStandardWebTestResource) Exists(ctx context.Context, cl
 	}
 
 	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil
+}
+
+func (ApplicationInsightsStandardWebTestResource) sslCheckConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_standard_web_test" "test" {
+  name                    = "acctestappinsightswebtests-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  geo_locations           = ["us-tx-sn1-azr"]
+
+  request {
+    url = "https://microsoft.com"
+  }
+  validation_rules {
+    ssl_check_enabled = true
+  }
+
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (ApplicationInsightsStandardWebTestResource) basicConfig(data acceptance.TestData) string {

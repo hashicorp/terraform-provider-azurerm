@@ -5,19 +5,18 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDevTestGlobalVMShutdownSchedule() *pluginsdk.Resource {
@@ -27,7 +26,7 @@ func resourceDevTestGlobalVMShutdownSchedule() *pluginsdk.Resource {
 		Update: resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
 		Delete: resourceDevTestGlobalVMShutdownScheduleDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ScheduleID(id)
+			_, err := globalschedules.ParseScheduleID(id)
 			return err
 		}),
 
@@ -116,17 +115,17 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	// Can't find any official documentation on this, but the API returns a 400 for any other name.
 	// The best example I could find is here: https://social.msdn.microsoft.com/Forums/en-US/25a02403-dba9-4bcb-bdcc-1f4afcba5b65/powershell-script-to-autoshutdown-azure-virtual-machine?forum=WAVirtualMachinesforWindows
 	name := "shutdown-computevm-" + vmId.Name
-	id := parse.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroup, name)
+	id := globalschedules.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		existing, err := client.Get(ctx, id, globalschedules.GetOperationOptions{})
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_dev_test_global_vm_shutdown_schedule", id.ID())
 		}
 	}
@@ -134,36 +133,36 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	taskType := "ComputeVmShutdownTask"
 
-	schedule := dtl.Schedule{
+	schedule := globalschedules.Schedule{
 		Location: &location,
-		ScheduleProperties: &dtl.ScheduleProperties{
-			TargetResourceID: &vmID,
+		Properties: globalschedules.ScheduleProperties{
+			TargetResourceId: &vmID,
 			TaskType:         &taskType,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
+	statusEnabled := globalschedules.EnableStatusDisabled
 	if d.Get("enabled").(bool) {
-		schedule.ScheduleProperties.Status = dtl.EnableStatusEnabled
-	} else {
-		schedule.ScheduleProperties.Status = dtl.EnableStatusDisabled
+		statusEnabled = globalschedules.EnableStatusEnabled
 	}
+	schedule.Properties.Status = &statusEnabled
 
 	if timeZoneId := d.Get("timezone").(string); timeZoneId != "" {
-		schedule.ScheduleProperties.TimeZoneID = &timeZoneId
+		schedule.Properties.TimeZoneId = &timeZoneId
 	}
 
 	if v, ok := d.GetOk("daily_recurrence_time"); ok {
 		dailyRecurrence := expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
-		schedule.DailyRecurrence = dailyRecurrence
+		schedule.Properties.DailyRecurrence = dailyRecurrence
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
 		notificationSettings := expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
-		schedule.NotificationSettings = notificationSettings
+		schedule.Properties.NotificationSettings = notificationSettings
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, name, schedule); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, schedule); err != nil {
 		return err
 	}
 
@@ -177,28 +176,29 @@ func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ScheduleID(d.Id())
+	id, err := globalschedules.ParseScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, *id, globalschedules.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Dev Test Global Schedule %s: %s", id.Name, err)
+		return fmt.Errorf("making Read request on %s: %s", *id, err)
 	}
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		if location := resp.Model.Location; location != nil {
+			d.Set("location", azure.NormalizeLocation(*location))
+		}
 
-	if props := resp.ScheduleProperties; props != nil {
-		d.Set("virtual_machine_id", props.TargetResourceID)
-		d.Set("timezone", props.TimeZoneID)
-		d.Set("enabled", props.Status == dtl.EnableStatusEnabled)
+		props := resp.Model.Properties
+		d.Set("virtual_machine_id", props.TargetResourceId)
+		d.Set("timezone", props.TimeZoneId)
+		d.Set("enabled", *props.Status == globalschedules.EnableStatusEnabled)
 
 		if err := d.Set("daily_recurrence_time", flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
 			return fmt.Errorf("setting `dailyRecurrence`: %#v", err)
@@ -207,9 +207,11 @@ func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta
 		if err := d.Set("notification_settings", flattenDevTestGlobalVMShutdownScheduleNotificationSettings(props.NotificationSettings)); err != nil {
 			return fmt.Errorf("setting `notificationSettings`: %#v", err)
 		}
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceDevTestGlobalVMShutdownScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -217,26 +219,26 @@ func resourceDevTestGlobalVMShutdownScheduleDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ScheduleID(d.Id())
+	id, err := globalschedules.ParseScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyTime interface{}) *dtl.DayDetails {
+func expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyTime interface{}) *globalschedules.DayDetails {
 	time := dailyTime.(string)
-	return &dtl.DayDetails{
+	return &globalschedules.DayDetails{
 		Time: &time,
 	}
 }
 
-func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDetails) interface{} {
+func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *globalschedules.DayDetails) interface{} {
 	if dailyRecurrence == nil {
 		return nil
 	}
@@ -249,44 +251,44 @@ func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.
 	return result
 }
 
-func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.ResourceData) *dtl.NotificationSettings {
+func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.ResourceData) *globalschedules.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
-	timeInMinutes := int32(notificationSettingsConfig["time_in_minutes"].(int))
+	timeInMinutes := int64(notificationSettingsConfig["time_in_minutes"].(int))
 	email := notificationSettingsConfig["email"].(string)
 
-	var notificationStatus dtl.EnableStatus
+	var notificationStatus globalschedules.EnableStatus
 	if notificationSettingsConfig["enabled"].(bool) {
-		notificationStatus = dtl.EnableStatusEnabled
+		notificationStatus = globalschedules.EnableStatusEnabled
 	} else {
-		notificationStatus = dtl.EnableStatusDisabled
+		notificationStatus = globalschedules.EnableStatusDisabled
 	}
 
-	return &dtl.NotificationSettings{
-		WebhookURL:     &webhookUrl,
+	return &globalschedules.NotificationSettings{
+		WebhookUrl:     &webhookUrl,
 		TimeInMinutes:  &timeInMinutes,
-		Status:         notificationStatus,
+		Status:         &notificationStatus,
 		EmailRecipient: &email,
 	}
 }
 
-func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSettings *dtl.NotificationSettings) []interface{} {
+func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSettings *globalschedules.NotificationSettings) []interface{} {
 	if notificationSettings == nil {
 		return []interface{}{}
 	}
 
 	result := make(map[string]interface{})
 
-	if notificationSettings.WebhookURL != nil {
-		result["webhook_url"] = *notificationSettings.WebhookURL
+	if notificationSettings.WebhookUrl != nil {
+		result["webhook_url"] = *notificationSettings.WebhookUrl
 	}
 
 	if notificationSettings.TimeInMinutes != nil {
 		result["time_in_minutes"] = *notificationSettings.TimeInMinutes
 	}
 
-	result["enabled"] = notificationSettings.Status == dtl.EnableStatusEnabled
+	result["enabled"] = *notificationSettings.Status == globalschedules.EnableStatusEnabled
 	result["email"] = notificationSettings.EmailRecipient
 
 	return []interface{}{result}

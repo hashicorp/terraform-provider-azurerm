@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 if err := client.CheckConsistencyThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -36,7 +36,7 @@ if err := client.CheckConsistencyThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 payload := replicationfabrics.FabricCreationInput{
 	// ...
@@ -53,7 +53,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +65,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 read, err := client.Get(ctx, id, replicationfabrics.DefaultGetOperationOptions())
 if err != nil {
@@ -81,7 +81,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := replicationfabrics.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -98,7 +98,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 if err := client.MigrateToAadThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -110,7 +110,7 @@ if err := client.MigrateToAadThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 if err := client.PurgeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -122,7 +122,7 @@ if err := client.PurgeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 payload := replicationfabrics.FailoverProcessServerRequest{
 	// ...
@@ -139,7 +139,7 @@ if err := client.ReassociateGatewayThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "fabricValue")
+id := replicationfabrics.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationFabricValue")
 
 payload := replicationfabrics.RenewCertificateInput{
 	// ...

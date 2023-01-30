@@ -46,6 +46,31 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"managed_disk_identity": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"principal_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+							Computed:  true,
+						},
+
+						"tenant_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+							Computed:  true,
+						},
+
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"storage_account_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -102,8 +127,11 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("sku", sku.Name)
 		}
 		d.Set("workspace_id", model.Properties.WorkspaceId)
-		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(model.Properties.StorageAccountIdentity)); err != nil {
+		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+		}
+		if err := d.Set("managed_disk_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
+			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
 		d.Set("workspace_url", model.Properties.WorkspaceUrl)
 		d.Set("location", model.Location)

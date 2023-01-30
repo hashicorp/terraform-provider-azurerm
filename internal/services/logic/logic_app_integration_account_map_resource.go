@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountmaps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,7 +32,7 @@ func resourceLogicAppIntegrationAccountMap() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationAccountMapID(id)
+			_, err := integrationaccountmaps.ParseMapID(id)
 			return err
 		}),
 
@@ -60,14 +60,9 @@ func resourceLogicAppIntegrationAccountMap() *pluginsdk.Resource {
 			},
 
 			"map_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(logic.MapTypeXslt),
-					string(logic.MapTypeXslt20),
-					string(logic.MapTypeXslt30),
-					string(logic.MapTypeLiquid),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(integrationaccountmaps.PossibleValuesForMapType(), false),
 			},
 
 			"metadata": {
@@ -88,39 +83,38 @@ func resourceLogicAppIntegrationAccountMapCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIntegrationAccountMapID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
+	id := integrationaccountmaps.NewMapID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.MapName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_map", id.ID())
 		}
 	}
 
-	parameters := logic.IntegrationAccountMap{
-		IntegrationAccountMapProperties: &logic.IntegrationAccountMapProperties{
-			MapType: logic.MapType(d.Get("map_type").(string)),
+	parameters := integrationaccountmaps.IntegrationAccountMap{
+		Properties: integrationaccountmaps.IntegrationAccountMapProperties{
+			MapType: integrationaccountmaps.MapType(d.Get("map_type").(string)),
 			Content: utils.String(d.Get("content").(string)),
 		},
 	}
 
-	if parameters.IntegrationAccountMapProperties.MapType == logic.MapTypeLiquid {
-		parameters.IntegrationAccountMapProperties.ContentType = utils.String("text/plain")
+	if parameters.Properties.MapType == integrationaccountmaps.MapTypeLiquid {
+		parameters.Properties.ContentType = utils.String("text/plain")
 	} else {
-		parameters.IntegrationAccountMapProperties.ContentType = utils.String("application/xml")
+		parameters.Properties.ContentType = utils.String("application/xml")
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		metadata := v.(map[string]interface{})
-		parameters.IntegrationAccountMapProperties.Metadata = &metadata
+		parameters.Properties.Metadata = &v
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.MapName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -133,14 +127,14 @@ func resourceLogicAppIntegrationAccountMapRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountMapID(d.Id())
+	id, err := integrationaccountmaps.ParseMapID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.MapName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -149,16 +143,16 @@ func resourceLogicAppIntegrationAccountMapRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("name", id.MapName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("integration_account_name", id.IntegrationAccountName)
 
-	if props := resp.IntegrationAccountMapProperties; props != nil {
+	if model := resp.Model; model != nil {
+		props := model.Properties
 		d.Set("map_type", props.MapType)
 		d.Set("content", d.Get("content").(string))
 
 		if props.Metadata != nil {
-			metadata := props.Metadata.(map[string]interface{})
-			d.Set("metadata", metadata)
+			d.Set("metadata", props.Metadata)
 		}
 	}
 
@@ -170,12 +164,12 @@ func resourceLogicAppIntegrationAccountMapDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountMapID(d.Id())
+	id, err := integrationaccountmaps.ParseMapID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IntegrationAccountName, id.MapName); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

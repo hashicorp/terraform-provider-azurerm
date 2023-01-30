@@ -274,7 +274,7 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	configuration := maintenanceconfigurations.MaintenanceConfiguration{
-		Name:     utils.String(id.ResourceName),
+		Name:     utils.String(id.MaintenanceConfigurationName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &maintenanceconfigurations.MaintenanceConfigurationProperties{
 			MaintenanceScope:    &scope,
@@ -315,7 +315,7 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.ResourceName)
+	d.Set("name", id.MaintenanceConfigurationName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -422,7 +422,10 @@ func expandMaintenanceConfigurationInstallPatches(input []interface{}) *maintena
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v, ok := input[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
 	rebootSetting := maintenanceconfigurations.RebootOptions(v["reboot"].(string))
 	installPatches := maintenanceconfigurations.InputPatchConfiguration{
 		WindowsParameters: expandMaintenanceConfigurationInstallPatchesWindows(v["windows"].([]interface{})),
@@ -461,7 +464,10 @@ func expandMaintenanceConfigurationInstallPatchesWindows(input []interface{}) *m
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v, ok := input[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
 	windowsInput := maintenanceconfigurations.InputWindowsParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
 		windowsInput.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
@@ -504,7 +510,10 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v, ok := input[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
 	linuxParameters := maintenanceconfigurations.InputLinuxParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
 		linuxParameters.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))

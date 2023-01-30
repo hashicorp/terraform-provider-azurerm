@@ -11,13 +11,13 @@ var _ resourceids.ResourceId = ScheduledActionId{}
 
 // ScheduledActionId is a struct representing the Resource ID for a Scheduled Action
 type ScheduledActionId struct {
-	Name string
+	ScheduledActionName string
 }
 
 // NewScheduledActionID returns a new ScheduledActionId struct
-func NewScheduledActionID(name string) ScheduledActionId {
+func NewScheduledActionID(scheduledActionName string) ScheduledActionId {
 	return ScheduledActionId{
-		Name: name,
+		ScheduledActionName: scheduledActionName,
 	}
 }
 
@@ -32,8 +32,8 @@ func ParseScheduledActionID(input string) (*ScheduledActionId, error) {
 	var ok bool
 	id := ScheduledActionId{}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduledActionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -51,8 +51,8 @@ func ParseScheduledActionIDInsensitively(input string) (*ScheduledActionId, erro
 	var ok bool
 	id := ScheduledActionId{}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduledActionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -76,7 +76,7 @@ func ValidateScheduledActionID(input interface{}, key string) (warnings []string
 // ID returns the formatted Scheduled Action ID
 func (id ScheduledActionId) ID() string {
 	fmtString := "/providers/Microsoft.CostManagement/scheduledActions/%s"
-	return fmt.Sprintf(fmtString, id.Name)
+	return fmt.Sprintf(fmtString, id.ScheduledActionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scheduled Action ID
@@ -85,14 +85,14 @@ func (id ScheduledActionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCostManagement", "Microsoft.CostManagement", "Microsoft.CostManagement"),
 		resourceids.StaticSegment("staticScheduledActions", "scheduledActions", "scheduledActions"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("scheduledActionName", "scheduledActionValue"),
 	}
 }
 
 // String returns a human-readable description of this Scheduled Action ID
 func (id ScheduledActionId) String() string {
 	components := []string{
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Scheduled Action Name: %q", id.ScheduledActionName),
 	}
 	return fmt.Sprintf("Scheduled Action (%s)", strings.Join(components, "\n"))
 }

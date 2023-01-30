@@ -141,6 +141,7 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 
+					// TODO 4.0: change this to `container_log_max_files`
 					"container_log_max_line": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,

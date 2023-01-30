@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = WorkbookTemplateId{}
 
 // WorkbookTemplateId is a struct representing the Resource ID for a Workbook Template
 type WorkbookTemplateId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
+	SubscriptionId       string
+	ResourceGroupName    string
+	WorkbookTemplateName string
 }
 
 // NewWorkbookTemplateID returns a new WorkbookTemplateId struct
-func NewWorkbookTemplateID(subscriptionId string, resourceGroupName string, resourceName string) WorkbookTemplateId {
+func NewWorkbookTemplateID(subscriptionId string, resourceGroupName string, workbookTemplateName string) WorkbookTemplateId {
 	return WorkbookTemplateId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		SubscriptionId:       subscriptionId,
+		ResourceGroupName:    resourceGroupName,
+		WorkbookTemplateName: workbookTemplateName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseWorkbookTemplateID(input string) (*WorkbookTemplateId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WorkbookTemplateName, ok = parsed.Parsed["workbookTemplateName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workbookTemplateName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseWorkbookTemplateIDInsensitively(input string) (*WorkbookTemplateId, er
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WorkbookTemplateName, ok = parsed.Parsed["workbookTemplateName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workbookTemplateName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateWorkbookTemplateID(input interface{}, key string) (warnings []strin
 // ID returns the formatted Workbook Template ID
 func (id WorkbookTemplateId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/workbookTemplates/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkbookTemplateName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Workbook Template ID
@@ -109,7 +109,7 @@ func (id WorkbookTemplateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticWorkbookTemplates", "workbookTemplates", "workbookTemplates"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("workbookTemplateName", "workbookTemplateValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id WorkbookTemplateId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Workbook Template Name: %q", id.WorkbookTemplateName),
 	}
 	return fmt.Sprintf("Workbook Template (%s)", strings.Join(components, "\n"))
 }

@@ -76,10 +76,10 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 		return err
 	}
 
-	id := firewallrules.NewFirewallRuleID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
+	id := firewallrules.NewFirewallRuleID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, d.Get("name").(string))
 
-	locks.ByName(id.ServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.ServerName, postgresqlFlexibleServerResourceName)
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -129,7 +129,7 @@ func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	d.Set("name", id.FirewallRuleName)
-	d.Set("server_id", firewallrules.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
+	d.Set("server_id", firewallrules.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID())
 
 	if model := resp.Model; model != nil {
 		d.Set("end_ip_address", model.Properties.EndIPAddress)
@@ -148,8 +148,8 @@ func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	locks.ByName(id.ServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.ServerName, postgresqlFlexibleServerResourceName)
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)

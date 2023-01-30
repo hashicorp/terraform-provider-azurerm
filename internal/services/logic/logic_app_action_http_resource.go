@@ -8,7 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowrunactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
@@ -108,10 +109,10 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(logic.WorkflowStatusSucceeded),
-								string(logic.WorkflowStatusFailed),
-								string(logic.WorkflowStatusSkipped),
-								string(logic.WorkflowStatusTimedOut),
+								string(workflowrunactions.WorkflowStatusSucceeded),
+								string(workflowrunactions.WorkflowStatusFailed),
+								string(workflowrunactions.WorkflowStatusSkipped),
+								string(workflowrunactions.WorkflowStatusTimedOut),
 							}, false),
 						},
 					},
@@ -122,12 +123,12 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 }
 
 func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	workflowId, err := parse.WorkflowID(d.Get("logic_app_id").(string))
+	workflowId, err := workflows.ParseWorkflowID(d.Get("logic_app_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewActionID(workflowId.SubscriptionId, workflowId.ResourceGroup, workflowId.Name, d.Get("name").(string))
+	id := parse.NewActionID(workflowId.SubscriptionId, workflowId.ResourceGroupName, workflowId.WorkflowName, d.Get("name").(string))
 
 	headersRaw := d.Get("headers").(map[string]interface{})
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
@@ -185,7 +186,9 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	t, app, err := retrieveLogicAppAction(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
+	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroup, id.WorkflowName)
+
+	t, app, err := retrieveLogicAppAction(d, meta, workflowId, id.Name)
 	if err != nil {
 		return err
 	}
@@ -199,7 +202,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	action := *t
 
 	d.Set("name", id.Name)
-	d.Set("logic_app_id", app.ID)
+	d.Set("logic_app_id", app.Id)
 
 	actionType := action["type"].(string)
 	if !strings.EqualFold(actionType, "http") {
@@ -272,7 +275,9 @@ func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	err = resourceLogicAppActionRemove(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
+	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroup, id.WorkflowName)
+
+	err = resourceLogicAppActionRemove(d, meta, workflowId, id.Name)
 	if err != nil {
 		return fmt.Errorf("removing Action %s: %+v", id, err)
 	}

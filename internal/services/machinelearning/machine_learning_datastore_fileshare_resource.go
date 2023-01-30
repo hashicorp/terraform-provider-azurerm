@@ -22,15 +22,15 @@ import (
 type MachineLearningDataStoreFileShare struct{}
 
 type MachineLearningDataStoreFileShareModel struct {
-	Name                    string            `tfschema:"name"`
-	WorkSpaceID             string            `tfschema:"workspace_id"`
-	StorageFileShareID      string            `tfschema:"storage_fileshare_id"`
-	Description             string            `tfschema:"description"`
-	IsDefault               bool              `tfschema:"is_default"`
-	ServiceDataAuthIdentity string            `tfschema:"service_data_auth_identity"`
-	AccountKey              string            `tfschema:"account_key"`
-	SharedAccessSignature   string            `tfschema:"shared_access_signature"`
-	Tags                    map[string]string `tfschema:"tags"`
+	Name                  string            `tfschema:"name"`
+	WorkSpaceID           string            `tfschema:"workspace_id"`
+	StorageFileShareID    string            `tfschema:"storage_fileshare_id"`
+	Description           string            `tfschema:"description"`
+	IsDefault             bool              `tfschema:"is_default"`
+	ServiceDataIdentity   string            `tfschema:"service_data_identity"`
+	AccountKey            string            `tfschema:"account_key"`
+	SharedAccessSignature string            `tfschema:"shared_access_signature"`
+	Tags                  map[string]string `tfschema:"tags"`
 }
 
 func (r MachineLearningDataStoreFileShare) Attributes() map[string]*schema.Schema {
@@ -86,7 +86,7 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 			Default:  false,
 		},
 
-		"service_data_auth_identity": {
+		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -161,7 +161,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 				AccountName:                   fileShareId.StorageAccountName,
 				FileShareName:                 fileShareId.FileshareName,
 				Description:                   utils.String(model.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
 				IsDefault:                     utils.Bool(model.IsDefault),
 				Tags:                          utils.ToPtr(model.Tags),
 			}
@@ -222,7 +222,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(id.Name),
+				Name: utils.String(id.DataStoreName),
 				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureFile)),
 			}
 
@@ -230,7 +230,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 				AccountName:                   fileShareId.StorageAccountName,
 				FileShareName:                 fileShareId.FileshareName,
 				Description:                   utils.String(state.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
 				IsDefault:                     utils.Bool(state.IsDefault),
 				Tags:                          utils.ToPtr(state.Tags),
 			}
@@ -295,11 +295,11 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			}
 
 			data := resp.Model.Properties.(datastore.AzureFileDatastore)
-			serviceDataAuth := ""
+			serviceDataIdentity := ""
 			if v := data.ServiceDataAccessAuthIdentity; v != nil {
-				serviceDataAuth = string(*v)
+				serviceDataIdentity = string(*v)
 			}
-			model.ServiceDataAuthIdentity = serviceDataAuth
+			model.ServiceDataIdentity = serviceDataIdentity
 
 			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
 			model.StorageFileShareID = fileShareId.ID()

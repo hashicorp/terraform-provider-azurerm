@@ -114,7 +114,7 @@ func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-	id := liveoutputs.NewLiveOutputID(eventId.SubscriptionId, eventId.ResourceGroupName, eventId.AccountName, eventId.LiveEventName, d.Get("name").(string))
+	id := liveoutputs.NewLiveOutputID(eventId.SubscriptionId, eventId.ResourceGroupName, eventId.MediaServiceName, eventId.LiveEventName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -189,7 +189,7 @@ func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.LiveOutputName)
-	d.Set("live_event_id", liveevents.NewLiveEventID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.LiveEventName).ID())
+	d.Set("live_event_id", liveevents.NewLiveEventID(id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.LiveEventName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

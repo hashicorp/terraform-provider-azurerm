@@ -13,17 +13,17 @@ var _ resourceids.ResourceId = CapacityPoolId{}
 type CapacityPoolId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
-	PoolName          string
+	NetAppAccountName string
+	CapacityPoolName  string
 }
 
 // NewCapacityPoolID returns a new CapacityPoolId struct
-func NewCapacityPoolID(subscriptionId string, resourceGroupName string, accountName string, poolName string) CapacityPoolId {
+func NewCapacityPoolID(subscriptionId string, resourceGroupName string, netAppAccountName string, capacityPoolName string) CapacityPoolId {
 	return CapacityPoolId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		PoolName:          poolName,
+		NetAppAccountName: netAppAccountName,
+		CapacityPoolName:  capacityPoolName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseCapacityPoolID(input string) (*CapacityPoolId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'netAppAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.PoolName, ok = parsed.Parsed["poolName"]; !ok {
-		return nil, fmt.Errorf("the segment 'poolName' was not found in the resource id %q", input)
+	if id.CapacityPoolName, ok = parsed.Parsed["capacityPoolName"]; !ok {
+		return nil, fmt.Errorf("the segment 'capacityPoolName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseCapacityPoolIDInsensitively(input string) (*CapacityPoolId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'netAppAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.PoolName, ok = parsed.Parsed["poolName"]; !ok {
-		return nil, fmt.Errorf("the segment 'poolName' was not found in the resource id %q", input)
+	if id.CapacityPoolName, ok = parsed.Parsed["capacityPoolName"]; !ok {
+		return nil, fmt.Errorf("the segment 'capacityPoolName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateCapacityPoolID(input interface{}, key string) (warnings []string, e
 // ID returns the formatted Capacity Pool ID
 func (id CapacityPoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s/capacityPools/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.PoolName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Capacity Pool ID
@@ -119,9 +119,9 @@ func (id CapacityPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetApp", "Microsoft.NetApp", "Microsoft.NetApp"),
 		resourceids.StaticSegment("staticNetAppAccounts", "netAppAccounts", "netAppAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("netAppAccountName", "netAppAccountValue"),
 		resourceids.StaticSegment("staticCapacityPools", "capacityPools", "capacityPools"),
-		resourceids.UserSpecifiedSegment("poolName", "poolValue"),
+		resourceids.UserSpecifiedSegment("capacityPoolName", "capacityPoolValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id CapacityPoolId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Pool Name: %q", id.PoolName),
+		fmt.Sprintf("Net App Account Name: %q", id.NetAppAccountName),
+		fmt.Sprintf("Capacity Pool Name: %q", id.CapacityPoolName),
 	}
 	return fmt.Sprintf("Capacity Pool (%s)", strings.Join(components, "\n"))
 }

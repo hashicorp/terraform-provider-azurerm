@@ -794,6 +794,21 @@ func TestAccKubernetesCluster_apiServerInBYOSubnet(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_clusterPoolNodePublicIPTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clusterPoolNodePublicIPTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) apiServerInBYOSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3386,4 +3401,38 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, "westcentralus", data.RandomInteger)
+}
+
+func (KubernetesClusterResource) clusterPoolNodePublicIPTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name                  = "default"
+    node_count            = 1
+    vm_size               = "Standard_DS2_v2"
+    enable_node_public_ip = true
+    node_network_profile {
+      node_public_ip_tags = {
+        RoutingPreference = "Internet"
+      }
+    }
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
 }

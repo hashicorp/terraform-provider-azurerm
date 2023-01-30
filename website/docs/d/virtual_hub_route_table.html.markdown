@@ -16,6 +16,7 @@ Uses this data source to access information about an existing Virtual Hub Route 
 data "azurerm_virtual_hub_route_table" "example" {
   name                = "example-hub-route-table"
   resource_group_name = "example-resources"
+  virtual_hub_name    = "example-hub-name"
 }
 
 output "virtual_hub_route_table_id" {
@@ -30,6 +31,7 @@ The following arguments are supported:
 * `name` - The name of the Virtual Hub Route Table.
 
 * `resource_group_name` - The Name of the Resource Group where the Virtual Hub Route Table exists.
+*  `virtual_hub_name` - The name which should be used for Virtual Hub Route Table.
 
 ## Attributes Reference
 

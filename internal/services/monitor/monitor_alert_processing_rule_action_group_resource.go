@@ -180,7 +180,7 @@ func (r AlertProcessingRuleActionGroupResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Monitor.AlertProcessingRulesClient
 
-			id, err := alertprocessingrules.ParseActionRuleIDInsensitively(metadata.ResourceData.Id())
+			id, err := alertprocessingrules.ParseActionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -194,7 +194,7 @@ func (r AlertProcessingRuleActionGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			state := AlertProcessingRuleActionGroupModel{
-				Name:              id.AlertProcessingRuleName,
+				Name:              id.ActionRuleName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 

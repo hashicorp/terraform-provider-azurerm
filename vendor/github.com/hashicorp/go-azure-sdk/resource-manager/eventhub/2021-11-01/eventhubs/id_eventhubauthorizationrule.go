@@ -14,17 +14,17 @@ type EventhubAuthorizationRuleId struct {
 	SubscriptionId        string
 	ResourceGroupName     string
 	NamespaceName         string
-	EventHubName          string
+	EventhubName          string
 	AuthorizationRuleName string
 }
 
 // NewEventhubAuthorizationRuleID returns a new EventhubAuthorizationRuleId struct
-func NewEventhubAuthorizationRuleID(subscriptionId string, resourceGroupName string, namespaceName string, eventHubName string, authorizationRuleName string) EventhubAuthorizationRuleId {
+func NewEventhubAuthorizationRuleID(subscriptionId string, resourceGroupName string, namespaceName string, eventhubName string, authorizationRuleName string) EventhubAuthorizationRuleId {
 	return EventhubAuthorizationRuleId{
 		SubscriptionId:        subscriptionId,
 		ResourceGroupName:     resourceGroupName,
 		NamespaceName:         namespaceName,
-		EventHubName:          eventHubName,
+		EventhubName:          eventhubName,
 		AuthorizationRuleName: authorizationRuleName,
 	}
 }
@@ -52,8 +52,8 @@ func ParseEventhubAuthorizationRuleID(input string) (*EventhubAuthorizationRuleI
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
-	if id.EventHubName, ok = parsed.Parsed["eventHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'eventHubName' was not found in the resource id %q", input)
+	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'eventhubName' was not found in the resource id %q", input)
 	}
 
 	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
@@ -87,8 +87,8 @@ func ParseEventhubAuthorizationRuleIDInsensitively(input string) (*EventhubAutho
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
-	if id.EventHubName, ok = parsed.Parsed["eventHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'eventHubName' was not found in the resource id %q", input)
+	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'eventhubName' was not found in the resource id %q", input)
 	}
 
 	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
@@ -116,7 +116,7 @@ func ValidateEventhubAuthorizationRuleID(input interface{}, key string) (warning
 // ID returns the formatted Eventhub Authorization Rule ID
 func (id EventhubAuthorizationRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/namespaces/%s/eventhubs/%s/authorizationRules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventHubName, id.AuthorizationRuleName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName, id.AuthorizationRuleName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Eventhub Authorization Rule ID
@@ -131,7 +131,7 @@ func (id EventhubAuthorizationRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
 		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
-		resourceids.UserSpecifiedSegment("eventHubName", "eventHubValue"),
+		resourceids.UserSpecifiedSegment("eventhubName", "eventhubValue"),
 		resourceids.StaticSegment("staticAuthorizationRules", "authorizationRules", "authorizationRules"),
 		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleValue"),
 	}
@@ -143,7 +143,7 @@ func (id EventhubAuthorizationRuleId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Namespace Name: %q", id.NamespaceName),
-		fmt.Sprintf("Event Hub Name: %q", id.EventHubName),
+		fmt.Sprintf("Eventhub Name: %q", id.EventhubName),
 		fmt.Sprintf("Authorization Rule Name: %q", id.AuthorizationRuleName),
 	}
 	return fmt.Sprintf("Eventhub Authorization Rule (%s)", strings.Join(components, "\n"))

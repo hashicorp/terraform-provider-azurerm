@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = DisableSoftDeleteRequestId{}
 
 // DisableSoftDeleteRequestId is a struct representing the Resource ID for a Disable Soft Delete Request
 type DisableSoftDeleteRequestId struct {
-	SubscriptionId     string
-	ResourceGroupName  string
-	ResourceGuardsName string
-	RequestName        string
+	SubscriptionId               string
+	ResourceGroupName            string
+	ResourceGuardName            string
+	DisableSoftDeleteRequestName string
 }
 
 // NewDisableSoftDeleteRequestID returns a new DisableSoftDeleteRequestId struct
-func NewDisableSoftDeleteRequestID(subscriptionId string, resourceGroupName string, resourceGuardsName string, requestName string) DisableSoftDeleteRequestId {
+func NewDisableSoftDeleteRequestID(subscriptionId string, resourceGroupName string, resourceGuardName string, disableSoftDeleteRequestName string) DisableSoftDeleteRequestId {
 	return DisableSoftDeleteRequestId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroupName:  resourceGroupName,
-		ResourceGuardsName: resourceGuardsName,
-		RequestName:        requestName,
+		SubscriptionId:               subscriptionId,
+		ResourceGroupName:            resourceGroupName,
+		ResourceGuardName:            resourceGuardName,
+		DisableSoftDeleteRequestName: disableSoftDeleteRequestName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseDisableSoftDeleteRequestID(input string) (*DisableSoftDeleteRequestId,
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.DisableSoftDeleteRequestName, ok = parsed.Parsed["disableSoftDeleteRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'disableSoftDeleteRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseDisableSoftDeleteRequestIDInsensitively(input string) (*DisableSoftDel
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.DisableSoftDeleteRequestName, ok = parsed.Parsed["disableSoftDeleteRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'disableSoftDeleteRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateDisableSoftDeleteRequestID(input interface{}, key string) (warnings
 // ID returns the formatted Disable Soft Delete Request ID
 func (id DisableSoftDeleteRequestId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/resourceGuards/%s/disableSoftDeleteRequests/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardsName, id.RequestName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardName, id.DisableSoftDeleteRequestName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Disable Soft Delete Request ID
@@ -119,9 +119,9 @@ func (id DisableSoftDeleteRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardsName", "resourceGuardsValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
 		resourceids.StaticSegment("staticDisableSoftDeleteRequests", "disableSoftDeleteRequests", "disableSoftDeleteRequests"),
-		resourceids.UserSpecifiedSegment("requestName", "requestValue"),
+		resourceids.UserSpecifiedSegment("disableSoftDeleteRequestName", "disableSoftDeleteRequestValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id DisableSoftDeleteRequestId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Guards Name: %q", id.ResourceGuardsName),
-		fmt.Sprintf("Request Name: %q", id.RequestName),
+		fmt.Sprintf("Resource Guard Name: %q", id.ResourceGuardName),
+		fmt.Sprintf("Disable Soft Delete Request Name: %q", id.DisableSoftDeleteRequestName),
 	}
 	return fmt.Sprintf("Disable Soft Delete Request (%s)", strings.Join(components, "\n"))
 }

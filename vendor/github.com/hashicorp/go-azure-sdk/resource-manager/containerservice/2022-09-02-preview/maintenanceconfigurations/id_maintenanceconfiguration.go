@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = MaintenanceConfigurationId{}
 
 // MaintenanceConfigurationId is a struct representing the Resource ID for a Maintenance Configuration
 type MaintenanceConfigurationId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
-	ConfigName        string
+	SubscriptionId               string
+	ResourceGroupName            string
+	ManagedClusterName           string
+	MaintenanceConfigurationName string
 }
 
 // NewMaintenanceConfigurationID returns a new MaintenanceConfigurationId struct
-func NewMaintenanceConfigurationID(subscriptionId string, resourceGroupName string, resourceName string, configName string) MaintenanceConfigurationId {
+func NewMaintenanceConfigurationID(subscriptionId string, resourceGroupName string, managedClusterName string, maintenanceConfigurationName string) MaintenanceConfigurationId {
 	return MaintenanceConfigurationId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
-		ConfigName:        configName,
+		SubscriptionId:               subscriptionId,
+		ResourceGroupName:            resourceGroupName,
+		ManagedClusterName:           managedClusterName,
+		MaintenanceConfigurationName: maintenanceConfigurationName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseMaintenanceConfigurationID(input string) (*MaintenanceConfigurationId,
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
-	if id.ConfigName, ok = parsed.Parsed["configName"]; !ok {
-		return nil, fmt.Errorf("the segment 'configName' was not found in the resource id %q", input)
+	if id.MaintenanceConfigurationName, ok = parsed.Parsed["maintenanceConfigurationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'maintenanceConfigurationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseMaintenanceConfigurationIDInsensitively(input string) (*MaintenanceCon
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
-	if id.ConfigName, ok = parsed.Parsed["configName"]; !ok {
-		return nil, fmt.Errorf("the segment 'configName' was not found in the resource id %q", input)
+	if id.MaintenanceConfigurationName, ok = parsed.Parsed["maintenanceConfigurationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'maintenanceConfigurationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateMaintenanceConfigurationID(input interface{}, key string) (warnings
 // ID returns the formatted Maintenance Configuration ID
 func (id MaintenanceConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/maintenanceConfigurations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.ConfigName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, id.MaintenanceConfigurationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Maintenance Configuration ID
@@ -119,9 +119,9 @@ func (id MaintenanceConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
 		resourceids.StaticSegment("staticMaintenanceConfigurations", "maintenanceConfigurations", "maintenanceConfigurations"),
-		resourceids.UserSpecifiedSegment("configName", "configValue"),
+		resourceids.UserSpecifiedSegment("maintenanceConfigurationName", "maintenanceConfigurationValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id MaintenanceConfigurationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Config Name: %q", id.ConfigName),
+		fmt.Sprintf("Managed Cluster Name: %q", id.ManagedClusterName),
+		fmt.Sprintf("Maintenance Configuration Name: %q", id.MaintenanceConfigurationName),
 	}
 	return fmt.Sprintf("Maintenance Configuration (%s)", strings.Join(components, "\n"))
 }

@@ -6,7 +6,7 @@ package webtestsapis
 type WebTestPropertiesValidationRules struct {
 	ContentValidation             *WebTestPropertiesValidationRulesContentValidation `json:"ContentValidation,omitempty"`
 	ExpectedHTTPStatusCode        *int64                                             `json:"ExpectedHttpStatusCode,omitempty"`
-	IgnoreHTTPSStatusCode         *bool                                              `json:"IgnoreHttpsStatusCode,omitempty"`
+	IgnoreHTTPStatusCode          *bool                                              `json:"IgnoreHttpStatusCode,omitempty"`
 	SSLCertRemainingLifetimeCheck *int64                                             `json:"SSLCertRemainingLifetimeCheck,omitempty"`
 	SSLCheck                      *bool                                              `json:"SSLCheck,omitempty"`
 }

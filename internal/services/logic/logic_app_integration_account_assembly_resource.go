@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,7 +32,7 @@ func resourceLogicAppIntegrationAccountAssembly() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationAccountAssemblyID(id)
+			_, err := integrationaccountassemblies.ParseAssemblyID(id)
 			return err
 		}),
 
@@ -98,44 +98,43 @@ func resourceLogicAppIntegrationAccountAssemblyCreateUpdate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIntegrationAccountAssemblyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
+	id := integrationaccountassemblies.NewAssemblyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AssemblyName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_assembly", id.ID())
 		}
 	}
 
-	parameters := logic.AssemblyDefinition{
-		Properties: &logic.AssemblyProperties{
-			AssemblyName:    utils.String(d.Get("assembly_name").(string)),
+	parameters := integrationaccountassemblies.AssemblyDefinition{
+		Properties: integrationaccountassemblies.AssemblyProperties{
+			AssemblyName:    d.Get("assembly_name").(string),
 			AssemblyVersion: utils.String(d.Get("assembly_version").(string)),
 			ContentType:     utils.String("application/octet-stream"),
 		},
 	}
 
 	if v, ok := d.GetOk("content"); ok {
-		parameters.Properties.Content = utils.String(v.(string))
+		parameters.Properties.Content = &v
 	}
 
 	if v, ok := d.GetOk("content_link_uri"); ok {
-		parameters.Properties.ContentLink = &logic.ContentLink{
-			URI: utils.String(v.(string)),
+		parameters.Properties.ContentLink = &integrationaccountassemblies.ContentLink{
+			Uri: utils.String(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		metadata := v.(map[string]interface{})
-		parameters.Properties.Metadata = &metadata
+		parameters.Properties.Metadata = &v
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AssemblyName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -148,14 +147,14 @@ func resourceLogicAppIntegrationAccountAssemblyRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountAssemblyID(d.Id())
+	id, err := integrationaccountassemblies.ParseAssemblyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AssemblyName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -164,19 +163,20 @@ func resourceLogicAppIntegrationAccountAssemblyRead(d *pluginsdk.ResourceData, m
 	}
 
 	d.Set("name", id.AssemblyName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("integration_account_name", id.IntegrationAccountName)
 
-	if props := resp.Properties; props != nil {
+	if model := resp.Model; model != nil {
+		props := model.Properties
 		d.Set("assembly_name", props.AssemblyName)
 		d.Set("assembly_version", props.AssemblyVersion)
 		d.Set("content_link_uri", d.Get("content_link_uri").(string))
 		d.Set("content", d.Get("content").(string))
 
 		if props.Metadata != nil {
-			metadata := props.Metadata.(map[string]interface{})
-			d.Set("metadata", metadata)
+			d.Set("metadata", props.Metadata)
 		}
+
 	}
 
 	return nil
@@ -187,12 +187,12 @@ func resourceLogicAppIntegrationAccountAssemblyDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountAssemblyID(d.Id())
+	id, err := integrationaccountassemblies.ParseAssemblyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IntegrationAccountName, id.AssemblyName); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
