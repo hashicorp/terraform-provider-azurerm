@@ -106,6 +106,10 @@ resource "azurerm_ip_group" "test" {
   tags = {
     env = "prod"
   }
+
+  lifecycle {
+    ignore_changes = ["cidrs"]
+  }
 }
 
 resource "azurerm_ip_group_cidr" "test" {
