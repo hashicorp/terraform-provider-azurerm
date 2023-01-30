@@ -96,17 +96,13 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	skuName := d.Get("sku_name").(string)
-	subnetID := d.Get("subnet_id").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
 	parameters := serviceresource.DataMigrationService{
-		Location: location,
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Properties: &serviceresource.DataMigrationServiceProperties{
-			VirtualSubnetId: subnetID,
+			VirtualSubnetId: d.Get("subnet_id").(string),
 		},
 		Sku: &serviceresource.ServiceSku{
-			Name: utils.String(skuName),
+			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		Kind: utils.String("Cloud"), // currently only "Cloud" is supported, hence hardcode here
 	}
@@ -168,7 +164,9 @@ func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	parameters := serviceresource.DataMigrationService{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		// location isn't update-able but if we don't supply the current value the SDK sends an empty string instead which errors on the API side
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.ServicesUpdateThenPoll(ctx, *id, parameters); err != nil {
