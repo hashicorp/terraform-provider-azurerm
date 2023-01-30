@@ -30,7 +30,7 @@ type HybridComputeMachineModel struct {
 	OsType                     string                              `tfschema:"os_type"`
 	ParentClusterResourceId    string                              `tfschema:"parent_cluster_resource_id"`
 	PrivateLinkScopeResourceId string                              `tfschema:"private_link_scope_resource_id"`
-	ServiceStatuses            []ServiceStatusesModel              `tfschema:"service_statuses"`
+	ServiceStatuses            []ServiceStatusesModel              `tfschema:"service_status"`
 	Tags                       map[string]string                   `tfschema:"tags"`
 	VmId                       string                              `tfschema:"vm_id"`
 	AdFqdn                     string                              `tfschema:"ad_fqdn"`
@@ -534,7 +534,7 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
-		"service_statuses": {
+		"service_status": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 

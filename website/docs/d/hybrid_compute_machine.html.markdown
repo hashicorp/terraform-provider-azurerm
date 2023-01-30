@@ -85,7 +85,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_link_scope_resource_id` - The resource id of the parent cluster (Azure HCI) this machine is assigned to, if any.
 
-* `service_statuses` - A `service_statuses` block as defined below.
+* `service_status` - A `service_status` block as defined below.
 
 * `status` - The status of the hybrid machine agent.
 
@@ -231,7 +231,7 @@ A `patch_settings` block exports the following:
 
 ---
 
-A `service_statuses` block exports the following:
+A `service_status` block exports the following:
 
 * `extension_service` - A `extension_service` block as defined above.
 
