@@ -14,7 +14,7 @@ Use this data source to access information about an existing Hybrid Compute.
 
 ```hcl
 data "azurerm_hybrid_compute_machine" "example" {
-  name = "existing-hcmachine"
+  name                = "existing-hcmachine"
   resource_group_name = "existing-rg"
 }
 

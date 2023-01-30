@@ -2,10 +2,10 @@ package hybridcompute_test
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-uuid"
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )

@@ -645,7 +645,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.AdFqdn = *properties.AdFqdn
 				}
 
-				agentConfigurationValue, err := flattenAgentConfigurationModel(properties.AgentConfiguration)
+				agentConfigurationValue := flattenAgentConfigurationModel(properties.AgentConfiguration)
 				if err != nil {
 					return err
 				}
@@ -660,7 +660,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.ClientPublicKey = *properties.ClientPublicKey
 				}
 
-				cloudMetadataValue, err := flattenCloudMetadataModel(properties.CloudMetadata)
+				cloudMetadataValue := flattenCloudMetadataModel(properties.CloudMetadata)
 				if err != nil {
 					return err
 				}
@@ -683,14 +683,14 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.DomainName = *properties.DomainName
 				}
 
-				errorDetailsValue, err := flattenErrorDetailModel(properties.ErrorDetails)
+				errorDetailsValue := flattenErrorDetailModel(properties.ErrorDetails)
 				if err != nil {
 					return err
 				}
 
 				state.ErrorDetails = errorDetailsValue
 
-				extensionsValue, err := flattenMachineExtensionInstanceViewModel(properties.Extensions)
+				extensionsValue := flattenMachineExtensionInstanceViewModel(properties.Extensions)
 				if err != nil {
 					return err
 				}
@@ -701,7 +701,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.LastStatusChange = *properties.LastStatusChange
 				}
 
-				locationDataValue, err := flattenLocationDataModel(properties.LocationData)
+				locationDataValue := flattenLocationDataModel(properties.LocationData)
 				if err != nil {
 					return err
 				}
@@ -720,7 +720,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.OsName = *properties.OsName
 				}
 
-				osProfileValue, err := flattenOSProfileModel(properties.OsProfile)
+				osProfileValue := flattenOSProfileModel(properties.OsProfile)
 				if err != nil {
 					return err
 				}
@@ -747,7 +747,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.PrivateLinkScopeResourceId = *properties.PrivateLinkScopeResourceId
 				}
 
-				serviceStatusesValue, err := flattenServiceStatusesModel(properties.ServiceStatuses)
+				serviceStatusesValue := flattenServiceStatusesModel(properties.ServiceStatuses)
 				if err != nil {
 					return err
 				}
@@ -776,25 +776,19 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]AgentConfigurationModel, error) {
+func flattenAgentConfigurationModel(input *machines.AgentConfiguration) []AgentConfigurationModel {
 	var outputList []AgentConfigurationModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := AgentConfigurationModel{}
 
-	extensionsAllowListValue, err := flattenConfigurationExtensionModel(input.ExtensionsAllowList)
-	if err != nil {
-		return nil, err
-	}
+	extensionsAllowListValue := flattenConfigurationExtensionModel(input.ExtensionsAllowList)
 
 	output.ExtensionsAllowList = extensionsAllowListValue
 
-	extensionsBlockListValue, err := flattenConfigurationExtensionModel(input.ExtensionsBlockList)
-	if err != nil {
-		return nil, err
-	}
+	extensionsBlockListValue := flattenConfigurationExtensionModel(input.ExtensionsBlockList)
 
 	output.ExtensionsBlockList = extensionsBlockListValue
 
@@ -818,13 +812,13 @@ func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]Agent
 		output.ProxyUrl = *input.ProxyUrl
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExtension) ([]ConfigurationExtensionModel, error) {
+func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExtension) []ConfigurationExtensionModel {
 	var outputList []ConfigurationExtensionModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -841,13 +835,13 @@ func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExten
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenCloudMetadataModel(input *machines.CloudMetadata) ([]CloudMetadataModel, error) {
+func flattenCloudMetadataModel(input *machines.CloudMetadata) []CloudMetadataModel {
 	var outputList []CloudMetadataModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := CloudMetadataModel{}
@@ -856,22 +850,19 @@ func flattenCloudMetadataModel(input *machines.CloudMetadata) ([]CloudMetadataMo
 		output.Provider = *input.Provider
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenErrorDetailModel(inputList *[]machines.ErrorDetail) ([]ErrorDetailModel, error) {
+func flattenErrorDetailModel(inputList *[]machines.ErrorDetail) []ErrorDetailModel {
 	var outputList []ErrorDetailModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
 		output := ErrorDetailModel{}
 
-		additionalInfoValue, err := flattenErrorAdditionalInfoModel(input.AdditionalInfo)
-		if err != nil {
-			return nil, err
-		}
+		additionalInfoValue := flattenErrorAdditionalInfoModel(input.AdditionalInfo)
 
 		output.AdditionalInfo = additionalInfoValue
 
@@ -890,13 +881,13 @@ func flattenErrorDetailModel(inputList *[]machines.ErrorDetail) ([]ErrorDetailMo
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) ([]ErrorAdditionalInfoModel, error) {
+func flattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) []ErrorAdditionalInfoModel {
 	var outputList []ErrorAdditionalInfoModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -906,7 +897,7 @@ func flattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) 
 
 			infoValue, err := json.Marshal(*input.Info)
 			if err != nil {
-				return nil, err
+				return nil
 			}
 
 			output.Info = string(infoValue)
@@ -919,13 +910,13 @@ func flattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) 
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenMachineExtensionInstanceViewModel(inputList *[]machines.MachineExtensionInstanceView) ([]MachineExtensionInstanceViewModel, error) {
+func flattenMachineExtensionInstanceViewModel(inputList *[]machines.MachineExtensionInstanceView) []MachineExtensionInstanceViewModel {
 	var outputList []MachineExtensionInstanceViewModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -935,10 +926,7 @@ func flattenMachineExtensionInstanceViewModel(inputList *[]machines.MachineExten
 			output.Name = *input.Name
 		}
 
-		statusValue, err := flattenMachineExtensionInstanceViewStatusModel(input.Status)
-		if err != nil {
-			return nil, err
-		}
+		statusValue := flattenMachineExtensionInstanceViewStatusModel(input.Status)
 
 		output.Status = statusValue
 
@@ -953,13 +941,13 @@ func flattenMachineExtensionInstanceViewModel(inputList *[]machines.MachineExten
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenMachineExtensionInstanceViewStatusModel(input *machines.MachineExtensionInstanceViewStatus) ([]MachineExtensionInstanceViewStatusModel, error) {
+func flattenMachineExtensionInstanceViewStatusModel(input *machines.MachineExtensionInstanceViewStatus) []MachineExtensionInstanceViewStatusModel {
 	var outputList []MachineExtensionInstanceViewStatusModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := MachineExtensionInstanceViewStatusModel{}
@@ -984,13 +972,13 @@ func flattenMachineExtensionInstanceViewStatusModel(input *machines.MachineExten
 		output.Time = *input.Time
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenLocationDataModel(input *machines.LocationData) ([]LocationDataModel, error) {
+func flattenLocationDataModel(input *machines.LocationData) []LocationDataModel {
 	var outputList []LocationDataModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := LocationDataModel{
@@ -1009,13 +997,13 @@ func flattenLocationDataModel(input *machines.LocationData) ([]LocationDataModel
 		output.District = *input.District
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenOSProfileModel(input *machines.OSProfile) ([]OSProfileModel, error) {
+func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
 	var outputList []OSProfileModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := OSProfileModel{}
@@ -1024,45 +1012,36 @@ func flattenOSProfileModel(input *machines.OSProfile) ([]OSProfileModel, error) 
 		output.ComputerName = *input.ComputerName
 	}
 
-	linuxConfigurationValue, err := flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
-	if err != nil {
-		return nil, err
-	}
+	linuxConfigurationValue := flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
 
 	output.LinuxConfiguration = linuxConfigurationValue
 
-	windowsConfigurationValue, err := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
-	if err != nil {
-		return nil, err
-	}
+	windowsConfigurationValue := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
 
 	output.WindowsConfiguration = windowsConfigurationValue
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfiguration) ([]OSProfileLinuxConfigurationModel, error) {
+func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfiguration) []OSProfileLinuxConfigurationModel {
 	var outputList []OSProfileLinuxConfigurationModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := OSProfileLinuxConfigurationModel{}
 
-	patchSettingsValue, err := flattenPatchSettingsModel(input.PatchSettings)
-	if err != nil {
-		return nil, err
-	}
+	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
 
 	output.PatchSettings = patchSettingsValue
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenPatchSettingsModel(input *machines.PatchSettings) ([]PatchSettingsModel, error) {
+func flattenPatchSettingsModel(input *machines.PatchSettings) []PatchSettingsModel {
 	var outputList []PatchSettingsModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := PatchSettingsModel{}
@@ -1075,56 +1054,47 @@ func flattenPatchSettingsModel(input *machines.PatchSettings) ([]PatchSettingsMo
 		output.PatchMode = *input.PatchMode
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsConfiguration) ([]OSProfileWindowsConfigurationModel, error) {
+func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsConfiguration) []OSProfileWindowsConfigurationModel {
 	var outputList []OSProfileWindowsConfigurationModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := OSProfileWindowsConfigurationModel{}
 
-	patchSettingsValue, err := flattenPatchSettingsModel(input.PatchSettings)
-	if err != nil {
-		return nil, err
-	}
+	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
 
 	output.PatchSettings = patchSettingsValue
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenServiceStatusesModel(input *machines.ServiceStatuses) ([]ServiceStatusesModel, error) {
+func flattenServiceStatusesModel(input *machines.ServiceStatuses) []ServiceStatusesModel {
 	var outputList []ServiceStatusesModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := ServiceStatusesModel{}
 
-	extensionServiceValue, err := flattenServiceStatusModel(input.ExtensionService)
-	if err != nil {
-		return nil, err
-	}
+	extensionServiceValue := flattenServiceStatusModel(input.ExtensionService)
 
 	output.ExtensionService = extensionServiceValue
 
-	guestConfigurationServiceValue, err := flattenServiceStatusModel(input.GuestConfigurationService)
-	if err != nil {
-		return nil, err
-	}
+	guestConfigurationServiceValue := flattenServiceStatusModel(input.GuestConfigurationService)
 
 	output.GuestConfigurationService = guestConfigurationServiceValue
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenServiceStatusModel(input *machines.ServiceStatus) ([]ServiceStatusModel, error) {
+func flattenServiceStatusModel(input *machines.ServiceStatus) []ServiceStatusModel {
 	var outputList []ServiceStatusModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := ServiceStatusModel{}
@@ -1137,5 +1107,5 @@ func flattenServiceStatusModel(input *machines.ServiceStatus) ([]ServiceStatusMo
 		output.Status = *input.Status
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
