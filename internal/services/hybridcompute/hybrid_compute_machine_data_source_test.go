@@ -15,7 +15,7 @@ type HybridComputeMachineDataSource struct{}
 func TestAccHybridComputeMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hybrid_compute_machine", "test")
 	d := HybridComputeMachineDataSource{}
-	clientSecret := os.Getenv("TF_VAR_client_secret")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	randomUUID, _ := uuid.GenerateUUID()
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
