@@ -268,9 +268,38 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			// which'll also need the Monitor resource to have Create call Update
 			"name": {},
 		},
+		"azurerm_spring_cloud_accelerator": {
+			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
+			"name": {},
+		},
+		"azurerm_spring_cloud_api_portal": {
+			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
+			"name": {},
+		},
+		"azurerm_spring_cloud_application_live_view": {
+			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
+			"name": {},
+		},
+		"azurerm_spring_cloud_configuration_service": {
+			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
+			"name": {},
+		},
+		"azurerm_spring_cloud_dev_tool_portal": {
+			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
+			"name": {},
+		},
+		"azurerm_spring_cloud_gateway": {
+			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
+			"name": {},
+		},
 
-		// 2. False Positives?
+		// 2: False Positives?
 		"azurerm_redis_enterprise_database": {
+			"name": {},
+		},
+
+		// 3: Deprecated / to be removed in 4.0
+		"azurerm_cosmosdb_notebook_workspace": {
 			"name": {},
 		},
 	}
@@ -304,13 +333,25 @@ func schemaContainsANameFieldWithADefaultValueOfDefault(input map[string]*schema
 		}
 
 		if strings.EqualFold(key, "name") {
-			var defaultValue any
-			if field.Default != nil {
-				defaultValue = field.Default
+			defaultValue, err := field.DefaultValue()
+			if err != nil {
+				return fmt.Errorf("obtaining default value for %q: %+v", fieldName, err)
 			}
+
 			if v, ok := defaultValue.(string); ok {
 				if strings.EqualFold(v, "default") {
 					return fmt.Errorf("field %q is a `name` field which contains a default value of `default`", fieldName)
+				}
+			}
+
+			// should the ValidateFunc allow `default`, we can assume this too
+			if field.ValidateFunc != nil {
+				allowsEmptyString := runInputForValidateFunction(field.ValidateFunc, "")
+				allowsWhitespaceString := runInputForValidateFunction(field.ValidateFunc, " ")
+				allowsPlaceholderValue := runInputForValidateFunction(field.ValidateFunc, "placeholder")
+				allowsDefaultValue := runInputForValidateFunction(field.ValidateFunc, "default")
+				if allowsDefaultValue && !allowsPlaceholderValue && !allowsWhitespaceString && !allowsEmptyString {
+					return fmt.Errorf("field %q is a `name` field where the ValidateFunc explicitly allows a default value of `default`", fieldName)
 				}
 			}
 		}
@@ -333,4 +374,9 @@ func schemaContainsANameFieldWithADefaultValueOfDefault(input map[string]*schema
 	}
 
 	return nil
+}
+
+func runInputForValidateFunction(validateFunc pluginsdk.SchemaValidateFunc, input string) bool {
+	warnings, errs := validateFunc(input, input)
+	return len(warnings) == 0 && len(errs) == 0
 }
