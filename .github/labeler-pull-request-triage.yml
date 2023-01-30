@@ -138,7 +138,7 @@ service/hpc-cache:
 service/hsm:
   - internal/services/hsm/**/*
 
-service/hybridcompute:
+service/hybrid-compute:
   - internal/services/hybridcompute/**/*
 
 service/iot-central:
