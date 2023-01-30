@@ -35,11 +35,6 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
-
-  subscription_id = "32e4c1f5-64a0-46da-a4cf-455865e0f13d"
-  tenant_id       = "0f640c0e-4902-436c-8682-4a5ad16f9800"
-  client_id       = "8aa0f6d6-6278-42e3-89b5-d71c270d13dd"
-  client_secret   = "%s"
 }
 
 data "azurerm_client_config" "current" {}
@@ -166,7 +161,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     ]
   }
 }
-`, secret, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, secret)
+`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, secret)
 }
 
 func (r HybridComputeMachineDataSource) basic(data acceptance.TestData, secret string, randomUUID string) string {

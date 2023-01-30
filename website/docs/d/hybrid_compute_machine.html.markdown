@@ -3,7 +3,7 @@ subcategory: "Hybrid Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_hybrid_compute_machine"
 description: |-
-  Gets information about an existing Hybrid Compute.
+  Gets information about an existing hybrid compute machine.
 ---
 
 # Data Source: azurerm_hybrid_compute_machine
@@ -14,8 +14,8 @@ Use this data source to access information about an existing Hybrid Compute.
 
 ```hcl
 data "azurerm_hybrid_compute_machine" "example" {
-  name = "existing"
-  resource_group_name = "existing"
+  name = "existing-hcmachine"
+  resource_group_name = "existing-rg"
 }
 
 output "id" {
@@ -27,7 +27,7 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Hybrid Compute. Changing this forces a new Hybrid Compute to be created.
+* `name` - (Required) The name of this hybrid compute machine. Changing this forces a new Hybrid Compute to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Hybrid Compute exists. Changing this forces a new Hybrid Compute to be created.
 
@@ -35,25 +35,25 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Hybrid Compute.
+* `id` - The ID of the hybrid compute machine.
 
-* `ad_fqdn` - TODO.
+* `ad_fqdn` - Specifies the AD fully qualified display name.
 
 * `agent_configuration` - A `agent_configuration` block as defined below.
 
-* `agent_version` - TODO.
+* `agent_version` - The hybrid machine agent full version.
 
-* `client_public_key` - TODO.
+* `client_public_key` - Public Key that the client provides to be used during initial resource onboarding.
 
 * `cloud_metadata` - A `cloud_metadata` block as defined below.
 
 * `detected_properties` - A `detected_properties` block as defined below.
 
-* `display_name` - TODO.
+* `display_name` - Specifies the hybrid machine display name.
 
-* `dns_fqdn` - TODO.
+* `dns_fqdn` - Specifies the DNS fully qualified display name.
 
-* `domain_name` - TODO.
+* `domain_name` - Specifies the Windows domain name.
 
 * `error_details` - A `error_details` block as defined below.
 
@@ -61,47 +61,47 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `last_status_change` - TODO.
+* `last_status_change` - The time of the last status change.
 
-* `location` - The Azure Region where the Hybrid Compute exists.
+* `location` - The Azure Region where the hybrid compute machine exists.
 
 * `location_data` - A `location_data` block as defined below.
 
-* `machine_fqdn` - TODO.
+* `machine_fqdn` - Specifies the hybrid machine fully qualified display name.
 
-* `mssql_discovered` - TODO.
+* `mssql_discovered` - Specifies whether any MS SQL instance is discovered on the machine.
 
-* `os_name` - TODO.
+* `os_name` - The Operating System running on the hybrid machine.
 
 * `os_profile` - A `os_profile` block as defined below.
 
-* `os_sku` - TODO.
+* `os_sku` - Specifies the Operating System product SKU.
 
-* `os_type` - TODO.
+* `os_type` - The type of Operating System. Possible values are `windows` and `linux`.
 
-* `os_version` - TODO.
+* `os_version` - The version of Operating System running on the hybrid machine.
 
-* `parent_cluster_resource_id` - The ID of the TODO.
+* `parent_cluster_resource_id` - The resource id of the parent cluster (Azure HCI) this machine is assigned to, if any.
 
-* `private_link_scope_resource_id` - The ID of the TODO.
+* `private_link_scope_resource_id` - The resource id of the parent cluster (Azure HCI) this machine is assigned to, if any.
 
 * `service_statuses` - A `service_statuses` block as defined below.
 
-* `status` - TODO.
+* `status` - The status of the hybrid machine agent.
 
 * `tags` - A mapping of tags assigned to the Hybrid Compute.
 
-* `vm_id` - The ID of the TODO.
+* `vm_id` - Specifies the hybrid machine unique ID.
 
-* `vm_uuid` - TODO.
+* `vm_uuid` - Specifies the Arc Machine's unique SMBIOS ID.
 
 ---
 
 A `additional_info` block exports the following:
 
-* `info` - TODO.
+* `info` - The additional information message.
 
-* `type` - TODO.
+* `type` - The additional information type.
 
 ---
 
@@ -111,21 +111,21 @@ A `agent_configuration` block exports the following:
 
 * `extensions_block_list` - A `extensions_block_list` block as defined below.
 
-* `extensions_enabled` - Is the TODO enabled?
+* `extensions_enabled` - Specifies whether the extension service is enabled or disabled.
 
-* `guest_configuration_enabled` - Is the TODO enabled?
+* `guest_configuration_enabled` - Specified whether the guest configuration service is enabled or disabled.
 
-* `incoming_connections_ports` - A `incoming_connections_ports` block as defined below.
+* `incoming_connections_ports` - Specifies the list of ports that the agent will be able to listen on.
 
-* `proxy_bypass` - A `proxy_bypass` block as defined below.
+* `proxy_bypass` - List of service names which should not use the specified proxy server.
 
-* `proxy_url` - TODO.
+* `proxy_url` - Specifies the URL of the proxy to be used.
 
 ---
 
 A `cloud_metadata` block exports the following:
 
-* `provider` - TODO.
+* `provider` - Specifies the cloud provider. For example `Azure`, `AWS` and `GCP`.
 
 ---
 
@@ -133,65 +133,65 @@ A `error_details` block exports the following:
 
 * `additional_info` - A `additional_info` block as defined above.
 
-* `code` - TODO.
+* `code` - The error code.
 
-* `message` - TODO.
+* `message` - The error message.
 
-* `target` - TODO.
+* `target` - The error target.
 
 ---
 
 A `extension_service` block exports the following:
 
-* `startup_type` - TODO.
+* `startup_type` - The behavior of the service when the Arc-enabled machine starts up.
 
-* `status` - TODO.
+* `status` - The current status of the service.
 
 ---
 
 A `extensions` block exports the following:
 
-* `name` - The name of this TODO.
+* `name` - The machine extension name.
 
 * `status` - A `status` block as defined below.
 
-* `type` - TODO.
+* `type` - Specifies the type of the extension. For example `CustomScriptExtension`.
 
-* `type_handler_version` - TODO.
+* `type_handler_version` - Specifies the version of the script handler.
 
 ---
 
 A `extensions_allow_list` block exports the following:
 
-* `publisher` - TODO.
+* `publisher` - Publisher of the extension.
 
-* `type` - TODO.
+* `type` - Type of the extension.
 
 ---
 
 A `extensions_block_list` block exports the following:
 
-* `publisher` - TODO.
+* `publisher` - Publisher of the extension.
 
-* `type` - TODO.
+* `type` - Type of the extension.
 
 ---
 
 A `guest_configuration_service` block exports the following:
 
-* `startup_type` - TODO.
+* `startup_type` - The behavior of the service when the Arc-enabled machine starts up.
 
-* `status` - TODO.
+* `status` - The current status of the service.
 
 ---
 
 A `identity` block exports the following:
 
-* `principal_id` - The ID of the TODO.
+* `principal_id` - The principal ID of resource identity.
 
-* `tenant_id` - The ID of the TODO.
+* `tenant_id` - The tenant ID of resource.
 
-* `type` - TODO.
+* `type` - The identity type.
 
 ---
 
@@ -203,19 +203,19 @@ A `linux_configuration` block exports the following:
 
 A `location_data` block exports the following:
 
-* `city` - TODO.
+* `city` - The city or locality where the resource is located.
 
-* `country_or_region` - TODO.
+* `country_or_region` - The country or region where the resource is located.
 
-* `district` - TODO.
+* `district` - The district, state, or province where the resource is located.
 
-* `name` - The name of this TODO.
+* `name` - A canonical name for the geographic or physical location.
 
 ---
 
 A `os_profile` block exports the following:
 
-* `computer_name` - TODO.
+* `computer_name` - Specifies the host OS name of the hybrid machine.
 
 * `linux_configuration` - A `linux_configuration` block as defined above.
 
@@ -225,9 +225,9 @@ A `os_profile` block exports the following:
 
 A `patch_settings` block exports the following:
 
-* `assessment_mode` - TODO.
+* `assessment_mode` - Specifies the assessment mode.
 
-* `patch_mode` - TODO.
+* `patch_mode` - Specifies the patch mode.
 
 ---
 
@@ -241,15 +241,15 @@ A `service_statuses` block exports the following:
 
 A `status` block exports the following:
 
-* `code` - TODO.
+* `code` - The status code.
 
-* `display_status` - TODO.
+* `display_status` - The short localizable label for the status.
 
-* `level` - TODO.
+* `level` - The level code.
 
-* `message` - TODO.
+* `message` - The detailed status message, including for alerts and error messages.
 
-* `time` - TODO.
+* `time` - The time of the status.
 
 ---
 
