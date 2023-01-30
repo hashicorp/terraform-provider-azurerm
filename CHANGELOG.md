@@ -4,6 +4,9 @@ ENHANCEMENTS:
 
 * `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20214]
 
+BUG FIXES:
+
+* `azurerm_monitor_aad_diagnostic_setting` - the field `log_analytics_workspace_id` is now parsed case-insensitively from the API Response [GH-20206]
 
 ## 3.41.0 (January 26, 2023)
 
