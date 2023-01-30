@@ -351,14 +351,9 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											}, false),
 									},
 									"value": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												string(AlertRuleDynamicPropertiesValueCaller),
-												string(AlertRuleDynamicPropertiesValueDcountResourceId),
-												string(AlertRuleDynamicPropertiesValueEventSubmissionTimestamp),
-											}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},

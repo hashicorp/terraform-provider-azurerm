@@ -11,14 +11,6 @@ import (
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
-type AlertRuleDynamicPropertiesValue string
-
-const (
-	AlertRuleDynamicPropertiesValueCaller                   AlertRuleDynamicPropertiesValue = "Caller"
-	AlertRuleDynamicPropertiesValueDcountResourceId         AlertRuleDynamicPropertiesValue = "dcount_ResourceId"
-	AlertRuleDynamicPropertiesValueEventSubmissionTimestamp AlertRuleDynamicPropertiesValue = "EventSubmissionTimestamp"
-)
-
 func alertRuleID(rule securityinsight.BasicAlertRule) *string {
 	if rule == nil {
 		return nil
