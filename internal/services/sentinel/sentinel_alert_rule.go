@@ -11,6 +11,14 @@ import (
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
+type AlertRuleDynamicPropertiesValue string
+
+const (
+	AlertRuleDynamicPropertiesValueCaller                   AlertRuleDynamicPropertiesValue = "Caller"
+	AlertRuleDynamicPropertiesValueDcountResourceId         AlertRuleDynamicPropertiesValue = "dcount_ResourceId"
+	AlertRuleDynamicPropertiesValueEventSubmissionTimestamp AlertRuleDynamicPropertiesValue = "EventSubmissionTimestamp"
+)
+
 func alertRuleID(rule securityinsight.BasicAlertRule) *string {
 	if rule == nil {
 		return nil
@@ -268,6 +276,9 @@ func expandAlertRuleAlertDetailsOverride(input []interface{}) *securityinsight.A
 	if v := b["tactics_column_name"]; v != "" {
 		output.AlertTacticsColumnName = utils.String(v.(string))
 	}
+	if v := b["dynamic_properties"]; v != nil && len(v.([]interface{})) > 0 {
+		output.AlertDynamicProperties = expandAlertRuleAlertDynamicProperties(v.([]interface{}))
+	}
 
 	return output
 }
@@ -297,14 +308,54 @@ func flattenAlertRuleAlertDetailsOverride(input *securityinsight.AlertDetailsOve
 		tacticsColumnName = *input.AlertTacticsColumnName
 	}
 
+	var dynamicProperties []interface{}
+	if input.AlertDynamicProperties != nil {
+		dynamicProperties = flattenAlertRuleAlertDynamicProperties(input.AlertDynamicProperties)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"description_format":   descriptionFormat,
 			"display_name_format":  displayNameFormat,
 			"severity_column_name": severityColumnName,
 			"tactics_column_name":  tacticsColumnName,
+			"dynamic_properties":   dynamicProperties,
 		},
 	}
+}
+
+func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]securityinsight.AlertPropertyMapping {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	var output []securityinsight.AlertPropertyMapping
+
+	for _, v := range input {
+		b := v.(map[string]interface{})
+		output = append(output, securityinsight.AlertPropertyMapping{
+			AlertProperty: securityinsight.AlertProperty(b["name"].(string)),
+			Value:         utils.String(b["value"].(string)),
+		})
+	}
+
+	return &output
+}
+
+func flattenAlertRuleAlertDynamicProperties(input *[]securityinsight.AlertPropertyMapping) []interface{} {
+	output := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return output
+	}
+
+	for _, i := range *input {
+		output = append(output, map[string]interface{}{
+			"name":  string(i.AlertProperty),
+			"value": i.Value,
+		})
+	}
+
+	return output
 }
 
 func expandAlertRuleEntityMapping(input []interface{}) *[]securityinsight.EntityMapping {

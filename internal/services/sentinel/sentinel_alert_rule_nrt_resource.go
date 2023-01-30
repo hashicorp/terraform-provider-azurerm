@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -266,6 +267,40 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_properties": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice(
+											[]string{
+												string(securityinsight.AlertPropertyAlertLink),
+												string(securityinsight.AlertPropertyConfidenceLevel),
+												string(securityinsight.AlertPropertyConfidenceScore),
+												string(securityinsight.AlertPropertyExtendedLinks),
+												string(securityinsight.AlertPropertyProductComponentName),
+												string(securityinsight.AlertPropertyProductName),
+												string(securityinsight.AlertPropertyProviderName),
+												string(securityinsight.AlertPropertyRemediationSteps),
+												string(securityinsight.AlertPropertyTechniques),
+											}, false),
+									},
+									"value": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice(
+											[]string{
+												string(AlertRuleDynamicPropertiesValueCaller),
+												string(AlertRuleDynamicPropertiesValueDcountResourceId),
+												string(AlertRuleDynamicPropertiesValueEventSubmissionTimestamp),
+											}, false),
+									},
+								},
+							},
 						},
 					},
 				},
