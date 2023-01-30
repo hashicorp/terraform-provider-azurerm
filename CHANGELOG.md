@@ -2,6 +2,7 @@
 
 FEATURES
 
+* **New Resource:** `azurerm_ip_group_cidr` [GH-20225]
 * **New Resource:** `azurerm_network_manager_connectivity_configuration` [GH-20133]
 
 ENHANCEMENTS:
