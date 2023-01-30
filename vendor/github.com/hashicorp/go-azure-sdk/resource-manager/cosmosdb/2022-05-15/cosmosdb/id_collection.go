@@ -11,21 +11,21 @@ var _ resourceids.ResourceId = CollectionId{}
 
 // CollectionId is a struct representing the Resource ID for a Collection
 type CollectionId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	DatabaseRid       string
-	CollectionRid     string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	DatabaseName        string
+	CollectionName      string
 }
 
 // NewCollectionID returns a new CollectionId struct
-func NewCollectionID(subscriptionId string, resourceGroupName string, accountName string, databaseRid string, collectionRid string) CollectionId {
+func NewCollectionID(subscriptionId string, resourceGroupName string, databaseAccountName string, databaseName string, collectionName string) CollectionId {
 	return CollectionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		DatabaseRid:       databaseRid,
-		CollectionRid:     collectionRid,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		DatabaseName:        databaseName,
+		CollectionName:      collectionName,
 	}
 }
 
@@ -48,16 +48,16 @@ func ParseCollectionID(input string) (*CollectionId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseRid, ok = parsed.Parsed["databaseRid"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseRid' was not found in the resource id %q", input)
+	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
 	}
 
-	if id.CollectionRid, ok = parsed.Parsed["collectionRid"]; !ok {
-		return nil, fmt.Errorf("the segment 'collectionRid' was not found in the resource id %q", input)
+	if id.CollectionName, ok = parsed.Parsed["collectionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'collectionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -83,16 +83,16 @@ func ParseCollectionIDInsensitively(input string) (*CollectionId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseRid, ok = parsed.Parsed["databaseRid"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseRid' was not found in the resource id %q", input)
+	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
 	}
 
-	if id.CollectionRid, ok = parsed.Parsed["collectionRid"]; !ok {
-		return nil, fmt.Errorf("the segment 'collectionRid' was not found in the resource id %q", input)
+	if id.CollectionName, ok = parsed.Parsed["collectionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'collectionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -116,7 +116,7 @@ func ValidateCollectionID(input interface{}, key string) (warnings []string, err
 // ID returns the formatted Collection ID
 func (id CollectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/databases/%s/collections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.DatabaseRid, id.CollectionRid)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.DatabaseName, id.CollectionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Collection ID
@@ -129,11 +129,11 @@ func (id CollectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticDatabases", "databases", "databases"),
-		resourceids.UserSpecifiedSegment("databaseRid", "databaseRidValue"),
+		resourceids.UserSpecifiedSegment("databaseName", "databaseValue"),
 		resourceids.StaticSegment("staticCollections", "collections", "collections"),
-		resourceids.UserSpecifiedSegment("collectionRid", "collectionRidValue"),
+		resourceids.UserSpecifiedSegment("collectionName", "collectionValue"),
 	}
 }
 
@@ -142,9 +142,9 @@ func (id CollectionId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Database Rid: %q", id.DatabaseRid),
-		fmt.Sprintf("Collection Rid: %q", id.CollectionRid),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Database Name: %q", id.DatabaseName),
+		fmt.Sprintf("Collection Name: %q", id.CollectionName),
 	}
 	return fmt.Sprintf("Collection (%s)", strings.Join(components, "\n"))
 }

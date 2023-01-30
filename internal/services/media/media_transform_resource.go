@@ -269,7 +269,7 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", id.TransformName)
-	d.Set("media_services_account_name", id.AccountName)
+	d.Set("media_services_account_name", id.MediaServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

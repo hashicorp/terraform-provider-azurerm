@@ -121,22 +121,22 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	inputs := apps.OperationInputs{
-		Name: id.ResourceName,
+		Name: id.IotAppName,
 	}
 
 	resp, err := client.CheckNameAvailability(ctx, commonids.NewSubscriptionID(id.SubscriptionId), inputs)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was globally available:  %+v", id.ResourceName, err)
+		return fmt.Errorf("checking if the name %q was globally available: %+v", id.IotAppName, err)
 	}
 	if model := resp.Model; model != nil {
 		if !*model.NameAvailable {
-			return fmt.Errorf("the name %q cannot be used. Reason: %q Message: %q", id.ResourceName, *model.Reason, *model.Message)
+			return fmt.Errorf("the name %q cannot be used. Reason: %q Message: %q", id.IotAppName, *model.Reason, *model.Message)
 		}
 	}
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = id.ResourceName
+		displayName = id.IotAppName
 		if !features.FourPointOhBeta() {
 			displayName = id.ResourceGroupName
 		}
@@ -265,7 +265,7 @@ func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ResourceName)
+	d.Set("name", id.IotAppName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

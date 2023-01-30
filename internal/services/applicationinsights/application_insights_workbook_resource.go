@@ -262,7 +262,7 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ApplicationInsightsWorkbookModel{
-				Name:              id.ResourceName,
+				Name:              id.WorkbookName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.NormalizeNilable(model.Location),
 			}

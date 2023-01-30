@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type Client struct {
@@ -29,6 +29,7 @@ type Client struct {
 	ManagerManagementGroupConnectionsClient *network.ManagementGroupNetworkManagerConnectionsClient
 	ManagerNetworkGroupsClient              *network.GroupsClient
 	ManagerScopeConnectionsClient           *network.ScopeConnectionsClient
+	ManagerStaticMembersClient              *network.StaticMembersClient
 	ManagerSubscriptionConnectionsClient    *network.SubscriptionNetworkManagerConnectionsClient
 	NatRuleClient                           *network.NatRulesClient
 	PointToSiteVpnGatewaysClient            *network.P2sVpnGatewaysClient
@@ -139,6 +140,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ManagerNetworkGroupsClient := network.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerNetworkGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagerStaticMembersClient := network.NewStaticMembersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerStaticMembersClient.Client, o.ResourceManagerAuthorizer)
 
 	ManagerSubscriptionConnectionsClient := network.NewSubscriptionNetworkManagerConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerSubscriptionConnectionsClient.Client, o.ResourceManagerAuthorizer)
@@ -281,6 +285,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagerManagementGroupConnectionsClient: &ManagerManagementGroupConnectionsClient,
 		ManagerNetworkGroupsClient:              &ManagerNetworkGroupsClient,
 		ManagerScopeConnectionsClient:           &ManagerScopeConnectionsClient,
+		ManagerStaticMembersClient:              &ManagerStaticMembersClient,
 		ManagerSubscriptionConnectionsClient:    &ManagerSubscriptionConnectionsClient,
 		NatRuleClient:                           &NatRuleClient,
 		PointToSiteVpnGatewaysClient:            &pointToSiteVpnGatewaysClient,

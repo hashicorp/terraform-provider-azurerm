@@ -161,9 +161,9 @@ func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta inte
 	model := resp.Model
 
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
-	d.Set("source_recovery_fabric_name", id.FabricName)
-	d.Set("name", id.NetworkMappingName)
+	d.Set("recovery_vault_name", id.VaultName)
+	d.Set("source_recovery_fabric_name", id.ReplicationFabricName)
+	d.Set("name", id.ReplicationNetworkMappingName)
 	if props := model.Properties; props != nil {
 		d.Set("source_network_id", props.PrimaryNetworkId)
 		d.Set("target_network_id", props.RecoveryNetworkId)

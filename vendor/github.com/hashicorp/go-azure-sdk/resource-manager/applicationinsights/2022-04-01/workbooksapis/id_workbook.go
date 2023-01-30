@@ -13,15 +13,15 @@ var _ resourceids.ResourceId = WorkbookId{}
 type WorkbookId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	ResourceName      string
+	WorkbookName      string
 }
 
 // NewWorkbookID returns a new WorkbookId struct
-func NewWorkbookID(subscriptionId string, resourceGroupName string, resourceName string) WorkbookId {
+func NewWorkbookID(subscriptionId string, resourceGroupName string, workbookName string) WorkbookId {
 	return WorkbookId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		WorkbookName:      workbookName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseWorkbookID(input string) (*WorkbookId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WorkbookName, ok = parsed.Parsed["workbookName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workbookName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseWorkbookIDInsensitively(input string) (*WorkbookId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WorkbookName, ok = parsed.Parsed["workbookName"]; !ok {
+		return nil, fmt.Errorf("the segment 'workbookName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateWorkbookID(input interface{}, key string) (warnings []string, error
 // ID returns the formatted Workbook ID
 func (id WorkbookId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/workbooks/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkbookName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Workbook ID
@@ -109,7 +109,7 @@ func (id WorkbookId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticWorkbooks", "workbooks", "workbooks"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("workbookName", "workbookValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id WorkbookId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Workbook Name: %q", id.WorkbookName),
 	}
 	return fmt.Sprintf("Workbook (%s)", strings.Join(components, "\n"))
 }

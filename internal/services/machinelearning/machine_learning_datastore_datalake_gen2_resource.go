@@ -23,17 +23,17 @@ import (
 type MachineLearningDataStoreDataLakeGen2 struct{}
 
 type MachineLearningDataStoreDataLakeGen2Model struct {
-	Name                    string            `tfschema:"name"`
-	WorkSpaceID             string            `tfschema:"workspace_id"`
-	StorageContainerID      string            `tfschema:"storage_container_id"`
-	TenantID                string            `tfschema:"tenant_id"`
-	ClientID                string            `tfschema:"client_id"`
-	ClientSecret            string            `tfschema:"client_secret"`
-	AuthorityUrl            string            `tfschema:"authority_url"`
-	Description             string            `tfschema:"description"`
-	IsDefault               bool              `tfschema:"is_default"`
-	ServiceDataAuthIdentity string            `tfschema:"service_data_auth_identity"`
-	Tags                    map[string]string `tfschema:"tags"`
+	Name                string            `tfschema:"name"`
+	WorkSpaceID         string            `tfschema:"workspace_id"`
+	StorageContainerID  string            `tfschema:"storage_container_id"`
+	TenantID            string            `tfschema:"tenant_id"`
+	ClientID            string            `tfschema:"client_id"`
+	ClientSecret        string            `tfschema:"client_secret"`
+	AuthorityUrl        string            `tfschema:"authority_url"`
+	Description         string            `tfschema:"description"`
+	IsDefault           bool              `tfschema:"is_default"`
+	ServiceDataIdentity string            `tfschema:"service_data_identity"`
+	Tags                map[string]string `tfschema:"tags"`
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) Attributes() map[string]*schema.Schema {
@@ -111,7 +111,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 			Default:  false,
 		},
 
-		"service_data_auth_identity": {
+		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -177,7 +177,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 				AccountName:                   containerId.StorageAccountName,
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(model.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
 				IsDefault:                     utils.Bool(model.IsDefault),
 				Tags:                          utils.ToPtr(model.Tags),
 			}
@@ -234,7 +234,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(id.Name),
+				Name: utils.String(id.DataStoreName),
 				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureDataLakeGenTwo)),
 			}
 
@@ -242,7 +242,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 				AccountName:                   containerId.StorageAccountName,
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(state.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
 				IsDefault:                     utils.Bool(state.IsDefault),
 				Tags:                          utils.ToPtr(state.Tags),
 			}
@@ -304,11 +304,11 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 
 			data := resp.Model.Properties.(datastore.AzureDataLakeGen2Datastore)
-			serviceDataAuth := ""
+			serviceDataIdentity := ""
 			if v := data.ServiceDataAccessAuthIdentity; v != nil {
-				serviceDataAuth = string(*v)
+				serviceDataIdentity = string(*v)
 			}
-			model.ServiceDataAuthIdentity = serviceDataAuth
+			model.ServiceDataIdentity = serviceDataIdentity
 
 			containerId := storageparse.NewStorageContainerResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, "default", data.Filesystem)
 			model.StorageContainerID = containerId.ID()

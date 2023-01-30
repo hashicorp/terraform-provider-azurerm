@@ -12,15 +12,15 @@ var _ resourceids.ResourceId = DeletedAccountId{}
 // DeletedAccountId is a struct representing the Resource ID for a Deleted Account
 type DeletedAccountId struct {
 	SubscriptionId     string
-	Location           string
+	LocationName       string
 	DeletedAccountName string
 }
 
 // NewDeletedAccountID returns a new DeletedAccountId struct
-func NewDeletedAccountID(subscriptionId string, location string, deletedAccountName string) DeletedAccountId {
+func NewDeletedAccountID(subscriptionId string, locationName string, deletedAccountName string) DeletedAccountId {
 	return DeletedAccountId{
 		SubscriptionId:     subscriptionId,
-		Location:           location,
+		LocationName:       locationName,
 		DeletedAccountName: deletedAccountName,
 	}
 }
@@ -40,8 +40,8 @@ func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	if id.DeletedAccountName, ok = parsed.Parsed["deletedAccountName"]; !ok {
@@ -67,8 +67,8 @@ func ParseDeletedAccountIDInsensitively(input string) (*DeletedAccountId, error)
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	if id.DeletedAccountName, ok = parsed.Parsed["deletedAccountName"]; !ok {
@@ -96,7 +96,7 @@ func ValidateDeletedAccountID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Deleted Account ID
 func (id DeletedAccountId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.Storage/locations/%s/deletedAccounts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Location, id.DeletedAccountName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName, id.DeletedAccountName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Deleted Account ID
@@ -107,7 +107,7 @@ func (id DeletedAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
 		resourceids.StaticSegment("staticDeletedAccounts", "deletedAccounts", "deletedAccounts"),
 		resourceids.UserSpecifiedSegment("deletedAccountName", "deletedAccountValue"),
 	}
@@ -117,7 +117,7 @@ func (id DeletedAccountId) Segments() []resourceids.Segment {
 func (id DeletedAccountId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Location: %q", id.Location),
+		fmt.Sprintf("Location Name: %q", id.LocationName),
 		fmt.Sprintf("Deleted Account Name: %q", id.DeletedAccountName),
 	}
 	return fmt.Sprintf("Deleted Account (%s)", strings.Join(components, "\n"))

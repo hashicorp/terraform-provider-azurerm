@@ -556,7 +556,7 @@ resource "azurerm_monitor_action_group" "test" {
   sms_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -702,7 +702,7 @@ resource "azurerm_monitor_action_group" "test" {
   voice_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -972,12 +972,12 @@ resource "azurerm_monitor_action_group" "test" {
   sms_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   sms_receiver {
     name         = "remotesupport"
-    country_code = "61"
+    country_code = "86"
     phone_number = "13888888888"
   }
 
@@ -1005,7 +1005,7 @@ resource "azurerm_monitor_action_group" "test" {
   voice_receiver {
     name         = "oncallvoice"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   logic_app_receiver {

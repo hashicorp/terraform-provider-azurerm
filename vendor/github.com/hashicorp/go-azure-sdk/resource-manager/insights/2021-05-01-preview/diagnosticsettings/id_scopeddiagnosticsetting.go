@@ -11,15 +11,15 @@ var _ resourceids.ResourceId = ScopedDiagnosticSettingId{}
 
 // ScopedDiagnosticSettingId is a struct representing the Resource ID for a Scoped Diagnostic Setting
 type ScopedDiagnosticSettingId struct {
-	ResourceUri string
-	Name        string
+	ResourceUri           string
+	DiagnosticSettingName string
 }
 
 // NewScopedDiagnosticSettingID returns a new ScopedDiagnosticSettingId struct
-func NewScopedDiagnosticSettingID(resourceUri string, name string) ScopedDiagnosticSettingId {
+func NewScopedDiagnosticSettingID(resourceUri string, diagnosticSettingName string) ScopedDiagnosticSettingId {
 	return ScopedDiagnosticSettingId{
-		ResourceUri: resourceUri,
-		Name:        name,
+		ResourceUri:           resourceUri,
+		DiagnosticSettingName: diagnosticSettingName,
 	}
 }
 
@@ -38,8 +38,8 @@ func ParseScopedDiagnosticSettingID(input string) (*ScopedDiagnosticSettingId, e
 		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
+		return nil, fmt.Errorf("the segment 'diagnosticSettingName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -61,8 +61,8 @@ func ParseScopedDiagnosticSettingIDInsensitively(input string) (*ScopedDiagnosti
 		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
+		return nil, fmt.Errorf("the segment 'diagnosticSettingName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -86,7 +86,7 @@ func ValidateScopedDiagnosticSettingID(input interface{}, key string) (warnings 
 // ID returns the formatted Scoped Diagnostic Setting ID
 func (id ScopedDiagnosticSettingId) ID() string {
 	fmtString := "/%s/providers/Microsoft.Insights/diagnosticSettings/%s"
-	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.ResourceUri, "/"), id.Name)
+	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.ResourceUri, "/"), id.DiagnosticSettingName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scoped Diagnostic Setting ID
@@ -96,7 +96,7 @@ func (id ScopedDiagnosticSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDiagnosticSettings", "diagnosticSettings", "diagnosticSettings"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("diagnosticSettingName", "diagnosticSettingValue"),
 	}
 }
 
@@ -104,7 +104,7 @@ func (id ScopedDiagnosticSettingId) Segments() []resourceids.Segment {
 func (id ScopedDiagnosticSettingId) String() string {
 	components := []string{
 		fmt.Sprintf("Resource Uri: %q", id.ResourceUri),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Diagnostic Setting Name: %q", id.DiagnosticSettingName),
 	}
 	return fmt.Sprintf("Scoped Diagnostic Setting (%s)", strings.Join(components, "\n"))
 }

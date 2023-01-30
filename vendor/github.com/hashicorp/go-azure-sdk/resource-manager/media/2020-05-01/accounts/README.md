@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 payload := accounts.MediaService{
 	// ...
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 read, err := client.MediaservicesDelete(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 read, err := client.MediaservicesGet(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "accountValue")
+id := accounts.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "mediaServiceValue")
 
 read, err := client.MediaservicesGetBySubscription(ctx, id)
 if err != nil {
@@ -148,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 payload := accounts.ListEdgePoliciesInput{
 	// ...
@@ -169,7 +169,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 payload := accounts.SyncStorageKeysInput{
 	// ...
@@ -190,7 +190,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 payload := accounts.MediaService{
 	// ...
@@ -211,7 +211,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "nameValue")
+id := accounts.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "privateEndpointConnectionValue")
 
 payload := accounts.PrivateEndpointConnection{
 	// ...
@@ -232,7 +232,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "nameValue")
+id := accounts.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "privateEndpointConnectionValue")
 
 read, err := client.PrivateEndpointConnectionsDelete(ctx, id)
 if err != nil {
@@ -248,7 +248,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "nameValue")
+id := accounts.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "privateEndpointConnectionValue")
 
 read, err := client.PrivateEndpointConnectionsGet(ctx, id)
 if err != nil {
@@ -264,7 +264,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 read, err := client.PrivateEndpointConnectionsList(ctx, id)
 if err != nil {
@@ -280,7 +280,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "nameValue")
+id := accounts.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "privateLinkResourceValue")
 
 read, err := client.PrivateLinkResourcesGet(ctx, id)
 if err != nil {
@@ -296,7 +296,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := accounts.NewProviderMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 read, err := client.PrivateLinkResourcesList(ctx, id)
 if err != nil {

@@ -8,17 +8,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,7 +35,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 		Delete: resourceLogicAppWorkflowDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WorkflowID(id)
+			_, err := workflows.ParseWorkflowID(id)
 			return err
 		}),
 
@@ -68,7 +68,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IntegrationServiceEnvironmentID,
+				ValidateFunc: integrationserviceenvironments.ValidateIntegrationServiceEnvironmentID,
 			},
 
 			"access_control": {
@@ -203,7 +203,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.IntegrationAccountID,
+				ValidateFunc: integrationaccounts.ValidateIntegrationAccountID,
 			},
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
@@ -269,30 +269,30 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
-	subscriptionId := meta.(*clients.Client).Logic.WorkflowClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
 
-	id := parse.NewWorkflowID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := workflows.NewWorkflowID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Logic App Workflow %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_logic_app_workflow", id.ID())
 		}
 	}
@@ -312,50 +312,54 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	t := d.Get("tags").(map[string]interface{})
 
-	isEnabled := logic.WorkflowStateEnabled
+	isEnabled := workflows.WorkflowStateEnabled
 	if v := d.Get("enabled").(bool); !v {
-		isEnabled = logic.WorkflowStateDisabled
+		isEnabled = workflows.WorkflowStateDisabled
 	}
 
-	identity, err := expandLogicAppWorkflowIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	properties := logic.Workflow{
+	// nolint gosimple
+	var definition interface{}
+	definition = map[string]interface{}{
+		"$schema":        workflowSchema,
+		"contentVersion": workflowVersion,
+		"actions":        make(map[string]interface{}),
+		"triggers":       make(map[string]interface{}),
+		"parameters":     workflowParameters,
+	}
+
+	properties := workflows.Workflow{
 		Identity: identity,
 		Location: utils.String(location),
-		WorkflowProperties: &logic.WorkflowProperties{
-			Definition: &map[string]interface{}{
-				"$schema":        workflowSchema,
-				"contentVersion": workflowVersion,
-				"actions":        make(map[string]interface{}),
-				"triggers":       make(map[string]interface{}),
-				"parameters":     workflowParameters,
-			},
+		Properties: &workflows.WorkflowProperties{
+			Definition: &definition,
 			Parameters: parameters,
-			State:      isEnabled,
+			State:      &isEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("access_control"); ok {
-		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
+		properties.Properties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
 	}
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
-		properties.WorkflowProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
-			ID: utils.String(iseID.(string)),
+		properties.Properties.IntegrationServiceEnvironment = &workflows.ResourceReference{
+			Id: utils.String(iseID.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
-		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
-			ID: utils.String(v.(string)),
+		properties.Properties.IntegrationAccount = &workflows.ResourceReference{
+			Id: utils.String(v.(string)),
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
 		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %s: %+v", id, err)
 	}
 
@@ -369,18 +373,18 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkflowID(d.Id())
+	id, err := workflows.ParseWorkflowID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(id.Name, logicAppResourceName)
-	defer locks.UnlockByName(id.Name, logicAppResourceName)
+	locks.ByName(id.WorkflowName, logicAppResourceName)
+	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	read, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -388,7 +392,7 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", id, err)
 	}
 
-	if read.WorkflowProperties == nil {
+	if read.Model == nil || read.Model.Properties == nil {
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
@@ -404,47 +408,52 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	t := d.Get("tags").(map[string]interface{})
 
-	definition := read.WorkflowProperties.Definition.(map[string]interface{})
-	definition["parameters"] = workflowParameters
-
-	isEnabled := logic.WorkflowStateEnabled
-	if v := d.Get("enabled").(bool); !v {
-		isEnabled = logic.WorkflowStateDisabled
+	var definition interface{}
+	if read.Model.Properties.Definition != nil {
+		definitionRaw := *read.Model.Properties.Definition
+		definitionMap := definitionRaw.(map[string]interface{})
+		definitionMap["parameters"] = workflowParameters
+		definition = definitionMap
 	}
 
-	identity, err := expandLogicAppWorkflowIdentity(d.Get("identity").([]interface{}))
+	isEnabled := workflows.WorkflowStateEnabled
+	if v := d.Get("enabled").(bool); !v {
+		isEnabled = workflows.WorkflowStateDisabled
+	}
+
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	properties := logic.Workflow{
+	properties := workflows.Workflow{
 		Identity: identity,
 		Location: utils.String(location),
-		WorkflowProperties: &logic.WorkflowProperties{
-			Definition: definition,
+		Properties: &workflows.WorkflowProperties{
+			Definition: &definition,
 			Parameters: parameters,
-			State:      isEnabled,
+			State:      &isEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("access_control"); ok {
-		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
+		properties.Properties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
-		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
-			ID: utils.String(v.(string)),
+		properties.Properties.IntegrationAccount = &workflows.ResourceReference{
+			Id: utils.String(v.(string)),
 		}
 	}
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
-		properties.WorkflowProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
-			ID: utils.String(iseID.(string)),
+		properties.Properties.IntegrationServiceEnvironment = &workflows.ResourceReference{
+			Id: utils.String(iseID.(string)),
 		}
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, *id, properties); err != nil {
 		return fmt.Errorf("updating Logic App Workflow %s: %+v", id, err)
 	}
 
@@ -456,14 +465,14 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkflowID(d.Id())
+	id, err := workflows.ParseWorkflowID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Logic App Workflow %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -471,93 +480,98 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.WorkflowName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	identity, err := flattenLogicAppWorkflowIdentity(resp.Identity)
-	if err != nil {
-		return err
-	}
-	d.Set("identity", identity)
-
-	if props := resp.WorkflowProperties; props != nil {
-		d.Set("access_endpoint", props.AccessEndpoint)
-
-		if err := d.Set("access_control", flattenLogicAppWorkflowFlowAccessControl(props.AccessControl)); err != nil {
-			return fmt.Errorf("setting `access_control`: %+v", err)
+	if model := resp.Model; model != nil {
+		if location := model.Location; location != nil {
+			d.Set("location", azure.NormalizeLocation(*location))
 		}
 
-		if props.State != "" {
-			d.Set("enabled", props.State == logic.WorkflowStateEnabled)
+		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return err
 		}
+		d.Set("identity", identity)
 
-		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
-			d.Set("connector_endpoint_ip_addresses", []interface{}{})
-			d.Set("connector_outbound_ip_addresses", []interface{}{})
-		} else {
-			d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
-			d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
-		}
+		if props := model.Properties; props != nil {
+			d.Set("access_endpoint", props.AccessEndpoint)
 
-		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
-			d.Set("workflow_endpoint_ip_addresses", []interface{}{})
-			d.Set("workflow_outbound_ip_addresses", []interface{}{})
-		} else {
-			d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
-			d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
-		}
-		if definition := props.Definition; definition != nil {
-			if v, ok := definition.(map[string]interface{}); ok {
-				if v["$schema"] != nil {
-					d.Set("workflow_schema", v["$schema"].(string))
-				}
-				if v["contentVersion"] != nil {
-					d.Set("workflow_version", v["contentVersion"].(string))
-				}
-				if p, ok := v["parameters"]; ok {
-					workflowParameters, err := flattenLogicAppWorkflowWorkflowParameters(p.(map[string]interface{}))
-					if err != nil {
-						return fmt.Errorf("flattening `workflow_parameters`: %+v", err)
+			if err := d.Set("access_control", flattenLogicAppWorkflowFlowAccessControl(props.AccessControl)); err != nil {
+				return fmt.Errorf("setting `access_control`: %+v", err)
+			}
+
+			if props.State != nil && *props.State != "" {
+				d.Set("enabled", *props.State == workflows.WorkflowStateEnabled)
+			}
+
+			if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
+				d.Set("connector_endpoint_ip_addresses", []interface{}{})
+				d.Set("connector_outbound_ip_addresses", []interface{}{})
+			} else {
+				d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
+				d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
+			}
+
+			if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
+				d.Set("workflow_endpoint_ip_addresses", []interface{}{})
+				d.Set("workflow_outbound_ip_addresses", []interface{}{})
+			} else {
+				d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
+				d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
+			}
+			if definition := props.Definition; definition != nil {
+				definitionRaw := *props.Definition
+				if v, ok := definitionRaw.(map[string]interface{}); ok {
+					if v["$schema"] != nil {
+						d.Set("workflow_schema", v["$schema"].(string))
 					}
-					if err := d.Set("workflow_parameters", workflowParameters); err != nil {
-						return fmt.Errorf("setting `workflow_parameters`: %+v", err)
+					if v["contentVersion"] != nil {
+						d.Set("workflow_version", v["contentVersion"].(string))
 					}
+					if p, ok := v["parameters"]; ok {
+						workflowParameters, err := flattenLogicAppWorkflowWorkflowParameters(p.(map[string]interface{}))
+						if err != nil {
+							return fmt.Errorf("flattening `workflow_parameters`: %+v", err)
+						}
+						if err := d.Set("workflow_parameters", workflowParameters); err != nil {
+							return fmt.Errorf("setting `workflow_parameters`: %+v", err)
+						}
 
-					// The props.Parameters (the value of the param) is accompany with the "parameters" (the definition of the param) inside the props.Definition.
-					// We will need to make use of the definition of the parameters in order to properly flatten the value of the parameters being set (for kinds of types).
-					parameters, err := flattenLogicAppWorkflowParameters(d, props.Parameters, p.(map[string]interface{}))
-					if err != nil {
-						return fmt.Errorf("flattening `parameters`: %v", err)
-					}
-					if err := d.Set("parameters", parameters); err != nil {
-						return fmt.Errorf("setting `parameters`: %+v", err)
+						// The props.Parameters (the value of the param) is accompany with the "parameters" (the definition of the param) inside the props.Definition.
+						// We will need to make use of the definition of the parameters in order to properly flatten the value of the parameters being set (for kinds of types).
+						parameters, err := flattenLogicAppWorkflowParameters(d, props.Parameters, p.(map[string]interface{}))
+						if err != nil {
+							return fmt.Errorf("flattening `parameters`: %v", err)
+						}
+						if err := d.Set("parameters", parameters); err != nil {
+							return fmt.Errorf("setting `parameters`: %+v", err)
+						}
 					}
 				}
 			}
+
+			integrationServiceEnvironmentId := ""
+			if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.Id != nil {
+				integrationServiceEnvironmentId = *props.IntegrationServiceEnvironment.Id
+			}
+			d.Set("integration_service_environment_id", integrationServiceEnvironmentId)
+
+			if props.IntegrationAccount != nil && props.IntegrationAccount.Id != nil {
+				d.Set("logic_app_integration_account_id", props.IntegrationAccount.Id)
+			}
+
+			integrationAccountId := ""
+			if props.IntegrationAccount != nil && props.IntegrationAccount.Id != nil {
+				integrationAccountId = *props.IntegrationAccount.Id
+			}
+			d.Set("logic_app_integration_account_id", integrationAccountId)
 		}
 
-		integrationServiceEnvironmentId := ""
-		if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.ID != nil {
-			integrationServiceEnvironmentId = *props.IntegrationServiceEnvironment.ID
-		}
-		d.Set("integration_service_environment_id", integrationServiceEnvironmentId)
-
-		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
-			d.Set("logic_app_integration_account_id", props.IntegrationAccount.ID)
-		}
-
-		integrationAccountId := ""
-		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
-			integrationAccountId = *props.IntegrationAccount.ID
-		}
-		d.Set("logic_app_integration_account_id", integrationAccountId)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLogicAppWorkflowDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -565,18 +579,18 @@ func resourceLogicAppWorkflowDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkflowID(d.Id())
+	id, err := workflows.ParseWorkflowID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	locks.ByName(id.Name, logicAppResourceName)
-	defer locks.UnlockByName(id.Name, logicAppResourceName)
+	locks.ByName(id.WorkflowName, logicAppResourceName)
+	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
@@ -586,8 +600,8 @@ func resourceLogicAppWorkflowDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandLogicAppWorkflowParameters(input map[string]interface{}, paramDefs map[string]interface{}) (map[string]*logic.WorkflowParameter, error) {
-	output := make(map[string]*logic.WorkflowParameter)
+func expandLogicAppWorkflowParameters(input map[string]interface{}, paramDefs map[string]interface{}) (*map[string]workflows.WorkflowParameter, error) {
+	output := make(map[string]workflows.WorkflowParameter)
 
 	for k, v := range input {
 		defRaw, ok := paramDefs[k]
@@ -595,59 +609,62 @@ func expandLogicAppWorkflowParameters(input map[string]interface{}, paramDefs ma
 			return nil, fmt.Errorf("no parameter definition for %s", k)
 		}
 		def := defRaw.(map[string]interface{})
-		t := logic.ParameterType(def["type"].(string))
+		t := workflows.ParameterType(def["type"].(string))
 
 		v := v.(string)
 
 		var value interface{}
 		switch t {
-		case logic.ParameterTypeBool:
+		case workflows.ParameterTypeBool:
 			var uv bool
 			if err := json.Unmarshal([]byte(v), &uv); err != nil {
 				return nil, fmt.Errorf("unmarshalling %s to bool: %v", k, err)
 			}
 			value = uv
-		case logic.ParameterTypeFloat:
+		case workflows.ParameterTypeFloat:
 			var uv float64
 			if err := json.Unmarshal([]byte(v), &uv); err != nil {
 				return nil, fmt.Errorf("unmarshalling %s to float64: %v", k, err)
 			}
 			value = uv
-		case logic.ParameterTypeInt:
+		case workflows.ParameterTypeInt:
 			var uv int
 			if err := json.Unmarshal([]byte(v), &uv); err != nil {
 				return nil, fmt.Errorf("unmarshalling %s to int: %v", k, err)
 			}
 			value = uv
-		case logic.ParameterTypeArray:
+		case workflows.ParameterTypeArray:
 			var uv []interface{}
 			if err := json.Unmarshal([]byte(v), &uv); err != nil {
 				return nil, fmt.Errorf("unmarshalling %s to []interface{}: %v", k, err)
 			}
 			value = uv
-		case logic.ParameterTypeObject,
-			logic.ParameterTypeSecureObject:
+		case workflows.ParameterTypeObject,
+			workflows.ParameterTypeSecureObject:
 			var uv map[string]interface{}
 			if err := json.Unmarshal([]byte(v), &uv); err != nil {
 				return nil, fmt.Errorf("unmarshalling %s to map[string]interface{}: %v", k, err)
 			}
 			value = uv
-		case logic.ParameterTypeString,
-			logic.ParameterTypeSecureString:
+		case workflows.ParameterTypeString,
+			workflows.ParameterTypeSecureString:
 			value = v
 		}
 
-		output[k] = &logic.WorkflowParameter{
-			Type:  t,
-			Value: value,
+		output[k] = workflows.WorkflowParameter{
+			Type:  &t,
+			Value: &value,
 		}
 	}
 
-	return output, nil
+	return &output, nil
 }
 
-func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input map[string]*logic.WorkflowParameter, paramDefs map[string]interface{}) (map[string]interface{}, error) {
+func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input *map[string]workflows.WorkflowParameter, paramDefs map[string]interface{}) (map[string]interface{}, error) {
 	output := make(map[string]interface{})
+	if input == nil {
+		return output, nil
+	}
 
 	// Read the "parameters" from state, which is used to fill in the "sensitive" properties.
 	paramInState := make(map[string]interface{})
@@ -656,7 +673,7 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input map[stri
 		paramInState = params
 	}
 
-	for k, v := range input {
+	for k, v := range *input {
 		defRaw, ok := paramDefs[k]
 		if !ok {
 			// This should never happen.
@@ -664,18 +681,17 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input map[stri
 			continue
 		}
 
-		if v == nil {
-			log.Printf("[WARN] The value of parameter %s is nil", k)
-			continue
-		}
-
 		def := defRaw.(map[string]interface{})
-		t := logic.ParameterType(def["type"].(string))
+		t := workflows.ParameterType(def["type"].(string))
 
 		var value string
 		switch t {
-		case logic.ParameterTypeBool:
-			tv, ok := v.Value.(bool)
+		case workflows.ParameterTypeBool:
+			if v.Value == nil {
+				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+			}
+			valueRaw := *v.Value
+			tv, ok := valueRaw.(bool)
 			if !ok {
 				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got %T", k, v.Value)
 			}
@@ -683,23 +699,35 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input map[stri
 			if !tv {
 				value = "false"
 			}
-		case logic.ParameterTypeFloat:
+		case workflows.ParameterTypeFloat:
+			if v.Value == nil {
+				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+			}
+			valueRaw := *v.Value
 			// Note that the json unmarshalled response doesn't differ between float and int, as json has only type number.
-			tv, ok := v.Value.(float64)
+			tv, ok := valueRaw.(float64)
 			if !ok {
 				return nil, fmt.Errorf("the value of parameter %s is expected to be float64, but got %T", k, v.Value)
 			}
 			value = strconv.FormatFloat(tv, 'f', -1, 64)
-		case logic.ParameterTypeInt:
+		case workflows.ParameterTypeInt:
+			if v.Value == nil {
+				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+			}
+			valueRaw := *v.Value
 			// Note that the json unmarshalled response doesn't differ between float and int, as json has only type number.
-			tv, ok := v.Value.(float64)
+			tv, ok := valueRaw.(float64)
 			if !ok {
 				return nil, fmt.Errorf("the value of parameter %s is expected to be float64, but got %T", k, v.Value)
 			}
 			value = strconv.Itoa(int(tv))
 
-		case logic.ParameterTypeArray:
-			tv, ok := v.Value.([]interface{})
+		case workflows.ParameterTypeArray:
+			if v.Value == nil {
+				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+			}
+			valueRaw := *v.Value
+			tv, ok := valueRaw.([]interface{})
 			if !ok {
 				return nil, fmt.Errorf("the value of parameter %s is expected to be []interface{}, but got %T", k, v.Value)
 			}
@@ -709,8 +737,12 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input map[stri
 			}
 			value = string(obj)
 
-		case logic.ParameterTypeObject:
-			tv, ok := v.Value.(map[string]interface{})
+		case workflows.ParameterTypeObject:
+			if v.Value == nil {
+				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+			}
+			valueRaw := *v.Value
+			tv, ok := valueRaw.(map[string]interface{})
 			if !ok {
 				return nil, fmt.Errorf("the value of parameter %s is expected to be map[string]interface{}, but got %T", k, v.Value)
 			}
@@ -720,15 +752,19 @@ func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input map[stri
 			}
 			value = string(obj)
 
-		case logic.ParameterTypeString:
-			tv, ok := v.Value.(string)
+		case workflows.ParameterTypeString:
+			if v.Value == nil {
+				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got nil", k)
+			}
+			valueRaw := *v.Value
+			tv, ok := valueRaw.(string)
 			if !ok {
 				return nil, fmt.Errorf("the value of parameter %s is expected to be string, but got %T", k, v.Value)
 			}
 			value = tv
 
-		case logic.ParameterTypeSecureString,
-			logic.ParameterTypeSecureObject:
+		case workflows.ParameterTypeSecureString,
+			workflows.ParameterTypeSecureObject:
 			// This is not returned from API, we will try to read them from the state instead.
 			if v, ok := paramInState[k]; ok {
 				value = v.(string) // The value in state here is guaranteed to be a string, so directly cast the type.
@@ -757,13 +793,13 @@ func expandLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map
 	return output, nil
 }
 
-func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessControlConfiguration {
+func expandLogicAppWorkflowAccessControl(input []interface{}) *workflows.FlowAccessControlConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 
-	result := logic.FlowAccessControlConfiguration{}
+	result := workflows.FlowAccessControlConfiguration{}
 
 	if contents := v["content"].([]interface{}); len(contents) != 0 {
 		result.Contents = expandLogicAppWorkflowAccessControlConfigurationPolicy(contents)
@@ -784,31 +820,31 @@ func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessC
 	return &result
 }
 
-func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{}) *logic.FlowAccessControlConfigurationPolicy {
+func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{}) *workflows.FlowAccessControlConfigurationPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 
-	return &logic.FlowAccessControlConfigurationPolicy{
+	return &workflows.FlowAccessControlConfigurationPolicy{
 		AllowedCallerIPAddresses: expandLogicAppWorkflowIPAddressRanges(v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List()),
 	}
 }
 
-func expandLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input []interface{}) *logic.FlowAccessControlConfigurationPolicy {
+func expandLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input []interface{}) *workflows.FlowAccessControlConfigurationPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 
-	result := logic.FlowAccessControlConfigurationPolicy{
+	result := workflows.FlowAccessControlConfigurationPolicy{
 		AllowedCallerIPAddresses: expandLogicAppWorkflowIPAddressRanges(v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List()),
 	}
 
 	if openAuthenticationPolicy, ok := v["open_authentication_policy"]; ok {
 		openAuthenticationPolicies := openAuthenticationPolicy.(*pluginsdk.Set).List()
 		if len(openAuthenticationPolicies) != 0 {
-			result.OpenAuthenticationPolicies = &logic.OpenAuthenticationAccessPolicies{
+			result.OpenAuthenticationPolicies = &workflows.OpenAuthenticationAccessPolicies{
 				Policies: expandLogicAppWorkflowOpenAuthenticationPolicy(openAuthenticationPolicies),
 			}
 		}
@@ -817,11 +853,11 @@ func expandLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input []inter
 	return &result
 }
 
-func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]logic.IPAddressRange {
-	results := make([]logic.IPAddressRange, 0)
+func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]workflows.IPAddressRange {
+	results := make([]workflows.IPAddressRange, 0)
 
 	for _, item := range input {
-		results = append(results, logic.IPAddressRange{
+		results = append(results, workflows.IPAddressRange{
 			AddressRange: utils.String(item.(string)),
 		})
 	}
@@ -829,91 +865,38 @@ func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]logic.IPAddre
 	return &results
 }
 
-func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) map[string]*logic.OpenAuthenticationAccessPolicy {
+func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) *map[string]workflows.OpenAuthenticationAccessPolicy {
 	if len(input) == 0 {
 		return nil
 	}
-	results := make(map[string]*logic.OpenAuthenticationAccessPolicy)
+	results := make(map[string]workflows.OpenAuthenticationAccessPolicy)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		policyName := v["name"].(string)
 
-		results[policyName] = &logic.OpenAuthenticationAccessPolicy{
-			Type:   logic.OpenAuthenticationProviderTypeAAD,
+		policyType := workflows.OpenAuthenticationProviderTypeAAD
+		results[policyName] = workflows.OpenAuthenticationAccessPolicy{
+			Type:   &policyType,
 			Claims: expandLogicAppWorkflowOpenAuthenticationPolicyClaim(v["claim"].(*pluginsdk.Set).List()),
 		}
 	}
 
-	return results
+	return &results
 }
 
-func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[]logic.OpenAuthenticationPolicyClaim {
-	results := make([]logic.OpenAuthenticationPolicyClaim, 0)
+func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[]workflows.OpenAuthenticationPolicyClaim {
+	results := make([]workflows.OpenAuthenticationPolicyClaim, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		results = append(results, logic.OpenAuthenticationPolicyClaim{
+		results = append(results, workflows.OpenAuthenticationPolicyClaim{
 			Name:  utils.String(v["name"].(string)),
 			Value: utils.String(v["value"].(string)),
 		})
 	}
 	return &results
-}
-
-func expandLogicAppWorkflowIdentity(input []interface{}) (*logic.ManagedServiceIdentity, error) {
-	config, err := identity.ExpandSystemOrUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	var identityIds map[string]*logic.UserAssignedIdentity
-	if len(config.IdentityIds) != 0 {
-		identityIds = map[string]*logic.UserAssignedIdentity{}
-		for id := range config.IdentityIds {
-			identityIds[id] = &logic.UserAssignedIdentity{}
-		}
-	}
-
-	return &logic.ManagedServiceIdentity{
-		Type:                   logic.ManagedServiceIdentityType(config.Type),
-		UserAssignedIdentities: identityIds,
-	}, nil
-}
-
-func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) (*[]interface{}, error) {
-	var config *identity.SystemOrUserAssignedMap
-	if input != nil {
-		identityIds := map[string]identity.UserAssignedIdentityDetails{}
-		for id := range input.UserAssignedIdentities {
-			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(id)
-			if err != nil {
-				return nil, err
-			}
-			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{
-				// intentionally empty
-			}
-		}
-
-		principalId := ""
-		if input.PrincipalID != nil {
-			principalId = input.PrincipalID.String()
-		}
-
-		tenantId := ""
-		if input.TenantID != nil {
-			tenantId = input.TenantID.String()
-		}
-
-		config = &identity.SystemOrUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
-			IdentityIds: identityIds,
-		}
-	}
-	return identity.FlattenSystemOrUserAssignedMap(config)
 }
 
 func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map[string]interface{}, error) {
@@ -931,7 +914,7 @@ func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (ma
 	return output, nil
 }
 
-func flattenIPAddresses(input *[]logic.IPAddress) []interface{} {
+func flattenIPAddresses(input *[]workflows.IPAddress) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -943,7 +926,7 @@ func flattenIPAddresses(input *[]logic.IPAddress) []interface{} {
 	return addresses
 }
 
-func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConfiguration) []interface{} {
+func flattenLogicAppWorkflowFlowAccessControl(input *workflows.FlowAccessControlConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -958,7 +941,7 @@ func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConf
 	}
 }
 
-func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *logic.FlowAccessControlConfigurationPolicy) []interface{} {
+func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *workflows.FlowAccessControlConfigurationPolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -970,7 +953,7 @@ func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *logic.FlowAc
 	}
 }
 
-func flattenLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input *logic.FlowAccessControlConfigurationPolicy) []interface{} {
+func flattenLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input *workflows.FlowAccessControlConfigurationPolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -983,7 +966,7 @@ func flattenLogicAppWorkflowAccessControlTriggerConfigurationPolicy(input *logic
 	}
 }
 
-func flattenLogicAppWorkflowIPAddressRanges(input *[]logic.IPAddressRange) []interface{} {
+func flattenLogicAppWorkflowIPAddressRanges(input *[]workflows.IPAddressRange) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1000,13 +983,13 @@ func flattenLogicAppWorkflowIPAddressRanges(input *[]logic.IPAddressRange) []int
 	return results
 }
 
-func flattenLogicAppWorkflowOpenAuthenticationPolicy(input *logic.OpenAuthenticationAccessPolicies) []interface{} {
+func flattenLogicAppWorkflowOpenAuthenticationPolicy(input *workflows.OpenAuthenticationAccessPolicies) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.Policies == nil {
 		return results
 	}
 
-	for k, v := range input.Policies {
+	for k, v := range *input.Policies {
 		results = append(results, map[string]interface{}{
 			"name":  k,
 			"claim": flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(v.Claims),
@@ -1016,7 +999,7 @@ func flattenLogicAppWorkflowOpenAuthenticationPolicy(input *logic.OpenAuthentica
 	return results
 }
 
-func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]logic.OpenAuthenticationPolicyClaim) []interface{} {
+func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]workflows.OpenAuthenticationPolicyClaim) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

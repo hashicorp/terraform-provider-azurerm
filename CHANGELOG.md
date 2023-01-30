@@ -1,37 +1,79 @@
-## 3.40.0 (Unreleased)
+## 3.41.0 (January 26, 2023)
 
 FEATURES
 
-* **New Data Source:** `azurerm_bastion_host` [GH-20062]
-* **New Resource:** `azurerm_lab_service_schedule` [GH-19977]
-* **New Resource:** `azurerm_network_manager_scope_connection` [GH-19610]
-* **New Resource:** `azurerm_sentinel_log_analytics_workspace_onboarding` [GH-19692]
+* **New Data Source:** `azurerm_key_vault_certificates` ([#19498](https://github.com/hashicorp/terraform-provider-azurerm/issues/19498))
+* **New Data Source:** `azurerm_site_recovery_replication_recovery_plan` ([#19940](https://github.com/hashicorp/terraform-provider-azurerm/issues/19940))
+* **New Resource:** `azurerm_orbital_contact` ([#19036](https://github.com/hashicorp/terraform-provider-azurerm/issues/19036))
+* **New Resource:** `azurerm_site_recovery_replication_recovery_plan` ([#19940](https://github.com/hashicorp/terraform-provider-azurerm/issues/19940))
 
 ENHANCEMENTS:
 
-* `azurerm_application_gateway` - add TLS 1.3 and CustomV2 support [GH-20029]
-* `azurerm_linux_web_app` - Add Python 3.11 support [GH-20001]
-* `azurerm_linux_web_app_slot` - Add Python 3.11 support [GH-20001]
-* `azurerm_ip_group` - support for the `firewall_ids` and `firewall_policy_ids` properties [GH-19845]
-* `azurerm_synapse_sql_pool` - add support for `geo_backup_policy_enabled` and fix `recovery_database_id` [[GH-20010]
+* dependencies: updating to `v0.20230124.1111819` of `github.com/hashicorp/go-azure-sdk` ([#20160](https://github.com/hashicorp/terraform-provider-azurerm/issues/20160))
+* resourceproviders: no longer registering `Microsoft.ServiceFabricMesh` by default ([#20165](https://github.com/hashicorp/terraform-provider-azurerm/issues/20165))
+* testing: refactoring to use `hashicorp/terraform-plugin-testing` ([#20114](https://github.com/hashicorp/terraform-provider-azurerm/issues/20114))
+* `devtestlabs`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20139](https://github.com/hashicorp/terraform-provider-azurerm/issues/20139))
+* `logic`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20144](https://github.com/hashicorp/terraform-provider-azurerm/issues/20144))
+* `network`: updating to API version `2022-07-01` ([#20097](https://github.com/hashicorp/terraform-provider-azurerm/issues/20097))
+* `postgresql`: updating to API version `2022-03-08-preview` ([#20073](https://github.com/hashicorp/terraform-provider-azurerm/issues/20073))
+* `streamanalytics`: updating to API Version `2021-10-01-preview` ([#20145](https://github.com/hashicorp/terraform-provider-azurerm/issues/20145))
+* `azurerm_*_app_slot` - support for slots to be placed in different service plans ([#20184](https://github.com/hashicorp/terraform-provider-azurerm/issues/20184))
+* `azurerm_databricks_workspace` - support for customer managed keys for managed disks attached to the workspace ([#19992](https://github.com/hashicorp/terraform-provider-azurerm/issues/19992))
+* `azurerm_databricks_workspace` - support for updating the properties `public_network_access_enabled`, `network_security_group_rules_required` and ` managed_services_cmk_key_vault_key_id` ([#19992](https://github.com/hashicorp/terraform-provider-azurerm/issues/19992))
+* `azurerm_kubernetes_cluster` - support for `node_public_ip_tags` ([#19731](https://github.com/hashicorp/terraform-provider-azurerm/issues/19731))
+* `azurerm_kubernetes_cluster_node_pool` - support for `node_public_ip_tags` ([#19731](https://github.com/hashicorp/terraform-provider-azurerm/issues/19731))
+* `azurerm_log_analytics_workspace` - support for the `local_authentication_disabled` property ([#20092](https://github.com/hashicorp/terraform-provider-azurerm/issues/20092))
+* `azurerm_postgresql_flexible_server` - support for customer managed keys ([#20086](https://github.com/hashicorp/terraform-provider-azurerm/issues/20086))
+* `azurerm_storage_account` - support for `AADKERB` to `azure_files_authentication.0.directory_type` ([#20168](https://github.com/hashicorp/terraform-provider-azurerm/issues/20168))
+
+BUG FIXES:
+
+* `azurerm_stream_analytics_output_servicebus_queue` - shared access policy name and key are now optional for MSI authentication ([#19712](https://github.com/hashicorp/terraform-provider-azurerm/issues/19712))
+* `azurerm_stream_analytics_output_servicebus_topic` - shared access policy name and key are now optional for MSI authentication ([#19708](https://github.com/hashicorp/terraform-provider-azurerm/issues/19708))
+
+## 3.40.0 (January 19, 2023)
+
+FEATURES
+
+* **New Data Source:** `azurerm_bastion_host` ([#20062](https://github.com/hashicorp/terraform-provider-azurerm/issues/20062))
+* **New Resource:** `azurerm_lab_service_schedule` ([#19977](https://github.com/hashicorp/terraform-provider-azurerm/issues/19977))
+* **New Resource:** `azurerm_machine_learning_datastore_blobstorage` ([#19909](https://github.com/hashicorp/terraform-provider-azurerm/issues/19909))
+* **New Resource:** `azurerm_network_manager_scope_connection` ([#19610](https://github.com/hashicorp/terraform-provider-azurerm/issues/19610))
+* **New Resource:** `azurerm_network_manager_static_member` ([#20077](https://github.com/hashicorp/terraform-provider-azurerm/issues/20077))
+* **New Resource:** `azurerm_sentinel_log_analytics_workspace_onboarding` ([#19692](https://github.com/hashicorp/terraform-provider-azurerm/issues/19692))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230117.1125206` of `github.com/hashicorp/go-azure-sdk` ([#20081](https://github.com/hashicorp/terraform-provider-azurerm/issues/20081))
+* `azurerm_application_gateway` - support for TLS 1.3 and CustomV2 ([#20029](https://github.com/hashicorp/terraform-provider-azurerm/issues/20029))
+* `azurerm_kubernetes_cluster` - support for the `key_management_service` block ([#19893](https://github.com/hashicorp/terraform-provider-azurerm/issues/19893))
+* `azurerm_linux_web_app` - support for Python 3.11  ([#20001](https://github.com/hashicorp/terraform-provider-azurerm/issues/20001))
+* `azurerm_linux_web_app_slot` - support for Python 3.11 ([#20001](https://github.com/hashicorp/terraform-provider-azurerm/issues/20001))
+* `azurerm_ip_group` - support for the `firewall_ids` and `firewall_policy_ids` properties ([#19845](https://github.com/hashicorp/terraform-provider-azurerm/issues/19845))
+* `azurerm_recovery_services_vault` - support for the `immutability`, user assigned `identity` and `use_system_assigned_identity` properties ([#20109](https://github.com/hashicorp/terraform-provider-azurerm/issues/20109))
+* `azurerm_synapse_sql_pool` - support for `geo_backup_policy_enabled` and fix `recovery_database_id` [([#20010](https://github.com/hashicorp/terraform-provider-azurerm/issues/20010))
 
 BUG FIXES: 
 
-* Data Source: `azurerm_batch_pool` - the field `password` is now correctly marked as a sensitive value [GH-20061]
-* Data Source: `azurerm_batch_pool` - the field `ssh_private_key ` is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_api_management_identity_provider_twitter` - the field `api_key` is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_cdn_frontdoor_origin_group` - shim SDK to allow `health_probe` to be passed as `null` [GH-20015]
-* `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue [GH-20002]
-* `azurerm_container_registry_task` - the field `password` is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_dev_test_windows_virtual_machine` - the `password` field is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_linux_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
-* `azurerm_service_fabric_managed_cluster` - the `password` field is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_service_fabric_managed_cluster` - the `resource_group_name` field is now correctly marked as ForceNew [GH-20061]
-* `azurerm_spring_cloud_configuration_service ` - the field `password` is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_spring_cloud_configuration_service ` - the field `private_key` is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_static_site` - the field `api_key` is now correctly marked as a sensitive value [GH-20061]
-* `azurerm_storage_account` - will no longer silently ignore `404` error while reading service properties [GH-19062]
-* `azurerm_windows_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly [GH-20051]
+* Data Source: `azurerm_batch_pool` - the field `password` is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* Data Source: `azurerm_batch_pool` - the field `ssh_private_key ` is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_api_management_identity_provider_twitter` - the field `api_key` is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_cdn_frontdoor_origin_group` - shim SDK to allow `health_probe` to be passed as `null` ([#20015](https://github.com/hashicorp/terraform-provider-azurerm/issues/20015))
+* `azurerm_container_group` - Fix  dynamic setting `dns_config` crash issue ([#20002](https://github.com/hashicorp/terraform-provider-azurerm/issues/20002))
+* `azurerm_container_registry_task` - the field `password` is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_dev_test_windows_virtual_machine` - the `password` field is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_federated_identity_credential` - preent concurrent write to parent resource ([#20003](https://github.com/hashicorp/terraform-provider-azurerm/issues/20003))
+* `azurerm_linux_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly ([#20051](https://github.com/hashicorp/terraform-provider-azurerm/issues/20051))
+* `azurerm_postgresql_flexible_server_configuration` - restart server when required ([#20044](https://github.com/hashicorp/terraform-provider-azurerm/issues/20044))
+* `azurerm_kubernetes_cluster` - prevent a possible panic while importing ([#20107](https://github.com/hashicorp/terraform-provider-azurerm/issues/20107))
+* `azurerm_service_fabric_managed_cluster` - the `password` field is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_service_fabric_managed_cluster` - the `resource_group_name` field is now correctly marked as ForceNew ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_spring_cloud_configuration_service ` - the field `password` is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_spring_cloud_configuration_service ` - the field `private_key` is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_static_site` - the field `api_key` is now correctly marked as a sensitive value ([#20061](https://github.com/hashicorp/terraform-provider-azurerm/issues/20061))
+* `azurerm_storage_account` - will no longer silently ignore `404` error while reading service properties ([#19062](https://github.com/hashicorp/terraform-provider-azurerm/issues/19062))
+* `azurerm_storage_account` - the `infrastructure_encryption_enabled` is now supportted for premium accounts ([#20028](https://github.com/hashicorp/terraform-provider-azurerm/issues/20028))
+* `azurerm_windows_web_app_slot` - fix a bug where `use_32_bit_worker` would not be set correctly ([#20051](https://github.com/hashicorp/terraform-provider-azurerm/issues/20051))
 
 ## 3.39.1 (January 13, 2023)
 

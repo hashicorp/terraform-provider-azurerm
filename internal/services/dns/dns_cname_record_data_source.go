@@ -79,7 +79,7 @@ func dataSourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("name", id.RelativeRecordSetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnsZoneName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
