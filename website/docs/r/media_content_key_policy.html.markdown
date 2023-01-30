@@ -154,7 +154,7 @@ A `alternate_key` block supports the following:
 
 An `explicit_analog_television_output_restriction` block supports the following:
 
-* `best_effort` - (Optional) Indicates whether this restriction is enforced on a best effort basis. Possible values are `true` or `false`. Defaults to `false`. 
+* `best_effort_enforced` - (Optional) Indicates whether this restriction is enforced on a best effort basis. Possible values are `true` or `false`. Defaults to `false`. 
 
 * `control_bits` - (Required) The restriction control bits. Possible value is integer between `0` and `3` inclusive.
 
@@ -276,7 +276,7 @@ A `required_claim` block supports the following:
 
 A `token_restriction` block supports the following:
 
-* `alternate_key` (Optional) One or more `alternate_key` block as defined above.
+* `alternate_key` - (Optional) One or more `alternate_key` block as defined above.
 
 * `audience` - (Optional) The audience for the token.
 

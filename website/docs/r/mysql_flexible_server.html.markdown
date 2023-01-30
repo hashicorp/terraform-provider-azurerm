@@ -147,7 +147,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Should be set to `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service. Required if used together with `customer_managed_key` block as defined below.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service. Required if used together with `customer_managed_key` block.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
