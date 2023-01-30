@@ -1,3 +1,10 @@
+## 3.42.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20214]
+
+
 ## 3.41.0 (January 26, 2023)
 
 FEATURES
