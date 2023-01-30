@@ -468,6 +468,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.8",
 						"3.9",
 						"3.10",
+						"3.11",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",

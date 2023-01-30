@@ -471,7 +471,7 @@ func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.
 
 	resp, err := clients.MySQL.FlexibleServerClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MySql Flexible Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroupName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
 
 	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil

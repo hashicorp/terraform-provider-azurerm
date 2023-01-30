@@ -97,8 +97,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `azure_active_directory_role_based_access_control` - (Optional) A `azure_active_directory_role_based_access_control` block as defined below.
 
-* `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
-
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-PrometheusAddonPreview` is enabled, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/prometheus-metrics-enable?tabs=azure-portal) for more information.
 
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
@@ -127,6 +125,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
+* `key_management_service` - (Optional) A `key_management_service` block as defined below. For more details, please visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/en-us/azure/aks/use-kms-etcd-encryption).
+
 * `key_vault_secrets_provider` - (Optional) A `key_vault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver).
 
 * `kubelet_identity` - (Optional) A `kubelet_identity` block as defined below.
@@ -146,6 +146,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-AzureDefender` is enabled, see [the documentation](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable?tabs=aks-deploy-portal%2Ck8s-deploy-asc%2Ck8s-verify-asc%2Ck8s-remove-arc%2Caks-removeprofile-api&pivots=defender-for-container-aks) for more information.
+
+* `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
 
@@ -386,6 +388,8 @@ A `default_node_pool` block supports the following:
 
 * `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
 
+* `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
+
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool.
@@ -460,6 +464,14 @@ An `identity` block supports the following:
 
 ---
 
+A `key_management_service` block supports the following:
+
+* `key_vault_key_id` - (Required) Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. When Azure Key Vault key management service is enabled, this field is required and must be a valid key identifier. When `enabled` is `false`, leave the field empty.
+
+* `key_vault_network_access` - (Optional) Network access of the key vault Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. The default value is `Public`.
+
+---
+
 A `key_vault_secrets_provider` block supports the following:
 
 * `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
@@ -513,6 +525,14 @@ A `linux_os_config` block supports the following:
 * `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`. Changing this forces a new resource to be created.
 
 * `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`. Changing this forces a new resource to be created.
+
+---
+
+A `node_network_profile` block supports the following:
+
+* `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered.
 
 ---
 
@@ -608,37 +628,11 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 ->**Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
 
-* `kube_proxy` - (Optional) A `kube_proxy` block.
-
-->**Note:** `kube_proxy` requires that the Preview Feature `Microsoft.ContainerService/KubeProxyConfigurationPreview` is enabled and the Resource Provider re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/configure-kube-proxy#register-the-kubeproxyconfigurationpreview-feature-flag) for more information.
-
-->**Note:** `kube_proxy` can only be disabled if the cluster is configured with its own (BYO) CNI, i.e. if `network_plugin` is set to `none`.
-
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`. Changing this forces a new resource to be created.
 
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard`. Changing this forces a new resource to be created.
 
 * `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
-
----
-
-A `kube_proxy` block supports the following:
-
-* `mode` - (Required) Specifies which proxy mode to use. Possible values are `IPTABLES` and `IPVS`(Must be using Kubernetes version >= 1.22).
-
-* `ipvs` - (Optional) An `ipvs` block.
-
----
-
-An `ipvs` block supports the following:
-
-* `scheduler` - (Optional) Specifies the IPVS scheduler, more information please see [this document](http://www.linuxvirtualserver.org/docs/scheduling.html).
-
-* `tcp_fin_timeout_in_seconds` - (Optional) Specifies the timeout value used for IPVS TCP sessions after receiving a FIN in seconds.
-
-* `tcp_timeout_in_seconds` - (Optional) Specifies the timeout value used for idle IPVS TCP sessions in seconds.
-
-* `udp_timeout_in_seconds` - (Optional) Specifies the timeout value used for IPVS UDP packets in seconds.
 
 ---
 
@@ -870,13 +864,27 @@ In addition to all arguments above, the following attributes are exported:
 
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
-* `node_resource_group` - (Optional) The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. Changing this forces a new resource to be created.
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. Changing this forces a new resource to be created.
+
+* `network_profile` - A `network_profile` block as defined below.
+
+* `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
+
+* `oms_agent` - An `oms_agent` block as defined below.
+
+* `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as defined below.
 
 ---
 
 A `load_balancer_profile` block exports the following:
 
 * `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
+
+---
+
+A `network_profile` block supports the following:
+
+* `nat_gateway_profile` - A `nat_gateway_profile` block as defined below.
 
 ---
 

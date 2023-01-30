@@ -248,7 +248,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationValue", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationValue", "example-resource-group", "deletedAccountValue")
 
 read, err := client.DeletedAccountsGet(ctx, id)
 if err != nil {
@@ -281,7 +281,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationValue", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationValue", "example-resource-group", "deletedAccountValue")
 
 if err := client.DeletedAccountsPurgeThenPoll(ctx, id); err != nil {
 	// handle the error

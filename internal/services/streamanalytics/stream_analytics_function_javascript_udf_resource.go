@@ -194,7 +194,7 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.Set("name", id.FunctionName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

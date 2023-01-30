@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue", "jobValue")
+id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue", "jobValue")
 
 read, err := client.JobsCancelJob(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue", "jobValue")
+id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue", "jobValue")
 
 payload := encodings.Job{
 	// ...
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue", "jobValue")
+id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue", "jobValue")
 
 read, err := client.JobsDelete(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue", "jobValue")
+id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue", "jobValue")
 
 read, err := client.JobsGet(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue")
+id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue")
 
 // alternatively `client.JobsList(ctx, id, encodings.DefaultJobsListOperationOptions())` can be used to do batched pagination
 items, err := client.JobsListComplete(ctx, id, encodings.DefaultJobsListOperationOptions())
@@ -110,7 +110,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue", "jobValue")
+id := encodings.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue", "jobValue")
 
 payload := encodings.Job{
 	// ...
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue")
+id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue")
 
 payload := encodings.Transform{
 	// ...
@@ -152,7 +152,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue")
+id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue")
 
 read, err := client.TransformsDelete(ctx, id)
 if err != nil {
@@ -168,7 +168,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue")
+id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue")
 
 read, err := client.TransformsGet(ctx, id)
 if err != nil {
@@ -184,7 +184,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := encodings.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 // alternatively `client.TransformsList(ctx, id, encodings.DefaultTransformsListOperationOptions())` can be used to do batched pagination
 items, err := client.TransformsListComplete(ctx, id, encodings.DefaultTransformsListOperationOptions())
@@ -201,7 +201,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "transformValue")
+id := encodings.NewTransformID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "transformValue")
 
 payload := encodings.Transform{
 	// ...

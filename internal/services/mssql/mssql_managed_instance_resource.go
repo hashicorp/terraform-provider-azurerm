@@ -479,7 +479,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return err
 					}
-					model.MaintenanceConfigurationName = maintenanceConfigId.ResourceName
+					model.MaintenanceConfigurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
 				}
 				if props.MinimalTLSVersion != nil {
 					model.MinimumTlsVersion = *props.MinimalTLSVersion

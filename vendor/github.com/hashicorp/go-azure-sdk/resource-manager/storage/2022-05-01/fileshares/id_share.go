@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = ShareId{}
 
 // ShareId is a struct representing the Resource ID for a Share
 type ShareId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	ShareName         string
+	SubscriptionId     string
+	ResourceGroupName  string
+	StorageAccountName string
+	ShareName          string
 }
 
 // NewShareID returns a new ShareId struct
-func NewShareID(subscriptionId string, resourceGroupName string, accountName string, shareName string) ShareId {
+func NewShareID(subscriptionId string, resourceGroupName string, storageAccountName string, shareName string) ShareId {
 	return ShareId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		ShareName:         shareName,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		StorageAccountName: storageAccountName,
+		ShareName:          shareName,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParseShareID(input string) (*ShareId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
@@ -77,8 +77,8 @@ func ParseShareIDInsensitively(input string) (*ShareId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateShareID(input interface{}, key string) (warnings []string, errors [
 // ID returns the formatted Share ID
 func (id ShareId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/fileServices/default/shares/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, id.ShareName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Share ID
@@ -119,7 +119,7 @@ func (id ShareId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountValue"),
 		resourceids.StaticSegment("staticFileServices", "fileServices", "fileServices"),
 		resourceids.StaticSegment("staticDefault", "default", "default"),
 		resourceids.StaticSegment("staticShares", "shares", "shares"),
@@ -132,7 +132,7 @@ func (id ShareId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Storage Account Name: %q", id.StorageAccountName),
 		fmt.Sprintf("Share Name: %q", id.ShareName),
 	}
 	return fmt.Sprintf("Share (%s)", strings.Join(components, "\n"))

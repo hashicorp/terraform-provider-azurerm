@@ -105,7 +105,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
         // netapp has a max of 10 accounts per subscription so lets limit it to 3 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6", useDevTestSubscription = true),
+        "netapp" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false), useDevTestSubscription = true),
 
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),

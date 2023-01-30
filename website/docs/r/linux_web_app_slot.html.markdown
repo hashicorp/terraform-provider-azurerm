@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `logs` - (Optional) A `logs` block as defined below.
 
+* `service_plan_id` - (Optional) The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Linux Web App will be used.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -162,7 +164,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9` and `3.10`.
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
 
 * `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
 

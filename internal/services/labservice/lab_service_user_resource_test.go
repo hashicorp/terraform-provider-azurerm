@@ -140,7 +140,7 @@ resource "azurerm_lab_service_lab" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func (r LabServiceUserResource) basic(data acceptance.TestData) string {

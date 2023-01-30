@@ -13,17 +13,17 @@ var _ resourceids.ResourceId = RecordTypeId{}
 type RecordTypeId struct {
 	SubscriptionId        string
 	ResourceGroupName     string
-	ZoneName              string
+	DnsZoneName           string
 	RecordType            RecordType
 	RelativeRecordSetName string
 }
 
 // NewRecordTypeID returns a new RecordTypeId struct
-func NewRecordTypeID(subscriptionId string, resourceGroupName string, zoneName string, recordType RecordType, relativeRecordSetName string) RecordTypeId {
+func NewRecordTypeID(subscriptionId string, resourceGroupName string, dnsZoneName string, recordType RecordType, relativeRecordSetName string) RecordTypeId {
 	return RecordTypeId{
 		SubscriptionId:        subscriptionId,
 		ResourceGroupName:     resourceGroupName,
-		ZoneName:              zoneName,
+		DnsZoneName:           dnsZoneName,
 		RecordType:            recordType,
 		RelativeRecordSetName: relativeRecordSetName,
 	}
@@ -48,8 +48,8 @@ func ParseRecordTypeID(input string) (*RecordTypeId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ZoneName, ok = parsed.Parsed["zoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'zoneName' was not found in the resource id %q", input)
+	if id.DnsZoneName, ok = parsed.Parsed["dnsZoneName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dnsZoneName' was not found in the resource id %q", input)
 	}
 
 	if v, ok := parsed.Parsed["recordType"]; true {
@@ -91,8 +91,8 @@ func ParseRecordTypeIDInsensitively(input string) (*RecordTypeId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ZoneName, ok = parsed.Parsed["zoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'zoneName' was not found in the resource id %q", input)
+	if id.DnsZoneName, ok = parsed.Parsed["dnsZoneName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dnsZoneName' was not found in the resource id %q", input)
 	}
 
 	if v, ok := parsed.Parsed["recordType"]; true {
@@ -132,7 +132,7 @@ func ValidateRecordTypeID(input interface{}, key string) (warnings []string, err
 // ID returns the formatted Record Type ID
 func (id RecordTypeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnsZones/%s/%s/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ZoneName, string(id.RecordType), id.RelativeRecordSetName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, string(id.RecordType), id.RelativeRecordSetName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Record Type ID
@@ -145,7 +145,7 @@ func (id RecordTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsZones", "dnsZones", "dnsZones"),
-		resourceids.UserSpecifiedSegment("zoneName", "zoneValue"),
+		resourceids.UserSpecifiedSegment("dnsZoneName", "dnsZoneValue"),
 		resourceids.ConstantSegment("recordType", PossibleValuesForRecordType(), "A"),
 		resourceids.UserSpecifiedSegment("relativeRecordSetName", "relativeRecordSetValue"),
 	}
@@ -156,7 +156,7 @@ func (id RecordTypeId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Zone Name: %q", id.ZoneName),
+		fmt.Sprintf("Dns Zone Name: %q", id.DnsZoneName),
 		fmt.Sprintf("Record Type: %q", string(id.RecordType)),
 		fmt.Sprintf("Relative Record Set Name: %q", id.RelativeRecordSetName),
 	}

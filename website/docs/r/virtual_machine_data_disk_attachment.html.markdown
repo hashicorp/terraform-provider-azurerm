@@ -141,7 +141,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Virtual Machines Data Disk Attachments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_machine_data_disk_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/virtualMachines/machine1/dataDisks/disk1
+terraform import azurerm_virtual_machine_data_disk_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1
 ```
 
 -> **Please Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`

@@ -160,7 +160,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 			}
 
 			state := AccessConnectorResourceModel{
-				Name:          id.ConnectorName,
+				Name:          id.AccessConnectorName,
 				Location:      location.NormalizeNilable(utils.String(resp.Model.Location)),
 				ResourceGroup: id.ResourceGroupName,
 			}

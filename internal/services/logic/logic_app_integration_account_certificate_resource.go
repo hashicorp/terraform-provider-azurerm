@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountcertificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,7 +33,7 @@ func resourceLogicAppIntegrationAccountCertificate() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationAccountCertificateID(id)
+			_, err := integrationaccountcertificates.ParseCertificateID(id)
 			return err
 		}),
 
@@ -105,38 +105,37 @@ func resourceLogicAppIntegrationAccountCertificateCreateUpdate(d *pluginsdk.Reso
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIntegrationAccountCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
+	id := integrationaccountcertificates.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.CertificateName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_certificate", id.ID())
 		}
 	}
 
-	parameters := logic.IntegrationAccountCertificate{
-		IntegrationAccountCertificateProperties: &logic.IntegrationAccountCertificateProperties{},
+	parameters := integrationaccountcertificates.IntegrationAccountCertificate{
+		Properties: integrationaccountcertificates.IntegrationAccountCertificateProperties{},
 	}
 
 	if v, ok := d.GetOk("key_vault_key"); ok {
-		parameters.IntegrationAccountCertificateProperties.Key = expandIntegrationAccountCertificateKeyVaultKey(v.([]interface{}))
+		parameters.Properties.Key = expandIntegrationAccountCertificateKeyVaultKey(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		metadata, _ := pluginsdk.ExpandJsonFromString(v.(string))
-		parameters.IntegrationAccountCertificateProperties.Metadata = metadata
+		parameters.Properties.Metadata = &v
 	}
 
 	if v, ok := d.GetOk("public_certificate"); ok {
-		parameters.IntegrationAccountCertificateProperties.PublicCertificate = utils.String(v.(string))
+		parameters.Properties.PublicCertificate = utils.String(v.(string))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.CertificateName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -149,14 +148,14 @@ func resourceLogicAppIntegrationAccountCertificateRead(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountCertificateID(d.Id())
+	id, err := integrationaccountcertificates.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.CertificateName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -165,21 +164,21 @@ func resourceLogicAppIntegrationAccountCertificateRead(d *pluginsdk.ResourceData
 	}
 
 	d.Set("name", id.CertificateName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("integration_account_name", id.IntegrationAccountName)
 
-	if props := resp.IntegrationAccountCertificateProperties; props != nil {
+	if model := resp.Model; model != nil {
+		props := model.Properties
 		if err := d.Set("key_vault_key", flattenIntegrationAccountCertificateKeyVaultKey(props.Key)); err != nil {
 			return fmt.Errorf("setting `key_vault_key`: %+v", err)
 		}
 
 		if props.Metadata != nil {
-			metadataValue := props.Metadata.(map[string]interface{})
-			metadataStr, _ := pluginsdk.FlattenJsonToString(metadataValue)
-			d.Set("metadata", metadataStr)
+			d.Set("metadata", props.Metadata)
 		}
 
 		d.Set("public_certificate", props.PublicCertificate)
+
 	}
 
 	return nil
@@ -190,30 +189,30 @@ func resourceLogicAppIntegrationAccountCertificateDelete(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountCertificateID(d.Id())
+	id, err := integrationaccountcertificates.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IntegrationAccountName, id.CertificateName); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandIntegrationAccountCertificateKeyVaultKey(input []interface{}) *logic.KeyVaultKeyReference {
+func expandIntegrationAccountCertificateKeyVaultKey(input []interface{}) *integrationaccountcertificates.KeyVaultKeyReference {
 	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	result := logic.KeyVaultKeyReference{
-		KeyVault: &logic.KeyVaultKeyReferenceKeyVault{
-			ID: utils.String(v["key_vault_id"].(string)),
+	result := integrationaccountcertificates.KeyVaultKeyReference{
+		KeyVault: integrationaccountcertificates.KeyVaultKeyReferenceKeyVault{
+			Id: utils.String(v["key_vault_id"].(string)),
 		},
-		KeyName: utils.String(v["key_name"].(string)),
+		KeyName: v["key_name"].(string),
 	}
 
 	if keyVersion := v["key_version"].(string); keyVersion != "" {
@@ -223,19 +222,14 @@ func expandIntegrationAccountCertificateKeyVaultKey(input []interface{}) *logic.
 	return &result
 }
 
-func flattenIntegrationAccountCertificateKeyVaultKey(input *logic.KeyVaultKeyReference) []interface{} {
+func flattenIntegrationAccountCertificateKeyVaultKey(input *integrationaccountcertificates.KeyVaultKeyReference) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	var keyName string
-	if input.KeyName != nil {
-		keyName = *input.KeyName
-	}
-
 	var keyVaultId string
-	if input.KeyVault != nil && input.KeyVault.ID != nil {
-		keyVaultId = *input.KeyVault.ID
+	if input.KeyVault.Id != nil {
+		keyVaultId = *input.KeyVault.Id
 	}
 
 	var keyVersion string
@@ -245,7 +239,7 @@ func flattenIntegrationAccountCertificateKeyVaultKey(input *logic.KeyVaultKeyRef
 
 	return []interface{}{
 		map[string]interface{}{
-			"key_name":     keyName,
+			"key_name":     input.KeyName,
 			"key_vault_id": keyVaultId,
 			"key_version":  keyVersion,
 		},

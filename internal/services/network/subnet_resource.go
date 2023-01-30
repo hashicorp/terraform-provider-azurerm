@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var SubnetResourceName = "azurerm_subnet"
@@ -58,6 +58,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.Orbital/orbitalGateways",
 	"NGINX.NGINXPLUS/nginxDeployments",
 	"PaloAltoNetworks.Cloudngfw/firewalls",
+	"Qumulo.Storage/fileSystems",
 }
 
 func resourceSubnet() *pluginsdk.Resource {

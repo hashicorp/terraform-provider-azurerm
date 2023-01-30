@@ -196,7 +196,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 
 	primaryId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 
-	d.Set("name", id.Alias)
+	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("primary_namespace_id", primaryId.ID())
 
 	if model := resp.Model; model != nil {
@@ -290,7 +290,9 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		MinTimeout: 30 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.CheckNameAvailability(ctx, namespaceId, disasterrecoveryconfigs.CheckNameAvailability{Name: id.Alias})
+			resp, err := client.CheckNameAvailability(ctx, namespaceId, disasterrecoveryconfigs.CheckNameAvailability{
+				Name: id.DisasterRecoveryConfigName,
+			})
 			if err != nil {
 				return resp, "Error", fmt.Errorf("checking for the status of %s: %+v", *id, err)
 			}

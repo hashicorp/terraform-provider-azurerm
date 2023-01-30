@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -213,7 +214,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 }
 
 func networkInterfaceResource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	out := &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
@@ -239,13 +240,18 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			"is_primary": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		out.Schema["is_primary"] = &pluginsdk.Schema{
+			Deprecated: "this property is not used and will be removed in version 4.0 of the provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+		}
+	}
+	return out
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
@@ -435,10 +441,6 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
 		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
-		isPrimary := vmNicInput["is_primary"].(bool)
-		if len(nicList) == 1 {
-			isPrimary = true
-		}
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -449,7 +451,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				RecoverySubnetName:        &targetSubnetName,
 				RecoveryStaticIPAddress:   &targetStaticIp,
 				RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
-				IsPrimary:                 &isPrimary,
+				IsPrimary:                 utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
@@ -544,11 +546,11 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("making Read request on site recovery replicated vm %s: model is nil", id.String())
 	}
 
-	d.Set("name", id.ReplicatedProtectedItemName)
+	d.Set("name", id.ReplicationProtectedItemName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
-	d.Set("source_recovery_fabric_name", id.FabricName)
-	d.Set("source_recovery_protection_container_name", id.ProtectionContainerName)
+	d.Set("recovery_vault_name", id.VaultName)
+	d.Set("source_recovery_fabric_name", id.ReplicationFabricName)
+	d.Set("source_recovery_protection_container_name", id.ReplicationProtectionContainerName)
 
 	if prop := model.Properties; prop != nil {
 		d.Set("target_recovery_fabric_id", prop.RecoveryFabricId)

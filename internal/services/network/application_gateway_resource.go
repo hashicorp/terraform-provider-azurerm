@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 // See https://github.com/Azure/azure-sdk-for-go/blob/master/services/network/mgmt/2018-04-01/network/models.go
@@ -63,6 +63,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 							string(network.ApplicationGatewaySslProtocolTLSv10),
 							string(network.ApplicationGatewaySslProtocolTLSv11),
 							string(network.ApplicationGatewaySslProtocolTLSv12),
+							string(network.ApplicationGatewaySslProtocolTLSv13),
 						}, false),
 					},
 				},
@@ -72,6 +73,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.ApplicationGatewaySslPolicyTypeCustom),
+						string(network.ApplicationGatewaySslPolicyTypeCustomV2),
 						string(network.ApplicationGatewaySslPolicyTypePredefined),
 					}, false),
 				},
@@ -97,6 +99,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 						string(network.ApplicationGatewaySslProtocolTLSv10),
 						string(network.ApplicationGatewaySslProtocolTLSv11),
 						string(network.ApplicationGatewaySslProtocolTLSv12),
+						string(network.ApplicationGatewaySslProtocolTLSv13),
 					}, false),
 				},
 			},

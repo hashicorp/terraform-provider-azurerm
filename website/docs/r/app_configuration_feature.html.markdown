@@ -78,7 +78,7 @@ A `groups` block represents a group that can be used in a `targeting_filter` and
 
 ---
 
-A `timewindow_filter` represents a feature filter of type `Microsoft.TimeWindow` and takes the following attributes:
+A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeWindow` and takes the following attributes:
 
 * `start` - (Optional) The earliest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 
@@ -106,11 +106,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Configuration Features can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/label1
+terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/label1
 ```
 
 If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
+terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
 ```

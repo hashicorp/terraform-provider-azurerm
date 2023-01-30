@@ -141,7 +141,7 @@ func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID(digitalTwinsId.SubscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.ResourceName, model.Name)
+			id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID(digitalTwinsId.SubscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -203,7 +203,7 @@ func (m TimeSeriesDatabaseConnectionResource) Read() sdk.ResourceFunc {
 
 			var output TimeSeriesDatabaseConnectionModel
 			output.Name = id.TimeSeriesDatabaseConnectionName
-			output.DigitalTwinsId = timeseriesdatabaseconnections.NewDigitalTwinsInstanceID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID()
+			output.DigitalTwinsId = timeseriesdatabaseconnections.NewDigitalTwinsInstanceID(id.SubscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName).ID()
 
 			if properties, ok := result.Model.Properties.(timeseriesdatabaseconnections.AzureDataExplorerConnectionProperties); ok {
 				output.EventhubName = properties.EventHubEntityPath

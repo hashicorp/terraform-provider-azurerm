@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -184,17 +184,17 @@ func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 }
 
 func (IntegrationServiceEnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationServiceEnvironmentID(state.ID)
+	id, err := integrationserviceenvironments.ParseIntegrationServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Logic.IntegrationServiceEnvironmentClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Logic.IntegrationServiceEnvironmentClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Integration Service Environment %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (IntegrationServiceEnvironmentResource) template(data acceptance.TestData) string {
