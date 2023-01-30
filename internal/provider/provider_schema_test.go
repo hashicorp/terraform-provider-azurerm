@@ -98,6 +98,12 @@ func schemaContainsSensitiveFieldsNotMarkedAsSensitive(input map[string]*plugins
 }
 
 func TestDataSourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
+	// This test validates that Data Sources do not contain a field suffixed with `_enabled` that isn't a Boolean.
+	//
+	// If this test is failing due to a new Data Source/new field within an existing Data Source, it'd be worth validating
+	// the schema, since fields matching `{some_name}_enabled` should be Booleans. Should a Tri-State Boolean exist,
+	// this field likely wants the `_enabled` suffix removing, to make the example `{some_name}` instead (with
+	// validation for the possible values).
 	provider := TestAzureProvider()
 
 	// intentionally sorting these so the output is consistent
@@ -116,6 +122,12 @@ func TestDataSourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 }
 
 func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
+	// This test validates that Resources do not contain a field suffixed with `_enabled` that isn't a Boolean.
+	//
+	// If this test is failing due to a new Resource/new field within an existing Resource, it'd be worth validating
+	// the schema, since fields matching `{some_name}_enabled` should be Booleans. Should a Tri-State Boolean exist,
+	// this field likely wants the `_enabled` suffix removing, to make the example `{some_name}` instead (with
+	// validation for the possible values).
 	provider := TestAzureProvider()
 
 	// intentionally sorting these so the output is consistent
@@ -206,6 +218,11 @@ func schemaContainsEnabledFieldsNotDefinedAsABoolean(input map[string]*schema.Sc
 }
 
 func TestDataSourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
+	// This test validates that Data Sources do not contain a field `name` with a default value of `default`, which
+	// would signify that only a single instance of this resource can be created and is related to the parent resource.
+	//
+	// If a new Data Sources is failing because of this test, rather than adding a new Data Sources, you likely want to
+	// embed the relevant structure (for example `sso_configuration {}`) within the parent Data Sources this is related to.
 	provider := TestAzureProvider()
 
 	// intentionally sorting these so the output is consistent
@@ -224,6 +241,11 @@ func TestDataSourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 }
 
 func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
+	// This test validates that Resources do not contain a field `name` with a default value of `default`, which
+	// would signify that only a single instance of this resource can be created and is related to the parent resource.
+	//
+	// If a new Resource is failing because of this test, rather than adding a new Resource, you likely want to
+	// embed the relevant structure (for example `sso_configuration {}`) within the parent Resource this is related to.
 	provider := TestAzureProvider()
 
 	// intentionally sorting these so the output is consistent
