@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this hybrid compute machine.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Hybrid Compute exists. Changing this forces a new Hybrid Compute to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Hybrid Compute exists.
 
 ## Attributes Reference
 
