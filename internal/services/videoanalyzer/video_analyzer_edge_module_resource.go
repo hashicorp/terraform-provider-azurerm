@@ -109,7 +109,7 @@ func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.Set("name", id.EdgeModuleName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("video_analyzer_name", id.AccountName)
+	d.Set("video_analyzer_name", id.VideoAnalyzerName)
 
 	return nil
 }

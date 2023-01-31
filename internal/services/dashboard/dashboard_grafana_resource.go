@@ -304,7 +304,7 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 			}
 
 			state := DashboardGrafanaModel{
-				Name:              id.WorkspaceName,
+				Name:              id.GrafanaName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.NormalizeNilable(model.Location),
 			}

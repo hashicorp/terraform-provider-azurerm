@@ -287,30 +287,6 @@ A `security` block supports the following:
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
 
-* `disable_backend_ssl30` - (Optional) Should SSL 3.0 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_backend_ssl30` property and will be removed in version 2.0 of the provider.
-
-* `disable_backend_tls10` - (Optional) Should TLS 1.0 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_backend_tls10` property and will be removed in version 2.0 of the provider.
-
-* `disable_backend_tls11` - (Optional) Should TLS 1.1 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_backend_tls11` property and will be removed in version 2.0 of the provider.
-
-* `disable_frontend_ssl30` - (Optional) Should SSL 3.0 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_frontend_ssl30` property and will be removed in version 2.0 of the provider.
-
-* `disable_frontend_tls10` - (Optional) Should TLS 1.0 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_frontend_tls10` property and will be removed in version 2.0 of the provider.
-
-* `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_frontend_tls11` property and will be removed in version 2.0 of the provider.
-
 ---
 
 A `sign_in` block supports the following:
@@ -360,6 +336,8 @@ In addition to all arguments above, the following attributes are exported:
 * `gateway_regional_url` - The Region URL for the Gateway of the API Management Service.
 
 * `identity` - An `identity` block as defined below.
+
+* `hostname_configuration` - A `hostname_configuration` block as defined below.
 
 * `management_api_url` - The URL for the Management API associated with this API Management service.
 
@@ -417,11 +395,11 @@ The `certificate` block exports the following:
 
 The `hostname_configuration` block exports the following:
 
-* `expiry` - The expiration date of the certificate in RFC3339 format: `2000-01-02T03:04:05Z`.
+* `proxy` - A `proxy` block as defined below.
 
-* `thumbprint` - The thumbprint of the certificate.
+---
 
-* `subject` - The subject of the certificate.
+The `proxy` block exports the following:
 
 * `certificate_source` - The source of the certificate.
 

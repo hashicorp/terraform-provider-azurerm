@@ -172,7 +172,7 @@ redis_configuration {
 
 A `patch_schedule` block supports the following:
 
-* `day_of_week` (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
+* `day_of_week` - (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
 
 * `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
 

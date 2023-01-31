@@ -31,7 +31,7 @@ func (d PrivateDNSResolverVirtualNetworkLinkDataSource) basic(data acceptance.Te
 %s
 
 data "azurerm_private_dns_resolver_virtual_network_link" "test" {
-  name         		        = azurerm_private_dns_resolver_virtual_network_link.test.name
+  name                      = azurerm_private_dns_resolver_virtual_network_link.test.name
   dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
 }
 `, PrivateDNSResolverVirtualNetworkLinkResource{}.basic(data))

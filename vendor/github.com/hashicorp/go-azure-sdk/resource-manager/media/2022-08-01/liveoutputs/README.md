@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := liveoutputs.NewLiveOutputOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "operationIdValue")
+id := liveoutputs.NewLiveOutputOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "operationIdValue")
 
 read, err := client.AsyncOperation(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := liveoutputs.NewLiveOutputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "liveEventValue", "liveOutputValue")
+id := liveoutputs.NewLiveOutputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "liveEventValue", "liveOutputValue")
 
 payload := liveoutputs.LiveOutput{
 	// ...
@@ -57,7 +57,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := liveoutputs.NewLiveOutputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "liveEventValue", "liveOutputValue")
+id := liveoutputs.NewLiveOutputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "liveEventValue", "liveOutputValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -69,7 +69,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := liveoutputs.NewLiveOutputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "liveEventValue", "liveOutputValue")
+id := liveoutputs.NewLiveOutputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "liveEventValue", "liveOutputValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := liveoutputs.NewLiveEventID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "liveEventValue")
+id := liveoutputs.NewLiveEventID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "liveEventValue")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := liveoutputs.NewLiveOutputOperationLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "liveEventValue", "liveOutputValue", "operationIdValue")
+id := liveoutputs.NewLiveOutputOperationLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "liveEventValue", "liveOutputValue", "operationIdValue")
 
 read, err := client.OperationLocation(ctx, id)
 if err != nil {

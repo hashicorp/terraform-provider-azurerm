@@ -757,7 +757,7 @@ func flattenAutoShutdownProfile(input lab.AutoShutdownProfile) []AutoShutdown {
 	shutdownWhenNotConnectedEnabled := input.ShutdownWhenNotConnected != nil && *input.ShutdownWhenNotConnected != lab.EnableStateDisabled
 	shutdownOnIdleModeConfigured := input.ShutdownOnIdle != nil && *input.ShutdownOnIdle != lab.ShutdownOnIdleModeNone
 	idleDelayConfigured := input.IdleDelay != nil
-	if !shutdownOnDisconnectEnabled && !shutdownWhenNotConnectedEnabled && shutdownOnIdleModeConfigured && !idleDelayConfigured {
+	if !shutdownOnDisconnectEnabled && !shutdownWhenNotConnectedEnabled && !shutdownOnIdleModeConfigured && !idleDelayConfigured {
 		return []AutoShutdown{}
 	}
 

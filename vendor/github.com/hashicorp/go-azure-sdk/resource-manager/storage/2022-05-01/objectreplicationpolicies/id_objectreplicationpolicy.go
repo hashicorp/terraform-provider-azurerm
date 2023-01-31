@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = ObjectReplicationPolicyId{}
 type ObjectReplicationPolicyId struct {
 	SubscriptionId            string
 	ResourceGroupName         string
-	AccountName               string
+	StorageAccountName        string
 	ObjectReplicationPolicyId string
 }
 
 // NewObjectReplicationPolicyID returns a new ObjectReplicationPolicyId struct
-func NewObjectReplicationPolicyID(subscriptionId string, resourceGroupName string, accountName string, objectReplicationPolicyId string) ObjectReplicationPolicyId {
+func NewObjectReplicationPolicyID(subscriptionId string, resourceGroupName string, storageAccountName string, objectReplicationPolicyId string) ObjectReplicationPolicyId {
 	return ObjectReplicationPolicyId{
 		SubscriptionId:            subscriptionId,
 		ResourceGroupName:         resourceGroupName,
-		AccountName:               accountName,
+		StorageAccountName:        storageAccountName,
 		ObjectReplicationPolicyId: objectReplicationPolicyId,
 	}
 }
@@ -46,8 +46,8 @@ func ParseObjectReplicationPolicyID(input string) (*ObjectReplicationPolicyId, e
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.ObjectReplicationPolicyId, ok = parsed.Parsed["objectReplicationPolicyId"]; !ok {
@@ -77,8 +77,8 @@ func ParseObjectReplicationPolicyIDInsensitively(input string) (*ObjectReplicati
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.ObjectReplicationPolicyId, ok = parsed.Parsed["objectReplicationPolicyId"]; !ok {
@@ -106,7 +106,7 @@ func ValidateObjectReplicationPolicyID(input interface{}, key string) (warnings 
 // ID returns the formatted Object Replication Policy ID
 func (id ObjectReplicationPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/objectReplicationPolicies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ObjectReplicationPolicyId)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, id.ObjectReplicationPolicyId)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Object Replication Policy ID
@@ -119,7 +119,7 @@ func (id ObjectReplicationPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountValue"),
 		resourceids.StaticSegment("staticObjectReplicationPolicies", "objectReplicationPolicies", "objectReplicationPolicies"),
 		resourceids.UserSpecifiedSegment("objectReplicationPolicyId", "objectReplicationPolicyIdValue"),
 	}
@@ -130,7 +130,7 @@ func (id ObjectReplicationPolicyId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Storage Account Name: %q", id.StorageAccountName),
 		fmt.Sprintf("Object Replication Policy: %q", id.ObjectReplicationPolicyId),
 	}
 	return fmt.Sprintf("Object Replication Policy (%s)", strings.Join(components, "\n"))

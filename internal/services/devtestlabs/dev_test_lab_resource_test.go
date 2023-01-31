@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -69,17 +69,17 @@ func TestAccDevTestLab_complete(t *testing.T) {
 }
 
 func (DevTestLabResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DevTestLabID(state.ID)
+	id, err := labs.ParseLabID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DevTestLabs.LabsClient.Get(ctx, id.ResourceGroup, id.LabName, "")
+	resp, err := clients.DevTestLabs.LabsClient.Get(ctx, *id, labs.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("retrievisng %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.LabProperties != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil
 }
 
 func (DevTestLabResource) basic(data acceptance.TestData) string {

@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type Client struct {
@@ -26,8 +26,11 @@ type Client struct {
 	IPGroupsClient                          *network.IPGroupsClient
 	LocalNetworkGatewaysClient              *network.LocalNetworkGatewaysClient
 	ManagersClient                          *network.ManagersClient
+	ManagerConnectivityConfigurationsClient *network.ConnectivityConfigurationsClient
 	ManagerManagementGroupConnectionsClient *network.ManagementGroupNetworkManagerConnectionsClient
 	ManagerNetworkGroupsClient              *network.GroupsClient
+	ManagerScopeConnectionsClient           *network.ScopeConnectionsClient
+	ManagerStaticMembersClient              *network.StaticMembersClient
 	ManagerSubscriptionConnectionsClient    *network.SubscriptionNetworkManagerConnectionsClient
 	NatRuleClient                           *network.NatRulesClient
 	PointToSiteVpnGatewaysClient            *network.P2sVpnGatewaysClient
@@ -130,11 +133,20 @@ func NewClient(o *common.ClientOptions) *Client {
 	ManagersClient := network.NewManagersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagersClient.Client, o.ResourceManagerAuthorizer)
 
+	ManagerConnectivityConfigurationsClient := network.NewConnectivityConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerConnectivityConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagerScopeConnectionsClient := network.NewScopeConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerScopeConnectionsClient.Client, o.ResourceManagerAuthorizer)
+
 	ManagerManagementGroupConnectionsClient := network.NewManagementGroupNetworkManagerConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerManagementGroupConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
 	ManagerNetworkGroupsClient := network.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerNetworkGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagerStaticMembersClient := network.NewStaticMembersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerStaticMembersClient.Client, o.ResourceManagerAuthorizer)
 
 	ManagerSubscriptionConnectionsClient := network.NewSubscriptionNetworkManagerConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerSubscriptionConnectionsClient.Client, o.ResourceManagerAuthorizer)
@@ -274,8 +286,11 @@ func NewClient(o *common.ClientOptions) *Client {
 		IPGroupsClient:                          &IpGroupsClient,
 		LocalNetworkGatewaysClient:              &LocalNetworkGatewaysClient,
 		ManagersClient:                          &ManagersClient,
+		ManagerConnectivityConfigurationsClient: &ManagerConnectivityConfigurationsClient,
 		ManagerManagementGroupConnectionsClient: &ManagerManagementGroupConnectionsClient,
 		ManagerNetworkGroupsClient:              &ManagerNetworkGroupsClient,
+		ManagerScopeConnectionsClient:           &ManagerScopeConnectionsClient,
+		ManagerStaticMembersClient:              &ManagerStaticMembersClient,
 		ManagerSubscriptionConnectionsClient:    &ManagerSubscriptionConnectionsClient,
 		NatRuleClient:                           &NatRuleClient,
 		PointToSiteVpnGatewaysClient:            &pointToSiteVpnGatewaysClient,

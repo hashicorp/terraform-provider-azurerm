@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'contributing/**'
   workflow_dispatch:
 
 permissions:

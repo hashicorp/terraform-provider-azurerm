@@ -213,7 +213,7 @@ func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DedicatedHSMName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

@@ -888,6 +888,13 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.azureFilesAuthenticationAADKERB(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1118,7 +1125,7 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
+func TestAccStorageAccount_infrastructureEncryptionStorageV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1140,14 +1147,43 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
+			Config: r.infrastructureEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("account_tier").HasValue("Premium"),
-				check.That(data.ResourceName).Key("account_kind").HasValue("BlockBlobStorage"),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionFileStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryptionForFileStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionBlockBlobStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -3199,6 +3235,35 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r StorageAccountResource) azureFilesAuthenticationAADKERB(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AADKERB"
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r StorageAccountResource) routing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3673,6 +3738,30 @@ resource "azurerm_storage_account" "test" {
 
   location                          = azurerm_resource_group.test.location
   account_kind                      = "BlockBlobStorage"
+  account_tier                      = "Premium"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) infrastructureEncryptionForFileStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                          = azurerm_resource_group.test.location
+  account_kind                      = "FileStorage"
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true

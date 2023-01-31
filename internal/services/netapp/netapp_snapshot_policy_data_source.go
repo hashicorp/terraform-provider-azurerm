@@ -171,7 +171,7 @@ func dataSourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interfac
 	d.SetId(id.ID())
 
 	d.Set("name", id.SnapshotPolicyName)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

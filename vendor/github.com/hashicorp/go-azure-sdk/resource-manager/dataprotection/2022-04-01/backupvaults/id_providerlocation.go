@@ -13,15 +13,15 @@ var _ resourceids.ResourceId = ProviderLocationId{}
 type ProviderLocationId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	Location          string
+	LocationName      string
 }
 
 // NewProviderLocationID returns a new ProviderLocationId struct
-func NewProviderLocationID(subscriptionId string, resourceGroupName string, location string) ProviderLocationId {
+func NewProviderLocationID(subscriptionId string, resourceGroupName string, locationName string) ProviderLocationId {
 	return ProviderLocationId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		Location:          location,
+		LocationName:      locationName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseProviderLocationID(input string) (*ProviderLocationId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseProviderLocationIDInsensitively(input string) (*ProviderLocationId, er
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateProviderLocationID(input interface{}, key string) (warnings []strin
 // ID returns the formatted Provider Location ID
 func (id ProviderLocationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/locations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.Location)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LocationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Provider Location ID
@@ -109,7 +109,7 @@ func (id ProviderLocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id ProviderLocationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Location: %q", id.Location),
+		fmt.Sprintf("Location Name: %q", id.LocationName),
 	}
 	return fmt.Sprintf("Provider Location (%s)", strings.Join(components, "\n"))
 }

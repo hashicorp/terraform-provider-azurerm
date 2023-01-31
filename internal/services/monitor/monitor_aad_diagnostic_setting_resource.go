@@ -232,7 +232,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 
 	workspaceId := ""
 	if resp.WorkspaceID != nil && *resp.WorkspaceID != "" {
-		parsedId, err := workspaces.ParseWorkspaceID(*resp.WorkspaceID)
+		parsedId, err := workspaces.ParseWorkspaceIDInsensitively(*resp.WorkspaceID)
 		if err != nil {
 			return err
 		}

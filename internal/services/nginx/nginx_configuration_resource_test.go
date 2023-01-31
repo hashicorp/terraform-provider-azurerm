@@ -38,6 +38,7 @@ func TestAccConfiguration_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("protected_file"),
 	})
 }
 
@@ -51,14 +52,14 @@ func TestAccConfiguration_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("protected_file"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("protected_file"),
 	})
 }
 
@@ -89,6 +90,11 @@ resource "azurerm_nginx_configuration" "test" {
   config_file {
     content      = local.config_content
     virtual_path = "/etc/nginx/nginx.conf"
+  }
+
+  protected_file {
+    content      = local.protected_content
+    virtual_path = "/opt/.htpasswd"
   }
 }
 `, a.template(data))
@@ -130,6 +136,11 @@ resource "azurerm_nginx_configuration" "test" {
     content      = local.sub_config_content
     virtual_path = "/etc/nginx/site/b.conf"
   }
+
+  protected_file {
+    content      = local.protected_content
+    virtual_path = "/opt/.htpasswd"
+  }
 }
 `, a.template(data))
 }
@@ -151,6 +162,8 @@ http {
     server {
         listen 80;
         location / {
+            auth_basic "Protected Area";
+            auth_basic_user_file /opt/.htpasswd;
             default_type text/html;
             return 200 '<!doctype html><html lang="en"><head></head><body>
                 <div>this one will be updated</div>
@@ -160,6 +173,11 @@ http {
         include site/*.conf;
     }
 }
+EOT
+  )
+
+  protected_content = base64encode(<<-EOT
+user:$apr1$VeUA5kt.$IjjRk//8miRxDsZvD4daF1
 EOT
   )
 
@@ -214,7 +232,7 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "publicpreview_Monthly_gmz7xq9ge3py"
+  sku                 = "standard_Monthly"
   location            = azurerm_resource_group.test.location
 
   //message: "Conflict managed resource group name: tenant: -91a, subscription xxx, resource group example."

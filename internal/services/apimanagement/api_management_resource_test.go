@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
@@ -571,7 +570,7 @@ func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
-	return func(state *terraform.State) error {
+	return func(state *pluginsdk.State) error {
 		client, err := testclient.Build()
 		if err != nil {
 			return fmt.Errorf("building client: %+v", err)

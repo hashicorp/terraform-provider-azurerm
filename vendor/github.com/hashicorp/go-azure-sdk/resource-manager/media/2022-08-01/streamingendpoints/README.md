@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "operationIdValue")
+id := streamingendpoints.NewStreamingEndpointOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "operationIdValue")
 
 read, err := client.AsyncOperation(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue")
 
 payload := streamingendpoints.StreamingEndpoint{
 	// ...
@@ -57,7 +57,7 @@ if err := client.CreateThenPoll(ctx, id, payload, streamingendpoints.DefaultCrea
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -69,7 +69,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := streamingendpoints.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointOperationLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue", "operationIdValue")
+id := streamingendpoints.NewStreamingEndpointOperationLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue", "operationIdValue")
 
 read, err := client.OperationLocation(ctx, id)
 if err != nil {
@@ -118,7 +118,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue")
 
 payload := streamingendpoints.StreamingEntityScaleUnit{
 	// ...
@@ -135,7 +135,7 @@ if err := client.ScaleThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue")
 
 read, err := client.Skus(ctx, id)
 if err != nil {
@@ -151,7 +151,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -163,7 +163,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "streamingEndpointValue")
+id := streamingendpoints.NewStreamingEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue")
 
 if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error

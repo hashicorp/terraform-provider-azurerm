@@ -74,7 +74,9 @@ The following supported locations for a Parquet Dataset:
 
 The following supported arguments are specific to Parquet Dataset:
 
-* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case sensitive.
+* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case-sensitive.
+
+* `compression_level` - (Optional) Specifies the compression level. Possible values are `Optimal` and `Fastest`,
 
 ---
 

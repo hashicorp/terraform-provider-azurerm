@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,10 +19,10 @@ type GalleryApplicationVersionResource struct{}
 func TestAccGalleryApplicationVersion_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_health_check").HasValue("false"),
 				check.That(data.ResourceName).Key("exclude_from_latest").HasValue("false"),
@@ -37,10 +36,10 @@ func TestAccGalleryApplicationVersion_basic(t *testing.T) {
 func TestAccGalleryApplicationVersion_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccGalleryApplicationVersion_requiresImport(t *testing.T) {
 func TestAccGalleryApplicationVersion_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,17 +64,17 @@ func TestAccGalleryApplicationVersion_complete(t *testing.T) {
 func TestAccGalleryApplicationVersion_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -86,31 +85,31 @@ func TestAccGalleryApplicationVersion_update(t *testing.T) {
 func TestAccGalleryApplicationVersion_enableHealthCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableHealthCheck(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.enableHealthCheckUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.enableHealthCheck(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -125,17 +124,17 @@ func TestAccGalleryApplicationVersion_endOfLifeDate(t *testing.T) {
 	endOfLifeDate := time.Now().Add(time.Hour * 10).Format(time.RFC3339)
 	endOfLifeDateUpdated := time.Now().Add(time.Hour * 20).Format(time.RFC3339)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.endOfLifeDate(data, endOfLifeDate),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.endOfLifeDate(data, endOfLifeDateUpdated),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -146,31 +145,31 @@ func TestAccGalleryApplicationVersion_endOfLifeDate(t *testing.T) {
 func TestAccGalleryApplicationVersion_excludeFromLatest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.excludeFromLatest(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.excludeFromLatestUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.excludeFromLatest(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -181,31 +180,31 @@ func TestAccGalleryApplicationVersion_excludeFromLatest(t *testing.T) {
 func TestAccGalleryApplicationVersion_targetRegion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.targetRegion(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.targetRegionUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.targetRegion(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -216,31 +215,31 @@ func TestAccGalleryApplicationVersion_targetRegion(t *testing.T) {
 func TestAccGalleryApplicationVersion_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.tagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

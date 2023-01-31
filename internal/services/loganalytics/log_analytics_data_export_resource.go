@@ -152,7 +152,7 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 			destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
 			parameters.Properties.Destination.ResourceId = destinationId
 			parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
-				EventHubName: utils.String(eventhubId.EventHubName),
+				EventHubName: utils.String(eventhubId.EventhubName),
 			}
 		}
 	}

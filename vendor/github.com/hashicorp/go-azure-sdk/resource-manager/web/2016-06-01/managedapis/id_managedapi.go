@@ -12,16 +12,16 @@ var _ resourceids.ResourceId = ManagedApiId{}
 // ManagedApiId is a struct representing the Resource ID for a Managed Api
 type ManagedApiId struct {
 	SubscriptionId string
-	Location       string
-	ApiName        string
+	LocationName   string
+	ManagedApiName string
 }
 
 // NewManagedApiID returns a new ManagedApiId struct
-func NewManagedApiID(subscriptionId string, location string, apiName string) ManagedApiId {
+func NewManagedApiID(subscriptionId string, locationName string, managedApiName string) ManagedApiId {
 	return ManagedApiId{
 		SubscriptionId: subscriptionId,
-		Location:       location,
-		ApiName:        apiName,
+		LocationName:   locationName,
+		ManagedApiName: managedApiName,
 	}
 }
 
@@ -40,12 +40,12 @@ func ParseManagedApiID(input string) (*ManagedApiId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
-	if id.ApiName, ok = parsed.Parsed["apiName"]; !ok {
-		return nil, fmt.Errorf("the segment 'apiName' was not found in the resource id %q", input)
+	if id.ManagedApiName, ok = parsed.Parsed["managedApiName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedApiName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -67,12 +67,12 @@ func ParseManagedApiIDInsensitively(input string) (*ManagedApiId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
-	if id.ApiName, ok = parsed.Parsed["apiName"]; !ok {
-		return nil, fmt.Errorf("the segment 'apiName' was not found in the resource id %q", input)
+	if id.ManagedApiName, ok = parsed.Parsed["managedApiName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedApiName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateManagedApiID(input interface{}, key string) (warnings []string, err
 // ID returns the formatted Managed Api ID
 func (id ManagedApiId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.Web/locations/%s/managedApis/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Location, id.ApiName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName, id.ManagedApiName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Managed Api ID
@@ -107,9 +107,9 @@ func (id ManagedApiId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
 		resourceids.StaticSegment("staticManagedApis", "managedApis", "managedApis"),
-		resourceids.UserSpecifiedSegment("apiName", "apiValue"),
+		resourceids.UserSpecifiedSegment("managedApiName", "managedApiValue"),
 	}
 }
 
@@ -117,8 +117,8 @@ func (id ManagedApiId) Segments() []resourceids.Segment {
 func (id ManagedApiId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Location: %q", id.Location),
-		fmt.Sprintf("Api Name: %q", id.ApiName),
+		fmt.Sprintf("Location Name: %q", id.LocationName),
+		fmt.Sprintf("Managed Api Name: %q", id.ManagedApiName),
 	}
 	return fmt.Sprintf("Managed Api (%s)", strings.Join(components, "\n"))
 }

@@ -560,7 +560,10 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	for _, item := range *input {
 		var storageName string
 		if item.StorageID != nil {
-			if id, err := parse.SpringCloudStorageID(*item.StorageID); err == nil {
+			// The returned value has inconsistent casing
+			// TODO: Remove the normalization codes once the following issue is fixed.
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22205
+			if id, err := parse.SpringCloudStorageIDInsensitively(*item.StorageID); err == nil {
 				storageName = id.StorageName
 			}
 		}

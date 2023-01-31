@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 payload := replicationrecoveryplans.CreateRecoveryPlanInput{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 if err := client.FailoverCancelThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +65,7 @@ if err := client.FailoverCancelThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 if err := client.FailoverCommitThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -77,7 +77,7 @@ if err := client.FailoverCommitThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := replicationrecoveryplans.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -110,7 +110,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 payload := replicationrecoveryplans.RecoveryPlanPlannedFailoverInput{
 	// ...
@@ -127,7 +127,7 @@ if err := client.PlannedFailoverThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 if err := client.ReprotectThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -139,7 +139,7 @@ if err := client.ReprotectThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 payload := replicationrecoveryplans.RecoveryPlanTestFailoverInput{
 	// ...
@@ -156,7 +156,7 @@ if err := client.TestFailoverThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 payload := replicationrecoveryplans.RecoveryPlanTestFailoverCleanupInput{
 	// ...
@@ -173,7 +173,7 @@ if err := client.TestFailoverCleanupThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 payload := replicationrecoveryplans.RecoveryPlanUnplannedFailoverInput{
 	// ...
@@ -190,7 +190,7 @@ if err := client.UnplannedFailoverThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "recoveryPlanValue")
+id := replicationrecoveryplans.NewReplicationRecoveryPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationRecoveryPlanValue")
 
 payload := replicationrecoveryplans.UpdateRecoveryPlanInput{
 	// ...
