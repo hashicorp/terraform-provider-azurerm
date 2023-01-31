@@ -37,7 +37,12 @@ type MachineLearningDataStoreDataLakeGen2Model struct {
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) Attributes() map[string]*schema.Schema {
-	return nil
+	return map[string]*pluginsdk.Schema{
+		"is_default": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+	}
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) ModelObject() interface{} {
@@ -103,12 +108,6 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-		},
-
-		"is_default": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
 		},
 
 		"service_data_identity": {
@@ -178,7 +177,6 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(model.Description),
 				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
-				IsDefault:                     utils.Bool(model.IsDefault),
 				Tags:                          utils.ToPtr(model.Tags),
 			}
 
@@ -243,7 +241,6 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(state.Description),
 				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
-				IsDefault:                     utils.Bool(state.IsDefault),
 				Tags:                          utils.ToPtr(state.Tags),
 			}
 

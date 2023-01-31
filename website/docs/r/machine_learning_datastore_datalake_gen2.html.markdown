@@ -93,10 +93,6 @@ The following arguments are supported:
 
 * `description` - (Optional) Text used to describe the asset. Changing this forces a new Machine Learning DataStore to be created.
 
-* `is_default` - (Optional) Specifies whether this Machines Learning DataStore is the default for the Workspace. Defaults to `false`.
-
-~> **Note:** `is_default` can only be set to `true` on update.
-
 * `service_data_identity` - (Optional) Specifies which identity to use when retrieving data from the specified source. Defaults to `None`. Possible values are `None`, `WorkspaceSystemAssignedIdentity` and `WorkspaceUserAssignedIdentity`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning DataStore. Changing this forces a new Machine Learning DataStore to be created.
@@ -106,6 +102,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Machine Learning DataStore.
+
+* `is_default` - Indicates whether this Machines Learning DataStore is the default for the Workspace.
 
 ## Timeouts
 
