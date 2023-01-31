@@ -329,7 +329,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"dynamic_properties": {
+						"dynamic_property": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{

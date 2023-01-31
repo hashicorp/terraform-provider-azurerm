@@ -108,11 +108,11 @@ An `alert_details_override` block supports the following:
 
 * `tactics_column_name` - (Optional) The column name to take the alert tactics from.
 
-* `dynamic_properties` - (Optional) A list of `dynamic_property` blocks as defined below.
+* `dynamic_property` - (Optional) A list of `dynamic_property` blocks as defined below.
 
 ---
 
-A `dynamic_properties` block supports the following:
+A `dynamic_property` block supports the following:
 
 * `name` - (Required) The name of the dynamic property. Possible Values are `AlertLink`, `ConfidenceLevel`, `ConfidenceScore`, `ExtendedLinks`, `ProductComponentName`, `ProductName`, `ProviderName`, `RemediationSteps` and `Techniques`.
 

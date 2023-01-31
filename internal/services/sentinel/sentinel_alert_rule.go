@@ -268,7 +268,7 @@ func expandAlertRuleAlertDetailsOverride(input []interface{}) *securityinsight.A
 	if v := b["tactics_column_name"]; v != "" {
 		output.AlertTacticsColumnName = utils.String(v.(string))
 	}
-	if v := b["dynamic_properties"]; v != nil && len(v.([]interface{})) > 0 {
+	if v := b["dynamic_property"]; v != nil && len(v.([]interface{})) > 0 {
 		output.AlertDynamicProperties = expandAlertRuleAlertDynamicProperties(v.([]interface{}))
 	}
 
@@ -311,7 +311,7 @@ func flattenAlertRuleAlertDetailsOverride(input *securityinsight.AlertDetailsOve
 			"display_name_format":  displayNameFormat,
 			"severity_column_name": severityColumnName,
 			"tactics_column_name":  tacticsColumnName,
-			"dynamic_properties":   dynamicProperties,
+			"dynamic_property":     dynamicProperties,
 		},
 	}
 }

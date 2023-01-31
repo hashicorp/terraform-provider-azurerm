@@ -176,7 +176,7 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     display_name_format  = "Suspicious activity was made by {{ComputerIP}}"
     severity_column_name = "Computer"
     tactics_column_name  = "Computer"
-    dynamic_properties {
+    dynamic_property {
       name  = "AlertLink"
       value = "dcount_ResourceId"
     }
