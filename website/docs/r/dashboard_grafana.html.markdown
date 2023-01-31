@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `deterministic_outbound_ip_enabled` - (Optional) Whether to enable the Grafana instance to use deterministic outbound IPs. Defaults to `false`.
 
-* `grafana_integrations` - (Optional) A `grafana_integrations` block as defined below.
+* `azure_monitor_workspace_integrations` - (Optional) A `azure_monitor_workspace_integrations` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Dashboard Grafana to be created.
 
@@ -66,15 +66,9 @@ The following arguments are supported:
 
 ---
 
-A `grafana_integrations` block supports the following:
-
-* `azure_monitor_workspace_integrations` - (Required) An `azure_monitor_workspace_integrations` block as defined below.
-
----
-
 An `azure_monitor_workspace_integrations` block supports the following:
 
-* `azure_monitor_workspace_resource_id` - (Required) Specifies the resource ID of the connected Azure Monitor Workspace.
+* `resource_id` - (Required) Specifies the resource ID of the connected Azure Monitor Workspace.
 
 ---
 

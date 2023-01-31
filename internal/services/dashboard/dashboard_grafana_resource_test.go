@@ -152,10 +152,8 @@ resource "azurerm_dashboard_grafana" "test" {
     type = "SystemAssigned"
   }
 
-  grafana_integrations {
-    azure_monitor_workspace_integrations {
-      azure_monitor_workspace_resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
-    }
+  azure_monitor_workspace_integrations {
+    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
   }
 
   tags = {
@@ -179,14 +177,12 @@ resource "azurerm_dashboard_grafana" "test" {
     type = "SystemAssigned"
   }
 
-  grafana_integrations {
-    azure_monitor_workspace_integrations {
-      azure_monitor_workspace_resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
-    }
+  azure_monitor_workspace_integrations {
+    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
+  }
 
-    azure_monitor_workspace_integrations {
-      azure_monitor_workspace_resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d-2"
-    }
+  azure_monitor_workspace_integrations {
+    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d-2"
   }
 
   tags = {
