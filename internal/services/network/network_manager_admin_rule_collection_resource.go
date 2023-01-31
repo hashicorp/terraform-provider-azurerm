@@ -101,16 +101,9 @@ func (r ManagerAdminRuleCollectionResource) Create() sdk.ResourceFunc {
 			}
 
 			adminRuleCollection := &network.AdminRuleCollection{
-				AdminRuleCollectionPropertiesFormat: &network.AdminRuleCollectionPropertiesFormat{},
-			}
-
-			appliesToGroupsValue, err := expandNetworkManagerNetworkGroupIds(model.NetworkGroupIds)
-			if err != nil {
-				return err
-			}
-
-			if appliesToGroupsValue != nil {
-				adminRuleCollection.AdminRuleCollectionPropertiesFormat.AppliesToGroups = appliesToGroupsValue
+				AdminRuleCollectionPropertiesFormat: &network.AdminRuleCollectionPropertiesFormat{
+					AppliesToGroups: expandNetworkManagerNetworkGroupIds(model.NetworkGroupIds),
+				},
 			}
 
 			if model.Description != "" {
@@ -154,12 +147,7 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("network_group_ids") {
-				appliesToGroupsValue, err := expandNetworkManagerNetworkGroupIds(model.NetworkGroupIds)
-				if err != nil {
-					return err
-				}
-
-				properties.AppliesToGroups = appliesToGroupsValue
+				properties.AppliesToGroups = expandNetworkManagerNetworkGroupIds(model.NetworkGroupIds)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -203,14 +191,8 @@ func (r ManagerAdminRuleCollectionResource) Read() sdk.ResourceFunc {
 			state := ManagerAdminRuleCollectionModel{
 				Name:                         id.RuleCollectionName,
 				SecurityAdminConfigurationId: parse.NewNetworkManagerSecurityAdminConfigurationID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName).ID(),
+				NetworkGroupIds:              flattenNetworkManagerNetworkGroupIds(properties.AppliesToGroups),
 			}
-
-			NetworkGroupIdsValue, err := flattenNetworkManagerNetworkGroupIds(properties.AppliesToGroups)
-			if err != nil {
-				return err
-			}
-
-			state.NetworkGroupIds = NetworkGroupIdsValue
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
@@ -245,7 +227,7 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandNetworkManagerNetworkGroupIds(inputList []string) (*[]network.ManagerSecurityGroupItem, error) {
+func expandNetworkManagerNetworkGroupIds(inputList []string) *[]network.ManagerSecurityGroupItem {
 	var outputList []network.ManagerSecurityGroupItem
 	for _, v := range inputList {
 		input := v
@@ -256,13 +238,13 @@ func expandNetworkManagerNetworkGroupIds(inputList []string) (*[]network.Manager
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenNetworkManagerNetworkGroupIds(inputList *[]network.ManagerSecurityGroupItem) ([]string, error) {
+func flattenNetworkManagerNetworkGroupIds(inputList *[]network.ManagerSecurityGroupItem) []string {
 	var outputList []string
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -271,5 +253,5 @@ func flattenNetworkManagerNetworkGroupIds(inputList *[]network.ManagerSecurityGr
 		}
 	}
 
-	return outputList, nil
+	return outputList
 }

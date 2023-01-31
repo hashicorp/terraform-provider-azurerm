@@ -206,31 +206,19 @@ func (r ManagerAdminRuleResource) Create() sdk.ResourceFunc {
 			rule := &network.AdminRule{
 				AdminPropertiesFormat: &network.AdminPropertiesFormat{
 					Access:                model.Access,
+					Destinations:          expandAddressPrefixItemModel(model.Destinations),
 					DestinationPortRanges: &model.DestinationPortRanges,
 					Direction:             model.Direction,
 					Priority:              utils.Int32(model.Priority),
 					Protocol:              model.Protocol,
 					SourcePortRanges:      &model.SourcePortRanges,
+					Sources:               expandAddressPrefixItemModel(model.Sources),
 				},
 			}
 
 			if model.Description != "" {
 				rule.AdminPropertiesFormat.Description = &model.Description
 			}
-
-			destinationsValue, err := expandAddressPrefixItemModel(model.Destinations)
-			if err != nil {
-				return err
-			}
-
-			rule.AdminPropertiesFormat.Destinations = destinationsValue
-
-			sourcesValue, err := expandAddressPrefixItemModel(model.Sources)
-			if err != nil {
-				return err
-			}
-
-			rule.AdminPropertiesFormat.Sources = sourcesValue
 
 			if _, err := client.CreateOrUpdate(ctx, *rule, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -290,12 +278,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("destination") {
-				destinationsValue, err := expandAddressPrefixItemModel(model.Destinations)
-				if err != nil {
-					return err
-				}
-
-				properties.Destinations = destinationsValue
+				properties.Destinations = expandAddressPrefixItemModel(model.Destinations)
 			}
 
 			if metadata.ResourceData.HasChange("direction") {
@@ -315,12 +298,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("source") {
-				sourcesValue, err := expandAddressPrefixItemModel(model.Sources)
-				if err != nil {
-					return err
-				}
-
-				properties.Sources = sourcesValue
+				properties.Sources = expandAddressPrefixItemModel(model.Sources)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, rule, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName); err != nil {
@@ -363,12 +341,15 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ManagerAdminRuleModel{
-				Name: id.RuleName,
+				Access: properties.Access,
+				Name:   id.RuleName,
 				NetworkRuleCollectionId: parse.NewNetworkManagerAdminRuleCollectionID(id.SubscriptionId, id.ResourceGroup,
 					id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName).ID(),
+				Destinations: flattenAddressPrefixItemModel(properties.Destinations),
+				Direction:    properties.Direction,
+				Protocol:     properties.Protocol,
+				Sources:      flattenAddressPrefixItemModel(properties.Sources),
 			}
-
-			state.Access = properties.Access
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
@@ -378,31 +359,14 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 				state.DestinationPortRanges = *properties.DestinationPortRanges
 			}
 
-			destinationsValue, err := flattenAddressPrefixItemModel(properties.Destinations)
-			if err != nil {
-				return err
-			}
-
-			state.Destinations = destinationsValue
-
-			state.Direction = properties.Direction
-
 			state.Priority = 0
 			if properties.Priority != nil {
 				state.Priority = *properties.Priority
 			}
 
-			state.Protocol = properties.Protocol
-
 			if properties.SourcePortRanges != nil {
 				state.SourcePortRanges = *properties.SourcePortRanges
 			}
-
-			sourcesValue, err := flattenAddressPrefixItemModel(properties.Sources)
-			if err != nil {
-				return err
-			}
-			state.Sources = sourcesValue
 
 			return metadata.Encode(&state)
 		},
@@ -434,7 +398,7 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) (*[]network.AddressPrefixItem, error) {
+func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]network.AddressPrefixItem {
 	var outputList []network.AddressPrefixItem
 	for _, v := range inputList {
 		input := v
@@ -449,13 +413,13 @@ func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) (*[]networ
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenAddressPrefixItemModel(inputList *[]network.AddressPrefixItem) ([]AddressPrefixItemModel, error) {
+func flattenAddressPrefixItemModel(inputList *[]network.AddressPrefixItem) []AddressPrefixItemModel {
 	var outputList []AddressPrefixItemModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -470,5 +434,5 @@ func flattenAddressPrefixItemModel(inputList *[]network.AddressPrefixItem) ([]Ad
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }

@@ -105,15 +105,10 @@ func (r ManagerSecurityAdminConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			conf := &network.SecurityAdminConfiguration{
-				SecurityAdminConfigurationPropertiesFormat: &network.SecurityAdminConfigurationPropertiesFormat{},
+				SecurityAdminConfigurationPropertiesFormat: &network.SecurityAdminConfigurationPropertiesFormat{
+					ApplyOnNetworkIntentPolicyBasedServices: expandNetworkIntentPolicyBasedServiceModel(model.ApplyOnNetworkIntentPolicyBasedServices),
+				},
 			}
-
-			applyOnNetworkIntentPolicyBasedServicesValue, err := expandNetworkIntentPolicyBasedServiceModel(model.ApplyOnNetworkIntentPolicyBasedServices)
-			if err != nil {
-				return err
-			}
-
-			conf.SecurityAdminConfigurationPropertiesFormat.ApplyOnNetworkIntentPolicyBasedServices = applyOnNetworkIntentPolicyBasedServicesValue
 
 			if model.Description != "" {
 				conf.SecurityAdminConfigurationPropertiesFormat.Description = &model.Description
@@ -160,12 +155,7 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("apply_on_network_intent_policy_based_services") {
-				applyOnNetworkIntentPolicyBasedServicesValue, err := expandNetworkIntentPolicyBasedServiceModel(model.ApplyOnNetworkIntentPolicyBasedServices)
-				if err != nil {
-					return err
-				}
-
-				properties.ApplyOnNetworkIntentPolicyBasedServices = applyOnNetworkIntentPolicyBasedServicesValue
+				properties.ApplyOnNetworkIntentPolicyBasedServices = expandNetworkIntentPolicyBasedServiceModel(model.ApplyOnNetworkIntentPolicyBasedServices)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -207,16 +197,10 @@ func (r ManagerSecurityAdminConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ManagerSecurityAdminConfigurationModel{
-				Name:             id.SecurityAdminConfigurationName,
-				NetworkManagerId: parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				Name:                                    id.SecurityAdminConfigurationName,
+				NetworkManagerId:                        parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				ApplyOnNetworkIntentPolicyBasedServices: flattenNetworkIntentPolicyBasedServiceModel(properties.ApplyOnNetworkIntentPolicyBasedServices),
 			}
-
-			applyOnNetworkIntentPolicyBasedServicesValue, err := flattenNetworkIntentPolicyBasedServiceModel(properties.ApplyOnNetworkIntentPolicyBasedServices)
-			if err != nil {
-				return err
-			}
-
-			state.ApplyOnNetworkIntentPolicyBasedServices = applyOnNetworkIntentPolicyBasedServicesValue
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
@@ -252,7 +236,7 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandNetworkIntentPolicyBasedServiceModel(inputList []string) (*[]network.IntentPolicyBasedService, error) {
+func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]network.IntentPolicyBasedService {
 	var outputList []network.IntentPolicyBasedService
 	for _, input := range inputList {
 		output := network.IntentPolicyBasedService(input)
@@ -260,18 +244,18 @@ func expandNetworkIntentPolicyBasedServiceModel(inputList []string) (*[]network.
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenNetworkIntentPolicyBasedServiceModel(inputList *[]network.IntentPolicyBasedService) ([]string, error) {
+func flattenNetworkIntentPolicyBasedServiceModel(inputList *[]network.IntentPolicyBasedService) []string {
 	var outputList []string
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
 		outputList = append(outputList, string(input))
 	}
 
-	return outputList, nil
+	return outputList
 }
