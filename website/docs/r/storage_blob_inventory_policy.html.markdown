@@ -103,8 +103,6 @@ A `rules` block supports the following:
 
 * `schema_fields` - (Required) A list of fields to be included in the inventory. See the [Azure API reference](https://docs.microsoft.com/rest/api/storagerp/blob-inventory-policies/create-or-update#blobinventorypolicydefinition) for all the supported fields.
 
----
-
 * `filter` - (Optional) A `filter` block as defined above. Can only be set when the `scope` is `Blob`.
 
 ## Attributes Reference

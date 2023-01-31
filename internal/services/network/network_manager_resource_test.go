@@ -55,6 +55,13 @@ func TestAccNetworkManager(t *testing.T) {
 			"basic":          testAccNetworkManagerStaticMember_basic,
 			"requiresImport": testAccNetworkManagerStaticMember_requiresImport,
 		},
+		"ConnectivityConfiguration": {
+			"basic":             testAccNetworkManagerConnectivityConfiguration_basic,
+			"basicTopologyMesh": testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh,
+			"complete":          testAccNetworkManagerConnectivityConfiguration_complete,
+			"update":            testAccNetworkManagerConnectivityConfiguration_update,
+			"requiresImport":    testAccNetworkManagerConnectivityConfiguration_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `transparent_data_encryption_enabled` - (Optional) If set to true, Transparent Data Encryption will be enabled on the database. Defaults to `true`.
 
-* -> **NOTE:** TDE cannot be disabled on servers with SKUs other than ones starting with DW.
+-> **NOTE:** TDE cannot be disabled on servers with SKUs other than ones starting with DW.
 
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
 

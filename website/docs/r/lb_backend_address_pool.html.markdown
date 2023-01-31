@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `tunnel_interface` - (Optional) One or more `tunnel_interface` blocks as defined below.
 
+* `virtual_network_id` - (Optional) The ID of the Virtual Network within which the Backend Address Pool should exist.
+
 ---
 
 The `tunnel_interface` block supports the following:

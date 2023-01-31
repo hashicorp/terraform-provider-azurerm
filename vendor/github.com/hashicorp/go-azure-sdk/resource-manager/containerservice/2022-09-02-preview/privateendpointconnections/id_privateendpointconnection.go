@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = PrivateEndpointConnectionId{}
 type PrivateEndpointConnectionId struct {
 	SubscriptionId                string
 	ResourceGroupName             string
-	ResourceName                  string
+	ManagedClusterName            string
 	PrivateEndpointConnectionName string
 }
 
 // NewPrivateEndpointConnectionID returns a new PrivateEndpointConnectionId struct
-func NewPrivateEndpointConnectionID(subscriptionId string, resourceGroupName string, resourceName string, privateEndpointConnectionName string) PrivateEndpointConnectionId {
+func NewPrivateEndpointConnectionID(subscriptionId string, resourceGroupName string, managedClusterName string, privateEndpointConnectionName string) PrivateEndpointConnectionId {
 	return PrivateEndpointConnectionId{
 		SubscriptionId:                subscriptionId,
 		ResourceGroupName:             resourceGroupName,
-		ResourceName:                  resourceName,
+		ManagedClusterName:            managedClusterName,
 		PrivateEndpointConnectionName: privateEndpointConnectionName,
 	}
 }
@@ -46,8 +46,8 @@ func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionI
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
@@ -77,8 +77,8 @@ func ParsePrivateEndpointConnectionIDInsensitively(input string) (*PrivateEndpoi
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
@@ -106,7 +106,7 @@ func ValidatePrivateEndpointConnectionID(input interface{}, key string) (warning
 // ID returns the formatted Private Endpoint Connection ID
 func (id PrivateEndpointConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/privateEndpointConnections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.PrivateEndpointConnectionName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, id.PrivateEndpointConnectionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Private Endpoint Connection ID
@@ -119,7 +119,7 @@ func (id PrivateEndpointConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
 		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
 	}
@@ -130,7 +130,7 @@ func (id PrivateEndpointConnectionId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Managed Cluster Name: %q", id.ManagedClusterName),
 		fmt.Sprintf("Private Endpoint Connection Name: %q", id.PrivateEndpointConnectionName),
 	}
 	return fmt.Sprintf("Private Endpoint Connection (%s)", strings.Join(components, "\n"))

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountmaps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -98,20 +99,20 @@ func TestAccLogicAppIntegrationAccountMap_update(t *testing.T) {
 }
 
 func (r LogicAppIntegrationAccountMapResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationAccountMapID(state.ID)
+	id, err := integrationaccountmaps.ParseMapID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Logic.IntegrationAccountMapClient.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.MapName)
+	resp, err := client.Logic.IntegrationAccountMapClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q %+v", id, err)
 	}
 
-	return utils.Bool(resp.IntegrationAccountMapProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r LogicAppIntegrationAccountMapResource) template(data acceptance.TestData) string {

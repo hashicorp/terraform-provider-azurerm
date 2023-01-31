@@ -8,22 +8,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
@@ -35,7 +35,7 @@ func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 		DeprecationMessage: "The \"azurerm_integrated_service_environment\" resource is deprecated and will be removed in v4.0 of the Azure Provider. The underlying Azure Service is being retired on 2024-08-31 and new instances cannot be provisioned by default after 2022-11-01. More information on the retirement and how to migrate to Logic Apps Standard (\"azurerm_logic_app_standard\") can be found here: https://aka.ms/isedeprecation.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationServiceEnvironmentID(id)
+			_, err := integrationserviceenvironments.ParseIntegrationServiceEnvironmentID(id)
 			return err
 		}),
 
@@ -85,8 +85,8 @@ func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true, // The access end point type cannot be changed once the integration service environment is provisioned.
 				ValidateFunc: validation.StringInSlice([]string{
-					string(logic.IntegrationServiceEnvironmentAccessEndpointTypeInternal),
-					string(logic.IntegrationServiceEnvironmentAccessEndpointTypeExternal),
+					string(integrationserviceenvironments.IntegrationServiceEnvironmentAccessEndpointTypeInternal),
+					string(integrationserviceenvironments.IntegrationServiceEnvironmentAccessEndpointTypeExternal),
 				}, false),
 			},
 
@@ -126,7 +126,7 @@ func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -148,23 +148,23 @@ func resourceIntegrationServiceEnvironmentCreateUpdate(d *pluginsdk.ResourceData
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Integration Service Environment creation.")
 
-	id := parse.NewIntegrationServiceEnvironmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := integrationserviceenvironments.NewIntegrationServiceEnvironmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_integration_service_environment", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	accessEndpointType := d.Get("access_endpoint_type").(string)
+	accessEndpointType := integrationserviceenvironments.IntegrationServiceEnvironmentAccessEndpointType(d.Get("access_endpoint_type").(string))
 	virtualNetworkSubnetIds := d.Get("virtual_network_subnet_ids").(*pluginsdk.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
@@ -173,13 +173,13 @@ func resourceIntegrationServiceEnvironmentCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
-	integrationServiceEnvironment := logic.IntegrationServiceEnvironment{
-		Name:     &id.Name,
+	integrationServiceEnvironment := integrationserviceenvironments.IntegrationServiceEnvironment{
+		Name:     &id.IntegrationServiceEnvironmentName,
 		Location: &location,
-		Properties: &logic.IntegrationServiceEnvironmentProperties{
-			NetworkConfiguration: &logic.NetworkConfiguration{
-				AccessEndpoint: &logic.IntegrationServiceEnvironmentAccessEndpoint{
-					Type: logic.IntegrationServiceEnvironmentAccessEndpointType(accessEndpointType),
+		Properties: &integrationserviceenvironments.IntegrationServiceEnvironmentProperties{
+			NetworkConfiguration: &integrationserviceenvironments.NetworkConfiguration{
+				AccessEndpoint: &integrationserviceenvironments.IntegrationServiceEnvironmentAccessEndpoint{
+					Type: &accessEndpointType,
 				},
 				Subnets: expandSubnetResourceID(virtualNetworkSubnetIds),
 			},
@@ -188,13 +188,8 @@ func resourceIntegrationServiceEnvironmentCreateUpdate(d *pluginsdk.ResourceData
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, integrationServiceEnvironment)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, integrationServiceEnvironment); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -207,58 +202,60 @@ func resourceIntegrationServiceEnvironmentRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationServiceEnvironmentID(d.Id())
+	id, err := integrationserviceenvironments.ParseIntegrationServiceEnvironmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Name
-	resourceGroup := id.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.IntegrationServiceEnvironmentName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	if err := d.Set("sku_name", flattenIntegrationServiceEnvironmentSkuName(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku_name`: %+v", err)
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.Properties; props != nil {
-		if netCfg := props.NetworkConfiguration; netCfg != nil {
-			if accessEndpoint := netCfg.AccessEndpoint; accessEndpoint != nil {
-				d.Set("access_endpoint_type", accessEndpoint.Type)
+		if err := d.Set("sku_name", flattenIntegrationServiceEnvironmentSkuName(model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku_name`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			if netCfg := props.NetworkConfiguration; netCfg != nil {
+				if accessEndpoint := netCfg.AccessEndpoint; accessEndpoint != nil {
+					d.Set("access_endpoint_type", accessEndpoint.Type)
+				}
+
+				d.Set("virtual_network_subnet_ids", flattenSubnetResourceID(netCfg.Subnets))
 			}
 
-			d.Set("virtual_network_subnet_ids", flattenSubnetResourceID(netCfg.Subnets))
+			if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
+				d.Set("connector_endpoint_ip_addresses", []interface{}{})
+				d.Set("connector_outbound_ip_addresses", []interface{}{})
+			} else {
+				d.Set("connector_endpoint_ip_addresses", flattenServiceEnvironmentIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
+				d.Set("connector_outbound_ip_addresses", flattenServiceEnvironmentIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
+			}
+
+			if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
+				d.Set("workflow_endpoint_ip_addresses", []interface{}{})
+				d.Set("workflow_outbound_ip_addresses", []interface{}{})
+			} else {
+				d.Set("workflow_endpoint_ip_addresses", flattenServiceEnvironmentIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
+				d.Set("workflow_outbound_ip_addresses", flattenServiceEnvironmentIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
+			}
 		}
 
-		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
-			d.Set("connector_endpoint_ip_addresses", []interface{}{})
-			d.Set("connector_outbound_ip_addresses", []interface{}{})
-		} else {
-			d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
-			d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
-		}
-
-		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
-			d.Set("workflow_endpoint_ip_addresses", []interface{}{})
-			d.Set("workflow_outbound_ip_addresses", []interface{}{})
-		} else {
-			d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
-			d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
-		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceIntegrationServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -266,24 +263,21 @@ func resourceIntegrationServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationServiceEnvironmentID(d.Id())
+	id, err := integrationserviceenvironments.ParseIntegrationServiceEnvironmentID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Integration Service Environment ID `%q`: %+v", d.Id(), err)
 	}
 
-	name := id.Name
-	resourceGroup := id.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
-		return fmt.Errorf("retrieving Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
 
 	// Get subnet IDs before delete
-	subnetIDs := getSubnetIDs(&resp)
+	subnetIDs := getSubnetIDs(resp.Model)
 
 	// Not optimal behaviour for now
 	// It deletes synchronously and resource is not available anymore after return from delete operation
@@ -292,17 +286,17 @@ func resourceIntegrationServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta
 	// If the operation fails we are lost. We do not have original resource and we cannot resume delete operation.
 	// User has to wait for completion of delete operation in the background.
 	// It would be great to have async call with future struct
-	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
-		if utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("deleting Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id.ID(), err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{string(logic.WorkflowProvisioningStateDeleting)},
-		Target:                    []string{string(logic.WorkflowProvisioningStateDeleted)},
+		Pending:                   []string{string(integrationserviceenvironments.WorkflowProvisioningStateDeleting)},
+		Target:                    []string{string(integrationserviceenvironments.WorkflowProvisioningStateDeleted)},
 		MinTimeout:                5 * time.Minute,
 		Refresh:                   integrationServiceEnvironmentDeleteStateRefreshFunc(ctx, meta.(*clients.Client), d.Id(), subnetIDs),
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
@@ -311,32 +305,37 @@ func resourceIntegrationServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for deletion of Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id.ID(), err)
 	}
 
 	return nil
 }
 
-func flattenIntegrationServiceEnvironmentSkuName(input *logic.IntegrationServiceEnvironmentSku) string {
+func flattenIntegrationServiceEnvironmentSkuName(input *integrationserviceenvironments.IntegrationServiceEnvironmentSku) string {
 	if input == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
+	name := ""
+	if input.Name != nil {
+		name = string(*input.Name)
+	}
+
+	return fmt.Sprintf("%s_%d", name, *input.Capacity)
 }
 
-func expandIntegrationServiceEnvironmentSkuName(skuName string) (*logic.IntegrationServiceEnvironmentSku, error) {
+func expandIntegrationServiceEnvironmentSkuName(skuName string) (*integrationserviceenvironments.IntegrationServiceEnvironmentSku, error) {
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
 	}
 
-	var sku logic.IntegrationServiceEnvironmentSkuName
+	var sku integrationserviceenvironments.IntegrationServiceEnvironmentSkuName
 	switch parts[0] {
-	case string(logic.IntegrationServiceEnvironmentSkuNameDeveloper):
-		sku = logic.IntegrationServiceEnvironmentSkuNameDeveloper
-	case string(logic.IntegrationServiceEnvironmentSkuNamePremium):
-		sku = logic.IntegrationServiceEnvironmentSkuNamePremium
+	case string(integrationserviceenvironments.IntegrationServiceEnvironmentSkuNameDeveloper):
+		sku = integrationserviceenvironments.IntegrationServiceEnvironmentSkuNameDeveloper
+	case string(integrationserviceenvironments.IntegrationServiceEnvironmentSkuNamePremium):
+		sku = integrationserviceenvironments.IntegrationServiceEnvironmentSkuNamePremium
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku %s", skuName, parts[0])
 	}
@@ -346,44 +345,44 @@ func expandIntegrationServiceEnvironmentSkuName(skuName string) (*logic.Integrat
 		return nil, fmt.Errorf("cannot convert sku_name %s capacity %s to int", skuName, parts[1])
 	}
 
-	if sku != logic.IntegrationServiceEnvironmentSkuNamePremium && capacity > 0 {
+	if sku != integrationserviceenvironments.IntegrationServiceEnvironmentSkuNamePremium && capacity > 0 {
 		return nil, fmt.Errorf("`capacity` can only be greater than zero for `sku_name` `Premium`")
 	}
 
-	return &logic.IntegrationServiceEnvironmentSku{
-		Name:     sku,
-		Capacity: utils.Int32(int32(capacity)),
+	return &integrationserviceenvironments.IntegrationServiceEnvironmentSku{
+		Name:     &sku,
+		Capacity: utils.Int64(int64(capacity)),
 	}, nil
 }
 
-func expandSubnetResourceID(input []interface{}) *[]logic.ResourceReference {
-	results := make([]logic.ResourceReference, 0)
+func expandSubnetResourceID(input []interface{}) *[]integrationserviceenvironments.ResourceReference {
+	results := make([]integrationserviceenvironments.ResourceReference, 0)
 	for _, item := range input {
-		results = append(results, logic.ResourceReference{
-			ID: utils.String(item.(string)),
+		results = append(results, integrationserviceenvironments.ResourceReference{
+			Id: utils.String(item.(string)),
 		})
 	}
 	return &results
 }
 
-func flattenSubnetResourceID(input *[]logic.ResourceReference) []interface{} {
+func flattenSubnetResourceID(input *[]integrationserviceenvironments.ResourceReference) []interface{} {
 	subnetIDs := make([]interface{}, 0)
 	if input == nil {
 		return subnetIDs
 	}
 
 	for _, resourceRef := range *input {
-		if resourceRef.ID == nil || *resourceRef.ID == "" {
+		if resourceRef.Id == nil || *resourceRef.Id == "" {
 			continue
 		}
 
-		subnetIDs = append(subnetIDs, resourceRef.ID)
+		subnetIDs = append(subnetIDs, resourceRef.Id)
 	}
 
 	return subnetIDs
 }
 
-func getSubnetIDs(input *logic.IntegrationServiceEnvironment) []interface{} {
+func getSubnetIDs(input *integrationserviceenvironments.IntegrationServiceEnvironment) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -402,14 +401,14 @@ func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, cl
 	return func() (interface{}, string, error) {
 		linkExists, err := linkExists(ctx, client, iseID, subnetIDs)
 		if err != nil {
-			return string(logic.WorkflowProvisioningStateDeleting), string(logic.WorkflowProvisioningStateDeleting), err
+			return string(integrationserviceenvironments.WorkflowProvisioningStateDeleting), string(integrationserviceenvironments.WorkflowProvisioningStateDeleting), err
 		}
 
 		if linkExists {
-			return string(logic.WorkflowProvisioningStateDeleting), string(logic.WorkflowProvisioningStateDeleting), nil
+			return string(integrationserviceenvironments.WorkflowProvisioningStateDeleting), string(integrationserviceenvironments.WorkflowProvisioningStateDeleting), nil
 		}
 
-		return string(logic.WorkflowProvisioningStateDeleted), string(logic.WorkflowProvisioningStateDeleted), nil
+		return string(integrationserviceenvironments.WorkflowProvisioningStateDeleted), string(integrationserviceenvironments.WorkflowProvisioningStateDeleted), nil
 	}
 }
 
@@ -494,4 +493,16 @@ func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceN
 	}
 
 	return false, nil
+}
+
+func flattenServiceEnvironmentIPAddresses(input *[]integrationserviceenvironments.IPAddress) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var addresses []interface{}
+	for _, addr := range *input {
+		addresses = append(addresses, *addr.Address)
+	}
+	return addresses
 }

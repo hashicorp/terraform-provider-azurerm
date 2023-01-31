@@ -141,7 +141,7 @@ func (r NetappFileVolumeAttachmentResource) Read() sdk.ResourceFunc {
 				}
 			}
 			return metadata.Encode(&NetappFileVolumeAttachment{
-				Name:            id.DatastoreName,
+				Name:            id.DataStoreName,
 				NetAppVolumeId:  netAppVolumeId,
 				VmwareClusterId: clusterId.ID(),
 			})

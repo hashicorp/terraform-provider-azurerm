@@ -126,7 +126,7 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("parsing ID of %q: %+v", webPubSubIdRaw, err)
 	}
 
-	id := webpubsub.NewHubID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.ResourceName, d.Get("name").(string))
+	id := webpubsub.NewHubID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.WebPubSubName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.HubsGet(ctx, id)
 		if err != nil {
@@ -181,7 +181,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
+	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID())
 
 	if model := resp.Model; model != nil {
 		if err := d.Set("event_handler", flattenEventHandler(model.Properties.EventHandlers)); err != nil {

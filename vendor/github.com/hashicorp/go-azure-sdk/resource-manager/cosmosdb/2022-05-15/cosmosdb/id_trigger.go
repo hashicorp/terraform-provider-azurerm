@@ -11,23 +11,23 @@ var _ resourceids.ResourceId = TriggerId{}
 
 // TriggerId is a struct representing the Resource ID for a Trigger
 type TriggerId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	DatabaseName      string
-	ContainerName     string
-	TriggerName       string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	SqlDatabaseName     string
+	ContainerName       string
+	TriggerName         string
 }
 
 // NewTriggerID returns a new TriggerId struct
-func NewTriggerID(subscriptionId string, resourceGroupName string, accountName string, databaseName string, containerName string, triggerName string) TriggerId {
+func NewTriggerID(subscriptionId string, resourceGroupName string, databaseAccountName string, sqlDatabaseName string, containerName string, triggerName string) TriggerId {
 	return TriggerId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		DatabaseName:      databaseName,
-		ContainerName:     containerName,
-		TriggerName:       triggerName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		SqlDatabaseName:     sqlDatabaseName,
+		ContainerName:       containerName,
+		TriggerName:         triggerName,
 	}
 }
 
@@ -50,12 +50,12 @@ func ParseTriggerID(input string) (*TriggerId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
@@ -89,12 +89,12 @@ func ParseTriggerIDInsensitively(input string) (*TriggerId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
@@ -126,7 +126,7 @@ func ValidateTriggerID(input interface{}, key string) (warnings []string, errors
 // ID returns the formatted Trigger ID
 func (id TriggerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s/triggers/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.DatabaseName, id.ContainerName, id.TriggerName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.TriggerName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Trigger ID
@@ -139,9 +139,9 @@ func (id TriggerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("databaseName", "databaseValue"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseValue"),
 		resourceids.StaticSegment("staticContainers", "containers", "containers"),
 		resourceids.UserSpecifiedSegment("containerName", "containerValue"),
 		resourceids.StaticSegment("staticTriggers", "triggers", "triggers"),
@@ -154,8 +154,8 @@ func (id TriggerId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Database Name: %q", id.DatabaseName),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Sql Database Name: %q", id.SqlDatabaseName),
 		fmt.Sprintf("Container Name: %q", id.ContainerName),
 		fmt.Sprintf("Trigger Name: %q", id.TriggerName),
 	}

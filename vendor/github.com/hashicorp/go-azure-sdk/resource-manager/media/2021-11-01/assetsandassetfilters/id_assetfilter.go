@@ -13,19 +13,19 @@ var _ resourceids.ResourceId = AssetFilterId{}
 type AssetFilterId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	MediaServiceName  string
 	AssetName         string
-	FilterName        string
+	AssetFilterName   string
 }
 
 // NewAssetFilterID returns a new AssetFilterId struct
-func NewAssetFilterID(subscriptionId string, resourceGroupName string, accountName string, assetName string, filterName string) AssetFilterId {
+func NewAssetFilterID(subscriptionId string, resourceGroupName string, mediaServiceName string, assetName string, assetFilterName string) AssetFilterId {
 	return AssetFilterId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		MediaServiceName:  mediaServiceName,
 		AssetName:         assetName,
-		FilterName:        filterName,
+		AssetFilterName:   assetFilterName,
 	}
 }
 
@@ -48,16 +48,16 @@ func ParseAssetFilterID(input string) (*AssetFilterId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.AssetName, ok = parsed.Parsed["assetName"]; !ok {
 		return nil, fmt.Errorf("the segment 'assetName' was not found in the resource id %q", input)
 	}
 
-	if id.FilterName, ok = parsed.Parsed["filterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'filterName' was not found in the resource id %q", input)
+	if id.AssetFilterName, ok = parsed.Parsed["assetFilterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'assetFilterName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -83,16 +83,16 @@ func ParseAssetFilterIDInsensitively(input string) (*AssetFilterId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.AssetName, ok = parsed.Parsed["assetName"]; !ok {
 		return nil, fmt.Errorf("the segment 'assetName' was not found in the resource id %q", input)
 	}
 
-	if id.FilterName, ok = parsed.Parsed["filterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'filterName' was not found in the resource id %q", input)
+	if id.AssetFilterName, ok = parsed.Parsed["assetFilterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'assetFilterName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -116,7 +116,7 @@ func ValidateAssetFilterID(input interface{}, key string) (warnings []string, er
 // ID returns the formatted Asset Filter ID
 func (id AssetFilterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/assets/%s/assetFilters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.AssetName, id.FilterName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.AssetName, id.AssetFilterName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Asset Filter ID
@@ -129,11 +129,11 @@ func (id AssetFilterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticAssets", "assets", "assets"),
 		resourceids.UserSpecifiedSegment("assetName", "assetValue"),
 		resourceids.StaticSegment("staticAssetFilters", "assetFilters", "assetFilters"),
-		resourceids.UserSpecifiedSegment("filterName", "filterValue"),
+		resourceids.UserSpecifiedSegment("assetFilterName", "assetFilterValue"),
 	}
 }
 
@@ -142,9 +142,9 @@ func (id AssetFilterId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Asset Name: %q", id.AssetName),
-		fmt.Sprintf("Filter Name: %q", id.FilterName),
+		fmt.Sprintf("Asset Filter Name: %q", id.AssetFilterName),
 	}
 	return fmt.Sprintf("Asset Filter (%s)", strings.Join(components, "\n"))
 }

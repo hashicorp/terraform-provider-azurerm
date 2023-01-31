@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourcePrivateEndpoint() *pluginsdk.Resource {
@@ -191,7 +191,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						},
 						"subresource_name": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -963,7 +963,7 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 		}
 
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
-			Name: utils.String(privateDnsZone.PrivateZoneName),
+			Name: utils.String(privateDnsZone.PrivateDnsZoneName),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
 				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},

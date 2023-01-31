@@ -139,7 +139,7 @@ func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData
 	}
 
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("server_name", id.ServerName)
+	d.Set("server_name", id.FlexibleServerName)
 
 	if model := resp.Model; model != nil {
 		props := model.Properties

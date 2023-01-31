@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = UpdateProtectionPolicyRequestId{}
 
 // UpdateProtectionPolicyRequestId is a struct representing the Resource ID for a Update Protection Policy Request
 type UpdateProtectionPolicyRequestId struct {
-	SubscriptionId     string
-	ResourceGroupName  string
-	ResourceGuardsName string
-	RequestName        string
+	SubscriptionId                    string
+	ResourceGroupName                 string
+	ResourceGuardName                 string
+	UpdateProtectionPolicyRequestName string
 }
 
 // NewUpdateProtectionPolicyRequestID returns a new UpdateProtectionPolicyRequestId struct
-func NewUpdateProtectionPolicyRequestID(subscriptionId string, resourceGroupName string, resourceGuardsName string, requestName string) UpdateProtectionPolicyRequestId {
+func NewUpdateProtectionPolicyRequestID(subscriptionId string, resourceGroupName string, resourceGuardName string, updateProtectionPolicyRequestName string) UpdateProtectionPolicyRequestId {
 	return UpdateProtectionPolicyRequestId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroupName:  resourceGroupName,
-		ResourceGuardsName: resourceGuardsName,
-		RequestName:        requestName,
+		SubscriptionId:                    subscriptionId,
+		ResourceGroupName:                 resourceGroupName,
+		ResourceGuardName:                 resourceGuardName,
+		UpdateProtectionPolicyRequestName: updateProtectionPolicyRequestName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseUpdateProtectionPolicyRequestID(input string) (*UpdateProtectionPolicy
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.UpdateProtectionPolicyRequestName, ok = parsed.Parsed["updateProtectionPolicyRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'updateProtectionPolicyRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseUpdateProtectionPolicyRequestIDInsensitively(input string) (*UpdatePro
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.UpdateProtectionPolicyRequestName, ok = parsed.Parsed["updateProtectionPolicyRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'updateProtectionPolicyRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateUpdateProtectionPolicyRequestID(input interface{}, key string) (war
 // ID returns the formatted Update Protection Policy Request ID
 func (id UpdateProtectionPolicyRequestId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/resourceGuards/%s/updateProtectionPolicyRequests/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardsName, id.RequestName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardName, id.UpdateProtectionPolicyRequestName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Update Protection Policy Request ID
@@ -119,9 +119,9 @@ func (id UpdateProtectionPolicyRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardsName", "resourceGuardsValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
 		resourceids.StaticSegment("staticUpdateProtectionPolicyRequests", "updateProtectionPolicyRequests", "updateProtectionPolicyRequests"),
-		resourceids.UserSpecifiedSegment("requestName", "requestValue"),
+		resourceids.UserSpecifiedSegment("updateProtectionPolicyRequestName", "updateProtectionPolicyRequestValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id UpdateProtectionPolicyRequestId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Guards Name: %q", id.ResourceGuardsName),
-		fmt.Sprintf("Request Name: %q", id.RequestName),
+		fmt.Sprintf("Resource Guard Name: %q", id.ResourceGuardName),
+		fmt.Sprintf("Update Protection Policy Request Name: %q", id.UpdateProtectionPolicyRequestName),
 	}
 	return fmt.Sprintf("Update Protection Policy Request (%s)", strings.Join(components, "\n"))
 }

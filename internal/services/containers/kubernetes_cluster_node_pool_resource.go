@@ -189,6 +189,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
+			"node_network_profile": schemaNodePoolNetworkProfile(),
+
 			"node_labels": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -368,7 +370,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ResourceName, d.Get("name").(string))
+	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
 	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
@@ -575,6 +577,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
+	if networkProfile := d.Get("node_network_profile").([]interface{}); len(networkProfile) > 0 {
+		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
+	}
+
 	parameters := agentpools.AgentPool{
 		Name:       utils.String(id.AgentPoolName),
 		Properties: &profile,
@@ -765,7 +771,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// if the parent cluster doesn't exist then the node pool won't
-	clusterId := managedclusters.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	clusterId := managedclusters.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
 	cluster, err := clustersClient.Get(ctx, clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -933,8 +939,13 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 		}
+
 		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
+		}
+
+		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 	}
 
@@ -1423,4 +1434,57 @@ func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) [
 			"outbound_nat_enabled": outboundNatEnabled,
 		},
 	}
+}
+
+func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &agentpools.AgentPoolNetworkProfile{
+		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+	}
+}
+
+func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]agentpools.IPTag, 0)
+
+	for key, val := range input {
+		ipTag := agentpools.IPTag{
+			IPTagType: utils.String(key),
+			Tag:       utils.String(val.(string)),
+		}
+		out = append(out, ipTag)
+	}
+	return &out
+}
+
+func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+	if input == nil || input.NodePublicIPTags == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+		},
+	}
+}
+
+func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+	out := make(map[string]interface{})
+
+	for _, tag := range *input {
+		if tag.IPTagType != nil {
+			out[*tag.IPTagType] = tag.Tag
+		}
+	}
+
+	return out
 }

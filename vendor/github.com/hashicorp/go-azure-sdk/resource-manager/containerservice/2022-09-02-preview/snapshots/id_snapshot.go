@@ -13,15 +13,15 @@ var _ resourceids.ResourceId = SnapshotId{}
 type SnapshotId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	ResourceName      string
+	SnapshotName      string
 }
 
 // NewSnapshotID returns a new SnapshotId struct
-func NewSnapshotID(subscriptionId string, resourceGroupName string, resourceName string) SnapshotId {
+func NewSnapshotID(subscriptionId string, resourceGroupName string, snapshotName string) SnapshotId {
 	return SnapshotId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		SnapshotName:      snapshotName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseSnapshotID(input string) (*SnapshotId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SnapshotName, ok = parsed.Parsed["snapshotName"]; !ok {
+		return nil, fmt.Errorf("the segment 'snapshotName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseSnapshotIDInsensitively(input string) (*SnapshotId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SnapshotName, ok = parsed.Parsed["snapshotName"]; !ok {
+		return nil, fmt.Errorf("the segment 'snapshotName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateSnapshotID(input interface{}, key string) (warnings []string, error
 // ID returns the formatted Snapshot ID
 func (id SnapshotId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/snapshots/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SnapshotName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Snapshot ID
@@ -109,7 +109,7 @@ func (id SnapshotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticSnapshots", "snapshots", "snapshots"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("snapshotName", "snapshotValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id SnapshotId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Snapshot Name: %q", id.SnapshotName),
 	}
 	return fmt.Sprintf("Snapshot (%s)", strings.Join(components, "\n"))
 }

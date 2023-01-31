@@ -11,15 +11,15 @@ var _ resourceids.ResourceId = ScopedScheduledActionId{}
 
 // ScopedScheduledActionId is a struct representing the Resource ID for a Scoped Scheduled Action
 type ScopedScheduledActionId struct {
-	Scope string
-	Name  string
+	Scope               string
+	ScheduledActionName string
 }
 
 // NewScopedScheduledActionID returns a new ScopedScheduledActionId struct
-func NewScopedScheduledActionID(scope string, name string) ScopedScheduledActionId {
+func NewScopedScheduledActionID(scope string, scheduledActionName string) ScopedScheduledActionId {
 	return ScopedScheduledActionId{
-		Scope: scope,
-		Name:  name,
+		Scope:               scope,
+		ScheduledActionName: scheduledActionName,
 	}
 }
 
@@ -38,8 +38,8 @@ func ParseScopedScheduledActionID(input string) (*ScopedScheduledActionId, error
 		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduledActionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -61,8 +61,8 @@ func ParseScopedScheduledActionIDInsensitively(input string) (*ScopedScheduledAc
 		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
+		return nil, fmt.Errorf("the segment 'scheduledActionName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -86,7 +86,7 @@ func ValidateScopedScheduledActionID(input interface{}, key string) (warnings []
 // ID returns the formatted Scoped Scheduled Action ID
 func (id ScopedScheduledActionId) ID() string {
 	fmtString := "/%s/providers/Microsoft.CostManagement/scheduledActions/%s"
-	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.Scope, "/"), id.Name)
+	return fmt.Sprintf(fmtString, strings.TrimPrefix(id.Scope, "/"), id.ScheduledActionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Scoped Scheduled Action ID
@@ -96,7 +96,7 @@ func (id ScopedScheduledActionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCostManagement", "Microsoft.CostManagement", "Microsoft.CostManagement"),
 		resourceids.StaticSegment("staticScheduledActions", "scheduledActions", "scheduledActions"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("scheduledActionName", "scheduledActionValue"),
 	}
 }
 
@@ -104,7 +104,7 @@ func (id ScopedScheduledActionId) Segments() []resourceids.Segment {
 func (id ScopedScheduledActionId) String() string {
 	components := []string{
 		fmt.Sprintf("Scope: %q", id.Scope),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Scheduled Action Name: %q", id.ScheduledActionName),
 	}
 	return fmt.Sprintf("Scoped Scheduled Action (%s)", strings.Join(components, "\n"))
 }

@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = ConfigurationId{}
 
 // ConfigurationId is a struct representing the Resource ID for a Configuration
 type ConfigurationId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	DeploymentName    string
-	ConfigurationName string
+	SubscriptionId      string
+	ResourceGroupName   string
+	NginxDeploymentName string
+	ConfigurationName   string
 }
 
 // NewConfigurationID returns a new ConfigurationId struct
-func NewConfigurationID(subscriptionId string, resourceGroupName string, deploymentName string, configurationName string) ConfigurationId {
+func NewConfigurationID(subscriptionId string, resourceGroupName string, nginxDeploymentName string, configurationName string) ConfigurationId {
 	return ConfigurationId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		DeploymentName:    deploymentName,
-		ConfigurationName: configurationName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		NginxDeploymentName: nginxDeploymentName,
+		ConfigurationName:   configurationName,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParseConfigurationID(input string) (*ConfigurationId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.DeploymentName, ok = parsed.Parsed["deploymentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deploymentName' was not found in the resource id %q", input)
+	if id.NginxDeploymentName, ok = parsed.Parsed["nginxDeploymentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'nginxDeploymentName' was not found in the resource id %q", input)
 	}
 
 	if id.ConfigurationName, ok = parsed.Parsed["configurationName"]; !ok {
@@ -77,8 +77,8 @@ func ParseConfigurationIDInsensitively(input string) (*ConfigurationId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.DeploymentName, ok = parsed.Parsed["deploymentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deploymentName' was not found in the resource id %q", input)
+	if id.NginxDeploymentName, ok = parsed.Parsed["nginxDeploymentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'nginxDeploymentName' was not found in the resource id %q", input)
 	}
 
 	if id.ConfigurationName, ok = parsed.Parsed["configurationName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateConfigurationID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Configuration ID
 func (id ConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Nginx.NginxPlus/nginxDeployments/%s/configurations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DeploymentName, id.ConfigurationName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, id.ConfigurationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Configuration ID
@@ -119,7 +119,7 @@ func (id ConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticNginxNginxPlus", "Nginx.NginxPlus", "Nginx.NginxPlus"),
 		resourceids.StaticSegment("staticNginxDeployments", "nginxDeployments", "nginxDeployments"),
-		resourceids.UserSpecifiedSegment("deploymentName", "deploymentValue"),
+		resourceids.UserSpecifiedSegment("nginxDeploymentName", "nginxDeploymentValue"),
 		resourceids.StaticSegment("staticConfigurations", "configurations", "configurations"),
 		resourceids.UserSpecifiedSegment("configurationName", "configurationValue"),
 	}
@@ -130,7 +130,7 @@ func (id ConfigurationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Deployment Name: %q", id.DeploymentName),
+		fmt.Sprintf("Nginx Deployment Name: %q", id.NginxDeploymentName),
 		fmt.Sprintf("Configuration Name: %q", id.ConfigurationName),
 	}
 	return fmt.Sprintf("Configuration (%s)", strings.Join(components, "\n"))

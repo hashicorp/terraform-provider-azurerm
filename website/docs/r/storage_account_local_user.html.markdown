@@ -112,8 +112,6 @@ A `ssh_authorized_key` block supports the following:
 
 * `key` - (Required) The public key value of this SSH authorized key.
 
----
-
 * `description` - (Optional) The description of this SSH authorized key.
 
 ## Attributes Reference

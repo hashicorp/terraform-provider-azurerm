@@ -158,7 +158,7 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 			}
 
 			return metadata.Encode(&DataCollectionRuleAssociationModel{
-				Name:                     id.AssociationName,
+				Name:                     id.DataCollectionRuleAssociationName,
 				TargetResourceId:         id.ResourceUri,
 				DataCollectionEndpointId: dataCollectionEndpointId,
 				DataCollectionRuleId:     dataCollectionRuleId,

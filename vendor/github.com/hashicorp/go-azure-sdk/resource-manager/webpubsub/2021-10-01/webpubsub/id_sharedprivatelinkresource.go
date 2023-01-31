@@ -13,16 +13,16 @@ var _ resourceids.ResourceId = SharedPrivateLinkResourceId{}
 type SharedPrivateLinkResourceId struct {
 	SubscriptionId                string
 	ResourceGroupName             string
-	ResourceName                  string
+	WebPubSubName                 string
 	SharedPrivateLinkResourceName string
 }
 
 // NewSharedPrivateLinkResourceID returns a new SharedPrivateLinkResourceId struct
-func NewSharedPrivateLinkResourceID(subscriptionId string, resourceGroupName string, resourceName string, sharedPrivateLinkResourceName string) SharedPrivateLinkResourceId {
+func NewSharedPrivateLinkResourceID(subscriptionId string, resourceGroupName string, webPubSubName string, sharedPrivateLinkResourceName string) SharedPrivateLinkResourceId {
 	return SharedPrivateLinkResourceId{
 		SubscriptionId:                subscriptionId,
 		ResourceGroupName:             resourceGroupName,
-		ResourceName:                  resourceName,
+		WebPubSubName:                 webPubSubName,
 		SharedPrivateLinkResourceName: sharedPrivateLinkResourceName,
 	}
 }
@@ -46,8 +46,8 @@ func ParseSharedPrivateLinkResourceID(input string) (*SharedPrivateLinkResourceI
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
 	}
 
 	if id.SharedPrivateLinkResourceName, ok = parsed.Parsed["sharedPrivateLinkResourceName"]; !ok {
@@ -77,8 +77,8 @@ func ParseSharedPrivateLinkResourceIDInsensitively(input string) (*SharedPrivate
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
 	}
 
 	if id.SharedPrivateLinkResourceName, ok = parsed.Parsed["sharedPrivateLinkResourceName"]; !ok {
@@ -106,7 +106,7 @@ func ValidateSharedPrivateLinkResourceID(input interface{}, key string) (warning
 // ID returns the formatted Shared Private Link Resource ID
 func (id SharedPrivateLinkResourceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/webPubSub/%s/sharedPrivateLinkResources/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.SharedPrivateLinkResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName, id.SharedPrivateLinkResourceName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Shared Private Link Resource ID
@@ -119,7 +119,7 @@ func (id SharedPrivateLinkResourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
 		resourceids.StaticSegment("staticSharedPrivateLinkResources", "sharedPrivateLinkResources", "sharedPrivateLinkResources"),
 		resourceids.UserSpecifiedSegment("sharedPrivateLinkResourceName", "sharedPrivateLinkResourceValue"),
 	}
@@ -130,7 +130,7 @@ func (id SharedPrivateLinkResourceId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Web Pub Sub Name: %q", id.WebPubSubName),
 		fmt.Sprintf("Shared Private Link Resource Name: %q", id.SharedPrivateLinkResourceName),
 	}
 	return fmt.Sprintf("Shared Private Link Resource (%s)", strings.Join(components, "\n"))

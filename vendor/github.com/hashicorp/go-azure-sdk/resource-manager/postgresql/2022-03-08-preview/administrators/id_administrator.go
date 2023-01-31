@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = AdministratorId{}
 
 // AdministratorId is a struct representing the Resource ID for a Administrator
 type AdministratorId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ServerName        string
-	ObjectId          string
+	SubscriptionId     string
+	ResourceGroupName  string
+	FlexibleServerName string
+	ObjectId           string
 }
 
 // NewAdministratorID returns a new AdministratorId struct
-func NewAdministratorID(subscriptionId string, resourceGroupName string, serverName string, objectId string) AdministratorId {
+func NewAdministratorID(subscriptionId string, resourceGroupName string, flexibleServerName string, objectId string) AdministratorId {
 	return AdministratorId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ServerName:        serverName,
-		ObjectId:          objectId,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		FlexibleServerName: flexibleServerName,
+		ObjectId:           objectId,
 	}
 }
 
@@ -46,8 +46,8 @@ func ParseAdministratorID(input string) (*AdministratorId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverName' was not found in the resource id %q", input)
+	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'flexibleServerName' was not found in the resource id %q", input)
 	}
 
 	if id.ObjectId, ok = parsed.Parsed["objectId"]; !ok {
@@ -77,8 +77,8 @@ func ParseAdministratorIDInsensitively(input string) (*AdministratorId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverName' was not found in the resource id %q", input)
+	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'flexibleServerName' was not found in the resource id %q", input)
 	}
 
 	if id.ObjectId, ok = parsed.Parsed["objectId"]; !ok {
@@ -106,7 +106,7 @@ func ValidateAdministratorID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Administrator ID
 func (id AdministratorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/flexibleServers/%s/administrators/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.ObjectId)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName, id.ObjectId)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Administrator ID
@@ -119,7 +119,7 @@ func (id AdministratorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerValue"),
 		resourceids.StaticSegment("staticAdministrators", "administrators", "administrators"),
 		resourceids.UserSpecifiedSegment("objectId", "objectIdValue"),
 	}
@@ -130,7 +130,7 @@ func (id AdministratorId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Server Name: %q", id.ServerName),
+		fmt.Sprintf("Flexible Server Name: %q", id.FlexibleServerName),
 		fmt.Sprintf("Object: %q", id.ObjectId),
 	}
 	return fmt.Sprintf("Administrator (%s)", strings.Join(components, "\n"))
