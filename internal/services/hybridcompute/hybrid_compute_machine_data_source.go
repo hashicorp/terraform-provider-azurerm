@@ -151,10 +151,9 @@ func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
