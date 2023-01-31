@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `event_grouping` - (Optional) A `event_grouping` block as defined below.
 
+-> **NOTE:** `event_grouping` will be required in the next major version of the AzureRM Provider.
+
 * `incident` - (Optional) A `incident` block as defined below.
 
 * `suppression_duration` - (Optional) If `suppression_enabled` is `true`, this is ISO 8601 timespan duration, which specifies the amount of time the query should stop running after alert is generated. Defaults to `PT5H`.

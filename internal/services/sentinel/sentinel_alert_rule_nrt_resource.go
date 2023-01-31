@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -98,7 +99,9 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 
 			"event_grouping": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: features.FourPointOhBeta(),
+				Optional: !features.FourPointOhBeta(),
+				Computed: !features.FourPointOhBeta(), // the service will default it to `SingleAlert`.
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
