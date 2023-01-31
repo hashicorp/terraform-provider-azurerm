@@ -33,10 +33,6 @@ type MachineLearningDataStoreFileShareModel struct {
 	Tags                  map[string]string `tfschema:"tags"`
 }
 
-func (r MachineLearningDataStoreFileShare) Attributes() map[string]*schema.Schema {
-	return nil
-}
-
 func (r MachineLearningDataStoreFileShare) ModelObject() interface{} {
 	return &MachineLearningDataStoreFileShareModel{}
 }
@@ -80,12 +76,6 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 			ForceNew: true,
 		},
 
-		"is_default": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
 		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -115,6 +105,15 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 		},
 
 		"tags": commonschema.TagsForceNew(),
+	}
+}
+
+func (r MachineLearningDataStoreFileShare) Attributes() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"is_default": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 	}
 }
 
@@ -162,7 +161,6 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 				FileShareName:                 fileShareId.FileshareName,
 				Description:                   utils.String(model.Description),
 				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
-				IsDefault:                     utils.Bool(model.IsDefault),
 				Tags:                          utils.ToPtr(model.Tags),
 			}
 
@@ -231,7 +229,6 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 				FileShareName:                 fileShareId.FileshareName,
 				Description:                   utils.String(state.Description),
 				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
-				IsDefault:                     utils.Bool(state.IsDefault),
 				Tags:                          utils.ToPtr(state.Tags),
 			}
 
