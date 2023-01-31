@@ -158,6 +158,7 @@ resource "azurerm_media_live_event" "test" {
 
   use_static_hostname     = true
   hostname_prefix         = "special-event"
+  stream_options = ["LowLatency"]
   transcription_languages = ["en-US"]
 }
 `, r.template(data))

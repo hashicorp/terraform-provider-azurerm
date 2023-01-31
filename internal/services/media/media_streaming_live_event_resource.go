@@ -203,6 +203,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(liveevents.LiveEventEncodingTypeNone),
 								string(liveevents.LiveEventEncodingTypePremiumOneZeroEightZerop),
+								string(liveevents.LiveEventEncodingTypePassthroughBasic),
+								string(liveevents.LiveEventEncodingTypePassthroughStandard),
 								string(liveevents.LiveEventEncodingTypeStandard),
 							}, false),
 							Default: string(liveevents.LiveEventEncodingTypeNone),
@@ -332,6 +334,16 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				},
 			},
 
+			"stream_options": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(liveevents.PossibleValuesForStreamOptionsFlag(), false),
+				},
+			},
+
 			"transcription_languages": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -407,6 +419,10 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if preview, ok := d.GetOk("preview"); ok {
 		payload.Properties.Preview = expandPreview(preview.([]interface{}))
+	}
+
+	if streamOptions, ok := d.GetOk("stream_options"); ok {
+		payload.Properties.StreamOptions = expandStreamOptions(streamOptions.([]interface{}))
 	}
 
 	if transcriptionLanguages, ok := d.GetOk("transcription_languages"); ok {
@@ -486,6 +502,11 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 			preview := flattenPreview(props.Preview)
 			if err := d.Set("preview", preview); err != nil {
 				return fmt.Errorf("flattening `preview`: %s", err)
+			}
+
+			streamOptions := flattenStreamOptions(props.StreamOptions)
+			if err := d.Set("stream_options", streamOptions); err != nil {
+				return fmt.Errorf("flattening `stream_options`: %s", err)
 			}
 
 			transcriptions := flattenTranscriptions(props.Transcriptions)
@@ -688,6 +709,15 @@ func expandLiveEventCrossSiteAccessPolicies(input []interface{}) *liveevents.Cro
 		CrossDomainPolicy:  &crossDomainPolicy,
 	}
 }
+
+func expandStreamOptions(input []interface{}) *[]liveevents.StreamOptionsFlag {
+	streamOptions := make([]liveevents.StreamOptionsFlag, 0)
+	for _, v := range input {
+		streamOptions = append(streamOptions, liveevents.StreamOptionsFlag(v.(string)))
+	}
+	return &streamOptions
+}
+
 func expandTranscriptions(input []interface{}) *[]liveevents.LiveEventTranscription {
 	transcriptions := make([]liveevents.LiveEventTranscription, 0)
 	for _, v := range input {
@@ -886,6 +916,19 @@ func flattenLiveEventCrossSiteAccessPolicies(input *liveevents.CrossSiteAccessPo
 			"cross_domain_policy":  crossDomainPolicy,
 		},
 	}
+}
+
+func flattenStreamOptions(input *[]liveevents.StreamOptionsFlag) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	streamOptions := make([]interface{}, 0)
+	for _, v := range *input {
+		streamOptions = append(streamOptions, string(v))
+	}
+
+	return streamOptions
 }
 
 func flattenTranscriptions(input *[]liveevents.LiveEventTranscription) []string {
