@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -48,6 +49,26 @@ func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) pluginsdk
 			return nil, err
 		}
 		return []*pluginsdk.ResourceData{d}, nil
+	}
+}
+
+func importSentinelAlertRuleForTypedSdk(expectKind securityinsight.AlertRuleKind) sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		id, err := parse.AlertRuleID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		client := metadata.Client.Sentinel.AlertRulesClient
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
+		}
+
+		if err := assertAlertRuleKind(resp.Value, expectKind); err != nil {
+			return err
+		}
+		return nil
 	}
 }
 
