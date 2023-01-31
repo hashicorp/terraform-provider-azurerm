@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/machines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type HybridComputeMachineModel struct {
@@ -51,8 +53,8 @@ type HybridComputeMachineModel struct {
 type AgentConfigurationModel struct {
 	ExtensionsAllowList       []ConfigurationExtensionModel `tfschema:"extensions_allow_list"`
 	ExtensionsBlockList       []ConfigurationExtensionModel `tfschema:"extensions_block_list"`
-	ExtensionsEnabled         string                        `tfschema:"extensions_enabled"`
-	GuestConfigurationEnabled string                        `tfschema:"guest_configuration_enabled"`
+	ExtensionsEnabled         bool                          `tfschema:"extensions_enabled"`
+	GuestConfigurationEnabled bool                          `tfschema:"guest_configuration_enabled"`
 	IncomingConnectionsPorts  []string                      `tfschema:"incoming_connections_ports"`
 	ProxyBypass               []string                      `tfschema:"proxy_bypass"`
 	ProxyUrl                  string                        `tfschema:"proxy_url"`
@@ -149,8 +151,9 @@ func (r HybridComputeMachineDataSource) IDValidationFunc() pluginsdk.SchemaValid
 func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -202,12 +205,12 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 					},
 
 					"extensions_enabled": {
-						Type:     pluginsdk.TypeString,
+						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
 					"guest_configuration_enabled": {
-						Type:     pluginsdk.TypeString,
+						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
@@ -644,7 +647,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.AdFqdn = *properties.AdFqdn
 				}
 
-				agentConfigurationValue := flattenAgentConfigurationModel(properties.AgentConfiguration)
+				agentConfigurationValue, err := flattenAgentConfigurationModel(properties.AgentConfiguration)
 				if err != nil {
 					return err
 				}
@@ -660,9 +663,6 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				}
 
 				cloudMetadataValue := flattenCloudMetadataModel(properties.CloudMetadata)
-				if err != nil {
-					return err
-				}
 
 				state.CloudMetadata = cloudMetadataValue
 
@@ -683,16 +683,10 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				}
 
 				errorDetailsValue := flattenErrorDetailModel(properties.ErrorDetails)
-				if err != nil {
-					return err
-				}
 
 				state.ErrorDetails = errorDetailsValue
 
 				extensionsValue := flattenMachineExtensionInstanceViewModel(properties.Extensions)
-				if err != nil {
-					return err
-				}
 
 				state.Extensions = extensionsValue
 
@@ -701,9 +695,6 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				}
 
 				locationDataValue := flattenLocationDataModel(properties.LocationData)
-				if err != nil {
-					return err
-				}
 
 				state.LocationData = locationDataValue
 
@@ -720,9 +711,6 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				}
 
 				osProfileValue := flattenOSProfileModel(properties.OsProfile)
-				if err != nil {
-					return err
-				}
 
 				state.OsProfile = osProfileValue
 
@@ -747,9 +735,6 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				}
 
 				serviceStatusesValue := flattenServiceStatusesModel(properties.ServiceStatuses)
-				if err != nil {
-					return err
-				}
 
 				state.ServiceStatuses = serviceStatusesValue
 
@@ -775,10 +760,10 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenAgentConfigurationModel(input *machines.AgentConfiguration) []AgentConfigurationModel {
+func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]AgentConfigurationModel, error) {
 	var outputList []AgentConfigurationModel
 	if input == nil {
-		return outputList
+		return outputList, nil
 	}
 
 	output := AgentConfigurationModel{}
@@ -792,11 +777,19 @@ func flattenAgentConfigurationModel(input *machines.AgentConfiguration) []AgentC
 	output.ExtensionsBlockList = extensionsBlockListValue
 
 	if input.ExtensionsEnabled != nil {
-		output.ExtensionsEnabled = *input.ExtensionsEnabled
+		parsedBool, err := strconv.ParseBool(*input.ExtensionsEnabled)
+		if err != nil {
+			return nil, err
+		}
+		output.ExtensionsEnabled = parsedBool
 	}
 
 	if input.GuestConfigurationEnabled != nil {
-		output.GuestConfigurationEnabled = *input.GuestConfigurationEnabled
+		parsedBool, err := strconv.ParseBool(*input.GuestConfigurationEnabled)
+		if err != nil {
+			return nil, err
+		}
+		output.GuestConfigurationEnabled = parsedBool
 	}
 
 	if input.IncomingConnectionsPorts != nil {
@@ -811,7 +804,7 @@ func flattenAgentConfigurationModel(input *machines.AgentConfiguration) []AgentC
 		output.ProxyUrl = *input.ProxyUrl
 	}
 
-	return append(outputList, output)
+	return append(outputList, output), nil
 }
 
 func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExtension) []ConfigurationExtensionModel {
