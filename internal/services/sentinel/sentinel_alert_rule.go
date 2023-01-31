@@ -386,3 +386,41 @@ func flattenAlertRuleFieldMapping(input *[]securityinsight.FieldMapping) []inter
 
 	return output
 }
+
+func expandAlertRuleSentinelEntityMapping(input []interface{}) *[]securityinsight.SentinelEntityMapping {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]securityinsight.SentinelEntityMapping, 0)
+
+	for _, e := range input {
+		b := e.(map[string]interface{})
+		result = append(result, securityinsight.SentinelEntityMapping{
+			ColumnName: utils.String(b["column_name"].(string)),
+		})
+	}
+
+	return &result
+}
+
+func flattenAlertRuleSentinelEntityMapping(input *[]securityinsight.SentinelEntityMapping) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		var columnName string
+		if e.ColumnName != nil {
+			columnName = *e.ColumnName
+		}
+
+		output = append(output, map[string]interface{}{
+			"column_name": columnName,
+		})
+	}
+
+	return output
+}

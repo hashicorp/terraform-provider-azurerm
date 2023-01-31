@@ -372,6 +372,20 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 					},
 				},
 			},
+			"sentinel_entity_mapping": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 5,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"column_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -459,8 +473,21 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	if v, ok := d.GetOk("custom_details"); ok {
 		param.ScheduledAlertRuleProperties.CustomDetails = utils.ExpandMapStringPtrString(v.(map[string]interface{}))
 	}
+
+	entityMappingCount := 0
+	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
 		param.ScheduledAlertRuleProperties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
+		entityMappingCount = len(*param.ScheduledAlertRuleProperties.EntityMappings)
+	}
+	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
+		param.ScheduledAlertRuleProperties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
+		sentinelEntityMappingCount = len(*param.ScheduledAlertRuleProperties.SentinelEntitiesMappings)
+	}
+
+	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
+	if entityMappingCount+sentinelEntityMappingCount > 5 {
+		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
 	}
 
 	if !d.IsNewResource() {
@@ -555,6 +582,9 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 		}
 		if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
 			return fmt.Errorf("setting `entity_mapping`: %+v", err)
+		}
+		if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+			return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
 		}
 	}
 

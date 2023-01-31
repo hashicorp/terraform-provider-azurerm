@@ -311,6 +311,20 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 					},
 				},
 			},
+			"sentinel_entity_mapping": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 5,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"column_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -373,8 +387,21 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if v, ok := d.GetOk("custom_details"); ok {
 		param.NrtAlertRuleProperties.CustomDetails = utils.ExpandMapStringPtrString(v.(map[string]interface{}))
 	}
+
+	entityMappingCount := 0
+	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
 		param.NrtAlertRuleProperties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
+		entityMappingCount = len(*param.NrtAlertRuleProperties.EntityMappings)
+	}
+	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
+		param.NrtAlertRuleProperties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
+		sentinelEntityMappingCount = len(*param.NrtAlertRuleProperties.SentinelEntitiesMappings)
+	}
+
+	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
+	if entityMappingCount+sentinelEntityMappingCount > 5 {
+		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
@@ -459,6 +486,9 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 		}
 		if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
 			return fmt.Errorf("setting `entity_mapping`: %+v", err)
+		}
+		if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+			return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
 		}
 	}
 

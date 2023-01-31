@@ -210,6 +210,9 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
       column_name = "Computer"
     }
   }
+  sentinel_entity_mapping {
+    column_name = "Category"
+  }
   entity_mapping {
     entity_type = "IP"
     field_mapping {
