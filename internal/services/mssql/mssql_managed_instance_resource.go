@@ -475,7 +475,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.Fqdn = *props.FullyQualifiedDomainName
 				}
 				if props.MaintenanceConfigurationID != nil {
-					maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
+					maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationID)
 					if err != nil {
 						return err
 					}
