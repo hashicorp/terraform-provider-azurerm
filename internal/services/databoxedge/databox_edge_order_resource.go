@@ -23,6 +23,8 @@ func resourceOrder() *pluginsdk.Resource {
 		Update: resourceOrderCreateUpdate,
 		Delete: resourceOrderDelete,
 
+		DeprecationMessage: `Creating DataBox Edge Orders are not supported via the Azure API - as such the 'azurerm_databox_edge_order' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
