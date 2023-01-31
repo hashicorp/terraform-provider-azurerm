@@ -2334,11 +2334,13 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
+    always_on = true
+
     application_stack {
       docker {
         registry_url = "https://mcr.microsoft.com"
-        image_name   = "azure-app-service/samples/aspnethelloworld"
-        image_tag    = "latest"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "3.0-appservice-quickstart"
       }
     }
   }

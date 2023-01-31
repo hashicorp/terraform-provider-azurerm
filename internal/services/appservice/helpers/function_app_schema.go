@@ -1590,13 +1590,15 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
-			dockerUrl := dockerConfig.RegistryURL
-			httpPrefixes := []string{"https://", "http://"}
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerUrl, false)
+			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
-			for _, prefix := range httpPrefixes {
-				dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+			var dockerUrl string
+			for _, prefix := range urlSchemes {
+				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
+					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
+					continue
+				}
 			}
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
 		}

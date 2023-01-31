@@ -8,6 +8,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var urlSchemes = []string{
+	"https://",
+	"HTTPS://",
+	"http://",
+	"HTTP://",
+}
+
 func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
@@ -189,9 +196,11 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 	}
 
 	dockerUrl := partial.RegistryURL
-	urlPrefix := []string{"https://", "http://"}
-	for _, prefix := range urlPrefix {
-		dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+	for _, prefix := range urlSchemes {
+		if strings.HasPrefix(dockerUrl, prefix) {
+			dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+			continue
+		}
 	}
 	dockerParts := strings.Split(strings.TrimPrefix(parts[1], dockerUrl), ":")
 	if len(dockerParts) != 2 {
