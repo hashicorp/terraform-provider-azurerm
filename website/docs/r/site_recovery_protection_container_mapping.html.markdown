@@ -105,7 +105,7 @@ An `automatic_update` block supports the following:
 
 ~> **Note:** The setting applies to all Azure VMs protected in the same container. For more details see [this document](https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-autoupdate#enable-automatic-updates)
 
-* `automation_account_id` - (Optional) The automation account ID which holds the automatic update runbook and authenticates to Azure resources.
+* `automation_account_id` - (Optional) The automation account ID which holds the automatic update runbook and authenticates to Azure resources. Changing this forces a new resource to be created.
 
 ~> **Note:** `automation_account_id` is required when `enabled` is set to `true`.
 

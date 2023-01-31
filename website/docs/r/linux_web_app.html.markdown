@@ -217,7 +217,7 @@ An `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
+* `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
@@ -313,9 +313,17 @@ A `headers` block supports the following:
 
 A `http_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined above.
+* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined below.
 
 * `file_system` - (Optional) A `file_system` block as defined above.
+
+---
+
+An `azure_blob_storage_http` block supports the following:
+
+* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
+
+* `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
 ---
 
